@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerDetailsEditingPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 
@@ -51,7 +53,9 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   private Label label;
 
-  private LicenseThreatGroup ltg;
+  private LicenseThreatGroup[] ltgs;
+
+  private Policy[] policies;
 
   private Tag category;
 
@@ -66,7 +70,14 @@ public abstract class AbstractOwnerDetailsEditingTest
     label = tempEntity.newLabel(currentOwner.getId());
 
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
-      ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId());
+      ltgs = new LicenseThreatGroup[]{
+          tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Bar", 1),
+          tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Foo", 10)
+      };
+      policies = new Policy[]{
+          tempEntity.newPolicy(currentOwner.getId(), "Bar", 1),
+          tempEntity.newPolicy(currentOwner.getId(), "Foo", 10)
+      };
       category = tempEntity.newTag(currentOwner.getId());
     }
 
@@ -155,6 +166,26 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
+    if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
+      detailGroup.items().shouldHaveSize(5);
+      detailGroup.item(1).root().shouldBe(visible).click();
+      detailGroup.item(1).root().shouldBe(CLM.SELECTED);
+      waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
+
+      back();
+
+      detailGroup.item(2).root().shouldBe(visible).shouldHave(text(policies[1].getName())).click();
+      detailGroup.item(2).root().shouldBe(CLM.SELECTED);
+      waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), policies[1].getId()));
+
+      back();
+
+      detailGroup.item(3).root().shouldBe(visible).shouldHave(text(policies[0].getName())).click();
+      detailGroup.item(3).root().shouldBe(CLM.SELECTED);
+      waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), policies[0].getId()));
+
+      back();
+    }
     testMonitoring(detailGroup);
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
@@ -199,16 +230,22 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.twisty().click();
       detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
 
-      detailGroup.items().shouldHaveSize(3);
+      detailGroup.items().shouldHaveSize(4);
       detailGroup.item(1).root().shouldBe(visible).click();
       detailGroup.item(1).root().shouldBe(CLM.SELECTED);
       waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
 
       back();
 
-      detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ltg.getName())).click();
+      detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ltgs[1].getName())).click();
       detailGroup.item(2).root().shouldBe(CLM.SELECTED);
-      waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
+      waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltgs[1].getId()));
+
+      back();
+
+      detailGroup.item(3).root().shouldBe(visible).shouldHave(text(ltgs[0].getName())).click();
+      detailGroup.item(3).root().shouldBe(CLM.SELECTED);
+      waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltgs[0].getId()));
 
       back();
 

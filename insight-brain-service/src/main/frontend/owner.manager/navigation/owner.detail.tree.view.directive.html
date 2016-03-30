@@ -62,7 +62,7 @@
       <a class="tree-view-item"
          ng-if="vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy')"
          ui-sref=".policy({ policyId: policy.id })"
-         ng-repeat="policy in vm.details.policies"
+         ng-repeat="policy in vm.details.policies | orderBy: ['-threatLevel', 'name']"
          ui-sref-active="selected">
         <i class="fa fa-university size-16px policy-threat-level-background threat-level-{{policy.threatLevel}} tree-view-icon"></i><!--
         -->{{ policy.name }}
@@ -121,7 +121,7 @@
       </a>
       <a class="tree-view-item"
          ng-if="vm.ltgState.isExpanded || vm.state.$current.name.endsWith('license-threat-group')"
-         ng-repeat="licenseThreatGroup in vm.details.licenseThreatGroups"
+         ng-repeat="licenseThreatGroup in vm.details.licenseThreatGroups | orderBy: ['-threatLevel', 'name']"
          ui-sref=".edit-license-threat-group({ licenseThreatGroupId: licenseThreatGroup.id })"
          ui-sref-active="selected">
         <i class="fa fa-book size-16px size-fw threat-level-{{licenseThreatGroup.threatLevel}} tree-view-icon"></i><!--

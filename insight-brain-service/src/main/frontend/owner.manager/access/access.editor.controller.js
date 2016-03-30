@@ -12,6 +12,7 @@
     var originalMembers,
         ownerType,
         isNavigatingAfterRemove,
+        ldapRealm,
         vm = this;
 
     vm.accessEditor = undefined;
@@ -26,7 +27,10 @@
     vm.submitError = undefined;
     vm.searchError = undefined;
     vm.members = undefined;
+    vm.newGroupName = undefined;
+    vm.addGroup = addGroup;
     vm.doLoad = doLoad;
+    vm.groupExists = groupExists;
     vm.isNew = !$stateParams.roleId;
     vm.isValid = isValid;
     vm.removeRole = removeRole;
@@ -70,10 +74,26 @@
             return;
           }
         }
+        vm.groupSearchEnabled = result.data.groupSearchEnabled;
         vm.availableRoles = LocalRoleService.getRolesWithoutLocalMembers(result.data.membersByRole);
+        ldapRealm = result.data.ldapRealm;
       }, function(error) {
         vm.loadError = Messages.getHttpErrorMessage(error);
       });
+    }
+
+    function addGroup() {
+      var group = {
+        displayName: vm.newGroupName,
+        email: null,
+        internalName: vm.newGroupName,
+        realm: ldapRealm,
+        type: 'GROUP'
+      };
+      updatePickedUsers([group]);
+
+      vm.newGroupName = undefined;
+      vm.accessEditorAddGroup.$setPristine();
     }
 
     function isDirty(){
@@ -162,6 +182,7 @@
             originalMembers = currentlyPicked();
           }
 
+          delete vm.newGroupName;
           delete vm.query;
           delete vm.searchError;
           vm.accessEditor.$setPristine();
@@ -211,6 +232,12 @@
         if (!replaced) {
           vm.members.push(pickedUser);
         }
+      });
+    }
+
+    function groupExists(groupName) {
+      return vm.members.some(function(member) {
+        return member.internalName === groupName;
       });
     }
 

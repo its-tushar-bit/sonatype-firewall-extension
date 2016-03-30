@@ -178,6 +178,36 @@ describe('access.editor.controller.spec.js', function() {
     expect(vm.getTooltip({displayName: 'test'})).toBe(null);
   });
 
+  describe('typical cases', function () {
+    beforeEach(inject(function($controller, $httpBackend) {
+      vm = $controller('access.editor.controller', {
+        $scope: scope
+      });
+      vm.accessEditorAddGroup = {
+        $setPristine: jasmine.createSpy('$setPristine')
+      };
+
+      $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
+      $httpBackend.flush();
+    }));
+
+    it('groupExists', function() {
+      expect(vm.groupExists('foo')).toBeFalsy();
+      vm.newGroupName = 'foo';
+      vm.addGroup();
+
+      expect(vm.groupExists('bar')).toBeFalsy();
+      expect(vm.groupExists('foo')).toBeTruthy();
+    });
+    
+    it('addGroup', function() {
+      vm.newGroupName = 'foo';
+      vm.addGroup();
+      expect(vm.members).toEqual([{displayName: 'foo', email: null, internalName: 'foo', realm: 'some-ldap-realm', type: 'GROUP'}])
+      expect(vm.accessEditorAddGroup.$setPristine).toHaveBeenCalled();
+    });
+  });
+
   describe('Page Changes', function() {
     beforeEach(inject(function($controller) {
       vm = $controller('access.editor.controller', {

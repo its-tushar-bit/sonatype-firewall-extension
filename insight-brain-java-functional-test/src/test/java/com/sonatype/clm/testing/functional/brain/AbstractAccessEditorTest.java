@@ -56,7 +56,7 @@ public abstract class AbstractAccessEditorTest
 
   private final RoleDAO roleDAO = new RoleDAO();
 
-  private Owner currentOwner;
+  protected Owner currentOwner;
 
   @BeforeClass
   public static void beforeClass() {
@@ -220,7 +220,7 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.saveButton().shouldHave(DISABLED);
   }
 
-  private List<MembershipMapping> getMembershipMappings(final String ownerId, final String roleName) {
+  protected List<MembershipMapping> getMembershipMappings(final String ownerId, final String roleName) {
     return membershipMappingDAO.getByContextIdAndRoleId(ownerId, roleDAO.getByName(roleName).getId());
   }
 

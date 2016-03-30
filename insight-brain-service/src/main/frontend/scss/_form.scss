@@ -901,12 +901,28 @@
 }
 
 #access-editor-role {
-  margin-top: -177px;
+  $error-height: 25px;
+  $search-height: 98px;
+  $push-down: 79px;
+  $some-margin: 20px;
+
+  margin-top: -($search-height + $push-down);
   margin-bottom: 118px;
 
   &.space-for-error {
-    margin-top: -202px;
+    margin-top: -($search-height + $error-height);
     margin-bottom: 141px;
+  }
+
+  &.no-group-search {
+    $add-group-height: 98px;
+    margin-bottom: $add-group-height + $search-height + $some-margin;
+    margin-top: -($search-height + $add-group-height + $push-down);
+
+    &.space-for-error {
+      margin-bottom: $add-group-height + $search-height + $error-height + $some-margin;
+      margin-top: -($search-height + $error-height + $add-group-height + $push-down);
+    }
   }
 }
 

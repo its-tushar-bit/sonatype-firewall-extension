@@ -19,10 +19,24 @@
       </div>
     </form>
 
+    <form id="access-editor-add-group-form" name="vm.accessEditorAddGroup" class="clm-form" role="form"
+          ng-if="!vm.groupSearchEnabled" ng-class="{'prop-down': vm.isNew}" novalidate ng-submit="vm.addGroup();">
+      <div class="section">
+        <div class="field form-horizontal">
+          <label for="access-add-group-input">Associate Group</label>
+          <div class="sub-label">requires an exact match of the group name</div>
+          <input id="access-add-group-input" type="text" name="add" ng-model="vm.newGroupName" ng-maxlength="60"
+                 ng-disabled="vm.searchInProgress" clm-input/><!--
+       --><button id="add-group-button" class="btn" type="submit"
+                  ng-disabled="vm.searchInProgress || !vm.newGroupName || vm.groupExists(vm.newGroupName)">Add</button>
+        </div>
+      </div>
+    </form>
+
     <form name="vm.accessEditor" class="clm-form" role="form" novalidate form-mask="vm.accessEditorMask"
           mask-attach-to-body ng-submit="vm.save()">
       <div class="section">
-        <div class="field" id="access-editor-role" ng-if="vm.isNew" ng-class="{'space-for-error': vm.searchError}">
+        <div class="field" id="access-editor-role" ng-if="vm.isNew" ng-class="{'space-for-error': vm.searchError, 'no-group-search': !vm.groupSearchEnabled}">
           <label for="access-role-name" ng-if="true">Role</label><!-- bogus ng-if to fix IE9 combobox rendering -->
           <dropdown-selector id="access-role-name" ng-model="vm.role" options="vm.availableRoles" name="role-name"
                              option-name-param="roleName" clm-input required

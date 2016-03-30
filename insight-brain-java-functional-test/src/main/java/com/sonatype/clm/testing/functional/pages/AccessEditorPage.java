@@ -55,6 +55,14 @@ public class AccessEditorPage
     return $("#remove-role-button");
   }
 
+  public static SelenideElement addGroupBox() {
+    return $("#access-add-group-input");
+  }
+
+  public static SelenideElement addGroupButton() {
+    return $("#add-group-button");
+  }
+
   public static SelenideElement searchBox() {
     return $("#access-user-search-input");
   }

@@ -68,15 +68,15 @@
     </div>
   </div>
 </script>
-<script type="text/ng-template" id="policy-trends-dialog">
-  <div class="modal-header">
-    <button id="policy-trends-dialog-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
-    <h3>Policy Violation Trends</h3>
+<script type="text/ng-template" id="policy-trends-dialog-template">
+<div id="policy-trends-dialog">
+  <div class="clm-modal-header">
+    <h2>Policy Violation Trends</h2>
   </div>
-  <div load-wrapper="error" reload="doLoad()">
-    <h5 ng-if="!policySummaryData && !error" class="policy-trends-loading">
-      <i class='icon-time'></i> Calculating policy violation trends...
-    </h5>
+  <div load-wrapper="error" reload="doLoad()" class="clm-modal-body">
+    <div ng-if="!policySummaryData && !error" class="policy-trends-loading">
+      <i class='fa fa-spin fa-circle-o-notch loading-spinner'></i> Calculating policy violation trends...
+    </div>
     <div ng-if="policySummaryData" id="policySummaryData">
       <table class="table policy-summary-table">
         <thead>
@@ -119,9 +119,10 @@
       </table>
     </div>
   </div>
-  <div class="modal-footer">
-    <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
+  <div class="clm-modal-footer">
+    <button id="policy-trends-dialog-close" class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
   </div>
+</div>
 </script>
 <script type="text/ng-template" id="component-heat-map-help">
   <div class="modal-header">

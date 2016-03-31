@@ -86,8 +86,8 @@
       $modal.open({
         backdrop: 'static',
         keyboard : false,
-        templateUrl : 'policy-trends-dialog',
-        windowClass : 'dashboard-policy-trend-dialog',
+        templateUrl : 'policy-trends-dialog-template',
+        windowClass : 'dashboard-policy-trend-dialog clm-modal',
         controller: 'PolicyTrendController',
         resolve: {
           filters: function() {

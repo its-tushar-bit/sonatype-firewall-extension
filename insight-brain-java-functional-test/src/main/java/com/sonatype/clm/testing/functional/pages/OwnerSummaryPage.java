@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.OwnerType;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.text;
@@ -74,7 +75,11 @@ public class OwnerSummaryPage
     }
 
     public static SelenideElement localLTG(String ltgName) {
-      return $$("#owner-pill-ltgs ul div.threat-group-title").findBy(text(ltgName));
+      return localLTGs().findBy(text(ltgName));
+    }
+
+    public static ElementsCollection localLTGs() {
+      return $$("#owner-pill-ltgs .simple-list:first-child ul div.threat-group-title");
     }
 
     public static SelenideElement localPolicy(String policyName) {

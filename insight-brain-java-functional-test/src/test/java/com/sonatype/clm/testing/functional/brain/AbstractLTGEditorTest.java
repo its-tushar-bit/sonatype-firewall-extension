@@ -72,6 +72,7 @@ public abstract class AbstractLTGEditorTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId(), "original name", 1);
     refresh();
 
+    SummaryTile.localLTGs().shouldHaveSize(1);
     SummaryTile.localLTG(ltg.getName()).click();
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));

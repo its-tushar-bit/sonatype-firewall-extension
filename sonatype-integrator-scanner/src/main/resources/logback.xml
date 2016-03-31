@@ -15,10 +15,6 @@
       <pattern>[%level] %m%n</pattern>
     </encoder>
     <filter class="com.sonatype.insight.scan.cli.MarkerFilter">
-      <marker>CONFIDENTIAL</marker>
-      <onMatch>DENY</onMatch>
-    </filter>
-    <filter class="com.sonatype.insight.scan.cli.MarkerFilter">
       <marker>PATHS</marker>
       <onMatch>ACCEPT</onMatch>
     </filter>

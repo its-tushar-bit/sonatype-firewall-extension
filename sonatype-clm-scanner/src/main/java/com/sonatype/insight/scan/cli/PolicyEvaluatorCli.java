@@ -6,14 +6,11 @@
 package com.sonatype.insight.scan.cli;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 
 import ch.qos.logback.classic.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 
 public class PolicyEvaluatorCli
 {
@@ -44,7 +41,6 @@ public class PolicyEvaluatorCli
       // NOTE: Acquire logger after initLogging()
       Logger log = LoggerFactory.getLogger(PolicyEvaluatorCli.class);
       log.error(params.getError().getMessage());
-      log.error(confidential(), "Actual arguments were: {}", Arrays.asList(params.getArgs()));
 
       System.exit(1);
     }
@@ -78,10 +74,6 @@ public class PolicyEvaluatorCli
       ch.qos.logback.classic.Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger);
       log.setLevel(level);
     }
-  }
-
-  private static Marker confidential() {
-    return MarkerFactory.getDetachedMarker("CONFIDENTIAL");
   }
 
 }

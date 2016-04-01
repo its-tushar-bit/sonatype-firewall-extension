@@ -343,7 +343,7 @@ public class ApplicationSummaryViewTest
 
         modal.bundleFileName().shouldBe(text(tempFile.getName()));
         modal.bundleAppName().shouldBe(text(application.getName()));
-        modal.bundleStageName().shouldBe(text(StageTypes.RELEASE.getName()));
+        modal.bundleStageName().shouldBe(textCaseSensitive(StageTypes.RELEASE.getName()));
 
         // Give a maximum of 1 minute for the file to be uploaded
         modal.evaluateBundleStatus().waitUntil(text("Done"), 60000);

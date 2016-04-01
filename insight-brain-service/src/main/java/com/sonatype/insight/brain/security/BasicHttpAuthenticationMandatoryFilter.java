@@ -45,7 +45,7 @@ public class BasicHttpAuthenticationMandatoryFilter
     else {
       message = INVALID_AUTHENTICATION_MESSAGE;
     }
-    LoginErrorHandler
+    LoginErrorResponseHandler
         .sendError((HttpServletResponse) response, new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, message));
     return false;
   }

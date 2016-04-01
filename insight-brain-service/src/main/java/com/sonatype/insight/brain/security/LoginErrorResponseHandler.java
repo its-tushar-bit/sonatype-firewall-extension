@@ -18,11 +18,11 @@ import org.apache.shiro.authc.AuthenticationException;
 /**
  * @since 1.20.0
  */
-class LoginErrorHandler
+class LoginErrorResponseHandler
 {
   private static final ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator();
 
-  private LoginErrorHandler() {}
+  private LoginErrorResponseHandler() {}
 
   static void sendError(final HttpServletResponse httpResponse, final AuthenticationException e) {
     sendError(httpResponse, errorResponseGenerator.mapException(e));

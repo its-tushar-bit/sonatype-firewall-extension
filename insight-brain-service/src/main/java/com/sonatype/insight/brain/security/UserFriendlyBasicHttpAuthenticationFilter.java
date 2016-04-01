@@ -27,7 +27,7 @@ class UserFriendlyBasicHttpAuthenticationFilter
                                    final ServletRequest request,
                                    final ServletResponse response)
   {
-    LoginErrorHandler.sendError((HttpServletResponse) response, e);
+    LoginErrorResponseHandler.sendError((HttpServletResponse) response, e);
     return super.onLoginFailure(token, e, request, response);
   }
 

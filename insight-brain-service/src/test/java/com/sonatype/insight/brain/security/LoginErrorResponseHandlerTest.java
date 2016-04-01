@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class LoginErrorHandlerTest
+public class LoginErrorResponseHandlerTest
 {
   private ErrorResponse errorResponse;
 
@@ -38,7 +38,7 @@ public class LoginErrorHandlerTest
     errorResponse = new ErrorResponse(HttpServletResponse.SC_ACCEPTED, null);
 
     try {
-      LoginErrorHandler.sendError(response, errorResponse);
+      LoginErrorResponseHandler.sendError(response, errorResponse);
       fail("Expected exception");
     }
     catch (RuntimeException e) {
@@ -54,7 +54,7 @@ public class LoginErrorHandlerTest
     final String errMessage = "myErrorMessage";
     errorResponse = new ErrorResponse(HttpServletResponse.SC_ACCEPTED, errMessage);
 
-    LoginErrorHandler.sendError(response, errorResponse);
+    LoginErrorResponseHandler.sendError(response, errorResponse);
 
     verifyResponse(response, errorResponse.getStatusCode(), writer, errMessage);
   }
@@ -86,7 +86,7 @@ public class LoginErrorHandlerTest
     final HttpServletResponse response = mock(HttpServletResponse.class);
     final PrintWriter writer = setupPrintWriter(response);
 
-    LoginErrorHandler.sendError(response, new AuthenticationException());
+    LoginErrorResponseHandler.sendError(response, new AuthenticationException());
 
     verifyResponse(response, Response.SC_UNAUTHORIZED, writer, ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }

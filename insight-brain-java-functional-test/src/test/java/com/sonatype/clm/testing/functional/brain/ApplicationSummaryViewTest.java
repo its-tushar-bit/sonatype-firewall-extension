@@ -49,6 +49,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.textCaseSensitive;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -328,10 +329,11 @@ public class ApplicationSummaryViewTest
 
         Dropdown stageDropdown = modal.stageDropdown();
         stageDropdown.selectedItem().shouldHave(text(EvaluateApplicationModal.SELECT_STAGE_TEXT)).click();
-        stageDropdown.listItems().shouldHaveSize(4);
+        stageDropdown.listItems().shouldHaveSize(4).shouldHave(texts(StageTypes.BUILD.getName(),
+            StageTypes.STAGE_RELEASE.getName(), StageTypes.RELEASE.getName(), StageTypes.OPERATE.getName()));
 
-        stageDropdown.listItem(2).shouldHave(text(StageTypes.RELEASE.getName())).click();
-        stageDropdown.selectedItem().shouldBe(text(StageTypes.RELEASE.getName()));
+        stageDropdown.listItem(2).shouldHave(textCaseSensitive(StageTypes.RELEASE.getName())).click();
+        stageDropdown.selectedItem().shouldBe(textCaseSensitive(StageTypes.RELEASE.getName()));
 
         modal.notifyRadioButtons().yes().shouldBe(visible, selected);
         modal.notifyRadioButtons().no().shouldBe(visible).shouldNotBe(selected);

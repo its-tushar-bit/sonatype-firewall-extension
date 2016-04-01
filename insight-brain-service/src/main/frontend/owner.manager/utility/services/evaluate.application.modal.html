@@ -63,7 +63,7 @@
           <div class="field">
             <label for="bundleStage" ng-if="true">Which CLM stage should this evaluation be associated with?</label><!-- bogus ng-if to fix IE9 combobox rendering -->
             <dropdown-selector id='bundleStage' ng-model="vm.bundle.stage" options="vm.stages"
-                               option-name-param="stageTypeId"
+                               option-name-param="stageName"
                                empty-option-string="-- Select CLM Stage --"></dropdown-selector>
           </div>
         </div>

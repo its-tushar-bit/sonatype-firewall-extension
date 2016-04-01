@@ -332,10 +332,11 @@
         .left(leftPadding)
         .width(x)
         .fillStyle(function() {
-          if (this.index < 3) {
+          var threatLevel = 10 - this.index;
+          if (threatLevel > 6) {
             return 'rgb(188,1,47)';
           }
-          else if (this.index < 7) {
+          else if (threatLevel > 3) {
             return 'rgb(244,134,29)';
           }
           else {

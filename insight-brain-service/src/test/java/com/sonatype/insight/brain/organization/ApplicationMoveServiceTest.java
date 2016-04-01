@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -86,9 +85,6 @@ public class ApplicationMoveServiceTest
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
-
-  @Inject
-  private WaivedPolicyViolationDAO waivedPolicyViolationDAO;
 
   @Inject
   private ComponentLabelDAO componentLabelDAO;

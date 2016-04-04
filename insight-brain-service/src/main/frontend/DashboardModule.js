@@ -1004,7 +1004,7 @@
         
         var options = {
           templateUrl: scope.modalHelp,
-          windowClass: helpClass
+          windowClass: 'clm-modal ' + helpClass
         };
 
         element.on(trigger, function() {

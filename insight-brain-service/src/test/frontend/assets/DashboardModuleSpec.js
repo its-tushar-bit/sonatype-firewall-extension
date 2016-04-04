@@ -822,7 +822,7 @@ describe('DashboardModule', function() {
 
       expect(modal.open).toHaveBeenCalled()
       expect(modal.open.mostRecentCall.args[0].templateUrl).toBe('bar');
-      expect(modal.open.mostRecentCall.args[0].windowClass).toBe('test-class');
+      expect(modal.open.mostRecentCall.args[0].windowClass).toBe('clm-modal test-class');
     });
   });
 

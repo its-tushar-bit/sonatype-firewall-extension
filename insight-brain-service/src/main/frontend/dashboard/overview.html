@@ -125,11 +125,11 @@
 </div>
 </script>
 <script type="text/ng-template" id="component-heat-map-help">
-  <div class="modal-header">
-    <button id="component-heat-map-help-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
-    <h3>Component Heat Map</h3>
+<div>
+  <div class="clm-modal-header">
+    <h2>Component Heat Map</h2>
   </div>
-  <div class="heat-map-help" id="component-heat-map-help-content">
+  <div class="heat-map-help clm-modal-body" id="component-heat-map-help-content">
     <div>
       <div class="left-column">
         <h5>Total Risk Score</h5>
@@ -164,16 +164,17 @@
       </div>
     </div>
   </div>
-  <div class="modal-footer">
-    <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
+  <div class="clm-modal-footer">
+    <button id="component-heat-map-help-close" class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
   </div>
+</div>
 </script>
 <script type="text/ng-template" id="application-heat-map-help">
-  <div class="modal-header">
-    <button id="application-heat-map-help-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
-    <h3>Application Heat Map</h3>
+<div>
+  <div class="clm-modal-header">
+    <h2>Application Heat Map</h2>
   </div>
-  <div class="heat-map-help" id="application-heat-map-help-content">
+  <div class="heat-map-help clm-modal-body" id="application-heat-map-help-content">
     <div>
       <div class="left-column">
         <h5>Total Risk Score</h5>
@@ -292,9 +293,10 @@
       </div>
     </div>
   </div>
-  <div class="modal-footer">
-    <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
+  <div class="clm-modal-footer">
+    <button id="application-heat-map-help-close" class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
   </div>
+</div>
 </script>
 <div filter-panel filters="filters" fatal-error="error"></div>
 <div class="dashboard-body-container">

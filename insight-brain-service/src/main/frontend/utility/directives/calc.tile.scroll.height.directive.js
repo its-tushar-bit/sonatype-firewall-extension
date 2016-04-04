@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function CalcTileScrollHeight($interpolate, EventNameConstant) {
+  function CalcTileScrollHeight($rootScope, $interpolate, EventNameConstant) {
     return {
       restrict: 'A',
       link: CalcTileScrollHeightLink
@@ -35,12 +35,12 @@
           marginTop: element.css('margin-top'),
           marginBottom: element.css('margin-bottom')
         }));
-        scope.$emit(EventNameConstant.UPDATE_SCROLLSPY);
+        $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY);
       }
     }
   }
 
-  CalcTileScrollHeight.$inject = ['$interpolate', 'event.name.constant'];
+  CalcTileScrollHeight.$inject = ['$rootScope', '$interpolate', 'event.name.constant'];
 
   angular //
       .module('utility.directives') //

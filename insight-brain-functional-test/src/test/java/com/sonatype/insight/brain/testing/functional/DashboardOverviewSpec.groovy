@@ -1000,19 +1000,7 @@ extends BaseSpec {
     then: 'component heat map help is displayed'
     waitFor { componentHeatMapHelp.displayed }
 
-    when: 'the modal backdrop is clicked'
-    interact {
-      // don't click at the center of the backdrop which can still be within the modal
-      moveToElement(modalBackdrop, 10, 10)
-      click()
-    }
-
-    then: 'the component heat map help closes'
-    waitFor { !componentHeatMapHelp.displayed }
-
     when: 'the component heat map help close button is clicked'
-    clickComponentHeatMapHelp()
-    waitFor { componentHeatMapHelpClose.displayed }
     componentHeatMapHelpClose.click()
 
     then: 'the help modal closes'
@@ -1024,19 +1012,7 @@ extends BaseSpec {
     then: 'application heat map help is displayed'
     waitFor { applicationHeatMapHelp.displayed }
 
-    when: 'the modal backdrop is clicked'
-    interact {
-      // don't click at the center of the backdrop which can still be within the modal
-      moveToElement(modalBackdrop, 10, 10)
-      click()
-    }
-
-    then: 'the application heat map help closes'
-    waitFor { !applicationHeatMapHelp.displayed }
-
     when: 'the application heat map help close button is clicked '
-    clickApplicationHeatMapHelp()
-    waitFor { applicationHeatMapHelpClose.displayed }
     applicationHeatMapHelpClose.click()
 
     then: 'the help modal closes'

@@ -28,7 +28,7 @@
         '<label class="control-label" for="login-username">Username</label>' +
         '<div class="controls">' +
         '<input id="login-username" type="text" name="username" ng-model="vm.username" ng-required="true" ' +
-        'autofill focus-input="true">' +
+        'autofill focus-input="true" autofocus>' +
         '</div></div>' +
         '<div class="control-group">' +
         '<label class="control-label" for="login-password">Password</label>' +

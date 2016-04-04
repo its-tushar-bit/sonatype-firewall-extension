@@ -52,7 +52,7 @@
   <group name='cip-loader'>
     <js>/frontend/lib/angular/angular.js</js>
     <js>/frontend/lib/angular-1.4.8/angular-route.js</js>
-    <js>/frontend/lib/ui-bootstrap-tpls-0.8.0.min.js</js>
+    <js>/frontend/lib/ui-bootstrap-tpls-0.13.4.min.js</js>
     <group-ref>cip-loader-core</group-ref>
     <js>/frontend/lib/Base64.js</js>
   </group>
@@ -85,7 +85,7 @@
     <js>/frontend/lib/angular-ui-router-0.2.15.min.js</js>
     <js>/frontend/lib/angular-ui-utils-0.0.3.js</js>
     <js>/frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</js>
-    <js>/frontend/lib/ui-bootstrap-tpls-0.8.0.min.js</js>
+    <js>/frontend/lib/ui-bootstrap-tpls-0.13.4.min.js</js>
     <js>/frontend/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.js</js>
     <js>/frontend/lib/X-editable/xeditable-0.1.8.min.js</js>
     <js>/frontend/lib/ngUpload/ng-upload.js</js>

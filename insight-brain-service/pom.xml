@@ -551,7 +551,7 @@
                 <include>frontend/util/CLMAppLocation.js</include>
                 <include>frontend/util/CLMLocation.js</include>
                 <include>frontend/util/HttpInterceptors.js</include>
-                <include>frontend/lib/ui-bootstrap-tpls-*.js</include>
+                <include>frontend/lib/ui-bootstrap-tpls-0.13.4.min.js</include>
                 <include>frontend/lib/datepicker/bootstrap-datepicker.js</include>
               </sourceIncludes>
               <sourceExcludes>
@@ -605,7 +605,7 @@
                 <include>frontend/util/CLMAppLocation.js</include>
                 <include>frontend/util/CLMLocation.js</include>
                 <include>frontend/util/HttpInterceptors.js</include>
-                <include>frontend/lib/ui-bootstrap-tpls-*.js</include>
+                <include>frontend/lib/ui-bootstrap-tpls-0.13.4.min.js</include>
                 <include>frontend/lib/datepicker/bootstrap-datepicker.js</include>
               </sourceIncludes>
               <sourceExcludes>
@@ -638,7 +638,7 @@
                 <source>frontend/lib/angular-ui-router-0.2.15.min.js</source>
                 <source>frontend/lib/angular-ui-utils-0.0.3.js</source>
                 <source>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</source>
-                <source>frontend/lib/ui-bootstrap-tpls-0.8.0.min.js</source>
+                <source>frontend/lib/ui-bootstrap-tpls-0.13.4.min.js</source>
                 <source>frontend/lib/X-editable/xeditable-0.1.8.min.js</source>
                 <source>frontend/lib/ngUpload/ng-upload.js</source>
                 <source>frontend/lib/d3/d3.js</source>

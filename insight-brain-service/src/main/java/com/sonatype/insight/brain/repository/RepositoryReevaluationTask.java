@@ -78,7 +78,8 @@ public class RepositoryReevaluationTask
   {
     int limit = 0;
 
-    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList(
+        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     while (components.hasNext() && limit++ < 100) {
       RepositoryComponent component = components.next();
       request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component

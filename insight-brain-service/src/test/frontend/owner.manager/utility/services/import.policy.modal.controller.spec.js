@@ -13,6 +13,8 @@ describe('import.policy.modal.controller.spec.js', function() {
 
   beforeEach(inject(function($rootScope, $q, $controller, _$httpBackend_, _$timeout_, _CLMAppLocations_) {
     scope = $rootScope.$new();
+    scope.$dismiss = jasmine.createSpy('$dismiss');
+
     $httpBackend = _$httpBackend_;
     $timeout = _$timeout_;
     CLMAppLocations = _CLMAppLocations_;
@@ -26,6 +28,11 @@ describe('import.policy.modal.controller.spec.js', function() {
     expect(vm.importFile).toBeFalsy();
     vm.importFile = 'testfile';
   });
+
+  it('dismisses on navigating away', inject(function ($rootScope) {
+    $rootScope.$broadcast('pageChangeAccepted');
+    expect(scope.$dismiss).toHaveBeenCalled();
+  }));
 
   describe('Policy Import', function() {
     beforeEach(inject(function($window) {

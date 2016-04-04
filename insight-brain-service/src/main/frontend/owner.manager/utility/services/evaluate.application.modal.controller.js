@@ -43,6 +43,10 @@
       reportListener();
     });
 
+    $scope.$on('pageChangeAccepted', function () {
+      $scope.$dismiss();
+    });
+
     function doLoad() {
       vm.evaluationState = 'loading';
       vm.bundle = {

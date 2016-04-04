@@ -657,6 +657,7 @@ describe('DashboardModule', function() {
 
     beforeEach(inject(function($rootScope) {
       scope = $rootScope.$new();
+      scope.$dismiss = jasmine.createSpy('$dismiss');
     }));
 
     it('Data loaded from server properly', inject(function($httpBackend, $controller, CLMLocations) {
@@ -684,6 +685,15 @@ describe('DashboardModule', function() {
       $controller('PolicyTrendController', { $scope: scope, filters: commonFilters });
       $httpBackend.flush();
       expect(scope.error).toBeDefined();
+    }));
+
+    it('dismisses on navigating away', inject(function ($httpBackend, $controller, CLMLocations, $rootScope) {
+      $httpBackend.expectPOST(CLMLocations.getPolicySummaryUrl()).respond(policySummaryData);
+      $controller('PolicyTrendController', { $scope: scope, filters: commonFilters });
+      $httpBackend.flush();
+
+      $rootScope.$broadcast('pageChangeAccepted');
+      expect(scope.$dismiss).toHaveBeenCalled();
     }));
 
     function assertPolicySummaryBlock(name, counts, average, ninetyPercentile, delta, barchartData, sparklineData,

@@ -14,7 +14,10 @@ describe('evaluate.application.modal.controller.spec.js', function() {
 
   beforeEach(inject(function($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, StageTypeStore) {
     var stageTypeStoreDefer = $q.defer();
+
     scope = $rootScope.$new();
+    scope.$dismiss = jasmine.createSpy('$dismiss');
+
     $timeout = _$timeout_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
@@ -63,6 +66,11 @@ describe('evaluate.application.modal.controller.spec.js', function() {
     vm.bundle.stage = vm.stages[2];
     expect(vm.isFormValid()).toBeTruthy();
   });
+
+  it('dismisses on navigating away', inject(function ($rootScope) {
+    $rootScope.$broadcast('pageChangeAccepted');
+    expect(scope.$dismiss).toHaveBeenCalled();
+  }));
 
   describe('Bundle submit', function() {
     beforeEach(inject(function($window) {

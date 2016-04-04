@@ -19,7 +19,11 @@
     vm.uploaded = uploaded;
     vm.importPolicyMask = undefined;
     vm.importPolicyUrl = importPolicyUrl;
-    
+
+    $scope.$on('pageChangeAccepted', function () {
+      $scope.$dismiss();
+    });
+
     function setError(message, retryFunction) {
       vm.retry = retryFunction ? retryFunction : vm.retry;
 

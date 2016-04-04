@@ -24,6 +24,9 @@ describe('delete.modal.controller.spec.js', function() {
       maskText: null,
       continueAction: null
     });
+
+    scope.$dismiss = jasmine.createSpy('$dismiss');
+
     $timeout = _$timeout_;
     vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
   }));
@@ -100,4 +103,8 @@ describe('delete.modal.controller.spec.js', function() {
     expect(vm.error).toBe('qux');
   });
 
+  it('dismisses on navigating away', inject(function ($rootScope) {
+    $rootScope.$broadcast('pageChangeAccepted');
+    expect(scope.$dismiss).toHaveBeenCalled();
+  }));
 });

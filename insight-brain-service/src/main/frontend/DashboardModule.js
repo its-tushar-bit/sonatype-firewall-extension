@@ -681,6 +681,10 @@
         });
       };
 
+      $scope.$on('pageChangeAccepted', function () {
+        $scope.$dismiss();
+      });
+
       $scope.filters = filters;
       $scope.doLoad();
     }

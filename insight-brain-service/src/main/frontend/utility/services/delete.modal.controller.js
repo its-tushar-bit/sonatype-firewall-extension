@@ -20,6 +20,10 @@
     vm.bodyText = bodyText;
     vm.maskText = maskText;
 
+    $scope.$on('pageChangeAccepted', function () {
+      $scope.$dismiss();
+    });
+
     function deleteResource() {
       vm.deleteResourceMask.wrap(continueAction ? continueAction() : resource.$delete()).then(function() {
         $scope.$close();

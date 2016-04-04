@@ -61,11 +61,11 @@
         <div clm-control-group for="firstName" label="First Name">
           <input clm-input id="firstName" name="firstName" type="text" ng-required="true" valid-name-characters
                  placeholder="ex. Isaac" ng-model="user.firstName" focus-input="user"
-                 has-whitespace="suggestedFirstName">
+                 has-whitespace-validator ng-trim="false">
         </div>
         <div clm-control-group for="lastName" label="Last Name">
           <input clm-input id="lastName" name="lastName" type="text" ng-required="true" valid-name-characters
-                 placeholder="ex. Asimov" ng-model="user.lastName" has-whitespace="suggestedLastName">
+                 placeholder="ex. Asimov" ng-model="user.lastName" has-whitespace-validator ng-trim="false">
         </div>
         <div clm-control-group for="email" label="Email">
           <input clm-input id='email' name="email" type="email" ng-required="true" placeholder="ex. iasimov@sonatype.com"

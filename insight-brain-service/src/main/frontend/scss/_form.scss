@@ -692,6 +692,11 @@
   .modal & {
     z-index: $zindexModal + 1;
   }
+
+  &.top {
+    //override popup positioning, so that the content will at least start in the proper dom element
+    margin-left: 10px;
+  }
 }
 
 .input-popover .top {

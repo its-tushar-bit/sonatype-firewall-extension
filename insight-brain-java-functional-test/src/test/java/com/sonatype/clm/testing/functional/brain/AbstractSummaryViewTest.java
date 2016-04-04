@@ -51,7 +51,9 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -84,6 +86,14 @@ public abstract class AbstractSummaryViewTest
   public static void boot() {
     open(ReportListPage.URL);
     loginAsAdmin();
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    if (productLicenseManager.wasChanged()) {
+      productLicenseManager.reset();
+      clmLicenseManager.installLicense(null);
+    }
   }
 
   protected void init(Owner currentOwner) {
@@ -780,6 +790,49 @@ public abstract class AbstractSummaryViewTest
         .shouldHave(
             OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? categoryTile.emptyListDescriptorText()
                 : CategoryTileAppContext.NO_CATEGORIES_DEFINED);
+  }
+
+  @Test
+  public void testPolicyTile_LimitedStageLicensing() throws Exception {
+    List<Policy> localPolicies = new ArrayList<>();
+    Action fail = new Action(Action.ID_FAIL);
+    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Release", 10, fail, Stage.ID_RELEASE));
+
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    clmLicenseManager.installLicense(null);
+    
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    PolicyTile policyTile = new PolicyTile();
+
+    OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
+
+    PolicyTileList list = policyTile.policyList(0);
+
+    PolicyTileListElement policyElement = list.row(1);
+    Policy actualPolicy = localPolicies.get(0);
+    HeaderColumn proxy = list.header(2);
+
+    list.nameHeaderColumn().anchor().click();
+    list.nameHeaderColumn().upArrow().shouldHave(UP_SELECTED);
+    proxy.downArrow().shouldNotHave(DOWN_SELECTED);
+    proxy.upArrow().shouldNotHave(UP_SELECTED);
+
+    //should only have proxy and release
+    proxy.anchor().shouldHave(text("PROXY")).click();
+    proxy.upArrow().shouldHave(UP_SELECTED);
+    HeaderColumn release = list.header(3);
+    release.anchor().shouldHave(text("RELEASE"));
+    release.downArrow().shouldNotHave(DOWN_SELECTED);
+    release.upArrow().shouldNotHave(UP_SELECTED);
+    list.header(4).name().shouldNot(exist);
+
+    policyElement.chevron().shouldBe(visible);
+    policyElement.threadLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
+    policyElement.name().shouldBe(visible).shouldHave(text(actualPolicy.getName()));
+    policyElement.column(2).shouldBe(visible).shouldHave(PolicyTile.noAction());
+    Action releaseAction = actualPolicy.getActions(Stage.ID_RELEASE).get(0);
+    policyElement.column(3).shouldBe(visible).shouldHave(text(releaseAction.getActionTypeId()));
+    policyElement.column(4).shouldHave(PolicyTileListElement.CHEVRON);
   }
 
   protected int getHierarchySize(String ownerId) {

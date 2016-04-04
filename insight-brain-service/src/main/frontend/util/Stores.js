@@ -69,22 +69,28 @@
           return cliTypeStore.get();
         },
         'getActionStages': function() {
-          return actionStageTypeStore.get();
+          return actionStageTypeStore.get().then(function (result) {
+            return addStageShortName(result);
+          });
         },
         'getDashboardStages': function() {
           return dashboardStageTypeStore.get().then(function (result) {
-            result.forEach(function (element) {
-              if (element.stageTypeId === 'stage-release') {
-                element.shortName = 'Stage';
-              }
-              else {
-                element.shortName = element.stageName;
-              }
-            });
-            return result;
+            return addStageShortName(result);
           });
         }
       };
+
+      function addStageShortName(result) {
+        result.forEach(function (element) {
+          if (element.stageTypeId === 'stage-release') {
+            element.shortName = 'Stage';
+          }
+          else {
+            element.shortName = element.stageName;
+          }
+        });
+        return result;
+      }
     }
   ]);
 

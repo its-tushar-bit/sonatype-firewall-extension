@@ -58,6 +58,8 @@ public class PolicyTileList
     public static final Condition FAIL_ICON = cssClass("fa-exclamation-circle");
 
     public static final Condition FAIL = cssClass("fail");
+    
+    public static final Condition CHEVRON = cssClass("chevron-column");
 
     public PolicyTileListElement(String... selectors) {
       super(selectors);
@@ -68,31 +70,35 @@ public class PolicyTileList
     }
 
     public SelenideElement name() {
-      return child("td", nthChild(1));
+      return column(1);
     }
 
     public SelenideElement proxy() {
-      return child("td", nthChild(2));
+      return column(2);
     }
 
     public SelenideElement develop() {
-      return child("td", nthChild(3));
+      return column(3);
     }
 
     public SelenideElement build() {
-      return child("td", nthChild(4));
+      return column(4);
     }
 
     public SelenideElement stageRelease() {
-      return child("td", nthChild(5));
+      return column(5);
     }
 
     public SelenideElement release() {
-      return child("td", nthChild(6));
+      return column(6);
     }
 
     public SelenideElement operate() {
-      return child("td", nthChild(7));
+      return column(7);
+    }
+
+    public SelenideElement column(int num) {
+      return child("td", nthChild(num));
     }
 
     public SelenideElement chevron() {

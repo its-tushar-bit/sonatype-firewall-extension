@@ -137,23 +137,8 @@
                   <th sort-column="name, -threatLevel" class="greedy-column">
                     <span class="header-text">NAME</span>
                   </th>
-                  <th sort-column="actions.proxy[0].actionTypeId, -threatLevel">
-                    <span class="header-text">PROXY</span>
-                  </th>
-                  <th sort-column="actions.develop[0].actionTypeId, -threatLevel">
-                    <span class="header-text">DEVELOP</span>
-                  </th>
-                  <th sort-column="actions.build[0].actionTypeId, -threatLevel">
-                    <span class="header-text">BUILD</span>
-                  </th>
-                  <th sort-column="actions['stage-release'][0].actionTypeId, -threatLevel">
-                    <span class="header-text">STAGE</span>
-                  </th>
-                  <th sort-column="actions.release[0].actionTypeId, -threatLevel">
-                    <span class="header-text">RELEASE</span>
-                  </th>
-                  <th sort-column="actions.operate[0].actionTypeId, -threatLevel">
-                    <span class="header-text">OPERATE</span>
+                  <th sort-column="actions['{{::stage.stageTypeId}}'][0].actionTypeId, -threatLevel"  ng-repeat="stage in vm.actionStages">
+                    <span class="header-text">{{::stage.shortName | uppercase}}</span>
                   </th>
                   <th></th>
                 </tr>
@@ -161,10 +146,10 @@
               <tr class="simple clickable" ng-repeat="policy in ownerPolicyList.policies | orderBy:sortVm.sortFields"
                   ng-click="vm.editPolicy(policy.id)">
                 <td class="greedy-column" colspan="2"><span class='threat-legend policy-threat-level-{{policy.threatLevel}}'>&nbsp;</span>{{policy.name}}</td>
-                <td ng-repeat="action in vm.actionStages">
-                  <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[action] === 'warn',
-                    'fa fa-exclamation-circle fail' :policy.enforcementAction[action] === 'fail'}"></i><!--
-                  -->{{policy.enforcementAction[action] || 'no action'}}
+                <td ng-repeat="stage in vm.actionStages">
+                  <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[stage.stageTypeId] === 'warn',
+                    'fa fa-exclamation-circle fail' :policy.enforcementAction[stage.stageTypeId] === 'fail'}"></i><!--
+                  -->{{::policy.enforcementAction[stage.stageTypeId] || 'no action'}}
                 </td>
                 <td class="chevron-column"><i class="fa fa-chevron-right"></i></td>
               </tr>

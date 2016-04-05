@@ -155,7 +155,7 @@
           </div>
           <div id="notification-menu" class="header-dropdown-menu notification-menu" ng-controller="Notifications">
             <div class="dropdown pull-right">
-              <a id="notification-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" href="#" ng-click="clearSelected()">
+              <a id="notification-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" ng-click="clearSelected()">
                 <i class='glyphicons-sonatype medium inbox'></i>
                 <div ng-if="unreadNotificationCount" class="count-circle pull-right" ng-class="{'exclamation': errorText}">{{unreadNotificationCount}}</div>
               </a>

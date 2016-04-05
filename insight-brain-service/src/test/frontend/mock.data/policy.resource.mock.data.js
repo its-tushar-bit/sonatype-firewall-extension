@@ -1,16 +1,16 @@
 var PolicyResourceMockData = {
-  getApplicablePolicies: function() {
+  getApplicablePolicies: function(ownerType, ownerId, ownerName) {
     return {
       'policiesByOwner': [
         {
-          'ownerId': 'f3cea033acf84984ae08d9250db4aa7b',
-          'ownerName': 'Org1 Heh',
-          'ownerType': 'organization',
+          'ownerId': ownerId || 'f3cea033acf84984ae08d9250db4aa7b',
+          'ownerName': ownerName || 'Org1 Heh',
+          'ownerType': ownerType || 'organization',
           'policies': [
             {
               'id': '4d6b4ac75ea148b2aa6ca36e6899cc78',
               'name': 'Org Policy 3',
-              'ownerId': 'f3cea033acf84984ae08d9250db4aa7b',
+              'ownerId': ownerId || 'f3cea033acf84984ae08d9250db4aa7b',
               'enabled': true,
               'threatLevel': 0,
               'constraints': [

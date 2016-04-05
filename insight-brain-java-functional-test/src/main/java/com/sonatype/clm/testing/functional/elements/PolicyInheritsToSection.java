@@ -23,6 +23,10 @@ public class PolicyInheritsToSection
   }
 
   public static Condition allRadioText(String ownerName) {
+    if ("Root Organization".equals(ownerName)) {
+      return Condition.text("All Applications and Repositories");
+    }
+
     return Condition.text("All Applications in " + ownerName);
   }
 

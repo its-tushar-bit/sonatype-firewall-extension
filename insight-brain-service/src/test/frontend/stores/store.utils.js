@@ -69,7 +69,7 @@ var StoreUtils = function() {
 
   function createMockHierarchyStoreData(data, field) {
     data[field].forEach(function(owner) {
-      owner.store = {create: jasmine.createSpy()};
+      owner.store = {create: jasmine.createSpy().andReturn({})};
     });
 
     return data[field];

@@ -18,13 +18,13 @@ var TagResourceMockData = {
       }
     ];
   },
-  getTagsUrl: function() {
+  getTagsUrl: function(ownerType, ownerId, ownerName) {
     return {
       "tagsByOwner": [
         {
-          "ownerId": "orgownerid",
-          "ownerName": "orgname",
-          "ownerType": "organization",
+          "ownerId": ownerId || "orgownerid",
+          "ownerName": ownerName || "orgname",
+          "ownerType": ownerType || "organization",
           "tags": [
             {
               color: "black",

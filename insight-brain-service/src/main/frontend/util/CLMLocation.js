@@ -137,6 +137,10 @@
         getOrganizationPolicyTagUrl : function(organizationId) {
           return this.getOrganizationTagUrl(organizationId) + '/policy';
         },
+        getPolicyTagUrl : function(policyId, organizationId) {
+          return baseUrl.get() + '/rest/appliedTag/policy/' + encodeURIComponent(policyId) + '?orgId=' +
+              encodeURIComponent(organizationId);
+        },
         getApplicationTagUrl : function(applicationPublicId) {
           return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
         },

@@ -5,13 +5,18 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
 
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.allRadioText;
+import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.specifiedRadioText;
 
 public class ApplicationPolicyEditorTest
     extends AbstractPolicyEditorTest
@@ -47,7 +52,18 @@ public class ApplicationPolicyEditorTest
 
   @Override
   protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2, boolean isReadOnly) {
-    assertInheritanceSectionDoesNotExist();
+    if (isReadOnly) {
+      PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
+
+      inheritance.allChildrenInheritRadio().input().shouldBe(visible, selected, disabled);
+      inheritance.allChildrenInheritRadio().label().shouldHave(allRadioText(YE_OLE_ORGANIZATION));
+      inheritance.specifiedChildrenInheritRadio().input().shouldBe(visible).shouldNotBe(selected);
+      inheritance.specifiedChildrenInheritRadio().label().shouldHave(specifiedRadioText(YE_OLE_ORGANIZATION));
+      inheritance.associationEditor().shouldNotBe(visible);
+    }
+    else {
+      assertInheritanceSectionDoesNotExist();
+    }
   }
 
   private void assertInheritanceSectionDoesNotExist() {

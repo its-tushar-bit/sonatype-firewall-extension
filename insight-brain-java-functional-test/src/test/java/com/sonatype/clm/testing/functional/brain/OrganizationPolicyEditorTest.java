@@ -108,9 +108,11 @@ public class OrganizationPolicyEditorTest
     PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
 
     inheritance.allChildrenInheritRadio().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
-    inheritance.allChildrenInheritRadio().label().shouldHave(allRadioText(organization.getName()));
+    inheritance.allChildrenInheritRadio().label().shouldHave(
+        allRadioText(isReadOnly ? "Root Organization" : organization.getName()));
     inheritance.specifiedChildrenInheritRadio().input().shouldBe(visible).shouldBe(selected);
-    inheritance.specifiedChildrenInheritRadio().label().shouldHave(specifiedRadioText(organization.getName()));
+    inheritance.specifiedChildrenInheritRadio().label()
+        .shouldHave(specifiedRadioText(isReadOnly ? "Root Organization" : organization.getName()));
     inheritance.associationEditor().shouldBe(visible);
 
     inheritance.associationEditor().rows().shouldHaveSize(2);

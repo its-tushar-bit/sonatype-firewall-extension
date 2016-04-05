@@ -56,13 +56,13 @@
                 <label class="radio" ng-class="{disabled: vm.readOnly}">
                   <input type="radio" name="policy-inherit" ng-model="vm.hasPolicyCategories" ng-value="false"
                          ng-disabled="vm.readOnly">
-                  <span ng-if="::!vm.isRootOrg">All Applications in {{vm.ownerName}}</span>
+                  <span ng-if="::!vm.isRootOrg">All Applications in {{::vm.owner.name}}</span>
                   <span ng-if="::vm.isRootOrg">All Applications and Repositories</span>
                 </label>
                 <label class="radio" ng-class="{disabled: vm.categories.length === 0 || vm.readOnly}">
                   <input type="radio" ng-disabled="vm.categories.length === 0 || vm.readOnly" name="policy-inherit"
                          ng-model="vm.hasPolicyCategories" ng-value="true">
-                  <span>Applications of the specified Application Categories in {{ vm.ownerName}}</span>
+                  <span>Applications of the specified Application Categories in {{::vm.owner.name}}</span>
                 </label>
                 <association-editor ng-show="vm.hasPolicyCategories" id="associated-categories" items="vm.categories"
                                     checkbox-param="isApplied"

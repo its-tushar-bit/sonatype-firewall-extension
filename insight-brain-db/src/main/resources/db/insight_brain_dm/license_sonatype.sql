@@ -26,6 +26,7 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('PUB
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('No-Source-License','No Source License','No licenses found in sources');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('No-Sources','No Sources','No sources provided with component');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('Not-Declared','Not Declared','No licenses declared in component descriptor');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('Not-Supported','Not Supported','Observed license recognition for component repository not supported by data pipeline');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('DOCBOOK','DocBook','DocBook Software License');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('InitialDevelopersPL-1.0','InitialDevelopersPL-1.0','Initial Developer''s Public License Version 1.0');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('InterbasePL-1.0','InterbasePL-1.0','InterBase Public License Version 1.0');

@@ -352,6 +352,7 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('AFL-2.
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('No-Source-License', 'No-Source-License');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('No-Sources', 'No-Sources');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Not-Declared', 'Not-Declared');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Not-Supported', 'Not-Supported');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('AGPL-1.0','AGPL-1.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Apache-2.0+-BSD-UNSPECIFIED-EPL-1.0+-GPL-2.0','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Apache-2.0+-BSD-UNSPECIFIED-EPL-1.0+-GPL-2.0','BSD-UNSPECIFIED');

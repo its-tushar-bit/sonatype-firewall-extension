@@ -91,6 +91,7 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('No-Source-License','No Source License','No licenses found in sources');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('No-Sources','No Sources','No sources provided with component');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Not-Declared','Not Declared','No licenses declared in component descriptor');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Not-Supported','Not Supported','Observed license recognition for component repository not supported by data pipeline');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Apache-2.0+-BSD-UNSPECIFIED-EPL-1.0+-GPL-2.0','Apache-2.0+ or BSD or EPL-1.0+ or GPL-2.0','Quadruple License Consisting of Apache 2.0 or later, BSD, EPL-1.0 or later, and GPL 2.0');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CDDL-1.0-BSD-3-Clause','CDDL-1.0 or BSD-3-Clause','Dual License Consisting of CDDL-1.0 and New BSD License');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CECILL-C-LGPL-3.0','CECILL-C or LGPL-3.0','Dual License Consisting of CECILL-C and LGPL 3.0');

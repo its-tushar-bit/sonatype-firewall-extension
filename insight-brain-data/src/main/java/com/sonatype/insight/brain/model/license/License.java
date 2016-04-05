@@ -30,6 +30,8 @@ public class License
 
   public static final String NO_SOURCE_LICENSE_ID = "No-Source-License";
 
+  public static final String NOT_SUPPORTED_ID = "Not-Supported";
+
   @Id
   @Column(name = "license_id")
   private String id;
@@ -112,6 +114,6 @@ public class License
    */
   public static boolean isEffectivelyUnspecified(String id) {
     return NOT_DECLARED_ID.equals(id) || NO_SOURCES_ID.equals(id) || NO_SOURCE_LICENSE_ID.equals(id)
-        || UNSPECIFIED_ID.equals(id);
+        || UNSPECIFIED_ID.equals(id) || NOT_SUPPORTED_ID.equals(id);
   }
 }

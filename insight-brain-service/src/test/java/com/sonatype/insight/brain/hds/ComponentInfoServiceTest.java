@@ -68,6 +68,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -87,6 +88,8 @@ public class ComponentInfoServiceTest
 {
   private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("g1", "a1",
       "v1", "", "jar");
+
+  private static final ComponentIdentifier NUGET_COORDINATES = ComponentIdentifier.createNugetCoordinates("a", "v");
 
   // This is the tool name (ci, ide, rm) used in REST paths for HDS resources. Since we use it when we mock the HDS
   // client, it doesn't really matter what value we use here, because we don't really access HDS REST paths.
@@ -408,6 +411,36 @@ public class ComponentInfoServiceTest
     List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
     assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", 5, effectiveList);
     assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", 5, effectiveList);
+  }
+
+  @Test
+  public void testGetLicenses_withNotSupportedLicense() throws Exception {
+    testGetLicenses_withNotSupportedLicense(OwnerType.APPLICATION,
+        applicationPublicId);
+    testGetLicenses_withNotSupportedLicense(OwnerType.REPOSITORY,
+        repository.getId());
+  }
+
+  private void testGetLicenses_withNotSupportedLicense(final OwnerType ownerType,
+                                                       final String ownerId)
+      throws Exception
+  {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(NUGET_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("MIT"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("Not-Supported"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentLicenses licenses = componentInfoService.getLicenses(ownerType, ownerId, NUGET_COORDINATES,
+        httpRequestMock);
+    assertThat(licenses.declaredlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("MIT", "MIT", 0, licenses.declaredlicenses);
+    assertThat(licenses.observedlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("Not-Supported", "Not Supported", null, licenses.observedlicenses);
+    assertThat(licenses.effectiveLicenses, hasSize(1));
+    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
+    assertContainsLicenseWithThreatLevel("MIT", "MIT", 0, effectiveList);
+    assertThat(licenses.selectableLicenses, not(empty()));
+    License notSupportedLicense = new ArrayList<>(toLicenseSet("Not-Supported")).get(0);
+    assertThat(licenses.selectableLicenses, not(contains(notSupportedLicense)));
   }
 
   @Test

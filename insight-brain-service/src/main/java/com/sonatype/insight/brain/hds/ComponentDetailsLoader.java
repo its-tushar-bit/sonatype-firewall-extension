@@ -184,8 +184,8 @@ public class ComponentDetailsLoader
   }
 
   /**
-   * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared) unless these are the
-   * only licenses in the given set, then return the given set.
+   * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared, Not-Supported)
+   * unless these are the only licenses in the given set, then return the given set.
    */
   private Set<License> removeNonLicensesUnlessNoOtherLicensesExist(Set<License> licenses) {
     Set<License> filtered = new LinkedHashSet<>();

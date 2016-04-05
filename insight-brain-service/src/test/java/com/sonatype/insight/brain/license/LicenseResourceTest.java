@@ -35,6 +35,7 @@ public class LicenseResourceTest
     assertTrue(isPresent(License.NO_SOURCE_LICENSE_ID, licenses));
     assertTrue(isPresent(License.NOT_DECLARED_ID, licenses));
     assertTrue(isPresent(License.NO_SOURCES_ID, licenses));
+    assertTrue(isPresent(License.NOT_SUPPORTED_ID, licenses));
   }
 
   @Test
@@ -47,6 +48,7 @@ public class LicenseResourceTest
     assertFalse(isPresent(License.NO_SOURCE_LICENSE_ID, licenses));
     assertFalse(isPresent(License.NOT_DECLARED_ID, licenses));
     assertFalse(isPresent(License.NO_SOURCES_ID, licenses));
+    assertFalse(isPresent(License.NOT_SUPPORTED_ID, licenses));
     Assert.assertNotEquals(licenses.length, 0);
   }
 

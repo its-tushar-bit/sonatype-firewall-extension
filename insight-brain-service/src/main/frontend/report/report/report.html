@@ -1,9 +1,9 @@
 <div class="container">
   <div load-error='error' reload='doLoad()'></div>
-  <div ng-hide='error'>
+  <div ng-hide='error' style="width:960px; margin:auto">
     <div ng-hide='application'><h5><i class='icon icon-time'></i> Loading...</h5></div>
-    <div ng-if='application'  style="width: 990px;margin-top:40px">
-      <div id='report-title' class='reportTitle' style='margin-left:16.5px'>
+    <div ng-if='application'>
+      <div id='report-title' class='reportTitle' style="width:940px; margin:auto">
         <strong>{{application.name}}</strong> - {{policyEvaluation.time | date:'yyyy-MM-dd'}} - <em>{{policyEvaluation.stageName}} Report</em>
       </div>
       <div id='evaluationReportContainer' expandable-iframe='reportUrl'></div>

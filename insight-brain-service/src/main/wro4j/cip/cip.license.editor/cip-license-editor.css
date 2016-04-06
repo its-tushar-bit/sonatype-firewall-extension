@@ -23,6 +23,11 @@
   padding: 15px
 }
 
+#license-editor label.checkbox {
+  /* Avoid vertical scroll in license dropdown */
+  font-size: 14px;
+}
+
 #license-editor .multi-dropdown-item, #license-editor .multi-dropdown .btn, #license-editor .multiselect-container {
   width: 100%;
 }

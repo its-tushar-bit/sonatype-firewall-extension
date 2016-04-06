@@ -102,6 +102,10 @@ public class ActionItemList
       return new AddNotificationItem(createSelector(rootSelector, "tr", nthChild(2), ".add-notification"));
     }
 
+    public SelenideElement noNotificationsDescriptor() {
+      return $(createSelector(rootSelector, "tr", nthChild(2), ".notification-list .empty-list"));
+    }
+
     public String notificationsSelector() {
       return createSelector(rootSelector, "tr", nthChild(2), ".notification-list li");
     }

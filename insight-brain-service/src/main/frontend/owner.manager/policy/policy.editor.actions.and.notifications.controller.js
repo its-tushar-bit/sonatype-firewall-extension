@@ -56,7 +56,7 @@
 
     function hasNotifications(stageId) {
       if (stageId === monitoringStage) {
-        return vm.monitorNotifyActions;
+        return vm.monitorNotifyActions && vm.monitorNotifyActions.length;
       }
       else {
         return vm.actions[stageId] && vm.actions[stageId].some(function(action) {

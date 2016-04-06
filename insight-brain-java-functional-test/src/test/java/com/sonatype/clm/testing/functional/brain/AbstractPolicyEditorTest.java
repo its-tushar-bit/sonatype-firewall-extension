@@ -669,7 +669,9 @@ public abstract class AbstractPolicyEditorTest
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
-    AddNotificationItem buildNotification = actionItemList.build().addNotification();
+    ActionItem buildAction = actionItemList.build();
+    AddNotificationItem buildNotification = buildAction.addNotification();
+    buildAction.noNotificationsDescriptor().shouldBe(visible);
     buildNotification.addButton().shouldHave(DISABLED);
     buildNotification.notificationType().selectedItem().shouldHave(text("Email"));
     buildNotification.email().val("test@sonatype.com").shouldBe(visible);
@@ -677,12 +679,15 @@ public abstract class AbstractPolicyEditorTest
     buildNotification.addButton().shouldNotHave(DISABLED).click();
     buildNotification.addButton().shouldHave(DISABLED);
     PolicyEditorPage.saveButton().shouldHave(DISABLED); // disabled because constraint has not been populated
+    buildAction.noNotificationsDescriptor().shouldNotBe(visible);
 
     actionItemList.build().twisty().click();
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED).click();
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED);
 
-    AddNotificationItem monitoringNotification = actionItemList.continuousMonitoring().addNotification();
+    ActionItem monitoringAction = actionItemList.continuousMonitoring();
+    AddNotificationItem monitoringNotification = monitoringAction.addNotification();
+    monitoringAction.noNotificationsDescriptor().shouldBe(visible);
     monitoringNotification.addButton().shouldHave(DISABLED);
     monitoringNotification.notificationType().selectedItem().shouldHave(text("Email")).click();
     monitoringNotification.notificationType().listItem(1).click();
@@ -692,6 +697,7 @@ public abstract class AbstractPolicyEditorTest
     monitoringNotification.role().listItems().findBy(text("Application Evaluator")).click();
     monitoringNotification.addButton().shouldNotHave(DISABLED).click();
     monitoringNotification.addButton().shouldHave(DISABLED);
+    monitoringAction.noNotificationsDescriptor().shouldNotBe(visible);
   }
 
   private void assertNewPolicyStateIsCorrect() {

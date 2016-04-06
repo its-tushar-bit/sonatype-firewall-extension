@@ -73,6 +73,7 @@
             </div>
           </div>
           <div class="notification-list" ng-class="{empty : !vm.hasNotifications(actionStage.stageTypeId)}">
+            <div class="empty-list" ng-if="!vm.hasNotifications(actionStage.stageTypeId)">No notifications configured</div>
             <ul>
               <li ng-repeat="action in (actionStage.stageTypeId === 'monitoring' ? vm.monitorNotifyActions : vm.actions[actionStage.stageTypeId]) | filter:{actionTypeId:'notify'}">
                 <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeNotification(actionStage.stageTypeId, action.target)"

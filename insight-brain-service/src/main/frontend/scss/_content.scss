@@ -162,6 +162,10 @@ body {
   overflow-y: auto;
 }
 
+#clm-welcome-message a.link {
+  @extend %link;
+}
+
 /*
   ##Single pane scrollable layout container
 

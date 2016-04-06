@@ -674,31 +674,7 @@
         @extend .semi-bold;
 
         &.link {
-          &.disabled {
-            color: $light-blue;
-            cursor: default;
-
-            &:hover {
-              color: $light-blue;
-            }
-          }
-
-          &:not(.disabled) {
-            color: $link-blue;
-
-            &:hover:not(:active) {
-              color: $link-blue;
-              text-decoration: underline;
-            }
-            &:active {
-              color: $deep-blue;
-              text-decoration: none;
-            }
-          }
-          .fa-external-link {
-            margin-bottom: 2px;
-            vertical-align: middle;
-          }
+          @extend %link;
         }
 
         &:not(.link) {

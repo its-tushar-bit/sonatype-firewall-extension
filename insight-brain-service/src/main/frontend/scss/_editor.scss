@@ -242,10 +242,6 @@
             border-bottom: 1px solid $grey-4;
           }
 
-          &.expanded + tr td {
-            border-bottom: 1px solid $grey-4;
-          }
-
           .twisty.expand {
             border-left-color: $off-black;
           }
@@ -262,21 +258,21 @@
         }
       }
 
-      td:first-child {
-        @extend .semi-bold;
-        width: 100%;
-      }
-
-      td:not(first-child) {
-        cursor: default;
-      }
-
-      td {
+      .action-stage td {
         @extend .regular;
         font-size: 14px;
         color: $slate;
         white-space: nowrap;
         padding-left: 12px;
+
+        &:first-child {
+          @extend .semi-bold;
+          width: 100%;
+        }
+
+        &:not(:first-child) {
+          cursor: default;
+        }
 
         label {
           padding-left: 0px;
@@ -310,10 +306,9 @@
   }
 
   .add-notification {
-    margin-left: 20px;
+    margin-left: 32px;
     margin-bottom: 0px;
     padding-bottom: 8px;
-    border-bottom: 1px solid $grey-3;
 
     .no-label {
       vertical-align: bottom;
@@ -332,28 +327,31 @@
     }
   }
 
+  $notification-item-height: 40px;
+
   .notification-list {
     overflow-y: auto;
-    max-height: 200px;
-    padding-left: 16px;
+    max-height: $notification-item-height * 5;
+    margin-left: 32px;
     margin-top: 0px;
     margin-bottom: 24px;
+    border-top: 1px solid $grey-3;
 
     &.empty {
-      margin-top: 0px;
+      margin: 0px;
     }
 
     ul {
       list-style: none;
-      margin: 0px 0px 0px 0px;
-      padding-left: 8px;
+      margin: 0px;
     }
 
     li {
-      height: 40px;
+      height: $notification-item-height;
       border-bottom: 1px solid $grey-1;
       span {
         line-height: 40px;
+        padding-left: 8px;
         .fa {
           margin-right: 8px;
         }

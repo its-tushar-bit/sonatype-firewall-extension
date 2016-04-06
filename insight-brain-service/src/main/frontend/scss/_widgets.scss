@@ -675,6 +675,11 @@
 
         &.link {
           @extend %link;
+
+          .fa-external-link {
+            margin-bottom: 2px;
+            vertical-align: middle;
+          }
         }
 
         &:not(.link) {

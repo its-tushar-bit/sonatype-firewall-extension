@@ -10,7 +10,9 @@ var StoreUtils = function() {
 
   function MockStore(storeName) {
     var promises,
-        me = this;
+        me = this,
+        store,
+        $q;
 
     me.resolveGet = resolvePromise('get');
     me.rejectGet = rejectPromise('get');
@@ -24,7 +26,9 @@ var StoreUtils = function() {
     me.resolveRemove = resolvePromise('remove');
 
     beforeEach(inject([
-      storeName, '$q', function(store, $q) {
+      storeName, '$q', function(_store_, _$q_) {
+        store = _store_;
+        $q = _$q_;
         promises = {
           get: $q.defer(),
           getApplicable: $q.defer(),
@@ -53,6 +57,7 @@ var StoreUtils = function() {
 
         expect(promises[promiseName].promise.then).toHaveBeenCalled();
         promises[promiseName].resolve(value);
+        resetPromise(promiseName);
       };
     }
 
@@ -63,7 +68,14 @@ var StoreUtils = function() {
         }
 
         promises[promiseName].reject(value);
+        resetPromise(promiseName);
       };
+    }
+
+    function resetPromise(promiseName) {
+      promises[promiseName] = $q.defer();
+      spyOn(promises[promiseName].promise, 'then').andCallThrough();
+      store[promiseName].andReturn(promises[promiseName].promise);
     }
   }
 

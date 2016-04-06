@@ -30,9 +30,8 @@
 
   function MoveApplicationErrorModalController($scope, messages) {
     $scope.messages = messages;
-    $scope.$on('pageChangeStarted', function() {
-      // will also close main "move.application.modal"
-      $scope.$dismiss();
+    $scope.$on('pageChangeAccepted', function() {
+      $scope.$close();
     });
   }
 

@@ -79,10 +79,8 @@
             vm.isHidden = false;
           })
           .catch(function() {
-            // this is a hack to close on state change when MoveApplicationErrorModal is open
-            // currently there is bug that causes an exception when broadcasting 'pageChangeAccepted' event
-            // so the second modal doesn't get closed
-            $scope.$dismiss();
+            // in case error dialog fails
+            vm.isHidden = false;
           });
 
     }

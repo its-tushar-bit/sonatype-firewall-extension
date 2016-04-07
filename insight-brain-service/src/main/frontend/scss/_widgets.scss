@@ -422,6 +422,10 @@
     </div>
   ```
 */
+.tooltip.top {
+  padding-top: 0px;
+  padding-bottom: 2px;
+}
 .tooltip-arrow {
   .tooltip.top & {
     border-top-color: $off-black;

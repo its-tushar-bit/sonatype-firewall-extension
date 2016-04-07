@@ -6,7 +6,8 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations)
+  function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations,
+                                               PolicyHierarchyStore)
   {
     var originalCategoryArray,
         vm = this;
@@ -84,6 +85,8 @@
           appliedCategories)).then(function() {
         originalCategoryArray = angular.copy(vm.categories);
         vm.categoryEditor.$setPristine();
+        // policies may now be (un)inherited due to the new associations
+        PolicyHierarchyStore.refresh();
       }, function(error) {
         vm.submitError = error;
       });
@@ -95,7 +98,7 @@
   }
 
   ApplicationCategoryEditorController.$inject = [
-    '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations'
+    '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations', 'PolicyHierarchyStore'
   ];
 
   angular//

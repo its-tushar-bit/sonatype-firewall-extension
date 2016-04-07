@@ -102,6 +102,26 @@ describe('application.category.editor.controller.spec.js', function() {
           }
       );
 
+
+      it('Save refreshes policy store', inject(function($q, PolicyHierarchyStore) {
+        mockApplicationStore.resolveGet([owner]);
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond(
+            TagResourceMockData.getApplicableOrganizationTags());
+        $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(
+            TagResourceMockData.getApplicationTagUrl());
+
+        $timeout.flush();
+        $httpBackend.flush();
+        vm.categoryEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+        vm.categoryEditor = {$setPristine: angular.noop};
+        spyOn(PolicyHierarchyStore, 'refresh');
+
+        vm.save();
+        $httpBackend.expectPUT(CLMLocations.getApplicationTagUrl(owner.id)).respond();
+        $httpBackend.flush();
+        expect(PolicyHierarchyStore.refresh).toHaveBeenCalled();
+      }));
+
       describe('Page Changes', function() {
         beforeEach(function() {
           mockApplicationStore.resolveGet([owner]);

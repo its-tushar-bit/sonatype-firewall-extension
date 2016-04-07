@@ -14,6 +14,9 @@ describe('policy.tile.controller.spec.js', function() {
       $timeout,
       $rootScope,
       CLMAppLocations,
+      mockPolicyHierarchyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
+      mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(PolicyTileMockData
+          .getApplicablePolicies(), 'policiesByOwner'),
       stageTypeStoreDefer,
       EventNameConstant,
       MonitoredStageService,
@@ -48,23 +51,22 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Properly Loading Owner Policies', function() {
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     spyOn(MonitoredStageService, 'getMonitoredStage').andReturn({ stageName: 'Develop', stageTypeId: 'develop' });
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    $httpBackend.flush();
     $timeout.flush();
 
-    expect(vm.ownerName).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[0].ownerName);
-    expect(vm.policiesByOwner.length).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner.length);
+    expect(vm.ownerName).toEqual(mockPolicyStoreData[0].ownerName);
+    expect(vm.policiesByOwner.length).toEqual(mockPolicyStoreData.length);
     vm.policiesByOwner.forEach(function(owner, ownerIndex) {
       owner.policies.forEach(function(policy, policyIndex) {
-        expect(policy.name).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].name);
-        expect(policy.threatLevel).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].threatLevel);
-        expect(policy.actions).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].actions);
+        expect(policy.name).toEqual(mockPolicyStoreData[ownerIndex].policies[policyIndex].name);
+        expect(policy.threatLevel).toEqual(mockPolicyStoreData[ownerIndex].policies[policyIndex].threatLevel);
+        expect(policy.actions).toEqual(mockPolicyStoreData[ownerIndex].policies[policyIndex].actions);
         expect(policy.enforcementAction).toBeDefined();
-        expect(policy.enforcementAction['build']).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].actions['build'][0].actionTypeId);
-        expect(policy.enforcementAction['stage-release']).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].actions['stage-release'][0].actionTypeId);
+        expect(policy.enforcementAction['build']).toEqual(mockPolicyStoreData[ownerIndex].policies[policyIndex].actions['build'][0].actionTypeId);
+        expect(policy.enforcementAction['stage-release']).toEqual(mockPolicyStoreData[ownerIndex].policies[policyIndex].actions['stage-release'][0].actionTypeId);
       });
     });
     expect(vm.monitoredStage.stageName).toBe('Develop');
@@ -73,51 +75,47 @@ describe('policy.tile.controller.spec.js', function() {
   it('Uses the placeholder value for monitored stage if one is not inherited', function() {
     spyOn(MonitoredStageService, 'getMonitoredStage').andReturn(undefined);
     spyOn(MonitoredStageService, 'createInheritOrNoMonitorOption').andReturn({stageName: 'Do not monitor'});
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    $httpBackend.flush();
     $timeout.flush();
 
     expect(vm.monitoredStage.stageName).toBe('Do not monitor');
   });
 
   it('Missing Owner Policies', function() {
+    mockPolicyHierarchyStore.rejectGet("dagnabbit");
     resolveStageTypeStore(MockData.getDashboardStageData());
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(400, 'Bad Request');
-    $httpBackend.flush();
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+
     $timeout.flush();
 
-    expect(vm.error).toBeDefined();
+    expect(vm.error).toBe("dagnabbit");
 
     vm.doLoad();
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    $httpBackend.flush();
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     $timeout.flush();
 
     expect(vm.error).toBeUndefined();
-
   });
 
   it('Reloads on broadcasted owner summary reload event', function() {
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    $httpBackend.flush();
     $timeout.flush();
 
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    $httpBackend.flush();
     $timeout.flush();
   });
 
   it('Updates Owner name on broadcasted updated owner event', function() {
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    $httpBackend.flush();
     $timeout.flush();
 
     expect(vm.ownerName).not.toEqual('Bob');

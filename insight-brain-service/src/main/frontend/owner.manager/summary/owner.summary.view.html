@@ -149,7 +149,7 @@
                 <td ng-repeat="stage in vm.actionStages">
                   <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[stage.stageTypeId] === 'warn',
                     'fa fa-exclamation-circle fail' :policy.enforcementAction[stage.stageTypeId] === 'fail'}"></i><!--
-                  -->{{::policy.enforcementAction[stage.stageTypeId] || 'no action'}}
+                  -->{{policy.enforcementAction[stage.stageTypeId] || 'no action'}}
                 </td>
                 <td class="chevron-column"><i class="fa fa-chevron-right"></i></td>
               </tr>

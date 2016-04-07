@@ -6,8 +6,8 @@
 (function(angular) {
   'use strict';
 
-  function PolicyTileController($scope, $q, $http, CLMAppLocations, StageTypeStore, SameOwnerStateNavigationService,
-                                PolicyMonitoringStore, MonitoredStageService, EventNameConstant)
+  function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
+                                PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore)
   {
     var vm = this;
     vm.ownerName = undefined;
@@ -26,11 +26,11 @@
 
     function doLoad() {
       $q.all([
-        $http.get(CLMAppLocations.getApplicablePolicies()),
+        PolicyHierarchyStore.get(),
         StageTypeStore.getActionStages(),
         PolicyMonitoringStore.getApplicable()
       ]).then(function(results) {
-        vm.policiesByOwner = results[0].data.policiesByOwner;
+        vm.policiesByOwner = results[0];
         vm.actionStages = results[1];
 
         vm.policiesByOwner.forEach(function(policyOwner, index) {
@@ -76,8 +76,8 @@
   }
 
   PolicyTileController.$inject = [
-    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore', 'SameOwnerStateNavigationService',
-    'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant'
+    '$scope', '$q', 'StageTypeStore', 'SameOwnerStateNavigationService',
+    'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore'
   ];
 
   angular //

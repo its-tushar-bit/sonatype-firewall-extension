@@ -55,20 +55,22 @@ describe('import.policy.modal.controller.spec.js', function() {
       expect(vm.error).toBeDefined();
     });
 
-    it('Test import success', function() {
+    it('Test import success', inject(function(PolicyHierarchyStore) {
       validateInitialState();
       scope.$close = jasmine.createSpy('close');
 
       $httpBackend.expectPOST(CLMAppLocations.getImportPolicyUrl()).respond({
         ownerName: 'test'
       });
+      spyOn(PolicyHierarchyStore, 'refresh');
 
       vm.doSubmit()
       $httpBackend.flush();
 
       expect(scope.$close).toHaveBeenCalled();
+      expect(PolicyHierarchyStore.refresh).toHaveBeenCalled();
       expect(vm.error).toBeUndefined();
-    });
+    }));
 
     describe('IE9', function () {
       it('Error', inject(function ($window) {
@@ -83,10 +85,11 @@ describe('import.policy.modal.controller.spec.js', function() {
         expect(vm.error).toEqual('Error');
       }));
 
-      it('Successful', inject(function ($window) {
+      it('Successful', inject(function ($window, PolicyHierarchyStore) {
         scope.$close = jasmine.createSpy('close');
         $window.FormData = null;
         validateInitialState();
+        spyOn(PolicyHierarchyStore, 'refresh');
 
         vm.doSubmit();
 
@@ -95,6 +98,7 @@ describe('import.policy.modal.controller.spec.js', function() {
         $timeout.flush();
 
         expect(scope.$close).toHaveBeenCalled();
+        expect(PolicyHierarchyStore.refresh).toHaveBeenCalled();
         expect(vm.error).toBeFalsy();
       }));
     });

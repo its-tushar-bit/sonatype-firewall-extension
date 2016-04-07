@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
+import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -81,6 +82,11 @@ public class CreateOwnerTest
     orgNode.treeViewElement().click();
     orgNode.newApplicationButton().shouldBe(visible, enabled).click();
 
+    testNoDirtyState();
+
+    orgNode = OwnerTreeView.organization(0);
+    orgNode.newApplicationButton().shouldBe(visible, enabled).click();
+
     testIconDirtyState();
 
     // open application
@@ -133,6 +139,10 @@ public class CreateOwnerTest
   public void testCreateOrganization() throws Exception {
     RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
 
+    testNoDirtyState();
+
+    RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
+
     testIconDirtyState();
 
     OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
@@ -172,6 +182,13 @@ public class CreateOwnerTest
     unsavedModal.cancelButton().shouldBe(visible).click();
 
     OwnerEditorDialog.defaultIcon().click();
+  }
+
+  private void testNoDirtyState() {
+    UnsavedModal unsavedModal = new UnsavedModal();
+    refreshOrOpen(ReportListPage.URL);
+    unsavedModal.shouldNotBe(visible);
+    WebDriverRunner.getWebDriver().navigate().back();
   }
 
   private Organization getOrgByName(String name) {

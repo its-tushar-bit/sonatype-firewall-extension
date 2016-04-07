@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -150,6 +151,9 @@ public abstract class AbstractLTGEditorTest
 
     for (int i = 0; i < 3; i++) {
       Item item = picker.availableItem(i);
+      item.hover().tooltip().shouldBe(visible).shouldHave(text(item.label().text()));
+      LTGEditorPage.title().hover(); // hide the tooltip
+      item.tooltip().shouldNot(exist);
       item.shouldBe(visible).click();
       pickedLicenseNames.add(item.label().text());
     }

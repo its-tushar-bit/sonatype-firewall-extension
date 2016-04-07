@@ -30,7 +30,8 @@
           <label for="editor-ltg-included-licenses">Included Licenses</label>
           <double-column-picker id="editor-ltg-included-licenses" list="vm.availableLicenses"
                                 filter-placeholder="License Name" left-column-name="Available"
-                                right-column-name="Included" item-name-param="longDisplayName"></double-column-picker>
+                                right-column-name="Included" item-name-param="longDisplayName"
+                                tooltip-fn="vm.getTooltip(item)"></double-column-picker>
         </div>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">

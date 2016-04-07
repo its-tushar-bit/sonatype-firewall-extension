@@ -26,6 +26,7 @@
     vm.siblings = [];
     vm.submitError = undefined;
     vm.nextLTG = undefined;
+    vm.getTooltip = getTooltip;
 
     vm.doLoad();
 
@@ -148,6 +149,11 @@
 
       return vm.dirtyLTG.isDirty() || isLicensePickerDirty;
     }
+
+    function getTooltip(item) {
+      return item.longDisplayName;
+    }
+
   }
 
   LicenseThreatGroupEditorController.$inject = [

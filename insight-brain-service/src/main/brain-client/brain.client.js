@@ -203,7 +203,7 @@ var clmBuildTimestamp = '${build.timestamp}';
      * @since version 1.14
      */
     'getVulnerabilityDetailUrl' : function (source, refId, componentIdentifier, hash) {
-      var url = '/rest/vulnerability/details/' + encodeURIComponent(source) + '/' + encodeURIComponent(refId),
+      var url = 'rest/vulnerability/details/' + encodeURIComponent(source) + '/' + encodeURIComponent(refId),
           params = {};
 
       if (componentIdentifier) {

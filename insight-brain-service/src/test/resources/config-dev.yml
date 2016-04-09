@@ -1,4 +1,4 @@
-hdsUrl: https://clmweb-staging.sonatype.com/
+hdsUrl: https://clm-staging.sonatype.com/
 #hdsUrl: "http://localhost:8080/insight-portal"
 
 baseUrl: http://localhost:8070

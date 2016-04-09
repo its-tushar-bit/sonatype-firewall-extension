@@ -31,7 +31,7 @@ public class RepositoryReportResource
 
   static final String DETAILS_PATH = "details";
 
-  static final String POLICY_THREAT_PATH = "policyThreat/{pathname}";
+  static final String POLICY_THREAT_PATH = "policyThreat/{pathname: .+}";
 
   public static final String RESOURCE_PATH = "rest/repositories/{repositoryId}/report";
 

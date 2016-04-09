@@ -34,7 +34,7 @@ public class RepositoryResource
 
   static final String EVALUATE_PATH = REPOSITORY_PATH + "/evaluate";
 
-  static final String UNQUARANTINE_PATH = REPOSITORY_PATH + "/unquarantine/{pathname}";
+  static final String UNQUARANTINE_PATH = REPOSITORY_PATH + "/unquarantine/{pathname: .+}";
 
   static final String EVALUATE_COMPONENT_PATH = EVALUATE_PATH + "/{hash}";
 

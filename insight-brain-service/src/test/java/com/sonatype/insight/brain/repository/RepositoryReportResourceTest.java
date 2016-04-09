@@ -119,7 +119,7 @@ public class RepositoryReportResourceTest
   @Test
   public void testGetPolicyThreats() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "dir/path");
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, repositoryComponent.getPathname(), false, true,
         "policyId1", "policyName1", repositoryComponent.getComponentIdentifier());
 

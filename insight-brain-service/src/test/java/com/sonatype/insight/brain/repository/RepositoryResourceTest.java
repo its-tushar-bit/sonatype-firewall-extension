@@ -43,7 +43,7 @@ public class RepositoryResourceTest
 
   @Test
   public void testUnquarantineComponent() throws Exception {
-    String path = "path";
+    String path = "dir/path";
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
         .parameter(repo.getId(), path).post();
     assertResponseStatus(404, response);

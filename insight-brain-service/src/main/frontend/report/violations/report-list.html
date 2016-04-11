@@ -37,7 +37,7 @@
             <tr ng-repeat='application in applications | filter: isVisible | orderBy:getSortField()'>
               <td>
                 <a ui-sref="management.view.application({applicationPublicId: application.publicId})">
-                  <img ng-src='../../rest/application/icon/{{::encodeURIComponent(application.publicId)}}'
+                  <img ng-src='../rest/application/icon/{{::encodeURIComponent(application.publicId)}}'
                     onerror="this.src='img/defaulticon_application.png';"
                     class='image-thumbnail'/>{{::application.name}}
                 </a>

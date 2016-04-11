@@ -214,28 +214,27 @@
    */
   function CachedStoreFactory(CLMResource, CLMAppLocations) {
     function CachedStore(config) {
-      var store, stores = {};
+      var store, storeKey = null;
 
       function refreshStore() {
         var key = config.getKey ? config.getKey() : CLMAppLocations.getEntityId();
-        store = stores[key];
-        if (!store) {
-          store = stores[key] = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
+        if (!store || key !== storeKey) {
+          store = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
+          storeKey = key;
         }
+
+        return store;
       }
 
       return {
         get: function() {
-          refreshStore();
-          return store.get();
+          return refreshStore().get();
         },
         refresh: function() {
-          refreshStore();
-          return store.refresh();
+          return refreshStore().refresh();
         },
         create: function() {
-          refreshStore();
-          return store.create();
+          return refreshStore().create();
         }
       };
     }

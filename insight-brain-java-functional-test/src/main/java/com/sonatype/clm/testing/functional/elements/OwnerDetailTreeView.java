@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -20,6 +21,10 @@ public class OwnerDetailTreeView
 
   public static SelenideElement header() {
     return root().$(".tree-view-header");
+  }
+
+  public static SelenideElement backLink() {
+    return $(SelectorUtils.createSelector(DETAIL_TREE_VIEW_SELECTOR, ".tree-view-header", "a"));
   }
 
   public static String headerHref() {

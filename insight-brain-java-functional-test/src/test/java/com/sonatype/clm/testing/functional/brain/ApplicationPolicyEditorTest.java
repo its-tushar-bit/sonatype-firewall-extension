@@ -5,16 +5,20 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
-
 import org.junit.Before;
+import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.allRadioText;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.specifiedRadioText;
 
@@ -33,6 +37,23 @@ public class ApplicationPolicyEditorTest
         YE_OLE_ORGANIZATION);
 
     super.init(application);
+  }
+
+  @Test
+  public void testParentPolicyChangeReflectedLocally() throws Exception {
+    tempEntity.newPolicy(application.getParentOwnerId(), "policyName", 5, new Action(Action.ID_FAIL), StageTypes.BUILD.getId());
+    refreshOrOpen(OwnerSummaryPage.url(application.getType().toString(), application.getPublicId()));
+    OwnerSummaryPage.SummaryTile.localPolicy("policyName").shouldBe(visible);
+    OwnerTreeView.organization(0).treeViewElement().shouldBe(visible).click();
+    OwnerSummaryPage.SummaryTile.localPolicy("policyName").shouldBe(visible).click();
+    PolicyEditorPage.summarySection().policyName().clear();
+    PolicyEditorPage.summarySection().policyName().sendKeys("policyName2");
+    PolicyEditorPage.endOfPagePill().click();
+    PolicyEditorPage.saveButton().shouldBe(visible).click();
+    FormMask.seeAndWaitForDismissal();
+    OwnerDetailTreeView.backLink().shouldBe(visible).click();
+    OwnerTreeView.organization(0).application(0).shouldBe(visible).click();
+    OwnerSummaryPage.SummaryTile.localPolicy("policyName2").shouldBe(visible);
   }
 
   @Override

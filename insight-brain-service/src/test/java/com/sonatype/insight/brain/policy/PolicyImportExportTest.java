@@ -305,7 +305,8 @@ public class PolicyImportExportTest
       fail("Import should have thrown an exception due to tag data");
     }
     catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported."));
+      assertThat(e.getMessage(),
+          is("Importing policies with application categories to an application is not supported."));
     }
   }
 

@@ -425,7 +425,8 @@ public class PolicyImportExport
     checkNotNull(app, "Import failed. The passed in application was null.");
     checkPolicyExportResultPreconditions(exportDTO);
     if (!exportDTO.tags.isEmpty() || !exportDTO.policyTags.isEmpty()) {
-      throw new BadRequestException("Importing policies with applied tags to an application is not supported.");
+      throw new BadRequestException(
+          "Importing policies with application categories to an application is not supported.");
     }
   }
 

@@ -97,6 +97,10 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87, 87, 87, 1);
 }
 
 .header-navigation-menu {
+  &.inline > li {
+    padding: 0;
+  }
+
   li {
     span {
       padding-top: 5px;

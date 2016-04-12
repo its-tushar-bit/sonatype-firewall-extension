@@ -146,10 +146,10 @@
               <tr class="simple clickable" ng-repeat="policy in ownerPolicyList.policies | orderBy:sortVm.sortFields"
                   ng-click="vm.editPolicy(policy.id)">
                 <td class="greedy-column" colspan="2"><span class='threat-legend policy-threat-level-{{policy.threatLevel}}'>&nbsp;</span>{{policy.name}}</td>
-                <td ng-repeat="stage in vm.actionStages">
+                <td ng-repeat="stage in vm.actionStages" class="action">
                   <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[stage.stageTypeId] === 'warn',
                     'fa fa-exclamation-circle fail' :policy.enforcementAction[stage.stageTypeId] === 'fail'}"></i><!--
-                  -->{{policy.enforcementAction[stage.stageTypeId] || 'no action'}}
+                  --><span>{{policy.enforcementAction[stage.stageTypeId] || 'no action'}}</span>
                 </td>
                 <td class="chevron-column"><i class="fa fa-chevron-right"></i></td>
               </tr>

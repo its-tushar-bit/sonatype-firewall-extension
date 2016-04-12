@@ -499,13 +499,21 @@ $tile-scroll-container-z-index: 0;
         }
       }
 
-      .fa {
-        &.fail {
-          color: $red;
-        }
+      .action {
+        color: $slate;
 
-        &.warn {
-          color: $orange;
+        .fa {
+          &.fail {
+            color: $red;
+          }
+
+          &.warn {
+            color: $orange;
+          }
+
+          + span {
+            color: $off-black;
+          }
         }
       }
     }

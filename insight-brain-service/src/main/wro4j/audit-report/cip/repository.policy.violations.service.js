@@ -24,8 +24,9 @@
       get: function () {
         var deferred = $q.defer();
         $http.get(CLM.path + 'rest/repositories/' + OwnerContext.ownerId + '/report/policyThreat/' +
-                encodeURIComponent(SelectedComponent.get().pathname)).success(function (policyThreat) {
-          var processedPolicyAlerts = [];
+                encodeURIComponent(SelectedComponent.get().pathname)).then(function (response) {
+          var policyThreat = response.data,
+              processedPolicyAlerts = [];
 
           angular.forEach(policyThreat.activePolicyViolations, function(activeViolation) {
             var actions = [];

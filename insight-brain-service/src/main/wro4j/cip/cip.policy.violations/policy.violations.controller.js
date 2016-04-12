@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  function PolicyViolationsController($http, $scope, $q, $modal, SelectedComponent, OwnerContext, PolicyViolations) {
+  function PolicyViolationsController($http, $scope, $q, $modal, SelectedComponent, OwnerContext, PolicyViolations, Messages) {
 
     $scope.getThreatColor = function (threatLevel) {
       return threatLevel > 7 ? 'red' : threatLevel > 3 ? 'orange' : threatLevel > 1 ? 'yellow' : threatLevel > 0 ? 'darkblue' : 'blue';
@@ -29,7 +29,7 @@
         $scope.processedPolicyAlerts = policyThreats;
         sortPolicyAlerts();
       }, function (err) {
-        $scope.error = err;
+        $scope.error = Messages.getHttpErrorMessage(err);
       });
     };
 
@@ -90,7 +90,7 @@
     });
   }
 
-  PolicyViolationsController.$inject = ['$http', '$scope', '$q', '$modal', 'SelectedComponent', 'OwnerContext', 'PolicyViolations'];
+  PolicyViolationsController.$inject = ['$http', '$scope', '$q', '$modal', 'SelectedComponent', 'OwnerContext', 'PolicyViolations', 'Messages'];
 
   angular.module('cip.policy.violations').controller('PolicyViolationsController', PolicyViolationsController);
 }());

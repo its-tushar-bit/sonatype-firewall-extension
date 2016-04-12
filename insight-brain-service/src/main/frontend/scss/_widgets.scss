@@ -1595,10 +1595,14 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 */
 root-organization-migrate {
   display: block;
-  margin: 8px 8px 0px 8px;
+  margin: 0px 8px 0px 8px;
 
   #root-org-migrate-banner a {
     color: $link-blue;
+  }
+  
+  .alert {
+    margin-top: 8px;
   }
 }
 

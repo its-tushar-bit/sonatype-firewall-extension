@@ -325,12 +325,18 @@ var clmEndpointTemplate = {
               applications = data;
             });
 
-            $httpBackend.expectGET().respond({
-              'myAppId' : 'My First App'
+            $httpBackend.expectGET().respond(200, {
+              applicationSummaries: [{
+                publicId: 'myAppId',
+                name: 'My First App'
+              }]
             });
             $httpBackend.flush();
             $rootScope.$apply();
-            expect(applications).toEqual({ 'myAppId' : 'My First App' });
+            expect(applications).toEqual([{
+              publicId: 'myAppId',
+              name: 'My First App'
+            }]);
           }));
 
           it('Error', inject(function (Applications, $httpBackend, $rootScope) {

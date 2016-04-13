@@ -13,8 +13,8 @@
       get : function () {
         if (deferred === null) {
           deferred = $q.defer();
-          $http.get(Brain.getApplicationListUrl()).success(function (data) {
-            deferred.resolve(data);
+          $http.get(Brain.getIntegratorApplicationListUrl()).success(function (data) {
+            deferred.resolve(data.applicationSummaries);
           }).error(function () {
             deferred.reject(arguments);
             deferred = null; // all future requests to retrigger

@@ -117,6 +117,13 @@ var clmBuildTimestamp = '${build.timestamp}';
       return basePath + 'rest/application/services/names';
     },
     /**
+     * Get the integrator list of applications
+     * @since version 1.21
+     */
+    'getIntegratorApplicationListUrl' : function () {
+      return basePath + 'rest/integration/applications?goal=EVALUATE_COMPONENT';
+    },
+    /**
      * Get the Brain's version.
      * @since version 1.1
      */

@@ -48,6 +48,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
@@ -483,7 +484,9 @@ public abstract class AbstractPolicyEditorTest
     AddNotificationItem buildNotification = actionItemList.build().addNotification();
     buildNotification.addButton().shouldHave(DISABLED);
     buildNotification.notificationType().selectedItem().shouldHave(text("Email"));
-    buildNotification.email().val("test@sonatype.com").shouldBe(visible);
+    buildNotification.email().val("validation_test").shouldHave(cssClass("ng-invalid"));
+    buildNotification.addButton().shouldHave(DISABLED);
+    buildNotification.email().val("test@sonatype.com").shouldNotHave(cssClass("ng-invalid")).shouldBe(visible);
     buildNotification.role().shouldNot(exist);
     buildNotification.addButton().shouldNotHave(DISABLED).click();
     buildNotification.addButton().shouldHave(DISABLED);

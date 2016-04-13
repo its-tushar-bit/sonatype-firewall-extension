@@ -32,7 +32,15 @@ class NexusCIPSpec
     optionLabel = app.name + " (" + app.publicId + ")";
   }
 
-  def 'The application names are available without authentication'() {
+  def 'Can log in to the server'() {
+    when: 'logging in as admin'
+      loginAsAdminVia()
+
+    then: 'should see the logout link'
+      waitFor { userOptions.logout.present }
+  }
+
+  def 'Previous session'() {
     when: 'First loading the CIP'
       to NexusCIPPage
 
@@ -56,23 +64,6 @@ class NexusCIPSpec
 
     and: 'the CIP is not loaded'
       !cip.displayed
-  }
-
-  def 'Cannot load data without authenticating first'() {
-    when: 'Simulating user selection of a GAV with javascript'
-      page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version, app.publicId, false)
-
-    then: 'an error message is shown'
-      waitFor { error.displayed }
-      error.text().contains('Error 401')
-  }
-
-  def 'Can log in to the server'() {
-    when: 'logging in as admin'
-      loginAsAdminVia()
-
-    then: 'should see the logout link'
-      waitFor { userOptions.logout.present }
   }
 
   @Unroll

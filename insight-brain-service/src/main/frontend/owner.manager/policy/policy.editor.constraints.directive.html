@@ -75,14 +75,14 @@
                      on="vm.conditionTypesMap[condition.conditionTypeId].valueTypeId">
                   <age-in-days-input ng-switch-when="AgeInDaysValueType" ng-model="condition.value"
                                      name="condition-value-{{constraint.id + $index}}"></age-in-days-input>
-                  <input type="text" ng-model="condition.value"
+                  <input type="number" min="0" max="100" ng-model="condition.value"
                          name="conditionPercentageValue-{{constraint.id + $index}}" ng-switch-when="PercentageValueType"
                          ng-pattern="/^((\d{1,2})|(100))$/" messages="{pattern: 'Value must be from 0 to 100'}" clm-input required>
                   <span ng-switch-default ng-switch
                         on="vm.conditionTypesMap[condition.conditionTypeId].valueType.dataType">
                     <input type="text" ng-model="condition.value" name="conditionStringValue-{{constraint.id + $index}}"
                            ng-switch-when="String" clm-input required>
-                    <input type="text" ng-model="condition.value"
+                    <input type="number" min="0" max="10" ng-model="condition.value"
                            name="conditionIntegerValue-{{constraint.id + $index}}" ng-switch-when="Integer"
                            ng-pattern="/^(\d|10)$/" messages="{pattern: 'Value must be from 0 to 10'}"
                            title="Please enter a whole number" clm-input required>

@@ -39,12 +39,7 @@
             policy.enforcementAction = {};
             vm.actionStages.forEach(function(actionStage) {
               if (policy.actions[actionStage.stageTypeId]) {
-                policy.actions[actionStage.stageTypeId].some(function(action) {
-                  if (action.actionTypeId === 'warn' || action.actionTypeId === 'fail') {
-                    policy.enforcementAction[actionStage.stageTypeId] = action.actionTypeId;
-                    return true;
-                  }
-                });
+                policy.enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
               }
             });
           });

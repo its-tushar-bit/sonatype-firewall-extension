@@ -6,14 +6,13 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorActionsAndNotificationsDirective() {
+  function PolicyEditorActionsDirective() {
     return {
-      templateUrl: 'owner.manager/policy/policy.editor.actions.and.notifications.directive.html',
-      controller: 'policy.editor.actions.and.notifications.controller',
+      templateUrl: 'owner.manager/policy/policy.editor.actions.directive.html',
+      controller: 'policy.editor.actions.controller',
       controllerAs: 'vm',
       scope: {
         actions: '=',
-        monitorNotifyActions: '=',
         disabled: '=?editorDisabled'
       },
       bindToController: true
@@ -22,6 +21,6 @@
 
   angular //
       .module('owner.manager.module') //
-      .directive('policyEditorActions', PolicyEditorActionsAndNotificationsDirective);
+      .directive('policyEditorActions', PolicyEditorActionsDirective);
 
 }(angular));

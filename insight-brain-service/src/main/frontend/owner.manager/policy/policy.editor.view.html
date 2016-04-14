@@ -8,7 +8,8 @@
       <li class="active"><a data-toggle="pill" id="policy-summary-button" data-target="#policy-edit-summary">Summary</a></li>
       <li ng-if="vm.isOrgOwner"><a data-toggle="pill" id="policy-inheritance-button" data-target="#policy-edit-inheritance">Inheritance</a></li>
       <li><a data-toggle="pill" id="policy-constraints-button" data-target="#policy-edit-constraints">Constraints</a></li>
-      <li><a data-toggle="pill" id="policy-actions-button" data-target="#policy-edit-actions">Actions and Notifications</a></li>
+      <li><a data-toggle="pill" id="policy-actions-button" data-target="#policy-edit-actions">Actions</a></li>
+      <li><a data-toggle="pill" id="policy-notifications-button" data-target="#policy-edit-notifications">Notifications</a></li>
       <li><a data-toggle="pill" id="policy-endofpage-button" data-target="#policy-edit-endofpage">End of Page</a></li>
     </ul>
   </div>
@@ -79,7 +80,7 @@
                                    editor-disabled="vm.readOnly"></policy-editor-constraints>
       </div>
       <div id="policy-edit-actions" class="editor-section">
-        <div class="editor-section-header">Actions and Notifications</div>
+        <h4 class="subsection-header">Actions</h4>
         <policy-editor-actions actions="vm.dirtyPolicy.actions" monitor-notify-actions="vm.dirtyPolicy.monitorNotifyActions"
                 editor-disabled="vm.readOnly"></policy-editor-actions>
       </div>

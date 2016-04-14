@@ -209,97 +209,90 @@
     }
   }
 
-  #policy-edit-actions {
+  #policy-edit-actions, #policy-edit-notifications {
+    .header-text {
+      text-transform: uppercase;
+    }
+
     table {
+      table-layout: fixed;
       width: 100%;
 
-      label {
-        color: $slate;
-      }
-
-      input[type=radio]:checked + span {
-        color: $off-black;
+      thead tr {
+        height: 40px;
+        line-height: 15px;
+        th {
+          background-color: $grey-1;
+          color: $slate;
+        }
       }
 
       tr {
-        td {
-          border-bottom: 1px solid $grey-1;
-
-          &:last-child.has-notifications {
-            color: $off-black;
-          }
-        }
         height: 40px;
-
-        &.expanded td {
-          border-bottom: 0px;
-        }
-
-        &.clickable:hover {
-          cursor: pointer;
-
-          &:not(.expanded) td {
-            border-bottom: 1px solid $grey-4;
-          }
-
-          .twisty.expand {
-            border-left-color: $off-black;
-          }
-
-          .twisty.collapse {
-            border-top-color: $off-black;
-          }
-        }
-
-        td:first-child {
-          &:active, &:focus, &:hover {
-            outline: 0;
+        border-bottom: 1px solid $grey-1;
+        td {
+          &:first-child {
+            @extend .semi-bold;
           }
         }
       }
 
-      .action-stage td {
-        @extend .regular;
-        font-size: 14px;
-        color: $slate;
-        white-space: nowrap;
-        padding-left: 12px;
+      th, td {
+        vertical-align: middle;
 
-        &:first-child {
-          @extend .semi-bold;
-          width: 100%;
+        &.greedy-column {
+          text-align: left;
+          padding-left: 12px;
+          width: auto;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        &:not(:first-child) {
-          cursor: default;
+        &:not(.greedy-column) {
+          padding: 0;
+          width: 80px;
+          text-align: center;
         }
 
-        label {
-          padding-left: 0px;
+        &.delete {
+          width: 34px;
+        }
 
-          span {
-            > .fa {
-              margin-right: 8px;
-              opacity: 0.5;
-            }
+        &.continuous-monitoring {
+          font-size: 12px;
+        }
 
-            > .fail {
-              color: $red;
-            }
-
-            > .warn {
-              color: $orange;
-            }
+        &.action {
+          text-align: left;
+          padding: 0 0 0 0px;
+          label {
+            padding-left: 32px;
           }
         }
 
-        input[type="radio"]:checked + span i {
-          opacity: 1.0;
+        &.active {
+          background-color: #F8F8F8;
+          border-bottom: 1px solid $grey-1;
         }
 
-        .notification-count {
-          @extend .semi-bold;
-          font-size: 16px;
+        span {
+          > .fa {
+            margin-right: 8px;
+            margin-top: 2px;
+          }
+
+          > .fail {
+            color: $dark-red;
+          }
+
+          > .warn {
+            color: $orange;
+          }
+        }
+
+        input[type="checkbox"] {
+          margin: 0;
         }
       }
     }

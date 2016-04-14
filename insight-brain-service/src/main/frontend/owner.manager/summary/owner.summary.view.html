@@ -28,7 +28,7 @@
 
         <ul class="nav nav-pills">
           <li class="active"><a data-toggle="pill" id="owner-app-categories-button" data-target="#owner-pill-app-categories" ng-href="">Application Categories</a></li>
-          <li><a data-toggle="pill" id="owner-policy-button" data-target="#owner-pill-policy" ng-href="">Policy</a></li>
+          <li><a data-toggle="pill" id="owner-policy-button" data-target="#owner-pill-policy" ng-href="">Policies</a></li>
           <li><a data-toggle="pill" id="owner-comp-labels-button" data-target="#owner-pill-comp-labels" ng-href="">Component Labels</a></li>
           <li><a data-toggle="pill" id="owner-ltgs-button" data-target="#owner-pill-ltgs" ng-href="">License Threat Groups</a></li>
           <li><a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">Access</a></li>
@@ -112,7 +112,7 @@
     <div class="tile" id="owner-pill-policy" ng-controller="policy.tile.controller as vm">
       <div load-wrapper="vm.error" loading="!(vm.ownerName && vm.policiesByOwner)"
            reload="vm.doLoad()">
-        <h2><i class="fa fa-bank size-20px slate"></i>Policy</h2>
+        <h2><i class="fa fa-bank size-20px slate"></i>Policies</h2>
         <div class="sub-header">applying to {{vm.ownerName}}</div>
         <div>
           <div class="simple-list" ng-repeat="ownerPolicyList in vm.policiesByOwner">

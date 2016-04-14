@@ -39,4 +39,8 @@ public class PopoverViolations
   public void shouldShowInvalidSpacingError() {
     element.shouldBe(visible).shouldHave(text("No leading, trailing or double spaces or tabs"));
   }
+
+  public void shouldShowRequiredError() {
+    element.shouldBe(visible).shouldHave(text("Please enter a value"));
+  }
 }

@@ -197,9 +197,12 @@
               }
             });
 
-            // Update state whenever the $error state is changed
+            // Update state whenever the $error state is changed and/or the dirty state has changed
             scope.$watch(function() {
-              return form[ctrl.$name].$error;
+              return {
+                error: form[ctrl.$name].$error,
+                dirty: ctrl.$dirty
+              };
             }, function() {
               if (ctrl.$dirty) {
                 updateValidationMessages(element, attrs, ctrl);

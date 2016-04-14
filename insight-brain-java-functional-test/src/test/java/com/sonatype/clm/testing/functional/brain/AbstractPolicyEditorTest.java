@@ -709,6 +709,7 @@ public abstract class AbstractPolicyEditorTest
 
     assertNewPolicyStateIsCorrect_summarySection();
     assertNewPolicyStateIsCorrect_inheritanceSection();
+    assertNewPolicyStateIsCorrect_constraintSection();
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     PolicyEditorPage.deleteButton().shouldNot(exist);
@@ -730,6 +731,21 @@ public abstract class AbstractPolicyEditorTest
     summary.policyName().clear();
 
     assertThreatLevelSelectorState(PolicyEditorPage.DEFAULT_THREAT_LEVEL, false);
+  }
+
+  private void assertNewPolicyStateIsCorrect_constraintSection() {
+    SelenideElement constraintName = PolicyEditorPage.constraintSection().constraintEditor(0).name();
+
+    constraintName.shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
+    PopoverViolations.on(constraintName).shouldNotExist();
+
+    constraintName.val(" ");
+    PopoverViolations.on(constraintName).shouldShowRequiredError();
+
+    constraintName.val("$ Anything  !s Accept@ble :)   ");
+    PopoverViolations.on(constraintName).shouldNotExist();
+
+    constraintName.clear();
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2, boolean isReadOnly) {

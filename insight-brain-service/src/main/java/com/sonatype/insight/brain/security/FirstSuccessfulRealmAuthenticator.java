@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationListener;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.pam.FirstSuccessfulStrategy;
 import org.apache.shiro.authc.pam.ModularRealmAuthenticator;
@@ -33,8 +34,11 @@ class FirstSuccessfulRealmAuthenticator
   private static final Logger log = LoggerFactory.getLogger(FirstSuccessfulRealmAuthenticator.class);
 
   @Inject
-  public FirstSuccessfulRealmAuthenticator(Collection<Realm> realms) {
+  public FirstSuccessfulRealmAuthenticator(Collection<Realm> realms,
+                                           Collection<AuthenticationListener> authenticationListeners)
+  {
     setRealms(realms);
+    setAuthenticationListeners(authenticationListeners);
   }
 
   /**

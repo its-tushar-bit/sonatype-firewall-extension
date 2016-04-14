@@ -8,6 +8,10 @@ package com.sonatype.insight.brain.security;
 import java.util.Collection;
 import java.util.Collections;
 
+import javax.inject.Inject;
+
+import com.sonatype.insight.test.InjectedTest;
+
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.realm.Realm;
@@ -21,13 +25,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FirstSuccessfulRealmAuthenticatorTest
+    extends InjectedTest
 {
+  @Inject
+  private FirstSuccessfulRealmAuthenticator firstSuccessfulRealmAuthenticator;
+
   @Test
   public void testDoMultiRealmAuthenticationIncludesExceptionCause() {
     final AuthenticationToken token = mock(AuthenticationToken.class);
-
-    final FirstSuccessfulRealmAuthenticator firstSuccessfulRealmAuthenticator = new FirstSuccessfulRealmAuthenticator(
-        null);
 
     final Realm realm = mock(Realm.class);
     when(realm.supports(token)).thenReturn(true);
@@ -51,9 +56,6 @@ public class FirstSuccessfulRealmAuthenticatorTest
 
     final Realm realm = mock(Realm.class);
     final Collection<Realm> realms = Collections.singletonList(realm);
-
-    final FirstSuccessfulRealmAuthenticator firstSuccessfulRealmAuthenticator = new FirstSuccessfulRealmAuthenticator(
-        null);
 
     try {
       firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, mock(AuthenticationToken.class));

@@ -128,6 +128,13 @@ public class InsightConfig
   @JsonProperty
   private boolean showRootOrganization;
 
+  /**
+   * @since 1.20
+   */
+  @NotNull
+  @JsonProperty
+  private boolean exitOnFatalError = true;
+
   public ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -343,5 +350,13 @@ public class InsightConfig
 
   void setReverseProxyAuthentication(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
     this.reverseProxyAuthentication = reverseProxyAuthentication;
+  }
+
+  public boolean isExitOnFatalError() {
+    return exitOnFatalError;
+  }
+
+  public void setExitOnFatalError(boolean exitOnFatalError) {
+    this.exitOnFatalError = exitOnFatalError;
   }
 }

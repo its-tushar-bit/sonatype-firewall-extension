@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.jaxrs.error.JavaLangErrorHandler;
+
+import com.google.inject.Binder;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.realm.Realm;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+import org.eclipse.sisu.launch.InjectedTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+/**
+ * Tests for authentication aspects that are not limited or specific to a single class.
+ */
+public class AuthenticationTest
+    extends InjectedTest
+{
+  @Inject
+  private SecurityManager securityManager;
+
+  @Inject
+  private JavaLangErrorHandler javaLangErrorHandler;
+
+  private Realm mockRealm;
+
+  private Subject subject;
+
+  @Override
+  public void configure(Binder binder) {
+    InsightConfig config = new InsightConfig();
+    config.setExitOnFatalError(false);
+    binder.bind(InsightConfig.class).toInstance(config);
+
+    mockRealm = mock(Realm.class);
+    SecurityModule securityModule = new SecurityModule(config)
+    {
+      @Override
+      protected void configureShiro() {
+        super.configureShiro();
+        bindRealm().toInstance(mockRealm);
+      }
+    };
+    binder.install(securityModule);
+  }
+
+  @Before
+  public void setUpSecurity() {
+    ThreadContext.bind(securityManager);
+    subject = (new Subject.Builder()).buildSubject();
+    ThreadContext.bind(subject);
+  }
+
+  @After
+  public void tearDownSecurity() {
+    ThreadContext.unbindSecurityManager();
+    ThreadContext.unbindSubject();
+  }
+
+  @Test
+  public void testJavaLangErrorThrownDuringAuthentication() {
+    Error error = new Error("Test");
+    when(mockRealm.supports(any(AuthenticationToken.class))).thenThrow(new RuntimeException(error));
+
+    try {
+      subject.login(new UsernamePasswordToken("username", "password"));
+      fail("Expected exception");
+    }
+    catch (AuthenticationException expected) {
+      // The java.lang.Error must get to the handler for Errors,
+      // which in a real system will (probably) terminate the JVM.
+      assertThat(javaLangErrorHandler.getLastFatalError(), is(error));
+    }
+  }
+}

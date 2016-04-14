@@ -219,7 +219,7 @@ public class InsightBrainService
 
   @Override
   protected void customize(final InsightConfig config, final Environment env) {
-    replaceGenericExceptionMapper(env);
+    replaceGenericExceptionMapper(env, config);
 
     config.getSonatypeWork().mkdirs();
 
@@ -239,7 +239,7 @@ public class InsightBrainService
   }
 
   // Copied from IdeScanService
-  private void replaceGenericExceptionMapper(final Environment environment) {
+  private void replaceGenericExceptionMapper(final Environment environment, InsightConfig config) {
     // DW has an exception mapper that turns exceptions into 500. Boo for us.
     // Remove it so that our mapper will always be used to handle exceptions.
     final Set<Object> singletons = environment.getJerseyResourceConfig().getSingletons();
@@ -252,7 +252,9 @@ public class InsightBrainService
     }
 
     // Add our own mapper for exceptions.
-    environment.addProvider(getInstance(JaxRsExceptionMapper.class));
+    JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
+    jaxRsExceptionMapper.setExitOnFatalError(config.isExitOnFatalError());
+    environment.addProvider(jaxRsExceptionMapper);
   }
 
   @Override

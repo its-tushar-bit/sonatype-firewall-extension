@@ -66,16 +66,18 @@
 
       return {
         'get': function() {
-          return cliTypeStore.get();
+          return cliTypeStore.get().then(function(result) {
+            return angular.copy(result);
+          });
         },
         'getActionStages': function() {
           return actionStageTypeStore.get().then(function (result) {
-            return addStageShortName(result);
+            return addStageShortName(angular.copy(result));
           });
         },
         'getDashboardStages': function() {
           return dashboardStageTypeStore.get().then(function (result) {
-            return addStageShortName(result);
+            return addStageShortName(angular.copy(result));
           });
         }
       };

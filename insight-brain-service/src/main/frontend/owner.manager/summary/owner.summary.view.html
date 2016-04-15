@@ -137,7 +137,7 @@
                   <th sort-column="name, -threatLevel" class="greedy-column">
                     <span class="header-text">NAME</span>
                   </th>
-                  <th sort-column="actions['{{::stage.stageTypeId}}'][0].actionTypeId, -threatLevel"  ng-repeat="stage in vm.actionStages">
+                  <th sort-column="enforcementAction['{{::stage.stageTypeId}}'], -threatLevel"  ng-repeat="stage in vm.actionStages">
                     <span class="header-text">{{::stage.shortName | uppercase}}</span>
                   </th>
                   <th></th>

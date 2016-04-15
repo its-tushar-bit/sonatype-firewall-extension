@@ -245,8 +245,10 @@ public abstract class AbstractSummaryViewTest
     List<Policy> localPolicies = new ArrayList<>();
     Action warn = new Action(Action.ID_WARN);
     Action fail = new Action(Action.ID_FAIL);
+    Action notify = new Action(Action.ID_NOTIFY, "test@test.com");
     localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, fail, Stage.ID_BUILD));
     localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 2", 5, warn, Stage.ID_BUILD));
+    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 3", 4, notify, Stage.ID_BUILD));
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     testLabelTile_Local(localLabels);
@@ -393,7 +395,7 @@ public abstract class AbstractSummaryViewTest
       list.emptyDescriptor().shouldNotBe(visible);
 
       if (i == 0) {
-        list.rows().shouldHaveSize(3); // 2 rows plus header
+        list.rows().shouldHaveSize(4); // 3 rows plus header
         list.ownerName().shouldBe(visible).shouldHave(text("Local"));
 
         assertPolicyHeader(list);
@@ -404,25 +406,33 @@ public abstract class AbstractSummaryViewTest
         PolicyTileListElement policyElement2 = list.row(2);
         Policy actualPolicy2 = localPolicies.get(1);
         assertPolicy(policyElement2, actualPolicy2);
+        PolicyTileListElement policyElement3 = list.row(3);
+        Policy actualPolicy3 = localPolicies.get(2);
+        assertPolicy(policyElement3, actualPolicy3);
 
-        list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldHave(UP_SELECTED);
+        list.buildHeaderColumn().anchor().click();
+        list.buildHeaderColumn().upArrow().shouldHave(UP_SELECTED);
         list.threatLegendHeaderColumn().downArrow().shouldNotHave(DOWN_SELECTED);
         list.threatLegendHeaderColumn().upArrow().shouldNotHave(UP_SELECTED);
 
         policyElement1 = list.row(1);
         policyElement2 = list.row(2);
+        policyElement3 = list.row(3);
         assertPolicy(policyElement1, actualPolicy1);
         assertPolicy(policyElement2, actualPolicy2);
+        assertPolicy(policyElement3, actualPolicy3);
 
-        list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldNotHave(UP_SELECTED);
-        list.nameHeaderColumn().downArrow().shouldHave(DOWN_SELECTED);
+        list.buildHeaderColumn().anchor().click();
+        list.buildHeaderColumn().upArrow().shouldNotHave(UP_SELECTED);
+        list.buildHeaderColumn().downArrow().shouldHave(DOWN_SELECTED);
+
 
         policyElement1 = list.row(1);
         policyElement2 = list.row(2);
-        assertPolicy(policyElement1, actualPolicy2);
-        assertPolicy(policyElement2, actualPolicy1);
+        policyElement3 = list.row(3);
+        assertPolicy(policyElement1, actualPolicy3);
+        assertPolicy(policyElement2, actualPolicy2);
+        assertPolicy(policyElement3, actualPolicy1);
       }
       else {
         list.ownerName().shouldNotBe(visible);
@@ -712,12 +722,13 @@ public abstract class AbstractSummaryViewTest
 
   private void assertPolicy(PolicyTileListElement policy, Policy actualPolicy) {
     Action action = actualPolicy.getActions(Stage.ID_BUILD).get(0);
+    String actionTypeId = action.getActionTypeId().equals(Action.ID_NOTIFY) ? "no action" : action.getActionTypeId();
     policy.chevron().shouldBe(visible);
     policy.threadLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
     policy.name().shouldBe(visible).shouldHave(text(actualPolicy.getName()));
     policy.proxy().shouldBe(visible).shouldHave(PolicyTile.noAction());
     policy.develop().shouldBe(visible).shouldHave(PolicyTile.noAction());
-    policy.build().shouldBe(visible).shouldHave(text(action.getActionTypeId()));
+    policy.build().shouldBe(visible).shouldHave(text(actionTypeId));
     policy.stageRelease().shouldBe(visible).shouldHave(PolicyTile.noAction());
     policy.release().shouldBe(visible).shouldHave(PolicyTile.noAction());
     policy.operate().shouldBe(visible).shouldHave(PolicyTile.noAction());
@@ -726,7 +737,7 @@ public abstract class AbstractSummaryViewTest
       policy.build().find("i").shouldHave(PolicyTileListElement.WARN_ICON).shouldHave(PolicyTileListElement.WARN)
           .shouldNotHave(PolicyTileListElement.FAIL_ICON).shouldNotHave(PolicyTileListElement.FAIL);
     }
-    else {
+    else if (action.getActionTypeId().equals(Action.ID_FAIL)) {
       policy.build().find("i").shouldHave(PolicyTileListElement.FAIL_ICON).shouldHave(PolicyTileListElement.FAIL)
           .shouldNotHave(PolicyTileListElement.WARN_ICON).shouldNotHave(PolicyTileListElement.WARN);
     }

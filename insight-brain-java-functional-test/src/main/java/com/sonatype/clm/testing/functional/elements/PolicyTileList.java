@@ -44,6 +44,10 @@ public class PolicyTileList
     return this.header(1);
   }
 
+  public HeaderColumn buildHeaderColumn() {
+    return this.header(4);
+  }
+
   public static Condition threatLevel(int threatLevel) {
     return cssClass("policy-threat-level-" + threatLevel);
   }

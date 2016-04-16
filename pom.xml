@@ -71,10 +71,10 @@
     <module>insight-brain-client</module>
     <module>insight-rm-common</module>
     <module>insight-brain-cli-common</module>
-    <module>sonatype-clm-server</module>
-    <module>sonatype-clm-scanner</module>
-    <module>sonatype-integrator-scanner</module>
-    <module>sonatype-clm-diagnostics</module>
+    <module>nexus-iq-server</module>
+    <module>nexus-iq-cli</module>
+    <module>nexus-iq-integrator-scanner</module>
+    <module>nexus-iq-diagnostics</module>
     <module>insight-brain-java-functional-test</module>
     <module>insight-brain-functional-test</module>
     <module>insight-brain-functional-performance-test</module>

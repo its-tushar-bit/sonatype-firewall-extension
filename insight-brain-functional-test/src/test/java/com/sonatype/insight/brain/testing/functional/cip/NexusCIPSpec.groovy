@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.testing.functional.cip
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.model.Application
-import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
 
@@ -23,13 +22,18 @@ class NexusCIPSpec
     extends AbstractComponentDetailsSpec
 {
   static Application app
-  static String optionLabel
+  static Application app1
+  static Application app2
   static Policy violatedPolicy = null
 
+  String optionLabelFor(Application app) {
+    return app.name + " (" + app.publicId + ")";
+  }
+
   def setupSpec() {
-    Organization org = temporaryEntity.newOrganization('NexusCIPSpec')
-    app = temporaryEntity.newApplication('NexusCIPSpec', org.id)
-    optionLabel = app.name + " (" + app.publicId + ")";
+    app2 = temporaryEntity.newApplicationWithParent('SomeApp', 'Some App')
+    app1 = temporaryEntity.newApplicationWithParent('app-123', 'app-123')
+    app = temporaryEntity.newApplicationWithParent('MY-APP', 'My App')
   }
 
   def 'Can log in to the server'() {
@@ -44,8 +48,8 @@ class NexusCIPSpec
     when: 'First loading the CIP'
       to NexusCIPPage
 
-    then: 'Application names are available to choose from'
-      waitFor { options == [optionLabel] }
+    then: 'Applications are available to choose from in alphabetical order'
+      waitFor { options == [optionLabelFor(app1), optionLabelFor(app), optionLabelFor(app2)] }
       selectAnAppText.displayed
       selectAnAppText.text() == 'Select an application.'
   }
@@ -55,10 +59,10 @@ class NexusCIPSpec
       waitFor { appSelect.displayed }
 
     when: 'Selecting an application from the list'
-      appSelect = optionLabel
+      appSelect = optionLabelFor(app)
 
     then: 'Shows the application name in the select'
-      appSelect.text() == optionLabel
+      appSelectText == optionLabelFor(app)
       defaultText.displayed
       defaultText.text() == SELECT_COMPONENT
 
@@ -72,7 +76,7 @@ class NexusCIPSpec
       to NexusCIPPage
 
     expect: 'The previous choice for application is still there'
-      waitFor { appSelect.text() == optionLabel }
+      waitFor { appSelectText == optionLabelFor(app) }
 
     when: 'Simulating user selection of a Component with javascript'
       tests.setCoordinates()

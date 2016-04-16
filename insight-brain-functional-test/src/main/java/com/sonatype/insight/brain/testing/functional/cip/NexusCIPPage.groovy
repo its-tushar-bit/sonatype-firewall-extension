@@ -17,6 +17,7 @@ class NexusCIPPage
   static content = {
     selectAnAppText(required: false) { $('#select-application') }
     appSelect { $('#selectApp') }
+    appSelectText { appSelect.find('option', value: appSelect.value()).text() }
     options { appSelect.find('option')*.text().tail() }
   }
 }

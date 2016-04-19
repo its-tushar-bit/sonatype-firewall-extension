@@ -34,6 +34,7 @@
   </repositories>
 
   <properties>
+    <clm.skip>true</clm.skip>
     <scala.version>2.9.3</scala.version>
     <gatling.version>1.5.3</gatling.version>
     <gatling-highcharts.version>1.5.3</gatling-highcharts.version>

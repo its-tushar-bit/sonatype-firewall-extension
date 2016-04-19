@@ -15,6 +15,7 @@
   <artifactId>insight-brain-java-functional-test</artifactId>
 
   <properties>
+    <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>
   </properties>
 

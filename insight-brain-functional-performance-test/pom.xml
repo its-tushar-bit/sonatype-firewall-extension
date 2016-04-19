@@ -16,6 +16,7 @@
   <artifactId>insight-brain-functional-performance-test</artifactId>
 
   <properties>
+    <clm.skip>true</clm.skip>
     <skipTests>true</skipTests>
   </properties>
 

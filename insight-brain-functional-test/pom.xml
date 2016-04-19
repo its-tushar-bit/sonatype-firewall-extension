@@ -15,6 +15,7 @@
   <artifactId>insight-brain-functional-test</artifactId>
 
   <properties>
+    <clm.skip>true</clm.skip>
     <it.includes>**/*Spec.*</it.includes>
   </properties>
 

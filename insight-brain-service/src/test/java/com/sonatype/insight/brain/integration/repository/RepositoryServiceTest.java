@@ -934,7 +934,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_ExistingRepository_RepositoryAnadQuarantineNotEnabled() throws Exception {
+  public void testEvaluateComponents_ExistingRepository_RepositoryAndQuarantineNotEnabled() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, false);
 

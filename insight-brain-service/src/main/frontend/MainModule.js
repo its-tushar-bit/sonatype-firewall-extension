@@ -142,7 +142,7 @@
 
         $rootScope.$on('logout', function() {
           $rootScope.username = null;
-          $window.location.assign('../../../../');
+          $window.location.assign('../');
         });
 
         $rootScope.$on('$stateChangeSuccess', function() {

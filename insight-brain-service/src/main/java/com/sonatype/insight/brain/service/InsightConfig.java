@@ -135,6 +135,15 @@ public class InsightConfig
   @JsonProperty
   private boolean exitOnFatalError = true;
 
+  /**
+   * @since 1.21
+   */
+  @NotNull
+  @JsonProperty
+  @Min(1)
+  @Max(24 * 60 * 60)
+  private int repositoryPolicyViolationNotificationInterval = 300;
+
   public ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -358,5 +367,13 @@ public class InsightConfig
 
   public void setExitOnFatalError(boolean exitOnFatalError) {
     this.exitOnFatalError = exitOnFatalError;
+  }
+
+  public int getRepositoryPolicyViolationNotificationInterval() {
+    return repositoryPolicyViolationNotificationInterval;
+  }
+
+  public void setRepositoryPolicyViolationNotificationInterval(int repositoryPolicyViolationNotificationInterval) {
+    this.repositoryPolicyViolationNotificationInterval = repositoryPolicyViolationNotificationInterval;
   }
 }

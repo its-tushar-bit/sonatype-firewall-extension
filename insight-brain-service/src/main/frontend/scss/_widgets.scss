@@ -1140,10 +1140,6 @@ double-column-picker {
         margin-left: 0;
       }
 
-      &:hover:not(.disabled) .caret{
-        border-top: 6px solid $slate;
-      }
-
       &.disabled {
         cursor: not-allowed;
         border: 1px solid $grey-3;
@@ -1154,6 +1150,16 @@ double-column-picker {
       }
     }
   }
+
+  &:hover {
+    .selected-threat-level {
+      text-decoration: none; //clears bootstrap style
+    }
+    .caret-button:not(.disabled) .caret {
+      border-top: 6px solid $slate;
+    }
+  }
+  
   .threat-level-background {
     color: $white;
     @extend .semi-bold;

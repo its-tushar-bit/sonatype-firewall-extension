@@ -1151,11 +1151,17 @@ double-column-picker {
     }
   }
 
-  &:hover {
-    .selected-threat-level {
-      text-decoration: none; //clears bootstrap style
+  &:hover .selected-threat-level {
+    text-decoration: none; //clears bootstrap style
+  }
+
+  &:not(.open) {
+    .selected-threat-level:hover + .caret-button:not(.disabled) {
+      .caret {
+        border-top: 6px solid $slate;
+      }
     }
-    .caret-button:not(.disabled) .caret {
+    .caret-button:not(.disabled):hover .caret {
       border-top: 6px solid $slate;
     }
   }

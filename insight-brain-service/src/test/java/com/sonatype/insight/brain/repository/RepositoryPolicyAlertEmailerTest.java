@@ -5,17 +5,25 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -32,6 +40,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
 import org.sonatype.micromailer.Address;
@@ -43,6 +52,9 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -61,14 +73,21 @@ public class RepositoryPolicyAlertEmailerTest
   @Mock
   private UserDirectory userDirectory;
 
+  @Mock
+  private BaseUrl baseUrl;
+
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(InsightMail.class).toInstance(mail);
+    binder.bind(BaseUrl.class).toInstance(baseUrl);
+
+    when(baseUrl.get()).thenReturn("http://baseUrl");
+    when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
   }
 
   @Test
-  public void testSendNotifications() {
+  public void testSendNotifications_validateEmailAddresses() {
     Repository repository = tempEntity.newRepository();
 
     User user = tempEntity.newUser();
@@ -86,12 +105,43 @@ public class RepositoryPolicyAlertEmailerTest
     emailer.sendNotifications(repository, Collections.singletonList(alert));
 
     verify(mail).sendHtml(eq("SONATYPE-IQ-" + repository.getPublicId()),
-        argThat(new AddressListEq(Collections.singletonList(new Address("email@sonatype.com")))), eq("subject"),
-        eq("body"));
+        argThat(new AddressListEq(Collections.singletonList(new Address("email@sonatype.com")))), anyString(),
+        anyString());
 
     verify(mail).sendHtml(eq("SONATYPE-IQ-" + repository.getPublicId()),
-        argThat(new AddressListEq(Collections.singletonList(new Address(user.getEmail())))), eq("subject"),
-        eq("body"));
+        argThat(new AddressListEq(Collections.singletonList(new Address(user.getEmail())))), anyString(), anyString());
+  }
+
+  @Test
+  public void testCreatePolicyMailModel() {
+    Repository repository = new Repository("repoManagerId", "repoPublicId");
+    repository.setId("repoId");
+    List<PolicyAlert> alerts = new ArrayList<>();
+
+    for (int i = 0; i < 10; i++) {
+      Policy policy = new Policy("policyId" + i, "policyName" + i);
+      policy.setThreatLevel(i);
+      RepositoryComponent component = new RepositoryComponent(repository.getId(), "pathname" + i, new Date(),
+          "hash" + i, ComponentIdentifier.createMavenCoordinates("g", "a", "" + i), MatchState.EXACT.getId(),
+          IdentificationSource.SONATYPE.getId(), new Date(), true);
+
+      alerts.add(createPolicyAlert(policy, component));
+    }
+
+    Map<String, Object> model = emailer.createPolicyMailModel(repository, alerts);
+    assertNotNull(model);
+    assertEquals(alerts, model.get("policyAlerts"));
+    assertEquals("http://cdnUrl", model.get("cdnUrl"));
+    assertEquals(baseUrl.get() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()),
+        model.get("detailedReportUrl"));
+    assertEquals(2, model.get("policyThreatRedCount"));
+    assertEquals(4, model.get("policyThreatOrangeCount"));
+    assertEquals(2, model.get("policyThreatYellowCount"));
+    assertEquals(1, model.get("policyThreatBlueCount"));
+    assertEquals("Proxy", model.get("policyThreatStage"));
+    assertEquals(repository.getPublicId(), model.get("policyThreatApp"));
+    assertNotNull(model.get("policyThreatTime"));
+    assertEquals("REPO ID", model.get("ownerIdLabel"));
   }
 
   private Policy createPolicy(User user) {
@@ -115,6 +165,7 @@ public class RepositoryPolicyAlertEmailerTest
   private PolicyAlert createPolicyAlert(Policy policy, RepositoryComponent component) {
     ConstraintFact constraintFact = new ConstraintFact("constraintId", "constraintName", "any");
     ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
+    componentFact.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()));
     componentFact.addConstraintFact(constraintFact);
     PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
     policyFact.addComponentFact(componentFact);

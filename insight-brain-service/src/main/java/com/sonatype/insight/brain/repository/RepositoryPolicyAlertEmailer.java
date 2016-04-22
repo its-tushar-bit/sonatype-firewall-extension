@@ -14,12 +14,16 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyAlertEmailer;
 import com.sonatype.insight.brain.security.UserDirectory;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
 import org.sonatype.micromailer.Address;
@@ -36,14 +40,18 @@ public class RepositoryPolicyAlertEmailer
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryPolicyAlertEmailer.class);
 
+  private final BaseUrl baseUrl;
+
   @Inject
   public RepositoryPolicyAlertEmailer(final InsightMail mail,
                                       final UserDirectory userDirectory,
                                       final LdapManager ldapManager,
                                       final OwnerDAO ownerDAO,
-                                      final MembershipMappingDAO membershipMappingDAO)
+                                      final MembershipMappingDAO membershipMappingDAO,
+                                      final BaseUrl baseUrl)
   {
     super(mail, userDirectory, ldapManager, ownerDAO, membershipMappingDAO);
+    this.baseUrl = baseUrl;
   }
 
   public void sendNotifications(Repository repository, List<PolicyAlert> alerts) {
@@ -54,14 +62,25 @@ public class RepositoryPolicyAlertEmailer
             repository.getId());
         final String mailId = "SONATYPE-IQ-" + repository.getPublicId();
         final List<Address> addresses = Collections.singletonList(new Address(details.getKey()));
-        //TODO: subject/body and send should be handled by CLM-6416
-        //final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()));
-        //final String body = summarizeThreats(stringBaseUrl, applicationPublicId, scanId, stage, details.getValue());
-        getMail().sendHtml(mailId, addresses, "subject", "body");
+        final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()));
+        final String body = processTemplate(createPolicyMailModel(repository, details.getValue()));
+        getMail().sendHtml(mailId, addresses, subject, body);
       }
       catch (final Exception e) {
         log.error("Unable to send notification email to {} for repository {}", details.getKey(), repository.getId(), e);
       }
     }
+  }
+
+  protected Map<String, Object> createPolicyMailModel(Repository repository, List<PolicyAlert> policyAlerts)
+  {
+    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), repository, new Stage(ProxyStageType.ID),
+        policyAlerts);
+
+    model.put("detailedReportUrl",
+        baseUrl.get() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));
+    model.put("ownerIdLabel", "REPO ID");
+
+    return model;
   }
 }

@@ -30,6 +30,8 @@ import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -53,7 +55,6 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
-import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -105,7 +106,8 @@ public class PolicyEvaluateResourceTest
 
   @Before
   public void before() throws Exception {
-    app = tempEntity.newApplicationWithParent(applicationPublicId);
+    Organization org = tempEntity.newOrganization();
+    app = tempEntity.newApplication("appName", applicationPublicId, org.getId(), "admin");
     setLicenseFingerprint(licenseFingerprint);
   }
 
@@ -705,17 +707,18 @@ public class PolicyEvaluateResourceTest
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     String serverUrl = "http://localhost/";
-    String cdnUrl = "http://cdn.localhost/";
 
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Map<String, Object> model = PolicyAlertEmailer.createPolicyMailModel(serverUrl, cdnUrl, applicationPublicId,
-        scanId, stage, new ContactDTO(null, "displayName", "email", null), policyAlerts);
+
+    PolicyAlertEmailer emailer = getCLMServer().getInjector().getInstance(PolicyAlertEmailer.class);
+
+    Map<String, Object> model = emailer.createPolicyMailModel(serverUrl, app, scanId, stage, policyAlerts);
     Assert.assertNotNull(model);
     Assert.assertEquals(policyAlerts, model.get("policyAlerts"));
-    Assert.assertEquals(cdnUrl, model.get("cdnUrl"));
+    Assert.assertEquals("http://cdn.sonatype.com/", model.get("cdnUrl"));
     Assert.assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId),
         model.get("detailedReportUrl"));
     Assert.assertEquals(7, model.get("policyThreatRedCount"));
@@ -724,9 +727,10 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(21, model.get("policyThreatBlueCount"));
     Assert.assertEquals("Build", model.get("policyThreatStage"));
     Assert.assertEquals(applicationPublicId, model.get("policyThreatApp"));
-    Assert.assertEquals("displayName", model.get("applicationContactName"));
-    Assert.assertEquals("email", model.get("applicationContactEmail"));
+    Assert.assertEquals("Admin BuiltIn", model.get("applicationContactName"));
+    Assert.assertEquals("admin@localhost", model.get("applicationContactEmail"));
     Assert.assertNotNull(model.get("policyThreatTime"));
+    Assert.assertEquals("APP ID", model.get("ownerIdLabel"));
   }
 
   @Test

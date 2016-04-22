@@ -120,15 +120,15 @@ public class PolicyAlertEmailerTest
   @Test
   public void testNotificationEmailSubject() throws Exception {
     Assert.assertEquals("Policy Alert: 1 critical violation out of 15",
-        PolicyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(1, 2, 3, 4, 5)));
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(1, 2, 3, 4, 5)));
     Assert.assertEquals("Policy Alert: 2 severe violations out of 14",
-        PolicyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 2, 3, 4, 5)));
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 2, 3, 4, 5)));
     Assert.assertEquals("Policy Alert: 3 moderate violations out of 12",
-        PolicyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 3, 4, 5)));
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 3, 4, 5)));
     Assert.assertEquals("Policy Alert: 9 neutral violations out of 9",
-        PolicyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 0, 4, 5)));
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 0, 4, 5)));
     Assert.assertEquals("Policy Alert: 5 neutral violations out of 5",
-        PolicyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 0, 0, 5)));
+        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 0, 0, 5)));
   }
 
   @Test

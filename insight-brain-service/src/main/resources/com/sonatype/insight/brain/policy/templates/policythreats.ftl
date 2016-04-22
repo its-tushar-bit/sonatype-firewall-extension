@@ -28,7 +28,7 @@ div,p,a,li,td {
 	<table width="647" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
 		<tr>
 			<td colspan="3"><a href="${detailedReportUrl}" title="Sonatype CLM Policy Alert"><img
-					src="${cdnUrl}clm/policy/1.3/header_bg.gif" width="647" height="68" alt="View Full Report" border="0" /></a></td>
+					src="${cdnUrl}clm/policy/1.3/header_bg.gif" width="647" height="68" alt="View Full Results" border="0" /></a></td>
 		</tr>
 		<tr>
 			<td width="12">&nbsp;</td>
@@ -65,7 +65,7 @@ div,p,a,li,td {
 						<td style="padding: 15px;">
 							<table width="100%" border="0" cellspacing="2" cellpadding="0">
 								<tr>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #9E9E9E;">APP ID</span></td>
+									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #9E9E9E;">${ownerIdLabel}</span></td>
 									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px;">${policyThreatApp}</span></td>
 								</tr>
 								<tr>
@@ -185,8 +185,8 @@ div,p,a,li,td {
 			<td width="12">&nbsp;</td>
 		</tr>
 		<tr>
-			<td colspan="3" width="647" height="54"><a href="${detailedReportUrl}" title="View Full Report"><img
-					src="${cdnUrl}clm/policy/1.3/footer_bg.gif" width="647" height="75" alt="View Full Report" border="0" /></a></td>
+			<td colspan="3" width="647" height="54"><a href="${detailedReportUrl}" title="View Full Results"><img
+					src="${cdnUrl}clm/policy/1.3/footer_bg.gif" width="647" height="75" alt="View Full Results" border="0" /></a></td>
 		</tr>
 	</table>
 </body>

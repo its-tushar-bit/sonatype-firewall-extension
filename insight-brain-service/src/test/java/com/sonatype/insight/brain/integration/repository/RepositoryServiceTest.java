@@ -1025,24 +1025,24 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
         RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT);
 
-    String hash = "hash";
-    String pathname = "pathname";
+    String hash1 = "hash1";
+    String hash2 = "hash2";
 
     // Prepare request and mock the HDS request
     List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
 
     hdsResult.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components
-        .add(new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash));
-    componentEvaluationDataRequestList.components
-        .add(new RepositoryComponentEvaluationDataRequest("maven2", pathname + 1, hash + 1));
-    hdsResult.components.add(
-        createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), hash,
-            MatchState.EXACT, 0, null, null, securityVulnerabilities, 80));
-    hdsResult.components.add(
-        createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), hash + 1,
-            MatchState.EXACT, 1, null, null, securityVulnerabilities, 80));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2",
+        "pathname1", hash1));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2",
+        "pathname2", hash2));
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), hash1, MatchState.EXACT, 0, null, null,
+        securityVulnerabilities, 80));
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), hash2, MatchState.EXACT, 1, null, null,
+        securityVulnerabilities, 80));
 
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
@@ -1079,7 +1079,6 @@ public class RepositoryServiceTest
         RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
     String hash = "hash";
-    String pathname = "pathname";
 
     // Prepare request and mock the HDS request
     List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
@@ -1087,11 +1086,10 @@ public class RepositoryServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
 
     hdsResult.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components
-        .add(new RepositoryComponentEvaluationDataRequest("maven", pathname, hash));
-    hdsResult.components.add(
-        createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0, null, null,
-            securityVulnerabilities, 80));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven", "pathname",
+        hash));
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0, null, null,
+        securityVulnerabilities, 80));
 
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 

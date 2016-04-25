@@ -79,6 +79,7 @@ public class RepositoryPolicyAlertNotificationTaskTest
       this.repository = repository;
     }
 
+    @Override
     public boolean matches(Object obj) {
       Repository other = (Repository) obj;
       if (repository == null) {

@@ -182,6 +182,7 @@ public class RepositoryPolicyAlertEmailerTest
       this.addresses = addresses;
     }
 
+    @Override
     public boolean matches(Object list) {
       List<Address> addressList = (List<Address>) list;
       if (addressList == null || addressList.isEmpty()) {

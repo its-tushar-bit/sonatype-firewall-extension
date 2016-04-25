@@ -9,9 +9,10 @@ CREATE TABLE test_table (
 CREATE TABLE schema_info (
   schema_info_id varchar(50) NOT NULL,
   drools_code_version int NOT NULL,
+  policy_json_version int NOT NULL,
   CONSTRAINT schema_info_pk PRIMARY KEY (schema_info_id)
 );
-INSERT INTO schema_info (schema_info_id, drools_code_version) VALUES ('1', 2);
+INSERT INTO schema_info (schema_info_id, drools_code_version, policy_json_version) VALUES ('1', 2, 1);
 
 CREATE TABLE organization (
   organization_id varchar(50) NOT NULL,

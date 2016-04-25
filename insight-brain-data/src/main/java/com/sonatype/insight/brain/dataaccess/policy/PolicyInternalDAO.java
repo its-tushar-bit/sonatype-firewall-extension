@@ -77,7 +77,7 @@ public class PolicyInternalDAO
     return getList(sQuery, name);
   }
 
-  List<PolicyInternal> getAll(TransactionContext tx) {
+  public List<PolicyInternal> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM PolicyInternal entity";
     return getList(tx, sQuery);
   }

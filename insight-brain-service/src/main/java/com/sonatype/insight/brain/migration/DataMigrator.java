@@ -21,6 +21,7 @@ public class DataMigrator
   private final LicenseOverrideMigrator licenseOverrideMigrator;
   private final SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator;
   private final PolicyMigrator policyMigrator;
+  private final PolicyJsonMigrator policyJsonMigrator;
   private final PolicyEvaluationMigrator policyEvaluationMigrator;
   private final WaivedPolicyViolationMigrator waivedPolicyViolationMigrator;
   private final ProcureRemovalMigrator procureRemovalMigrator;
@@ -35,6 +36,7 @@ public class DataMigrator
   @Inject
   public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator,
                       PolicyMigrator policyMigrator,
+                      PolicyJsonMigrator policyJsonMigrator,
                       PolicyEvaluationMigrator policyEvaluationMigrator,
                       WaivedPolicyViolationMigrator waivedPolicyViolationMigrator,
                       ProcureRemovalMigrator procureRemovalMigrator,
@@ -49,6 +51,7 @@ public class DataMigrator
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;
+    this.policyJsonMigrator = policyJsonMigrator;
     this.policyEvaluationMigrator = policyEvaluationMigrator;
     this.waivedPolicyViolationMigrator = waivedPolicyViolationMigrator;
     this.procureRemovalMigrator = procureRemovalMigrator;
@@ -68,6 +71,7 @@ public class DataMigrator
   public void migrate() throws IOException {
     licenseOverrideMigrator.migrate();
     policyMigrator.migrate();
+    policyJsonMigrator.migrate();
     policyEvaluationMigrator.migrate();
     waivedPolicyViolationMigrator.migrate();
     procureRemovalMigrator.migrate();

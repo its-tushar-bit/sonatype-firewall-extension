@@ -5,23 +5,18 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
-import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -235,18 +230,17 @@ public class PolicyTest
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
 
-    Action action = new Action(FailActionType.ID);
-    HashMap<String, List<Action>> invalidStage = new HashMap<>();
-    invalidStage.put("unknown stage type", Arrays.asList(action));
+    HashMap<String, String> invalidStage = new HashMap<>();
+    invalidStage.put("unknown stage type", FailActionType.ID);
     policy.setActions(invalidStage);
 
     ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-        "Invalid stage type id: 'unknown stage type'");
+        "Invalid stage: 'unknown stage type'");
 
     // Fix the stage and validate again
-    HashMap<String, List<Action>> validStage = new HashMap<>();
-    validStage.put(BuildStageType.ID, Arrays.asList(action));
+    HashMap<String, String> validStage = new HashMap<>();
+    validStage.put(BuildStageType.ID, FailActionType.ID);
     policy.setActions(validStage);
     result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
@@ -258,70 +252,31 @@ public class PolicyTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Action action = new Action("unknown action type");
-    policy.addAction(BuildStageType.ID, action);
+    policy.setAction(BuildStageType.ID, "unknown action type");
     ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-        "Invalid action type id: 'unknown action type'");
+        "Invalid action for stage 'build': 'unknown action type'");
 
     // Fix the action and validate again
-    action.setActionTypeId(FailActionType.ID);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
     result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }
 
   @Test
-  public void testValidate_ActionTypeFailVsWarn() {
+  public void testValidate_NotificationInvalid() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    policy.addAction(BuildStageType.ID, new Action(WarnActionType.ID));
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    policy.addAction(BuildStageType.ID, new Action(NotifyActionType.ID, "foo@bar.com"));
+    UserNotification notification = new UserNotification();
+    policy.getNotifications().add(notification);
     ValidationResult result = policy.validate(null, applicationId);
-    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-        "Ambiguous action types: [warn, fail]");
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid notifications:",
+        "Invalid notification: A valid e-mail address is required");
 
-    // Fix the actions and validate again
-    policy.getActions(BuildStageType.ID).remove(0);
-    result = policy.validate(null, applicationId);
-    assertValidationResultHasNoErrors(result);
-  }
-
-  @Test
-  public void testValidate_ActionTypeInvalid() {
-    Policy policy = new Policy("PolicyId", "Policy Name");
-    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    policy.addConstraint(constraint);
-    Action action = new Action(FailActionType.ID);
-    action.setTarget("invalid");
-    policy.addAction(BuildStageType.ID, action);
-    ValidationResult result = policy.validate(null, applicationId);
-    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-        "Invalid action 'Fail': This action does not support targets");
-
-    // Fix the actions and validate again
-    action.setTarget(null);
-    result = policy.validate(null, applicationId);
-    assertValidationResultHasNoErrors(result);
-  }
-
-  @Test
-  public void testValidate_MonitorNotifyActionInvalid() {
-    Policy policy = new Policy("PolicyId", "Policy Name");
-    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction("  " /* email */, null /* targetType */);
-    policy.addMonitorNotifyAction(notifyAction);
-    ValidationResult result = policy.validate(null, applicationId);
-    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
-        "Invalid action 'Notify': A valid e-mail address is required");
-
-    // Fix the action and validate again
-    notifyAction.setTarget("tester@sonatype.com");
+    // Fix the notification and validate again
+    notification.setEmailAddress("tester@sonatype.com");
     result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }

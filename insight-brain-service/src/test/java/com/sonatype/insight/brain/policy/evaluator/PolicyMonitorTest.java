@@ -17,7 +17,6 @@ import java.util.Map;
 import javax.mail.Message;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
@@ -38,6 +37,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.PolicyResource;
@@ -372,14 +373,10 @@ public class PolicyMonitorTest
     Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
     constraint.addCondition(condition);
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction();
-    notifyAction.setTarget(notifyEmail);
-    policy.addAction(stage.getStageTypeId(), notifyAction);
-    policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy.setAction(stage.getStageTypeId(), FailActionType.ID);
+    policy.getNotifications().add(new UserNotification(notifyEmail, stage.getStageTypeId()));
     if (monitorNotifyEmail != null) {
-      NotifyAction monitorNotifyAction = new NotifyAction();
-      monitorNotifyAction.setTarget(monitorNotifyEmail);
-      policy.addMonitorNotifyAction(monitorNotifyAction);
+      policy.getNotifications().add(new UserNotification(monitorNotifyEmail, Notification.CONTINUOUS_MONITORING));
     }
 
     return tempEntity.newPolicy(policy);

@@ -15,13 +15,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.ValidationResult;
-import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -48,9 +46,9 @@ public class Policy
 
   private List<Constraint> constraints;
 
-  private Map<String, List<Action>> actions;
+  private Map<String, String> actions = new HashMap<>();
 
-  private List<NotifyAction> monitorNotifyActions;
+  private Notifications notifications = new Notifications();
 
   private String droolsCode;
 
@@ -109,31 +107,36 @@ public class Policy
     constraints.add(constraint);
   }
 
-  public Map<String, List<Action>> getActions() {
+  public Map<String, String> getActions() {
     return actions;
   }
 
-  public void setActions(final Map<String, List<Action>> actions) {
-    this.actions = actions;
+  public void setActions(final Map<String, String> actions) {
+    this.actions = actions != null ? actions : new HashMap<String, String>();
   }
 
-  public List<Action> getActions(final String stageTypeId) {
-    return actions != null ? actions.get(stageTypeId) : null;
+  public void setAction(String stageId, String actionId) {
+    this.actions.put(stageId, actionId);
   }
 
-  public void setActions(final String stageTypeId, final List<Action> stageActions) {
-    if (actions == null) {
-      actions = new HashMap<>();
+  public Notifications getNotifications() {
+    return notifications;
+  }
+
+  public void setNotifications(Notifications notifications) {
+    this.notifications = notifications != null ? notifications : new Notifications();
+  }
+
+  public List<Action> toActions(String stageId, boolean continuousMonitoring) {
+    List<Action> result = new ArrayList<>();
+    if (!continuousMonitoring) {
+      String actionId = actions.get(stageId);
+      if (actionId != null) {
+        result.add(new Action(actionId));
+      }
     }
-    actions.put(stageTypeId, stageActions);
-  }
-
-  public void addAction(final String stageTypeId, final Action action) {
-    List<Action> stageActions = getActions(stageTypeId);
-    if (stageActions == null) {
-      setActions(stageTypeId, stageActions = new ArrayList<>());
-    }
-    stageActions.add(action);
+    result.addAll(notifications.getApplicable(stageId, continuousMonitoring).toActions());
+    return result;
   }
 
   public ValidationResult validate(TransactionContext tx, String ownerId) {
@@ -170,48 +173,26 @@ public class Policy
       }
     }
 
-    if (actions != null) {
-      ValidationResult actionResult = new ValidationResult();
-      for (String stageTypeId : actions.keySet()) {
-
-        StageType stageType = StageTypes.getById(stageTypeId);
-        if (stageType == null) {
-          actionResult.addError("Invalid stage type id: '" + stageTypeId + "'");
-        }
-
-        Set<String> actionTypeIds = new LinkedHashSet<>();
-        for (Action action : actions.get(stageTypeId)) {
-          actionTypeIds.add(action.getActionTypeId());
-          ActionType actionType = ActionTypes.getById(action.getActionTypeId());
-
-          if (actionType == null) {
-            actionResult.addError("Invalid action type id: '" + action.getActionTypeId() + "'");
-          }
-          else {
-            actionResult.merge(actionType.validateAction(action));
-          }
-        }
-        actionTypeIds.remove(NotifyActionType.ID);
-        if (actionTypeIds.size() > 1) {
-          actionResult.addError("Ambiguous action types: " + actionTypeIds);
-        }
+    ValidationResult actionResult = new ValidationResult();
+    for (String stageId : actions.keySet()) {
+      if (StageTypes.getById(stageId) == null) {
+        actionResult.addError("Invalid stage: '" + stageId + "'");
       }
-      if (!actionResult.isValid()) {
-        result.addError("Policy '" + name + "' has invalid actions:");
-        result.merge(actionResult);
+
+      String actionId = actions.get(stageId);
+      if (!Action.ID_FAIL.equals(actionId) && !Action.ID_WARN.equals(actionId)) {
+        actionResult.addError("Invalid action for stage '" + stageId + "': '" + actionId + "'");
       }
     }
+    if (!actionResult.isValid()) {
+      result.addError("Policy '" + name + "' has invalid actions:");
+      result.merge(actionResult);
+    }
 
-    if (monitorNotifyActions != null) {
-      ActionType notifyActionType = ActionTypes.getById(NotifyActionType.ID);
-      ValidationResult monitorNotifyActionResult = new ValidationResult();
-      for (NotifyAction notifyAction : monitorNotifyActions) {
-        monitorNotifyActionResult.merge(notifyActionType.validateAction(notifyAction));
-      }
-      if (!monitorNotifyActionResult.isValid()) {
-        result.addError("Policy '" + name + "' has invalid monitor notification actions:");
-        result.merge(monitorNotifyActionResult);
-      }
+    ValidationResult notificationsResult = notifications.validate();
+    if (!notificationsResult.isValid()) {
+      result.addError("Policy '" + name + "' has invalid notifications:");
+      result.merge(notificationsResult);
     }
 
     if (getThreatLevel() < 0 || getThreatLevel() > 10) {
@@ -245,21 +226,6 @@ public class Policy
 
   public void setOwnerId(String ownerId) {
     this.ownerId = ownerId;
-  }
-
-  public List<NotifyAction> getMonitorNotifyActions() {
-    return monitorNotifyActions;
-  }
-
-  public void setMonitorNotifyActions(List<NotifyAction> monitorNotifyActions) {
-    this.monitorNotifyActions = monitorNotifyActions;
-  }
-
-  public void addMonitorNotifyAction(NotifyAction notifyAction) {
-    if (monitorNotifyActions == null) {
-      monitorNotifyActions = new ArrayList<>();
-    }
-    monitorNotifyActions.add(notifyAction);
   }
 
   /**

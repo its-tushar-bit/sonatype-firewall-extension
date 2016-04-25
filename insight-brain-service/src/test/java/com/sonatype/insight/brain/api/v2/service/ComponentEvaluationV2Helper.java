@@ -19,7 +19,6 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
@@ -129,7 +128,7 @@ public class ComponentEvaluationV2Helper
     Policy policyOrg = new Policy(null, "Policy Name Org");
     policyOrg.setOwnerId(org.getId());
     policyOrg.setConstraints(constraints);
-    policyOrg.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policyOrg.setAction(stage.getStageTypeId(), FailActionType.ID);
     policyDAO.insert(policyOrg);
     policies.put(policyOrg.getId(), policyOrg);
 
@@ -141,7 +140,7 @@ public class ComponentEvaluationV2Helper
     Policy policyApp = new Policy(null, "Policy Name App");
     policyApp.setOwnerId(app.getId());
     policyApp.setConstraints(constraints);
-    policyApp.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policyApp.setAction(stage.getStageTypeId(), FailActionType.ID);
     policyDAO.insert(policyApp);
     policies.put(policyApp.getId(), policyApp);
 

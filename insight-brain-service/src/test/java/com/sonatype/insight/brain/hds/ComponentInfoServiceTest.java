@@ -25,7 +25,6 @@ import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -573,8 +572,7 @@ public class ComponentInfoServiceTest
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
@@ -582,7 +580,7 @@ public class ComponentInfoServiceTest
     Policy policy2 = new Policy("PolicyId2", "Policy2");
     policy2.setThreatLevel(8);
     policy2.addConstraint(constraint2);
-    policy2.addAction(BuildStageType.ID, failAction);
+    policy2.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy2);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
@@ -660,8 +658,7 @@ public class ComponentInfoServiceTest
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     String hash = "01234567890123456789";
@@ -702,7 +699,7 @@ public class ComponentInfoServiceTest
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     String hash = "01234567890123456789";
@@ -745,7 +742,7 @@ public class ComponentInfoServiceTest
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     String hash = "01234567890123456789";
@@ -778,7 +775,7 @@ public class ComponentInfoServiceTest
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     String hash = "01234567890123456789";
@@ -839,8 +836,7 @@ public class ComponentInfoServiceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
@@ -943,7 +939,7 @@ public class ComponentInfoServiceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     // policy that doesn't trigger if the corresponding waiver was loaded properly by hash
@@ -952,7 +948,7 @@ public class ComponentInfoServiceTest
     Policy policy2 = new Policy("PolicyId2", "Policy Name 2");
     policy2.setThreatLevel(8);
     policy2.addConstraint(constraint1);
-    policy2.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy2.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy2);
     tempEntity.newWaiver(hash, policy2.getId(), application.getId());
 

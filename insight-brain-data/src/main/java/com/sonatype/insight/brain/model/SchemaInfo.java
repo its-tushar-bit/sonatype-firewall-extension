@@ -27,6 +27,12 @@ public class SchemaInfo
   @Column(name = "drools_code_version")
   private int droolsCodeVersion;
 
+  /**
+   * @since 1.21
+   */
+  @Column(name = "policy_json_version")
+  private int policyJsonVersion;
+
   @Override
   public String getId() {
     return id;
@@ -43,5 +49,13 @@ public class SchemaInfo
 
   public void setDroolsCodeVersion(int droolsCodeVersion) {
     this.droolsCodeVersion = droolsCodeVersion;
+  }
+
+  public int getPolicyJsonVersion() {
+    return policyJsonVersion;
+  }
+
+  public void setPolicyJsonVersion(int policyJsonVersion) {
+    this.policyJsonVersion = policyJsonVersion;
   }
 }

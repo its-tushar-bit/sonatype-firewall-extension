@@ -47,6 +47,8 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -243,12 +245,10 @@ public abstract class AbstractSummaryViewTest
     roleList.add(writeRole);
 
     List<Policy> localPolicies = new ArrayList<>();
-    Action warn = new Action(Action.ID_WARN);
-    Action fail = new Action(Action.ID_FAIL);
-    Action notify = new Action(Action.ID_NOTIFY, "test@test.com");
-    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, fail, Stage.ID_BUILD));
-    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 2", 5, warn, Stage.ID_BUILD));
-    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 3", 4, notify, Stage.ID_BUILD));
+    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, Action.ID_FAIL, Stage.ID_BUILD, null));
+    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 2", 5, Action.ID_WARN, Stage.ID_BUILD, null));
+    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 3", 4, null, null, new Notifications(
+        new UserNotification("test@test.com", Stage.ID_BUILD))));
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     testLabelTile_Local(localLabels);
@@ -453,9 +453,6 @@ public abstract class AbstractSummaryViewTest
 
     List<Owner> parentOwners = new ArrayList<>();
 
-    Action warn = new Action(Action.ID_WARN);
-    Action fail = new Action(Action.ID_FAIL);
-
     for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
       List<LicenseThreatGroup> ltgs = new ArrayList<>();
       List<Label> labels = new ArrayList<>();
@@ -476,8 +473,10 @@ public abstract class AbstractSummaryViewTest
         tempEntity.newMembershipMapping(owner.getId(), writeRole.getId(), testUser.getUsername());
         tempEntity.newMembershipMapping(owner.getId(), readRole.getId(), "Group", MemberType.GROUP);
 
-        policies.add(tempEntity.newPolicy(owner.getId(), "Policy 1 " + owner.getName(), 10, fail, Stage.ID_BUILD));
-        policies.add(tempEntity.newPolicy(owner.getId(), "Policy 2 " + owner.getName(), 5, warn, Stage.ID_BUILD));
+        policies.add(tempEntity.newPolicy(owner.getId(), "Policy 1 " + owner.getName(), 10, Action.ID_FAIL,
+            Stage.ID_BUILD, null));
+        policies.add(tempEntity.newPolicy(owner.getId(), "Policy 2 " + owner.getName(), 5, Action.ID_WARN,
+            Stage.ID_BUILD, null));
 
         inheritedPolicies.add(policies);
       }
@@ -721,8 +720,10 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void assertPolicy(PolicyTileListElement policy, Policy actualPolicy) {
-    Action action = actualPolicy.getActions(Stage.ID_BUILD).get(0);
-    String actionTypeId = action.getActionTypeId().equals(Action.ID_NOTIFY) ? "no action" : action.getActionTypeId();
+    String actionTypeId = actualPolicy.getActions().get(Stage.ID_BUILD);
+    if (actionTypeId == null) {
+      actionTypeId = "no action";
+    }
     policy.chevron().shouldBe(visible);
     policy.threadLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
     policy.name().shouldBe(visible).shouldHave(text(actualPolicy.getName()));
@@ -733,11 +734,11 @@ public abstract class AbstractSummaryViewTest
     policy.release().shouldBe(visible).shouldHave(PolicyTile.noAction());
     policy.operate().shouldBe(visible).shouldHave(PolicyTile.noAction());
 
-    if (action.getActionTypeId().equals(Action.ID_WARN)) {
+    if (actionTypeId.equals(Action.ID_WARN)) {
       policy.build().find("i").shouldHave(PolicyTileListElement.WARN_ICON).shouldHave(PolicyTileListElement.WARN)
           .shouldNotHave(PolicyTileListElement.FAIL_ICON).shouldNotHave(PolicyTileListElement.FAIL);
     }
-    else if (action.getActionTypeId().equals(Action.ID_FAIL)) {
+    else if (actionTypeId.equals(Action.ID_FAIL)) {
       policy.build().find("i").shouldHave(PolicyTileListElement.FAIL_ICON).shouldHave(PolicyTileListElement.FAIL)
           .shouldNotHave(PolicyTileListElement.WARN_ICON).shouldNotHave(PolicyTileListElement.WARN);
     }
@@ -806,8 +807,7 @@ public abstract class AbstractSummaryViewTest
   @Test
   public void testPolicyTile_LimitedStageLicensing() throws Exception {
     List<Policy> localPolicies = new ArrayList<>();
-    Action fail = new Action(Action.ID_FAIL);
-    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Release", 10, fail, Stage.ID_RELEASE));
+    localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Release", 10, Action.ID_FAIL, Stage.ID_RELEASE, null));
 
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
@@ -841,8 +841,7 @@ public abstract class AbstractSummaryViewTest
     policyElement.threadLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
     policyElement.name().shouldBe(visible).shouldHave(text(actualPolicy.getName()));
     policyElement.column(2).shouldBe(visible).shouldHave(PolicyTile.noAction());
-    Action releaseAction = actualPolicy.getActions(Stage.ID_RELEASE).get(0);
-    policyElement.column(3).shouldBe(visible).shouldHave(text(releaseAction.getActionTypeId()));
+    policyElement.column(3).shouldBe(visible).shouldHave(text(actualPolicy.getActions().get(Stage.ID_RELEASE)));
     policyElement.column(4).shouldHave(PolicyTileListElement.CHEVRON);
   }
 

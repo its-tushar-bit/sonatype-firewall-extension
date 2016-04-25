@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusCondition
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -121,13 +122,11 @@ public class PolicyEvaluateResourceTest
     Condition condition2 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
     constraintSV.addCondition(condition2);
 
-    Action action = new Action(Action.ID_FAIL);
-
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraintLicense);
     policy1.addConstraint(constraintSV);
-    policy1.addAction(Stage.ID_BUILD, action);
+    policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraintLicense = policy1.getConstraints().get(0);
@@ -183,12 +182,10 @@ public class PolicyEvaluateResourceTest
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
     constraint1.addCondition(new Condition(AgeInDaysConditionType.ID, "younger than", "30"));
 
-    Action action = new Action(Action.ID_FAIL);
-
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
-    policy1.addAction(Stage.ID_BUILD, action);
+    policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
@@ -252,11 +249,10 @@ public class PolicyEvaluateResourceTest
 
     Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
-    Action action = new Action(Action.ID_FAIL);
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
-    policy1.addAction(Stage.ID_BUILD, action);
+    policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
@@ -312,14 +308,9 @@ public class PolicyEvaluateResourceTest
     final Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    final Action notifyAction = new Action(Action.ID_NOTIFY);
-    notifyAction.setTarget("manager@example.com");
-    policy1.addAction(Stage.ID_BUILD, notifyAction);
-    final Action notifyAction2 = new Action(Action.ID_NOTIFY);
-    notifyAction2.setTarget("john.doe@example.com");
-    policy1.addAction(Stage.ID_BUILD, notifyAction2);
-    Action failAction1 = new Action(Action.ID_FAIL);
-    policy1.addAction(Stage.ID_BUILD, failAction1);
+    policy1.getNotifications().add(new UserNotification("manager@example.com", Stage.ID_BUILD));
+    policy1.getNotifications().add(new UserNotification("john.doe@example.com", Stage.ID_BUILD));
+    policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
 
@@ -331,11 +322,8 @@ public class PolicyEvaluateResourceTest
     policy2.setThreatLevel(3);
     policy2.addConstraint(constraint2);
     policy2.setOwnerId(app.getId());
-    Action notifyAction3 = new Action(Action.ID_NOTIFY);
-    notifyAction3.setTarget("Mark.MyWords@example.com");
-    policy2.addAction(Stage.ID_RELEASE, notifyAction2);
-    Action failAction2 = new Action(Action.ID_FAIL);
-    policy2.addAction(Stage.ID_RELEASE, failAction2);
+    policy2.getNotifications().add(new UserNotification("Mark.MyWords@example.com", Stage.ID_RELEASE));
+    policy2.setAction(Stage.ID_RELEASE, Action.ID_FAIL);
     policyDAO.insert(policy2);
 
     final Stage stage = new Stage(Stage.ID_BUILD);
@@ -513,12 +501,10 @@ public class PolicyEvaluateResourceTest
     Condition condition1 = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
     constraint1.addCondition(condition1);
 
-    Action action = new Action(Action.ID_FAIL);
-
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
-    policy1.addAction(Stage.ID_BUILD, action);
+    policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
@@ -560,13 +546,11 @@ public class PolicyEvaluateResourceTest
     Condition condition2 = new Condition(LicenseStatusConditionType.ID, "is", "OVERRIDDEN");
     constraint2.addCondition(condition2);
 
-    Action action = new Action(Action.ID_FAIL);
-
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
     policy1.addConstraint(constraint2);
-    policy1.addAction(Stage.ID_BUILD, action);
+    policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
@@ -628,12 +612,10 @@ public class PolicyEvaluateResourceTest
     Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is", "CONFIRMED");
     constraint.addCondition(condition);
 
-    Action action = new Action(Action.ID_FAIL);
-
     Policy policy = new Policy(null /* policyId */, "Policy name");
     policy.setThreatLevel(5);
     policy.addConstraint(constraint);
-    policy.addAction(Stage.ID_BUILD, action);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy.setOwnerId(app.getId());
     policyDAO.insert(policy);
     constraint = policy.getConstraints().get(0);
@@ -755,9 +737,7 @@ public class PolicyEvaluateResourceTest
     Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action notifyAction = new Action(Action.ID_NOTIFY);
-    notifyAction.setTarget("manager@test.corp");
-    policy1.addAction(Stage.ID_BUILD, notifyAction);
+    policy1.getNotifications().add(new UserNotification("manager@test.corp", Stage.ID_BUILD));
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
 
@@ -1037,11 +1017,10 @@ public class PolicyEvaluateResourceTest
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
     constraint.addCondition(condition);
-    Action action = new Action(Action.ID_FAIL);
     Policy policy = new Policy(null /* policyId */, "Policy 1");
     policy.setThreatLevel(5);
     policy.addConstraint(constraint);
-    policy.addAction(Stage.ID_BUILD, action);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy.setOwnerId(app.getId());
     policyDAO.insert(policy);
 

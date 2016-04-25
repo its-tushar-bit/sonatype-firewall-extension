@@ -394,7 +394,7 @@ public class PolicyImportExportTest
     constraint2.setName("Constraint2");
     constraint2.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
     policy.addConstraint(constraint2);
-    policy.addAction(BuildStageType.ID, new Action(Action.ID_FAIL));
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
     policyDAO.insert(policy);
 
     // Export

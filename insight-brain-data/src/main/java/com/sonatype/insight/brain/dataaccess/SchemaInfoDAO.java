@@ -15,8 +15,14 @@ public class SchemaInfoDAO
     extends AbstractOperationalSqlDAO<SchemaInfo>
 {
   public SchemaInfo get() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return get(tx);
+    }
+  }
+
+  public SchemaInfo get(TransactionContext tx) {
     String sQuery = "SELECT entity FROM SchemaInfo entity";
-    SchemaInfo schemaInfo = get(sQuery);
+    SchemaInfo schemaInfo = get(tx, sQuery);
     if (schemaInfo == null) {
       throw new IllegalStateException("ODS database corrupt, missing schema info");
     }

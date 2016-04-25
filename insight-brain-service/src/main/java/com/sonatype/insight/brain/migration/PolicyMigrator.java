@@ -13,11 +13,13 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.H2DatabaseMigrator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.SchemaInfo;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -41,14 +43,14 @@ public class PolicyMigrator
 
   private final InsightWork insightWork;
 
-  private final ProcureRemovalMigrator procureMigrator;
+  private final PolicyJsonMigrator policyJsonMigrator;
 
   static final String MARKER_FILE_NAME = "policies-migrated";
 
   @Inject
-  public PolicyMigrator(InsightWork insightWork, ProcureRemovalMigrator procureMigrator) {
+  public PolicyMigrator(InsightWork insightWork, PolicyJsonMigrator policyJsonMigrator) {
     this.insightWork = insightWork;
-    this.procureMigrator = procureMigrator;
+    this.policyJsonMigrator = policyJsonMigrator;
   }
 
   void migrate() throws IOException {
@@ -78,6 +80,7 @@ public class PolicyMigrator
         OrganizationDAO orgDAO = new OrganizationDAO();
         ApplicationDAO appDAO = new ApplicationDAO();
         PolicyDAO policyDAO = new PolicyDAO();
+        SchemaInfoDAO schemaInfoDAO = new SchemaInfoDAO();
         try (TransactionContext tx = orgDAO.createTransactionContext()) {
           tx.begin();
 
@@ -114,16 +117,17 @@ public class PolicyMigrator
             JsonStore jsonStore = JsonUtils.fileStore(policyDir);
             ArrayNode policyJsonData = (ArrayNode) jsonStore.restore("policy.json");
             for (JsonNode policyJsonNode : policyJsonData) {
-              Policy policy = JsonUtils.asPojo(policyJsonNode, Policy.class);
+              Policy policy = policyJsonMigrator.migrate(policyJsonNode);
               policy.setOwnerId(ownerId);
-              // we need to migrate the procure items out now, otherwise we will be inserting invalid data into the
-              // database
-              procureMigrator.pruneProcurement(policy);
               policyDAO.insert(tx, policy);
             }
             log.info("Migrated {} policies for application or organization {} (id {}).", policyJsonData.size(),
                 ownerName, ownerId);
           }
+
+          SchemaInfo schemaInfo = schemaInfoDAO.get(tx);
+          schemaInfo.setPolicyJsonVersion(PolicyJsonMigrator.POLICY_JSON_VERSION);
+          schemaInfoDAO.update(tx, schemaInfo);
 
           tx.commit();
         }

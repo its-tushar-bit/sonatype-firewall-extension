@@ -53,11 +53,8 @@ public class PolicyAlertUtil
         if (policy == null) {
           actions = Collections.emptyList();
         }
-        else if (forMonitoring) {
-          actions = policy.getMonitorNotifyActions();
-        }
         else {
-          actions = policy.getActions(stageTypeId);
+          actions = policy.toActions(stageTypeId, forMonitoring);
         }
         PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
         result.add(policyAlert);

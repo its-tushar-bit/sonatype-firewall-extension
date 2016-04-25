@@ -7,13 +7,10 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -22,6 +19,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.model.HasStringId;
 
@@ -110,12 +108,15 @@ public class ProcureRemovalMigrator
 
   public boolean pruneProcurement(Policy policy) {
     log.debug("Checking policy {}", policy.getName());
-    Map<String, List<Action>> actions = policy.getActions();
-    if (actions != null && actions.containsKey(ID_PROCURE)) {
-      log.debug("Removing procure action");
-      actions.remove(ID_PROCURE);
-      return true;
+    boolean changed = policy.getActions().remove(ID_PROCURE) != null;
+    for (Notification notification : policy.getNotifications().getAllNotifications()) {
+      if (notification.getStageIds().remove(ID_PROCURE)) {
+        changed = true;
+      }
     }
-    return false;
+    if (changed) {
+      log.debug("Removed procure action");
+    }
+    return changed;
   }
 }

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.DummyLicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
@@ -57,7 +56,7 @@ public class LicenseConditionTypeTest
     // Create policy
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
@@ -88,7 +87,7 @@ public class LicenseConditionTypeTest
     // Create policy
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
@@ -119,7 +118,7 @@ public class LicenseConditionTypeTest
     // Create policy
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
@@ -150,7 +149,7 @@ public class LicenseConditionTypeTest
     // Create policy
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
@@ -181,7 +180,7 @@ public class LicenseConditionTypeTest
     // Create policy
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
@@ -215,7 +214,7 @@ public class LicenseConditionTypeTest
     // Create policy
     Policy policy = new Policy("policyId1", "policyName1");
     policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
@@ -261,7 +260,7 @@ public class LicenseConditionTypeTest
     // Create policy
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);

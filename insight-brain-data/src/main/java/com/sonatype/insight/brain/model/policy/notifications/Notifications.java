@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.policy.notifications;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.model.ValidationResult;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+/**
+ * @since 1.21
+ */
+public class Notifications
+{
+  private List<UserNotification> userNotifications = new ArrayList<>();
+
+  private List<RoleNotification> roleNotifications = new ArrayList<>();
+
+  public Notifications() {
+  }
+
+  public Notifications(Notification... notifications) {
+    for (Notification notification : notifications) {
+      add(notification);
+    }
+  }
+
+  @JsonIgnore
+  public List<? extends Notification> getAllNotifications() {
+    List<Notification> notifications = new ArrayList<>(userNotifications.size() + roleNotifications.size());
+    notifications.addAll(userNotifications);
+    notifications.addAll(roleNotifications);
+    return notifications;
+  }
+
+  public List<UserNotification> getUserNotifications() {
+    return userNotifications;
+  }
+
+  public void setUserNotifications(List<UserNotification> userNotifications) {
+    this.userNotifications = userNotifications != null ? userNotifications : new ArrayList<UserNotification>();
+  }
+
+  public List<RoleNotification> getRoleNotifications() {
+    return roleNotifications;
+  }
+
+  public void setRoleNotifications(List<RoleNotification> roleNotifications) {
+    this.roleNotifications = roleNotifications != null ? roleNotifications : new ArrayList<RoleNotification>();
+  }
+
+  public void add(Notification notification) {
+    notification.addToNotifications(this);
+  }
+
+  public ValidationResult validate() {
+    ValidationResult validationResult = new ValidationResult();
+    for (Notification notification : getAllNotifications()) {
+      validationResult.merge(notification.validate());
+    }
+    return validationResult;
+  }
+
+  public Notifications getApplicable(String stageId, boolean continuousMonitoring) {
+    Notifications notifications = new Notifications();
+    for (UserNotification notification : userNotifications) {
+      if (notification.isApplicable(stageId, continuousMonitoring)) {
+        notifications.userNotifications.add(notification);
+      }
+    }
+    for (RoleNotification notification : roleNotifications) {
+      if (notification.isApplicable(stageId, continuousMonitoring)) {
+        notifications.roleNotifications.add(notification);
+      }
+    }
+    return notifications;
+  }
+
+  public List<Action> toActions() {
+    List<Action> actions = new ArrayList<>();
+    for (Notification notification : getAllNotifications()) {
+      actions.add(notification.toAction());
+    }
+    return actions;
+  }
+}

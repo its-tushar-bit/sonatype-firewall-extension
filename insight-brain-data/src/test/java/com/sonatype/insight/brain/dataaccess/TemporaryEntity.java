@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
@@ -82,6 +81,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -781,16 +781,23 @@ public class TemporaryEntity
   }
 
   public Policy newPolicy(String ownerId, String name, int threatLevel) {
-    return newPolicy(ownerId, name, threatLevel, null, null);
+    return newPolicy(ownerId, name, threatLevel, null, null, null);
   }
 
-  public Policy newPolicy(String ownerId, String name, int threatLevel, Action action, String stageTypeId) {
+  public Policy newPolicy(String ownerId,
+                          String name,
+                          int threatLevel,
+                          String action,
+                          String stageTypeId,
+                          Notifications notifications)
+  {
     Policy policy = new Policy(null /* id */, name);
     policy.setOwnerId(ownerId);
     policy.setThreatLevel(threatLevel);
     if (action != null && stageTypeId != null) {
-      policy.addAction(stageTypeId, action);
+      policy.setAction(stageTypeId, action);
     }
+    policy.setNotifications(notifications);
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);

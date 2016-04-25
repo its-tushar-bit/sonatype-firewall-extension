@@ -8,7 +8,7 @@
     "name" : "Test Policy 1",
     "ownerId" : "aa237c327b0f4dc18a04a59c31bbc0fc",
     "enabled" : true,
-    "threatLevel" : 5,
+    "threatLevel" : 7,
     "constraints" : [ {
       "id" : "57c34312cc204297997e87ec3b58c789",
       "name" : "License Constraint",
@@ -24,12 +24,19 @@
       "build" : [ {
         "actionTypeId" : "fail",
         "target" : null
+      }, {
+        "actionTypeId" : "notify",
+        "target" : "user@dot.com"
       } ],
       "release" : [ {
         "actionTypeId" : "warn",
         "target" : null
       } ]
-    }
+    },
+    "monitorNotifyActions" : [ {
+      "actionTypeId" : "notify",
+      "target" : "user@dot.com"
+    } ]
   } ]
 }, {
   "time" : 1391186793542,

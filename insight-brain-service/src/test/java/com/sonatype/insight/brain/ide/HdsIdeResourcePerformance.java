@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -41,8 +40,7 @@ public class HdsIdeResourcePerformance
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
 
     Policy[] policies = new Policy[1];
     for (int i = 0; i < policies.length; i++) {

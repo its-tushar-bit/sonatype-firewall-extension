@@ -7,10 +7,8 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -41,9 +39,11 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.security.Role;
@@ -198,15 +198,9 @@ public class RootOrganizationConfigMigratorTest
     sourcePolicyWithoutNotifications = policyDAO.getById(sourcePolicyWithoutNotifications.getId());
     assertThat(sourcePolicyWithoutNotifications.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
     // email notifications were removed from sourcePolicy, all other actions were preserved
-    List<Action> actions = sourcePolicy.getActions().get(BuildStageType.ID);
-    assertThat(actions, hasSize(1));
-    assertThat(actions.get(0).getTargetType(), is(NotifyActionType.TARGET_TYPE_ROLE));
-    actions = sourcePolicy.getActions().get(ReleaseStageType.ID);
-    assertThat(actions, hasSize(1));
-    assertThat(actions.get(0).getActionTypeId(), is(Action.ID_FAIL));
-    List<NotifyAction> monitoringActions = sourcePolicy.getMonitorNotifyActions();
-    assertThat(monitoringActions, hasSize(1));
-    assertThat(monitoringActions.get(0).getTargetType(), is(NotifyActionType.TARGET_TYPE_ROLE));
+    assertThat(sourcePolicy.getActions().keySet(), hasSize(1));
+    assertThat(sourcePolicy.getNotifications().getRoleNotifications(), hasSize(2));
+    assertThat(sourcePolicy.getNotifications().getUserNotifications(), hasSize(0));
     // sourcePolicyViolation was not changed
     sourcePolicyViolation = policyViolationDAO.getById(sourcePolicyViolation.getId());
     assertThat(sourcePolicyViolation.getPolicyId(), is(sourcePolicy.getId()));
@@ -220,12 +214,7 @@ public class RootOrganizationConfigMigratorTest
     otherPolicy2 = policyDAO.getById(otherPolicy2.getId());
     assertThat(otherPolicy2.getOwnerId(), is(otherOrg.getId()));
     assertThat(policyWaiverDAO.getById(policyWaiver2.getId()).getPolicyId(), is(otherPolicy2.getId()));
-    actions = otherPolicy2.getActions().get(BuildStageType.ID);
-    assertThat(actions, hasSize(1));
-    assertThat(actions.get(0).getTarget(), is("test@sonatype.com"));
-    monitoringActions = otherPolicy2.getMonitorNotifyActions();
-    assertThat(monitoringActions, hasSize(1));
-    assertThat(monitoringActions.get(0).getTarget(), is("test@sonatype.com"));
+    assertThat(otherPolicy2.getNotifications().getUserNotifications(), hasSize(2));
     policyViolation2 = policyViolationDAO.getById(policyViolation2.getId());
     assertThat(policyViolation2.getPolicyId(), is(otherPolicy2.getId()));
   }
@@ -382,33 +371,27 @@ public class RootOrganizationConfigMigratorTest
   }
 
   private void addFailAction(Policy policy, String stageTypeId) {
-    Action action = new Action(Action.ID_FAIL);
-    policy.addAction(stageTypeId, action);
+    policy.setAction(stageTypeId, Action.ID_FAIL);
     policyDAO.update(policy);
   }
 
   private void addEmailNotification(Policy policy, String stageTypeId) {
-    Action action = new Action(NotifyActionType.ID, "test@sonatype.com");
-    policy.addAction(stageTypeId, action);
+    policy.getNotifications().add(new UserNotification("test@sonatype.com", stageTypeId));
     policyDAO.update(policy);
   }
 
   private void addRoleNotification(Policy policy, String stageTypeId) {
-    Action action = new Action(NotifyActionType.ID, Role.CLM_ADMIN_ROLE_ID);
-    action.setTargetType(NotifyActionType.TARGET_TYPE_ROLE);
-    policy.addAction(stageTypeId, action);
+    policy.getNotifications().add(new RoleNotification(Role.CLM_ADMIN_ROLE_ID, stageTypeId));
     policyDAO.update(policy);
   }
 
   private void addMonitoringEmailNotification(Policy policy) {
-    NotifyAction action = new NotifyAction("test@sonatype.com", null /* targetType */);
-    policy.addMonitorNotifyAction(action);
+    policy.getNotifications().add(new UserNotification("test@sonatype.com", Notification.CONTINUOUS_MONITORING));
     policyDAO.update(policy);
   }
 
   private void addMonitoringRoleNotification(Policy policy) {
-    NotifyAction action = new NotifyAction(Role.CLM_ADMIN_ROLE_ID, NotifyActionType.TARGET_TYPE_ROLE);
-    policy.addMonitorNotifyAction(action);
+    policy.getNotifications().add(new RoleNotification(Role.CLM_ADMIN_ROLE_ID, Notification.CONTINUOUS_MONITORING));
     policyDAO.update(policy);
   }
 

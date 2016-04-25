@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionItemList;
@@ -40,6 +39,10 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.SelenideElement;
@@ -62,6 +65,7 @@ import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.dark_red;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -125,17 +129,14 @@ public abstract class AbstractPolicyEditorTest
     assertThat(condition.getOperator(), is("older than"));
     assertThat(condition.getValue(), is(Integer.toString(3 * 365)));
 
-    List<Action> buildActions = newPolicy.getActions(Stage.ID_BUILD);
-    assertThat(buildActions, hasSize(1));
-    Action testEmail = buildActions.get(0);
-    assertThat(testEmail.getActionTypeId(), is(Action.ID_NOTIFY));
-    assertThat(testEmail.getTarget(), is("test@sonatype.com"));
+    assertThat(newPolicy.getNotifications().getUserNotifications(), hasSize(1));
+    assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getEmailAddress(), is("test@sonatype.com"));
+    assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getStageIds(),
+        containsInAnyOrder(Stage.ID_BUILD));
 
-    List<NotifyAction> monitorActions = newPolicy.getMonitorNotifyActions();
-    assertThat(monitorActions, hasSize(1));
-    Action devRole = monitorActions.get(0);
-    assertThat(devRole.getActionTypeId(), is(Action.ID_NOTIFY));
-    assertThat(devRole.getTargetType(), is("role"));
+    assertThat(newPolicy.getNotifications().getRoleNotifications(), hasSize(1));
+    assertThat(newPolicy.getNotifications().getRoleNotifications().get(0).getStageIds(),
+        containsInAnyOrder(Notification.CONTINUOUS_MONITORING));
 
     testCreatePolicy_navigatingAwayWithUnsavedData();
   }
@@ -259,14 +260,11 @@ public abstract class AbstractPolicyEditorTest
       tempEntity.newPolicyTag(policy.getId(), categories[0].getId());
     }
 
-    policy.addAction(Stage.ID_DEVELOP, new Action(Action.ID_WARN));
-    policy.addAction(Stage.ID_BUILD, new Action(Action.ID_FAIL));
-    policy.addAction(Stage.ID_BUILD, new Action(Action.ID_NOTIFY, "test@foo.com"));
-    Action notifyDeveloperAction = new Action(Action.ID_NOTIFY);
-    notifyDeveloperAction.setTargetType("role");
-    notifyDeveloperAction.setTarget(new RoleDAO().getByName("Developer").getId());
-    policy.addAction(Stage.ID_BUILD, notifyDeveloperAction);
-    policy.addMonitorNotifyAction(new NotifyAction("test@foo.com", null));
+    policy.setAction(Stage.ID_DEVELOP, Action.ID_WARN);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy.getNotifications().add(
+        new UserNotification("test@foo.com", Stage.ID_BUILD, Notification.CONTINUOUS_MONITORING));
+    policy.getNotifications().add(new RoleNotification(new RoleDAO().getByName("Developer").getId(), Stage.ID_BUILD));
 
     tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG 2", 10);
 
@@ -516,17 +514,10 @@ public abstract class AbstractPolicyEditorTest
     twisty.shouldHave(ActionItem.EXPANDED);
 
     policy = policyDAO.getById(policy.getId());
-    List<Action> actions = policy.getActions(Stage.ID_BUILD);
-    assertThat(actions, hasSize(4)); // first is 'Fail'
-    Action roleAction = actions.get(1);
-    assertThat(roleAction.getActionTypeId(), is(Action.ID_NOTIFY));
-    assertThat(roleAction.getTargetType(), is("role"));
-    Action testEmail = actions.get(2);
-    assertThat(testEmail.getActionTypeId(), is(Action.ID_NOTIFY));
-    assertThat(testEmail.getTarget(), is("test@sonatype.com"));
-    Action devRole = actions.get(3);
-    assertThat(devRole.getActionTypeId(), is(Action.ID_NOTIFY));
-    assertThat(devRole.getTargetType(), is("role"));
+    Notifications notifications = policy.getNotifications().getApplicable(Stage.ID_BUILD, false);
+    assertThat(notifications.getUserNotifications(), hasSize(1));
+    assertThat(notifications.getUserNotifications().get(0).getEmailAddress(), is("test@sonatype.com"));
+    assertThat(notifications.getRoleNotifications(), hasSize(2));
   }
 
   private void testEditPolicy_actionsNotificationsSection_monitoring(Policy policy) {
@@ -572,15 +563,10 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.continuousMonitoring().notificationCount().shouldHave(text("2"));
 
     policy = policyDAO.getById(policy.getId());
-    List<NotifyAction> actions = policy.getMonitorNotifyActions();
-    assertThat(actions, hasSize(2));
-
-    Action testEmail = actions.get(0);
-    assertThat(testEmail.getActionTypeId(), is(Action.ID_NOTIFY));
-    assertThat(testEmail.getTarget(), is("test@sonatype.com"));
-    Action devRole = actions.get(1);
-    assertThat(devRole.getActionTypeId(), is(Action.ID_NOTIFY));
-    assertThat(devRole.getTargetType(), is("role"));
+    Notifications notifications = policy.getNotifications().getApplicable(Stage.ID_BUILD, true);
+    assertThat(notifications.getUserNotifications(), hasSize(1));
+    assertThat(notifications.getUserNotifications().get(0).getEmailAddress(), is("test@sonatype.com"));
+    assertThat(notifications.getRoleNotifications(), hasSize(1));
   }
 
   private void testEditPolicy_actionsNotificationsSection_stageActions(Policy policy) {
@@ -608,12 +594,12 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     policy = policyDAO.getById(policy.getId());
-    assertThat(policy.getActions(Stage.ID_BUILD).get(0).getActionTypeId(), is(Action.ID_FAIL));
-    assertThat(policy.getActions(Stage.ID_DEVELOP).get(0).getActionTypeId(), is(Action.ID_WARN));
-    assertThat(policy.getActions(Stage.ID_PROXY).get(0).getActionTypeId(), is(Action.ID_WARN));
-    assertThat(policy.getActions(Stage.ID_OPERATE).get(0).getActionTypeId(), is(Action.ID_FAIL));
-    assertThat(policy.getActions(Stage.ID_STAGE_RELEASE), is(nullValue()));
-    assertThat(policy.getActions(Stage.ID_RELEASE), is(nullValue()));
+    assertThat(policy.getActions().get(Stage.ID_BUILD), is(Action.ID_FAIL));
+    assertThat(policy.getActions().get(Stage.ID_DEVELOP), is(Action.ID_WARN));
+    assertThat(policy.getActions().get(Stage.ID_PROXY), is(Action.ID_WARN));
+    assertThat(policy.getActions().get(Stage.ID_OPERATE), is(Action.ID_FAIL));
+    assertThat(policy.getActions().get(Stage.ID_STAGE_RELEASE), is(nullValue()));
+    assertThat(policy.getActions().get(Stage.ID_RELEASE), is(nullValue()));
   }
 
   private void testDeletePolicy(Policy policy) {

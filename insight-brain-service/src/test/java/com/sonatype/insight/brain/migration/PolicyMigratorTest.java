@@ -10,15 +10,19 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.db.H2DatabaseMigrator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.migration.PolicyMigrator;
-import com.sonatype.insight.brain.migration.ProcureRemovalMigrator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -27,6 +31,8 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertFalse;
@@ -44,6 +50,11 @@ public class PolicyMigratorTest
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  private PolicyMigrator newPolicyMigrator(InsightWork insightWork) {
+    return new PolicyMigrator(insightWork, new PolicyJsonMigrator(new SchemaInfoDAO(), new PolicyInternalDAO(),
+        new ProcureRemovalMigrator(insightWork)));
+  }
 
   @Test
   public void testMigrate() throws Exception {
@@ -69,8 +80,10 @@ public class PolicyMigratorTest
     new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
         "/PolicyMigratorTest/remove_foreign_keys.sql");
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
+    PolicyMigrator migrator = newPolicyMigrator(insightWork);
     migrator.migrate();
+
+    assertThat(new SchemaInfoDAO().get().getPolicyJsonVersion(), is(PolicyJsonMigrator.POLICY_JSON_VERSION));
 
     // Assert the migrated policies
     PolicyDAO policyDAO = new PolicyDAO();
@@ -78,6 +91,15 @@ public class PolicyMigratorTest
     assertThat(orgPolicies, hasSize(1));
     assertThat(orgPolicies.get(0).getName(), is("Test Policy 1"));
     assertThat(orgPolicies.get(0).getId(), is("7e7a659ba7cd44e281824f43b38ada0b"));
+    assertThat(orgPolicies.get(0).getThreatLevel(), is(7));
+    assertThat(orgPolicies.get(0).getConstraints(), hasSize(1));
+    assertThat(orgPolicies.get(0).getActions().keySet(), containsInAnyOrder(Stage.ID_BUILD, Stage.ID_RELEASE));
+    assertThat(orgPolicies.get(0).getActions().get(Stage.ID_BUILD), is(Action.ID_FAIL));
+    assertThat(orgPolicies.get(0).getActions().get(Stage.ID_RELEASE), is(Action.ID_WARN));
+    assertThat(orgPolicies.get(0).getNotifications().getUserNotifications(), hasSize(1));
+    UserNotification notification = orgPolicies.get(0).getNotifications().getUserNotifications().get(0);
+    assertThat(notification.getEmailAddress(), is("user@dot.com"));
+    assertThat(notification.getStageIds(), containsInAnyOrder(Notification.CONTINUOUS_MONITORING, Stage.ID_BUILD));
     List<Policy> appPolicies = policyDAO.getByOwnerId(app.getId());
     assertThat(appPolicies, hasSize(2));
     assertThat(appPolicies.get(0).getName(), is("Test Policy 2"));
@@ -121,7 +143,7 @@ public class PolicyMigratorTest
     assertFalse(policyDir.exists());
     File markerFile = new File(insightWork.getWorkDir(), PolicyMigrator.MARKER_FILE_NAME);
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
+    PolicyMigrator migrator = newPolicyMigrator(insightWork);
     migrator.migrate();
 
     assertTrue(markerFile.exists());
@@ -137,7 +159,7 @@ public class PolicyMigratorTest
     File markerFile = new File(insightWork.getWorkDir(), PolicyMigrator.MARKER_FILE_NAME);
     assertFalse(markerFile.exists());
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
+    PolicyMigrator migrator = newPolicyMigrator(insightWork);
     migrator.migrate();
 
     assertTrue(markerFile.exists());
@@ -153,7 +175,7 @@ public class PolicyMigratorTest
     File markerFile = new File(insightWork.getWorkDir(), PolicyMigrator.MARKER_FILE_NAME);
     assertFalse(markerFile.exists());
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
+    PolicyMigrator migrator = newPolicyMigrator(insightWork);
     migrator.migrate();
 
     assertTrue(markerFile.exists());
@@ -177,7 +199,7 @@ public class PolicyMigratorTest
     new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
         "/PolicyMigratorTest/remove_foreign_keys.sql");
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
+    PolicyMigrator migrator = newPolicyMigrator(insightWork);
     migrator.migrate();
 
     // Assert the migrated policies

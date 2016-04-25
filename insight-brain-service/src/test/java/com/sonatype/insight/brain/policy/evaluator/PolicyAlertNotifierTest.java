@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -16,6 +15,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
 
@@ -113,9 +113,9 @@ public class PolicyAlertNotifierTest
     String emailAddress1 = "test1@sonatype.com";
     String emailAddress2 = "test2@sonatype.com";
     String emailAddress3 = "test3@sonatype.com";
-    policy.addAction(eval.getStageTypeId(), new Action(Action.ID_NOTIFY, emailAddress1));
-    policy.addAction(eval.getStageTypeId(), new Action(Action.ID_NOTIFY, emailAddress2));
-    policy.addAction(Stage.ID_RELEASE, new Action(Action.ID_NOTIFY, emailAddress3));
+    policy.getNotifications().add(new UserNotification(emailAddress1, eval.getStageTypeId()));
+    policy.getNotifications().add(new UserNotification(emailAddress2, eval.getStageTypeId()));
+    policy.getNotifications().add(new UserNotification(emailAddress3, Stage.ID_RELEASE));
     new PolicyDAO().update(policy);
     return tempEntity.newPolicyViolation(eval, policy);
   }

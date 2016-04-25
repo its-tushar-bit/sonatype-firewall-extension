@@ -13,8 +13,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
@@ -32,7 +30,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -164,8 +164,8 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app.getId(), "test");
-    Action action = new Action(Action.ID_NOTIFY, "test@sonatype.com");
-    policy.addAction(eval.getStageTypeId(), action);
+    String email = "test@sonatype.com";
+    policy.getNotifications().add(new UserNotification(email, eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
@@ -176,7 +176,7 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyAlerts);
 
     log.assertDebug(
-        "Sending notification email via " + mailer.getServer() + " to " + action.getTarget() + " for application "
+        "Sending notification email via " + mailer.getServer() + " to " + email + " for application "
             + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(),
         NOTIFICATION_WAIT_TIMEOUT);
   }
@@ -188,8 +188,8 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app.getId(), "test");
-    Action action = new Action(Action.ID_NOTIFY, "test@sonatype.com");
-    policy.addAction(eval.getStageTypeId(), action);
+    String email = "test@sonatype.com";
+    policy.getNotifications().add(new UserNotification(email, eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
@@ -204,7 +204,7 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyAlerts);
 
     log.assertError(
-        "Unable to send notification email to " + action.getTarget() + " for application " + app.getPublicId()
+        "Unable to send notification email to " + email + " for application " + app.getPublicId()
             + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex, NOTIFICATION_WAIT_TIMEOUT);
   }
 
@@ -218,9 +218,9 @@ public class PolicyAlertEmailerTest
     String emailAddress1 = "test1@sonatype.com";
     String emailAddress2 = "test2@sonatype.com";
     String emailAddress3 = "test3@sonatype.com";
-    policy.addAction(eval.getStageTypeId(), new Action(Action.ID_NOTIFY, emailAddress1));
-    policy.addAction(eval.getStageTypeId(), new Action(Action.ID_NOTIFY, emailAddress2));
-    policy.addAction(Stage.ID_RELEASE, new Action(Action.ID_NOTIFY, emailAddress3));
+    policy.getNotifications().add(new UserNotification(emailAddress1, eval.getStageTypeId()));
+    policy.getNotifications().add(new UserNotification(emailAddress2, eval.getStageTypeId()));
+    policy.getNotifications().add(new UserNotification(emailAddress3, Stage.ID_RELEASE));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
@@ -242,8 +242,8 @@ public class PolicyAlertEmailerTest
     Policy policy = tempEntity.newPolicy(app.getId(), "test");
     String emailAddress1 = "test1@sonatype.com";
     String emailAddress2 = "test2@sonatype.com";
-    policy.addMonitorNotifyAction(new NotifyAction(emailAddress1, null));
-    policy.addMonitorNotifyAction(new NotifyAction(emailAddress2, null));
+    policy.getNotifications().add(new UserNotification(emailAddress1, Notification.CONTINUOUS_MONITORING));
+    policy.getNotifications().add(new UserNotification(emailAddress2, Notification.CONTINUOUS_MONITORING));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
@@ -275,7 +275,7 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app.getId(), "test");
-    policy.addAction(eval.getStageTypeId(), new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE));
+    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
@@ -307,7 +307,7 @@ public class PolicyAlertEmailerTest
     String scanId = "scan-id";
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
     Policy policy = tempEntity.newPolicy(app.getId(), "test");
-    policy.addAction(eval.getStageTypeId(), new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE));
+    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
@@ -341,7 +341,7 @@ public class PolicyAlertEmailerTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId,
         false /* reevaluation */, true /* forMonitoring */, new Date());
     Policy policy = tempEntity.newPolicy(app.getId(), "test");
-    policy.addMonitorNotifyAction(new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE));
+    policy.getNotifications().add(new RoleNotification(role.getId(), Notification.CONTINUOUS_MONITORING));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));

@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -28,8 +27,9 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -155,8 +155,8 @@ public class RepositoryPolicyAlertEmailerTest
     Constraint constraint = new Constraint(null, "Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "foobar"));
     policy.addConstraint(constraint);
-    policy.addAction(ProxyStageType.ID, new NotifyAction("email@sonatype.com", null));
-    policy.addAction(ProxyStageType.ID, new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE));
+    policy.getNotifications().add(new UserNotification("email@sonatype.com", ProxyStageType.ID));
+    policy.getNotifications().add(new RoleNotification(role.getId(), ProxyStageType.ID));
     policy = tempEntity.newPolicy(policy);
 
     return policy;
@@ -169,7 +169,7 @@ public class RepositoryPolicyAlertEmailerTest
     componentFact.addConstraintFact(constraintFact);
     PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
     policyFact.addComponentFact(componentFact);
-    return new PolicyAlert(policyFact, policy.getActions(ProxyStageType.ID));
+    return new PolicyAlert(policyFact, policy.toActions(ProxyStageType.ID, false));
   }
 
   //This is required as Address doesn't implement equals/hashCode

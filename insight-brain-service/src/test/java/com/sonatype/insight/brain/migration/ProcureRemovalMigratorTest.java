@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.migration;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -18,7 +17,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.migration.ProcureRemovalMigrator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -29,8 +27,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 public class ProcureRemovalMigratorTest
 {
@@ -67,8 +67,8 @@ public class ProcureRemovalMigratorTest
     String appId = createApplication();
     PolicyDAO dao = new PolicyDAO();
     Policy policy = tempEntity.newPolicy(appId, "testPolicyMonitorsRemoved");
-    policy.setActions(ProcureRemovalMigrator.ID_PROCURE, Collections.<Action> emptyList());
-    policy.setActions(Stage.ID_BUILD, Collections.singletonList(new Action(Action.ID_WARN)));
+    policy.setAction(ProcureRemovalMigrator.ID_PROCURE, Action.ID_WARN);
+    policy.setAction(Stage.ID_BUILD, Action.ID_WARN);
 
     policyInternalDAO.update(PolicyInternal.fromPolicy(policy));
 
@@ -76,8 +76,7 @@ public class ProcureRemovalMigratorTest
 
     policy = dao.getById(policy.getId());
 
-    assertNull(policy.getActions(ProcureRemovalMigrator.ID_PROCURE));
-    assertEquals(1, policy.getActions(Stage.ID_BUILD).size());
+    assertThat(policy.getActions().keySet(), containsInAnyOrder(Stage.ID_BUILD));
   }
 
   @Test

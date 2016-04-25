@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.List;
 
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -95,18 +95,15 @@ public class RoleDAOTest
     Role role = newRole("cascade");
     tempEntity.newPolicy(organization.getId(), "Test Policy without Actions");
     Policy policyWithNotifyActions = tempEntity.newPolicy(organization.getId(), "Test Policy with Notify Actions");
-    NotifyAction notifyAction1 = new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE);
-    policyWithNotifyActions.addAction(BuildStageType.ID, notifyAction1);
-    NotifyAction notifyAction2 = new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE);
-    policyWithNotifyActions.addMonitorNotifyAction(notifyAction2);
+    policyWithNotifyActions.getNotifications().add(
+        new RoleNotification(role.getId(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
     PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.update(policyWithNotifyActions);
 
     roleDAO.delete(role);
 
     policyWithNotifyActions = policyDAO.getById(policyWithNotifyActions.getId());
-    assertThat(policyWithNotifyActions.getActions(BuildStageType.ID), hasSize(0));
-    assertThat(policyWithNotifyActions.getMonitorNotifyActions(), hasSize(0));
+    assertThat(policyWithNotifyActions.getNotifications().getRoleNotifications(), hasSize(0));
   }
 
   @Test

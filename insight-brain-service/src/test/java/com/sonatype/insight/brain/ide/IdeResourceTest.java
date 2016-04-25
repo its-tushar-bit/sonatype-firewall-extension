@@ -14,7 +14,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -116,8 +115,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
@@ -148,8 +146,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
@@ -180,8 +177,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = enhancedScanRequest(applicationPublicId, "abababababababababab");
@@ -218,8 +214,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
@@ -258,8 +253,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
@@ -308,8 +302,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
@@ -357,8 +350,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     // There should be no policy alerts when none of the security vulnerabilities was overridden
@@ -422,8 +414,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
@@ -454,8 +445,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);
@@ -478,8 +468,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);
@@ -520,8 +509,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = enhancedScanRequest(applicationPublicId, hash);
@@ -560,7 +548,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab").query("proprietary", true);
@@ -621,7 +609,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     String hash = "abababa1234babababab";
@@ -682,8 +670,7 @@ public class IdeResourceTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action failAction = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);

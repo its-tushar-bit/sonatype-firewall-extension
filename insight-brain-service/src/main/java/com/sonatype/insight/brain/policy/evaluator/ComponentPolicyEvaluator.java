@@ -166,13 +166,7 @@ public class ComponentPolicyEvaluator
         }
       }
       if (!policyFact.getComponentFacts().isEmpty()) {
-        List<? extends Action> actions;
-        if (forMonitoring) {
-          actions = policy.getMonitorNotifyActions();
-        }
-        else {
-          actions = policy.getActions(stage.getStageTypeId());
-        }
+        List<? extends Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring);
         PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
         if (isWaived) {
           policyResults.addWaivedAlert(policyAlert);

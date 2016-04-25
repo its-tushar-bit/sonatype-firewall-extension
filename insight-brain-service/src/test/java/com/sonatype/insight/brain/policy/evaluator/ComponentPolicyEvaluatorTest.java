@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -92,7 +93,7 @@ public class ComponentPolicyEvaluatorTest
 
     final Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy.setAction(stage.getStageTypeId(), FailActionType.ID);
 
     final List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
@@ -129,7 +130,7 @@ public class ComponentPolicyEvaluatorTest
 
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy.setAction(stage.getStageTypeId(), FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = new Component();
@@ -157,7 +158,7 @@ public class ComponentPolicyEvaluatorTest
 
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy.setAction(stage.getStageTypeId(), FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = new Component();
@@ -197,7 +198,7 @@ public class ComponentPolicyEvaluatorTest
 
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy.setAction(stage.getStageTypeId(), FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
     Component component1 = new Component();
@@ -231,7 +232,7 @@ public class ComponentPolicyEvaluatorTest
 
     final Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy.setAction(stage.getStageTypeId(), FailActionType.ID);
 
     final List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
@@ -310,7 +311,7 @@ public class ComponentPolicyEvaluatorTest
 
     final Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
-    policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy.setAction(stage.getStageTypeId(), FailActionType.ID);
 
     final List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
@@ -408,10 +409,9 @@ public class ComponentPolicyEvaluatorTest
     final Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
 
-    policy.addAction(DevelopStageType.ID, new Action(WarnActionType.ID));
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    policy.addAction(ReleaseStageType.ID, new Action(NotifyActionType.ID));
-    policy.getActions(ReleaseStageType.ID).get(0).setTarget("manager@some.com");
+    policy.setAction(DevelopStageType.ID, WarnActionType.ID);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+    policy.getNotifications().add(new UserNotification("manager@some.com", ReleaseStageType.ID));
 
     final List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
@@ -544,7 +544,7 @@ public class ComponentPolicyEvaluatorTest
     Policy policyParentOrg = new Policy(null, "Policy Name Parent Org");
     policyParentOrg.setOwnerId(org.getParentOrganizationId());
     policyParentOrg.setConstraints(constraints);
-    policyParentOrg.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policyParentOrg.setAction(stage.getStageTypeId(), FailActionType.ID);
     tempEntity.newPolicy(policyParentOrg);
 
     // Create org policy
@@ -555,7 +555,7 @@ public class ComponentPolicyEvaluatorTest
     Policy policyOrg = new Policy(null, "Policy Name Org");
     policyOrg.setOwnerId(org.getId());
     policyOrg.setConstraints(constraints);
-    policyOrg.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policyOrg.setAction(stage.getStageTypeId(), FailActionType.ID);
     tempEntity.newPolicy(policyOrg);
 
     // Create app policy
@@ -566,7 +566,7 @@ public class ComponentPolicyEvaluatorTest
     Policy policyApp = new Policy(null, "Policy Name App");
     policyApp.setOwnerId(app.getId());
     policyApp.setConstraints(constraints);
-    policyApp.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policyApp.setAction(stage.getStageTypeId(), FailActionType.ID);
     tempEntity.newPolicy(policyApp);
 
     List<Component> components = new ArrayList<>();
@@ -649,7 +649,7 @@ public class ComponentPolicyEvaluatorTest
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setOwnerId(app.getId());
     policy1.setConstraints(constraints1);
-    policy1.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy1.setAction(stage.getStageTypeId(), FailActionType.ID);
     PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.insert(policy1);
     List<Constraint> constraints2 = new ArrayList<>();
@@ -659,7 +659,7 @@ public class ComponentPolicyEvaluatorTest
     Policy policy2 = new Policy("PolicyId2", "Policy Name 2");
     policy2.setOwnerId(app.getId());
     policy2.setConstraints(constraints2);
-    policy2.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policy2.setAction(stage.getStageTypeId(), FailActionType.ID);
     policyDAO.insert(policy2);
 
     // Create two components
@@ -729,7 +729,7 @@ public class ComponentPolicyEvaluatorTest
 
     Policy policy = new Policy("pid", "Security-High");
     policy.addConstraint(constraint);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setHash("12345678901234567890");
@@ -760,7 +760,7 @@ public class ComponentPolicyEvaluatorTest
 
     Policy policy = new Policy("pid", "pname");
     policy.addConstraint(constraint);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setHash("12345678901234567890");

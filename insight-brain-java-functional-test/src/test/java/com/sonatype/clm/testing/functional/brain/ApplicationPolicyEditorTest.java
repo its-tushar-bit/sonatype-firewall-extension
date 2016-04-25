@@ -53,7 +53,8 @@ public class ApplicationPolicyEditorTest
 
   @Test
   public void testParentPolicyChangeReflectedLocally() throws Exception {
-    tempEntity.newPolicy(application.getParentOwnerId(), "policyName", 5, new Action(Action.ID_FAIL), StageTypes.BUILD.getId());
+    tempEntity.newPolicy(application.getParentOwnerId(), "policyName", 5, Action.ID_FAIL, StageTypes.BUILD.getId(),
+        null);
     refreshOrOpen(OwnerSummaryPage.url(application.getType().toString(), application.getPublicId()));
     OwnerSummaryPage.SummaryTile.localPolicy("policyName").shouldBe(visible);
     OwnerTreeView.organization(0).treeViewElement().shouldBe(visible).click();

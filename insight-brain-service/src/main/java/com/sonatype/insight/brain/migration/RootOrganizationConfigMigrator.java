@@ -8,16 +8,11 @@ package com.sonatype.insight.brain.migration;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -48,7 +43,6 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -231,33 +225,7 @@ public class RootOrganizationConfigMigrator
   }
 
   private void removeEmailNotifications(Policy policy) {
-    Map<String, List<Action>> actionsByStageType = policy.getActions();
-    if (actionsByStageType != null) {
-      for (Entry<String, List<Action>> entry : actionsByStageType.entrySet()) {
-        List<Action> actions = entry.getValue();
-        Iterator<Action> actionIter = actions.iterator();
-        while (actionIter.hasNext()) {
-          Action action = actionIter.next();
-          if (Action.ID_NOTIFY.equals(action.getActionTypeId())
-              && !NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
-            actionIter.remove();
-          }
-        }
-      }
-      policy.setActions(actionsByStageType);
-    }
-
-    List<NotifyAction> monitoringActions = policy.getMonitorNotifyActions();
-    if (monitoringActions != null) {
-      Iterator<NotifyAction> actionIter = monitoringActions.iterator();
-      while (actionIter.hasNext()) {
-        NotifyAction action = actionIter.next();
-        if (!NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
-          actionIter.remove();
-        }
-      }
-      policy.setMonitorNotifyActions(monitoringActions);
-    }
+    policy.getNotifications().getUserNotifications().clear();
   }
 
   private void migratePolicies(Organization sourceOrg) {

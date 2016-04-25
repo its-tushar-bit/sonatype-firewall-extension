@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -53,9 +52,7 @@ public class DroolsGeneratorTest
     policy.setId("PolicyId1");
     policy.setName("Policy Name 1");
     policy.setConstraints(constraints);
-    Action action = new Action();
-    action.setActionTypeId(FailActionType.ID);
-    policy.addAction(BuildStageType.ID, action);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
 
     DroolsGenerator.generate(policy);
     System.out.println(policy.getDroolsCode());

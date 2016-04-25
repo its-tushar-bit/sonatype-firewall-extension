@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.policy.notifications;
+
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.NotifyAction;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.model.ValidationResult;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.security.Role;
+
+import org.apache.commons.lang.StringUtils;
+
+/**
+ * @since 1.21
+ */
+public class RoleNotification
+    extends Notification
+{
+  private String roleId;
+
+  public RoleNotification() {
+    // primarily supports deserialization
+  }
+
+  public RoleNotification(String roleId, String... stageIds) {
+    super(stageIds);
+    setRoleId(roleId);
+  }
+
+  public String getRoleId() {
+    return roleId;
+  }
+
+  public void setRoleId(String roleId) {
+    this.roleId = roleId;
+  }
+
+  @Override
+  protected void validate(ValidationResult validationResult) {
+    if (StringUtils.isBlank(roleId)) {
+      validationResult.addError("Invalid notification: A valid role ID is required");
+    }
+    else {
+      Role role = new RoleDAO().getById(roleId);
+      if (role == null) {
+        validationResult.addError("Invalid notification: '" + roleId + "' is not a valid role");
+      }
+    }
+  }
+
+  @Override
+  public Action toAction() {
+    return new NotifyAction(roleId, NotifyActionType.TARGET_TYPE_ROLE);
+  }
+
+  @Override
+  protected void addToNotifications(Notifications notifications) {
+    notifications.getRoleNotifications().add(this);
+  }
+}

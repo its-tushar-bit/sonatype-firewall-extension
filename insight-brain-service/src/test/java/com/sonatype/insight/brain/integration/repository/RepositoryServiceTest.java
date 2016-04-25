@@ -2096,7 +2096,7 @@ public class RepositoryServiceTest
 
   private Policy createQuarantiningPolicy(Repository repository) {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
-    policy.setActions(ProxyStageType.ID, Collections.singletonList(new Action(Action.ID_FAIL)));
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
     new PolicyDAO().update(policy);
     return policy;
   }

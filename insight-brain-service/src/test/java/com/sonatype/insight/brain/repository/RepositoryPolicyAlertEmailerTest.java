@@ -174,7 +174,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   //This is required as Address doesn't implement equals/hashCode
   private static class AddressListEq
-      extends ArgumentMatcher<List>
+      extends ArgumentMatcher<List<Address>>
   {
     private final List<Address> addresses;
 
@@ -184,9 +184,10 @@ public class RepositoryPolicyAlertEmailerTest
 
     @Override
     public boolean matches(Object list) {
+      @SuppressWarnings("unchecked")
       List<Address> addressList = (List<Address>) list;
       if (addressList == null || addressList.isEmpty()) {
-        return addresses == null || ((List) addresses).isEmpty();
+        return addresses == null || addresses.isEmpty();
       }
 
       if (addresses == null || addresses.isEmpty()) {

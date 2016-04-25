@@ -109,7 +109,9 @@ public class ScanFactoryTest
     assertIds(scan.getItems().get(0), "org.codehaus.plexus:plexus-utils:jar:3.0",
         "org.apache.maven:maven-settings:jar:3.0", "com.sonatype.clm.its:mod-a:jar:1.0");
     assertPaths(scan.getItems().get(1), "mod-a-1.0.jar", "mod-a-1.0-javadoc.jar", "mod-a-1.0-sources.jar");
-    assertSummary(7, 134, scan.getSummary());
+    // 131 items comes from the gzip scan file + 1 other unique archive = 132 (not 134 as one might expect)
+    // There are 3 other archives total, but they all have the same hashes, so only 1 file is counted.
+    assertSummary(7, 132, scan.getSummary());
   }
 
   @Test
@@ -139,7 +141,9 @@ public class ScanFactoryTest
     assertIds(scan, "com.sonatype.clm.its:mod-a:jar:1.0", "com.sonatype.clm.its:mod-a:zip:dist:1.0");
     assertIds(scan.getItems().get(0), "org.codehaus.plexus:plexus-utils:jar:3.0",
         "org.apache.maven:maven-settings:jar:3.0");
-    assertSummary(6, 133, scan.getSummary());
+    // 130 items comes from the gzip scan file + 1 other unique archive = 131 (not 133 as one might expect)
+    // There are 3 other archives total, but they all have the same hashes, so only 1 file is counted.
+    assertSummary(6, 131, scan.getSummary());
   }
 
   @Test

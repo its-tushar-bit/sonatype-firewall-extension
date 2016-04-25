@@ -22,6 +22,7 @@ import com.sonatype.insight.scan.client.ClientScanner;
 import com.sonatype.insight.scan.config.ScanPropertiesLoader;
 import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
+import com.sonatype.insight.scan.file.ScanSession;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.io.ScanWriter;
@@ -87,8 +88,9 @@ class Scanner
         writer.openScan(scan);
         writer.writeConfiguration(scan.getConfiguration());
         scan.getSummary().setStartTime();
+        ScanSession scanSession = new ScanSession(scan, writer);
         clientScanner.scan(new ClientScanRequest(scan));
-        fileScanner.scan(new FileScanRequest(scan, null, null, writer).addFile(target, filename, null));
+        fileScanner.scan(new FileScanRequest(scanSession).addFile(target, filename, null));
         scan.getSummary().setEndTime();
         writer.writeSummary(scan.getSummary());
         writer.closeScan();

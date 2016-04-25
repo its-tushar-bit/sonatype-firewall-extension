@@ -30,6 +30,7 @@ import com.sonatype.insight.scan.config.ScanPropertiesLoader;
 import com.sonatype.insight.scan.file.Config;
 import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
+import com.sonatype.insight.scan.file.ScanSession;
 import com.sonatype.insight.scan.hash.SHA1;
 import com.sonatype.insight.scan.model.Repository;
 import com.sonatype.insight.scan.model.Scan;
@@ -212,6 +213,7 @@ public class ScanFactory
     summary.setClassFiles(classFiles);
 
     FileScanner fileScanner = Bindings.fileScanner();
+    ScanSession scanSession = new ScanSession(scan, scanWriter);
     for (RepositoryItem item : componentItems) {
       if (scannedHashes.contains(normalizeSha1(item.getSha1()))) {
         continue;
@@ -237,9 +239,7 @@ public class ScanFactory
             is.close();
           }
         }
-        FileScanRequest scanRequest = new FileScanRequest();
-        scanRequest.setScan(scan);
-        scanRequest.setScanWriter(scanWriter);
+        FileScanRequest scanRequest = new FileScanRequest(scanSession);
         scanRequest.addFile(file, trimLeadingSlash(item.getPath()), item.getCoordinates().getId());
         fileScanner.scan(scanRequest);
       }

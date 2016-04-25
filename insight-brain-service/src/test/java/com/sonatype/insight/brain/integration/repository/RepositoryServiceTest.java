@@ -24,7 +24,9 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -55,6 +57,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.repository.PendingRepositoryPolicyNotifications;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
@@ -79,6 +82,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -114,6 +118,9 @@ public class RepositoryServiceTest
 
   @Inject
   private TestProductLicenseManager productLicenseManager;
+
+  @Inject
+  private PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
 
   private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
@@ -1006,6 +1013,101 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponents_NewComponentViolationNotifications() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    tempEntity
+        .newPolicy(repository.getParentOwnerId(), "Test Policy", 10, new Action(Action.ID_NOTIFY, "test@sonatype.com"),
+            Stage.ID_PROXY);
+    Policy waivedPolicy = tempEntity.newPolicy(repository.getParentOwnerId(), "Waived Policy", 10,
+        new Action(Action.ID_NOTIFY, "waived@sonatype.com"), Stage.ID_PROXY);
+    tempEntity.newWaiver(waivedPolicy.getId(), repository.getId());
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
+        RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT);
+
+    String hash = "hash";
+    String pathname = "pathname";
+
+    // Prepare request and mock the HDS request
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+
+    hdsResult.components = new ArrayList<>();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash));
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", pathname + 1, hash + 1));
+    hdsResult.components.add(
+        createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), hash,
+            MatchState.EXACT, 0, null, null, securityVulnerabilities, 80));
+    hdsResult.components.add(
+        createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), hash + 1,
+            MatchState.EXACT, 1, null, null, securityVulnerabilities, 80));
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Call the service
+    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+        false);
+
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
+        .getByRepositoryId(repository.getId());
+    assertThat(policyViolations, hasSize(4));
+
+    List<PolicyAlert> policyAlerts = pendingRepositoryPolicyNotifications.remove().get(repository.getId());
+    assertThat(policyAlerts, hasSize(1));
+
+    PolicyAlert policyAlert = policyAlerts.get(0);
+    assertThat(policyAlert.getTrigger().getPolicyName(), is("Test Policy"));
+
+    List<? extends Action> actions = policyAlert.getActions();
+    assertThat(actions, hasSize(1));
+    assertThat(actions.get(0).getActionTypeId(), is(Action.ID_NOTIFY));
+    assertThat(actions.get(0).getTarget(), is("test@sonatype.com"));
+    assertThat(actions.get(0).getTargetType(), isEmptyOrNullString());
+  }
+
+  @Test
+  public void testEvaluateComponents_ReevaluationViolationNotifications() throws Exception {
+    // This test ensures that there are no notifications for the evaluation cause other than "new component"
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    tempEntity
+        .newPolicy(repository.getParentOwnerId(), "Test Policy", 10, new Action(Action.ID_NOTIFY, "test@sonatype.com"),
+            Stage.ID_PROXY);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
+        RepositoryComponentEvaluationDataRequestList.REEVALUATION);
+
+    String hash = "hash";
+    String pathname = "pathname";
+
+    // Prepare request and mock the HDS request
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+
+    hdsResult.components = new ArrayList<>();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven", pathname, hash));
+    hdsResult.components.add(
+        createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0, null, null,
+            securityVulnerabilities, 80));
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Call the service
+    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+        false);
+
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
+        .getByRepositoryId(repository.getId());
+    assertThat(policyViolations, hasSize(1));
+
+    List<PolicyAlert> policyAlerts = pendingRepositoryPolicyNotifications.remove().get(repository.getId());
+    assertThat(policyAlerts, nullValue());
+  }
+
+   @Test
   public void testEvaluateComponents_Reevaluation() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "Apache-2.0");
@@ -1516,6 +1618,7 @@ public class RepositoryServiceTest
                               boolean quarantine) throws IOException
   {
     RepositoryComponentEvaluationDataRequestList hdsRequest = new RepositoryComponentEvaluationDataRequestList();
+    hdsRequest.cause = serviceRequest.cause;
     hdsRequest.components = new ArrayList<>();
     for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : serviceRequest.components) {
       String hash = HashHelper.truncateHash(componentEvaluationDataRequest.hash);

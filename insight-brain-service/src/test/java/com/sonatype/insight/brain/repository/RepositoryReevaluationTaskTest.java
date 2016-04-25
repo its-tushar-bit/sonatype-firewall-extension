@@ -73,6 +73,9 @@ public class RepositoryReevaluationTaskTest
   @Inject
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
+  @Inject
+  private PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
+
   private FirewallAuditHdsClient auditHdsClient;
 
   private RepositoryComponent unknownComponent;
@@ -116,8 +119,8 @@ public class RepositoryReevaluationTaskTest
     activeReevaluations.put(repository.getId(), new AtomicInteger());
 
     task = new RepositoryReevaluationTask(repository, new RepositoryPolicyEvaluator(componentPolicyEvaluator,
-        repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null, componentDetailsLoader),
-        executorService, activeReevaluations);
+        repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null, componentDetailsLoader,
+        pendingRepositoryPolicyNotifications), executorService, activeReevaluations);
     createHdsResponse();
   }
 

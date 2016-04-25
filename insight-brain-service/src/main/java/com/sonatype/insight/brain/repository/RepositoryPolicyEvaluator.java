@@ -66,6 +66,8 @@ public class RepositoryPolicyEvaluator
 
   private final PolicyDAO policyDAO = new PolicyDAO();
 
+  private final PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
+
   private final FirewallAuditHdsClient auditHdsClient;
 
   private final FirewallQuarantineHdsClient quarantineHdsClient;
@@ -78,7 +80,8 @@ public class RepositoryPolicyEvaluator
                                    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
                                    FirewallAuditHdsClient auditHdsClient,
                                    FirewallQuarantineHdsClient quarantineHdsClient,
-                                   ComponentDetailsLoader componentDetailsLoader)
+                                   ComponentDetailsLoader componentDetailsLoader,
+                                   PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -86,6 +89,7 @@ public class RepositoryPolicyEvaluator
     this.auditHdsClient = auditHdsClient;
     this.quarantineHdsClient = quarantineHdsClient;
     this.componentDetailsLoader = componentDetailsLoader;
+    this.pendingRepositoryPolicyNotifications = pendingRepositoryPolicyNotifications;
   }
 
   public RepositoryComponentEvaluationDataList evaluate(Repository repository,
@@ -137,6 +141,13 @@ public class RepositoryPolicyEvaluator
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
       repositoryComponentEvaluationResult.quarantine = quarantine;
       componentEvaluationResultList.componentEvalResults.add(repositoryComponentEvaluationResult);
+    }
+
+    // Only notify new component evaluation policy violations
+    if (RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT.equals(componentEvaluationDataRequestList.cause)) {
+      for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
+        pendingRepositoryPolicyNotifications.add(repository.getId(), policyAlert);
+      }
     }
 
     return componentEvaluationResultList;

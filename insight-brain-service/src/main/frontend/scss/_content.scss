@@ -88,11 +88,13 @@ body {
   height: 100%;
   white-space: normal;
   background: url("../img/tile_bg.png");
-
-  @media only screen and (-webkit-min-device-pixel-ratio: 2),
-  only screen and (min-resolution: 2dppx),
-  only screen and (min-resolution: 192dpi) {
+  
+  @media only screen and (-moz-min-device-pixel-ratio: 2), 
+  only screen and (-webkit-min-device-pixel-ratio: 2), 
+  only screen and (min-devicepixel-ratio: 2), 
+  only screen and (min-resolution: 2dppx) {
     background: url("../img/tile_bg_@2X.jpg");
+    background-size: 150px 150px;
   }
 }
 

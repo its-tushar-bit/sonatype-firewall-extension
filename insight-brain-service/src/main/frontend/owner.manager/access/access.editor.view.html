@@ -2,7 +2,7 @@
   <div class="tile" load-wrapper="vm.loadError" loading="!vm.availableRoles" reload="vm.retry()"
        ng-if="!vm.availableRoles || vm.availableRoles.length > 0 || !vm.isNew">
     <h2>
-      <i class="fa fa-puzzle-piece size-20px"></i>{{vm.isNew ? 'Add Role' : vm.role.roleName}}
+      <i class="fa fa-puzzle-piece size-20px"></i>{{vm.isNew ? 'Add a Role' : vm.role.roleName}}
     </h2>
 
     <form id="access-editor-search-form" name="vm.accessEditorSearch" class="clm-form" role="form" ng-class="{'prop-down': vm.isNew}" novalidate ng-submit="vm.search()">

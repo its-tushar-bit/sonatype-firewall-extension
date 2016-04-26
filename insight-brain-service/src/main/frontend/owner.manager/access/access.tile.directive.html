@@ -10,7 +10,7 @@
         <button id="add-role-button" ng-class="{disabled: !vm.rolesWithoutLocalMembersExist}" class="btn btn-tertiary"
                 data-tooltip="{{ vm.rolesWithoutLocalMembersExist ? '' : 'All of the available roles are already associated with ' + vm.ownerName + '.' }}"
                 data-tooltip-placement="top" data-tooltip-append-to-body="true" ng-click="vm.addAccess()">
-          <i class="fa fa-plus"></i>Add Role
+          <i class="fa fa-plus"></i>Add a Role
         </button>
       </h4>
       <h4 class="subsection-header" ng-if="memberOwner.inherited && memberOwner.hasMembers">

@@ -18,7 +18,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class AccessEditorPage
 {
 
-  public static final Condition NEW_TITLE_TEXT = text("Add Role");
+  public static final Condition NEW_TITLE_TEXT = text("Add a Role");
 
   public static final Condition DROPDOWN_DEFAULT_TEXT = text("-- Select Role --");
 

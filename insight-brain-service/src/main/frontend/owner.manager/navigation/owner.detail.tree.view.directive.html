@@ -143,14 +143,14 @@
          ui-sref=".add-access"
          ui-sref-active="selected">
         <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
-        -->Add Role
+        -->Add a Role
       </a>
       <a class="tree-view-item disabled"
          ng-if="(vm.accessState.isExpanded || vm.state.$current.name.endsWith('access')) && !vm.rolesWithoutLocalMembersExist"
          data-tooltip="All of the available roles are already associated with {{ vm.ownerName }}." data-tooltip-placement="top"
          data-tooltip-append-to-body="true">
         <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
-        -->Add Role
+        -->Add a Role
       </a>
       <a class="tree-view-item"
          ng-if="vm.accessState.isExpanded"

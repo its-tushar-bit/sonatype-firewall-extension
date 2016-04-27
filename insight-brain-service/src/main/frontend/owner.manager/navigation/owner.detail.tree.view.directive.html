@@ -4,7 +4,8 @@
       <a same-owner-view-sref><i class="fa fa-chevron-left size-14px"></i>{{vm.ownerName}}</a>
     </div>
     <div id="applicationCategoryTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">
-      <a class="tree-view-item" ng-click="vm.categoryState.isExpanded = vm.state.$current.name.endsWith('category') ? true : !vm.categoryState.isExpanded">
+      <a class="tree-view-item" ng-class="{ childSelected: vm.state.$current.name.endsWith('category') }"
+         ng-click="vm.categoryState.isExpanded = vm.state.$current.name.endsWith('category') ? true : !vm.categoryState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
                 ng-class="{ expand: !vm.categoryState.isExpanded && !vm.state.$current.name.endsWith('category'),
@@ -42,7 +43,7 @@
       </a>
     </div>
     <div id="policyTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">
-      <a class="tree-view-item"
+      <a class="tree-view-item" ng-class="{ childSelected: vm.state.$current.name.endsWith('policy') }"
          ng-click="vm.policyState.isExpanded = vm.state.$current.name.endsWith('policy') ? true : !vm.policyState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
@@ -75,7 +76,7 @@
       </a>
     </div>
     <div id="labelTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">
-      <a class="tree-view-item"
+      <a class="tree-view-item" ng-class="{ childSelected: vm.state.$current.name.endsWith('label') }"
          ng-click="vm.labelState.isExpanded = vm.state.$current.name.endsWith('label') ? true : !vm.labelState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
@@ -102,7 +103,7 @@
       </a>
     </div>
     <div id="licenseThreatGroupTreeViewGroup" ng-if="!vm.isRepositories && (vm.details.licenseThreatGroups.length > 0 || !vm.isApp)" class="tree-view-group">
-      <a class="tree-view-item"
+      <a class="tree-view-item" ng-class="{ childSelected: vm.state.$current.name.endsWith('license-threat-group') }"
          ng-click="vm.ltgState.isExpanded = vm.state.$current.name.endsWith('license-threat-group') ? true : !vm.ltgState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
@@ -129,7 +130,8 @@
       </a>
     </div>
     <div id="accessTreeViewGroup" class="tree-view-group">
-      <a class="tree-view-item" ng-click="vm.accessState.isExpanded = vm.state.$current.name.endsWith('access') ? true : !vm.accessState.isExpanded">
+      <a class="tree-view-item" ng-class="{ childSelected: vm.state.$current.name.endsWith('access') }"
+         ng-click="vm.accessState.isExpanded = vm.state.$current.name.endsWith('access') ? true : !vm.accessState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
                 ng-class="{ expand: !vm.accessState.isExpanded && !vm.state.$current.name.endsWith('access'),

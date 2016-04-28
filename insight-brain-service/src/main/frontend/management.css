@@ -620,6 +620,7 @@ ul.tri-pane.left {
 
 .configuration .control-label {
   text-align: left;
+  cursor: default;
 }
 
 .configuration .controls > input[type=text], .configuration .controls > input[type=password], .configuration .controls > input[type=number] {

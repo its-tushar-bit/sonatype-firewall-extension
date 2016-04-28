@@ -1,57 +1,60 @@
 <div load-wrapper="vm.loadError" loading="!vm.actionStages" reload="vm.doLoad()">
   <table id="edit-policy-actions-table">
     <thead>
-      <tr>
-        <th class="greedy-column">
-          <span class="header-text">ACTION</span>
-        </th>
-        <th ng-repeat="actionStage in vm.actionStages">
-          <span class="header-text">{{::actionStage.shortName}}</span>
-        </th>
-        <th />
-        <th class="delete" />
-      </tr>
+    <tr>
+      <th class="greedy-column">
+        <span class="header-text">ACTION</span>
+      </th>
+      <th ng-repeat="actionStage in vm.actionStages" class="{{::actionStage.shortName | lowercase}}">
+        <span class="header-text">{{::actionStage.shortName}}</span>
+      </th>
+      <th /> <!--empty columns for alignment with notifications table-->
+      <th class="delete" />
+    </tr>
     </thead>
     <tbody>
-      <tr>
-        <td class="greedy-column action-name">No Action</td>
-        <td ng-repeat="actionStage in vm.actionStages" class="action" ng-class="{ active: vm.activeColumn === $index}"
-            ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-          <label class="radio" ng-class="{disabled: vm.disabled}">
-            <input type="radio" name="{{actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
-                     ng-value="undefined" ng-disabled="vm.disabled"/><!--
-         --><span>&nbsp;</span><!--
-       --></label>
-        </td>
-        <th />
-        <th class="delete" />
-      </tr>
-      <tr>
-        <td class="greedy-column action-name"><span><i class="fa fa-exclamation-triangle warn size-16px"></i>Warn</span></td>
-        <td ng-repeat="actionStage in vm.actionStages" class="action" ng-class="{ active: vm.activeColumn === $index}"
-            ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-          <label class="radio" ng-class="{disabled: vm.disabled}">
-            <input type="radio" name="{{actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
-                   value="warn" ng-disabled="vm.disabled"/><!--
-         --><span><i ng-class="{'fa fa-exclamation-triangle warn size-16px' : vm.actions[actionStage.stageTypeId] === 'warn' }">&nbsp;</i></span><!--
-       --></label>
-        </td>
-        <th />
-        <th class="delete" />
-      </tr>
-      <tr>
-        <td class="greedy-column action-name"><span><i class="fa fa-exclamation-circle fail size-16px"></i>Fail</span></td>
-        <td ng-repeat="actionStage in vm.actionStages" class="action" ng-class="{ active: vm.activeColumn === $index}"
-            ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-          <label class="radio" ng-class="{disabled: vm.disabled}">
-            <input type="radio" name="{{actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
-                   value="fail" ng-disabled="vm.disabled"/><!--
-           --><span><i ng-class="{'fa fa-exclamation-circle fail size-16px' : vm.actions[actionStage.stageTypeId] === 'fail' }">&nbsp;</i></span><!--
-       --></label>
-        </td>
-        <th />
-        <th class="delete" />
-      </tr>
+    <tr>
+      <td class="greedy-column action-name">No Action</td>
+      <td ng-repeat="actionStage in vm.actionStages"
+          class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
+          ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
+        <label class="radio" ng-class="{disabled: vm.disabled}">
+          <input type="radio" name="{{::actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
+                 ng-disabled="vm.disabled"/>
+          <span>&nbsp;</span>
+        </label>
+      </td>
+      <td /> <!--empty columns for alignment with notifications table-->
+      <td class="delete" />
+    </tr>
+    <tr>
+      <td class="greedy-column action-name"><span><i class="fa fa-exclamation-triangle warn size-16px"></i>Warn</span></td>
+      <td ng-repeat="actionStage in vm.actionStages"
+          class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
+          ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
+        <label class="radio" ng-class="{disabled: vm.disabled}">
+          <input type="radio" name="{{::actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
+                 value="warn" ng-disabled="vm.disabled"/>
+          <span><i ng-class="{'fa fa-exclamation-triangle warn size-16px' : vm.actions[actionStage.stageTypeId] === 'warn'}">&nbsp;</i></span>
+        </label>
+      </td>
+      <td />
+      <td class="delete" />
+    </tr>
+    <tr>
+      <td class="greedy-column action-name"><span><i class="fa fa-exclamation-circle fail size-16px"></i>Fail</span></td>
+      <td ng-repeat="actionStage in vm.actionStages"
+          class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
+          ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
+        <label class="radio" ng-class="{disabled: vm.disabled}">
+          <input type="radio" name="{{::actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
+                 value="fail" ng-disabled="vm.disabled"/>
+          <span><i ng-class="{'fa fa-exclamation-circle fail size-16px' : vm.actions[actionStage.stageTypeId] === 'fail'}">&nbsp;</i></span>
+        </label>
+      </td>
+      <td /> <!--empty columns for alignment with notifications table-->
+      <td class="delete" />
+    </tr>
     </tbody>
   </table>
 </div>

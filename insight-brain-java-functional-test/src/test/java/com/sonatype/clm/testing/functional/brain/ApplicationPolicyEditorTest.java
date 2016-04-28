@@ -17,12 +17,12 @@ import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.security.InternalRealm;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -83,13 +83,14 @@ public class ApplicationPolicyEditorTest
       tempEntity.newApplicationTag(application.getId(), checkedTag.getId());
 
       // user with only permission to view the app
-      tempEntity.newUser("foo", new InternalRealm().encryptPassword("bar"), "foo", "bar", "foo@example.org");
-      tempEntity.newMembershipMapping(application.getId(), new RoleDAO().getByName("Owner").getId(), "foo");
+      String username = "foo";
+      tempEntity.newUser(username);
+      tempEntity.newMembershipMapping(application.getId(), new RoleDAO().getByName("Owner").getId(), username);
 
       refreshOrOpen(
           PolicyEditorPage.urlToEdit(application.getType().toString(), application.getPublicId(), policy.getId()));
 
-      login("foo", "bar");
+      login(username, TemporaryEntity.USER_PASSWORD_CLEAR);
       refresh(); // because the page has already loaded the store the policy doesn't exist
 
       AssociationEditor categoryEditor = PolicyEditorPage.inheritanceSection().associationEditor();

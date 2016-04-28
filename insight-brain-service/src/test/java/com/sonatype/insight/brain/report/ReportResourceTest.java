@@ -1058,10 +1058,9 @@ public class ReportResourceTest
     for (JsonNode license : aaData) {
       JsonNode effectiveLicenseThreat = license.get("effectiveLicenseThreat");
       Assert.assertNotNull(effectiveLicenseThreat);
-      Integer threat = effectiveLicenseThreat.asInt();
-      Assert.assertTrue("Effective license threat between null and 10.", threat == null
-          || (threat >= 0 && threat <= 10));
-      if (threat != null && threat > 0) {
+      int threat = effectiveLicenseThreat.asInt();
+      Assert.assertTrue("Effective license threat between null and 10.", threat >= 0 && threat <= 10);
+      if (threat > 0) {
         countNotZero++;
       }
     }
@@ -1117,10 +1116,9 @@ public class ReportResourceTest
   private int testLicenseThreatsApplyChanges(JsonNode licenses) {
     int countNotZero = 0;
     for (JsonNode licenseThreat : licenses) {
-      Integer threat = licenseThreat.asInt();
-      Assert.assertTrue("Effective license threat between null and 10.", threat == null
-          || (threat >= 0 && threat <= 10));
-      if (threat != null && threat > 0) {
+      int threat = licenseThreat.asInt();
+      Assert.assertTrue("Effective license threat between null and 10.", threat >= 0 && threat <= 10);
+      if (threat > 0) {
         countNotZero++;
       }
     }

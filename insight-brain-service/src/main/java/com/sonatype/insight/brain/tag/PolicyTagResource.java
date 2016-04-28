@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
@@ -42,8 +43,11 @@ public class PolicyTagResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> getPolicyTags(@QueryParam("orgId") String orgId, @PathParam("policyId") String policyId) {
-    return tagService.getPolicyTags(orgId, policyId);
+  public List<Tag> getPolicyTags(@QueryParam("ownerType") OwnerType ownerType,
+                                 @QueryParam("ownerId") String ownerId,
+                                 @PathParam("policyId") String policyId)
+  {
+    return tagService.getPolicyTags(ownerType, ownerId, policyId);
   }
 
   /**

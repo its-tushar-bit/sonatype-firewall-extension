@@ -52,10 +52,17 @@ public class TagResource
   }
 
   @GET
+  @Path(APPLICATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApplicableTags getApplicationApplicableTags(@PathParam("applicationPublicId") String applicationPublicId) {
+    return service.getApplicableTags(OwnerType.APPLICATION, applicationPublicId);
+  }
+
+  @GET
   @Path(ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicableTags getApplicableTags(@PathParam("organizationId") String organizationId) {
-    return service.getApplicableTags(organizationId);
+    return service.getApplicableTags(OwnerType.ORGANIZATION, organizationId);
   }
 
   @GET

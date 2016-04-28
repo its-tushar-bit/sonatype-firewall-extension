@@ -14,7 +14,7 @@
   tagModule.service('TagStore', [
     'CachedHierarchyStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedHierarchyStore, CLMAppLocations, CLMLocations, $http) {
       var tagStoreTemplate = {
-        getUrl: CLMAppLocations.getTagsUrl,
+        getUrl: CLMAppLocations.getCategoriesUrl,
         template: tagTemplate,
         field: 'tagsByOwner',
         storeField: 'tags'

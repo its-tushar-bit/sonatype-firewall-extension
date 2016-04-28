@@ -5,20 +5,32 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.testing.functional.elements.AssociationEditor;
+import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.security.InternalRealm;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.allRadioText;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.specifiedRadioText;
 
@@ -54,6 +66,54 @@ public class ApplicationPolicyEditorTest
     OwnerDetailTreeView.backLink().shouldBe(visible).click();
     OwnerTreeView.organization(0).application(0).shouldBe(visible).click();
     OwnerSummaryPage.SummaryTile.localPolicy("policyName2").shouldBe(visible);
+  }
+
+  @Test
+  public void testInheritedPolicyWithoutParentalPermission() {
+    try {
+      hardreset();
+
+      // Create a policy with a tag
+      Policy policy = tempEntity.newPolicy(application.getParentOwnerId(), "policyName");
+      policy.setActions(Collections.<String, List<Action>> emptyMap());
+
+      tempEntity.newTag(application.getParentOwnerId(), "Unchecked Tag"); // visible but not used
+      Tag checkedTag = tempEntity.newTag(application.getParentOwnerId(), "Checked Tag");
+      tempEntity.newPolicyTag(policy.getId(), checkedTag.getId());
+      tempEntity.newApplicationTag(application.getId(), checkedTag.getId());
+
+      // user with only permission to view the app
+      tempEntity.newUser("foo", new InternalRealm().encryptPassword("bar"), "foo", "bar", "foo@example.org");
+      tempEntity.newMembershipMapping(application.getId(), new RoleDAO().getByName("Owner").getId(), "foo");
+
+      refreshOrOpen(
+          PolicyEditorPage.urlToEdit(application.getType().toString(), application.getPublicId(), policy.getId()));
+
+      login("foo", "bar");
+      refresh(); // because the page has already loaded the store the policy doesn't exist
+
+      AssociationEditor categoryEditor = PolicyEditorPage.inheritanceSection().associationEditor();
+      categoryEditor.rows().shouldHaveSize(2);
+      assertCategory(categoryEditor.item(0, 0), "Checked Tag", true);
+      assertCategory(categoryEditor.item(1, 0), "Unchecked Tag", false);
+    }
+    finally {
+      // logout
+      hardreset();
+      refresh();
+      // login
+      loginAsAdmin();
+    }
+  }
+
+  private void assertCategory(AssociationEditorElement categoryElement, String categoryName, boolean checked) {
+    categoryElement.description().shouldHave(text(categoryName));
+    if (checked) {
+      categoryElement.checkBox().input().shouldBe(selected);
+    }
+    else {
+      categoryElement.checkBox().input().shouldNotBe(selected);
+    }
   }
 
   @Override

@@ -1,12 +1,20 @@
 describe('policy.editor.controller.spec.js', function() {
+  var $state;
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(module('ResourceModule', 'owner.manager.module', function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });
-  }));
 
-  beforeEach(module('ResourceModule'));
+    $state = {
+      current: {
+        name: ''
+      },
+      params: {}
+    };
+    $provide.value('$state', $state)
+    $provide.value('$stateParams', $state.params)
+  }));
 
   function createTests(type, storeName, owner) {
 
@@ -53,6 +61,14 @@ describe('policy.editor.controller.spec.js', function() {
       mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
       spyOn(CLMAppLocations, 'isApplication').andReturn(isApp);
       spyOn(CLMAppLocations, 'getEntityId').andReturn(isApp ? owner.publicId : owner.id);
+
+      $state.current.name = type;
+      if (type === 'application') {
+        $state.params.applicationPublicId = owner.publicId;
+      }
+      else if (type === 'organization') {
+        $state.params.organizationId = owner.id;
+      }
     }));
 
     afterEach(function() {
@@ -104,8 +120,9 @@ describe('policy.editor.controller.spec.js', function() {
     }));
 
     it('Finds match with URL parameter', inject(function($controller) {
-      vm = $controller('policy.editor.controller',
-          {$scope: scope, $stateParams: {policyId: '456'}});
+      $state.params.policyId = '456';
+
+      vm = $controller('policy.editor.controller', {$scope: scope});
       mockPolicy.id = '456';
       mockPolicy.ownerId = owner.id;
 
@@ -122,8 +139,9 @@ describe('policy.editor.controller.spec.js', function() {
     }));
 
     it('Errors if no match found', inject(function($controller) {
-      vm = $controller('policy.editor.controller',
-          {$scope: scope, $stateParams: {policyId: '456'}});
+      $state.params.policyId = '456';
+
+      vm = $controller('policy.editor.controller', {$scope: scope});
 
       resolveLoadData([{
         policies: [{id: '123'}, {id: '123'}],
@@ -160,11 +178,12 @@ describe('policy.editor.controller.spec.js', function() {
     }));
 
     it('After delete goes to create new policy', inject(function($controller) {
+      $state.params.policyId = '1';
+
       spyOn(SameOwnerStateNavigationService, 'goEdit');
       vm = $controller('policy.editor.controller', {
         $scope: scope,
         SameOwnerStateNavigationService: SameOwnerStateNavigationService,
-        $stateParams: {policyId: '1'},
         DeleteModalService: mockDeleteService
       });
 
@@ -186,8 +205,9 @@ describe('policy.editor.controller.spec.js', function() {
     }));
 
     it('Properly loads categories', inject(function($controller) {
-      vm = $controller('policy.editor.controller',
-          {$scope: scope, $stateParams: {organizationId: owner.id, policyId: '456'}});
+      $state.params.policyId = '456';
+
+      vm = $controller('policy.editor.controller', {$scope: scope});
       mockPolicy.id = '456';
 
       resolveLoadData([{
@@ -223,8 +243,9 @@ describe('policy.editor.controller.spec.js', function() {
     }));
 
     it('Sets readOnly', inject(function($controller) {
-      vm = $controller('policy.editor.controller',
-          {$scope: scope, $stateParams: {policyId: '456'}});
+      $state.params.policyId = '456';
+
+      vm = $controller('policy.editor.controller', {$scope: scope});
       mockPolicy.id = '456';
 
       expect(vm.readOnly).toBeUndefined();
@@ -266,8 +287,9 @@ describe('policy.editor.controller.spec.js', function() {
 
     if (!isApp) {
       it('Proper ownerName and ownerType get set loading heirarchy', inject(function($controller) {
-        vm = $controller('policy.editor.controller',
-            {$scope: scope, $stateParams: {policyId: '456'}});
+        $state.params.policyId = '456';
+
+        vm = $controller('policy.editor.controller', {$scope: scope});
         mockPolicy.id = '456';
 
         resolveLoadData([{
@@ -294,24 +316,26 @@ describe('policy.editor.controller.spec.js', function() {
         }], '123');
 
         expect(vm.owner.name).toBe('orgName');
-        expect(vm.isApp).toBe(false);
+        expect(vm.isOrgOwner).toBe(true);
       }));
     }
 
     function resolveLoadData(policyStoreData, policyId, expectError) {
-      if (!expectError && !isApp) {
-        $httpBackend.expectGET(CLMLocations.getOrganizationTagUrl(owner.id)).respond(mockCategoryOwners);
-        if (policyId) {
-          $httpBackend.expectGET(CLMLocations.getPolicyTagUrl(mockPolicy.id, owner.id)).respond(mockPolicyTags);
-        }
-      }
-
       mockPolicyStore.resolveGet(policyStoreData);
 
-      if (!expectError && !isApp) {
+      if (!expectError  && (!isApp || policyStoreData.length > 1 && policyStoreData[1].policies.some(function(policy) { return policyId === policy.id }))) {
+        $httpBackend.expectGET(CLMAppLocations.getCategoriesUrl()).respond(mockCategoryOwners);
+
+        if (policyId) {
+          $httpBackend.expectGET(CLMAppLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
+        }
+
+        $timeout.flush();
         $httpBackend.flush();
       }
-      $timeout.flush();
+      else {
+        $timeout.flush();
+      }
     }
 
     function resolveSaveData(policyId) {

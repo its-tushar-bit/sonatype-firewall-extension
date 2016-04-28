@@ -6,7 +6,7 @@
     </h2>
     <ul class="nav nav-pills">
       <li class="active"><a data-toggle="pill" id="policy-summary-button" data-target="#policy-edit-summary">Summary</a></li>
-      <li ng-if="!vm.isApp"><a data-toggle="pill" id="policy-inheritance-button" data-target="#policy-edit-inheritance">Inheritance</a></li>
+      <li ng-if="vm.isOrgOwner"><a data-toggle="pill" id="policy-inheritance-button" data-target="#policy-edit-inheritance">Inheritance</a></li>
       <li><a data-toggle="pill" id="policy-constraints-button" data-target="#policy-edit-constraints">Constraints</a></li>
       <li><a data-toggle="pill" id="policy-actions-button" data-target="#policy-edit-actions">Actions and Notifications</a></li>
       <li><a data-toggle="pill" id="policy-endofpage-button" data-target="#policy-edit-endofpage">End of Page</a></li>
@@ -46,7 +46,7 @@
           </div>
         </div>
       </div>
-      <div ng-if="!vm.isApp" id="policy-edit-inheritance" class="editor-section">
+      <div ng-if="vm.isOrgOwner" id="policy-edit-inheritance" class="editor-section">
         <div class="editor-section-header">Inheritance</div>
         <div class="section">
           <div class="inline-fields">

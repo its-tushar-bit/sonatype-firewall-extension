@@ -99,10 +99,13 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApplicableTags getApplicableTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
+  public ApplicableTags getApplicableTags(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+                                          @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ApplicableTags tags = new ApplicableTags();
     tags.tagsByOwner = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
+    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
       tags.tagsByOwner.add(new TagsByOwner(owner, tagDAO.getByOrganizationId(owner.getId())));
     }
 
@@ -203,7 +206,13 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getPolicyTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId) {
+  public List<Tag> getPolicyTags(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+                                 @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                                 String policyId)
+  {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    assertInHierarchy(internalOwnerId, policyDAO.getById(policyId));
+
     return tagDAO.getByPolicyId(policyId);
   }
 
@@ -266,5 +275,14 @@ class TagService
       organizationId = organizationDAO.getById(organizationId).getParentOrganizationId();
     }
     return result;
+  }
+
+  private void assertInHierarchy(String ownerId, Policy policy) {
+    for (Owner candidate : ownerDAO.walkHierarchy(ownerId)) {
+      if (policy.getOwnerId().equals(candidate.getId())) {
+        return;
+      }
+    }
+    throw new NotFoundException("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerId);
   }
 }

@@ -153,12 +153,17 @@
           return this.getPolicyMonitoringUrl() + '/applicable';
         },
 
+        getCategoriesUrl: function() {
+          return CLMLocations.getCategoriesUrl(getServicePath(), getId(true));
+        },
+
         getTagsUrl: function() {
           return baseUrl.get() + '/rest/tag/organization/' + getId();
         },
 
         getPolicyTagUrl : function(policyId) {
-          return CLMLocations.getPolicyTagUrl(policyId, getId(true));
+          return baseUrl.get() + '/rest/appliedTag/policy/' + encodeURIComponent(policyId) + '?ownerId=' +
+              encodeURIComponent(getId(true)) + '&ownerType=' + getServicePath();
         },
 
         getPermissionTestUrl : function(global) {

@@ -6,9 +6,8 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, DeleteModalService,
-                                  SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant,
-                                  CLMLocations)
+  function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, TagStore, DeleteModalService,
+                                  SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant)
   {
     var vm = this,
         originalCategories,
@@ -25,7 +24,7 @@
     vm.isPolicyDirty = isPolicyDirty;
     vm.siblings = [];
     vm.categories = undefined;
-    vm.isApp = CLMAppLocations.isApplication();
+    vm.isOrgOwner = undefined;
     vm.hasPolicyCategories = false;
     vm.submitError = undefined;
     vm.owner = undefined;
@@ -49,20 +48,23 @@
     }
 
     function doLoad() {
-      PolicyHierarchyStore.get().then(function(data) {
-        loadPolicy(data);
+      PolicyHierarchyStore.get().then(function(policyStores) {
+        loadPolicy(policyStores);
         vm.categories = [];
+
         if (!vm.dirtyPolicy) {
           vm.loadError = 'Unable to locate Policy.';
         }
-        else if (!vm.isApp) {
-          var promises = [$http.get(CLMLocations.getOrganizationTagUrl(vm.owner.id))];
+        else if (vm.isOrgOwner) {
+          var promises = [TagStore.get()];
+
+          // A newly created policy won't have any tags associated with it
           if ($stateParams.policyId) {
-            promises.push($http.get(CLMLocations.getPolicyTagUrl($stateParams.policyId, vm.owner.id)));
+            promises.push($http.get(CLMAppLocations.getPolicyTagUrl($stateParams.policyId)));
           }
 
           $q.all(promises).then(function(results) {
-            loadCategories(results[0].data.tagsByOwner, results[1] && results[1].data);
+            loadCategories(results[0], results.length > 1 ? results[1].data : undefined);
           }, function(error) {
             vm.loadError = error;
           });
@@ -82,6 +84,7 @@
 
         if (!$stateParams.policyId) {
           vm.dirtyPolicy = createPolicy();
+          vm.isOrgOwner = CLMAppLocations.isOrganization();
         }
 
         policyHierarchy.forEach(function(owner, index) {
@@ -95,7 +98,7 @@
                 id: owner.ownerId,
                 name: owner.ownerName
               };
-              vm.isApp = owner.ownerType === 'application';
+              vm.isOrgOwner = owner.ownerType === 'organization';
               vm.isRootOrg = vm.owner.id === 'ROOT_ORGANIZATION_ID';
               return true;
             }
@@ -105,6 +108,7 @@
 
       function loadCategories(categoriesByOwner, availableCategories) {
         vm.hasPolicyCategories = Boolean(availableCategories && availableCategories.length > 0);
+
         var appliedCategoriesById = vm.hasPolicyCategories ? availableCategories.map(function(category) {
           return category.id;
         }) : [];
@@ -137,7 +141,7 @@
 
       if (vm.policyEditor.$valid && vm.isPolicyDirty() && !vm.readOnly) {
         var savePolicy = vm.dirtyPolicy.$save().then(function() {
-          return vm.isApp ? $q.when([]) : $http.put(CLMAppLocations.getPolicyTagUrl(vm.dirtyPolicy.id),
+          return !vm.isOrgOwner ? $q.when([]) : $http.put(CLMAppLocations.getPolicyTagUrl(vm.dirtyPolicy.id),
               vm.hasPolicyCategories ? appliedCategories : []);
         }, submitErrorHandler);
 
@@ -163,7 +167,7 @@
     }
 
     function isInheritanceSectionDirty() {
-      return !vm.isApp && ((vm.hasPolicyCategories && !angular.equals(originalCategories, vm.categories)) ||
+      return vm.isOrgOwner && ((vm.hasPolicyCategories && !angular.equals(originalCategories, vm.categories)) ||
           (originalHasPolicyCategories !== vm.hasPolicyCategories));
     }
 
@@ -173,8 +177,8 @@
   }
 
   PolicyEditorController.$inject = [
-    '$scope', '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService',
-    'SameOwnerStateNavigationService', 'CLMAppLocations', '$rootScope', 'event.name.constant', 'CLMLocations'
+    '$scope', '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'TagStore', 'DeleteModalService',
+    'SameOwnerStateNavigationService', 'CLMAppLocations', '$rootScope', 'event.name.constant'
   ];
 
   angular //

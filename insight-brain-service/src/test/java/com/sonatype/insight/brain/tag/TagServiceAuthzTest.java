@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -42,13 +43,13 @@ public class TagServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testGetTags_Unauthorized() throws Exception {
     login();
-    tagService.getApplicableTags(org.getId());
+    tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
   }
 
   @Test
   public void testGetTags_Authorized() throws Exception {
     grantReadPermission(org.getId());
-    tagService.getApplicableTags(org.getId());
+    tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -138,13 +139,13 @@ public class TagServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicyTags_Unauthorized() throws Exception {
     login();
-    tagService.getPolicyTags(org.getId(), policyId);
+    tagService.getPolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId);
   }
 
   @Test
   public void testGetPolicyTags_Authorized() throws Exception {
     grantReadPermission(org.getId());
-    tagService.getPolicyTags(org.getId(), policyId);
+    tagService.getPolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId);
   }
 
   @Test

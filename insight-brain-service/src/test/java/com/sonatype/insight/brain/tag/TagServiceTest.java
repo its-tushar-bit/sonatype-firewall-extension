@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -163,7 +164,7 @@ public class TagServiceTest
     Tag orgTag = tempEntity.newTag(org.getId(), "Org Tag");
     Tag parentTag = tempEntity.newTag(org.getParentOrganizationId(), "Root Tag");
 
-    ApplicableTags tags = tagService.getApplicableTags(org.getId());
+    ApplicableTags tags = tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
     assertThat(tags.tagsByOwner, hasSize(2));
 
     assertThat(tags.tagsByOwner.get(0).tags, hasSize(1));

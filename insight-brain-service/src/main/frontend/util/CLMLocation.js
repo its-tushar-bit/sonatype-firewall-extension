@@ -128,19 +128,16 @@
           return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '/' + ticketId;
         },
 
-        getOrganizationTagUrl : function(organizationId) {
-          return baseUrl.get() + '/rest/tag/organization/' + encodeURIComponent(organizationId);
-        },
         getOrganizationAppliedTagUrl : function(organizationId) {
-          return this.getOrganizationTagUrl(organizationId) + '/applied';
+          return this.getCategoriesUrl('organization', organizationId) + '/applied';
         },
         getOrganizationPolicyTagUrl : function(organizationId) {
-          return this.getOrganizationTagUrl(organizationId) + '/policy';
+          return this.getCategoriesUrl('organization', organizationId) + '/policy';
         },
-        getPolicyTagUrl : function(policyId, organizationId) {
-          return baseUrl.get() + '/rest/appliedTag/policy/' + encodeURIComponent(policyId) + '?orgId=' +
-              encodeURIComponent(organizationId);
+        getCategoriesUrl: function(ownerType, ownerId) {
+          return baseUrl.get() + '/rest/tag/' + ownerType + '/' + encodeURIComponent(ownerId);
         },
+
         getApplicationTagUrl : function(applicationPublicId) {
           return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
         },

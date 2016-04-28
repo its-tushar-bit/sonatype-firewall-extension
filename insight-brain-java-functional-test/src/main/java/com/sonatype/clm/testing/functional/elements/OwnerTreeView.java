@@ -50,7 +50,7 @@ public class OwnerTreeView
   public static class OrganizationNode
       extends BasicElement<OrganizationNode>
   {
-    public static final Condition CHILD_SELECTED = cssClass("childSelected");
+    public static final Condition CHILD_SELECTED = cssClass("child-selected");
 
     public static final String DISABLED_TOOLTIP_CONTENT = "You do not have permission to view this organization.";
 

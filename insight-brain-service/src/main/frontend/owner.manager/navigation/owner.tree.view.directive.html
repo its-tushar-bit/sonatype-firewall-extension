@@ -45,7 +45,7 @@
         <a class="tree-view-item"
            ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: organization.id}),
                              disabled : organization.synthetic,
-                             childSelected : vm.selectedParentOrganization.id === organization.id }"
+                             'child-selected' : vm.selectedParentOrganization.id === organization.id }"
            ng-click="organization.isExpanded = true;
                      vm.goToOrganizationIfNotSynthetic(organization);">
           <div class="twisty-container"

@@ -381,15 +381,19 @@
         padding-top: 7px;
         padding-bottom: 7px;
         cursor: default;
-
-        .twisty-container {
-          cursor: default;
-        }
       }
 
-      &.selected, &.childSelected {
-        .twisty.collapse {
-          border-top-color: $grey-4;
+      &.cannot-select.child-selected {
+        cursor: default;
+      }
+
+      &.selected, &.child-selected {
+        .twisty-container {
+          cursor: default;
+
+          .twisty.collapse {
+            border-top-color: $grey-4;
+          }
         }
       }
 

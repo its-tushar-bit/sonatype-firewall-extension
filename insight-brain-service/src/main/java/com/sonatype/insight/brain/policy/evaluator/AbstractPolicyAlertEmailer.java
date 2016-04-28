@@ -105,9 +105,9 @@ public abstract class AbstractPolicyAlertEmailer
     return policyAlertsByEmailAddress;
   }
 
-  protected String createPolicyMailSubject(MailPolicyAlertCounts counts) {
+  protected String createPolicyMailSubject(MailPolicyAlertCounts counts, String ownerName) {
     StringBuilder buffer = new StringBuilder(128);
-    buffer.append("Policy Alert: ");
+    buffer.append("Policy Alert for ").append(ownerName).append(": ");
     int total = counts.red + counts.orange + counts.yellow + counts.darkBlue + counts.blue;
     int highest = 0;
     if (counts.red > 0) {

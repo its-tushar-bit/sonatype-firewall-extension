@@ -62,7 +62,8 @@ public class RepositoryPolicyAlertEmailer
             repository.getId());
         final String mailId = "SONATYPE-IQ-" + repository.getPublicId();
         final List<Address> addresses = Collections.singletonList(new Address(details.getKey()));
-        final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()));
+        final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()),
+            repository.getName());
         final String body = processTemplate(createPolicyMailModel(repository, details.getValue()));
         getMail().sendHtml(mailId, addresses, subject, body);
       }

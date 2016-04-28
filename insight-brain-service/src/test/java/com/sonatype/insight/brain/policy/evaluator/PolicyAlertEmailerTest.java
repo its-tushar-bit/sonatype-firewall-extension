@@ -119,16 +119,22 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void testNotificationEmailSubject() throws Exception {
-    Assert.assertEquals("Policy Alert: 1 critical violation out of 15",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(1, 2, 3, 4, 5)));
-    Assert.assertEquals("Policy Alert: 2 severe violations out of 14",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 2, 3, 4, 5)));
-    Assert.assertEquals("Policy Alert: 3 moderate violations out of 12",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 3, 4, 5)));
-    Assert.assertEquals("Policy Alert: 9 neutral violations out of 9",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 0, 4, 5)));
-    Assert.assertEquals("Policy Alert: 5 neutral violations out of 5",
-        policyAlertEmailer.createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 0, 0, 5)));
+    String ownerName = "ownerName";
+    Assert.assertEquals("Policy Alert for ownerName: 1 critical violation out of 15",
+        policyAlertEmailer
+            .createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(1, 2, 3, 4, 5), ownerName));
+    Assert.assertEquals("Policy Alert for ownerName: 2 severe violations out of 14",
+        policyAlertEmailer
+            .createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 2, 3, 4, 5), ownerName));
+    Assert.assertEquals("Policy Alert for ownerName: 3 moderate violations out of 12",
+        policyAlertEmailer
+            .createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 3, 4, 5), ownerName));
+    Assert.assertEquals("Policy Alert for ownerName: 9 neutral violations out of 9",
+        policyAlertEmailer
+            .createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 0, 4, 5), ownerName));
+    Assert.assertEquals("Policy Alert for ownerName: 5 neutral violations out of 5",
+        policyAlertEmailer
+            .createPolicyMailSubject(new PolicyAlertEmailer.MailPolicyAlertCounts(0, 0, 0, 0, 5), ownerName));
   }
 
   @Test

@@ -84,7 +84,7 @@ public class PolicyAlertEmailer
                 details.getKey(), applicationPublicId, scanId, stage);
             final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
             final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
-            final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()));
+            final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()), app.getName());
             final String body = processTemplate(
                 createPolicyMailModel(stringBaseUrl, app, scanId, stage, details.getValue()));
             getMail().sendHtml(mailId, addresses, subject, body);

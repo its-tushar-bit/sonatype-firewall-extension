@@ -22,7 +22,7 @@
   angular.module('InitModule', [
     'ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices', 'ngAria',
     'ReportModule', 'Report', 'MainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
-    'ProductFeaturesModule', 'HttpInterceptors', 'DashboardModule', 'FormsModule'
+    'ProductFeaturesModule', 'HttpInterceptors', 'DashboardModule', 'dashboard.module', 'FormsModule'
   ], [
     '$stateProvider', '$routeProvider', '$urlRouterProvider',
     function($stateProvider, $routeProvider, $urlRouterProvider) {

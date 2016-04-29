@@ -366,7 +366,7 @@ public class HdsClientTest
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), is("The hostname for the Sonatype HDS could not be resolved,"
-          + " please verify the network configuration (DNS) at the site where the Sonatype CLM server is operated"));
+          + " please verify the network configuration (DNS) at the site where the Nexus IQ server is operated"));
     }
   }
 

@@ -93,7 +93,7 @@ public class ConfigurationClient
       JsonUtils.parse(text, Map.class);
     }
     catch (Exception e) {
-      throw new IOException("Server is not compatible with this Sonatype CLM integration", e);
+      throw new IOException("Server is not compatible with this Nexus IQ integration", e);
     }
   }
 

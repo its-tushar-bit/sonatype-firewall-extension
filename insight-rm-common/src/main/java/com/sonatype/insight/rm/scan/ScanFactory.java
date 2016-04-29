@@ -146,7 +146,7 @@ public class ScanFactory
               String version = parser.getAttributeValue(null, "version");
               if (!scan.getVersion().equals(version)) {
                 log.warn("Unexpected file format in " + item.getPath() + ", scan might be inaccurate"
-                    + ", please ensure the employed CLM client tools are compatible");
+                    + ", please ensure the employed Nexus IQ client tools are compatible");
               }
             }
             else if (parser.getDepth() == 2 && "configuration".equals(tag)) {

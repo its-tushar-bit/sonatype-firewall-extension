@@ -17,7 +17,7 @@ public class CLMFeature
 
   @Override
   public String getDescription() {
-    return "Sonatype CLM Server";
+    return "Sonatype Nexus IQ Server";
   }
 
   @Override
@@ -27,12 +27,12 @@ public class CLMFeature
 
   @Override
   public String getName() {
-    return "CLM";
+    return "Nexus IQ";
   }
 
   @Override
   public String getShortName() {
-    return "CLM";
+    return "IQ";
   }
 
 }

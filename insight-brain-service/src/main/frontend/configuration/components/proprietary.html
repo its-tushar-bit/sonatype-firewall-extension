@@ -8,7 +8,7 @@
       <div ng-show='vm.loadError'>An Error Occurred</div>
       <div ng-show='!vm.loadError && !vm.proprietary'><i class='icon-time'></i> Loading</div>
       <div ng-show='!vm.loadError && vm.proprietary' class="well clm-well">
-        <p>These entries are provided to CLM scanners and are used to help identify internal components.
+        <p>These entries are provided to Nexus IQ scanners and are used to help identify internal components.
           If a specified package or file is contained within a component, it will be considered proprietary.</p>
         <div proprietary-configuration-editor prefixes="vm.packages" regexes="vm.regexes"></div>
         <div clm-alerts="vm.error" id="proprietaryError"></div>

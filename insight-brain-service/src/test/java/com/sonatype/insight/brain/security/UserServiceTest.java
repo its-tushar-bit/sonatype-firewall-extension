@@ -183,14 +183,16 @@ public class UserServiceTest
   }
 
   @Test
-  public void testFindCLMUsers() throws Exception {
+  public void testFindIqUsers() throws Exception {
     FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*",
         false /* groupsEnabled */);
-    assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
+    assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
+        "Nexus IQ");
 
     findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null,
         User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1) + "*", false /* groupsEnabled */);
-    assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
+    assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
+        "Nexus IQ");
 
     findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, "nobody-has-such-a-name-really*", false /* groupsEnabled */);
@@ -216,7 +218,7 @@ public class UserServiceTest
 
     // Test shading. johndoe loaded from "/UserServiceTest/ldap_users.ldif" should not be returned
     findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, "John Doe", false /* groupsEnabled */);
-    assertMember(findMembersDTO, null, MemberType.USER, "johndoe", "John Doe", "johndoe@void.com", "CLM");
+    assertMember(findMembersDTO, null, MemberType.USER, "johndoe", "John Doe", "johndoe@void.com", "Nexus IQ");
   }
 
   @Test
@@ -259,7 +261,8 @@ public class UserServiceTest
         false /* groupsEnabled */);
 
     // Should not try to use Ldap until server is added and configured
-    assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
+    assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
+        "Nexus IQ");
 
     tempEntity.newLdapConnection(ldapServer.getId());
     tempEntity.newLdapUserMapping(ldapServer.getId());
@@ -267,7 +270,7 @@ public class UserServiceTest
     findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
     assertMember(findMembersDTO, "LDAP error, displaying local users only.", MemberType.USER, User.ADMIN_USERNAME,
-        "Admin BuiltIn", "admin@localhost", "CLM");
+        "Admin BuiltIn", "admin@localhost", "Nexus IQ");
   }
 
   private void assertMember(FindMembersDTO findMembersDTO,

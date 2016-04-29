@@ -18,7 +18,7 @@ public class EvaluateApplicationModal
 {
   private static final String ROOT = "#evaluate-application-modal";
 
-  public static final String SELECT_STAGE_TEXT = "-- Select CLM Stage --";
+  public static final String SELECT_STAGE_TEXT = "-- Select Stage --";
 
   public EvaluateApplicationModal() {
     super(ROOT);

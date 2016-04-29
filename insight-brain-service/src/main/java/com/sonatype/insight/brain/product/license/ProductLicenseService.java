@@ -37,7 +37,7 @@ public class ProductLicenseService
   public void installLicense(InputStream is) {
     try {
       licenseManager.installLicense(is);
-      log.info("CLM License successfully installed");
+      log.info("Nexus IQ License successfully installed");
     }
     catch (LicensingException e) {
       // as per CLM-870, the actual exception msg is deemed inappropriate so we provide a stock msg
@@ -62,7 +62,7 @@ public class ProductLicenseService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void uninstallLicense() throws LicensingException {
     licenseManager.uninstallLicense();
-    log.info("CLM License successfully uninstalled");
+    log.info("Nexus IQ License successfully uninstalled");
   }
 
   public LicenseSummary validateLicense() {

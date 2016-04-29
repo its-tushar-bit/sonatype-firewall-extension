@@ -123,7 +123,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(application.getOrganizationId(), applicationResult.getOrganizationId());
     Assert.assertEquals(organization.getName(), applicationResult.getOrganizationName());
 
-    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
+    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "Nexus IQ");
     ContactDTO contact = applicationResult.getContact();
     assertContact(contact, expectedContact);
 
@@ -363,7 +363,7 @@ public class ApplicationResourceTest
     Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_RELEASE));
     Assert.assertEquals(organization.getName(), summary.getOrganizationName());
 
-    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
+    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "Nexus IQ");
     ContactDTO summaryContact = summary.getContact();
     assertContact(summaryContact, expectedContact);
 
@@ -419,7 +419,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(application.getName(), applications[0].getName());
     Assert.assertEquals(organization.getName(), applications[0].getOrganizationName());
 
-    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
+    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "Nexus IQ");
     ContactDTO applicationContact = applications[0].getContact();
     assertContact(applicationContact, expectedContact);
 

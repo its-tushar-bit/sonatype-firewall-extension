@@ -36,7 +36,7 @@ class NexusViewDetailsSpec
 
     then: 'an authentication error is shown'
       waitFor { error.displayed }
-      error.text().startsWith('Authentication with the CLM Server failed.')
+      error.text().startsWith('Authentication with the Nexus IQ Server failed.')
   }
 
   def "Can load view details page for a particular GAV in the context of an application"() {

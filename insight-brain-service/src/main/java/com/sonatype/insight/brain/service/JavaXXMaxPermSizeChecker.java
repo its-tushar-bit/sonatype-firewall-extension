@@ -96,7 +96,7 @@ class JavaXXMaxPermSizeChecker
 
   private static void logError(Long maxPermSize) {
     log.error("===============================================================================================");
-    log.error("The CLM server appears to be running with not enough memory allocated for permanent generation.");
+    log.error("The Nexus IQ server appears to be running with not enough memory allocated for permanent generation.");
     log.error("  Java Vendor:  {}", System.getProperty("java.vendor"));
     log.error("  Java Version: {}", System.getProperty("java.version"));
     log.error("  Detected MaxPermSize: {} bytes ({} MB)", maxPermSize, maxPermSize == null ? "null" : maxPermSize

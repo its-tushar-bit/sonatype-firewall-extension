@@ -83,7 +83,7 @@ extends BaseSpec {
     roleRow.availableMemberNames*.text() == ["Jane Doe"]
     roleRow.availableMemberUsername*.text() == ["test-b"]
     roleRow.availableMemberEmail*.text() == ["jane@doe.net"]
-    roleRow.availableMemberRealm*.text() == ["CLM"]
+    roleRow.availableMemberRealm*.text() == ["Nexus IQ"]
     roleRow.appliedMembers.size() == 0
 
     when: "entering last name prefix"
@@ -97,7 +97,7 @@ extends BaseSpec {
     roleRow.availableMemberNames*.text().sort() == ["Jane Doe", "John Doe"]
     roleRow.availableMemberUsername*.text().sort() == ["test-a", "test-b"]
     roleRow.availableMemberEmail*.text().sort() == ["jane@doe.net", "john@doe.net"]
-    roleRow.availableMemberRealm*.text() == ["CLM", "CLM"]
+    roleRow.availableMemberRealm*.text() == ["Nexus IQ", "Nexus IQ"]
     roleRow.appliedMembers.size() == 0
   }
 
@@ -115,7 +115,7 @@ extends BaseSpec {
     roleRow.appliedMemberNames*.text() == ["John Doe"]
     roleRow.appliedMemberUsername*.text() == ["test-a"]
     roleRow.appliedMemberEmail*.text() == ["john@doe.net"]
-    roleRow.appliedMemberRealm*.text() == ["CLM"]
+    roleRow.appliedMemberRealm*.text() == ["Nexus IQ"]
 
     when: "clicking another available user"
     roleRow.availableMember("Jane Doe").click()
@@ -126,7 +126,7 @@ extends BaseSpec {
     roleRow.appliedMemberNames*.text().sort() == ["Jane Doe", "John Doe"]
     roleRow.appliedMemberUsername*.text().sort() == ["test-a", "test-b"]
     roleRow.appliedMemberEmail*.text().sort() == ["jane@doe.net", "john@doe.net"]
-    roleRow.appliedMemberRealm*.text() == ["CLM", "CLM"]
+    roleRow.appliedMemberRealm*.text() == ["Nexus IQ", "Nexus IQ"]
   }
 
   def "Removing an applied user moves him to the available list"() {
@@ -143,7 +143,7 @@ extends BaseSpec {
     roleRow.appliedMemberNames*.text() == ["John Doe"]
     roleRow.appliedMemberUsername*.text() == ["test-a"]
     roleRow.appliedMemberEmail*.text() == ["john@doe.net"]
-    roleRow.appliedMemberRealm*.text() == ["CLM"]
+    roleRow.appliedMemberRealm*.text() == ["Nexus IQ"]
   }
 
   def "Saving the changes updates the mapping"() {

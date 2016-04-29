@@ -159,7 +159,7 @@ public class ReportResource
       sb.append("<html>");
       sb.append("<body style='font: 12px Verdana, Helvetica;margin-top:50px;'>");
       sb.append("<h1>This report has moved</h1>");
-      sb.append("<p>Your Sonatype CLM Server was updated, causing the report formerly at this location to be moved ");
+      sb.append("<p>Your Nexus IQ Server was updated, causing the report formerly at this location to be moved ");
       sb.append("<a target='_blank' href='" + uriBuilder.build(applicationPublicId, scanId) + "'>here</a></p>");
       sb.append("</body>");
       sb.append("</html>");

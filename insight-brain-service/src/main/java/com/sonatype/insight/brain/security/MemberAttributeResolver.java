@@ -40,7 +40,7 @@ public class MemberAttributeResolver
     UserDirectory.QueryResult result = userDirectory.getMembersByName(unresolvedMembers);
     if (result.hasException()) {
       log.error(
-          "An exception occurred while trying to resolve user names; attempting to resolve user names using the local CLM realm.",
+          "An exception occurred while trying to resolve user names; attempting to resolve user names using the local Nexus IQ realm.",
           result.getException());
     }
 

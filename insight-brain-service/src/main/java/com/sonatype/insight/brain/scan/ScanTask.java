@@ -153,7 +153,7 @@ class ScanTask
 
     if (error != null) {
       ticket.error = "An error occurred, and the application you uploaded has not been evaluated. Please contact your IT Administrator for troubleshooting options. Error ID "
-          + errorId + " - Access CLM Log for details.";
+          + errorId + " - Access Nexus IQ Log for details.";
     }
 
     touched = System.currentTimeMillis();

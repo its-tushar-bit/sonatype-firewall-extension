@@ -45,7 +45,7 @@ public class MemberAttributeResolverTest
   }
 
   @Test
-  public void testResolveCLMUser() {
+  public void testResolveIqUser() {
     tempEntity.newUser("clmUser");
 
     final Member member = new Member();
@@ -56,7 +56,7 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member, MemberType.USER, "clmUser", "John Doe", "clmUser@void.com", "CLM");
+    assertMember(member, MemberType.USER, "clmUser", "John Doe", "clmUser@void.com", "Nexus IQ");
   }
 
   // Test both user and group to reduce the overhead of starting an EmbeddedLdapServer
@@ -91,7 +91,7 @@ public class MemberAttributeResolverTest
   }
 
   @Test
-  public void testCLMUserShading() throws Exception {
+  public void testIqUserShading() throws Exception {
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/MemberAttributeResolverTest/ldap_users.ldif");
 
@@ -115,7 +115,7 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "CLM");
+    assertMember(member, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "Nexus IQ");
   }
 
   private void assertMember(Member member,

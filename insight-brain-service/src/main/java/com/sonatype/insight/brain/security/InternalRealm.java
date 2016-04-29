@@ -42,7 +42,7 @@ public class InternalRealm
 
   private static int hashIterations = DefaultPasswordService.DEFAULT_HASH_ITERATIONS;
 
-  public static final String DISPLAY_NAME = "CLM";
+  public static final String DISPLAY_NAME = "Nexus IQ";
 
   // This reduces the test execution time for this module by ~30%.
   // In my tests, it doesn't make a big difference if we use 1 or 100 for hashIterations. I didn't want to use 1 because

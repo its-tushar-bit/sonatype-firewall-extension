@@ -64,11 +64,11 @@ describe('AngularCommon', function() {
   it('Messages', inject(function(Messages) {
     expect(Messages.getHttpErrorMessage(['Internal Error', 500, null, null])).toEqual('Internal Error');
     expect(Messages.getHttpErrorMessage(
-        ['Unable to reach CLM server', 0, null, null])).toEqual('Unable to reach CLM server');
-    expect(Messages.getHttpErrorMessage({ data: null, status: -1 })).toEqual('Unable to reach CLM server');
+        ['Unable to reach Nexus IQ server', 0, null, null])).toEqual('Unable to reach Nexus IQ server');
+    expect(Messages.getHttpErrorMessage({ data: null, status: -1 })).toEqual('Unable to reach Nexus IQ server');
 
     expect(Messages.getHttpErrorMessage({ data: 'Internal Error', status: 500 })).toEqual('Internal Error');
-    expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 0 })).toEqual('Unable to reach CLM server');
+    expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 0 })).toEqual('Unable to reach Nexus IQ server');
     expect(Messages.getHttpErrorMessage(['<html>Error</html>', 503, function() { return {'content-type': 'text/html'}; }])).toEqual('Service Unavailable');
     expect(Messages.getHttpErrorMessage({ data: '', status: 500 })).toEqual('Error 500');
   }));

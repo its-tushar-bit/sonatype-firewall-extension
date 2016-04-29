@@ -38,9 +38,12 @@ import com.google.inject.Module;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.server.impl.resource.SingletonFactory;
 import com.yammer.dropwizard.assets.AssetsBundle;
+import com.yammer.dropwizard.cli.Cli;
+import com.yammer.dropwizard.cli.ServerCommand;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.jersey.LoggingExceptionMapper;
+import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +78,7 @@ public class InsightBrainService
         System.exit(1);
       }
 
-      new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
+      new InsightBrainService().runFromArguments(args.length > 0 ? args : new String[] { "server" });
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
@@ -94,6 +97,25 @@ public class InsightBrainService
         printInstanceId("Stopping");
       }
     });
+  }
+
+  /**
+   * This is meant to override {@link #run(String[])} from the base class which is unfortunately {@code final} .
+   */
+  public void runFromArguments(String[] arguments) throws Exception {
+    final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
+    bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
+    {
+      @Override
+      protected void run(Environment environment, Namespace namespace, InsightConfig configuration) throws Exception {
+        String configFile = namespace.getString("file");
+        log.info("Configuration file: {}", configFile != null ? new File(configFile).getAbsolutePath() : "(none)");
+        super.run(environment, namespace, configuration);
+      }
+    });
+    initialize(bootstrap);
+    final Cli cli = new Cli(this.getClass(), bootstrap);
+    cli.run(arguments);
   }
 
   @Override

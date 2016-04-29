@@ -169,7 +169,7 @@ public class TestInsightBrainService
       args = new String[] { "server" };
     }
 
-    TestInsightBrainService.this.run(args);
+    TestInsightBrainService.this.runFromArguments(args);
   }
 
   @Override

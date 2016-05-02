@@ -61,11 +61,13 @@ public class PolicyJsonMigrator
   }
 
   public void migrate() throws IOException {
+    long start = System.currentTimeMillis();
+
     SchemaInfo schemaInfo = schemaInfoDAO.get();
 
     int policyJsonVersion = schemaInfo.getPolicyJsonVersion();
     if (policyJsonVersion >= POLICY_JSON_VERSION) {
-      log.debug("Policy definitions already up to date");
+      log.debug("Policy definitions already up to date.");
       return;
     }
 
@@ -73,7 +75,7 @@ public class PolicyJsonMigrator
       tx.begin();
 
       List<PolicyInternal> policies = policyInternalDAO.getAll(tx);
-      log.info("Migrating definitions for {} policies", policies.size());
+      log.info("Migrating definitions for {} policies.", policies.size());
       for (PolicyInternal policy : policies) {
         policy.setContent(JsonUtils.format(migrate(policy.getContent())));
         policyInternalDAO.update(tx, policy);
@@ -83,6 +85,8 @@ public class PolicyJsonMigrator
       schemaInfoDAO.update(tx, schemaInfo);
 
       tx.commit();
+
+      log.info("Migrated definitions for {} policies in {} ms.", policies.size(), System.currentTimeMillis() - start);
     }
   }
 

@@ -9,7 +9,6 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
 
 public class FailActionType
-    extends UntargetedActionType
     implements ActionType
 {
   public static final String ID = Action.ID_FAIL;

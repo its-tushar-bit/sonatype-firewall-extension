@@ -5,18 +5,11 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.ValidationResult;
-
 public interface ActionType
 {
   String getId();
 
   String getName();
 
-  boolean isRequiresTarget();
-
   String getSummary();
-
-  ValidationResult validateAction(Action action);
 }

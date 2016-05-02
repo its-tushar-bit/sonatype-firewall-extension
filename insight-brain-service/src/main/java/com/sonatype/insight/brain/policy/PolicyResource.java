@@ -166,8 +166,14 @@ public class PolicyResource
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    PolicyDAO policyDAO = new PolicyDAO();
+    if (!internalOwnerId.equals(policyDAO.getByIdNotNull(policy.getId()).getOwnerId())) {
+      throw new NotFoundException("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerId);
+    }
+
     policy.setOwnerId(internalOwnerId);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
 
     return policy;
   }

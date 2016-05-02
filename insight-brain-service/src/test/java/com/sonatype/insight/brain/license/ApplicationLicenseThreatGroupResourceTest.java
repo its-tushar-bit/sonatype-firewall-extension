@@ -19,10 +19,11 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 public class ApplicationLicenseThreatGroupResourceTest
     extends AbstractLicenseThreatGroupResourceTest
@@ -79,6 +80,21 @@ public class ApplicationLicenseThreatGroupResourceTest
     for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups) {
       assertThat(ltgwl.licenses, hasSize(2));
     }
+  }
+
+  @Test
+  public void testUpdateLicenseThreatGroup_DifferentApp() throws Exception {
+    Application ownerApp = tempEntity.newApplicationWithParent("owner");
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(ownerApp.getId());
+
+    Application otherApp = tempEntity.newApplicationWithParent("other");
+    ltg.setOwnerId(otherApp.getId());
+
+    HttpResponse response = restRequest(otherApp.getPublicId()).body(ltg).put();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(),
+        is("Cannot find a license threat group with id " + ltg.getId() + " for owner id " + otherApp.getId()));
   }
 
   protected void testCRUD(String ownerPublicId, String ownerId) throws Exception {

@@ -77,6 +77,21 @@ public class PolicyResourceTest
     testCRUD(OwnerType.ORGANIZATION, orgId);
   }
 
+  @Test
+  public void testUpdatePolicy_DifferentOwnerId() throws Exception {
+    Organization ownerOrg = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(ownerOrg.getId(), "foo");
+
+    Organization otherOrg = tempEntity.newOrganization();
+    policy.setOwnerId(otherOrg.getId());
+
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, otherOrg.getId()).body(policy).put();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(),
+        is("Cannot find a policy with id " + policy.getId() + " for owner id " + otherOrg.getId()));
+  }
+
   private void testCRUD(OwnerType ownerType, String ownerId) throws Exception {
     // Add a policy
     Policy policy = new Policy();

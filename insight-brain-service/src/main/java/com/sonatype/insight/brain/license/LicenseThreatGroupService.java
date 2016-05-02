@@ -107,9 +107,14 @@ public class LicenseThreatGroupService
                                                      @AuthzContext(AuthzContext.Key.ID) String ownerId,
                                                      final LicenseThreatGroup licenseThreatGroup)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    licenseThreatGroup.setOwnerId(ownerId);
+    if (!internalOwnerId.equals(licenseThreatGroupDAO.getByIdNotNull(licenseThreatGroup.getId()).getOwnerId())) {
+      throw new NotFoundException(
+          "Cannot find a license threat group with id " + licenseThreatGroup.getId() + " for owner id " + ownerId);
+    }
+
+    licenseThreatGroup.setOwnerId(internalOwnerId);
     licenseThreatGroupDAO.update(licenseThreatGroup);
 
     return licenseThreatGroup;

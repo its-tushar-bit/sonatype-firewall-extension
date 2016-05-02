@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -523,6 +524,21 @@ public class LabelResourceTest
     Assert.assertThat(context.getName(), is(app.getName()));
     Assert.assertThat(context.getType(), is(OwnerType.APPLICATION));
     Assert.assertThat(context.getChildren(), is(nullValue()));
+  }
+
+  @Test
+  public void testUpdateLabel_DifferentOwnerId() throws Exception {
+    Organization ownerOrg = tempEntity.newOrganization();
+    Label label = tempEntity.newLabel(ownerOrg.getId());
+
+    Organization otherOrg = tempEntity.newOrganization();
+    label.setOwnerId(otherOrg.getId());
+
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, otherOrg.getId()).body(label).put();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(),
+        is("Cannot find a label with id " + label.getId() + " for owner id " + otherOrg.getId()));
   }
 
   private void assertLabel(String ownerId, String label, Color color, Label actual) {

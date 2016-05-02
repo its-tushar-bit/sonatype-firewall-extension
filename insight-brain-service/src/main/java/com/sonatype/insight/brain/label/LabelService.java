@@ -177,9 +177,13 @@ public class LabelService
                            @AuthzContext(AuthzContext.Key.ID) String ownerId,
                            final Label label)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    label.setOwnerId(ownerId);
+    if (!internalOwnerId.equals(labelDAO.getByIdNotNull(label.getId()).getOwnerId())) {
+      throw new NotFoundException("Cannot find a label with id " + label.getId() + " for owner id " + ownerId);
+    }
+
+    label.setOwnerId(internalOwnerId);
     label.fixLabelLowercase();
     labelDAO.update(label);
 

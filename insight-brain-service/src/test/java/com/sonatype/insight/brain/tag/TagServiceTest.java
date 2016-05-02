@@ -218,6 +218,23 @@ public class TagServiceTest
     assertTagInList(tags, parentTag);
   }
 
+  @Test
+  public void testUpdateTag_DifferentOwnerId() throws Exception {
+    Organization ownerOrg = tempEntity.newOrganization();
+    Tag tag = tempEntity.newTag(ownerOrg.getId());
+
+    Organization otherOrg = tempEntity.newOrganization();
+    tag.setOrganizationId(otherOrg.getId());
+
+    try {
+      tagService.updateTag(otherOrg.getId(), tag);
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), is(
+          "Cannot find an application category with id " + tag.getId() + " for organization id " + otherOrg.getId()));
+    }
+  }
+
   private void assertTagInList(List<Tag> tags, Tag expectedTag) {
     for (Tag tag : tags) {
       if (tag.getId().equals(expectedTag.getId())) {

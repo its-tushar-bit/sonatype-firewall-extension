@@ -123,6 +123,11 @@ class TagService
 
   @Authorize(permission = Permission.WRITE)
   public Tag updateTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId, Tag tag) {
+    if (!organizationId.equals(tagDAO.getByIdNotNull(tag.getId()).getOrganizationId())) {
+      throw new NotFoundException(
+          "Cannot find an application category with id " + tag.getId() + " for organization id " + organizationId);
+    }
+
     tag.setOrganizationId(organizationId);
     tagDAO.update(tag);
 

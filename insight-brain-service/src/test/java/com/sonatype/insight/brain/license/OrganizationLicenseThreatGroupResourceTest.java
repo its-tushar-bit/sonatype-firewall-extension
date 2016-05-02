@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -89,6 +90,21 @@ public class OrganizationLicenseThreatGroupResourceTest
     for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
       assertThat(ltgwl.licenses, hasSize(1));
     }
+  }
+
+  @Test
+  public void testUpdateLicenseThreatGroup_DifferentOrg() throws Exception {
+    Organization ownerOrg = tempEntity.newOrganization();
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(ownerOrg.getId());
+
+    Organization otherOrg = tempEntity.newOrganization();
+    ltg.setOwnerId(otherOrg.getId());
+
+    HttpResponse response = restRequest(otherOrg.getId()).body(ltg).put();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(),
+        is("Cannot find a license threat group with id " + ltg.getId() + " for owner id " + otherOrg.getId()));
   }
 
   protected void testCRUD(String ownerPublicId, String ownerId) throws Exception {

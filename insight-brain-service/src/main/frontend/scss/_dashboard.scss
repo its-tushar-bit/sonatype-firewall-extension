@@ -782,31 +782,31 @@ Dashboard tables
  ```
 */
 
-.dashboard-root-container .nav.nav-tabs {
-  margin: 0px;
+.dashboard-root-container {
+  .nav.nav-tabs {
+    margin: 0px;
+  }
+  .nav.nav-tabs {
+    .active {
+      margin-bottom: 0px;
+      a {
+        border-top: $dashboard-border;
+        border-right: $dashboard-border;
+        border-left: $dashboard-border;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+      }
+    }
+    h4 {
+      margin: 0px;
+      padding-top: 8px;
+    }
+  }
+  h4 {
+    font-size: 19.5px
+  }
+  td {
+    border-top: 0px;
+  }
 }
 
-.dashboard-root-container .nav.nav-tabs .active {
-  margin-bottom: 0px;
-}
-
-.dashboard-root-container .nav.nav-tabs .active a {
-  border-top: $dashboard-border;
-  border-right: $dashboard-border;
-  border-left: $dashboard-border;
-  border-bottom: 2px solid white;
-  margin-bottom: -2px;
-}
-
-.dashboard-root-container h4 {
-  font-size: 19.5px
-}
-
-.dashboard-root-container .nav.nav-tabs h4 {
-  margin: 0px;
-  padding-top: 8px;
-}
-
-.dashboard-root-container td {
-  border-top: 0px;
-}

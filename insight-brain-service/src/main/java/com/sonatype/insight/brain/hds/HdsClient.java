@@ -257,7 +257,7 @@ public class HdsClient
         case 407:
           // The HDS don't require auth, so these errors indicate bad proxy or URL config
           throw new BadGatewayException(
-              "Could not contact Sonatype HDS, please verify the network configuration of your Nexus IQ server. HDS error "
+              "Could not contact Sonatype HDS, please verify the network configuration of your Nexus IQ Server. HDS error "
                   + status + ": " + getErrorMessage(response));
         case 402:
           throw new PaymentRequiredException(getErrorMessage(response));
@@ -384,7 +384,7 @@ public class HdsClient
     }
     catch (UnknownHostException e) {
       throw new BadGatewayException("The hostname for the Sonatype HDS could not be resolved, "
-          + "please verify the network configuration (DNS) at the site where the Nexus IQ server is operated", e);
+          + "please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated", e);
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);

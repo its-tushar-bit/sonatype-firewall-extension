@@ -36,7 +36,7 @@ class JavaRuntimeChecker
 
   private static void logError() {
     log.error("===============================================================================");
-    log.error("The Nexus IQ server appears to be run using an unsupported Java runtime:");
+    log.error("The Nexus IQ Server appears to be run using an unsupported Java runtime:");
     log.error("  Home:    {}", System.getProperty("java.home"));
     log.error("  Vendor:  {}", System.getProperty("java.vendor"));
     log.error("  Version: {}", System.getProperty("java.version"));

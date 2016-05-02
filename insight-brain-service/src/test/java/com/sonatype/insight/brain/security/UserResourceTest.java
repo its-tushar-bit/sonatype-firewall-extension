@@ -311,14 +311,14 @@ public class UserResourceTest
   @Test
   public void testFindMembersForGlobalRoles() throws Exception {
     HttpResponse response = findRequest(OwnerType.GLOBAL, "global", User.ADMIN_USERNAME + "*").get();
-    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "Nexus IQ");
+    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "IQ Server");
   }
 
   @Test
   public void testFindMembersForNonGlobalRoles() throws Exception {
     Organization org = tempEntity.newOrganization();
     HttpResponse response = findRequest(OwnerType.ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
-    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "Nexus IQ");
+    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "IQ Server");
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

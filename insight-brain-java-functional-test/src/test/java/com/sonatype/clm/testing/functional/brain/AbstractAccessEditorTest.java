@@ -90,7 +90,7 @@ public abstract class AbstractAccessEditorTest
 
     Item availableItem = picker.availableItem(0);
     availableItem.label().shouldHave(text("Admin Builtin"));
-    availableItem.hover().tooltip().shouldBe(visible).shouldHave(text("Nexus IQ admin@localhost"));
+    availableItem.hover().tooltip().shouldBe(visible).shouldHave(text("IQ Server admin@localhost"));
     AccessEditorPage.title().hover(); // hide the tooltip
     availableItem.tooltip().shouldNot(exist);
     picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
@@ -134,7 +134,7 @@ public abstract class AbstractAccessEditorTest
     picker.availableItems().shouldHaveSize(2);
     Item availableItem = picker.availableItem(0);
     availableItem.label().shouldHave(text("Admin Builtin"));
-    availableItem.hover().tooltip().shouldBe(visible).shouldHave(text("Nexus IQ admin@localhost"));
+    availableItem.hover().tooltip().shouldBe(visible).shouldHave(text("IQ Server admin@localhost"));
     AccessEditorPage.title().hover(); // hide the tooltip
     availableItem.tooltip().shouldNot(exist);
     picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));

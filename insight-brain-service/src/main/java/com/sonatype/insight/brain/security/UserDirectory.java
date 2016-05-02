@@ -300,7 +300,7 @@ public class UserDirectory
     QueryResult result = getUsersByName(userNames);
     if (result.hasException()) {
       log.error(
-          "An exception occurred while trying to resolve user names; validating users against local Nexus IQ realm.",
+          "An exception occurred while trying to resolve user names; validating users against local IQ Server realm.",
           result.getException());
     }
 

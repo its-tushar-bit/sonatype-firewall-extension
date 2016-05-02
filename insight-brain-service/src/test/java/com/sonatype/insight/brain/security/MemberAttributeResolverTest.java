@@ -56,7 +56,7 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member, MemberType.USER, "clmUser", "John Doe", "clmUser@void.com", "Nexus IQ");
+    assertMember(member, MemberType.USER, "clmUser", "John Doe", "clmUser@void.com", "IQ Server");
   }
 
   // Test both user and group to reduce the overhead of starting an EmbeddedLdapServer
@@ -115,7 +115,7 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "Nexus IQ");
+    assertMember(member, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "IQ Server");
   }
 
   private void assertMember(Member member,

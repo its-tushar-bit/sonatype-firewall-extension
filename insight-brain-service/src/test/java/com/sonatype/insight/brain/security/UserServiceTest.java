@@ -187,12 +187,12 @@ public class UserServiceTest
     FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*",
         false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
-        "Nexus IQ");
+        "IQ Server");
 
     findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null,
         User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1) + "*", false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
-        "Nexus IQ");
+        "IQ Server");
 
     findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, "nobody-has-such-a-name-really*", false /* groupsEnabled */);
@@ -218,7 +218,7 @@ public class UserServiceTest
 
     // Test shading. johndoe loaded from "/UserServiceTest/ldap_users.ldif" should not be returned
     findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, "John Doe", false /* groupsEnabled */);
-    assertMember(findMembersDTO, null, MemberType.USER, "johndoe", "John Doe", "johndoe@void.com", "Nexus IQ");
+    assertMember(findMembersDTO, null, MemberType.USER, "johndoe", "John Doe", "johndoe@void.com", "IQ Server");
   }
 
   @Test
@@ -262,7 +262,7 @@ public class UserServiceTest
 
     // Should not try to use Ldap until server is added and configured
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
-        "Nexus IQ");
+        "IQ Server");
 
     tempEntity.newLdapConnection(ldapServer.getId());
     tempEntity.newLdapUserMapping(ldapServer.getId());
@@ -270,7 +270,7 @@ public class UserServiceTest
     findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
     assertMember(findMembersDTO, "LDAP error, displaying local users only.", MemberType.USER, User.ADMIN_USERNAME,
-        "Admin BuiltIn", "admin@localhost", "Nexus IQ");
+        "Admin BuiltIn", "admin@localhost", "IQ Server");
   }
 
   private void assertMember(FindMembersDTO findMembersDTO,

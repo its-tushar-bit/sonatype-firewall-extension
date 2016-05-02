@@ -16,7 +16,7 @@ public class MailConfig
   public MailConfig() {
     setHostname("127.0.0.1");
     setPort(587);
-    setSystemEmail("SonatypeNexusIQ@localhost");
-    setSystemPersonal("Sonatype Nexus IQ");
+    setSystemEmail("NexusIQServer@localhost");
+    setSystemPersonal("Nexus IQ Server");
   }
 }

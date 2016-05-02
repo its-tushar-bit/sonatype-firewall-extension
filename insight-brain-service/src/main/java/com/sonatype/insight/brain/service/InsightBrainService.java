@@ -54,7 +54,7 @@ public class InsightBrainService
 {
   private static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
-  private static final String PRODUCT_NAME = "Sonatype Nexus IQ";
+  private static final String PRODUCT_NAME = "Nexus IQ Server";
 
   static {
     // INSIGHT-4557

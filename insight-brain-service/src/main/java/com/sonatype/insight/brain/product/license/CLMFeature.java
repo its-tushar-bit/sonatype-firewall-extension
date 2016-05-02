@@ -17,7 +17,7 @@ public class CLMFeature
 
   @Override
   public String getDescription() {
-    return "Sonatype Nexus IQ Server";
+    return "Nexus IQ Server";
   }
 
   @Override
@@ -27,7 +27,7 @@ public class CLMFeature
 
   @Override
   public String getName() {
-    return "Nexus IQ";
+    return "Nexus IQ Server";
   }
 
   @Override

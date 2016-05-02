@@ -330,7 +330,7 @@ public class MembershipMappingResourceTest
 
     Collections.sort(membersByOwner.members, new MemberComparator());
     assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
-        "admin@localhost", "Nexus IQ");
+        "admin@localhost", "IQ Server");
     assertMember(membersByOwner.members.get(1), MemberType.GROUP, "Alpha", "Alpha", null, "LDAP");
     assertMember(membersByOwner.members.get(2), MemberType.USER, "testuser", "John Doe", "test.user@company.com",
         "LDAP");
@@ -440,7 +440,7 @@ public class MembershipMappingResourceTest
     List<Member> members = new ArrayList<>();
     for (User user : users) {
       members.add(
-          new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(), "Nexus IQ"));
+          new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(), "IQ Server"));
     }
     return members;
   }

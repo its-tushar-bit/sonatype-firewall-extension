@@ -196,6 +196,10 @@
             }
           ],
           actions: {},
+          notifications: {
+            userNotifications: [],
+            roleNotifications: []
+          },
           monitorNotifyActions: []
         },
         getUrl: CLMAppLocations.getApplicablePolicies,

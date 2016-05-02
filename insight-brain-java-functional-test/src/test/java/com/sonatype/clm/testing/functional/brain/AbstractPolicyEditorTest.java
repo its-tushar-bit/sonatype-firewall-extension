@@ -6,13 +6,11 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.ActionItemList;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
@@ -20,6 +18,7 @@ import com.sonatype.clm.testing.functional.elements.ConstraintSection.Constraint
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
@@ -29,7 +28,9 @@ import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
-import com.sonatype.clm.testing.functional.pages.PolicyEditorPage.ActionsTable;
+import com.sonatype.clm.testing.functional.elements.ActionsSection;
+import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNotificationItem;
+import com.sonatype.clm.testing.functional.utils.ConditionUtils;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -49,6 +51,8 @@ import com.codeborne.selenide.WebDriverRunner;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
@@ -60,10 +64,12 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.pages.PolicyEditorPage.ActionsTable.activeClass;
-import static com.sonatype.clm.testing.functional.pages.PolicyEditorPage.ActionsTable.warnClass;
+import static com.sonatype.clm.testing.functional.elements.ActionsSection.activeClass;
+import static com.sonatype.clm.testing.functional.elements.ActionsSection.warnClass;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.dark_red;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
@@ -106,6 +112,8 @@ public abstract class AbstractPolicyEditorTest
     testCreatePolicy_constraintSection();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
+    // notifications table should be empty
+    NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
 
     Policy newPolicy = null;
     for (Policy p : policyDAO.getByOwnerId(currentOwner.getId())) {
@@ -128,15 +136,15 @@ public abstract class AbstractPolicyEditorTest
     assertThat(condition.getValue(), is(Integer.toString(3 * 365)));
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD), is("warn"));
-    /* CLM-6366
+
     assertThat(newPolicy.getNotifications().getUserNotifications(), hasSize(1));
-    assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getEmailAddress(), is("test@sonatype.com"));
+    assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getEmailAddress(), is("aaa@sonatype.com"));
     assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getStageIds(),
         containsInAnyOrder(com.sonatype.clm.dto.model.policy.Stage.ID_BUILD));
 
     assertThat(newPolicy.getNotifications().getRoleNotifications(), hasSize(1));
     assertThat(newPolicy.getNotifications().getRoleNotifications().get(0).getStageIds(),
-        containsInAnyOrder(Notification.CONTINUOUS_MONITORING));*/
+        containsInAnyOrder(Notification.CONTINUOUS_MONITORING));
 
     testCreatePolicy_navigatingAwayWithUnsavedData();
   }
@@ -156,7 +164,8 @@ public abstract class AbstractPolicyEditorTest
     testEditPolicy_summarySection();
     testEditPolicy_inheritanceSection();
     testEditPolicy_constraintSection(policy);
-    testEditPolicy_actionsNotificationsSection(policy);
+    testEditPolicy_actionsSection(policy);
+    testEditPolicy_notificationsSection(policy);
     testDeletePolicy(policyDAO.getById(policy.getId()));
   }
 
@@ -462,119 +471,99 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraints.get(0).getConditions().size(), is(1));
   }
 
-  private void testEditPolicy_actionsNotificationsSection(Policy policy) {
-    testEditPolicy_actionsNotificationsSection_stageActions(policy);
-    testEditPolicy_actionsNotificationsSection_notifications(policy);
-    testEditPolicy_actionsNotificationsSection_monitoring(policy);
-  }
+  private void testEditPolicy_notificationsSection(Policy policy) {
+    PolicyEditorPage.notificationsPill().click();
 
-  private void testEditPolicy_actionsNotificationsSection_notifications(Policy policy) {
-    /* CLM-6366
-    PolicyEditorPage.actionsPill().click();
-    ActionItemList actionItemList = PolicyEditorPage.actionsTable().actionItemList();
+    // add email notifications
+    AddNotificationItem addNotification = NotificationsSection.addNotification();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.notificationType().selectedItem().shouldHave(text("Email"));
+    addNotification.email().val("validation_test").shouldHave(cssClass("ng-invalid"));
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.email().val("aaa@sonatype.com").shouldNotHave(cssClass("ng-invalid")).shouldBe(visible);
+    addNotification.role().shouldNot(exist);
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.email().shouldBe(empty);
+    // should be last
+    NotificationsSection.notifications().shouldHaveSize(3);
+    NotificationsSection.notifications().get(2).shouldHave(text("aaa@sonatype.com"));
 
-    SelenideElement twisty = actionItemList.build().twisty();
-    twisty.shouldHave(Stage.EXPANDED).click();
-    twisty.shouldHave(Stage.COLLAPSED);
+    // duplicate email validation
+    addNotification.email().val("aaa@sonatype.com").shouldHave(cssClass("ng-invalid"));
+    addNotification.addButton().shouldHave(DISABLED);
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    // add role notifications
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(1).click();
+    addNotification.email().shouldNot(exist);
+    addNotification.role().shouldBe(visible).selectedItem().click();
+    addNotification.role().listItems().findBy(text("Application Evaluator")).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.role().selectedItem().shouldHave(text("-- Select Role --"));
+    addNotification.role().listItems().findBy(text("Application Evaluator")).shouldNot(exist);
+    // should be last
+    NotificationsSection.notifications().get(3).shouldHave(text("Application Evaluator"));
 
-    // test add notifications
-    AddNotificationItem buildNotification = actionItemList.build().addNotification();
-    buildNotification.addButton().shouldHave(DISABLED);
-    buildNotification.notificationType().selectedItem().shouldHave(text("Email"));
-    buildNotification.email().val("validation_test").shouldHave(cssClass("ng-invalid"));
-    buildNotification.addButton().shouldHave(DISABLED);
-    buildNotification.email().val("test@sonatype.com").shouldNotHave(cssClass("ng-invalid")).shouldBe(visible);
-    buildNotification.role().shouldNot(exist);
-    buildNotification.addButton().shouldNotHave(DISABLED).click();
-    buildNotification.addButton().shouldHave(DISABLED);
-    buildNotification.email().shouldBe(empty);
+    NotificationsSection.notifications()
+        .shouldHave(texts("Developer", "test@foo.com", "aaa@sonatype.com", "Application Evaluator"));
 
-    buildNotification.notificationType().selectedItem().click();
-    buildNotification.notificationType().listItem(1).click();
-    buildNotification.email().shouldNot(exist);
-    buildNotification.role().shouldBe(visible);
-    buildNotification.role().selectedItem().click();
-    buildNotification.role().listItems().findBy(text("Application Evaluator")).click();
-    buildNotification.addButton().shouldNotHave(DISABLED).click();
-    buildNotification.addButton().shouldHave(DISABLED);
-    buildNotification.role().selectedItem().shouldHave(text("-- Select Role --"));
-    buildNotification.role().listItems().findBy(text("Application Evaluator")).shouldNot(exist);
-
-    actionItemList.build().notifications()
-        .shouldHave(texts("test@foo.com", "Developer", "test@sonatype.com", "Application Evaluator"));
-
-    actionItemList.build().getNotification(1).deleteButton().click();
-    actionItemList.build().notifications().shouldHaveSize(3);
+    // delete one and save
+    NotificationsSection.notificationFor("test@foo.com").deleteButton().click();
+    NotificationsSection.notifications().shouldHaveSize(3);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    actionItemList.build().notificationCount().shouldHave(text("3"));
-
-    twisty.shouldHave(Stage.COLLAPSED).click();
-    twisty.shouldHave(Stage.EXPANDED);
+    NotificationsSection.notifications().shouldHaveSize(3);
+    // "aaa@sonatype.com" should be first after save
+    NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
+    // "Application Evaluator" should be second after save
+    NotificationsSection.notifications().get(1).shouldHave(text("Application Evaluator"));
 
     policy = policyDAO.getById(policy.getId());
+    assertThat(policy.getNotifications().getRoleNotifications(), hasSize(2));
+    assertThat(policy.getNotifications().getUserNotifications(), hasSize(1));
     Notifications notifications = policy.getNotifications().getApplicable(Stage.ID_BUILD, false);
-    assertThat(notifications.getUserNotifications(), hasSize(1));
-    assertThat(notifications.getUserNotifications().get(0).getEmailAddress(), is("test@sonatype.com"));
-    assertThat(notifications.getRoleNotifications(), hasSize(2));
-    */
-  }
+    assertThat(notifications.getUserNotifications(), hasSize(0));
+    assertThat(notifications.getRoleNotifications(), hasSize(1));
 
-  private void testEditPolicy_actionsNotificationsSection_monitoring(Policy policy) {
-    /* CLM-6366
-    PolicyEditorPage.actionsPill().click();
-    ActionItemList actionItemList = PolicyEditorPage.actionsTable().actionItemList();
-
-    SelenideElement twisty = actionItemList.continuousMonitoring().twisty();
-    twisty.shouldHave(Stage.EXPANDED).click();
-    twisty.shouldHave(Stage.COLLAPSED);
-
-    PolicyEditorPage.saveButton().shouldHave(DISABLED);
-
-    // test add notifications
-    AddNotificationItem monitoringNotification = actionItemList.continuousMonitoring().addNotification();
-
-    monitoringNotification.addButton().shouldHave(DISABLED);
-    monitoringNotification.notificationType().selectedItem().shouldHave(text("Email"));
-    monitoringNotification.email().val("test@sonatype.com").shouldBe(visible);
-    monitoringNotification.role().shouldNot(exist);
-    monitoringNotification.addButton().shouldNotHave(DISABLED).click();
-    monitoringNotification.addButton().shouldHave(DISABLED);
-    monitoringNotification.email().shouldBe(empty);
-
-    monitoringNotification.notificationType().selectedItem().click();
-    monitoringNotification.notificationType().listItem(1).click();
-    monitoringNotification.email().shouldNot(exist);
-    monitoringNotification.role().shouldBe(visible);
-    monitoringNotification.role().selectedItem().click();
-    monitoringNotification.role().listItems().findBy(text("Application Evaluator")).click();
-    monitoringNotification.addButton().shouldNotHave(DISABLED).click();
-    monitoringNotification.addButton().shouldHave(DISABLED);
-    monitoringNotification.role().selectedItem().shouldHave(text("-- Select Role --"));
-    monitoringNotification.role().listItems().findBy(text("Application Evaluator")).shouldNot(exist);
-
-    actionItemList.continuousMonitoring().notifications().shouldHaveSize(3);
-    actionItemList.continuousMonitoring().notifications().shouldHave(
-        texts("test@foo.com", "test@sonatype.com", "Application Evaluator"));
-
-    actionItemList.continuousMonitoring().getNotification(1).deleteButton().click();
-    actionItemList.continuousMonitoring().notifications().shouldHaveSize(2);
+    // check 'operate' and 'continuousMonitoring' stages
+    NotificationsSection.notificationFor("aaa@sonatype.com").operate().click();
+    NotificationsSection.notificationFor("Application Evaluator").continuousMonitoring().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("2"));
-
     policy = policyDAO.getById(policy.getId());
-    Notifications notifications = policy.getNotifications().getApplicable(Stage.ID_BUILD, true);
-    assertThat(notifications.getUserNotifications(), hasSize(1));
-    assertThat(notifications.getUserNotifications().get(0).getEmailAddress(), is("test@sonatype.com"));
-    assertThat(notifications.getRoleNotifications(), hasSize(1));
-    */
+    assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, false).getUserNotifications(), hasSize(1));
+    assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, true).getRoleNotifications(), hasSize(1));
+
+    // test "All roles are being notified." message
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(1).click();
+    addNotification.role().shouldBe(visible).selectedItem().click();
+    addNotification.role().listItems().findBy(text("Owner")).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.role().shouldBe(visible).selectedItem().click();
+    addNotification.role().listItems().findBy(text("Component Evaluator")).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.role().shouldHave(text("All roles are being notified."));
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
+    addNotification.role().shouldHave(text("All roles are being notified."));
+    NotificationsSection.notificationFor("Owner").deleteButton().click();
+    addNotification.role().shouldBe(visible).selectedItem().click();
+    addNotification.role().listItems().get(0).shouldHave(text("Owner"));
+
+    // test "No notifications configured" message
+    NotificationsSection.notificationFor("Component Evaluator").deleteButton().click();
+    NotificationsSection.notificationFor("aaa@sonatype.com").deleteButton().click();
+    NotificationsSection.notificationFor("Developer").deleteButton().click();
+    NotificationsSection.notificationFor("Application Evaluator").deleteButton().click();
+    NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
+
   }
 
-  private void testEditPolicy_actionsNotificationsSection_stageActions(Policy policy) {
-    ActionsTable actionsTable = PolicyEditorPage.actionsTable();
+  private void testEditPolicy_actionsSection(Policy policy) {
+    ActionsSection actionsTable = PolicyEditorPage.actionsSection();
 
     // Set proxy to warn, operate to fail
     actionsTable.proxy().warnRadio().click();
@@ -654,31 +643,51 @@ public abstract class AbstractPolicyEditorTest
 
   private void testCreatePolicy_actionsSection() {
     // header names
-    PolicyEditorPage.actionsTable().proxy().header().shouldHave(text("Proxy"));
-    PolicyEditorPage.actionsTable().develop().header().shouldHave(text("Develop"));
-    PolicyEditorPage.actionsTable().build().header().shouldHave(text("Build"));
-    PolicyEditorPage.actionsTable().stageRelease().header().shouldHave(text("Stage"));
-    PolicyEditorPage.actionsTable().release().header().shouldHave(text("Release"));
-    PolicyEditorPage.actionsTable().operate().header().shouldHave(text("Operate"));
+    ActionsSection actionsTable = PolicyEditorPage.actionsSection();
+    actionsTable.headers().shouldHave(texts("PROXY", "DEVELOP", "BUILD", "STAGE", "RELEASE", "OPERATE"));
 
     // column hover
-    for (Iterator<SelenideElement> it = PolicyEditorPage.actionsTable().build().cells().iterator(); it.hasNext();) {
-      it.next().shouldNotHave(activeClass());
-    }
-    PolicyEditorPage.actionsTable().build().warnRadio().label().hover();
-    for (Iterator<SelenideElement> it = PolicyEditorPage.actionsTable().build().cells().iterator(); it.hasNext();) {
-      it.next().shouldHave(ActionsTable.activeClass());
-    }
+    ConditionUtils.shouldNotHave(actionsTable.build().cells(), activeClass());
+    actionsTable.build().warnRadio().label().hover();
+    ConditionUtils.shouldHave(actionsTable.build().cells(), activeClass());
+    actionsTable.proxy().warnRadio().label().hover();
+    ConditionUtils.shouldNotHave(actionsTable.build().cells(), activeClass());
+    ConditionUtils.shouldHave(actionsTable.proxy().cells(), activeClass());
 
     // make an actual change and check that warn icon appears
-    SelenideElement icon = PolicyEditorPage.actionsTable().build().warnRadio().label().$("i");
+    SelenideElement icon = actionsTable.build().warnRadio().label().$("i");
     icon.shouldNotHave(warnClass());
-    PolicyEditorPage.actionsTable().build().warnRadio().click();
+    actionsTable.build().warnRadio().click();
     icon.shouldHave(warnClass());
   }
 
   private void testCreatePolicy_notificationsSection() {
-    // CLM-6366
+    PolicyEditorPage.notificationsPill().click();
+    NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
+
+    // add role notifications
+    AddNotificationItem addNotification = NotificationsSection.addNotification();
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(1).click();
+    addNotification.role().shouldBe(visible).selectedItem().click();
+    addNotification.role().listItems().findBy(text("Application Evaluator")).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+
+    // add email notifications
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(0).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.email().val("aaa@sonatype.com").shouldNotHave(cssClass("ng-invalid")).shouldBe(visible);
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.email().shouldBe(empty);
+
+    NotificationsSection.notifications().get(0).shouldHave(text("Application Evaluator"));
+    NotificationsSection.notifications().get(1).shouldHave(text("aaa@sonatype.com"));
+
+    // check stages
+    NotificationsSection.notificationFor("aaa@sonatype.com").build().click();
+    NotificationsSection.notificationFor("Application Evaluator").continuousMonitoring().click();
   }
 
   private void assertNewPolicyStateIsCorrect() {
@@ -754,7 +763,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void testEditPolicyStateIsCorrect_actionsNotificationsSection_notifications(boolean isReadOnly) {
     /* CLM-6366
-    ActionItemList actionItemList = PolicyEditorPage.actionsTable().actionItemList();
+    ActionItemList actionItemList = PolicyEditorPage.actionsSection().actionItemList();
 
     SelenideElement twisty = actionItemList.build().twisty();
     twisty.shouldHave(Stage.EXPANDED).click();
@@ -780,7 +789,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void testEditPolicyStateIsCorrect_actionsNotificationsSection_monitoring(boolean isReadOnly) {
     /* CLM-6366
-    ActionItemList actionItemList = PolicyEditorPage.actionsTable().actionItemList();
+    ActionItemList actionItemList = PolicyEditorPage.actionsSection().actionItemList();
 
     SelenideElement twisty = actionItemList.continuousMonitoring().twisty();
     twisty.shouldHave(Stage.EXPANDED).click();
@@ -806,10 +815,10 @@ public abstract class AbstractPolicyEditorTest
 
   private void testEditPolicyStateIsCorrect_actionsNotificationsSection_stageActions(boolean isReadOnly) {
     com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly ? disabled : enabled;
-    ActionsTable actionsTable = PolicyEditorPage.actionsTable();
+    ActionsSection actionsTable = PolicyEditorPage.actionsSection();
 
     // Policy actions for Developer and Build are set to Warn and Fail, respectively.
-    ActionsTable.Stage develop = actionsTable.develop();
+    ActionsSection.Stage develop = actionsTable.develop();
     develop.failRadio().input().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
     develop.warnRadio().input().shouldBe(selected, visible, disabledOrEnabled);
     develop.noActionRadio().input().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
@@ -844,21 +853,21 @@ public abstract class AbstractPolicyEditorTest
     }
   }
 
-  private void assertActionItemListNoNotifications(ActionItemList actionItemList) {
+  private void assertActionItemListNoNotifications() {
     /* CLM-6366
     assertActionItemListNoNotifications_allButBuildAndMonitor(actionItemList);
     actionItemList.build().notificationCount().shouldHave(text("0"));
     actionItemList.continuousMonitoring().notificationCount().shouldHave(text("0"));*/
   }
 
-  private void assertActionItemListHasBuildNotifications(ActionItemList actionItemList) {
+  private void assertActionItemListHasBuildNotifications() {
     /* CLM-6366
     assertActionItemListNoNotifications_allButBuildAndMonitor(actionItemList);
     actionItemList.build().notificationCount().shouldHave(text("2"));
     actionItemList.continuousMonitoring().notificationCount().shouldHave(text("1"));*/
   }
 
-  private void assertActionItemListNoNotifications_allButBuildAndMonitor(ActionItemList actionItemList) {
+  private void assertActionItemListNoNotifications_allButBuildAndMonitor() {
     /*CLM-6366
     actionItemList.proxy().notificationCount().shouldHave(text("0"));
     actionItemList.develop().notificationCount().shouldHave(text("0"));

@@ -1,16 +1,16 @@
 <div load-wrapper="vm.loadError" loading="!vm.actionStages" reload="vm.doLoad()">
   <table id="edit-policy-actions-table">
     <thead>
-    <tr>
-      <th class="greedy-column">
-        <span class="header-text">ACTION</span>
-      </th>
-      <th ng-repeat="actionStage in vm.actionStages" class="{{::actionStage.shortName | lowercase}}">
-        <span class="header-text">{{::actionStage.shortName}}</span>
-      </th>
-      <th /> <!--empty columns for alignment with notifications table-->
-      <th class="delete" />
-    </tr>
+      <tr>
+        <th class="greedy-column">
+          <span class="header-text">ACTION</span>
+        </th>
+        <th ng-repeat="actionStage in vm.actionStages" class="{{::actionStage.shortName | lowercase}}">
+          <span class="header-text">{{::actionStage.shortName}}</span>
+        </th>
+        <th />
+        <th class="delete" />
+      </tr>
     </thead>
     <tbody>
     <tr>

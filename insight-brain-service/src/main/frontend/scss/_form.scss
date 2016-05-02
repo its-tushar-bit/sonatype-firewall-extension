@@ -469,7 +469,6 @@
     /* For checkboxes that do not need label text and can be text-aligned */
     &.no-text {
       padding-left: 0px;
-      
       input[type="checkbox"]:checked + span:after {
         position: static;
         margin-left: -15px;

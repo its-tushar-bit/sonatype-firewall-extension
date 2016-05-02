@@ -1,0 +1,84 @@
+<div load-wrapper="vm.loadError" loading="!vm.actionStages" reload="vm.doLoad()">
+  <table id="policy-edit-notifications" class="clm-form">
+    <thead>
+      <tr>
+        <th class="greedy-column"><span class="header-text">RECIPIENT</span></th>
+        <th ng-repeat="stage in vm.actionStages">
+          <span class="header-text">{{::stage.shortName | uppercase}}</span>
+        </th>
+        <th class="continuous-monitoring">
+          <span class="header-text">CONTINUOUS MONITORING</span>
+        </th>
+        <th class="delete"></th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr ng-if="!vm.hasRecipients()">
+      <td colspan="{{vm.actionStages.length + 3}}">
+        <div class="empty-list" >No notifications configured</div>
+      </td>
+    </tr>
+    <tr ng-repeat="recipient in vm.recipients" data-recipient="{{vm.getDisplayName(recipient)}}">
+      <td class="greedy-column">
+        <span>
+          <i class="fa {{recipient.roleId ? 'fa-puzzle-piece' : 'fa-envelope'}} slate size-16px"></i><!--
+            -->{{vm.getDisplayName(recipient)}}
+        </span>
+      </td>
+      <td ng-repeat="stage in vm.actionStages">
+        <label class="checkbox no-text" ng-class="{disabled: vm.disabled}">
+          <input type="checkbox" ng-checked="vm.hasStage(recipient, stage.stageTypeId)" ng-disabled="vm.disabled"
+                 ng-click="vm.toggleStage(recipient, stage.stageTypeId)">
+          <span></span>
+        </label>
+      </td>
+      <td>
+        <label class="checkbox no-text" ng-class="{disabled: vm.disabled}">
+          <input type="checkbox" ng-checked="vm.hasStage(recipient, 'continuous-monitoring')" ng-disabled="vm.disabled"
+                 ng-click="vm.toggleStage(recipient, 'continuous-monitoring')">
+          <span></span>
+        </label>
+      </td>
+      <td class="delete">
+        <button class="btn btn-tertiary btn-icon-only" type="button"
+                ng-click="vm.removeRecipient(recipient)" ng-disabled="vm.disabled"><!--
+               --><i class="fa fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="section add-notification">
+    <div class="inline-fields">
+      <div class="field">
+        <label for="recipient-type" ng-class="{ disabled: vm.disabled }">Recipient Type</label>
+        <dropdown-selector id="recipient-type" class="editor-notification-type" ng-model="vm.recipientType"
+                           name="recipient-type" options="vm.recipientTypeOptions"
+                           ng-disabled="vm.disabled"></dropdown-selector>
+      </div>
+      <div class="field" ng-if="vm.recipientType === vm.recipientTypes.EMAIL">
+        <label for="recipient-email" ng-class="{ disabled: vm.disabled }">Email Address</label>
+        <input clm-input id="recipient-email" class="editor-notification-email" name="recipient-email" type="email"
+               ng-model="vm.recipientToAdd" focus-input="true" ng-disabled="vm.disabled"
+               unique-validator="vm.getEmails()" ng-keypress="$event.keyCode == 13 && vm.addRecipient($event)"
+               messages="{unique: 'Email already exists'}">
+      </div>
+      <div class="field" ng-if="vm.recipientType === 'Role'">
+        <label for="recipient-role" ng-class="{ disabled: vm.disabled }">Role</label>
+        <dropdown-selector id="recipient-role" class="editor-notification-role" option-name-param="roleName"
+                           ng-model="vm.recipientToAdd" name="recipient-role"
+                           options="vm.getAvailableRoles()"
+                           no-options-string="All roles are being notified."
+                           empty-option-string="-- Select Role --"
+                           ng-disabled="vm.disabled"></dropdown-selector>
+      </div>
+      <div class="field no-label">
+        <button id="editor-notification-add" class='btn' type="button" ng-click="vm.addRecipient()"
+                ng-class="{ disabled: !vm.recipientToAdd || vm.disabled }"
+                ng-disabled="!vm.recipientToAdd || vm.disabled">
+          <i class="fa fa-plus"></i>Add
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

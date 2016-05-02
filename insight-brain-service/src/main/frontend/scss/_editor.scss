@@ -210,11 +210,18 @@
   }
 
   #policy-edit-actions, #policy-edit-notifications {
+    .editor-section-header {
+      margin-top: 20px;
+      margin-bottom: 0px;
+      border-bottom: 0px;
+    }
+
     .header-text {
       text-transform: uppercase;
     }
 
     table {
+      border-top: 1px solid #cacaca;
       table-layout: fixed;
       width: 100%;
 
@@ -294,14 +301,16 @@
         input[type="checkbox"] {
           margin: 0;
         }
+
+        .empty-list {
+          color: $slate;
+        }
       }
     }
   }
 
   .add-notification {
-    margin-left: 32px;
-    margin-bottom: 0px;
-    padding-bottom: 8px;
+    margin-top: 12px;
 
     .no-label {
       vertical-align: bottom;

@@ -5,9 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
@@ -76,7 +73,6 @@ public class ApplicationPolicyEditorTest
 
       // Create a policy with a tag
       Policy policy = tempEntity.newPolicy(application.getParentOwnerId(), "policyName");
-      policy.setActions(Collections.<String, List<Action>> emptyMap());
 
       tempEntity.newTag(application.getParentOwnerId(), "Unchecked Tag"); // visible but not used
       Tag checkedTag = tempEntity.newTag(application.getParentOwnerId(), "Checked Tag");

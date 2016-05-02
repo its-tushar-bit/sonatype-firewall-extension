@@ -50,6 +50,8 @@ import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceCo
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -1015,11 +1017,10 @@ public class RepositoryServiceTest
   @Test
   public void testEvaluateComponents_NewComponentViolationNotifications() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    tempEntity
-        .newPolicy(repository.getParentOwnerId(), "Test Policy", 10, new Action(Action.ID_NOTIFY, "test@sonatype.com"),
-            Stage.ID_PROXY);
-    Policy waivedPolicy = tempEntity.newPolicy(repository.getParentOwnerId(), "Waived Policy", 10,
-        new Action(Action.ID_NOTIFY, "waived@sonatype.com"), Stage.ID_PROXY);
+    tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy", 10, null, null, new Notifications(
+        new UserNotification("test@sonatype.com", Stage.ID_PROXY)));
+    Policy waivedPolicy = tempEntity.newPolicy(repository.getParentOwnerId(), "Waived Policy", 10, null, null,
+        new Notifications(new UserNotification("waived@sonatype.com", Stage.ID_PROXY)));
     tempEntity.newWaiver(waivedPolicy.getId(), repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
@@ -1071,9 +1072,8 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_ReevaluationViolationNotifications() throws Exception {
     // This test ensures that there are no notifications for the evaluation cause other than "new component"
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    tempEntity
-        .newPolicy(repository.getParentOwnerId(), "Test Policy", 10, new Action(Action.ID_NOTIFY, "test@sonatype.com"),
-            Stage.ID_PROXY);
+    tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy", 10, null, null, new Notifications(
+        new UserNotification("test@sonatype.com", Stage.ID_PROXY)));
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList(
         RepositoryComponentEvaluationDataRequestList.REEVALUATION);

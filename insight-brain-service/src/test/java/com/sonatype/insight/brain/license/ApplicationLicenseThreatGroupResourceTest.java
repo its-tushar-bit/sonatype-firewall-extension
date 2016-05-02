@@ -94,7 +94,7 @@ public class ApplicationLicenseThreatGroupResourceTest
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(),
-        is("Cannot find a license threat group with id " + ltg.getId() + " for owner id " + otherApp.getId()));
+        is("Cannot find a license threat group with id " + ltg.getId() + " for owner id " + otherApp.getPublicId()));
   }
 
   protected void testCRUD(String ownerPublicId, String ownerId) throws Exception {

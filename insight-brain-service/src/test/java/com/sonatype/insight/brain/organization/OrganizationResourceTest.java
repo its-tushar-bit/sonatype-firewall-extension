@@ -43,6 +43,7 @@ public class OrganizationResourceTest
     organization = response.getBody(Organization.class);
     assertNotNull(organization);
     assertNotNull(organization.getId());
+    tempEntity.register(organization);
     assertEquals("OrganizationResourceTest", organization.getName());
     String organizationId = organization.getId();
 

@@ -136,13 +136,10 @@ public class OrganizationResourceTest
 
   @Test
   public void testUpdateOrganization_Unlicensed() throws Exception {
-    Organization organization = new Organization("OrganizationResourceTest");
-    HttpResponse response = restRequest().body(organization).post();
-    assertResponseStatus(200, response);
-    organization = response.getBody(Organization.class);
-    tempEntity.register(organization);
     uninstallLicense();
-    response = restRequest().body(organization).put();
+    Organization organization = tempEntity.newOrganization();
+
+    HttpResponse response = restRequest().body(organization).put();
     assertResponseStatus(402, response);
   }
 

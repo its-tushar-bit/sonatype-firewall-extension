@@ -14,7 +14,7 @@ import java.util.zip.ZipFile;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;

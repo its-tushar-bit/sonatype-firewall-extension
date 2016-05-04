@@ -32,6 +32,7 @@ import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.junit.Assert.assertEquals;
@@ -86,6 +87,8 @@ public class CreateOwnerTest
 
     orgNode = OwnerTreeView.organization(0);
     orgNode.newApplicationButton().shouldBe(visible, enabled).click();
+
+    OwnerEditorDialog.name().shouldBe(focused);
 
     testIconDirtyState();
 
@@ -142,6 +145,8 @@ public class CreateOwnerTest
     testNoDirtyState();
 
     RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
+
+    OwnerEditorDialog.name().shouldBe(focused);
 
     testIconDirtyState();
 

@@ -3,7 +3,7 @@
 <html xmlns:v="urn:schemas-microsoft-com:vml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>CLM Policy Alert</title>
+<title>IQ Policy Alert</title>
 <style type="text/css">
 v:* {
 	behavior: url(#default#VML);
@@ -27,7 +27,7 @@ div,p,a,li,td {
 <body style="margin: 0; padding: 0;">
 	<table width="647" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
 		<tr>
-			<td colspan="3"><a href="${detailedReportUrl}" title="Sonatype CLM Policy Alert"><img
+			<td colspan="3"><a href="${detailedReportUrl}" title="IQ Policy Alert"><img
 					src="${cdnUrl}clm/policy/1.3/header_bg.gif" width="647" height="68" alt="View Full Results" border="0" /></a></td>
 		</tr>
 		<tr>

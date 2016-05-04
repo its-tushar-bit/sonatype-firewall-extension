@@ -142,7 +142,7 @@ public class TestInsightBrainService
     if (name.startsWith("org.sonatype.micromailer.")) {
       return true;
     }
-    log.debug("Excluding {} from test CLM server", name);
+    log.debug("Excluding {} from test Brain server", name);
     return false;
   }
 

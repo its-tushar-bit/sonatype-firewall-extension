@@ -297,7 +297,7 @@ describe('Tests for the LdapConfigurationController', function() {
       httpBackend.flush();
       expect(scope.alerts.length).toBe(1);
       expect(scope.alerts[0].type).toBe('error');
-      expect(scope.alerts[0].msg).toBe('Unable to reach CLM server');
+      expect(scope.alerts[0].msg).toBe('Unable to reach IQ Server');
 
     }));
 

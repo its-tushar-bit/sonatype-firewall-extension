@@ -92,7 +92,7 @@
           $scope.createError = 'Server Error';
         }
         else if (status === 0) {
-          $scope.createError = 'Unable to connect to CLM server';
+          $scope.createError = 'Unable to connect to IQ Server';
         }
         else {
           $scope.createError = data;

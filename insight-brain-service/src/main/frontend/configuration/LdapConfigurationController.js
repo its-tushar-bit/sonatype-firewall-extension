@@ -114,7 +114,7 @@
       $scope.testInProgress = false;
       $scope.alerts.length = 0; // clear old alerts
       if (status === 0) {
-        msg = 'Unable to reach CLM server';
+        msg = 'Unable to reach IQ Server';
       }
       showAlert($scope.alerts,{
         type: 'error',

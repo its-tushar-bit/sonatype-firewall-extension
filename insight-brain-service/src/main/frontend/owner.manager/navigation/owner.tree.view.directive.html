@@ -18,8 +18,7 @@
       <a class="tree-view-item"
          ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
          ui-sref="management.view.organization({organizationId: vm.rootOrganization.id})">
-        <i class="fa fa-globe fa-lg tree-view-icon"></i>
-        {{vm.rootOrganization.name}}
+        <i class="fa fa-globe fa-lg tree-view-icon"></i>{{vm.rootOrganization.name}}
         <div class="tree-view-new-organization"
              ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }">
           <button class="btn" ng-click="vm.createOrganization()">

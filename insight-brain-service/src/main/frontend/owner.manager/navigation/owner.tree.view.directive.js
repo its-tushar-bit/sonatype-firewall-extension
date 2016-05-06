@@ -116,6 +116,8 @@
         redirectIfNecessary(true);
 
         assignSelectedParentOrganization();
+      }, function(error) {
+        vm.error = error;
       });
     }
 

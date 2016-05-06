@@ -327,6 +327,20 @@ describe('owner.tree-view.directive.spec.js', function() {
       expect($state.go).toHaveBeenCalledWith('.application', {applicationPublicId: 'applicationOnePublicID'}, options);
     });
 
+    it('handles load error', function() {
+      $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(400, 'Bad Request');
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+      $httpBackend.flush();
+
+      expect(scope.vm.error).toBeDefined();
+      expect(scope.vm.error.data).toEqual("Bad Request");
+      expect(scope.vm.error.status).toEqual(400);
+
+      scope.vm.doLoad();
+      doLoadWithOwnerList(SidebarResourceMockData.getOwnerListUrl_onlySynthetic());
+      expect(scope.vm.error).toBeUndefined();
+    });
+
     function doLoadWithOwnerList(ownerList) {
       $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
       $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(false);

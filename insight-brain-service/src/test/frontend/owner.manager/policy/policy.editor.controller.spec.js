@@ -132,7 +132,7 @@ describe('policy.editor.controller.spec.js', function() {
         store: {create: angular.noop},
         ownerType: type,
         ownerId: owner.id
-      }], '123');
+      }], '456');
 
       expect(vm.dirtyPolicy.$clone).toHaveBeenCalled();
       expect(vm.dirtyPolicy.id).toBe('456');
@@ -149,7 +149,7 @@ describe('policy.editor.controller.spec.js', function() {
         store: {create: angular.noop},
         ownerType: type,
         ownerId: owner.id
-      }], '123', true);
+      }], '456', true);
 
       expect(vm.dirtyPolicy).toBeUndefined();
       expect(vm.loadError).toBe('Unable to locate Policy.');
@@ -194,7 +194,7 @@ describe('policy.editor.controller.spec.js', function() {
         store: {create: angular.noop},
         ownerType: type,
         ownerId: owner.id
-      }], '123');
+      }], '1');
 
       vm.deletePolicy();
       deleteServiceResourceDefer.resolve();
@@ -217,7 +217,7 @@ describe('policy.editor.controller.spec.js', function() {
         ownerType: type,
         ownerId: owner.id,
         ownerName: owner.name
-      }], '123');
+      }], '456');
 
       if (!isApp) {
         expect(vm.owner.name).toEqual(owner.name);
@@ -256,7 +256,7 @@ describe('policy.editor.controller.spec.js', function() {
         store: {create: angular.noop},
         ownerType: type,
         ownerId: owner.id
-      }], '123');
+      }], '456');
 
       expect(vm.readOnly).toBeDefined();
     }));
@@ -313,7 +313,7 @@ describe('policy.editor.controller.spec.js', function() {
           policies: [{id: '789'}],
           policyTags: [],
           store: {create: angular.noop}
-        }], '123');
+        }], '456');
 
         expect(vm.owner.name).toBe('orgName');
         expect(vm.isOrgOwner).toBe(true);

@@ -22,7 +22,6 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;

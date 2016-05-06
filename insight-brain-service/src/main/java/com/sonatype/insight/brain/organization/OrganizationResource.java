@@ -97,8 +97,8 @@ public class OrganizationResource
   }
 
   @Override
-  protected String getDefaultIconFilename() {
-    return "defaulticon_organization.png";
+  protected String getDefaultIconFilename(String ownerId) {
+    return Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ? "defaulticon_root_org.png" : "defaulticon_organization.png";
   }
 
   /**

@@ -317,7 +317,7 @@ public class ApplicationResource
   }
 
   @Override
-  protected String getDefaultIconFilename() {
+  protected String getDefaultIconFilename(String ownerId) {
     return "defaulticon_application.png";
   }
 }

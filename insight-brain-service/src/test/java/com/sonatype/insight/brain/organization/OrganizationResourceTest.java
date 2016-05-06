@@ -78,6 +78,12 @@ public class OrganizationResourceTest
     Assert.assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png",
         iconResponse.getHeader("Location"));
 
+    // Get icon (default Root Org icon)
+    iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(Organization.ROOT_ORGANIZATION_ID).get();
+    assertResponseStatus(307, iconResponse);
+    Assert.assertEquals(getRestBaseUrl() + "assets/img/defaulticon_root_org.png",
+        iconResponse.getHeader("Location"));
+
     // Add icon
     defaultIconByteArray = loadDefaultIcon();
     response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)

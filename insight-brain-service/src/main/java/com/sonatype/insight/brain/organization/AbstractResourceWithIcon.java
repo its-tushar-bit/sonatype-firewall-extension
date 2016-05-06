@@ -22,6 +22,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
@@ -146,7 +147,7 @@ abstract class AbstractResourceWithIcon
     }
     if (imageBytes == null) {
       UriBuilder defaultIconUriBuilder = baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH)
-          .path("img/" + getDefaultIconFilename());
+          .path("img/" + getDefaultIconFilename(ownerId));
       return Response.temporaryRedirect(defaultIconUriBuilder.build()).build();
     }
     final byte[] imageOutputBytes = imageBytes;
@@ -160,5 +161,5 @@ abstract class AbstractResourceWithIcon
     return Response.ok(stream).build();
   }
 
-  protected abstract String getDefaultIconFilename();
+  protected abstract String getDefaultIconFilename(String ownerId);
 }

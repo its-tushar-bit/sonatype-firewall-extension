@@ -782,7 +782,8 @@ Dashboard tables
  ```
 */
 
-.dashboard-root-container {
+.dashboard-root-container,
+.dashboard-root-container-new {
   .nav.nav-tabs {
     margin: 0px;
   }
@@ -809,4 +810,3 @@ Dashboard tables
     border-top: 0px;
   }
 }
-

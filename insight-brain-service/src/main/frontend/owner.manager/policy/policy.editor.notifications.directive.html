@@ -59,8 +59,8 @@
       <div class="field" ng-if="vm.recipientType === vm.recipientTypes.EMAIL">
         <label for="recipient-email" ng-class="{ disabled: vm.disabled }">Email Address</label>
         <input clm-input id="recipient-email" class="editor-notification-email" name="recipient-email" type="email"
-               ng-model="vm.recipientToAdd" focus-input="true" ng-disabled="vm.disabled"
-               unique-validator="vm.getEmails()" ng-keypress="$event.keyCode == 13 && vm.addRecipient($event)"
+               ng-model="vm.recipientToAdd" ng-disabled="vm.disabled" unique-validator="vm.getEmails()"
+               ng-keypress="$event.keyCode == 13 && vm.addRecipient($event)"
                messages="{unique: 'Email already exists'}">
       </div>
       <div class="field" ng-if="vm.recipientType === 'Role'">

@@ -57,6 +57,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -704,7 +705,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void assertNewPolicyStateIsCorrect_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
+    summary.policyName().shouldBe(visible, empty, focused).shouldHave(CLM.INITIAL_VALUE);
 
     summary.policyName().val("$$$"); // invalid characters
     PopoverViolations.on(summary.policyName()).shouldShowInvalidCharactersError();

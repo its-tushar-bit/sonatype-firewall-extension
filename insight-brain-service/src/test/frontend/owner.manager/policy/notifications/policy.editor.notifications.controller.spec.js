@@ -236,8 +236,8 @@ describe("policy.editor.notifications.controller.spec.js", function() {
   });
 
   describe('addRecipient()', function() {
-    var vm;
-    var keypressEvent = jasmine.createSpyObj('keypressEvent', ['preventDefault']);
+    var vm,
+        keypressEvent;
     beforeEach(function() {
       var notifications = {
         userNotifications: [
@@ -262,6 +262,8 @@ describe("policy.editor.notifications.controller.spec.js", function() {
         ]
       };
       vm = initController(notifications);
+      vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', ['$setPristine']);
+      keypressEvent = jasmine.createSpyObj('keypressEvent', ['preventDefault']);
     });
 
     it('handles keypress event and prevents default if input is invalid', function() {
@@ -286,8 +288,21 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       vm.recipientType = vm.recipientTypes.EMAIL;
       vm.recipientToAdd = undefined;
       vm.addRecipient();
-      expect(keypressEvent.preventDefault).toHaveBeenCalled();
       expect(vm.notifications.userNotifications.length).toBe(2);
+    });
+
+    it('clears email input', function() {
+      vm.recipientType = vm.recipientTypes.EMAIL;
+      vm.recipientToAdd = 'test-recipient@test.com';
+      vm.addRecipient();
+      expect(vm.recipientToAdd).toBeUndefined();
+    });
+
+    it('sets form to pristine state', function() {
+      vm.recipientType = vm.recipientTypes.EMAIL;
+      vm.recipientToAdd = 'test-recipient@test.com';
+      vm.addRecipient();
+      expect(vm.addRecipientForm.$setPristine).toHaveBeenCalled();
     });
 
     describe('addEmailRecipient()', function() {

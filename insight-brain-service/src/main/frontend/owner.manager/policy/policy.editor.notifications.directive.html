@@ -49,36 +49,38 @@
     </tbody>
   </table>
   <div class="section add-notification">
-    <div class="inline-fields">
-      <div class="field">
-        <label for="recipient-type" ng-class="{ disabled: vm.disabled }">Recipient Type</label>
-        <dropdown-selector id="recipient-type" class="editor-notification-type" ng-model="vm.recipientType"
-                           name="recipient-type" options="vm.recipientTypeOptions"
-                           ng-disabled="vm.disabled"></dropdown-selector>
+    <ng-form name="vm.addRecipientForm">
+      <div class="inline-fields">
+        <div class="field">
+          <label for="recipient-type" ng-class="{ disabled: vm.disabled }">Recipient Type</label>
+          <dropdown-selector id="recipient-type" class="editor-notification-type" ng-model="vm.recipientType"
+                             name="recipient-type" options="vm.recipientTypeOptions"
+                             ng-disabled="vm.disabled"></dropdown-selector>
+        </div>
+        <div class="field" ng-if="vm.recipientType === vm.recipientTypes.EMAIL">
+          <label for="recipient-email" ng-class="{ disabled: vm.disabled }">Email Address</label>
+          <input clm-input id="recipient-email" class="editor-notification-email" name="recipient-email" type="email"
+                 ng-model="vm.recipientToAdd" ng-disabled="vm.disabled" unique-validator="vm.getEmails()"
+                 ng-keypress="$event.keyCode == 13 && vm.addRecipient($event)"
+                 messages="{unique: 'Email already exists'}">
+        </div>
+        <div class="field" ng-if="vm.recipientType === 'Role'">
+          <label for="recipient-role" ng-class="{ disabled: vm.disabled }">Role</label>
+          <dropdown-selector id="recipient-role" class="editor-notification-role" option-name-param="roleName"
+                             ng-model="vm.recipientToAdd" name="recipient-role"
+                             options="vm.getAvailableRoles()"
+                             no-options-string="All roles are being notified."
+                             empty-option-string="-- Select Role --"
+                             ng-disabled="vm.disabled"></dropdown-selector>
+        </div>
+        <div class="field no-label">
+          <button id="editor-notification-add" class='btn' type="button" ng-click="vm.addRecipient()"
+                  ng-class="{ disabled: !vm.recipientToAdd || vm.disabled }"
+                  ng-disabled="!vm.recipientToAdd || vm.disabled">
+            <i class="fa fa-plus"></i>Add
+          </button>
+        </div>
       </div>
-      <div class="field" ng-if="vm.recipientType === vm.recipientTypes.EMAIL">
-        <label for="recipient-email" ng-class="{ disabled: vm.disabled }">Email Address</label>
-        <input clm-input id="recipient-email" class="editor-notification-email" name="recipient-email" type="email"
-               ng-model="vm.recipientToAdd" ng-disabled="vm.disabled" unique-validator="vm.getEmails()"
-               ng-keypress="$event.keyCode == 13 && vm.addRecipient($event)"
-               messages="{unique: 'Email already exists'}">
-      </div>
-      <div class="field" ng-if="vm.recipientType === 'Role'">
-        <label for="recipient-role" ng-class="{ disabled: vm.disabled }">Role</label>
-        <dropdown-selector id="recipient-role" class="editor-notification-role" option-name-param="roleName"
-                           ng-model="vm.recipientToAdd" name="recipient-role"
-                           options="vm.getAvailableRoles()"
-                           no-options-string="All roles are being notified."
-                           empty-option-string="-- Select Role --"
-                           ng-disabled="vm.disabled"></dropdown-selector>
-      </div>
-      <div class="field no-label">
-        <button id="editor-notification-add" class='btn' type="button" ng-click="vm.addRecipient()"
-                ng-class="{ disabled: !vm.recipientToAdd || vm.disabled }"
-                ng-disabled="!vm.recipientToAdd || vm.disabled">
-          <i class="fa fa-plus"></i>Add
-        </button>
-      </div>
-    </div>
+    </ng-form>
   </div>
 </div>

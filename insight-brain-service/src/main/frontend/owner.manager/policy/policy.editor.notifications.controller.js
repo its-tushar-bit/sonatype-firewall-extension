@@ -12,6 +12,7 @@
         availableRoles,
         roleNames;
 
+    vm.addRecipientForm = undefined;
     vm.loadError = undefined;
     vm.actionStages = undefined;
     vm.recipients = undefined;
@@ -86,6 +87,7 @@
         addRoleRecipient(vm.recipientToAdd.roleId);
       }
       vm.recipientToAdd = undefined;
+      vm.addRecipientForm.$setPristine();
     }
 
     function hasStage(notification, stage) {

@@ -473,8 +473,9 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_notificationsSection(Policy policy) {
     PolicyEditorPage.notificationsPill().click();
 
-    // add email notifications
     AddNotificationItem addNotification = NotificationsSection.addNotification();
+
+    // add email notifications
     addNotification.addButton().shouldHave(DISABLED);
     addNotification.notificationType().selectedItem().shouldHave(text("Email"));
     addNotification.email().val("validation_test").shouldHave(cssClass("ng-invalid"));
@@ -507,6 +508,13 @@ public abstract class AbstractPolicyEditorTest
 
     NotificationsSection.notifications()
         .shouldHave(texts("Developer", "test@foo.com", "aaa@sonatype.com", "Application Evaluator"));
+
+    // switch from Role to Email notification type - email input should be empty
+    addNotification.role().shouldBe(visible).selectedItem().click();
+    addNotification.role().listItems().findBy(text("Owner")).click();
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(0).click();
+    addNotification.email().shouldBe(empty);
 
     // delete one and save
     NotificationsSection.notificationFor("test@foo.com").deleteButton().click();

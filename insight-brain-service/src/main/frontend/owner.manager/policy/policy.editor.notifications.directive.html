@@ -18,11 +18,11 @@
         <div class="empty-list" >No notifications configured</div>
       </td>
     </tr>
-    <tr ng-repeat="recipient in vm.recipients" data-recipient="{{vm.getDisplayName(recipient)}}">
+    <tr ng-repeat="recipient in vm.recipients" data-recipient="{{::vm.getDisplayName(recipient)}}">
       <td class="greedy-column">
         <span>
-          <i class="fa {{recipient.roleId ? 'fa-puzzle-piece' : 'fa-envelope'}} slate size-16px"></i><!--
-            -->{{vm.getDisplayName(recipient)}}
+          <i class="fa {{::recipient.roleId ? 'fa-puzzle-piece' : 'fa-envelope'}} slate size-16px"></i><!--
+            -->{{::vm.getDisplayName(recipient)}}
         </span>
       </td>
       <td ng-repeat="stage in vm.actionStages">
@@ -55,7 +55,7 @@
           <label for="recipient-type" ng-class="{ disabled: vm.disabled }">Recipient Type</label>
           <dropdown-selector id="recipient-type" class="editor-notification-type" ng-model="vm.recipientType"
                              name="recipient-type" options="vm.recipientTypeOptions"
-                             ng-disabled="vm.disabled"></dropdown-selector>
+                             ng-disabled="vm.disabled" ng-change="vm.recipientToAdd=undefined"></dropdown-selector>
         </div>
         <div class="field" ng-if="vm.recipientType === vm.recipientTypes.EMAIL">
           <label for="recipient-email" ng-class="{ disabled: vm.disabled }">Email Address</label>

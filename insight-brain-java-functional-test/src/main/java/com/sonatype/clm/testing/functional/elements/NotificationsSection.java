@@ -29,6 +29,10 @@ public class NotificationsSection
     return $$(createSelector(ROOT_SELECTOR, "tbody", "tr"));
   }
 
+  public ElementsCollection headers() {
+    return $$(createSelector(ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+8)"));
+  }
+
   public static class NotificationItem
   {
 

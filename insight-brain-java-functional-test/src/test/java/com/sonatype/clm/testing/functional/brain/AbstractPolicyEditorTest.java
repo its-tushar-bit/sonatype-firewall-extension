@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ActionsSection;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
@@ -19,6 +20,7 @@ import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
+import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNotificationItem;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
@@ -28,8 +30,6 @@ import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
-import com.sonatype.clm.testing.functional.elements.ActionsSection;
-import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNotificationItem;
 import com.sonatype.clm.testing.functional.utils.ConditionUtils;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -64,9 +64,9 @@ import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.ActionsSection.activeClass;
 import static com.sonatype.clm.testing.functional.elements.ActionsSection.warnClass;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.dark_red;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -113,8 +113,6 @@ public abstract class AbstractPolicyEditorTest
     testCreatePolicy_constraintSection();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    // notifications table should be empty
-    NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
 
     Policy newPolicy = null;
     for (Policy p : policyDAO.getByOwnerId(currentOwner.getId())) {
@@ -146,7 +144,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(newPolicy.getNotifications().getRoleNotifications(), hasSize(1));
     assertThat(newPolicy.getNotifications().getRoleNotifications().get(0).getStageIds(),
         containsInAnyOrder(Notification.CONTINUOUS_MONITORING));
-
+    
     testCreatePolicy_navigatingAwayWithUnsavedData();
   }
 
@@ -664,7 +662,8 @@ public abstract class AbstractPolicyEditorTest
 
   private void testCreatePolicy_notificationsSection() {
     PolicyEditorPage.notificationsPill().click();
-    NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
+    NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
+    notificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
 
     // add role notifications
     AddNotificationItem addNotification = NotificationsSection.addNotification();
@@ -698,6 +697,7 @@ public abstract class AbstractPolicyEditorTest
     assertNewPolicyStateIsCorrect_summarySection();
     assertNewPolicyStateIsCorrect_inheritanceSection();
     assertNewPolicyStateIsCorrect_constraintSection();
+    assertNewPolicyStateIsCorrect_actionsSection();
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     PolicyEditorPage.deleteButton().shouldNot(exist);
@@ -736,6 +736,16 @@ public abstract class AbstractPolicyEditorTest
     constraintName.clear();
   }
 
+  private void assertNewPolicyStateIsCorrect_actionsSection() {
+    ActionsSection actionsSection = PolicyEditorPage.actionsSection();
+    actionsSection.proxy().noActionRadio().shouldBe(enabled, selected);
+    actionsSection.develop().noActionRadio().shouldBe(enabled, selected);
+    actionsSection.build().noActionRadio().shouldBe(enabled, selected);
+    actionsSection.stageRelease().noActionRadio().shouldBe(enabled, selected);
+    actionsSection.release().noActionRadio().shouldBe(enabled, selected);
+    actionsSection.operate().noActionRadio().shouldBe(enabled, selected);
+  }
+
   private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2, boolean isReadOnly) {
     waitUntilUrl(
         PolicyEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), policy.getId()));
@@ -743,7 +753,8 @@ public abstract class AbstractPolicyEditorTest
 
     assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);
-    assertEditPolicyStateIsCorrect_actionsNotificationsSection(isReadOnly);
+    assertEditPolicyStateIsCorrect_actionsSection(isReadOnly);
+    assertEditPolicyStateIsCorrect_notificationsSection(isReadOnly);
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     PolicyEditorPage.deleteButton().shouldBe(visible, isReadOnly ? disabled : enabled);
   }
@@ -755,66 +766,9 @@ public abstract class AbstractPolicyEditorTest
     assertThreatLevelSelectorState(policy.getThreatLevel(), isReadOnly);
   }
 
-  private void assertEditPolicyStateIsCorrect_actionsNotificationsSection(boolean isReadOnly) {
+  private void assertEditPolicyStateIsCorrect_actionsSection(boolean isReadOnly) {
     PolicyEditorPage.actionsPill().click();
-    testEditPolicyStateIsCorrect_actionsNotificationsSection_notifications(isReadOnly);
-    testEditPolicyStateIsCorrect_actionsNotificationsSection_monitoring(isReadOnly);
-    testEditPolicyStateIsCorrect_actionsNotificationsSection_stageActions(isReadOnly);
-  }
 
-  private void testEditPolicyStateIsCorrect_actionsNotificationsSection_notifications(boolean isReadOnly) {
-    /* CLM-6366
-    ActionItemList actionItemList = PolicyEditorPage.actionsSection().actionItemList();
-
-    SelenideElement twisty = actionItemList.build().twisty();
-    twisty.shouldHave(Stage.EXPANDED).click();
-    twisty.shouldHave(Stage.COLLAPSED);
-
-    AddNotificationItem buildNotification = actionItemList.build().addNotification();
-
-    if (isReadOnly) {
-      buildNotification.addButton().shouldNot(exist);
-      buildNotification.notificationType().shouldNot(exist);
-      buildNotification.email().shouldNot(exist);
-    }
-    else {
-      buildNotification.addButton().shouldBe(visible, DISABLED);
-      buildNotification.notificationType().selectedItem().shouldBe(visible).shouldHave(text("Email"));
-      buildNotification.email().shouldBe(visible);
-    }
-    buildNotification.role().shouldNot(exist);
-
-    actionItemList.build().notifications().shouldHaveSize(2).shouldHave(
-        texts("test@foo.com", "Developer"));*/
-  }
-
-  private void testEditPolicyStateIsCorrect_actionsNotificationsSection_monitoring(boolean isReadOnly) {
-    /* CLM-6366
-    ActionItemList actionItemList = PolicyEditorPage.actionsSection().actionItemList();
-
-    SelenideElement twisty = actionItemList.continuousMonitoring().twisty();
-    twisty.shouldHave(Stage.EXPANDED).click();
-    twisty.shouldHave(Stage.COLLAPSED);
-
-    AddNotificationItem continuousMonitoring = actionItemList.continuousMonitoring().addNotification();
-
-    if (isReadOnly) {
-      continuousMonitoring.addButton().shouldNot(exist);
-      continuousMonitoring.notificationType().shouldNot(exist);
-      continuousMonitoring.email().shouldNot(exist);
-    }
-    else {
-      continuousMonitoring.addButton().shouldBe(visible).shouldHave(DISABLED);
-      continuousMonitoring.notificationType().selectedItem().shouldBe(visible).shouldHave(text("Email"));
-      continuousMonitoring.email().shouldBe(visible);
-    }
-    continuousMonitoring.role().shouldNot(exist);
-
-    actionItemList.continuousMonitoring().notifications().shouldHave(
-        texts("test@foo.com"));*/
-  }
-
-  private void testEditPolicyStateIsCorrect_actionsNotificationsSection_stageActions(boolean isReadOnly) {
     com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly ? disabled : enabled;
     ActionsSection actionsTable = PolicyEditorPage.actionsSection();
 
@@ -831,6 +785,29 @@ public abstract class AbstractPolicyEditorTest
     actionsTable.operate().noActionRadio().input().shouldBe(selected);
     actionsTable.release().noActionRadio().input().shouldBe(selected);
     actionsTable.stageRelease().noActionRadio().input().shouldBe(selected);
+  }
+
+  private void assertEditPolicyStateIsCorrect_notificationsSection(final boolean isReadOnly) {
+    NotificationsSection notifications = PolicyEditorPage.notificationsSection();
+
+    AddNotificationItem addNotificationItem = notifications.addNotification();
+
+    if (isReadOnly) {
+      addNotificationItem.notificationType().shouldHave(CLM.DISABLED);
+      addNotificationItem.email().shouldBe(disabled);
+    }
+    else {
+      addNotificationItem.notificationType().shouldNotHave(CLM.DISABLED);
+      addNotificationItem.notificationType().selectedItem().shouldBe(visible).shouldHave(text("Email"));
+      addNotificationItem.email().shouldBe(enabled);
+    }
+    addNotificationItem.role().shouldNot(exist);
+    addNotificationItem.addButton().shouldBe(disabled);
+
+    notifications.notifications().shouldHaveSize(2).shouldHave(texts("Developer", "test@foo.com"));
+    notifications.notificationFor("Developer").build().shouldBe(selected);
+    notifications.notificationFor("test@foo.com").build().shouldBe(selected);
+    notifications.notificationFor("test@foo.com").continuousMonitoring().shouldBe(selected);
   }
 
   private void assertThreatLevelSelectorState(int selectedThreatLevel, boolean isReadOnly) {
@@ -854,28 +831,6 @@ public abstract class AbstractPolicyEditorTest
     }
   }
 
-  private void assertActionItemListNoNotifications() {
-    /* CLM-6366
-    assertActionItemListNoNotifications_allButBuildAndMonitor(actionItemList);
-    actionItemList.build().notificationCount().shouldHave(text("0"));
-    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("0"));*/
-  }
-
-  private void assertActionItemListHasBuildNotifications() {
-    /* CLM-6366
-    assertActionItemListNoNotifications_allButBuildAndMonitor(actionItemList);
-    actionItemList.build().notificationCount().shouldHave(text("2"));
-    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("1"));*/
-  }
-
-  private void assertActionItemListNoNotifications_allButBuildAndMonitor() {
-    /*CLM-6366
-    actionItemList.proxy().notificationCount().shouldHave(text("0"));
-    actionItemList.develop().notificationCount().shouldHave(text("0"));
-    actionItemList.stageRelease().notificationCount().shouldHave(text("0"));
-    actionItemList.release().notificationCount().shouldHave(text("0"));
-    actionItemList.operate().notificationCount().shouldHave(text("0"));*/
-  }
 
   private void changeThreatLevel(int threatLevel) {
     ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();

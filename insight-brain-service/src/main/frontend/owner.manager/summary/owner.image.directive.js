@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function OwnerImageDirective(CLMAppLocations) {
+  function OwnerImageDirective(CLMAppLocations, EventNameConstant) {
     return {
       scope: {
         owner: '=ownerImage'
@@ -19,8 +19,8 @@
           }
         });
 
-        scope.$on('owner.image.change', function(owner) {
-          if (scope.owner === owner && scope.ownerUrl) {
+        scope.$on(EventNameConstant.OWNER_UPDATED, function(e, owner) {
+          if (angular.equals(scope.owner, owner) && scope.ownerUrl) {
             if (scope.ownerUrl.indexOf('?') !== -1) {
               scope.ownerUrl = scope.ownerUrl.substring(0, scope.ownerUrl.indexOf('?'));
             }
@@ -31,7 +31,7 @@
     };
   }
 
-  OwnerImageDirective.$inject = ['CLMAppLocations'];
+  OwnerImageDirective.$inject = ['CLMAppLocations', 'event.name.constant'];
 
   angular
       .module('owner.manager.module')

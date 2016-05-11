@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.BeforeClass;
@@ -113,6 +114,9 @@ public abstract class AbstractPolicyEditorTest
     testCreatePolicy_constraintSection();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
+
+    // make sure we reset back to clean state
+    assertNewPolicyStateIsCorrect();
 
     Policy newPolicy = null;
     for (Policy p : policyDAO.getByOwnerId(currentOwner.getId())) {
@@ -706,6 +710,7 @@ public abstract class AbstractPolicyEditorTest
     assertNewPolicyStateIsCorrect_inheritanceSection();
     assertNewPolicyStateIsCorrect_constraintSection();
     assertNewPolicyStateIsCorrect_actionsSection();
+    assertNewPolicyStateIsCorrect_notificationsSection();
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     PolicyEditorPage.deleteButton().shouldNot(exist);
@@ -742,6 +747,24 @@ public abstract class AbstractPolicyEditorTest
     PopoverViolations.on(constraintName).shouldNotExist();
 
     constraintName.clear();
+  }
+
+  private void assertNewPolicyStateIsCorrect_notificationsSection() {
+    NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
+    ElementsCollection notifications = notificationsSection.notifications();
+    notifications.shouldHaveSize(1);
+    notifications.get(0).shouldHave(text("No notifications Configured"));
+
+    AddNotificationItem addNotification = notificationsSection.addNotification();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.notificationType().selectedItem().shouldHave(text("Email"));
+    addNotification.role().shouldNot(exist);
+    addNotification.email().shouldBe(empty);
+
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(1).click();
+    addNotification.email().shouldNot(exist);
+    addNotification.role().listItems().shouldHaveSize(4);
   }
 
   private void assertNewPolicyStateIsCorrect_actionsSection() {

@@ -7,12 +7,14 @@
   'use strict';
 
   function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, TagStore, DeleteModalService,
-                                  SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant)
+                                  SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant,
+                                  $state)
   {
     var vm = this,
         originalCategories,
         originalHasPolicyCategories,
-        createPolicy;
+        createPolicy,
+        isReloading = false;
 
     vm.dirtyPolicy = undefined;
     vm.doLoad = doLoad;
@@ -34,7 +36,7 @@
     vm.doLoad();
 
     $scope.$on('pageChangeStarted', function(event) {
-      if (vm.isPolicyDirty()) {
+      if (!isReloading && vm.isPolicyDirty()) {
         event.preventDefault();
       }
     });
@@ -154,14 +156,15 @@
 
         vm.policyEditorMask.wrap(savePolicy).then(function() {
           if (isNew) {
-            vm.siblings.push(vm.dirtyPolicy);
-            vm.dirtyPolicy = createPolicy();
+            isReloading = true;
+            $state.reload();
           }
-
-          originalCategories = angular.copy(vm.categories);
-          originalHasPolicyCategories = vm.hasPolicyCategories;
-          vm.policyEditor.$setPristine();
-          $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {resetScroll: true});
+          else {
+            originalCategories = angular.copy(vm.categories);
+            originalHasPolicyCategories = vm.hasPolicyCategories;
+            vm.policyEditor.$setPristine();
+            $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {resetScroll: true});
+          }
         }, submitErrorHandler);
       }
     }
@@ -178,7 +181,7 @@
 
   PolicyEditorController.$inject = [
     '$scope', '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'TagStore', 'DeleteModalService',
-    'SameOwnerStateNavigationService', 'CLMAppLocations', '$rootScope', 'event.name.constant'
+    'SameOwnerStateNavigationService', 'CLMAppLocations', '$rootScope', 'event.name.constant', '$state'
   ];
 
   angular //

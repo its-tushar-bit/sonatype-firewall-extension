@@ -10,7 +10,8 @@ describe('policy.editor.controller.spec.js', function() {
       current: {
         name: ''
       },
-      params: {}
+      params: {},
+      reload: angular.noop
     };
     $provide.value('$state', $state)
     $provide.value('$stateParams', $state.params)
@@ -114,9 +115,32 @@ describe('policy.editor.controller.spec.js', function() {
       vm.save();
       resolveSaveData('123');
 
-      expect(vm.siblings.length).toBe(2);
       expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
-      expect(vm.siblings).toContain(mockPolicy);
+    }));
+
+    it('$state.reload called after creating new', inject(function($controller) {
+      vm = $controller('policy.editor.controller', {$scope: scope});
+
+      resolveLoadData(mockPolicyStoreData, undefined);
+
+      mockPolicy.id = 123;
+      mockPolicy.$new = true;
+      mockPolicy.isDirty = function() {
+        return true;
+      };
+
+      vm.dirtyPolicy = mockPolicy;
+      vm.policyEditor = {
+        $valid: true,
+        $setPristine: angular.noop
+      };
+      vm.policyEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+
+      spyOn($state, 'reload');
+      vm.save();
+      resolveSaveData('123');
+
+      expect($state.reload).toHaveBeenCalled();
     }));
 
     it('Finds match with URL parameter', inject(function($controller) {

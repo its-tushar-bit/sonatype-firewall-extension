@@ -100,38 +100,6 @@ var AngularStateUtils = {
     };
   }]);
 
-  angularCommon.directive('typeAhead', [
-    '$parse', function($parse) {
-      return {
-        restrict: 'A',
-        require: '?ngModel',
-        link: function postLink($scope, element, attrs, controller) {
-          var source = $parse(attrs.typeAhead)($scope);
-          $scope.$watch(attrs.typeAhead, function(newSource, oldSource) {
-            if (oldSource !== newSource) {
-              source = newSource;
-            }
-          });
-
-          element.attr('data-provide', 'typeahead');
-          element.typeahead({
-            source: function() {
-              return angular.isFunction(source) ? source.apply(this, arguments) : source;
-            },
-            updater: function(item) {
-              if (controller) {
-                $scope.$applyAsync(function() {
-                  controller.$setViewValue(item);
-                });
-              }
-              return item;
-            }
-          });
-        }
-      };
-    }
-  ]);
-
   angularCommon.factory('regexFactory', function() {
     return {
       allLetters: function() {
@@ -195,60 +163,6 @@ var AngularStateUtils = {
       };
     }
   ]);
-
-  /**
-   * Creates a URL which is relative to the current page.  (..) ar accepted
-   */
-  angularCommon.directive('relativeHref', [
-    '$location', function($location) {
-      return {
-        restrict: 'A',
-        priority: 99,
-        link: function($scope, element, attr) {
-          function updateValue() {
-            var basePath = $location.path(),
-                path = attr.relativeHref,
-                resolved = [];
-
-            if (basePath) {
-              if (path.charAt(0) === '/') {
-                path = path.substring(1);
-              }
-              resolved.push.apply(resolved, basePath.split('/'));
-              if (resolved[resolved.length] === '') {
-                resolved.pop();
-              }
-
-              angular.forEach(path.split('/'), function(segment) {
-                if ('..' === segment) {
-                  resolved.splice(-1, 1);
-                }
-                else {
-                  resolved.push(segment);
-                }
-              });
-              attr.$set('href', '#' + resolved.join('/'));
-            }
-          }
-
-          attr.$observe('relativeHref', updateValue);
-          $scope.$watch('location.url()', updateValue);
-        }
-      };
-    }
-  ]);
-
-  angularCommon.directive('formSubmit', ['$parse', function($parse) {
-    return {
-      restrict: 'A',
-      link: function($scope, element, attrs) {
-        var submitFn = $parse(attrs.formSubmit);
-        element[0].onsubmit = function() {
-          return submitFn($scope);
-        };
-      }
-    };
-  }]);
 
   angularCommon.directive('clmButtons', [function () {
     return {
@@ -383,87 +297,6 @@ var AngularStateUtils = {
     };
   });
 
-  /**
-   * Common component for threat drop downs
-   */
-  angularCommon.directive('threatBox', function() {
-    return {
-      restrict: 'A',
-      scope: false,
-      require: 'ngModel',
-      template: '<span class="threat-level-dropdown dropdown">' +
-          '<a class="btn dropdown-toggle legacy-threat-level threat-level-{{ngModel.$modelValue}}" data-toggle="dropdown" href="#">' +
-          '{{ngModel.$modelValue}} <span class="caret"></span>' +
-          '</a>' +
-          '<ul class="dropdown-menu">' +
-          '<li ng-repeat="threatLevel in threatLevels">' +
-          '<a ng-click="select(10 - $index)" class="legacy-threat-level threat-level-{{10 - $index}}">{{ threatLevel }}</a>' +
-          '</li>' +
-          '</ul>' +
-          '</span>',
-      priority: 1,
-      link: function(scope, element, attrs, ngModel) {
-        scope.ngModel = ngModel;
-        scope.threatLevels = [10, 9, 8, 7, 6, 5, 4, 3, 2, attrs.one || 1, attrs.zero || 0];
-        scope.select = function(threat) {
-          scope.ngModel.$setViewValue(threat);
-        };
-      }
-    };
-  });
-
-  angularCommon.directive('labelDropDown', function() {
-    return {
-      restrict: 'A',
-      scope: {
-        model: '=ngModel',
-        options: '=',
-        multiple: '='
-      },
-      require: 'ngModel',
-      template: '<span class="label-drop-down dropdown"><a class="btn dropdown-toggle clmLabel-dropdown {{ selectedLabel.color }}Label" data-toggle="dropdown" href="#">' +
-          '{{ selectedLabel.label }}<span class="caret pull-right"></span>' +
-          '</a>' +
-          '<ul class="dropdown-menu">' +
-          '<li ng-repeat="label in options">' +
-          '<a ng-click="selectLabel(label)" class="clmLabel-dropdown {{ label.color }}Label" tooltip="{{ label.description }}" tooltip-placement="right">{{ label.label }}</a>' +
-          '</li>' +
-          '</ul>' +
-          '</span>',
-      link: function(scope) {
-        for (var i = 0; i < scope.options.length; i++) {
-          var option = scope.options[i];
-          if (option.id === scope.model) {
-            scope.selectedLabel = option;
-            break;
-          }
-        }
-
-        scope.selectLabel = function(label) {
-          scope.selectedLabel = label;
-          scope.model = label.id;
-        };
-      }
-    };
-  });
-
-  /**
-   * Delay allowing overflow on accordion elements to preserve the expand/collapse animation effect
-   */
-  angularCommon.directive('delayedOverflow', function() {
-    return {
-      restrict: 'A',
-      link: function(scope, element) {
-        element.on('shown', function() {
-          element.css('overflow', 'visible');
-        });
-        element.on('hide', function() {
-          element.css('overflow', 'hidden');
-        });
-      }
-    };
-  });
-
   angularCommon.directive('focusInput', ['$parse', function($parse) {
     return {
       require: '?^form',
@@ -566,47 +399,6 @@ var AngularStateUtils = {
       }
     };
   });
-
-  angularCommon.directive('refreshButton', ['$timeout', '$parse', function($timeout, $parse) {
-    var timer, degree = 0;
-
-    function rotate(element) {
-      element.css({ transform: 'rotate(' + degree + 'deg)'});
-      timer = $timeout(function() {
-        ++degree;
-        rotate(element);
-      }, 15);
-    }
-
-    function refreshComplete(scope) {
-      $timeout.cancel(timer);
-      scope.refreshing = false;
-    }
-
-    return {
-      scope: {
-        refreshTooltip: '='
-      },
-      template: '<a class="btn btn-mini btn-bottom" ng-show="!refreshing"><i class="icon-refresh"></i></a>' +
-          '<a class="btn btn-mini" ng-show="refreshing" tooltip="{{refreshTooltip}}" tooltip-placement="bottom"><i class="icon-refresh"></i></a>',
-      link: function(scope, element, attr) {
-        var deferredFunction = $parse(attr.refreshButton);
-        scope.refreshing = false;
-        element.bind('click', function() {
-          if (scope.refreshing) {
-            return;
-          }
-          scope.refreshing = true;
-          rotate(element.find('i'));
-          deferredFunction(scope.$parent).then(function() {
-            refreshComplete(scope);
-          }, function() {
-            refreshComplete(scope);
-          });
-        });
-      }
-    };
-  }]);
 
   angularCommon.directive('hexagon', [
     function() {
@@ -1290,29 +1082,6 @@ var AngularStateUtils = {
       };
     }
   ]);
-
-  services.service('ownerChange', ['$parse', function ($parse) {
-    return {
-      getEventHandler: function(scope, applicableCollection) {
-        return function(eventArgs, changeEvent) {
-          jQuery.each(changeEvent.changes, function(index, change) {
-            switch (change.field) {
-              case 'name':
-                angular.forEach($parse(applicableCollection)(scope), function(item) {
-                  if (item.ownerId === changeEvent.ownerId) {
-                    item.ownerName = change.newValue;
-                  }
-                });
-                break;
-              case 'organizationId':
-                scope.doLoad();
-                return false;
-            }
-          });
-        };
-      }
-    };
-  }]);
 
   services.service('LastSelectedOrganization', [function(){
     var lastOrg = {};

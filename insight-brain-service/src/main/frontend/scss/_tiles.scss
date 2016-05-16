@@ -129,19 +129,6 @@ $tile-scroll-container-z-index: 0;
   border: 1px solid $grey-2;
   background-color: white;
 
-  h1 {
-    margin-top: 4px;
-    margin-bottom: 8px;
-    line-height: 1;
-  }
-
-  // Application / Organization Icon
-  h1 img {
-    width: 26px;
-    height: 26px;
-    vertical-align: bottom;
-  }
-
   h2 {
     font-size: 20px;
     line-height: 20px;
@@ -175,6 +162,28 @@ $tile-scroll-container-z-index: 0;
 
   &.summary-tile {
     margin: 8px 8px 0px 8px;
+
+    .tile-header {
+      @extend .bold;
+
+      padding: 4px 16px 8px 0px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1;
+      font-size: $h1-font-size;
+
+      .minor-text{
+        @extend .regular;
+      }
+
+      // Application / Organization Icon
+      img {
+        width: 26px;
+        height: 26px;
+        vertical-align: bottom;
+      }
+    }
 
     h2 {
       padding-bottom: 8px;

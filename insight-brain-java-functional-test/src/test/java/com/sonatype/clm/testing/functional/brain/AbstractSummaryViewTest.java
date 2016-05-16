@@ -108,6 +108,13 @@ public abstract class AbstractSummaryViewTest
   public void testSummaryTile() {
     OwnerSummaryPage.SummaryTile.name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
     OwnerSummaryPage.SummaryTile.icon().shouldBe(visible);
+
+    if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
+      OwnerSummaryPage.SummaryTile.publicId().shouldBe(visible).shouldHave(text(currentOwner.getPublicId()));
+    }
+    else {
+      OwnerSummaryPage.SummaryTile.publicId().shouldNotBe(visible);
+    }
   }
 
   @Test

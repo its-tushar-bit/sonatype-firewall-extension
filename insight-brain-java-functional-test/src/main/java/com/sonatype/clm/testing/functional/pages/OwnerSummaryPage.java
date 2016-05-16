@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -35,7 +36,11 @@ public class OwnerSummaryPage
     }
 
     public static SelenideElement name() {
-      return root().find("h1");
+      return $(SelectorUtils.createSelector(ROOT_ID, ".tile-header"));
+    }
+
+    public static SelenideElement publicId() {
+      return $(SelectorUtils.createSelector(ROOT_ID, ".tile-header .minor-text"));
     }
 
     public static SelenideElement contact() {

@@ -23,7 +23,10 @@
             </li>
           </ul>
         </div>
-        <h1><span owner-image="vm.owner"></span> {{vm.owner.name}}</h1>
+        <div class="tile-header"><!--
+          --><span owner-image="vm.owner"></span> {{vm.owner.name}}<!--
+          --><span class="minor-text" ng-if="vm.isApp"> ({{vm.owner.publicId}})</span>
+        </div>
         <div class="sub-header" ng-if="vm.owner.contact"><i class="fa fa-user size-12px"></i>{{vm.owner.contact.displayName}}</div>
 
         <ul class="nav nav-pills">

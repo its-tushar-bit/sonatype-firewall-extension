@@ -1649,3 +1649,48 @@ root-organization-migrate {
 #migrate-organization-wrapper {
   margin-left: 18px;
 }
+
+/*
+  #Copied Tooltip
+
+```
+<div class="tooltip copied-tooltip fade in bottom">
+  <div class="tooltip-arrow"></div>
+  <div class="tooltip-content">
+    <i class="fa fa-check-circle"></i>
+    <span class="tooltip-inner"></span>
+  </div>
+</div>
+```
+*/
+.copied-tooltip {
+  > .tooltip-arrow {
+    border-bottom-color: $green !important;
+
+    &:after {
+      border-bottom-color: $off-white !important;
+    }
+  }
+
+  > .tooltip-content {
+    // This is a wrapper around the extra content, since Bootstrap tooltip overwrites the tooltip-inner with the title
+    padding: 4px 8px 4px 8px;
+    border: 1px solid $green;
+    font-size: 14px;
+    color: $green;
+    background-color: $off-white;
+
+    i {
+      padding-right: 8px
+    }
+
+    .tooltip-inner {
+      // Clear bootstrap styles
+      color: inherit;
+      background-color: transparent;
+      border: none;
+      padding: 0;
+    }
+  }
+}
+

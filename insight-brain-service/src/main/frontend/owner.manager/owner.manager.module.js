@@ -29,9 +29,7 @@
           $stateProvider.state('management', {
             url: '/management',
             abstract: true,
-            templateUrl: 'owner.manager/state/owner.manager.view.html?' + clmBuildTimestamp,
-            controller: 'owner.manager.controller',
-            controllerAs: 'vm'
+            templateUrl: 'owner.manager/state/owner.manager.view.html?' + clmBuildTimestamp
           }).state('management.view', {
             parent: 'management',
             url: '/view',

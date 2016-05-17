@@ -220,12 +220,35 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testValidatePublicIdValidChars_Update() {
+    for (String publicId : NameHelperTest.VALID_NAMES) {
+      application.setPublicId(publicId.replaceAll("\\s", ""));
+      applicationDAO.update(application);
+    }
+  }
+
+  @Test
   public void testValidatePublicIdInvalidChars_Insert() {
     Application app = new Application(null, "name", organization.getId());
     for (String publicId : NameHelperTest.INVALID_CHARACTERS) {
       app.setPublicId(publicId);
       try {
         applicationDAO.insert(app);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertThat(expected.getMessage(),
+            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", publicId.charAt(0))));
+      }
+    }
+  }
+
+  @Test
+  public void testValidatePublicIdInvalidChars_Update() {
+    for (String publicId : NameHelperTest.INVALID_CHARACTERS) {
+      application.setPublicId(publicId);
+      try {
+        applicationDAO.update(application);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -248,10 +271,34 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testValidateNullPublicId_Update() {
+    application.setPublicId(null);
+    try {
+      applicationDAO.update(application);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertThat(expected.getMessage(), is("Public ID is required."));
+    }
+  }
+
+  @Test
   public void testValidateEmptyPublicId_Insert() {
     Application app = new Application("", "name", organization.getId());
     try {
       applicationDAO.insert(app);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertThat(expected.getMessage(), is("Public ID is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyPublicId_Update() {
+    application.setPublicId("");
+    try {
+      applicationDAO.update(application);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -278,10 +325,39 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testValidatePublicIdWithWhitespaces_Update() {
+    for (char invalidChar : PUBLIC_ID_WHITESPACE_CHARS) {
+      application.setPublicId("foo" + invalidChar + "bar");
+      try {
+        applicationDAO.update(application);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidApplicationException expected) {
+        assertThat(expected.getMessage(), is("Public ID cannot contain whitespaces."));
+      }
+      catch (InvalidNameException expected) {
+        assertThat(expected.getMessage(), is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", invalidChar)));
+      }
+    }
+  }
+
+  @Test
   public void testValidatePublicIdIsDot_Insert() {
     Application app = new Application(".", "name", organization.getId());
     try {
       applicationDAO.insert(app);
+      fail("Expected InvalidApplicationException");
+    }
+    catch (InvalidApplicationException expected) {
+      assertThat(expected.getMessage(), is("Public ID cannot be '.' or '..'"));
+    }
+  }
+
+  @Test
+  public void testValidatePublicIdIsDot_Update() {
+    application.setPublicId(".");
+    try {
+      applicationDAO.update(application);
       fail("Expected InvalidApplicationException");
     }
     catch (InvalidApplicationException expected) {
@@ -302,6 +378,18 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testValidatePublicIdIsDotDot_Update() {
+    application.setPublicId("..");
+    try {
+      applicationDAO.update(application);
+      fail("Expected InvalidApplicationException");
+    }
+    catch (InvalidApplicationException expected) {
+      assertThat(expected.getMessage(), is("Public ID cannot be '.' or '..'"));
+    }
+  }
+
+  @Test
   public void testValidatePublicIdIsMaxLength_Insert() {
     String publicId = StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH);
     Application app = new Application(publicId, "name", organization.getId());
@@ -312,11 +400,34 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testValidatePublicIdIsMaxLength_Update() {
+    final String publicId = StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH);
+    application.setPublicId(publicId);
+    applicationDAO.update(application);
+    tempEntity.register(application);
+    // No need to assert anything as this method throws an exception if not found
+    applicationDAO.getByPublicIdNotNull(publicId);
+  }
+
+  @Test
   public void testValidatePublicIdTooLong_Insert() {
     Application app = new Application(StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH + 1), "name",
         organization.getId());
     try {
       applicationDAO.insert(app);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertThat(expected.getMessage(), is("Public ID must be " + ApplicationDAO.MAX_PUBLIC_ID_LENGTH
+          + " characters or less."));
+    }
+  }
+
+  @Test
+  public void testValidatePublicIdTooLong_Update() {
+    application.setPublicId(StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH + 1));
+    try {
+      applicationDAO.update(application);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -502,6 +613,31 @@ public class ApplicationDAOTest
     Application application1 = applicationDAO.getByName(name1);
     assertThat(application1, notNullValue());
     assertThat(application1.getId(), is(app.getId()));
+  }
+
+  @Test
+  public void testDuplicatePublicId_Insert() {
+    try {
+      tempEntity.newApplication(tempEntity.uuid(), application.getPublicId(), organization.getId());
+      fail("Duplicate value should fail");
+    } catch (InvalidApplicationException e) {
+      assertThat(e.getMessage(), is(application.getPublicId() + " is already used as an ID."));
+    }
+  }
+
+  @Test
+  public void testDuplicatePublicId_Update() {
+    final String duplicatePublicId = "duplicatePublicId";
+    tempEntity.newApplicationWithParent(duplicatePublicId);
+
+    application.setPublicId(duplicatePublicId);
+
+    try {
+      applicationDAO.update(application);
+      fail("Duplicate value should fail");
+    } catch (InvalidApplicationException e) {
+      assertThat(e.getMessage(), is(application.getPublicId() + " is already used as an ID."));
+    }
   }
 
   @Test

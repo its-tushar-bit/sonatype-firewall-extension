@@ -202,7 +202,13 @@ public class ApplicationDAO
           + application.getPublicId() + ".");
     }
     if (!existingApplication.getPublicId().equals(application.getPublicId())) {
-      throw new InvalidApplicationException("Cannot change public ID of existing application.");
+      // Only validate PublicId when it is being changed by this update operation
+      // to support invalid public IDs created before the public ID validation was introduced.
+      // See test: ApplicationDAOTest.testUpdateApplicationWithInvalidPublicId()
+      validatePublicId(application.getPublicId());
+      log.info("Application ID: {}, Changing public ID from {} to {}.", existingApplication.getId(),
+          existingApplication.getPublicId(),
+          application.getPublicId());
     }
     if (!changeParent && !existingApplication.getOrganizationId().equals(application.getOrganizationId())) {
       throw new InvalidApplicationException("Cannot change the parent organization of an application.");

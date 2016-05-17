@@ -230,9 +230,9 @@ public abstract class AbstractApiApplicationResourceTest
 
     // Test the update
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
-    assertResponseStatus(400, response);
-    String errorMessage = response.getBodyText();
-    assertThat(errorMessage, is("Cannot change public ID of existing application."));
+    assertResponseStatus(200, response);
+    ApiApplicationDTO applicationResult = response.getBody(ApiApplicationDTO.class);
+    assertApplication(applicationResult, applicationDTO);
   }
 
   @Test

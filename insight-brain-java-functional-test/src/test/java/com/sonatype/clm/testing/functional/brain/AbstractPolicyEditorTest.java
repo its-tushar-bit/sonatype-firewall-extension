@@ -53,16 +53,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.focused;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.ActionsSection.activeClass;
@@ -674,8 +665,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void testCreatePolicy_notificationsSection() {
     PolicyEditorPage.notificationsPill().click();
-    NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
-    notificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
+    NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
 
     // add role notifications
     AddNotificationItem addNotification = NotificationsSection.addNotification();
@@ -750,12 +740,11 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertNewPolicyStateIsCorrect_notificationsSection() {
-    NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
-    ElementsCollection notifications = notificationsSection.notifications();
+    ElementsCollection notifications = NotificationsSection.notifications();
     notifications.shouldHaveSize(1);
     notifications.get(0).shouldHave(text("No notifications Configured"));
 
-    AddNotificationItem addNotification = notificationsSection.addNotification();
+    AddNotificationItem addNotification = NotificationsSection.addNotification();
     addNotification.addButton().shouldHave(DISABLED);
     addNotification.notificationType().selectedItem().shouldHave(text("Email"));
     addNotification.role().shouldNot(exist);
@@ -819,9 +808,7 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertEditPolicyStateIsCorrect_notificationsSection(final boolean isReadOnly) {
-    NotificationsSection notifications = PolicyEditorPage.notificationsSection();
-
-    AddNotificationItem addNotificationItem = notifications.addNotification();
+    AddNotificationItem addNotificationItem = NotificationsSection.addNotification();
 
     if (isReadOnly) {
       addNotificationItem.notificationType().shouldHave(CLM.DISABLED);
@@ -835,10 +822,10 @@ public abstract class AbstractPolicyEditorTest
     addNotificationItem.role().shouldNot(exist);
     addNotificationItem.addButton().shouldBe(disabled);
 
-    notifications.notifications().shouldHaveSize(2).shouldHave(texts("Developer", "test@foo.com"));
-    notifications.notificationFor("Developer").build().shouldBe(selected);
-    notifications.notificationFor("test@foo.com").build().shouldBe(selected);
-    notifications.notificationFor("test@foo.com").continuousMonitoring().shouldBe(selected);
+    NotificationsSection.notifications().shouldHaveSize(2).shouldHave(texts("Developer", "test@foo.com"));
+    NotificationsSection.notificationFor("Developer").build().shouldBe(selected);
+    NotificationsSection.notificationFor("test@foo.com").build().shouldBe(selected);
+    NotificationsSection.notificationFor("test@foo.com").continuousMonitoring().shouldBe(selected);
   }
 
   private void assertThreatLevelSelectorState(int selectedThreatLevel, boolean isReadOnly) {

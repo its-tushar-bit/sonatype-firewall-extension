@@ -227,7 +227,7 @@
             }
           },
           files: {
-            '<%= config.styleguide %>': '<%= config.styleguideSrc %>/*.scss'
+            '<%= config.styleguide %>': '<%= config.frontend %>/scss/*.scss'
           }
         }
       },

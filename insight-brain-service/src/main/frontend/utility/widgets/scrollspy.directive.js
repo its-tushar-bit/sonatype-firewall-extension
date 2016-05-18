@@ -20,7 +20,7 @@
           var me = $(this);
           //note the offset is 8 here, as using a higher number will occassionally push us into the next section
           //and select the wrong pill
-          element.scrollTop($(me.attr('data-target')).position().top + element.scrollTop() - 8);
+          element.animate({ scrollTop: $(me.attr('data-target')).position().top + element.scrollTop() - 8}, 300, 'easeInOutSine');
           $($scope.scrollspy + ' .nav li').removeClass('active');
           me.parent().addClass('active');
           $timeout(function(){

@@ -30,6 +30,10 @@
         content: {
           templateUrl: 'dashboard/dashboard.overview.html?' + clmBuildTimestamp,
           controller: 'dashboard.controller'
+        },
+        filter: {
+          templateUrl: 'dashboard/dashboard.filter.html?' + clmBuildTimestamp,
+          controller: 'dashboard.filter.controller as vm'
         }
       }
     }).state('dashboard-new.overview.newest-risk', {

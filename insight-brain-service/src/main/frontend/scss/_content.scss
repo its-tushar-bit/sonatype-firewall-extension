@@ -6,7 +6,7 @@
   ```
   <div class="main-view">
     <div class="root-container">
-      <div class="navigation-container">
+      <div class="sidebar-container">
         Cool nav content<br>
         Cool nav content<br>
         Cool nav content<br>
@@ -39,7 +39,7 @@
   ```
 */
 body {
-  //we want to let the navigation-container and body-container control the vertical scrolling
+  //we want to let the sidebar-container and body-container control the vertical scrolling
   overflow-y: hidden;
   background-color: $grey-3;
   color: #333333;
@@ -65,7 +65,7 @@ body {
   white-space: nowrap;
 }
 
-.navigation-container {
+.sidebar-container {
   width: 22%;
   min-width: 215px;
   max-width: 300px;

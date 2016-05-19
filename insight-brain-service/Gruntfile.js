@@ -216,7 +216,9 @@
               include: [
                 '<%= config.temp %>/scss/bootstrap.css',
                 '<%= config.frontend %>/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
+                '<%= config.frontend %>/lib/bootstrap/bootstrap-slider-2.0.0.css',
                 '<%= config.frontend %>/lib/components-font-awesome/css/font-awesome.css',
+                '<%= config.frontend %>/management.css',
                 '<%= config.temp %>/styleguide.css',
                 '<%= config.frontend %>/lib/jquery/jquery.min.js',
                 '<%= config.frontend %>/lib/angular/angular.min.js',

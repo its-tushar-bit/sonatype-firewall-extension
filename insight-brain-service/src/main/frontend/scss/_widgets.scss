@@ -305,6 +305,11 @@
     }
   }
 
+  .tree-view-control {
+    margin-left: 16px;
+    margin-top: 4px;
+  }
+
   .tree-view-filter {
     margin-bottom: 12px;
     display: block;
@@ -1694,3 +1699,52 @@ root-organization-migrate {
   }
 }
 
+/*
+  #Policy Threat Level Slider
+
+```
+<div class="policy-threat-level-slider">
+  <div class="slider slider-horizontal" style="width: 180px;">
+    <div class="slider-track">
+      <div class="slider-selection" style="left: 20%; width: 80%;"></div>
+      <div class="slider-handle" style="left: 20%;">2</div>
+      <div class="slider-handle" style="left: 100%;">10</div>
+    </div>
+  </div>
+</div>
+```
+*/
+.policy-threat-level-slider {
+  display: inline-block;
+
+  .slider {
+    width: 180px;
+
+    .slider-track {
+      width: inherit !important;
+      border-radius: 4px;
+      height: 6px !important;
+      background: $grey-4 none;
+      box-shadow: none;
+      border-width: 0px;
+
+      .slider-selection {
+        background-color: inherit;
+        background-image: inherit !important;
+        box-shadow: inherit;
+        border-width: inherit;
+      }
+
+      .slider-handle {
+        @extend .semi-bold;
+        height: 16px !important;
+        width: 16px;
+        background: $slate none;
+        color: $off-white;
+        box-shadow: none;
+        border-width: 0px;
+        font-size: 12px;
+      }
+    }
+  }
+}

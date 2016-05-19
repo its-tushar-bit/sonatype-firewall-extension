@@ -2,7 +2,25 @@
   <div class="tree-view-header">
     Filter
   </div>
-  <div load-wrapper="vm.fatalError" reload="vm.doLoad()" error-message="Unable to load filter data." loading="!vm.applications"
-       class="tree-view-group">
+  <div load-wrapper="vm.fatalError" reload="vm.doLoad()" error-message="Unable to load filter data."
+       loading="!vm.applications" class="tree-view-group">
+
+    <div class="tree-view-group">
+      <a class="tree-view-item" ng-click="vm.policyThreatLevelState.isExpanded = !vm.policyThreatLevelState.isExpanded">
+        <div class="twisty-container">
+          <span class="twisty"
+                ng-class="{ expand: !vm.policyThreatLevelState.isExpanded, collapse: vm.policyThreatLevelState.isExpanded}"></span>
+        </div>
+        Policy Threat Level
+        <div class="dashboard-filter-counter">{{vm.dirtyFilters.policyThreatLevel[0]}} &ndash;
+          {{vm.dirtyFilters.policyThreatLevel[1]}}
+        </div>
+      </a>
+      <div class="tree-view-control" ng-if="vm.policyThreatLevelState.isExpanded">
+        <div class="policy-threat-level-slider">
+          <div slider ng-model="vm.dirtyFilters.policyThreatLevel" min="0" max="10" hide-labels="true"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

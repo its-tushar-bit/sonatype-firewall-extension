@@ -278,3 +278,11 @@
 .move-application-dropdown {
   width: 400px;
 }
+
+.change-application-id-modal {
+  width: 440px;
+  #editor-current-id {
+    margin-left: 12px;
+    color: $off-black;
+  }
+}

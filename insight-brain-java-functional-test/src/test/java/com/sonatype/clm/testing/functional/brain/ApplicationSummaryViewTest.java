@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
+import com.sonatype.clm.testing.functional.elements.ChangeApplicationIdDialog;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
@@ -21,6 +22,7 @@ import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.RemoveModal;
 import com.sonatype.clm.testing.functional.elements.SelectContactModal;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
@@ -37,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.Rule;
@@ -312,6 +315,36 @@ public class ApplicationSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.moveApplication().shouldBe(visible).shouldHave(text("Move " + application.getName())).click();
     moveAppModal.shouldBe(visible);
+  }
+
+  @Test
+  public void testChangeApplicationId() {
+    ChangeApplicationIdDialog changeApplicationIdDialog = new ChangeApplicationIdDialog();
+    changeApplicationIdDialog.shouldNotBe(visible);
+    ActionDropDown.actionButton().click();
+    ActionDropDown.changeApplicationId().shouldBe(visible).click();
+    changeApplicationIdDialog.shouldBe(visible);
+    changeApplicationIdDialog.currentId().shouldHave(text(application.getPublicId()));
+    changeApplicationIdDialog.newId().shouldBe(Condition.empty).shouldHave(CLM.INITIAL_VALUE);
+    changeApplicationIdDialog.changeButton().shouldBe(disabled);
+
+    // current id is not a valid input
+    changeApplicationIdDialog.newId().val(application.getPublicId());
+    changeApplicationIdDialog.newId().shouldHave(cssClass("ng-invalid"));
+
+    // now change the id to a new, valid one
+    changeApplicationIdDialog.newId().val("newAppId");
+    changeApplicationIdDialog.newId().shouldNotHave(cssClass("ng-invalid"));
+    changeApplicationIdDialog.changeButton().shouldBe(enabled).click();
+    FormMask.seeAndWaitForDismissal();
+    changeApplicationIdDialog.shouldNotBe(visible);
+    waitUntilUrl(OwnerSummaryPage.url("application", "newAppId"));
+    OwnerSummaryPage.SummaryTile.publicId().shouldHave(text("newAppId"));
+    // check that sidebar app link is updated
+    OwnerTreeView.organization(0).treeViewElement().click();
+    waitUntilNotUrl(OwnerSummaryPage.url("application", "newAppId"));
+    OwnerTreeView.organization(0).application(0).click();
+    waitUntilUrl(OwnerSummaryPage.url("application", "newAppId"));
   }
 
   private void testEvaluateApplicationBinary() {

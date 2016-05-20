@@ -39,6 +39,10 @@ public class ActionDropDown
     return $("#app-move-link");
   }
 
+  public static SelenideElement changeApplicationId() {
+    return $("#change-app-id-link");
+  }
+
   public static SelenideElement deleteOwnerButton() {
     return $("#delete-owner-link");
   }

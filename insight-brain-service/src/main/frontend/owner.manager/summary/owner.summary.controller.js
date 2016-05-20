@@ -9,7 +9,8 @@
   function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, OwnerEditor, ApplicationStore,
                                   OrganizationStore, CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
                                   SelectApplicationContactService, EvaluateApplicationModalService,
-                                  ImportPolicyModalService, ownerConstant, MoveApplicationModal, EventNameConstant)
+                                  ImportPolicyModalService, ownerConstant, MoveApplicationModal, EventNameConstant,
+                                  ChangeApplicationIdService)
   {
     var vm = this;
 
@@ -29,6 +30,8 @@
     vm.openReport = openReport;
     vm.goToParentView = goToParentView;
     vm.selectContact = selectContact;
+    vm.changeApplicationId = changeApplicationId;
+
 
     var siblings,
         stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -103,6 +106,10 @@
       SelectApplicationContactService.open(owner);
     }
 
+    function changeApplicationId() {
+      ChangeApplicationIdService.open(vm.owner, siblings);
+    }
+
     function deleteOwner() {
       DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function() {
         $rootScope.$broadcast('owner.deleted', vm.owner, type);
@@ -141,7 +148,7 @@
     '$state', '$scope', '$rootScope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore',
     'OrganizationStore', 'CLMLocations', 'CLMAppLocations', 'StageTypeStore', 'DeleteModalService',
     'SelectApplicationContactService', 'evaluate.application.modal.service', 'import.policy.modal.service',
-    'owner.constant', 'move.application.modal.service', 'event.name.constant'
+    'owner.constant', 'move.application.modal.service', 'event.name.constant', 'change.application.id.service'
   ];
 
   angular//

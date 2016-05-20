@@ -1,7 +1,3 @@
-/**
- * @license Copyright (c) 2011-present Sonatype, Inc. All rights reserved. Includes the third-party code listed at
- *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a trademark of Sonatype, Inc.
- */
 describe('dashboard.filter.controller',function() {
   "use strict";
 
@@ -66,9 +62,7 @@ describe('dashboard.filter.controller',function() {
       vm = $controller('dashboard.filter.controller', {
         $scope: $scope
       });
-      expect(vm.filtersLoaded).toBeFalsy();
       $httpBackend.flush();
-      expect(vm.filtersLoaded).toBe(true);
     }));
 
     afterEach(inject(function($httpBackend) {
@@ -79,62 +73,70 @@ describe('dashboard.filter.controller',function() {
       $httpBackend.verifyNoOutstandingRequest();
     }));
 
-    it('data loaded and placed in vm',inject(function() {
-      expect(vm.filters.policyThreatTypes).toEqual(['QUALITY', 'OTHER', 'SECURITY']);
-      expect(vm.filters.stageTypeIds).toEqual(['release', 'stage-release', 'build']);
-      expect(vm.filters.applicationTagIds).toEqual(['tagId1', 'tagId2']);
-      expect(vm.filters.applicationIds).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ']);
-      expect(vm.filters.policyThreatLevel).toEqual([3, 6]);
+    it('load populates state',inject(function() {
+      expect(vm.selected.policyTypes).toEqual({'QUALITY': true, 'OTHER': true, 'SECURITY': true});
+      expect(vm.selected.stages).toEqual({'release': true, 'stage-release': true, 'build': true});
+      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true});
+      expect(vm.selected.applications).toEqual({'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true});
+      expect(vm.selected.policyThreatLevels).toEqual([3, 6]);
+
       expect(vm.applications.length).toBe(applicationData.length);
       expect(vm.applications[0].id).toBe(applicationData[0].id);
       expect(vm.applications[1].id).toBe(applicationData[1].id);
-      expect(vm.stageTypes.length).toBe(MockData.getDashboardStageData().length);
-      expect(vm.stageTypes[0].stageTypeId).toBe(MockData.getDashboardStageData()[0].stageTypeId);
-      expect(vm.stageTypes[1].stageTypeId).toBe(MockData.getDashboardStageData()[1].stageTypeId);
-      expect(vm.applicationTags.length).toBe(tagData.length);
-      expect(vm.applicationTags[0].id).toBe(tagData[0].id);
-      expect(vm.applicationTags[0].owner).toBe(organizationData[0].name);
+      expect(vm.stages.length).toBe(MockData.getDashboardStageData().length);
+      expect(vm.stages[0].stageTypeId).toBe(MockData.getDashboardStageData()[0].stageTypeId);
+      expect(vm.stages[1].stageTypeId).toBe(MockData.getDashboardStageData()[1].stageTypeId);
+      expect(vm.categories.length).toBe(tagData.length);
+      expect(vm.categories[0].id).toBe(tagData[0].id);
+      expect(vm.categories[0].owner).toBe(organizationData[0].name);
     }));
 
-    it('validate filter and dirty filter usage in scope', inject(function($httpBackend, CLMLocations) {
-      // make sure updating the text fields doesn't update the filter (at least prior to hitting save)
-      $scope.$apply(function() {
-        vm.dirtyFilters.applicationIds = ['applicationIdA'];
-      });
-      expect(vm.filters.applicationIds).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ']);
+    it('resets to saved state', inject(function($httpBackend, CLMLocations) {
+      vm.selected.applications.applicationIdZ = false;
+      vm.selected.stages.release = false;
+      vm.selected.categories.tagId1 = false;
+      vm.selected.policyTypes.QUALITY = false;
+      vm.selected.policyThreatLevels[0] = 0;
+      vm.reset();
 
-      // make sure cancel cleans out the dirty filter
-      $scope.$apply(function() {
-        vm.cancel();
-      });
-      expect(vm.dirtyFilters.applicationIds).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ']);
-
-      // make sure save puts data into the filter (from dirty filter)
-      $scope.$apply(function() {
-        vm.dirtyFilters.applicationIds = ['applicationIdA'];
-      });
-      var data = angular.copy(filterData);
-      data.applicationFilters = ['applicationIdA'];
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), data).respond(200);
-      vm.save();
-      $httpBackend.flush();
-      expect(vm.dirtyFilters.applicationIds).toEqual(['applicationIdA']);
-      expect(vm.filters.applicationIds).toEqual(['applicationIdA']);
-
-      // make sure reset isn't automatically put in effect
-      $scope.$apply(function() {
-        vm.reset();
-        expect(vm.dirtyFilters.applicationIds).toEqual([]);
-        expect(vm.filters.applicationIds).toEqual(['applicationIdA']);
-      });
+      expect(vm.selected.policyTypes).toEqual({'QUALITY': true, 'OTHER': true, 'SECURITY': true});
+      expect(vm.selected.stages).toEqual({'release': true, 'stage-release': true, 'build': true});
+      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true});
+      expect(vm.selected.applications).toEqual({'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true});
+      expect(vm.selected.policyThreatLevels).toEqual([3, 6]);
     }));
 
-    it('validate alert created on save error', inject(function($httpBackend, CLMLocations) {
+    it('handles error on save', inject(function($httpBackend, CLMLocations) {
       expect(vm.alerts).not.toBeDefined();
       $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), filterData).respond(500);
       vm.save();
       $httpBackend.flush();
       expect(vm.alerts).toBeDefined();
+    }));
+
+    it('save + reset', inject(function($httpBackend, CLMLocations) {
+      var expected = angular.copy(filterData);
+      expected.policyThreatCategoryFilters.splice(0, 1); // remove QUALITY
+      expected.stageTypeFilters.splice(0, 1); // remove release
+      expected.tagFilters.splice(0, 1); // remove tagId1
+      expected.applicationFilters.splice(0, 1); // remove applicationIdZ
+      expected.minPolicyThreatLevel = 0;
+      $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), expected).respond(204);
+
+      vm.selected.applications.applicationIdZ = false;
+      vm.selected.stages.release = false;
+      vm.selected.categories.tagId1 = false;
+      vm.selected.policyTypes.QUALITY = false;
+      vm.selected.policyThreatLevels[0] = 0;
+      vm.save();
+      $httpBackend.flush();
+      
+      vm.reset();
+
+      expect(vm.selected.applications.applicationIdZ).toBeFalsy();
+      expect(vm.selected.stages.release).toBeFalsy();
+      expect(vm.selected.categories.tagId1).toBeFalsy();
+      expect(vm.selected.policyThreatLevels[0]).toEqual(0);
     }));
   });
 
@@ -152,9 +154,9 @@ describe('dashboard.filter.controller',function() {
         $scope: $scope
       });
 
-      expect(vm.fatalError).toBeFalsy();
+      expect(vm.loadError).toBeFalsy();
       $httpBackend.flush();
-      expect(vm.fatalError).toBeTruthy();
+      expect(vm.loadError).toBeTruthy();
     }
 
     beforeEach(inject(function($rootScope, $httpBackend, $controller, CLMLocations) {

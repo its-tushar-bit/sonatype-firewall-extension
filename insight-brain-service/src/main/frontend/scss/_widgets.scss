@@ -310,6 +310,10 @@
     margin-top: 4px;
   }
 
+  .tree-view-children {
+    margin-left: 26px;
+  }
+
   .tree-view-filter {
     margin-bottom: 12px;
     display: block;
@@ -338,6 +342,10 @@
         margin-left: 0px;
       }
 
+      &:not(.fa):not(.hexagon) {
+        margin-right: 0px;
+      }
+
       &.icon-12px {
         line-height: 12px;
         font-size: 12px;
@@ -355,7 +363,12 @@
       margin-left: 48px;
     }
 
-    a.tree-view-item {
+    label.tree-view-item {
+      @extend .regular;
+      padding-left: 31px; /* 7px from below, 24px for the icon */
+    }
+
+    .tree-view-item {
       @extend h4;
       color: $slate;
       text-transform: none;

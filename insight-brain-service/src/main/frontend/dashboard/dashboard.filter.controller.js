@@ -7,18 +7,40 @@
 (function() {
   'use strict';
 
-  function DashboardFilterController($scope, $http, $q, Dialog, CLMLocations, ApplicationStore, StageTypeStore, OrganizationStore) {
-    var vm = this;
+  function DashboardFilterController($scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
+                                     OrganizationStore) {
+    var vm = this,
+        savedFilters;
 
-    vm.applications = null;
-    vm.applicationTags = null;
-    vm.stageTypes = null;
+    // Available
+    vm.applications = undefined;
+    vm.categories = undefined;
+    vm.stages = undefined;
+    vm.policyTypes = [{
+      id: 'SECURITY',
+      name: 'Security'
+    }, {
+      id: 'LICENSE',
+      name: 'License'
+    }, {
+      id: 'QUALITY',
+      name: 'Quality'
+    }, {
+      id: 'OTHER',
+      name: 'Other'
+    }];
 
-    vm.error = undefined;
-    vm.fatalError = undefined;
-    vm.filtersLoaded = false;
+    // User selected
+    vm.selected = {
+      applications: {},
+      categories: {},
+      policyThreatLevels: [2, 10],
+      policyTypes: {},
+      stages: {}
+    };
 
-    vm.cancel = cancel;
+    vm.loadError = undefined;
+
     vm.doLoad = doLoad;
     vm.reset = reset;
     vm.save = save;
@@ -30,116 +52,79 @@
     });
 
     function doLoad() {
-      vm.dirtyFilters = getEmptyFilters();
-      vm.error = null;
-      vm.fatalError = null;
-      vm.filtersLoaded = false;
+      delete vm.loadError;
 
       var promises = [ApplicationStore.get(), StageTypeStore.getDashboardStages(), OrganizationStore.get(),
                       $http.get(CLMLocations.getApplicationTagsUrl()), $http.get(CLMLocations.getDashboardFilters())];
 
       $q.all(promises).then(function(data) {
+        var organizations = data[2],
+            storedFilters = data[4].data;
         vm.applications = data[0];
-        vm.stageTypes = angular.copy(data[1]); // Stores should not be modified directly
-        var organizations = data[2];
-        vm.applicationTags = data[3].data;
+        vm.stages = data[1];
+        vm.categories = data[3].data;
 
-        // multiSelect specifically uses name & id fields
-        vm.stageTypes.forEach(function (stage) {
-          stage.name = stage.stageName;
-          stage.id = stage.stageTypeId;
-        });
-
-        angular.forEach(vm.applicationTags, function(tag) {
+        angular.forEach(vm.categories, function(category) {
           for (var i = 0; i < organizations.length; i++) {
-            if (tag.organizationId === organizations[i].id) {
-              tag.owner = organizations[i].name;
+            if (category.organizationId === organizations[i].id) {
+              category.owner = organizations[i].name;
               break;
             }
           }
         });
 
-        vm.policyThreatTypes = [{
-          id: 'SECURITY',
-          name: 'Security'
-        }, {
-          id: 'LICENSE',
-          name: 'License'
-        }, {
-          id: 'QUALITY',
-          name: 'Quality'
-        }, {
-          id: 'OTHER',
-          name: 'Other'
-        }];
+        if (storedFilters) {
+          storedFilters.applicationFilters.forEach(function(applicationId) {
+            vm.selected.applications[applicationId] = true;
+          });
 
-        vm.nameMaps = {
-          applications: {},
-          applicationTags: {},
-          stageTypes: {},
-          policyTypes: {}
-        };
+          storedFilters.tagFilters.forEach(function(categoryId) {
+            vm.selected.categories[categoryId] = true;
+          });
 
-        if (data[4].data) {
-          vm.filters = {
-            applicationIds: data[4].data.applicationFilters,
-            policyThreatTypes: data[4].data.policyThreatCategoryFilters,
-            stageTypeIds: data[4].data.stageTypeFilters,
-            applicationTagIds: data[4].data.tagFilters,
-            policyThreatLevel: [data[4].data.minPolicyThreatLevel, data[4].data.maxPolicyThreatLevel]
-          };
+          storedFilters.stageTypeFilters.forEach(function(stageId) {
+            vm.selected.stages[stageId] = true;
+          });
 
-          vm.dirtyFilters = angular.copy(vm.filters);
+          storedFilters.policyThreatCategoryFilters.forEach(function(policyTypeId) {
+            vm.selected.policyTypes[policyTypeId] = true;
+          });
+          vm.selected.policyThreatLevels = [storedFilters.minPolicyThreatLevel, storedFilters.maxPolicyThreatLevel];
         }
-        else {
-          vm.filters = getEmptyFilters();
-        }
-
-        vm.filtersLoaded = true;
+        savedFilters = angular.copy(vm.selected);
       }, function(error) {
-        vm.fatalError = error;
+        vm.loadError = error;
       });
     }
 
-    function cancel() {
-      vm.dirtyFilters = angular.copy(vm.filters);
-      vm.expanded = false;
-    }
-
     function reset() {
-      vm.dirtyFilters = getEmptyFilters();
+      vm.selected = angular.copy(savedFilters);
     }
 
     function save() {
-      vm.filters = angular.copy(vm.dirtyFilters);
-
       $http.put(CLMLocations.getDashboardFilters(), {
-        applicationFilters: vm.filters.applicationIds,
-        policyThreatCategoryFilters: vm.filters.policyThreatTypes,
-        stageTypeFilters: vm.filters.stageTypeIds,
-        tagFilters: vm.filters.applicationTagIds,
-        minPolicyThreatLevel: vm.filters.policyThreatLevel[0],
-        maxPolicyThreatLevel: vm.filters.policyThreatLevel[1]
-      }).then(function(){
-        vm.expanded = false;
+        applicationFilters: createSelectedIdsArray(vm.selected.applications),
+        policyThreatCategoryFilters: createSelectedIdsArray(vm.selected.policyTypes),
+        stageTypeFilters: createSelectedIdsArray(vm.selected.stages),
+        tagFilters: createSelectedIdsArray(vm.selected.categories),
+        minPolicyThreatLevel: vm.selected.policyThreatLevels[0],
+        maxPolicyThreatLevel: vm.selected.policyThreatLevels[1]
+      }).then(function() {
+        savedFilters = angular.copy(vm.selected);
       }, function() {
         vm.alerts = [AngularUtils.toAlert(arguments)];
       });
     }
+
+    function createSelectedIdsArray(selectedMap) {
+      return Object.keys(selectedMap).filter(function(id) {
+        return selectedMap[id];
+      });
+    }
   }
 
-  DashboardFilterController.$inject = ['$scope', '$http', '$q', 'Dialog', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore'];
-
-  function getEmptyFilters() {
-    return {
-      applicationIds: [],
-      policyThreatTypes: [],
-      stageTypeIds: [],
-      applicationTagIds: [],
-      policyThreatLevel: [2, 10]
-    };
-  }
+  DashboardFilterController.$inject = ['$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore',
+                                       'OrganizationStore'];
 
   angular.module('dashboard.module').controller('dashboard.filter.controller', DashboardFilterController);
-
 }());

@@ -103,7 +103,8 @@ describe('dashboard.filter.controller',function() {
 
     it('handles error on save', inject(function($httpBackend, CLMLocations) {
       expect(vm.saveError).not.toBeDefined();
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), filterData).respond(500);
+      vm.selected.applications.fakeId = true;
+      $httpBackend.expectPUT(CLMLocations.getDashboardFilters()).respond(500);
       vm.save();
       $httpBackend.flush();
       expect(vm.saveError).toBeDefined();

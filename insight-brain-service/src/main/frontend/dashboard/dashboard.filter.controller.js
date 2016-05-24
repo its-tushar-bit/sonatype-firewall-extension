@@ -117,7 +117,7 @@
     function save() {
       delete vm.saveError;
 
-      if (!vm.isDirty) {
+      if (!vm.isDirty()) {
         return;
       }
 

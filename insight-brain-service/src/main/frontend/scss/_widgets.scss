@@ -278,9 +278,7 @@
   ```
 */
 .tree-view {
-  margin-top: 16px;
-  margin-left: 8px;
-  margin-right: 8px;
+  padding: 16px 8px 0 8px;
 
   .tree-view-header {
     @extend h3;

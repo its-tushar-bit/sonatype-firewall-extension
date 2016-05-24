@@ -3,12 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, AngularUtils */
-(function() {
+(function(angular) {
   'use strict';
 
-  function DashboardFilterController($scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
-                                     OrganizationStore) {
+  function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
+                                     OrganizationStore, EventNameConstant) {
     var vm = this,
         savedFilters;
 
@@ -40,9 +39,12 @@
     };
 
     vm.loadError = undefined;
+    vm.saveError = undefined;
 
     vm.doLoad = doLoad;
-    vm.reset = reset;
+    vm.isDirty = isDirty;
+    vm.clear = clear;
+    vm.revert = revert;
     vm.save = save;
 
     vm.doLoad();
@@ -92,16 +94,33 @@
           vm.selected.policyThreatLevels = [storedFilters.minPolicyThreatLevel, storedFilters.maxPolicyThreatLevel];
         }
         savedFilters = angular.copy(vm.selected);
+        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, storedFilters);
       }, function(error) {
         vm.loadError = error;
       });
     }
 
-    function reset() {
+    function clear() {
+      vm.selected = {
+        applications: {},
+        categories: {},
+        stages: {},
+        policyTypes: {},
+        policyThreatLevels: [2, 10]
+      };
+    }
+
+    function revert() {
       vm.selected = angular.copy(savedFilters);
     }
 
     function save() {
+      delete vm.saveError;
+
+      if (!vm.isDirty) {
+        return;
+      }
+
       $http.put(CLMLocations.getDashboardFilters(), {
         applicationFilters: createSelectedIdsArray(vm.selected.applications),
         policyThreatCategoryFilters: createSelectedIdsArray(vm.selected.policyTypes),
@@ -109,22 +128,25 @@
         tagFilters: createSelectedIdsArray(vm.selected.categories),
         minPolicyThreatLevel: vm.selected.policyThreatLevels[0],
         maxPolicyThreatLevel: vm.selected.policyThreatLevels[1]
-      }).then(function() {
+      }).then(function(storedFilters) {
         savedFilters = angular.copy(vm.selected);
-      }, function() {
-        vm.alerts = [AngularUtils.toAlert(arguments)];
+        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, storedFilters.data);
+      }, function(error) {
+        vm.saveError = error;
       });
+    }
+
+    function isDirty() {
+      return !angular.equals(vm.selected, savedFilters);
     }
 
     function createSelectedIdsArray(selectedMap) {
-      return Object.keys(selectedMap).filter(function(id) {
-        return selectedMap[id];
-      });
+      return Object.keys(selectedMap);
     }
   }
 
-  DashboardFilterController.$inject = ['$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore',
-                                       'OrganizationStore'];
+  DashboardFilterController.$inject = ['$rootScope', '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore',
+                                       'StageTypeStore', 'OrganizationStore', 'event.name.constant'];
 
   angular.module('dashboard.module').controller('dashboard.filter.controller', DashboardFilterController);
-}());
+}(angular));

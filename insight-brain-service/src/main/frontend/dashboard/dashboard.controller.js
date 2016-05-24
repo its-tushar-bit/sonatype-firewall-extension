@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function DashboardController($scope, $modal) {
+  function DashboardController($scope, $modal, EventNameConstant) {
     $scope.maxResults = 100;
     $scope.showTrendDialog = showTrendDialog;
     $scope.filters = {
@@ -16,6 +16,16 @@
       applicationTagIds: [],
       policyThreatLevel: [0, 10]
     };
+
+    $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS, function(e, newFilters) {
+      $scope.filters = {
+        applicationIds: newFilters.applicationFilters,
+        policyThreatTypes: newFilters.policyThreatCategoryFilters,
+        stageTypeIds: newFilters.stageTypeFilters,
+        applicationTagIds: newFilters.tagFilters,
+        policyThreatLevel: [newFilters.minPolicyThreatLevel, newFilters.maxPolicyThreatLevel]
+      };
+    });
 
     function showTrendDialog() {
       $modal.open({
@@ -33,7 +43,7 @@
     }
   }
 
-  DashboardController.$inject = ['$scope', '$modal'];
+  DashboardController.$inject = ['$scope', '$modal', 'event.name.constant'];
 
   angular.module('dashboard.module').controller('dashboard.controller', DashboardController);
 

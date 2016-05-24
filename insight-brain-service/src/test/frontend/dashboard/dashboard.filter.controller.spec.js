@@ -91,53 +91,69 @@ describe('dashboard.filter.controller',function() {
       expect(vm.categories[0].owner).toBe(organizationData[0].name);
     }));
 
-    it('resets to saved state', inject(function($httpBackend, CLMLocations) {
-      vm.selected.applications.applicationIdZ = false;
-      vm.selected.stages.release = false;
-      vm.selected.categories.tagId1 = false;
-      vm.selected.policyTypes.QUALITY = false;
-      vm.selected.policyThreatLevels[0] = 0;
-      vm.reset();
+    it('clears to empty state', function() {
+      vm.clear();
 
-      expect(vm.selected.policyTypes).toEqual({'QUALITY': true, 'OTHER': true, 'SECURITY': true});
-      expect(vm.selected.stages).toEqual({'release': true, 'stage-release': true, 'build': true});
-      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true});
-      expect(vm.selected.applications).toEqual({'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true});
-      expect(vm.selected.policyThreatLevels).toEqual([3, 6]);
-    }));
+      expect(vm.selected.policyTypes).toEqual({});
+      expect(vm.selected.stages).toEqual({});
+      expect(vm.selected.categories).toEqual({});
+      expect(vm.selected.applications).toEqual({});
+      expect(vm.selected.policyThreatLevels).toEqual([2, 10]);
+    });
 
     it('handles error on save', inject(function($httpBackend, CLMLocations) {
-      expect(vm.alerts).not.toBeDefined();
+      expect(vm.saveError).not.toBeDefined();
       $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), filterData).respond(500);
       vm.save();
       $httpBackend.flush();
-      expect(vm.alerts).toBeDefined();
+      expect(vm.saveError).toBeDefined();
     }));
 
-    it('save + reset', inject(function($httpBackend, CLMLocations) {
-      var expected = angular.copy(filterData);
-      expected.policyThreatCategoryFilters.splice(0, 1); // remove QUALITY
-      expected.stageTypeFilters.splice(0, 1); // remove release
-      expected.tagFilters.splice(0, 1); // remove tagId1
-      expected.applicationFilters.splice(0, 1); // remove applicationIdZ
-      expected.minPolicyThreatLevel = 0;
-      $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), expected).respond(204);
+    it('revert', function() {
+      var expected = angular.copy(vm.selected);
 
-      vm.selected.applications.applicationIdZ = false;
-      vm.selected.stages.release = false;
-      vm.selected.categories.tagId1 = false;
-      vm.selected.policyTypes.QUALITY = false;
+      delete vm.selected.applications.applicationIdZ;
+      delete vm.selected.stages.release;
+      delete vm.selected.categories.tagId1;
+      delete vm.selected.policyTypes.QUALITY;
       vm.selected.policyThreatLevels[0] = 0;
-      vm.save();
-      $httpBackend.flush();
-      
-      vm.reset();
 
-      expect(vm.selected.applications.applicationIdZ).toBeFalsy();
-      expect(vm.selected.stages.release).toBeFalsy();
-      expect(vm.selected.categories.tagId1).toBeFalsy();
-      expect(vm.selected.policyThreatLevels[0]).toEqual(0);
-    }));
+      vm.revert();
+
+      expect(vm.selected).toEqual(expected);
+    });
+
+    it('save + revert', inject([
+      '$rootScope', '$httpBackend', 'CLMLocations', 'event.name.constant',
+      function($rootScope, $httpBackend, CLMLocations, EventNameConstant) {
+        spyOn($rootScope, '$broadcast');
+
+        var expected = angular.copy(filterData);
+        expected.policyThreatCategoryFilters.splice(0, 1); // remove QUALITY
+        expected.stageTypeFilters.splice(0, 1); // remove release
+        expected.tagFilters.splice(0, 1); // remove tagId1
+        expected.applicationFilters.splice(0, 1); // remove applicationIdZ
+        expected.minPolicyThreatLevel = 0;
+        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), expected).respond(expected);
+
+        delete vm.selected.applications.applicationIdZ;
+        delete vm.selected.stages.release;
+        delete vm.selected.categories.tagId1;
+        delete vm.selected.policyTypes.QUALITY;
+        vm.selected.policyThreatLevels[0] = 0;
+
+        vm.save();
+        $httpBackend.flush();
+        expect($rootScope.$broadcast).toHaveBeenCalledWith(EventNameConstant.UPDATE_DASHBOARD_FILTERS, expected);
+
+        expected = angular.copy(vm.selected);
+        delete vm.selected.policyTypes.OTHER;
+
+        vm.revert();
+
+        expect(vm.selected).toEqual(expected);
+      }
+    ]));
   });
 
   describe('load errors', function() {

@@ -54,6 +54,7 @@
     vm.allSelected = allSelected;
     vm.toggleSelectAll = toggleSelectAll;
     vm.updateSelectedCount = updateSelectedCount;
+    vm.clearIfUnselected = clearIfUnselected;
 
     $scope.$watch('selected', function() {
       vm.selectedCount = Object.keys($scope.selected).filter(function(id) {
@@ -118,6 +119,12 @@
       }
       else {
         vm.selectedCount--;
+      }
+    }
+
+    function clearIfUnselected(item) {
+      if (!$scope.selected[item]) {
+        delete $scope.selected[item];
       }
     }
   }

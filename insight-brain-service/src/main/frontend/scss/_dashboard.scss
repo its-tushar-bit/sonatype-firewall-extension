@@ -811,15 +811,50 @@ Dashboard tables
   }
 }
 
-.dashboard-filter-counter {
-  @extend .semi-bold;
-  float: right;
-  background-color: $grey-1;
-  height: 16px;
-  border: 1px $grey-3 solid;
-  border-radius: 8px;
-  padding: 0px 4px;
-  font-size: 11px;
-  color: $slate;
-  margin-right: 8px;
+.dashboard-filter-container {
+  $tree-view-padding-top: 16px;
+  $tree-view-padding-bottom: 8px;
+  $filter-footer-height: #{32px + 12px + 12px + 1px};
+  height: 100%;
+  margin: 0;
+  position: relative;
+
+  .tree-view {
+    overflow-y: auto;
+    padding-bottom: $tree-view-padding-bottom;
+    height: calc(100% - #{$filter-footer-height} - #{$tree-view-padding-top} - #{$tree-view-padding-bottom});
+
+    .dashboard-filter-counter {
+      @extend .semi-bold;
+      float: right;
+      background-color: $grey-1;
+      height: 16px;
+      border: 1px $grey-3 solid;
+      border-radius: 8px;
+      padding: 0px 4px;
+      font-size: 11px;
+      color: $slate;
+      margin-right: 8px;
+    }
+  }
+
+  .dashboard-filter-footer {
+    $footer-side-margin: 8px;
+    width: calc(100% - #{2 * $footer-side-margin});
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 12px 0;
+    margin: 0 $footer-side-margin;
+    border-top: 1px solid $grey-4;
+    box-shadow: 0px 0px 12px 10px $grey-2;
+
+    .btn {
+      min-width: initial;
+
+      &:not(:last-child) {
+        margin-right: 4px;
+      }
+    }
+  }
 }

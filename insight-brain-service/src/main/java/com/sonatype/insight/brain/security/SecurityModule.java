@@ -167,11 +167,15 @@ public class SecurityModule
   }
 
   protected void bindWebSecurityManager(AnnotatedBindingBuilder<? super WebSecurityManager> bind) {
+    // CLM-6473 - Pre-authentication deserialization vulnerability in IQ Server
+    final DefaultWebSecurityManager defaultWebSecurityManager = new DefaultWebSecurityManager();
+    defaultWebSecurityManager.setRememberMeManager(null);
+
     /*
      * NOTE: Not using bind.to( DefaultWebSecurityManager.class) to avoid
      * https://issues.apache.org/jira/browse/SHIRO-369.
      */
-    bind.toInstance(new DefaultWebSecurityManager());
+    bind.toInstance(defaultWebSecurityManager);
     /*
      * TODO: The above will trigger ShiroModule.BeanTypeListener which eventually sets a DefaultSessionManager
      * on the security manager, replacing the ServletContainerSessionManager it uses by default. Is this what we

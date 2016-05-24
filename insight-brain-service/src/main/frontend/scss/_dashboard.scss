@@ -850,7 +850,7 @@ Dashboard tables
     box-shadow: 0px 0px 12px 10px $grey-2;
 
     .btn {
-      min-width: initial;
+      min-width: auto;
 
       &:not(:last-child) {
         margin-right: 4px;

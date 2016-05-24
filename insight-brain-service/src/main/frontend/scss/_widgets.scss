@@ -1740,12 +1740,14 @@ root-organization-migrate {
       background: $grey-4 none;
       box-shadow: none;
       border-width: 0px;
+      filter: none;
 
       .slider-selection {
         background-color: inherit;
         background-image: inherit !important;
         box-shadow: inherit;
         border-width: inherit;
+        filter: inherit;
       }
 
       .slider-handle {

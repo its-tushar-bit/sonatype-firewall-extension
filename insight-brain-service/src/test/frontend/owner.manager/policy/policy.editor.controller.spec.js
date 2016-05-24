@@ -176,7 +176,7 @@ describe('policy.editor.controller.spec.js', function() {
       }], '456', true);
 
       expect(vm.dirtyPolicy).toBeUndefined();
-      expect(vm.loadError).toBe('Unable to locate Policy.');
+      expect(vm.loadError).toBe('some error');
     }));
 
     it('Unsuccessful save sets error message', inject(function($controller) {
@@ -346,6 +346,21 @@ describe('policy.editor.controller.spec.js', function() {
 
     function resolveLoadData(policyStoreData, policyId, expectError) {
       mockPolicyStore.resolveGet(policyStoreData);
+
+      if (policyId) {
+        var found = false;
+        policyStoreData.some(function(owner) {
+          owner.policies.some(function(policy) {
+            if (policy.id === policyId) {
+              mockPolicyStore.resolveGetById(policy);
+              return found = true;
+            }
+          });
+        });
+        if (!found) {
+          mockPolicyStore.rejectGetById('some error');
+        }
+      }
 
       if (!expectError  && (!isApp || policyStoreData.length > 1 && policyStoreData[1].policies.some(function(policy) { return policyId === policy.id }))) {
         $httpBackend.expectGET(CLMAppLocations.getCategoriesUrl()).respond(mockCategoryOwners);

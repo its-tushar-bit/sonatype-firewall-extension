@@ -17,7 +17,8 @@
         getUrl: CLMAppLocations.getCategoriesUrl,
         template: tagTemplate,
         field: 'tagsByOwner',
-        storeField: 'tags'
+        storeField: 'tags',
+        type: 'application category'
       };
       var tagStores = CachedHierarchyStore.get(tagStoreTemplate);
 

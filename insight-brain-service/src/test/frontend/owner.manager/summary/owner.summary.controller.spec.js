@@ -67,6 +67,7 @@ describe('owner.summary.controller.js', function() {
 
     it('Properly Loading Data', function() {
       mockOwnerStore.resolveGet([owner]);
+      mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
@@ -81,6 +82,7 @@ describe('owner.summary.controller.js', function() {
 
     it('Properly routing to Build Report', inject(function($window) {
       mockOwnerStore.resolveGet([owner]);
+      mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
@@ -101,6 +103,7 @@ describe('owner.summary.controller.js', function() {
 
     it('Properly Displaying Error', function() {
       mockOwnerStore.resolveGet([{}, {}]);
+      mockOwnerStore.rejectGetById('Could not find an ' + type);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
@@ -121,6 +124,7 @@ describe('owner.summary.controller.js', function() {
       // reload successfully
       vm.doLoad();
       mockOwnerStore.resolveRefresh([owner]);
+      mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
@@ -131,6 +135,7 @@ describe('owner.summary.controller.js', function() {
 
     it('ApplicationSummary Loading Error', function() {
       mockOwnerStore.resolveGet([owner]);
+      mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(400, 'Bad Request');
       $timeout.flush();
@@ -145,6 +150,7 @@ describe('owner.summary.controller.js', function() {
 
     it('StageTypeStore Loading Error', function() {
       mockOwnerStore.resolveGet([owner]);
+      mockOwnerStore.resolveGetById(owner);
       stageTypeStoreDefer.reject('Error')
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
@@ -158,8 +164,8 @@ describe('owner.summary.controller.js', function() {
     });
 
     it('Delete Owner goes to parent view', function() {
-
       mockOwnerStore.resolveGet([owner]);
+      mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();

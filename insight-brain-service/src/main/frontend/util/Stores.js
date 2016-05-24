@@ -17,6 +17,7 @@
       var applicationStore = clmResource.getStore({
         id: 'publicId',
         url: clmLocations.getApplicationsUrl(),
+        type: 'application',
         template: function() {
           var lastOrg = LastSelectedOrganization.get();
           return {
@@ -41,6 +42,7 @@
       return clmResource.getStore({
         id: 'id',
         url: CLMLocations.getOrganizationsUrl(),
+        type: 'organization',
         template: {
           id: null,
           name: null
@@ -202,6 +204,7 @@
           },
           monitorNotifyActions: []
         },
+        type: 'policy',
         getUrl: CLMAppLocations.getApplicablePolicies,
         crudUrl: CLMAppLocations.getPolicyUrl,
         field: 'policiesByOwner',
@@ -235,6 +238,9 @@
       return {
         get: function() {
           return refreshStore().get();
+        },
+        getById: function(requiredId) {
+          return refreshStore().getById(requiredId);
         },
         refresh: function() {
           return refreshStore().refresh();

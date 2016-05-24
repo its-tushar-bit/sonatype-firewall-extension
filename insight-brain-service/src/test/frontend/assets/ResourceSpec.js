@@ -659,4 +659,98 @@ describe('Resource', function() {
       expect(contents.length).toEqual(2);
     }));
   });
+
+  describe('getById', function () {
+    var store;
+
+    beforeEach(inject(function(CLMResource, $httpBackend) {
+      var contents = null,
+          spy = jasmine.createSpy('spy'),
+          errorSpy = jasmine.createSpy('errorSpy');
+
+      store = CLMResource.getStore({
+        id: 'id',
+        url: storeUrl,
+        type: 'app',
+        template: { id: null }
+      });
+
+      $httpBackend.expectGET(storeUrl).respond([{ id: 'foo' }, { id: 'bar' }]);
+    }));
+
+    describe('Store already loaded', function() {
+      beforeEach(inject(function($httpBackend, $timeout) {
+        store.get();
+        $httpBackend.flush();
+      }));
+
+      it('entity exists', inject(function($httpBackend, $timeout) {
+        var result;
+        store.getById('foo').then(function(entity) {
+          result = entity;
+        });
+        $timeout.flush();
+        expect(result.id).toEqual('foo');
+      }));
+
+      describe('missing entity', function() {
+        it('reload finds', inject(function($httpBackend, $timeout) {
+          var result;
+          store.getById('xxx').then(function(entity) {
+            result = entity;
+          });
+          $httpBackend.expectGET(storeUrl).respond([{ id: 'foo' }, { id: 'bar' }, { id: 'xxx' }]);
+          $httpBackend.flush();
+          $timeout.flush();
+
+          expect(result.id).toEqual('xxx');
+        }));
+
+        it('reloads and still missing', inject(function($httpBackend, $timeout) {
+          var result;
+          store.getById('xxx').then(angular.noop, function(error) {
+            result = error;
+          });
+          $httpBackend.expectGET(storeUrl).respond([{ id: 'foo' }, { id: 'bar' }]);
+          $httpBackend.flush();
+          $timeout.flush();
+
+          expect(result).toEqual('Could not find an app with ID xxx.');
+        }));
+      });
+    });
+
+    function nonReloadingTest() {
+      it('exists', inject(function($httpBackend, $timeout) {
+        var result;
+        store.getById('foo').then(function(entity) {
+          result = entity;
+        });
+        $httpBackend.flush();
+        $timeout.flush();
+        expect(result.id).toEqual('foo');
+      }));
+
+      it('missing', inject(function($httpBackend, $timeout) {
+        var result;
+        store.getById('xxx').then(angular.noop, function(error) {
+          result = error;
+        });
+        $httpBackend.flush();
+        $timeout.flush();
+
+        expect(result).toEqual('Could not find an app with ID xxx.');
+      }));
+    }
+
+    describe('Store not loaded', nonReloadingTest);
+
+    describe('Store load in progress', function() {
+      beforeEach(function () {
+        store.get();
+      });
+
+      nonReloadingTest();
+    });
+  });
 });

@@ -17,6 +17,9 @@ var StoreUtils = function() {
     me.resolveGet = resolvePromise('get');
     me.rejectGet = rejectPromise('get');
 
+    me.resolveGetById = resolvePromise('getById');
+    me.rejectGetById = rejectPromise('getById');
+
     me.resolveRefresh = resolvePromise('refresh');
     me.rejectRefresh = rejectPromise('refresh');
 
@@ -31,6 +34,7 @@ var StoreUtils = function() {
         $q = _$q_;
         promises = {
           get: $q.defer(),
+          getById: $q.defer(),
           getApplicable: $q.defer(),
           getApplied: $q.defer(),
           save: $q.defer(),

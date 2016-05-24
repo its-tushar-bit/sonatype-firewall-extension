@@ -13,7 +13,7 @@
     var vm = this,
         originalCategories,
         originalHasPolicyCategories,
-        createPolicy,
+        policyStores,
         isReloading = false;
 
     vm.dirtyPolicy = undefined;
@@ -50,14 +50,50 @@
     }
 
     function doLoad() {
-      PolicyHierarchyStore.get().then(function(policyStores) {
-        loadPolicy(policyStores);
+      var promises = [PolicyHierarchyStore.get()];
+
+      if ($stateParams.policyId) {
+        promises.push(PolicyHierarchyStore.getById($stateParams.policyId));
+      }
+
+      $q.all(promises).then(function(results) {
+        policyStores = results[0];
+
+        policyStores.forEach(function(owner) {
+          vm.siblings = vm.siblings.concat(owner.policies);
+        });
+
+        if (results.length > 1) {
+          vm.dirtyPolicy = results[1].$clone();
+
+          policyStores.some(function(owner, index) {
+            if (owner.policies.indexOf(results[1]) !== -1) {
+              vm.readOnly = index !== 0;
+
+              vm.owner = {
+                id: owner.ownerId,
+                name: owner.ownerName
+              };
+
+              vm.isOrgOwner = owner.ownerType === 'organization';
+              return true;
+            }
+          });
+
+          vm.isRootOrg = vm.owner.id === 'ROOT_ORGANIZATION_ID';
+        }
+        else {
+          vm.dirtyPolicy = policyStores[0].store.create();
+          vm.owner = {
+            id: policyStores[0].ownerId,
+            name: policyStores[0].ownerName
+          };
+          vm.isOrgOwner = CLMAppLocations.isOrganization();
+        }
+
         vm.categories = [];
 
-        if (!vm.dirtyPolicy) {
-          vm.loadError = 'Unable to locate Policy.';
-        }
-        else if (vm.isOrgOwner) {
+        if (vm.isOrgOwner) {
           var promises = [TagStore.get()];
 
           // A newly created policy won't have any tags associated with it
@@ -76,37 +112,6 @@
       });
 
       delete vm.loadError;
-
-      function loadPolicy(policyHierarchy) {
-        createPolicy = policyHierarchy[0].store.create;
-        vm.owner = {
-          id: policyHierarchy[0].ownerId,
-          name: policyHierarchy[0].ownerName
-        };
-
-        if (!$stateParams.policyId) {
-          vm.dirtyPolicy = createPolicy();
-          vm.isOrgOwner = CLMAppLocations.isOrganization();
-        }
-
-        policyHierarchy.forEach(function(owner, index) {
-          vm.siblings = vm.siblings.concat(owner.policies);
-
-          owner.policies.some(function(policyCandidate) {
-            if ($stateParams.policyId === policyCandidate.id) {
-              vm.readOnly = index !== 0;
-              vm.dirtyPolicy = policyCandidate.$clone();
-              vm.owner = {
-                id: owner.ownerId,
-                name: owner.ownerName
-              };
-              vm.isOrgOwner = owner.ownerType === 'organization';
-              vm.isRootOrg = vm.owner.id === 'ROOT_ORGANIZATION_ID';
-              return true;
-            }
-          });
-        });
-      }
 
       function loadCategories(categoriesByOwner, availableCategories) {
         vm.hasPolicyCategories = Boolean(availableCategories && availableCategories.length > 0);

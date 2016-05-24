@@ -35,7 +35,6 @@
 
     var siblings,
         stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
-        idField = vm.isApp ? 'publicId' : 'id',
         type = vm.isApp ? ownerConstant.APPLICATION_TYPE : ownerConstant.ORGANIZATION_TYPE,
         id = $state.params[stateIdField];
 
@@ -54,9 +53,8 @@
     }
 
     function doLoad() {
-      var promises = [
-        ( vm.isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get']()
-      ];
+      var store = vm.isApp ? ApplicationStore : OrganizationStore,
+          promises = [store[vm.error ? 'refresh' : 'get'](), store.getById(id)];
 
       if (vm.isApp) {
         promises.push(StageTypeStore.getDashboardStages());
@@ -65,19 +63,11 @@
 
       $q.all(promises).then(function(results) {
         siblings = results[0];
-        angular.forEach(siblings, function(candidate) {
-          if (candidate[idField] === $state.params[stateIdField]) {
-            vm.owner = candidate;
-          }
-        });
+        vm.owner = results[1];
 
         if (vm.isApp) {
-          vm.stages = results[1];
-          vm.applicationSummary = results[2].data;
-        }
-
-        if (!vm.owner) {
-          vm.error = 'Could not find an ' + type + ' with ID ' + id + '.';
+          vm.stages = results[2];
+          vm.applicationSummary = results[3].data;
         }
       }, function(error) {
         vm.error = error;

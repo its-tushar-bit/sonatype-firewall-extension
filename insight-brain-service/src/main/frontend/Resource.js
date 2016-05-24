@@ -92,6 +92,7 @@
               store.splice(0, store.length);
               store.push.apply(store, result);
               checkDeferredResolve(storeDeferred, store, relationsToLoad);
+              storeDeferred.isResolved = true;
             }
           }).error(function() {
             error = true;
@@ -126,6 +127,35 @@
           storeDeferred.resolve(store);
 
           return store;
+        };
+
+        resourceStore.getById = function(entityId) {
+          function find() {
+            var result;
+            store.some(function(entity) {
+              if (entity[config.id || 'id'] === entityId) {
+                result = entity;
+                return true;
+              }
+            });
+            return result;
+          }
+
+          var result;
+          if (storeDeferred && storeDeferred.isResolved && (result = find())) {
+            return $q.when(result);
+          }
+          else {
+            var promise = (storeDeferred && storeDeferred.isResolved) ? this.refresh() : this.get();
+            return promise.then(function() {
+              var result = find();
+
+              if (!result) {
+                return $q.reject('Could not find an ' + config.type + ' with ID ' + entityId + '.');
+              }
+              return result;
+            });
+          }
         };
 
         resourceStore.create = function(relationalConfigName) {
@@ -487,6 +517,7 @@
               store.push.apply(store, data[config.field]);
 
               myDeferred.resolve(store);
+              myDeferred.isResolved = true;
             }
           }).error(getErrorFn(myDeferred)).error(function() {
             error = true;
@@ -502,6 +533,37 @@
             doLoad();
           }
           return storeDeferred.promise;
+        };
+
+        this.getById = function(entityId) {
+          function find() {
+            var result;
+            store.some(function(hierarchyLevel) {
+              return hierarchyLevel[config.storeField].some(function(entity) {
+                if (entity[storeConfig.id || 'id'] === entityId) {
+                  result = entity;
+                  return true;
+                }
+              });
+            });
+            return result;
+          }
+
+          var result;
+          if (storeDeferred && storeDeferred.isResolved && (result = find())) {
+            return $q.when(result);
+          }
+          else {
+            var promise = (storeDeferred && storeDeferred.isResolved) ? this.refresh() : this.get();
+            return promise.then(function() {
+              var result = find();
+
+              if (!result) {
+                return $q.reject('Could not find an ' + storeConfig.type + ' with ID ' + entityId + '.');
+              }
+              return result;
+            });
+          }
         };
 
         this.refresh = function() {

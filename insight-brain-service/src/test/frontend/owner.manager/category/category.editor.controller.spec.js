@@ -4,9 +4,9 @@ describe('category.editor.controller.spec.js', function() {
     $provide.value('$cookies', {
       get: angular.noop
     });
-  }));
 
-  beforeEach(module('ResourceModule'));
+    $provide.value('$stateParams', {});
+  }));
 
   var vm,
       $q,
@@ -57,14 +57,18 @@ describe('category.editor.controller.spec.js', function() {
     expect(vm.siblings[2].id).toBe('c');
   });
 
-  it('Captures names of associated apps', function() {
-    inject(function($controller) {
-      vm = $controller('category.editor.controller',
-          {$stateParams: {categoryId: 'testCatId'}, $scope: scope, DeleteModalService: mockDeleteService});
+  it('Captures names of associated apps', inject(function($controller, $stateParams) {
+    $stateParams.categoryId = 'testCatId';
+
+    vm = $controller('category.editor.controller', {
+      $scope: scope,
+      DeleteModalService: mockDeleteService
     });
+
     var spy = spyOn(mockDeleteService, 'deleteCustom').andReturn(deleteServiceResourceDefer.promise);
     mockCategory.id = 'testCatId';
     mockCategoryStore.resolveGet([{tags: [{id: 'testCatId_neg'}, mockCategory]}]);
+    mockCategoryStore.resolveGetById(mockCategory);
     mockCategoryStore.resolveGetApplied({
       data: {
         applicationTagsByOwner: [
@@ -85,7 +89,7 @@ describe('category.editor.controller.spec.js', function() {
     vm.deleteCategory();
 
     expect(spy.mostRecentCall.args[1]).toMatch('in use by the following applications: Test App.');
-  });
+  }));
 
   it('Updates siblings list after creating new', function() {
     inject(function($controller) {
@@ -107,31 +111,35 @@ describe('category.editor.controller.spec.js', function() {
     expect(vm.siblings.length).toBe(1);
   });
 
-  it('Finds match with URL parameter', function() {
-    inject(function($controller) {
-      vm = $controller('category.editor.controller', {$stateParams: {categoryId:'456'}, $scope: scope});
+  it('Finds match with URL parameter', inject(function($controller, $stateParams) {
+    $stateParams.categoryId = '456';
+
+    vm = $controller('category.editor.controller', {
+      $scope: scope
     });
     mockCategory.id = '456';
     resolveLoad([mockOwner]);
     $timeout.flush();
     expect(vm.dirtyCategory.$clone).toHaveBeenCalled();
     expect(vm.dirtyCategory.id).toBe('456');
-  });
+  }));
 
-  it('Errors if no match found', function() {
-    inject(function($controller) {
-      vm = $controller('category.editor.controller', {$stateParams: {categoryId:'789'}, $scope: scope});
+  it('Errors if no match found', inject(function($controller, $stateParams) {
+    $stateParams.categoryId = '709';
+
+    vm = $controller('category.editor.controller', {
+      $scope: scope
     });
+
     resolveLoad([{tags: [{id:'123'}, {id:'456'}]}]);
     $timeout.flush();
     expect(vm.dirtyCategory).toBeUndefined();
     expect(vm.loadError).toBeDefined();
-  });
+  }));
 
-  it('Unsuccessful save sets error message', function() {
-    inject(function($controller) {
-      vm = $controller('category.editor.controller', {$scope: scope});
-    });
+  it('Unsuccessful save sets error message', inject(function($controller) {
+    vm = $controller('category.editor.controller', {$scope: scope});
+
     resolveLoad([mockOwner]);
     $timeout.flush();
     vm.dirtyCategory = mockCategory;
@@ -140,17 +148,18 @@ describe('category.editor.controller.spec.js', function() {
     mockCategory.rejectSave('dammit');
     $timeout.flush();
     expect(vm.submitError).toBe('dammit');
-  });
+  }));
 
-  it('After delete goes to create new category', function() {
-    // given
-    spyOn(SameOwnerStateNavigationService, 'goEdit');
-    inject(function($controller) {
-      vm = $controller('category.editor.controller',
-          {$scope: scope, SameOwnerStateNavigationService: SameOwnerStateNavigationService, $stateParams: {categoryId: '1'}, DeleteModalService: mockDeleteService});
+  it('After delete goes to create new category', inject(function($controller, $stateParams) {
+    $stateParams.categoryId = '1';
+    vm = $controller('category.editor.controller', {
+      $scope: scope,
+      SameOwnerStateNavigationService: SameOwnerStateNavigationService,
+      DeleteModalService: mockDeleteService
     });
+    spyOn(SameOwnerStateNavigationService, 'goEdit');
     mockCategory.id = '1';
-    resolveLoad([mockOwner]);
+    resolveLoad([mockOwner], mockCategory);
     $timeout.flush();
     // when
     vm.deleteCategory();
@@ -159,7 +168,7 @@ describe('category.editor.controller.spec.js', function() {
     // then
     expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-category');
     expect(mockCategory.$revert).toHaveBeenCalled();
-  });
+  }));
 
   describe('Page Changes', function() {
     beforeEach(inject(function($controller) {
@@ -188,6 +197,18 @@ describe('category.editor.controller.spec.js', function() {
   });
 
   function resolveLoad(categoryStorePayload) {
+    inject(function($stateParams) {
+      if ($stateParams.categoryId) {
+        categoryStorePayload.some(function(owner) {
+          owner.tags.some(function(tag) {
+            if (tag.id === $stateParams.categoryId) {
+              mockCategoryStore.resolveGetById(tag);
+              return true;
+            }
+          });
+        }) || mockCategoryStore.rejectGetById('some error');
+      }
+    });
     categoryStorePayload.forEach(function(owner){
       owner.tags.forEach(function(cat) {
       cat.$clone = jasmine.createSpy().andReturn(cat);

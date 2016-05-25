@@ -34,7 +34,8 @@
         longName: '@',
         idField: '@?',
         nameField: '@?',
-        tooltipField: '@?'
+        tooltipField: '@?',
+        sortEntities: '=?'
       },
       controller: DashboardFilterDimensionController,
       controllerAs: 'vm',

@@ -31,7 +31,7 @@
             <label class="tree-view-item checkbox"
                tooltip="{{::(tooltipField ? 'in ' + entity[tooltipField] : '')}}" tooltip-append-to-body="true"
                data-tooltip-popup-delay="200"
-               ng-repeat="entity in available | fuzzy:vm.filter:nameField | orderBy: [nameField]"
+               ng-repeat="entity in available | fuzzy:vm.filter:nameField | orderBy: sortEntities ? [nameField] : []"
                ng-click="$event.stopPropagation()">
                 <input type="checkbox" name="{{::entity.id}}" ng-model="selected[entity[idField]]"
                        ng-change="vm.clearIfUnselected(entity[idField]); vm.updateSelectedCount(entity[idField])"><!--
@@ -52,6 +52,7 @@
                                   selected="vm.selected.applications"
                                   long-name="applications"
                                   short-name="Application"
+                                  sort-entities="true"
                                   tooltip-field="organizationName"><!--
          --><i class="fa fa-terminal tree-view-icon icon-12px inverse"></i>Applications
       </dashboard-filter-dimension>
@@ -60,6 +61,7 @@
                                   selected="vm.selected.categories"
                                   long-name="application categories"
                                   short-name="Category"
+                                  sort-entities="true"
                                   tooltip-field="owner"><!--
          --><hexagon class="size-16px size-fw outline tree-view-icon"></hexagon>Application Categories
       </dashboard-filter-dimension>
@@ -76,6 +78,7 @@
       <dashboard-filter-dimension available="vm.policyTypes"
                                   selected="vm.selected.policyTypes"
                                   long-name="policy types"
+                                  sort-entities="true"
                                   short-name="Policy Type"><!--
          --><i class="tree-view-icon"></i>Policy Types
       </dashboard-filter-dimension>

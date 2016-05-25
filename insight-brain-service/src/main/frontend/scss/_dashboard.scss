@@ -824,17 +824,34 @@ Dashboard tables
     padding-bottom: $tree-view-padding-bottom;
     height: calc(100% - #{$filter-footer-height} - #{$tree-view-padding-top} - #{$tree-view-padding-bottom});
 
-    .dashboard-filter-counter {
-      @extend .semi-bold;
-      float: right;
-      background-color: $grey-1;
-      height: 16px;
-      border: 1px $grey-3 solid;
-      border-radius: 8px;
-      padding: 0px 4px;
-      font-size: 11px;
-      color: $slate;
-      margin-right: 8px;
+    .tree-view-item {
+      .twisty-container{
+        float: left;
+      }
+
+      .filter-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 8px;
+
+        .tree-view-icon:first-of-type  {
+          margin-left: 0px;
+        }
+      }
+
+      .dashboard-filter-counter {
+        @extend .semi-bold;
+        float: right;
+        background-color: $grey-1;
+        height: 16px;
+        border: 1px $grey-3 solid;
+        border-radius: 8px;
+        padding: 0px 4px;
+        font-size: 11px;
+        color: $slate;
+        margin-right: 8px;
+      }
     }
   }
 

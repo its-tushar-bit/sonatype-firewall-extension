@@ -54,7 +54,7 @@
                                   short-name="Application"
                                   sort-entities="true"
                                   tooltip-field="organizationName"><!--
-         --><i class="fa fa-terminal tree-view-icon icon-12px inverse"></i>Applications
+         --><div class="filter-label"><i class="fa fa-terminal tree-view-icon icon-12px inverse"></i>Applications</div>
       </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.categories"
@@ -63,7 +63,7 @@
                                   short-name="Category"
                                   sort-entities="true"
                                   tooltip-field="owner"><!--
-         --><hexagon class="size-16px size-fw outline tree-view-icon"></hexagon>Application Categories
+         --><div class="filter-label"><hexagon class="size-16px size-fw outline tree-view-icon"></hexagon>Application Categories</div>
       </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.stages"
@@ -72,7 +72,7 @@
                                   name-field="stageName"
                                   long-name="stages"
                                   short-name="Stage"><!--
-         --><i class="tree-view-icon"></i>Stages
+         --><div class="filter-label"><i class="tree-view-icon"></i>Stages</div>
       </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.policyTypes"
@@ -80,7 +80,7 @@
                                   long-name="policy types"
                                   sort-entities="true"
                                   short-name="Policy Type"><!--
-         --><i class="tree-view-icon"></i>Policy Types
+         --><div class="filter-label"><i class="tree-view-icon"></i>Policy Types</div>
       </dashboard-filter-dimension>
 
       <div class="tree-view-group">
@@ -90,10 +90,10 @@
           </div>
           <div class="twisty-container">
             <span class="twisty"
-                  ng-class="{ expand: !vm.policyThreatLevelState.isExpanded,
-                              collapse: vm.policyThreatLevelState.isExpanded}"></span>
-          </div><!--
-         --><i class="tree-view-icon"></i>Policy Threat Level
+                  ng-class="{ expand: !vm.policyThreatLevelState.isExpanded, 
+                              collapse: vm.policyThreatLevelState.isExpanded }"></span>
+          </div>
+          <div class="filter-label">Policy Threat Level</div>
         </a>
         <div class="tree-view-control" ng-if="vm.policyThreatLevelState.isExpanded">
           <div class="policy-threat-level-slider">

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
+import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
@@ -250,6 +251,7 @@ public class InsightBrainService
     env.setJerseyProperty(ResourceConfig.PROPERTY_DEFAULT_RESOURCE_COMPONENT_PROVIDER_FACTORY_CLASS,
         SingletonFactory.class);
 
+    env.addFilter(getInstance(HttpHeaderValidatorFilter.class), HttpHeaderValidatorFilter.URL_PATTERN);
     env.addFilter(getInstance(TraceMethodBlockFilter.class), TraceMethodBlockFilter.URL_PATTERN);
     env.addFilter(getInstance(GuiceShiroFilter.class), "/*");
     env.addFilter(getInstance(IndexCacheControlFilter.class), IndexCacheControlFilter.URL_PATTERN);

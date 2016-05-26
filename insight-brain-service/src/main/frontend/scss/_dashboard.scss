@@ -813,7 +813,7 @@ Dashboard tables
 
 .dashboard-filter-container {
   $tree-view-padding-top: 16px;
-  $tree-view-padding-bottom: 8px;
+  $tree-view-margin-bottom: 8px;
   $filter-footer-height: #{32px + 12px + 12px + 1px};
   height: 100%;
   margin: 0;
@@ -821,8 +821,7 @@ Dashboard tables
 
   .tree-view {
     overflow-y: auto;
-    padding-bottom: $tree-view-padding-bottom;
-    height: calc(100% - #{$filter-footer-height} - #{$tree-view-padding-top} - #{$tree-view-padding-bottom});
+    height: calc(100% - #{$filter-footer-height} - #{$tree-view-padding-top} - #{$tree-view-margin-bottom});
 
     .tree-view-item {
       .twisty-container{
@@ -852,6 +851,11 @@ Dashboard tables
         color: $slate;
         margin-right: 8px;
       }
+    }
+
+    .tree-view-group:last-child {
+      /* margin bottom added to last element as FF, and other browsers don't consider padding for overflow */
+      margin-bottom: $tree-view-margin-bottom;
     }
   }
 

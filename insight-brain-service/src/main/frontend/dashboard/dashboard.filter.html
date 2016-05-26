@@ -1,7 +1,7 @@
 <form class="dashboard-filter-container" ng-submit="vm.save()">
   <div class="tree-view">
     <script type="text/ng-template" id="entity-filter-template">
-      <div class="tree-view-group">
+      <div>
         <a class="tree-view-item cannot-select" ng-click="isExpanded = !isExpanded">
           <div class="dashboard-filter-counter">
             {{vm.selectedCount === available.length ? 'All' : vm.selectedCount}} of {{::available.length}}
@@ -53,7 +53,8 @@
                                   long-name="applications"
                                   short-name="Application"
                                   sort-entities="true"
-                                  tooltip-field="organizationName"><!--
+                                  tooltip-field="organizationName"
+                                  class="tree-view-group"><!--
          --><div class="filter-label"><i class="fa fa-terminal tree-view-icon icon-12px inverse"></i>Applications</div>
       </dashboard-filter-dimension>
 
@@ -62,7 +63,8 @@
                                   long-name="application categories"
                                   short-name="Category"
                                   sort-entities="true"
-                                  tooltip-field="owner"><!--
+                                  tooltip-field="owner"
+                                  class="tree-view-group"><!--
          --><div class="filter-label"><hexagon class="size-16px size-fw outline tree-view-icon"></hexagon>Application Categories</div>
       </dashboard-filter-dimension>
 
@@ -71,7 +73,8 @@
                                   id-field="stageTypeId"
                                   name-field="stageName"
                                   long-name="stages"
-                                  short-name="Stage"><!--
+                                  short-name="Stage"
+                                  class="tree-view-group"><!--
          --><div class="filter-label"><i class="tree-view-icon"></i>Stages</div>
       </dashboard-filter-dimension>
 
@@ -79,7 +82,8 @@
                                   selected="vm.selected.policyTypes"
                                   long-name="policy types"
                                   sort-entities="true"
-                                  short-name="Policy Type"><!--
+                                  short-name="Policy Type"
+                                  class="tree-view-group"><!--
          --><div class="filter-label"><i class="tree-view-icon"></i>Policy Types</div>
       </dashboard-filter-dimension>
 

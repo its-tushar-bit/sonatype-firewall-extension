@@ -30,7 +30,7 @@
             </a>
             <label class="tree-view-item checkbox"
                tooltip="{{::(tooltipField ? 'in ' + entity[tooltipField] : '')}}" tooltip-append-to-body="true"
-               data-tooltip-popup-delay="200"
+               data-tooltip-popup-delay="200" tooltip-class="dashboard-treeview-tooltip"
                ng-repeat="entity in available | fuzzy:vm.filter:nameField | orderBy: sortEntities ? [nameField] : []"
                ng-click="$event.stopPropagation()">
                 <input type="checkbox" name="{{::entity.id}}" ng-model="selected[entity[idField]]"

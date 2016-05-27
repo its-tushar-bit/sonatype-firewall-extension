@@ -11,55 +11,42 @@ class FilterModule
     extends Module
 {
   static content = {
-    toggle { $('#dashboard-filter-toggle') }
-
-    applicationSummary(required: false) {
-      module TooltipModule, $('#application-filter-item-collapsed')
-    }
-    applicationTagSummary(required: false) {
-      module TooltipModule, $('#application-tag-filter-item-collapsed')
-    }
-    stageTypeSummary(required: false) {
-      module TooltipModule, $('#stage-type-filter-item-collapsed')
-    }
-    policyTypeSummary(required: false) {
-      module TooltipModule, $('#policy-type-filter-item-collapsed')
-    }
-    policyThreatLevelSummary(required: false) {
-      module TooltipModule, $('#policy-threat-level-filter-item-collapsed')
+    applicationFilter(required: false) {
+      module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(1)')
     }
 
-    applicationSummaryCount(required: false) { applicationSummary.find('div') }
-    applicationTagSummaryCount(required: false) { applicationTagSummary.find('div') }
-    stageTypeSummaryCount(required: false) { stageTypeSummary.find('div') }
-    policyTypeSummaryCount(required: false) { policyTypeSummary.find('div') }
-    policyThreatLevelSummaryCount(required: false) { policyThreatLevelSummary.find('div') }
+    applicationCategoryFilter(required: false) {
+      module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(2)')
+    }
+    stagesFilter(required: false) {
+      module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(3)')
+    }
 
-    noApplications(required: false) { $('#no-applications') }
-    noApplicationTags(required: false) { $('#no-application-tags') }
+    policyTypesFilter(required: false) {
+      module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(4)')
+    }
+    policyThreatLevelFilter(required: false) {
+      module DashboardFilterDimensionModule, $('.tree-view-group:nth-child(5)')
+    }
 
-    applicationMultiselect(required: false) {
-      module DropdownMultiSelectModule, $('#application-filter-item span.multi-dropdown'), emptyText: 'All Applications'
-    }
-    applicationTagMultiselect(required: false) {
-      module DropdownMultiSelectModule, $('#application-tag-filter-item span.multi-dropdown'), emptyText: 'All Applications'
-    }
-    stageTypeMultiselect(required: false) {
-      module DropdownMultiSelectModule, $('#stage-type-filter-item span.multi-dropdown'), emptyText: 'All Stages'
-    }
-    policyTypeMultiselect(required: false) {
-      module DropdownMultiSelectModule, $('#policy-type-filter-item span.multi-dropdown'), emptyText: 'All Policy Types'
-    }
-    policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-level-filter-item') }
+    policyThreatLevelSlider(required: false) { module SliderModule, $('.policy-threat-level-slider') }
 
     applyButton(required: false) { $('#dashboard-filter-apply') }
-    resetButton(required: false) { $('#dashboard-filter-reset') }
-    cancelButton(required: false) { $('#dashboard-filter-cancel') }
+    revertButton(required: false) { $('#dashboard-filter-revert') }
+    clearButton(required: false) { $('#dashboard-filter-clear') }
+  }
+
+  def toggleTwisties(){
+    applicationFilter.twisty.click()
+    applicationCategoryFilter.twisty.click()
+    stagesFilter.twisty.click()
+    policyTypesFilter.twisty.click()
+    policyThreatLevelFilter.twisty.click()
   }
 
   def apply() {
     applyButton.click()
     // NOTE: Wait for filter to be persisted
-    waitFor { !applyButton.displayed }
+    waitFor { applyButton.classes().contains('disabled') }
   }
 }

@@ -169,167 +169,103 @@ extends BaseSpec {
   }
 
   def 'Dashboard Filters'() {
-    when: 'clicking the filter toggle button'
     def newestRiskPage = at NewestRiskDashboardPage
-    newestRiskPage.filters.toggle.click()
 
-    then: 'the dashboard filters are shown'
-    waitFor { newestRiskPage.filters.applicationMultiselect.displayed }
-    newestRiskPage.filters.policyTypeMultiselect.displayed
+    when: 'the dashboard filters are shown'
+    waitFor { newestRiskPage.filters.applicationFilter.displayed }
 
-    and: 'application filters are loaded'
-    newestRiskPage.filters.applicationMultiselect.showDropdown()
-    newestRiskPage.filters.applicationMultiselect.dropdownCheck(firstApp.name).displayed
-    newestRiskPage.filters.applicationMultiselect.dropdownCheck(secondApp.name).displayed
-    newestRiskPage.filters.applicationMultiselect.hideDropdown()
+    then: 'application filters are loaded'
+    newestRiskPage.filters.applicationFilter.twisty.displayed
+    newestRiskPage.filters.applicationFilter.twisty.click()
+    newestRiskPage.filters.applicationFilter.counter.displayed
+    newestRiskPage.filters.applicationFilter.counter.text() == '0 of 2'
+
+    newestRiskPage.filters.applicationFilter.multiSelectList.size() == 3
+    newestRiskPage.filters.applicationFilter.multiSelectList[0].checkbox.value() == false
+    newestRiskPage.filters.applicationFilter.multiSelectList[0].name.text() == 'all applications'
+    newestRiskPage.filters.applicationFilter.multiSelectList[1].checkbox.value() == false
+    newestRiskPage.filters.applicationFilter.multiSelectList[1].name.text() == firstApp.name
+    newestRiskPage.filters.applicationFilter.multiSelectList[2].checkbox.value() == false
+    newestRiskPage.filters.applicationFilter.multiSelectList[2].name.text() == secondApp.name
+    newestRiskPage.filters.applicationFilter.twisty.click()
 
     and: 'policy threat category filters are shown'
-    newestRiskPage.filters.policyTypeMultiselect.showDropdown()
-    newestRiskPage.filters.policyTypeMultiselect.dropdownCheck('Security').displayed
-    newestRiskPage.filters.policyTypeMultiselect.dropdownCheck('License').displayed
-    newestRiskPage.filters.policyTypeMultiselect.dropdownCheck('Quality').displayed
-    newestRiskPage.filters.policyTypeMultiselect.dropdownCheck('Other').displayed
-    newestRiskPage.filters.policyTypeMultiselect.hideDropdown()
+    newestRiskPage.filters.policyTypesFilter.twisty.click()
+    newestRiskPage.filters.policyTypesFilter.multiSelectList.size() == 5
+    newestRiskPage.filters.policyTypesFilter.counter.text() == '0 of 4'
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[0].name.text() == 'all policy types'
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[1].name.text() == 'License'
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[2].name.text() == 'Other'
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[3].name.text() == 'Quality'
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[4].name.text() == 'Security'
+    newestRiskPage.filters.policyTypesFilter.twisty.click()
 
     and: 'stage type filters are shown in proper chronological order'
-    newestRiskPage.filters.stageTypeMultiselect.showDropdown()
-    newestRiskPage.filters.stageTypeMultiselect.dropdownName(0).displayed
-    newestRiskPage.filters.stageTypeMultiselect.dropdownName(0).text() == 'Build'
-    newestRiskPage.filters.stageTypeMultiselect.dropdownName(1).displayed
-    newestRiskPage.filters.stageTypeMultiselect.dropdownName(1).text() == 'Stage Release'
-    newestRiskPage.filters.stageTypeMultiselect.dropdownName(2).displayed
-    newestRiskPage.filters.stageTypeMultiselect.dropdownName(2).text() == 'Release'
-    newestRiskPage.filters.stageTypeMultiselect.dropdownName(3).displayed
-    newestRiskPage.filters.stageTypeMultiselect.dropdownName(3).text() == 'Operate'
-    !newestRiskPage.filters.stageTypeMultiselect.dropdownName(4).present
-    newestRiskPage.filters.stageTypeMultiselect.hideDropdown()
+    newestRiskPage.filters.stagesFilter.twisty.click()
+    newestRiskPage.filters.stagesFilter.multiSelectList.size() == 5
+    newestRiskPage.filters.stagesFilter.counter.text() == '0 of 4'
+    newestRiskPage.filters.stagesFilter.multiSelectList[0].name.text() == 'all stages'
+    newestRiskPage.filters.stagesFilter.multiSelectList[1].name.text() == 'Build'
+    newestRiskPage.filters.stagesFilter.multiSelectList[2].name.text() == 'Stage Release'
+    newestRiskPage.filters.stagesFilter.multiSelectList[3].name.text() == 'Release'
+    newestRiskPage.filters.stagesFilter.multiSelectList[4].name.text() == 'Operate'
+    newestRiskPage.filters.stagesFilter.twisty.click()
 
     and: 'application tag filters are shown'
-    newestRiskPage.filters.applicationTagMultiselect.showDropdown()
-    newestRiskPage.filters.applicationTagMultiselect.dropdownCheck(firstAppTag.name).displayed
-    newestRiskPage.filters.applicationTagMultiselect.dropdownOwner(firstAppTag.name).text() == 'in ' + org.name
-    newestRiskPage.filters.applicationTagMultiselect.areOptionsColored([(firstAppTag.name): "dark-blue"])
-    newestRiskPage.filters.applicationTagMultiselect.hideDropdown()
+    newestRiskPage.filters.applicationCategoryFilter.twisty.click()
+    newestRiskPage.filters.applicationCategoryFilter.multiSelectList.size() == 2
+    newestRiskPage.filters.applicationCategoryFilter.counter.text() == '0 of 1'
+    newestRiskPage.filters.applicationCategoryFilter.multiSelectList[0].name.text() == 'all application categories'
+    newestRiskPage.filters.applicationCategoryFilter.multiSelectList[1].name.text() == firstAppTag.name
+    newestRiskPage.filters.applicationCategoryFilter.twisty.click()
 
     and: 'policy threat level filter is shown'
+    newestRiskPage.filters.policyThreatLevelFilter.counter.text() == '2 – 10'
+    newestRiskPage.filters.policyThreatLevelFilter.twisty.click()
     newestRiskPage.filters.policyThreatLevelSlider.slider.displayed
+    newestRiskPage.filters.policyThreatLevelFilter.twisty.click()
 
-    when: 'dashboard filters are applied'
-    newestRiskPage.filters.applicationMultiselect.toggleOption(firstApp.name)
-    newestRiskPage.filters.applicationMultiselect.toggleOption(secondApp.name)
-    newestRiskPage.filters.applicationTagMultiselect.toggleOption(firstAppTag.name)
-    newestRiskPage.filters.stageTypeMultiselect.toggleOption('Release')
-    newestRiskPage.filters.policyTypeMultiselect.toggleOption('Security')
+    when: 'dashboard filters are open'
+    newestRiskPage.filters.toggleTwisties()
+
+    and: 'dashboard filters are applied'
+    newestRiskPage.filters.applicationFilter.multiSelectList[1].checkbox.value(true)
+    newestRiskPage.filters.applicationFilter.multiSelectList[2].checkbox.value(true)
+    newestRiskPage.filters.applicationCategoryFilter.multiSelectList[1].checkbox.value(true)
+    newestRiskPage.filters.stagesFilter.multiSelectList[3].checkbox.value(true)
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[3].checkbox.value(true)
     newestRiskPage.filters.policyThreatLevelSlider.setValues(2, 7)
     newestRiskPage.filters.apply()
 
-    then: 'filters show up in readonly mode'
-    waitFor { newestRiskPage.filters.applicationSummary.displayed }
-    newestRiskPage.filters.applicationSummary.getTooltipContent() == firstApp.name + '\n' + secondApp.name
-    newestRiskPage.filters.applicationTagSummary.getTooltipContent() == firstAppTag.name
-    newestRiskPage.filters.stageTypeSummary.getTooltipContent() == 'Release'
-    newestRiskPage.filters.policyTypeSummary.getTooltipContent() == 'Security'
-    newestRiskPage.filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat levels 2 through 7'
+    then: 'filter counters have been updated'
+    waitFor { newestRiskPage.filters.applicationFilter.displayed }
+    newestRiskPage.filters.applicationFilter.counter.text() == 'All of 2'
+    newestRiskPage.filters.applicationCategoryFilter.counter.text() == 'All of 1'
+    newestRiskPage.filters.stagesFilter.counter.text() == '1 of 4'
+    newestRiskPage.filters.policyTypesFilter.counter.text() == '1 of 4'
+    newestRiskPage.filters.policyThreatLevelFilter.counter.text() == '2 – 7'
   }
 
-  def 'Filter reset'() {
-    when: 'clicking the filter toggle button'
-    filters.toggle.click()
-
-    and: 'Set some filters'
-    waitFor { filters.applicationMultiselect.displayed }
-    filters.applicationMultiselect.toggleOption(firstApp.name)
-    filters.applicationTagMultiselect.toggleOption(firstAppTag.name)
-    filters.stageTypeMultiselect.toggleOption('Release')
-    filters.policyTypeMultiselect.toggleOption('Security')
+  def 'Filter clear'() {
+    when: 'Set some filters'
+    waitFor { filters.applicationFilter.displayed }
+    filters.toggleTwisties()
+    filters.applicationFilter.multiSelectList[1].checkbox.value(true)
+    filters.applicationCategoryFilter.multiSelectList[1].checkbox.value(true)
+    filters.stagesFilter.multiSelectList[3].checkbox.value(true)
+    filters.policyTypesFilter.multiSelectList[4].checkbox.value(true)
     filters.policyThreatLevelSlider.setValues(2, 7)
 
-    and: 'reset the filter'
-    filters.resetButton.click()
+    and: 'clear the filter'
+    filters.clearButton.click()
 
     then: 'filters are empty'
-    filters.applicationMultiselect.isEmpty()
-    filters.applicationTagMultiselect.isEmpty()
-    filters.stageTypeMultiselect.isEmpty()
-    filters.policyTypeMultiselect.isEmpty()
+    filters.applicationFilter.multiSelectList[1].checkbox.value()== false
+    filters.applicationCategoryFilter.multiSelectList[1].checkbox.value()== false
+    filters.stagesFilter.multiSelectList[3].checkbox.value()== false
+    filters.policyTypesFilter.multiSelectList[4].checkbox.value()== false
     filters.policyThreatLevelSlider.minValue.text() == '2'
     filters.policyThreatLevelSlider.maxValue.text() == '10'
-  }
-
-  def 'Single value threat level slider filter'() {
-    when: 'clicking the filter toggle button'
-    filters.toggle.click()
-
-    then: 'the policy threat level slider is shown'
-    waitFor { filters.policyThreatLevelSlider.slider.displayed }
-
-    when: 'threat level filter is applied'
-    filters.policyThreatLevelSlider.setValues(4, 4)
-    filters.apply()
-
-    then: 'filter text shows one value'
-    waitFor { filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat level 4' }
-  }
-
-  def 'Zero min and max threat level slider filter'() {
-    when: 'clicking the filter toggle button'
-      filters.toggle.click()
-
-    then: 'the policy threat level slider is shown'
-      waitFor { filters.policyThreatLevelSlider.slider.displayed }
-
-    when: 'threat level filter is applied'
-      filters.policyThreatLevelSlider.setValues(0, 0)
-      filters.apply()
-
-    then: 'filter text shows one value'
-      waitFor { filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat level 0' }
-  }
-
-  def 'Collapse filters presents apply dialog when necessary'() {
-    when: 'clicking the filter toggle button'
-    filters.toggle.click()
-
-    and: 'Change some data'
-    waitFor { filters.applicationMultiselect.displayed }
-    filters.applicationMultiselect.toggleOption(firstApp.name)
-
-    and: 'Collapse the panel'
-    filters.toggle.click()
-
-    then: 'The apply filter dialog is shown'
-    waitFor { applyFilterModal.displayed }
-
-    when: 'User clicks cancel'
-    applyFilterModal.cancel.click()
-
-    then: 'The panel is closed'
-    waitFor { filters.applicationSummary.displayed }
-
-    and: 'no new applications are added'
-    filters.applicationSummary.getTooltipContent() == 'All applications'
-
-    when: 'clicking the filter toggle button'
-    filters.toggle.click()
-
-    and: 'Change some data'
-    waitFor { filters.applicationMultiselect.displayed }
-    filters.applicationMultiselect.toggleOption(firstApp.name)
-
-    and: 'Collapse the panel'
-    filters.toggle.click()
-
-    then: 'The apply filter dialog is shown'
-    waitFor { applyFilterModal.displayed }
-
-    when: 'User clicks apply'
-    applyFilterModal.applyButton.click()
-
-    then: 'The panel is closed'
-    waitFor { filters.applicationSummary.displayed }
-
-    and: 'the new application is added'
-    filters.applicationSummary.getTooltipContent() == firstApp.name
   }
 
   def 'Unknown components have popover displaying pathnames'() {
@@ -570,14 +506,13 @@ extends BaseSpec {
     newestRiskPage.newestViolationTable.rows[1].age == '7d'
 
     when: 'filtering to an application'
-    newestRiskPage.filters.toggle.click()
-    waitFor { newestRiskPage.filters.applicationMultiselect.displayed }
-    newestRiskPage.filters.applicationMultiselect.toggleOption(secondApp.name)
+    newestRiskPage.filters.applicationFilter.twisty.click()
+    waitFor { newestRiskPage.filters.applicationFilter.displayed }
+    newestRiskPage.filters.applicationFilter.multiSelectList[2].checkbox.value(true)
     newestRiskPage.filters.apply()
 
     then: 'only violations from that application are shown'
     waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }
-    !newestRiskPage.filters.applicationMultiselect.displayed
     newestRiskPage.newestViolationTable.rows[0].threat == 10
     newestRiskPage.newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
     newestRiskPage.newestViolationTable.rows[0].application == secondApp.name
@@ -585,14 +520,13 @@ extends BaseSpec {
     newestRiskPage.newestViolationTable.rows[0].age ==~ RECENT_AGE
 
     when: 'filtering to a stage'
-    newestRiskPage.filters.toggle.click()
-    waitFor { newestRiskPage.filters.stageTypeMultiselect.displayed }
-    newestRiskPage.filters.stageTypeMultiselect.toggleOption('Release')
+    newestRiskPage.filters.stagesFilter.twisty.click()
+    waitFor { newestRiskPage.filters.stagesFilter.displayed }
+    newestRiskPage.filters.stagesFilter.multiSelectList[3].checkbox.value(true)
     newestRiskPage.filters.apply()
 
     then: 'only violations from that stage are shown'
     waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }
-    !newestRiskPage.filters.stageTypeMultiselect.displayed
     newestRiskPage.newestViolationTable.rows[0].threat == 10
     newestRiskPage.newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
     newestRiskPage.newestViolationTable.rows[0].application == secondApp.name
@@ -626,9 +560,9 @@ extends BaseSpec {
   def 'Filter out all results'() {
     when: 'selecting filters that match no results on the newest risk tab'
     def newestRiskPage = at NewestRiskDashboardPage
-    newestRiskPage.filters.toggle.click()
-    waitFor { newestRiskPage.filters.policyTypeMultiselect.displayed }
-    newestRiskPage.filters.policyTypeMultiselect.toggleOption('Security')
+    newestRiskPage.filters.policyTypesFilter.twisty.click()
+    waitFor { newestRiskPage.filters.policyTypesFilter.displayed }
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[4].checkbox.value(true)
     newestRiskPage.filters.apply()
 
     then: 'the table is replaced by no result text'
@@ -778,7 +712,7 @@ extends BaseSpec {
   def 'Threat level columns are hidden when not matching filter'() {
     given: 'dashboard filter includes only severe threat level'
     def newestRiskPage = at NewestRiskDashboardPage
-    newestRiskPage.filters.toggle.click()
+    newestRiskPage.filters.policyThreatLevelFilter.twisty.click()
     waitFor { newestRiskPage.filters.policyThreatLevelSlider.displayed }
     newestRiskPage.filters.policyThreatLevelSlider.setValues(4, 7)
     newestRiskPage.filters.apply()
@@ -830,15 +764,14 @@ extends BaseSpec {
   def 'Filters stored as expected'() {
     when: 'dashboard filters are applied'
     def newestRiskPage = at NewestRiskDashboardPage
-    newestRiskPage.filters.toggle.click()
-    waitFor { newestRiskPage.filters.applicationMultiselect.displayed }
-    newestRiskPage.filters.policyTypeMultiselect.displayed
-    newestRiskPage.filters.applicationMultiselect.toggleOption(firstApp.name)
-    newestRiskPage.filters.applicationMultiselect.toggleOption(secondApp.name)
-    newestRiskPage.filters.applicationTagMultiselect.toggleOption(firstAppTag.name)
-    newestRiskPage.filters.policyTypeMultiselect.toggleOption('Security')
-    newestRiskPage.filters.policyTypeMultiselect.toggleOption('Other')
-    newestRiskPage.filters.stageTypeMultiselect.toggleOption('Release')
+    newestRiskPage.filters.toggleTwisties()
+    waitFor { newestRiskPage.filters.applicationFilter.displayed }
+    newestRiskPage.filters.applicationFilter.multiSelectList[1].checkbox.value(true)
+    newestRiskPage.filters.applicationFilter.multiSelectList[2].checkbox.value(true)
+    newestRiskPage.filters.applicationCategoryFilter.multiSelectList[1].checkbox.value(true)
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[4].checkbox.value(true)
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[2].checkbox.value(true)
+    newestRiskPage.filters.stagesFilter.multiSelectList[3].checkbox.value(true)
     newestRiskPage.filters.apply()
 
     then: 'filters are stored to disk'
@@ -872,21 +805,25 @@ extends BaseSpec {
 
     and: 'the filters have been reloaded'
     def newestRiskPage = at NewestRiskDashboardPage
-    waitFor { newestRiskPage.filters.applicationSummary.displayed }
+    waitFor { newestRiskPage.filters.applicationFilter.displayed }
+    newestRiskPage.filters.toggleTwisties()
 
     then: 'See proper values set in the filters'
-    newestRiskPage.filters.applicationSummary.getTooltipContent() == firstApp.name + '\n' + secondApp.name
-    newestRiskPage.filters.applicationTagSummary.getTooltipContent() == firstAppTag.name
-    newestRiskPage.filters.stageTypeSummary.getTooltipContent() == 'Release'
-    newestRiskPage.filters.policyTypeSummary.getTooltipContent() == 'Security\nOther'
-    newestRiskPage.filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat levels 3 through 6'
+    newestRiskPage.filters.applicationFilter.multiSelectList[1].checkbox.value()
+    newestRiskPage.filters.applicationFilter.multiSelectList[2].checkbox.value()
+    newestRiskPage.filters.applicationCategoryFilter.multiSelectList[1].checkbox.value()
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[4].checkbox.value()
+    newestRiskPage.filters.policyTypesFilter.multiSelectList[2].checkbox.value()
+    newestRiskPage.filters.stagesFilter.multiSelectList[3].checkbox.value()
+    newestRiskPage.filters.policyThreatLevelSlider.minValue.text() == '3'
+    newestRiskPage.filters.policyThreatLevelSlider.maxValue.text() == '6'
 
     and: 'See proper counts set in the filters'
-    newestRiskPage.filters.applicationSummaryCount.text() == '2'
-    newestRiskPage.filters.applicationTagSummary.text() == '1'
-    newestRiskPage.filters.stageTypeSummary.text() == '1'
-    newestRiskPage.filters.policyTypeSummary.text() == '2'
-    newestRiskPage.filters.policyThreatLevelSummary.text() == '4'
+    newestRiskPage.filters.applicationFilter.counter.text() == 'All of 2'
+    newestRiskPage.filters.applicationCategoryFilter.counter.text() == 'All of 1'
+    newestRiskPage.filters.stagesFilter.counter.text() == '1 of 4'
+    newestRiskPage.filters.policyTypesFilter.counter.text() == '2 of 4'
+    newestRiskPage.filters.policyThreatLevelFilter.counter.text() == '3 – 6'
   }
 
   def 'Components Table'() {

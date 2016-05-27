@@ -216,15 +216,9 @@ extends BaseSpec {
   }
 
   def 'Filtering out all data should show an empty policy summary'() {
-    when: 'clicking the filter toggle button'
-    filters.toggle.click()
-
-    then: 'the dashboard filters are shown'
-    waitFor { filters.applicationMultiselect.displayed }
-    filters.policyTypeMultiselect.displayed
-
     when: 'we select a policy threat type that we have no violations for'
-    filters.policyTypeMultiselect.toggleOption('License')
+    filters.policyTypesFilter.twisty.click()
+    filters.policyTypesFilter.multiSelectList[1].checkbox.value(true)
     filters.apply()
 
     and: 'The user clicks on the trends button'

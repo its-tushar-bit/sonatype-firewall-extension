@@ -7,22 +7,22 @@
 (function() {
   'use strict';
 
-  angular.module('dashboard.module', ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'FilterModule',
-                                      'ComponentDisplay', 'DashboardModule', 'utility'],
+  angular.module('dashboard.module', ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay',
+                                      'dashboard.utils', 'utility'],
   // To avoid hacking dependency order, states must be declared with their parent.
   // Fixed https://github.com/angular-ui/ui-router/pull/492
   ['$stateProvider', function($stateProvider) {
 
-    $stateProvider.state('dashboard-new', {
-      url: '/dashboard-new',
+    $stateProvider.state('dashboard', {
+      url: '/dashboard',
       abstract: true,
       templateUrl: 'dashboard/dashboard.view.html?' + clmBuildTimestamp,
       data: {
         title: 'Dashboard',
         crumb: 'Dashboard'
       }
-    }).state('dashboard-new.overview', {
-      parent: 'dashboard-new',
+    }).state('dashboard.overview', {
+      parent: 'dashboard',
       url: '',
       abstract: true,
       views: {
@@ -35,26 +35,34 @@
           controller: 'dashboard.filter.controller as vm'
         }
       }
-    }).state('dashboard-new.overview.newest-risk', {
-      parent: 'dashboard-new.overview',
+    }).state('dashboard.overview.newest-risk', {
+      parent: 'dashboard.overview',
       url: '/newest-risk',
       templateUrl: 'dashboard/newest-risk.html?' + clmBuildTimestamp,
       data: {
         crumb: 'Newest Risk'
       }
-    }).state('dashboard-new.overview.components', {
-      parent: 'dashboard-new.overview',
+    }).state('dashboard.overview.components', {
+      parent: 'dashboard.overview',
       url: '/components',
       templateUrl: 'dashboard/components.html?' + clmBuildTimestamp,
       data: {
         crumb: 'By Component'
       }
-    }).state('dashboard-new.overview.applications', {
-      parent: 'dashboard-new.overview',
+    }).state('dashboard.overview.applications', {
+      parent: 'dashboard.overview',
       url: '/applications',
       templateUrl: 'dashboard/applications.html?' + clmBuildTimestamp,
       data: {
         crumb: 'By Application'
+      }
+    }).state('dashboard.component', {
+      parent: 'dashboard',
+      url: '/component/{hash}',
+      controller: 'componentController',
+      templateUrl: 'dashboard/component.html?' + clmBuildTimestamp,
+      data: {
+        crumb: 'Component Details'
       }
     });
   }]);

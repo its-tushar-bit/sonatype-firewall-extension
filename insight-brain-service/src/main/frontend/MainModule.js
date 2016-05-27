@@ -22,7 +22,7 @@
   angular.module('InitModule', [
     'ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices', 'ngAria',
     'ReportModule', 'Report', 'MainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
-    'ProductFeaturesModule', 'HttpInterceptors', 'DashboardModule', 'dashboard.module', 'FormsModule'
+    'ProductFeaturesModule', 'HttpInterceptors', 'dashboard.module', 'FormsModule'
   ], [
     '$stateProvider', '$routeProvider', '$urlRouterProvider',
     function($stateProvider, $routeProvider, $urlRouterProvider) {
@@ -76,8 +76,11 @@
       };
     }
   ]).service('initService', [
-    'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser', '$q', '$urlRouter', '$modal', '$timeout',
-    function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q, $urlRouter, $modal, $timeout) {
+    'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
+    '$q', '$urlRouter', '$modal', '$timeout', 'state.history.service',
+    function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q,
+             $urlRouter, $modal, $timeout, StateHistoryService)
+    {
       var savedState = null,
           stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
             //as we init the system, we mix the preventing of $stateChangeStart events and $locationChangeStart events
@@ -139,6 +142,9 @@
         }, function(data){
           initFailure(data);
         });
+
+        //Init the service on app load
+        StateHistoryService.register();
 
         $rootScope.$on('logout', function() {
           $rootScope.username = null;

@@ -16,6 +16,6 @@ public class DashboardPage
   public static String URL = BaseUrl.uriBuilder().fragment("/dashboard/newest-risk").build().toString();
 
   public static SelenideElement body() {
-    return $(".dashboard-body-container");
+    return $(".dashboard-root-container");
   }
 }

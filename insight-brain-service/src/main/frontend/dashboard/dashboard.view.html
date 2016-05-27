@@ -1,8 +1,11 @@
 <div class="root-container" maximize-container-height>
-  <div class="sidebar-container" ui-view="filter"></div>
-  <div class="body-container" style="background: transparent;">
-    <div class="dashboard-root-container-new" fill-vertical>
-      <div ui-view="content"></div>
+  <span ng-if="!$state.is('dashboard.component')">
+    <div class="sidebar-container" ui-view="filter"></div>
+    <div class="body-container" style="background: transparent;">
+      <div class="dashboard-root-container" fill-vertical>
+        <div ui-view="content"></div>
+      </div>
     </div>
-  </div>
+  </span>
+  <div ng-if="$state.is('dashboard.component')" ui-view></div>
 </div>

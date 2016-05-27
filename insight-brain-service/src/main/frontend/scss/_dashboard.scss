@@ -165,168 +165,6 @@
 }
 
 /*
-Filters
-Expanded
-```
-<div class="filter-panel-container filter-panel-container-expanded">
-  <div class="filter-expando-container">
-    <i class="glyphicons-sonatype filter"></i>
-    <span ng-if="expanded" class="filter-expando-label">Filters</span>
-    <a>
-      <i class="sonatype-icons small pull-right double-chevron-left"></i>
-    </a>
-  </div>
-  <div class="filter-item-container">
-    <div class="filter-item-expanded">
-      <div class="filter-item-icon">
-        <i class="sonatype-icons application"></i>
-      </div>
-      <div class="filter-item-content">
-        <div class="filter-item-header">Applications</div>
-        ...Some filter specific content here...
-      </div>
-    </div>
-  </div>
-  <div class="filter-button-container">
-    <div clm-alerts="alerts" no-close="true"></div>
-    <button type="button" class='btn btn-link btn-cancel'>Cancel</button>
-    <div class="pull-right clm-primary-buttons">
-      <button type='button' class='btn btn-default'>Reset</button>
-      <button type='button' class='btn btn-primary'>Save</button>
-    </div>
-  </div>
-</div>
-```
-Collapsed
-```
-<div class="filter-panel-container">
-  <div class="filter-expando-container">
-    <i class="glyphicons-sonatype filter"></i>
-    <a>
-      <i class="sonatype-icons small pull-right double-chevron-right"></i>
-    </a>
-  </div>
-  <div class="filter-item-container">
-    <div class="filter-item-collapsed">
-      <i class="sonatype-icons application"></i>
-      <div class="count-circle pull-right" tooltip-html-unsafe="A multiline<br>tooltip" tooltip-placement="right" tooltip-append-to-body="true">3</div>
-    </div>
-  </div>
-</div>
-```
-*/
-$filter-content-left-padding: 15px;
-$filter-multi-dropdown-width: 190px;
-$filter-item-top-bottom-padding: 10px;
-.filter-panel-container {
-  position: absolute;
-  top: 40px;
-  bottom: 0px;
-  width: 60px;
-  border-right: $small-gray-border;
-  background-color: $main-background-color;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.filter-panel-container-expanded {
-  width: 250px !important;
-}
-
-.filter-expando-container {
-  text-align: left;
-  padding-left: $filter-content-left-padding;
-  line-height: 40px;
-  border-bottom: $small-gray-border;
-}
-
-.filter-expando-label {
-  padding-left: 10px;
-}
-
-.filter-item-container {
-  border-bottom: $small-gray-border;
-}
-
-.filter-button-container {
-  padding-left: $filter-content-left-padding;
-  padding-top: 10px;
-  padding-right: 5px;
-}
-
-.filter-item-collapsed {
-  padding-top: $filter-item-top-bottom-padding;
-  padding-bottom: $filter-item-top-bottom-padding;
-  padding-left: $filter-content-left-padding;
-}
-
-.filter-item-expanded {
-  padding-left: $filter-content-left-padding;
-  padding-top: $filter-item-top-bottom-padding;
-  padding-bottom: $filter-item-top-bottom-padding;
-}
-
-.filter-item-content {
-  display: inline-block;
-}
-
-.filter-item-content .btn {
-  width: $filter-multi-dropdown-width;
-  text-align: left;
-  @include border-radius(4px);
-}
-
-.filter-item-content .btn .caret {
-  float: right;
-}
-
-.filter-item-content .slider {
-  width: 180px;
-}
-
-//don't want the text to overlay the caret
-.filter-item-content .btn span div {
-  max-width: 150px;
-  float: left;
-}
-
-.filter-item-content .multi-dropdown .dropdown-menu {
-  width: $filter-multi-dropdown-width;
-}
-
-.filter-item-icon {
-  float: left;
-  padding-right: 10px;
-}
-
-.filter-item-header {
-  @extend .bold;
-  font-size: 16px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-
-.count-circle {
-  width: 15px;
-  height: 15px;
-  font-size: 10px;
-  line-height: 15px;
-  right: 20px;
-  top: 20px;
-  position: relative;
-  background-color: #2476FC;
-  color: white;
-  text-align: center;
-  @extend .bold;
-  @include border-radius(50%)
-}
-
-.double-chevron-right:before, .double-chevron-left:before {
-  padding-right: 13px;
-  vertical-align: middle;
-}
-
-/*
 Policy Summary Violation Graphs
 Deltas
 ```
@@ -746,7 +584,7 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 /*
 Dashboard tables
  ```
- <div class="dashboard-body-container">
+ <div>
   <ul class="nav nav-tabs scrollable-container-header">
     <li>
       <h4>Descriptor</h4>
@@ -783,7 +621,7 @@ Dashboard tables
 */
 
 .dashboard-root-container,
-.dashboard-root-container-new {
+.component-container {
   .nav.nav-tabs {
     margin: 0px;
   }
@@ -808,6 +646,559 @@ Dashboard tables
   }
   td {
     border-top: 0px;
+  }
+
+  .left-align-h1 {
+    margin-left: -2px;
+  }
+
+  .bottom-align-h1 {
+    margin-top: -30px;
+  }
+
+  .bottom-align-h1-with-header {
+    margin-top: -20px;
+    text-align: right;
+  }
+
+  .dashboard-tables {
+    margin-top: 10px;
+  }
+
+  table {
+    &.policy-violation-table tr td:nth-child(2) {
+      @extend .semi-bold;
+    }
+    &.table-risk {
+      thead th:nth-child(1n + 2) {
+        text-align: center;
+      }
+      tr.stage td:first-child {
+        @extend .semi-bold;
+        text-align: right;
+      }
+      tbody {
+        td:nth-child(1n + 2) {
+          text-align: center;
+          width: 115px;
+        }
+        tr:first-child td {
+          border-top: 1px solid transparent;
+        }
+      }
+      thead tr th {
+        min-width: 110px;
+        div {
+          min-width: 110px;
+        }
+      }
+      .stage td {
+        &:first-child {
+          background-color: #FCFCFC;
+        }
+        &:not(:first-child) {
+          background-color: #FFF;
+        }
+      }
+      td.total-risk {
+        background-color: #444;
+        color: #FFF;
+        font-size: 14px;
+        border-bottom: 1px solid white;
+      }
+    }
+  }
+
+  span.total-risk {
+    background-color: #444;
+    color: #FFF;
+    font-size: 14px;
+    border-bottom: 1px solid white;
+  }
+
+  table.table-risk {
+    tr.stage td {
+      border-bottom: 1px solid #ddd;
+      border-right: 0px;
+      border-left: 0px;
+    }
+    .stage td.total-risk, td.total-risk.black-text {
+      color: #000;
+    }
+    th.total-risk {
+      font-size: 1.1em;
+    }
+    td {
+      &.muted-text {
+        color: #C6C6C6 !important;
+      }
+      &.critical-risk {
+        background-color: #E6A29F;
+        color: #880D10;
+        border-left: 1px solid white;
+        border-bottom: 1px solid white;
+      }
+    }
+  }
+
+  span.critical-risk {
+    background-color: #E6A29F;
+    color: #880D10;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  table.table-risk td.severe-risk, span.severe-risk {
+    background-color: #E7C2A1;
+    color: #64460A;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  table.table-risk td.moderate-risk, span.moderate-risk {
+    background-color: #E8D9A1;
+    color: #968900;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  table.table-risk td.low-risk, span.low-risk {
+    background-color: #B8D7E8;
+    color: #233894;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  table th#affected-apps {
+    min-width: 149px;
+  }
+
+  /* only stripe the first column of the heat-mapped tables, excepting those with the .stage class */
+
+  .table-risk tr.striped > td:nth-child(1) {
+    background-color: #E8E8E8;
+  }
+
+  .table-risk-component tr {
+    &:nth-child(odd):not(.stage) > td:nth-child(2) {
+      background-color: #E8E8E8;
+      background-color: #EDEDED;
+    }
+    &:nth-child(even):not(.stage) > td:nth-child(2) {
+      background-color: #F1F1F1;
+    }
+  }
+
+  /*
+   * Affected Applications background
+   */
+
+  .sort-column {
+    .up:before, .down:before {
+      line-height: 30px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+    .emptyIconGlyph {
+      width: 12px;
+    }
+  }
+
+  .latest-risk {
+    font-family: Proxima Nova Bold, sans-serif;
+  }
+
+  .accordion-column {
+    padding: 0px !important;
+  }
+
+  .pathnames-popover {
+    max-width: 500px;
+    -webkit-border-bottom-left-radius: 0;
+    -moz-border-radius-bottomleft: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .pathnames-popover-content {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-left: 0px;
+    margin-right: 15px;
+    margin-left: 15px;
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+
+  .pathnames-popover-arrow {
+    left: 0%;
+    border-width: 14px 17px 0px 0px;
+    border-color: #ffffff transparent transparent transparent !important;
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    bottom: -14px;
+    &:after {
+      bottom: -13px;
+      border-width: 15px 18px 0px 0px;
+      margin-left: -1px;
+      border-top-color: #999 !important;
+      border-top-color: rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+
+  .clm-bar-text-offset {
+    text-indent: -8px;
+  }
+
+  .clm-arc {
+    &.application circle, &.violation circle {
+      fill: #f4f4f4;
+      stroke: #C1C1C1;
+    }
+    &.application path {
+      fill: #bc012f !important;
+    }
+    &.violation path {
+      fill: #f4f4f4 !important;
+      stroke: #bc012f !important;
+    }
+  }
+
+  .dashboard-label-wrapper {
+    padding: 5px 0px 5px 0px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .dashboard-label {
+    line-height: 20px !important;
+    font-size: 20px !important;
+    padding: 5px;
+    /* 4px to match other items we have */
+    webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+
+  .dashboard-loading {
+    margin-left: 28px;
+    opacity: 0;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-name: visibility;
+    -webkit-animation-delay: 1s;
+    -webkit-animation-duration: 0.1s;
+    -webkit-animation-fill-mode: forwards;
+    animation-timing-function: linear;
+    animation-name: visibility;
+    animation-delay: 1s;
+    animation-duration: 0.1s;
+    animation-fill-mode: forwards;
+  }
+
+  @-webkit-keyframes visibility {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+
+  @keyframes visibility {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+
+  .wrap-force-break {
+    word-spacing: -0.1em;
+  }
+
+  .word-break-all {
+    word-break: break-all;
+  }
+
+  .component-match-content {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  /**
+   * Component Details
+   */
+
+  .image-thumbnail {
+    height: 24px;
+    width: 24px;
+    margin-right: 5px;
+  }
+
+  /* Component table has hidden alternating rows to display details. Alternate background of every 4th row
+    as well to provide a striped look */
+
+  .component-application-table {
+    tbody > tr:nth-child(4n-1).expandable-row {
+      background-color: #f4f4f4 !important;
+    }
+    .accordion-column .in {
+      border-top: 2px solid #C1C1C1;
+    }
+    a {
+      vertical-align: middle;
+    }
+    i:before {
+      font-size: 12px;
+    }
+    tbody {
+      border-bottom: 1px solid #ddd;
+    }
+    .expandable-row {
+      border-top: 1px solid #ddd;
+    }
+  }
+
+  .component-violations-table {
+    margin-left: 60px;
+    .table {
+      background: #f4f4f4;
+      margin-bottom: 0px;
+    }
+    tbody {
+      border-bottom: 0px;
+    }
+    td:not(:first-child), a {
+      opacity: .75;
+    }
+    tr {
+      border-bottom: 1px solid #ddd;
+      background-color: #FCFCFC !important;
+    }
+  }
+
+  .expandable-header {
+    width: 10px;
+  }
+
+  .component-violations-table .threat-column {
+    width: 20px;
+    font-family: Proxima Nova Bold, sans-serif;
+  }
+
+  .share-risk-header {
+    min-width: 120px;
+    width: 120px;
+  }
+
+  .component-violations-table {
+    .share-risk-column {
+      min-width: 120px;
+      width: 120px;
+    }
+    table td {
+      vertical-align: middle;
+    }
+  }
+
+  table.component-application-table td {
+    vertical-align: middle;
+  }
+
+  .share-risk-column > span {
+    vertical-align: middle;
+    display: inline-block;
+  }
+
+  /* BEGIN Style for modal heat map help. */
+
+  .modal-help {
+    width: 700px;
+    max-height: 700px;
+    margin-left: -350px;
+  }
+
+  div.modal-help-icon {
+    display: inline;
+    left: 8px;
+    position: relative;
+  }
+
+  .heat-map-help {
+    div {
+      vertical-align: top;
+    }
+    > div {
+      margin-bottom: 20px;
+    }
+    .left-column {
+      width: 275px;
+      margin-right: 15px;
+      display: inline-block;
+    }
+    .right-column {
+      width: 375px;
+      display: inline-block;
+      margin-top: 35px;
+    }
+    .risk-cell, .risk-operator, .stage-cell, .stage-risk-cell {
+      height: 25px;
+      display: inline-block;
+      line-height: 25px;
+      vertical-align: middle;
+      margin: 1px;
+      border-left: 0px none;
+      border-bottom: 1px solid white;
+    }
+    .risk-cell, .risk-operator, .stage-cell {
+      color: black;
+    }
+    .risk-cell, .risk-operator, .stage-risk-cell {
+      text-align: center;
+    }
+    .risk-cell {
+      width: 75px;
+      &.total-risk {
+        color: white;
+      }
+    }
+    .risk-operator {
+      width: 10px;
+    }
+    .stage-cell {
+      width: 135px;
+    }
+    .stage-risk-cell {
+      width: 35px;
+      background: white;
+      &.total-risk {
+        color: black;
+      }
+    }
+    .stage-row {
+      border-bottom: 1px solid #ddd;
+      &:nth-child(1) {
+        border-top: 1px solid #ddd;
+      }
+    }
+  }
+
+  .arrow, .heat-map-help .inline-block {
+    display: inline-block;
+  }
+
+  .arrow {
+    &::before {
+      width: 0;
+      height: 0;
+      border-style: solid;
+      content: '';
+      font-size: 0px;
+      position: relative;
+    }
+    &.left {
+      width: 250px;
+      height: 7px;
+      border-bottom: solid 5px #ddd;
+      margin-left: 20px;
+      &.small {
+        width: 128px;
+      }
+      &::before {
+        border-width: 10px 20px 10px 0;
+        border-color: transparent #ddd transparent transparent;
+        left: -20px;
+        top: -5px;
+      }
+    }
+    &.up {
+      width: 20px;
+      height: 68px;
+      border-left: dotted 5px #ddd;
+      margin-top: 50px;
+      &::before {
+        border-width: 0 10px 20px 10px;
+        border-color: transparent transparent #ddd transparent;
+        top: -30px;
+        left: -12px;
+      }
+    }
+  }
+
+  /* END Style for modal heat map help. */
+}
+
+.component-container {
+  margin: 0 auto;
+  width: 850px;
+  @media (min-width: 1250px) {
+    width: 1110px;
+  }
+}
+
+@media (min-width: 1250px) {
+  /* Extend first table in two column layouts to prevent horizontal scrollbars */
+  .dashboard-charts .span6:first-child .scrollable-container {
+    margin-right: -20px;
+  }
+  .risk-header, .stage-column, .component-violations-table .risk-column {
+    min-width: 70px;
+    width: 70px;
+  }
+}
+
+@media (max-width: 1249px) {
+  table {
+    &.table-risk {
+      thead tr th {
+        min-width: 90px !important;
+        div {
+          min-width: 90px !important;
+        }
+      }
+      tbody td:nth-child(1n + 2) {
+        width: 90px !important;
+      }
+      th.total-risk {
+        font-size: 12px !important;
+        padding: 0 0px;
+        min-width: 110px !important;
+      }
+    }
+    th#affected-apps {
+      min-width: 120px !important;
+    }
+  }
+  .risk-header, .stage-column, .component-violations-table .risk-column {
+    min-width: 60px;
+    width: 60px;
+  }
+  .stage-column-release, .stage-column-operate {
+    min-width: 68px;
+    width: 68px;
+  }
+  .dashboard-charts .span6 {
+    width: 940px;
+  }
+  .table.policy-summary-table .category-header {
+    min-width: 85px !important;
+  }
+  .percentage-graph-legend-count {
+    font-size: 10px !important;
+    padding-right: 5px;
+  }
+  .dashboard-label {
+    font-size: 18px !important;
   }
 }
 

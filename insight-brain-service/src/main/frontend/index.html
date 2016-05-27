@@ -38,7 +38,6 @@
   <!--build:css css/style.css -->
   <link href="application/application.css" rel="stylesheet">
   <link href="app-security.css" rel="stylesheet">
-  <link href="dashboard/dashboard.css" rel="stylesheet">
   <link href="glyphicons-sonatype.css" rel="stylesheet">
   <link href="insight.css" rel="stylesheet">
   <link href="management.css" rel="stylesheet">
@@ -78,7 +77,7 @@
   <!-- build:js js/core.js -->
   <script src="utility/GlobalFunctions.js"></script>
   <script src="ComponentDisplayModule.js"></script>
-  <script src="dashboard/DashboardModule.js"></script>
+  <script src="dashboard/dashboard.utils.js"></script>
   <script src="dashboard/dashboard.module.js"></script>
   <script src="dashboard/dashboard.controller.js"></script>
   <script src="dashboard/dashboard.filter.controller.js"></script>
@@ -98,7 +97,6 @@
   <script src="configuration/ProductLicenseController.js"></script>
   <script src="configuration/uninstall.license.controller.js"></script>
   <script src="dashboard/ComponentController.js"></script>
-  <script src="dashboard/FilterController.js"></script>
   <script src="policy/AppSecurityController.js"></script>
   <script src="policy/LabelController.js"></script>
   <script src="policy/LicenseThreatGroupsController.js"></script>
@@ -195,6 +193,7 @@
 
   <script src="utility/services/utility.services.module.js"></script>
   <script src="utility/services/unauthenticated.request.queue.service.js"></script>
+  <script src="utility/services/state.history.service.js"></script>
   <script src="utility/services/delete.modal.controller.js"></script>
   <script src="utility/services/delete.modal.service.js"></script>
   <script src="utility/services/error.modal.controller.js"></script>

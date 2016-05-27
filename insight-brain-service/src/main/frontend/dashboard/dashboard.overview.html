@@ -13,16 +13,16 @@
             <div ng-if="data.length === 0">
               <span class="clm-bar-text-offset">
                 <em id="no-data">
-                  <span ng-if="$state.is('dashboard-new.overview.newest-risk')">No data available in the last 30 days given the applied filters and available permissions.</span>
-                  <span ng-if="!$state.is('dashboard-new.overview.newest-risk')">No data available given the applied filters and available permissions.</span>
+                  <span ng-if="$state.is('dashboard.overview.newest-risk')">No data available in the last 30 days given the applied filters and available permissions.</span>
+                  <span ng-if="!$state.is('dashboard.overview.newest-risk')">No data available given the applied filters and available permissions.</span>
                 </em>
               </span>
             </div>
           </div>
         </div>
         <span id="max-results-shown" class="pull-right" ng-if="data.length > maxResults">
-          <div ng-if="$state.is('dashboard-new.overview.newest-risk')">Showing the newest {{maxResults}} results</div>
-          <div ng-if="!$state.is('dashboard-new.overview.newest-risk')">Showing the top {{maxResults}} results</div>
+          <div ng-if="$state.is('dashboard.overview.newest-risk')">Showing the newest {{maxResults}} results</div>
+          <div ng-if="!$state.is('dashboard.overview.newest-risk')">Showing the top {{maxResults}} results</div>
         </span>
       </div>
     </div>
@@ -328,7 +328,7 @@
             <a id="tab-button-application" ui-sref=".applications">
               <div>
                 By Application
-                <div class="modal-help-icon" modal-help="application-heat-map-help" ng-if="$state.is('dashboard-new.overview.applications')">
+                <div class="modal-help-icon" modal-help="application-heat-map-help" ng-if="$state.is('dashboard.overview.applications')">
                   <i id="application-heat-map-help-icon" class="glyphicons-sonatype help small"
                      tooltip="Click here for help about the Application Heat Map" tooltip-placement="top"
                      tooltip-append-to-body="true"></i>
@@ -340,7 +340,7 @@
             <a id="tab-button-component" ui-sref=".components">
               <div>
                 By Component
-                <div class="modal-help-icon" modal-help="component-heat-map-help" ng-if="$state.is('dashboard-new.overview.components')">
+                <div class="modal-help-icon" modal-help="component-heat-map-help" ng-if="$state.is('dashboard.overview.components')">
                   <i id="component-heat-map-help-icon" class="glyphicons-sonatype help small"
                      tooltip="Click here for help about the Component Heat Map" tooltip-placement="top"
                      tooltip-append-to-body="true"></i>

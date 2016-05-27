@@ -434,7 +434,7 @@ var AngularStateUtils = {
     };
   }]);
 
-  angularCommon.directive('breadcrumb', ['$state', function($state) {
+  angularCommon.directive('breadcrumb', ['$state', 'state.history.service', function($state, StateHistoryService) {
     var defaultState = 'dashboard.overview.newest-risk';
     var parentStates = [defaultState, 'dashboard.overview.components'];
     return {
@@ -451,16 +451,18 @@ var AngularStateUtils = {
                   '</span>' +
                 '</p>',
       link: function(scope) {
-        function loadCurrentState(event, toState, toParams, fromState) {
+        function loadCurrentState() {
           var state = $state.$current;
-          var states = [];
+          var states = [],
+              previousState = StateHistoryService.getPreviousState();
+
           while (state && state.name) {
             // dashboard is an abstract state that can represented by parent states navigated from or the default state
             if (state.name === 'dashboard') {
               states.unshift({
                 name: state.data.crumb,
                 icon: 'sonatype-icons dashboard',
-                state: fromState && $.inArray(fromState.name, parentStates) !== -1 ? fromState.name : defaultState
+                state: previousState && $.inArray(previousState.name, parentStates) !== -1 ? previousState.name : defaultState
               });
             }
             // dashboard.overview is an abstract state that can be ignored in favor of its parent

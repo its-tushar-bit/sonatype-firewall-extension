@@ -1,4 +1,4 @@
-describe('DashboardModule', function() {
+describe('dashboard.utils.spec', function() {
   var scope, commonFilters = {
     applicationIds: ['1', '2'],
     policyThreatTypes: ['3', '4'],
@@ -7,7 +7,7 @@ describe('DashboardModule', function() {
     policyThreatLevel: [3, 9]
   };
 
-  beforeEach(module('DashboardModule'));
+  beforeEach(module('dashboard.utils'));
 
   afterEach(inject(function($httpBackend) {
     if (scope) {
@@ -16,35 +16,6 @@ describe('DashboardModule', function() {
     $httpBackend.verifyNoOutstandingExpectation(false);
     $httpBackend.verifyNoOutstandingRequest();
   }));
-
-  describe('dashboardController', function() {
-    beforeEach(inject(function($rootScope, $controller) {
-      scope = $rootScope.$new();
-
-      scope.$apply(function () {
-        scope.filters = {
-          applicationIds: [],
-          policyThreatTypes: [],
-          stageTypeIds: [],
-          applicationTagIds: [],
-          policyThreatLevel: [0,10]
-        };
-      });
-      $controller('DashboardController', { $scope: scope });
-    }));
-
-    it('Reacts to filter changes', function() {
-      scope.$apply(function () {
-        scope.filters = {
-          applicationIds: ['foo'],
-          policyThreatTypes: [],
-          stageTypeIds: [],
-          applicationTagIds: [],
-          policyThreatLevel: [0,10]
-        };
-      });
-    });
-  });
 
   describe('stageTypeSort', function () {
     it('sort by id', inject(function ($filter) {

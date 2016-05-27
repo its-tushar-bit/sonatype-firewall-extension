@@ -1,7 +1,7 @@
 describe('AngularCommon', function() {
   var scope, compile, httpBackend, regex, form;
 
-  beforeEach(module('AngularCommon', 'CommonServices'));
+  beforeEach(module('AngularCommon', 'CommonServices', 'utility.services'));
   beforeEach(function() {
     module(function($provide) {
       $provide.value('$state', {
@@ -547,9 +547,11 @@ describe('AngularCommon', function() {
   });
 
   describe('breadcrumb', function() {
-    var scope;
+    var scope,
+        $rootScope;
 
-    beforeEach(inject(function($rootScope, $compile) {
+    beforeEach(inject(function(_$rootScope_, $compile) {
+      $rootScope = _$rootScope_;
       var parentScope = $rootScope.$new();
 
       $compile(angular.element('<div breadcrumb></div>'))(parentScope);
@@ -558,7 +560,7 @@ describe('AngularCommon', function() {
     }));
 
     it('builds list of parent states', function() {
-      scope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: '' });
+      $rootScope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: '' });
 
       expect(scope.states.length).toBe(2);
       expect(scope.states[0].state).toBe('dashboard.overview.newest-risk');
@@ -566,7 +568,8 @@ describe('AngularCommon', function() {
     });
 
     it('maintains previous parent states when navigating away', function() {
-      scope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: 'dashboard.overview.components' });
+      $rootScope.$broadcast('$stateChangeSuccess', {name: 'dashboard.component'}, undefined,
+          {name: 'dashboard.overview.components'});
 
       expect(scope.states.length).toBe(2);
       expect(scope.states[0].state).toBe('dashboard.overview.components');

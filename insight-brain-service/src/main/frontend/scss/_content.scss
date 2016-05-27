@@ -102,44 +102,7 @@ body {
   height: 100%;
 }
 
-/*
-  ##Single pane layout container
-
-  ```
-    <div class="dashboard-root-container">
-      <div class="dashboard-body-container">
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-      </div>
-    </div>
-  ```
-*/
 .dashboard-root-container {
-  @include main-content(35px);
-  padding-top: 10px;
-  overflow-y: auto;
-}
-
-.dashboard-body-container {
-  margin: 0 auto;
-  width: 850px;
-  @media (min-width: 1250px) {
-    width: 1110px;
-  }
-}
-
-// TODO: merge current css style with the following, once the new Dashboard has been finalized.
-.dashboard-root-container-new {
   $dashboard-link-hover-color: #2476FC;
 
   width: calc(100% - 20px);

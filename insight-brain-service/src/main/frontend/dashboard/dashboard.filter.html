@@ -22,12 +22,10 @@
             <input type="text" ng-model="vm.filter" autocomplete="off" placeholder="{{shortName}} Name">
           </div>
           <div class="clm-form">
-            <a class="tree-view-item cannot-select">
-              <label class="checkbox" ng-click="$event.stopPropagation();">
-                <input type="checkbox" name="all" ng-click="vm.toggleSelectAll()" ng-checked="vm.allSelected()"><!--
-                --><span>all {{!vm.filter ? longName : 'matches'}}</span>
-              </label>
-            </a>
+            <label class="tree-view-item checkbox" ng-click="$event.stopPropagation();">
+              <input type="checkbox" name="all" ng-click="vm.toggleSelectAll()" ng-checked="vm.allSelected()"><!--
+              --><span>all {{!vm.filter ? longName : 'matches'}}</span>
+            </label>
             <label class="tree-view-item checkbox"
                tooltip="{{::(tooltipField ? 'in ' + entity[tooltipField] : '')}}" tooltip-append-to-body="true"
                data-tooltip-popup-delay="200" tooltip-class="dashboard-treeview-tooltip"
@@ -108,9 +106,10 @@
     </div>
   </div>
   <div class="dashboard-filter-footer" submit-wrapper="vm.saveError" retry="vm.save()">
-    <button class="btn" type="submit" submit-validation submit-dirty="vm.isDirty()" submit-type="update"
-            submit-tooltip-target='body'>Apply</button>
-    <button class="btn btn-tertiary" type="button" ng-click="vm.revert()">Revert</button>
-    <button class="btn btn-tertiary" type="button" ng-click="vm.clear()">Clear</button>
+    <button id="dashboard-filter-apply" class="btn" type="submit" submit-validation submit-dirty="vm.isDirty()"
+            submit-type="update" submit-tooltip-target='body'>Apply
+    </button>
+    <button id="dashboard-filter-revert" class="btn btn-tertiary" type="button" ng-click="vm.revert()">Revert</button>
+    <button id="dashboard-filter-clear" class="btn btn-tertiary" type="button" ng-click="vm.clear()">Clear</button>
   </div>
 </form>

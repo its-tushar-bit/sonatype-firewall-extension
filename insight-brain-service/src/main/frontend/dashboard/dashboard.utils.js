@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, clmBuildTimestamp, $, d3, AngularUtils */
+/* global angular, $, d3, AngularUtils */
 (function() {
   'use strict';
 
@@ -28,58 +28,10 @@
     return params;
   }
 
-  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule',
-    'FilterModule', 'ComponentDisplay'],
-    // To avoid hacking dependency order, states must be declared with their parent.
-    // Fixed https://github.com/angular-ui/ui-router/pull/492
-    ['$stateProvider', function($stateProvider) {
-    $stateProvider.state('dashboard', {
-      url: '/dashboard',
-      templateUrl: 'dashboard/dashboard.html?' + clmBuildTimestamp,
-      abstract: true,
-      data : {
-        title : 'Dashboard',
-        crumb: 'Dashboard'
-      }
-    }).state('dashboard.overview', {
-      parent: 'dashboard',
-      url: '',
-      abstract: true,
-      controller: 'DashboardController',
-      templateUrl: 'dashboard/overview.html?' + clmBuildTimestamp
-    }).state('dashboard.overview.newest-risk', {
-      parent: 'dashboard.overview',
-      url: '/newest-risk',
-      templateUrl: 'dashboard/newest-risk.html?' + clmBuildTimestamp,
-      data: {
-        crumb: 'Newest Risk'
-      }
-    }).state('dashboard.overview.components', {
-      parent: 'dashboard.overview',
-      url: '/components',
-      templateUrl: 'dashboard/components.html?' + clmBuildTimestamp,
-      data: {
-        crumb: 'By Component'
-      }
-    }).state('dashboard.overview.applications', {
-      parent: 'dashboard.overview',
-      url: '/applications',
-      templateUrl: 'dashboard/applications.html?' + clmBuildTimestamp,
-      data: {
-        crumb: 'By Application'
-      }
-    }).state('dashboard.component', {
-      parent: 'dashboard',
-      url: '/component/{hash}',
-      controller: 'componentController',
-      templateUrl: 'dashboard/component.html?' + clmBuildTimestamp,
-      data: {
-        crumb: 'Component Details'
-      }
-    });
-  }]);
+  var dashboardUtilsModule = angular.module('dashboard.utils',
+      ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay']);
 
-  dashboardModule.controller('DashboardController', ['$scope', '$modal', function($scope, $modal) {
+  dashboardUtilsModule.controller('DashboardController', ['$scope', '$modal', function($scope, $modal) {
     $scope.maxResults = 100;
     $scope.showTrendDialog = function() {
 
@@ -98,7 +50,7 @@
     };
   }]);
 
-  dashboardModule.directive('pathnamesPopover', function() {
+  dashboardUtilsModule.directive('pathnamesPopover', function() {
     var uniqueCounter = 0;
     return {
       restrict: 'A',
@@ -294,16 +246,16 @@
     }];
   }
 
-  dashboardModule.directive('newestRiskTable', getTableDirective('getNewestRisksUrl'));
+  dashboardUtilsModule.directive('newestRiskTable', getTableDirective('getNewestRisksUrl'));
 
-  dashboardModule.directive('applicationRiskTable', getTableDirective('getApplicationRisksUrl'));
+  dashboardUtilsModule.directive('applicationRiskTable', getTableDirective('getApplicationRisksUrl'));
 
-  dashboardModule.directive('componentRiskTable', getTableDirective('getComponentRisksUrl'));
+  dashboardUtilsModule.directive('componentRiskTable', getTableDirective('getComponentRisksUrl'));
 
   /**
    * Remove stages which are not part of the filter
    */
-  dashboardModule.filter('stageFilter', function () {
+  dashboardUtilsModule.filter('stageFilter', function () {
     return function (input, filter) {
       if (angular.isArray(input) && filter && filter.stageTypeIds.length > 0) {
         for (var i=0; i<input.length; i++) {
@@ -317,7 +269,7 @@
     };
   });
 
-  dashboardModule.filter('stageTypeSort', function () {
+  dashboardUtilsModule.filter('stageTypeSort', function () {
     function priority(stage){
       var ordinal = null;
       switch (stage.stageTypeId || stage.id) {
@@ -346,7 +298,7 @@
     };
   });
 
-  dashboardModule.controller('NewestRiskTableController', [
+  dashboardUtilsModule.controller('NewestRiskTableController', [
     '$scope', 'StageTypeStore', 'ComponentDisplayNameUtil', '$filter',
     function($scope, StageTypeStore, ComponentDisplayNameUtil, $filter) {
       StageTypeStore.getDashboardStages().then(function(data) {
@@ -374,7 +326,7 @@
     }
   ]);
 
-  dashboardModule.controller('componentRiskTable', ['$scope', function($scope) {
+  dashboardUtilsModule.controller('componentRiskTable', ['$scope', function($scope) {
     $scope.totalRisk = 0;
     $scope.criticalRisk = 0;
     $scope.severeRisk = 0;
@@ -389,7 +341,7 @@
     });
   }]);
 
-  dashboardModule.controller('applicationRiskTable', ['$scope', '$filter', function ($scope, $filter) {
+  dashboardUtilsModule.controller('applicationRiskTable', ['$scope', '$filter', function ($scope, $filter) {
     function updateApplications() {
       $scope.applications = $filter('orderBy')($filter('limitTo')($scope.data, $scope.maxResults), $scope.getSortField());
       updateStripes();
@@ -439,7 +391,7 @@
     });
   }]);
 
-  dashboardModule.directive('alphaBackground', [function() {
+  dashboardUtilsModule.directive('alphaBackground', [function() {
     return {
       scope: {
         alphaBackground: '@'
@@ -477,7 +429,7 @@
     }
   }
 
-  dashboardModule.directive('sortColumns', function () {
+  dashboardUtilsModule.directive('sortColumns', function () {
     return {
       require : '^sortable',
       scope: {
@@ -514,7 +466,7 @@
     };
   });
 
-  dashboardModule.directive('sortable', function () {
+  dashboardUtilsModule.directive('sortable', function () {
     return {
       require : 'sortable',
       controller : ['$scope', function ($scope) {
@@ -543,7 +495,7 @@
     };
   });
 
-  dashboardModule.directive('dashboardViewSummary', function() {
+  dashboardUtilsModule.directive('dashboardViewSummary', function() {
     return {
       restrict: 'A',
       templateUrl: 'dashboard-view-summary',
@@ -587,7 +539,7 @@
    * This directive should be moved someplace more generic, but I don't feel like bloating
    * AngularCommon at the moment..
    */
-  dashboardModule.directive('horizontalPercentageGraph', function() {
+  dashboardUtilsModule.directive('horizontalPercentageGraph', function() {
     return {
       restrict: 'A',
       scope: {
@@ -600,7 +552,7 @@
     };
   });
 
-  dashboardModule.controller('PolicyTrendController', [
+  dashboardUtilsModule.controller('PolicyTrendController', [
     '$scope', 'CLMLocations', '$http', 'filters', function($scope, CLMLocations, $http, filters) {
       function delta(counts) {
         return counts.reduce(function(a, b) {
@@ -690,7 +642,7 @@
     }
   ]);
 
-  dashboardModule.directive('valueBars',  ['windowEventsFactory', function(windowEventsFactory) {
+  dashboardUtilsModule.directive('valueBars',  ['windowEventsFactory', function(windowEventsFactory) {
     return {
       restrict: 'A',
       scope: {
@@ -759,7 +711,7 @@
     };
   }]);
 
-  dashboardModule.directive('sparkline', [function() {
+  dashboardUtilsModule.directive('sparkline', [function() {
     return {
       scope:{
         data: '='
@@ -938,7 +890,7 @@
     };
   }]);
 
-  dashboardModule.filter('removeDashes', function() {
+  dashboardUtilsModule.filter('removeDashes', function() {
     return function(input) {
       return input.replace('-', '');
     };
@@ -947,7 +899,7 @@
   /**
    * Filter an array to ensure that null entries are always at the end.
    */
-  dashboardModule.filter('emptyToEnd', function() {
+  dashboardUtilsModule.filter('emptyToEnd', function() {
     return function(array, key) {
       if (!angular.isArray(array)) {
         return;
@@ -963,7 +915,7 @@
     };
   });
 
-  dashboardModule.factory('windowEventsFactory', ['$window', function($window) {
+  dashboardUtilsModule.factory('windowEventsFactory', ['$window', function($window) {
     return {
       addResizeHandler: function(scope, element, callBack) {
         var width = element.width();
@@ -987,7 +939,7 @@
     };
   }]);
 
-  dashboardModule.directive('modalHelp', ['$modal', function($modal) {
+  dashboardUtilsModule.directive('modalHelp', ['$modal', function($modal) {
     return {
       restrict: 'A',
       scope: {

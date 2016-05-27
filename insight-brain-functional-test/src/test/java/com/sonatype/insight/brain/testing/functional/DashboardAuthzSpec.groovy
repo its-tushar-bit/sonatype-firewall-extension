@@ -56,36 +56,36 @@ extends BaseSpec {
     loginAsUserVia(userWithPermission.username, userWithPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available applications to filter on'
-    filters.toggle.click()
-    waitFor { filters.applicationMultiselect.displayed }
-    filters.applicationMultiselect.showDropdown()
+    waitFor { filters.applicationFilter.displayed }
+    filters.applicationFilter.twisty.click()
 
-    then: 'only the permissioned application is shown'
-    filters.applicationMultiselect.dropdownList.size() == 1
-    !filters.noApplications.displayed
+    then: 'only the permissioned application and the all application option are shown'
+    filters.applicationFilter.multiSelectList.size() == 2
+    filters.applicationFilter.counter.text() == '0 of 1'
   }
 
-  def 'Should be advised that there are no applications to choose from without permissions'() {
+  def 'Should have no applications to choose from without permissions'() {
     setup: 'Logging in as a user without permission to any applications'
     loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available applications to filter on'
-    filters.toggle.click()
+    waitFor { filters.applicationFilter.displayed }
+    filters.applicationFilter.twisty.click()
 
-    then: 'the select is not shown, and instead a message is presented'
-    waitFor { filters.noApplications.displayed }
-    !filters.applicationMultiselect.displayed
+    then: 'there are no applications available to select'
+    filters.applicationFilter.multiSelectList.size() == 1
   }
 
-  def 'Should only see application tag dropdown when application tags exist'() {
+  def 'Should only see all application categories options when no application categories exist'() {
     setup: 'Logging in as a user without permission to any applications'
     loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
 
-    when: 'looking at available application tag filters'
-    filters.toggle.click()
+    when: 'looking at available application category filters'
+    waitFor { filters.applicationFilter.displayed }
+    filters.applicationFilter.twisty.click()
+    filters.applicationCategoryFilter.twisty.click()
 
-    then: 'the select is not shown, and instead a message is presented'
-    waitFor { filters.noApplicationTags.displayed }
-    !filters.applicationTagMultiselect.displayed
+    then: 'only all application categories option available'
+    filters.applicationCategoryFilter.multiSelectList.size() == 1
   }
 }

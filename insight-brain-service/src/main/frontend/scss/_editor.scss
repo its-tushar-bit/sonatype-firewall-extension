@@ -284,9 +284,15 @@
         }
 
         span {
-          > .fa {
+          > .fa, > svg {
             margin-right: 8px;
             margin-top: 2px;
+          }
+
+          > .svg-slate-16px {
+            fill: $slate;
+            height: 16px;
+            width: 16px;
           }
 
           > .fail {
@@ -326,6 +332,10 @@
 
     dropdown-selector.no-options {
       padding-top: 8px;
+    }
+
+    #recipient-jira-issue-type {
+      width: 200px;
     }
   }
 

@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -62,6 +63,8 @@ public abstract class AbstractFunctionalTest
 
   protected static RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
+  protected static JiraService jiraService;
+
   protected static TestCLMServer testCLMServer;
 
   private static Predicate<WebDriver> urlEqualsPredicate(final String url) {
@@ -106,6 +109,7 @@ public abstract class AbstractFunctionalTest
 
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
+    Mockito.when(jiraService.isEnabled()).thenReturn(false);
   }
 
   @AfterClass
@@ -130,6 +134,9 @@ public abstract class AbstractFunctionalTest
 
         rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
         bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
+
+        jiraService = Mockito.mock(JiraService.class);
+        bind(JiraService.class).toInstance(jiraService);
       }
     });
   }

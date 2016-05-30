@@ -200,7 +200,8 @@
           actions: {},
           notifications: {
             userNotifications: [],
-            roleNotifications: []
+            roleNotifications: [],
+            jiraNotifications: []
           },
           monitorNotifyActions: []
         },

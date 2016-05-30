@@ -7,5 +7,5 @@
 (function(angular) {
   'use strict';
 
-  angular.module('utility.services', ['utility.directives']);
+  angular.module('utility.services', ['utility.directives', 'CLMLocation']);
 }(angular));

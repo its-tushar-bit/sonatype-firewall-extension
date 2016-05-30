@@ -13,13 +13,14 @@ import java.util.Map.Entry;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.security.UserDirectory;
@@ -63,28 +64,31 @@ public class PolicyAlertEmailer
   public void sendNotifications(final Application app,
                                 final String scanId,
                                 final Stage stage,
-                                final List<PolicyAlert> policyAlerts)
+                                final List<PolicyNotification> policyNotifications)
   {
     // baseUrl uses ThreadContext to get the base URL. We need to get it before switching threads.
     final String stringBaseUrl = baseUrl.get();
-    new Thread("PolicyAlertNotifierForScan-" + scanId)
+
+    new Thread("PolicyAlertEmailNotifierForScan-" + scanId)
     {
       @Override
       public void run() {
         String applicationPublicId = app.getPublicId();
         String mailServer = getMail().getServer();
-        Map<String, List<PolicyAlert>> alertsByRecipients = getPolicyAlertsByEmailAddresses(app, policyAlerts);
-        if (alertsByRecipients.isEmpty()) {
+        Map<String, List<PolicyFact>> policyFactsByEmailAddress = getPolicyFactsByEmailAddress(app,
+            policyNotifications);
+
+        if (policyFactsByEmailAddress.isEmpty()) {
           log.debug("Not sending notification emails for application {} and scan {} in stage {}"
               + ", no recipients configured for any violated policy", applicationPublicId, scanId, stage);
         }
-        for (final Entry<String, List<PolicyAlert>> details : alertsByRecipients.entrySet()) {
+        for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
           try {
             log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}", mailServer,
                 details.getKey(), applicationPublicId, scanId, stage);
             final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
             final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
-            final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()), app.getName());
+            final String subject = createPolicyMailSubject(new PolicyAlertCounts(details.getValue()), app.getName());
             final String body = processTemplate(
                 createPolicyMailModel(stringBaseUrl, app, scanId, stage, details.getValue()));
             getMail().sendHtml(mailId, addresses, subject, body);
@@ -102,9 +106,9 @@ public class PolicyAlertEmailer
                                                       Application app,
                                                       String scanId,
                                                       Stage stage,
-                                                      List<PolicyAlert> policyAlerts)
+                                                      List<PolicyFact> policyFacts)
   {
-    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stage, policyAlerts);
+    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stage, policyFacts);
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     if (contact != null) {
       model.put("applicationContactEmail", contact.getEmail());

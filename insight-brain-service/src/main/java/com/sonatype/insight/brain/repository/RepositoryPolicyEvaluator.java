@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -145,8 +146,8 @@ public class RepositoryPolicyEvaluator
 
     // Only notify new component evaluation policy violations
     if (RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT.equals(componentEvaluationDataRequestList.cause)) {
-      for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
-        pendingRepositoryPolicyNotifications.add(repository.getId(), policyAlert);
+      for (PolicyNotification policyNotification : policyResults.getActiveNotifications()) {
+        pendingRepositoryPolicyNotifications.add(repository.getId(), policyNotification);
       }
     }
 

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -15,6 +14,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
@@ -27,9 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyString;
@@ -64,7 +62,7 @@ public class PolicyAlertNotifierTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
 
     notifier.sendNotifications(app, eval, null);
-    log.assertDebug("Not sending notification emails for application " + app.getPublicId() + " and scan "
+    log.assertDebug("Not sending notifications for application " + app.getPublicId() + " and scan "
         + eval.getScanId() + " in stage " + eval.getStageTypeId() + ", no new policy violations since last evaluation");
   }
 
@@ -76,7 +74,7 @@ public class PolicyAlertNotifierTest
 
     notifier.sendNotifications(app, eval, null);
     verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class),
-        anyListOf(PolicyAlert.class));
+        anyListOf(PolicyNotification.class));
   }
 
   /**
@@ -92,16 +90,12 @@ public class PolicyAlertNotifierTest
     assertThat(violationBeforeAlerting.getNotifications(), empty());
 
     // When notifier causes an error emailing notifications...
-    doThrow(new RuntimeException("postal strike")).when(policyAlertEmailer).sendNotifications(any(Application.class),
-        anyString(), any(Stage.class), anyListOf(PolicyAlert.class));
-    try {
-      notifier.sendNotifications(app, eval, null);
-      fail("Expected exception");
-    }
-    catch (Exception expected) {
-      // expected exception, check the content to help in debugging test failures
-      assertThat(expected.getMessage(), equalTo("postal strike"));
-    }
+    RuntimeException ex = new RuntimeException("postal strike");
+    doThrow(ex).when(policyAlertEmailer).sendNotifications(any(Application.class),
+        anyString(), any(Stage.class), anyListOf(PolicyNotification.class));
+
+    notifier.sendNotifications(app, eval, null);
+    log.assertError("Email notification failed", ex);
 
     // Then...
     PolicyViolation violationAfterAlerting = new PolicyViolationDAO().getById(violationBeforeAlerting.getId());

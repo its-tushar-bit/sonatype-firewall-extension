@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
@@ -28,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
@@ -100,9 +100,10 @@ public class RepositoryPolicyAlertEmailerTest
 
     Policy policy = createPolicy(user);
 
-    PolicyAlert alert = createPolicyAlert(policy, tempEntity.newRepositoryComponent(repository.getId()));
+    PolicyNotification notification = createPolicyNotification(policy,
+        tempEntity.newRepositoryComponent(repository.getId()));
 
-    emailer.sendNotifications(repository, Collections.singletonList(alert));
+    emailer.sendNotifications(repository, Collections.singletonList(notification));
 
     verify(mail).sendHtml(eq("SONATYPE-IQ-" + repository.getPublicId()),
         argThat(new AddressListEq(Collections.singletonList(new Address("email@sonatype.com")))), anyString(),
@@ -116,7 +117,7 @@ public class RepositoryPolicyAlertEmailerTest
   public void testCreatePolicyMailModel() {
     Repository repository = new Repository("repoManagerId", "repoPublicId");
     repository.setId("repoId");
-    List<PolicyAlert> alerts = new ArrayList<>();
+    List<PolicyFact> policyFacts = new ArrayList<>();
 
     for (int i = 0; i < 10; i++) {
       Policy policy = new Policy("policyId" + i, "policyName" + i);
@@ -125,12 +126,12 @@ public class RepositoryPolicyAlertEmailerTest
           "hash" + i, ComponentIdentifier.createMavenCoordinates("g", "a", "" + i), MatchState.EXACT.getId(),
           IdentificationSource.SONATYPE.getId(), new Date(), true);
 
-      alerts.add(createPolicyAlert(policy, component));
+      policyFacts.add(createPolicyFact(policy, component));
     }
 
-    Map<String, Object> model = emailer.createPolicyMailModel(repository, alerts);
+    Map<String, Object> model = emailer.createPolicyMailModel(repository, policyFacts);
     assertNotNull(model);
-    assertEquals(alerts, model.get("policyAlerts"));
+    assertEquals(policyFacts, model.get("policyFacts"));
     assertEquals("http://cdnUrl", model.get("cdnUrl"));
     assertEquals(baseUrl.get() + UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()),
         model.get("detailedReportUrl"));
@@ -162,14 +163,19 @@ public class RepositoryPolicyAlertEmailerTest
     return policy;
   }
 
-  private PolicyAlert createPolicyAlert(Policy policy, RepositoryComponent component) {
+  private PolicyNotification createPolicyNotification(Policy policy, RepositoryComponent component) {
+    return new PolicyNotification(createPolicyFact(policy, component), policy.getNotifications());
+  }
+
+  private PolicyFact createPolicyFact(Policy policy, RepositoryComponent component) {
     ConstraintFact constraintFact = new ConstraintFact("constraintId", "constraintName", "any");
     ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
     componentFact.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()));
     componentFact.addConstraintFact(constraintFact);
     PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
     policyFact.addComponentFact(componentFact);
-    return new PolicyAlert(policyFact, policy.toActions(ProxyStageType.ID, false));
+
+    return policyFact;
   }
 
   //This is required as Address doesn't implement equals/hashCode

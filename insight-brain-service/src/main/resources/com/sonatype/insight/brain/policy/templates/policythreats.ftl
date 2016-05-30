@@ -1,6 +1,6 @@
 <#escape x as x?html>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns:v="urn:schemas-microsoft-com:vml">
+<html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>IQ Policy Alert</title>
@@ -101,15 +101,18 @@ div,p,a,li,td {
 			<td width="12">&nbsp;</td>
 			<td width="623" bgcolor="#FFFFFF" style="border-left: 1px solid #BCBCBC; border-right: 1px solid #BCBCBC; font-size: 13px;">
 				<table border="0" cellpadding="0" cellspacing="0" style="width: 100%; font-size: 13px;">
-					<#list policyAlerts as alert> <#list alert.trigger.componentFacts as component>
+					<#list policyFacts as fact> <#list fact.componentFacts as component>
 					<tr>
-						<#if (alert.trigger.threatLevel > 7)>
+						<#if (fact.threatLevel > 7)>
 						<td bgcolor="#ED1C24" valign="top" height="20" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#elseif (alert.trigger.threatLevel > 3)>
+						    style="vertical-align: top; width: 20px; padding: 0; height: 15px;">
+						  &nbsp;</td> <#elseif (fact.threatLevel > 3)>
 						<td bgcolor="#F7941D" valign="top" height="20" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#elseif (alert.trigger.threatLevel > 1)>
+						    style="vertical-align: top; width: 20px; padding: 0; height: 15px;">
+						  &nbsp;</td> <#elseif (fact.threatLevel > 1)>
 						<td bgcolor="#FEDF15" valign="top" height="20" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#elseif (alert.trigger.threatLevel > 0)>
+						    style="vertical-align: top; width: 20px; padding: 0; height: 15px;">
+						  &nbsp;</td> <#elseif (fact.threatLevel > 0)>
 						<td bgcolor="#006bbf" valign="top" height="20" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#else>
 						<td bgcolor="#6D98CF" valign="top" height="20" nowrap="nowrap" align="center" width="20"
@@ -117,40 +120,40 @@ div,p,a,li,td {
 						<td colspan="2">&nbsp;</td>
 					</tr>
 					<tr>
-						<#if (alert.trigger.threatLevel > 7)>
+						<#if (fact.threatLevel > 7)>
 						<td bgcolor="#ED1C24" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #bc012f;">
-								<b>${alert.trigger.policyName}</b>
+							  <b>${fact.policyName}</b>
 							</div>
-						</td> <#elseif (alert.trigger.threatLevel > 3)>
+						</td> <#elseif (fact.threatLevel > 3)>
 						<td bgcolor="#F7941D" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #f4861d;">
-								<b>${alert.trigger.policyName}</b>
+							  <b>${fact.policyName}</b>
 							</div>
-						</td> <#elseif (alert.trigger.threatLevel > 1)>
+						</td> <#elseif (fact.threatLevel > 1)>
 						<td bgcolor="#FEDF15" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #f5c648;">
-								<b>${alert.trigger.policyName}</b>
+							  <b>${fact.policyName}</b>
 							</div>
-						</td> <#elseif (alert.trigger.threatLevel > 0)>
+						</td> <#elseif (fact.threatLevel > 0)>
 						<td bgcolor="#006bbf" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #006bbf;">
-								<b>${alert.trigger.policyName}</b>
+							  <b>${fact.policyName}</b>
 							</div>
 						</td> <#else>
 						<td bgcolor="#6D98CF" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
 							<div style="color: #97cbee;">
-								<b>${alert.trigger.policyName}</b>
+							  <b>${fact.policyName}</b>
 							</div>
 						</td> </#if>
 						<td valign="top" align="left" style="padding-left: 10px;">

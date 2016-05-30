@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 
 import org.drools.KnowledgeBase;
@@ -166,6 +168,8 @@ public class ComponentPolicyEvaluator
         }
       }
       if (!policyFact.getComponentFacts().isEmpty()) {
+        Notifications notifications = policy.getNotifications().getApplicable(stage.getStageTypeId(), forMonitoring);
+        PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
         List<? extends Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring);
         PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
         if (isWaived) {
@@ -173,6 +177,7 @@ public class ComponentPolicyEvaluator
         }
         else {
           policyResults.addActiveAlert(policyAlert);
+          policyResults.addActiveNotification(policyNotification);
         }
       }
     }

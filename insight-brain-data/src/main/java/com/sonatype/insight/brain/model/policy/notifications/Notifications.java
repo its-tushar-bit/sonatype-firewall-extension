@@ -22,6 +22,8 @@ public class Notifications
 
   private List<RoleNotification> roleNotifications = new ArrayList<>();
 
+  private List<JiraNotification> jiraNotifications = new ArrayList<>();
+
   public Notifications() {
   }
 
@@ -33,9 +35,11 @@ public class Notifications
 
   @JsonIgnore
   public List<? extends Notification> getAllNotifications() {
-    List<Notification> notifications = new ArrayList<>(userNotifications.size() + roleNotifications.size());
+    List<Notification> notifications = new ArrayList<>(
+        userNotifications.size() + roleNotifications.size() + jiraNotifications.size());
     notifications.addAll(userNotifications);
     notifications.addAll(roleNotifications);
+    notifications.addAll(jiraNotifications);
     return notifications;
   }
 
@@ -53,6 +57,14 @@ public class Notifications
 
   public void setRoleNotifications(List<RoleNotification> roleNotifications) {
     this.roleNotifications = roleNotifications != null ? roleNotifications : new ArrayList<RoleNotification>();
+  }
+
+  public List<JiraNotification> getJiraNotifications() {
+    return jiraNotifications;
+  }
+
+  public void setJiraNotifications(final List<JiraNotification> jiraNotifications) {
+    this.jiraNotifications = jiraNotifications != null ? jiraNotifications : new ArrayList<JiraNotification>();
   }
 
   public void add(Notification notification) {
@@ -77,6 +89,11 @@ public class Notifications
     for (RoleNotification notification : roleNotifications) {
       if (notification.isApplicable(stageId, continuousMonitoring)) {
         notifications.roleNotifications.add(notification);
+      }
+    }
+    for (JiraNotification notification : jiraNotifications) {
+      if (notification.isApplicable(stageId, continuousMonitoring)) {
+        notifications.jiraNotifications.add(notification);
       }
     }
     return notifications;

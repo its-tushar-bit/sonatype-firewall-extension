@@ -13,6 +13,7 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 
 /**
  * Carries the results from {@link ComponentPolicyEvaluator}.
@@ -22,6 +23,8 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 public class PolicyResults
 {
   private List<PolicyAlert> activeAlerts = new ArrayList<>();
+
+  private List<PolicyNotification> activeNotifications = new ArrayList<>();
 
   private List<PolicyAlert> waivedAlerts = new ArrayList<>();
 
@@ -47,6 +50,14 @@ public class PolicyResults
 
   void addWaivedAlert(PolicyAlert waivedAlert) {
     waivedAlerts.add(waivedAlert);
+  }
+
+  public List<PolicyNotification> getActiveNotifications() {
+    return activeNotifications;
+  }
+
+  void addActiveNotification(PolicyNotification activeNotification) {
+    activeNotifications.add(activeNotification);
   }
 
   void addPolicyWaiver(ComponentFact componentFact, PolicyWaiver policyWaiver) {

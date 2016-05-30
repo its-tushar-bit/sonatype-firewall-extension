@@ -10,7 +10,7 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.repository.RepositoryPolicyAlertNotificationTask.ProcessAlertRunnable;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -47,24 +47,26 @@ public class RepositoryPolicyAlertNotificationTaskTest
   }
 
   @Test
-  public void testProcessAlertRunnable() throws Exception {
+  public void testProcessNotificationRunnable() throws Exception {
     Repository repo1 = tempEntity.newRepository();
     Repository repo2 = tempEntity.newRepository();
 
-    PolicyAlert alert1 = new PolicyAlert();
-    PolicyAlert alert2 = new PolicyAlert();
-    PolicyAlert alert3 = new PolicyAlert();
+    PolicyNotification policyNotification1 = new PolicyNotification();
+    PolicyNotification policyNotification2 = new PolicyNotification();
+    PolicyNotification policyNotification3 = new PolicyNotification();
 
-    notificationQueue.add(repo1.getId(), alert1);
-    notificationQueue.add(repo2.getId(), alert2);
-    notificationQueue.add(repo2.getId(), alert3);
+    notificationQueue.add(repo1.getId(), policyNotification1);
+    notificationQueue.add(repo2.getId(), policyNotification2);
+    notificationQueue.add(repo2.getId(), policyNotification3);
 
     ProcessAlertRunnable runnable = new ProcessAlertRunnable(notificationQueue, emailer);
 
     runnable.run();
 
-    verify(emailer).sendNotifications(argThat(new RepositoryEq(repo1)), eq(Collections.singletonList(alert1)));
-    verify(emailer).sendNotifications(argThat(new RepositoryEq(repo2)), eq(Arrays.asList(alert2, alert3)));
+    verify(emailer)
+        .sendNotifications(argThat(new RepositoryEq(repo1)), eq(Collections.singletonList(policyNotification1)));
+    verify(emailer).sendNotifications(argThat(new RepositoryEq(repo2)),
+        eq(Arrays.asList(policyNotification2, policyNotification3)));
 
     assertThat(notificationQueue.remove()).isEmpty();
   }

@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -27,6 +28,9 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
+import com.sonatype.insight.brain.jira.JiraConfig;
+import com.sonatype.insight.brain.jira.JiraField;
+import com.sonatype.insight.brain.jira.JiraIssueCreateRequest;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -53,10 +57,13 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusCondition
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -65,6 +72,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.Matchers.empty;
@@ -75,6 +83,11 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
@@ -299,7 +312,16 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
+  @ManualServerInit
   public void testEvaluate() throws Exception {
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setJiraConfig(new JiraConfig());
+      }
+    });
+
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
     final Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
@@ -310,6 +332,7 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraint1);
     policy1.getNotifications().add(new UserNotification("manager@example.com", Stage.ID_BUILD));
     policy1.getNotifications().add(new UserNotification("john.doe@example.com", Stage.ID_BUILD));
+    policy1.getNotifications().add(new JiraNotification("projectKey1", 1, Stage.ID_BUILD));
     policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
@@ -323,6 +346,7 @@ public class PolicyEvaluateResourceTest
     policy2.addConstraint(constraint2);
     policy2.setOwnerId(app.getId());
     policy2.getNotifications().add(new UserNotification("Mark.MyWords@example.com", Stage.ID_RELEASE));
+    policy2.getNotifications().add(new JiraNotification("projectKey2", 2, Stage.ID_RELEASE));
     policy2.setAction(Stage.ID_RELEASE, Action.ID_FAIL);
     policyDAO.insert(policy2);
 
@@ -362,7 +386,8 @@ public class PolicyEvaluateResourceTest
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
         assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
-        assertThat(policyViolation.getNotificationsString(), is("manager@example.com\njohn.doe@example.com"));
+        assertThat(policyViolation.getNotificationsString(),
+            is("manager@example.com\njohn.doe@example.com\nprojectKey1"));
       }
       else {
         assertThat(policyViolation.getActionTypeId(), is(nullValue()));
@@ -389,8 +414,18 @@ public class PolicyEvaluateResourceTest
     assertNotifications(messagesB, 1, 5000);
     Assert.assertTrue(messagesB.get(0).getSubject().contains("Policy"));
 
+    ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
+        .forClass(JiraIssueCreateRequest.class);
+    verify(mockJiraClient, timeout(5000)).createIssue(createRequestArgumentCaptor.capture());
+    Map<String, Object> createRequestFields = createRequestArgumentCaptor.getValue().getFields();
+    assertThat(createRequestFields.size(), is(4));
+    Map<String, String> projectMeta = (Map<String, String>) createRequestFields.get(JiraField.PROJECT);
+    assertThat(projectMeta.get("key"), is("projectKey1"));
+
     messagesA.clear();
     messagesB.clear();
+
+    reset(mockJiraClient);
 
     // evaluate policy again
     response = evalRequest(applicationPublicId, scanId, stage).post();
@@ -417,6 +452,8 @@ public class PolicyEvaluateResourceTest
     // notification message should not have been sent since the results are the same
     assertNotifications(messagesA, 0, 5000);
     assertNotifications(messagesB, 0, 1000);
+
+    verify(mockJiraClient, times(0)).createIssue(any(JiraIssueCreateRequest.class));
   }
 
   @Test
@@ -692,13 +729,17 @@ public class PolicyEvaluateResourceTest
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
-    List<PolicyAlert> policyAlerts = policyEval.getAlerts();
+
+    List<PolicyFact> policyFacts = new ArrayList<>();
+    for (PolicyAlert policyAlert : policyEval.getAlerts()) {
+      policyFacts.add(policyAlert.getTrigger());
+    }
 
     PolicyAlertEmailer emailer = getCLMServer().getInjector().getInstance(PolicyAlertEmailer.class);
 
-    Map<String, Object> model = emailer.createPolicyMailModel(serverUrl, app, scanId, stage, policyAlerts);
+    Map<String, Object> model = emailer.createPolicyMailModel(serverUrl, app, scanId, stage, policyFacts);
     Assert.assertNotNull(model);
-    Assert.assertEquals(policyAlerts, model.get("policyAlerts"));
+    Assert.assertEquals(policyFacts, model.get("policyFacts"));
     Assert.assertEquals("http://cdn.sonatype.com/", model.get("cdnUrl"));
     Assert.assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId),
         model.get("detailedReportUrl"));

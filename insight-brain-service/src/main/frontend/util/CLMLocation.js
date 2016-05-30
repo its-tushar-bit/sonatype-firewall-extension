@@ -257,6 +257,14 @@
 
         getMoveApplicationUrl: function(applicationId, organizationId) {
           return baseUrl.get() + '/rest/move/application/' + applicationId + '/destinations/' + organizationId;
+        },
+
+        getIsJiraEnabledUrl: function() {
+          return baseUrl.get() + '/rest/jira/enabled';
+        },
+
+        getJiraProjectsUrl: function() {
+          return baseUrl.get() + '/rest/jira/project';
         }
       };
     }

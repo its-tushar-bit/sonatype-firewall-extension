@@ -6,22 +6,27 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorNotificationsController($scope, $q, $http, CLMAppLocations, StageTypeStore)
+  function PolicyEditorNotificationsController($scope, $q, $http, CLMAppLocations, StageTypeStore, JiraService)
   {
     var vm = this,
         availableRoles,
-        roleNames;
+        roleNames,
+        jiraProjects,
+        jiraIssueTypes,
+        jiraProjectNames;
 
     vm.addRecipientForm = undefined;
     vm.loadError = undefined;
     vm.actionStages = undefined;
     vm.recipients = undefined;
-    vm.recipientTypes = {EMAIL: 'Email', ROLE: 'Role'};
+    vm.recipientTypes = {EMAIL: 'Email', ROLE: 'Role', JIRA: 'JIRA'};
     vm.recipientType = vm.recipientTypes.EMAIL;
     vm.recipientToAdd = undefined;
     vm.recipientTypeOptions = [vm.recipientTypes.EMAIL, vm.recipientTypes.ROLE];
+    vm.availableJiraProjects = undefined;
     vm.addRecipient = addRecipient;
     vm.hasStage = hasStage;
+    vm.isStageApplicable = isStageApplicable;
     vm.removeRecipient = removeRecipient;
     vm.toggleStage = toggleStage;
     vm.addEmailRecipient = addEmailRecipient;
@@ -31,6 +36,8 @@
     vm.getAvailableRoles = getAvailableRoles;
     vm.getEmails = getEmails;
     vm.doLoad = doLoad;
+    vm.isAddButtonDisabled = isAddButtonDisabled;
+    vm.resetNotifications = resetNotifications;
 
     vm.doLoad();
 
@@ -44,15 +51,26 @@
     function doLoad() {
       var promises = [
         StageTypeStore.getActionStages(),
-        $http.get(CLMAppLocations.getRoleMappingUrl())
+        $http.get(CLMAppLocations.getRoleMappingUrl()),
+        JiraService.isEnabled().then(function(isEnabled) {
+          if (isEnabled) {
+            vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
+            return JiraService.getJiraProjects();
+          }
+        })
       ];
 
       $q.all(promises).then(function(results) {
         vm.actionStages = results[0];
         vm.roles = results[1].data.membersByRole;
+        jiraProjects = results[2];
+
         roleNames = vm.roles ? mapRoleNames() : {};
 
+        mapJiraProjectsAndIssueTypes();
+
         updateAvailableRoles();
+        updateAvailableJiraProjects();
         loadRecipients();
 
       }, function(error) {
@@ -66,7 +84,8 @@
     function loadRecipients() {
       var userNotifications = vm.notifications.userNotifications || [];
       var roleNotifications = vm.notifications.roleNotifications || [];
-      vm.recipients = userNotifications.concat(roleNotifications).sort(function(a, b) {
+      var jiraNotifications = vm.notifications.jiraNotifications || [];
+      vm.recipients = userNotifications.concat(roleNotifications).concat(jiraNotifications).sort(function(a, b) {
         return getDisplayName(a).localeCompare(getDisplayName(b));
       });
     }
@@ -83,15 +102,23 @@
       if (vm.recipientType === vm.recipientTypes.EMAIL) {
         addEmailRecipient(vm.recipientToAdd);
       }
-      else {
+      else if (vm.recipientType === vm.recipientTypes.ROLE) {
         addRoleRecipient(vm.recipientToAdd.roleId);
       }
-      vm.recipientToAdd = undefined;
+      else if (vm.recipientType === vm.recipientTypes.JIRA) {
+        addJiraRecipient();
+      }
+
+      resetNotifications();
       vm.addRecipientForm.$setPristine();
     }
 
     function hasStage(notification, stage) {
       return notification.stageIds.indexOf(stage) !== -1;
+    }
+
+    function isStageApplicable(notification, stage) {
+      return !notification.projectKey || stage !== 'proxy';
     }
 
     function removeRecipient(recipient) {
@@ -102,13 +129,18 @@
         vm.notifications.roleNotifications.splice(vm.notifications.roleNotifications.indexOf(recipient), 1);
         updateAvailableRoles();
       }
-      else {
+      else if (recipient.emailAddress) {
         vm.notifications.userNotifications.splice(vm.notifications.userNotifications.indexOf(recipient), 1);
+      }
+      else if (recipient.projectKey) {
+        vm.notifications.jiraNotifications.splice(vm.notifications.jiraNotifications.indexOf(recipient), 1);
+        updateAvailableJiraProjects();
       }
     }
 
     function getDisplayName(recipient) {
-      return recipient.emailAddress || roleNames[recipient.roleId];
+      return recipient.emailAddress || roleNames[recipient.roleId] ||
+          (jiraProjectNames[recipient.projectKey] + ' (' + jiraIssueTypes[recipient.issueTypeId] + ')');
     }
 
     function toggleStage(recipient, stage) {
@@ -144,6 +176,17 @@
       updateAvailableRoles();
     }
 
+    function addJiraRecipient() {
+      var newNotification = {
+        projectKey: vm.recipientToAdd.key,
+        issueTypeId: vm.recipientToAddIssueType.id,
+        stageIds: []
+      };
+      vm.notifications.jiraNotifications.push(newNotification);
+      vm.recipients.push(newNotification);
+      updateAvailableJiraProjects();
+    }
+
     function emailExists(email) {
       return vm.notifications.userNotifications.some(function(entry) {
         return entry.emailAddress === email;
@@ -159,6 +202,20 @@
         map[role.roleId] = role.roleName;
         return map;
       }, {});
+    }
+
+    function mapJiraProjectsAndIssueTypes() {
+      jiraProjectNames = {};
+      jiraIssueTypes = {};
+
+      if (jiraProjects) {
+        jiraProjects.forEach(function(project) {
+          jiraProjectNames[project.key] = project.name;
+          project.issueTypes.forEach(function(issueType) {
+            jiraIssueTypes[issueType.id] = issueType.name;
+          });
+        });
+      }
     }
 
     function updateAvailableRoles() {
@@ -178,16 +235,39 @@
       return availableRoles;
     }
 
+    function updateAvailableJiraProjects() {
+      if (!vm.notifications.jiraNotifications || vm.notifications.jiraNotifications.length === 0) {
+        vm.availableJiraProjects = jiraProjects;
+        return;
+      }
+
+      vm.availableJiraProjects = jiraProjects.filter(function(project) {
+        return !vm.notifications.jiraNotifications.some(function(notification) {
+          return project.key === notification.projectKey;
+        });
+      });
+    }
+
     function getEmails() {
       return vm.notifications.userNotifications.map(function(entry) {
         return entry.emailAddress;
       });
     }
 
+    function isAddButtonDisabled() {
+      return (vm.recipientType !== vm.recipientTypes.JIRA && !vm.recipientToAdd) ||
+          (vm.recipientType === vm.recipientTypes.JIRA && (!vm.recipientToAdd || !vm.recipientToAddIssueType)) ||
+          vm.disabled;
+    }
+
+    function resetNotifications() {
+      vm.recipientToAdd = undefined;
+      vm.recipientToAddIssueType = undefined;
+    }
   }
 
   PolicyEditorNotificationsController.$inject = [
-    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore'
+    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore', 'jira.service'
   ];
 
   angular //

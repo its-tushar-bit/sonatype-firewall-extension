@@ -15,8 +15,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -90,16 +90,16 @@ public class RepositoryPolicyAlertNotificationTask
     @Override
     public void run() {
       try {
-        Map<String, List<PolicyAlert>> repoAlertMap = queue.remove();
+        Map<String, List<PolicyNotification>> repoNotificationMap = queue.remove();
 
-        for (String repositoryId : repoAlertMap.keySet()) {
-          List<PolicyAlert> alerts = repoAlertMap.get(repositoryId);
-          log.debug("Found {} repository policy alerts for repository {}.", alerts.size(), repositoryId);
+        for (String repositoryId : repoNotificationMap.keySet()) {
+          List<PolicyNotification> notifications = repoNotificationMap.get(repositoryId);
+          log.debug("Found {} repository policy notifications for repository {}.", notifications.size(), repositoryId);
 
           Repository repository = repositoryDAO.getById(repositoryId);
 
           if (repository != null) {
-            emailer.sendNotifications(repository, alerts);
+            emailer.sendNotifications(repository, notifications);
           }
         }
       }

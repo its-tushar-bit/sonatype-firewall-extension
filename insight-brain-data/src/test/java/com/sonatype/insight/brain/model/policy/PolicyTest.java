@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -269,6 +270,8 @@ public class PolicyTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
+
+    // User Notifications
     UserNotification notification = new UserNotification();
     policy.getNotifications().add(notification);
     ValidationResult result = policy.validate(null, applicationId);
@@ -277,6 +280,19 @@ public class PolicyTest
 
     // Fix the notification and validate again
     notification.setEmailAddress("tester@sonatype.com");
+    result = policy.validate(null, applicationId);
+    assertValidationResultHasNoErrors(result);
+
+    //JIRA Notifications
+    JiraNotification jiraNotification = new JiraNotification();
+    policy.getNotifications().add(jiraNotification);
+    result = policy.validate(null, applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid notifications:",
+        "Invalid JIRA notification: A valid project key is required",
+        "Invalid JIRA notification: A valid issue type id is required");
+
+    jiraNotification.setProjectKey("key");
+    jiraNotification.setIssueTypeId(1);
     result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }

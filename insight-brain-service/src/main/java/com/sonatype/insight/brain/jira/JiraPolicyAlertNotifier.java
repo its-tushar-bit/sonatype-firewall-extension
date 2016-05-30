@@ -1,0 +1,245 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.jira;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.utils.TemplateUtils;
+
+import com.google.common.base.Throwables;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Creates JIRA issues for policy alert notifications.
+ *
+ * @since 1.21.0
+ */
+@Named
+public class JiraPolicyAlertNotifier
+{
+  private static final Logger log = LoggerFactory.getLogger(JiraPolicyAlertNotifier.class);
+
+  private final InsightConfig insightConfig;
+
+  private final ApplicationAdapter applicationAdapter;
+
+  private final JiraService jiraService;
+
+  private final Template descriptionTemplate;
+
+  private final BaseUrl baseUrl;
+
+  @Inject
+  public JiraPolicyAlertNotifier(final InsightConfig insightConfig,
+                                 final ApplicationAdapter applicationAdapter,
+                                 final JiraService jiraService,
+                                 final BaseUrl baseUrl)
+  {
+    this.insightConfig = insightConfig;
+    this.applicationAdapter = applicationAdapter;
+    this.jiraService = jiraService;
+    this.baseUrl = baseUrl;
+
+    // resolve template used to render issue description
+    try {
+      Configuration config = TemplateUtils.createFreemarkerConfig();
+      config.setClassForTemplateLoading(getClass(), "/" + getClass().getPackage().getName().replace('.', '/'));
+      this.descriptionTemplate = config.getTemplate("description.ftl");
+    }
+    catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  public void sendNotifications(final Application app,
+                                final String scanId,
+                                final Stage stage,
+                                final List<PolicyNotification> policyNotifications)
+  {
+    if (!jiraService.isEnabled()) {
+      log.debug("JIRA integration is not enabled; skipping issue creation");
+      return;
+    }
+
+    // baseUrl uses ThreadContext to get the base URL. We need to get it before switching threads.
+    final String stringBaseUrl = baseUrl.get();
+
+    log.debug("Sending JIRA notifications for application: {}, scan: {}, stage: {}", app.getId(), scanId, stage);
+
+    new Thread("PolicyAlertJIRANotifierForScan-" + scanId)
+    {
+      @Override
+      public void run() {
+        JiraConfig jiraConfig = insightConfig.getJiraConfig();
+        Map<String, Object> customFields = jiraConfig.getCustomFields();
+
+        Map<JiraNotification, List<PolicyFact>> policyFactsByJiraNotifications = getPolicyFactsByJiraNotifications(
+            policyNotifications);
+
+        if (policyFactsByJiraNotifications.isEmpty()) {
+          log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}"
+              + ", no JIRA projects configured for any violated policy", app.getPublicId(), scanId, stage);
+          return;
+        }
+        for (final Entry<JiraNotification, List<PolicyFact>> policyFactsByJiraNotification : policyFactsByJiraNotifications
+            .entrySet()) {
+
+          JiraNotification jiraNotification = policyFactsByJiraNotification.getKey();
+          List<PolicyFact> policyFacts = policyFactsByJiraNotification.getValue();
+
+          try {
+            JiraIssueCreateRequest request = new JiraIssueCreateRequest();
+
+            // include optional fields; before we add more specific details
+            if (customFields != null) {
+              request.getFields().putAll(customFields);
+            }
+
+            request.project(jiraNotification.getProjectKey());
+            request.issueType(jiraNotification.getIssueTypeId());
+
+            request.summary(String.format("Nexus IQ: Application %s; %s stage; %d Policy alerts",
+                app.getName(), stage.getStageName(), policyNotifications.size()
+            ));
+
+            // render description from template; prepare template parameters with appropriate details
+            Map<String, Object> params = new HashMap<>();
+            params.put("baseUrl", stringBaseUrl);
+            params.put("cdnUrl", insightConfig.getCdnUrl());
+            params.put("app", app);
+            params.put("scanId", scanId);
+            params.put("stage", stage.getStageName());
+            params.put("policyAlerts", policyNotifications);
+            params.put("policyAlertSections", new PolicyAlertSections(policyFacts));
+            params.put("policyAlertCounts", new PolicyAlertCounts(policyFacts));
+            params.put("contact", applicationAdapter.getContact(app.getContactInternalName()));
+            params
+                .put("detailedReportUrl",
+                    stringBaseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), scanId));
+            request.description(TemplateUtils.render(descriptionTemplate, params));
+
+            log.debug("Creating JIRA issue: {}", request);
+            JiraClient client = jiraService.client();
+            JiraIssueCreateResponse response = client.createIssue(request);
+            log.info("Created JIRA issue: {}", response.getKey());
+          }
+          catch (Exception e) {
+            log.error(
+                "Failed to create JIRA notification for JIRA project key " + jiraNotification.getProjectKey() +
+                    " and JIRA issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
+                    app.getPublicId() + " and scan " + scanId + " in stage " + stage.getStageTypeId(), e);
+          }
+        }
+      }
+    }.start();
+  }
+
+  private Map<JiraNotification, List<PolicyFact>> getPolicyFactsByJiraNotifications(
+      List<PolicyNotification> policyNotifications)
+  {
+    final Map<JiraNotification, List<PolicyFact>> policyFactsByJiraNotifications = new HashMap<>();
+    for (PolicyNotification policyNotification : policyNotifications) {
+      PolicyFact policyFact = policyNotification.getPolicyFact();
+      List<JiraNotification> jiraNotifications = policyNotification.getNotifications().getJiraNotifications();
+      for (JiraNotification jiraNotification : jiraNotifications) {
+        List<PolicyFact> policyFacts = policyFactsByJiraNotifications.get(jiraNotification);
+        if (policyFacts == null) {
+          policyFactsByJiraNotifications.put(jiraNotification, policyFacts = new ArrayList<>());
+        }
+        if (!policyFacts.contains(policyFact)) {
+          policyFacts.add(policyFact);
+        }
+      }
+    }
+    return policyFactsByJiraNotifications;
+  }
+
+  /**
+   * Representation of policy alert sections.
+   *
+   * Each section is a rollup of the alerts for a given policy.
+   *
+   * Must be public with getters for ftl access.
+   */
+  public static class PolicyAlertSections
+  {
+    public class Section
+    {
+      private final int threatLevel;
+
+      private final String policyName;
+
+      private final List<PolicyFact> facts = new ArrayList<>();
+
+      public Section(final int threatLevel, final String policyName) {
+        this.threatLevel = threatLevel;
+        this.policyName = policyName;
+      }
+
+      public int getThreatLevel() {
+        return threatLevel;
+      }
+
+      public String getPolicyName() {
+        return policyName;
+      }
+
+      public List<PolicyFact> getFacts() {
+        return facts;
+      }
+
+      public void add(final PolicyFact fact) {
+        facts.add(fact);
+      }
+    }
+
+    /**
+     * Policy-id -> section map.
+     *
+     * For now relies on the input policies to be sorted, and will create sections sorted as well.
+     */
+    private final Map<String, Section> sections = new LinkedHashMap<>();
+
+    public PolicyAlertSections(final List<PolicyFact> policyFacts) {
+      for (PolicyFact policyFact : policyFacts) {
+        Section section = sections.get(policyFact.getPolicyId());
+        if (section == null) {
+          section = new Section(policyFact.getThreatLevel(), policyFact.getPolicyName());
+          sections.put(policyFact.getPolicyId(), section);
+        }
+        section.add(policyFact);
+      }
+    }
+
+    public Collection<Section> getSections() {
+      return sections.values();
+    }
+  }
+}

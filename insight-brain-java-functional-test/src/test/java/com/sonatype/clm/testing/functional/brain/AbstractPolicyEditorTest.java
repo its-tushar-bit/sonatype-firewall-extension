@@ -5,7 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -34,6 +36,8 @@ import com.sonatype.clm.testing.functional.utils.ConditionUtils;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.jira.JiraIssueType;
+import com.sonatype.insight.brain.jira.JiraProject;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -49,6 +53,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -68,6 +73,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 public abstract class AbstractPolicyEditorTest
     extends AbstractFunctionalTest
@@ -78,10 +84,26 @@ public abstract class AbstractPolicyEditorTest
 
   private PolicyDAO policyDAO = new PolicyDAO();
 
+  private JiraProject jiraProject;
+
   @BeforeClass
   public static void boot() {
     refreshOrOpen(OrganizationManagementPage.URL);
     loginAsAdmin();
+  }
+
+  @Before
+  public void setupJiraService() throws IOException {
+    jiraProject = new JiraProject();
+    jiraProject.setKey("key1");
+    jiraProject.setName("Project One");
+    JiraIssueType jiraIssueType = new JiraIssueType();
+    jiraIssueType.setId(1);
+    jiraIssueType.setName("Bug");
+    jiraProject.setIssueTypes(Collections.singletonList(jiraIssueType));
+
+    when(jiraService.isEnabled()).thenReturn(true);
+    when(jiraService.getProjectsWithAcceptableIssueTypes()).thenReturn(Collections.singletonList(jiraProject));
   }
 
   protected void init(Owner currentOwner) {
@@ -511,12 +533,37 @@ public abstract class AbstractPolicyEditorTest
     addNotification.notificationType().listItem(0).click();
     addNotification.email().shouldBe(empty);
 
+    // add jira notifications
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(2).click();
+    addNotification.addButton().shouldHave(DISABLED);
+
+    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
+        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
+    addNotification.project().shouldBe(visible).selectedItem().click();
+    addNotification.project().listItems().findBy(text(jiraProject.getName())).click();
+    addNotification.addButton().shouldHave(DISABLED);
+
+    addNotification.issueType().shouldBe(visible).selectedItem().click();
+    addNotification.issueType().listItems().findBy(text(jiraProject.getIssueTypes().get(0).getName())).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.project().shouldBe(visible);
+    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
+        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
+
+    // test "All projects are being notified." message
+    addNotification.project().shouldHave(text("All projects are being notified."));
+
+    NotificationsSection.notifications().shouldHave(
+        texts("Developer", "test@foo.com", "aaa@sonatype.com", "Application Evaluator", "Project One (Bug)"));
+
     // delete one and save
     NotificationsSection.notificationFor("test@foo.com").deleteButton().click();
-    NotificationsSection.notifications().shouldHaveSize(3);
+    NotificationsSection.notifications().shouldHaveSize(4);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    NotificationsSection.notifications().shouldHaveSize(3);
+    NotificationsSection.notifications().shouldHaveSize(4);
     // "aaa@sonatype.com" should be first after save
     NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
     // "Application Evaluator" should be second after save
@@ -560,6 +607,7 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("aaa@sonatype.com").deleteButton().click();
     NotificationsSection.notificationFor("Developer").deleteButton().click();
     NotificationsSection.notificationFor("Application Evaluator").deleteButton().click();
+    NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
     NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
 
   }
@@ -683,6 +731,25 @@ public abstract class AbstractPolicyEditorTest
     addNotification.addButton().shouldNotHave(DISABLED).click();
     addNotification.addButton().shouldHave(DISABLED);
     addNotification.email().shouldBe(empty);
+
+    // add jira notifications
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(2).click();
+    addNotification.addButton().shouldHave(DISABLED);
+
+    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
+        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
+    addNotification.project().shouldBe(visible).selectedItem().click();
+    addNotification.project().listItems().findBy(text(jiraProject.getName())).click();
+    addNotification.addButton().shouldHave(DISABLED);
+
+    addNotification.issueType().shouldBe(visible).selectedItem().click();
+    addNotification.issueType().listItems().findBy(text(jiraProject.getIssueTypes().get(0).getName())).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.project().shouldBe(visible);
+    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
+        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
 
     NotificationsSection.notifications().get(0).shouldHave(text("Application Evaluator"));
     NotificationsSection.notifications().get(1).shouldHave(text("aaa@sonatype.com"));

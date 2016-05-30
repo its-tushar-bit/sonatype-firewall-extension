@@ -14,6 +14,7 @@
         options: '=',
         optionNameParam: '@?', // One-time binding
         emptyOptionString: '@?',
+        undefinedOptionsString: '@?',
         noOptionsString: '@?',
         optionValueParam: '@?',
         disabled: '=?ngDisabled'
@@ -48,13 +49,15 @@
         element[disabled ? 'addClass' : 'removeClass']('disabled');
       });
 
-      scope.$watch('vm.options', function() {
+      scope.$watch('vm.options', function(options) {
         ctrl.$setPristine();
+        element[angular.isUndefined(options) || scope.vm.disabled ? 'addClass' : 'removeClass']('disabled');
       });
 
       if (scope.vm.noOptionsString) {
         scope.$watch('vm.options.length', function(hasOptions) {
-          element[hasOptions ? 'removeClass' : 'addClass']('no-options');
+          // no-options class should only show if no options are available from a defined options set
+          element[angular.isUndefined(scope.vm.options) || hasOptions ? 'removeClass' : 'addClass']('no-options');
         });
       }
 
@@ -101,15 +104,17 @@
       vm.optionModelMap = {};
       vm.optionViewMap = {};
 
-      vm.options.forEach(function(option) {
-        if (vm.optionValueParam) {
-          vm.optionModelMap[option[vm.optionValueParam]] = option;
-        }
+      if (vm.options) {
+        vm.options.forEach(function(option) {
+          if (vm.optionValueParam) {
+            vm.optionModelMap[option[vm.optionValueParam]] = option;
+          }
 
-        if (vm.optionNameParam) {
-          vm.optionViewMap[option[vm.optionNameParam]] = option;
-        }
-      });
+          if (vm.optionNameParam) {
+            vm.optionViewMap[option[vm.optionNameParam]] = option;
+          }
+        });
+      }
 
       if (vm.optionValueParam && vm.formatSelectedModel) {
         // Re-run formatter with updated map

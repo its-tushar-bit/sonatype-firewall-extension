@@ -15,6 +15,11 @@ public class NotifyActionType
 
   public static final String TARGET_TYPE_ROLE = "role";
 
+  /**
+   * @since 1.21.0
+   */
+  public static final String TARGET_TYPE_JIRA = "jira";
+
   @Override
   public String getId() {
     return ID;

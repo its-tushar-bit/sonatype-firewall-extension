@@ -13,7 +13,7 @@ import java.util.Map;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,23 +27,23 @@ public class PendingRepositoryPolicyNotifications
 {
   private final Logger log = LoggerFactory.getLogger(PendingRepositoryPolicyNotifications.class);
 
-  private Map<String, List<PolicyAlert>> repositoryAlertMap = new LinkedHashMap<>();
+  private Map<String, List<PolicyNotification>> repositoryNotificationMap = new LinkedHashMap<>();
 
-  public synchronized void add(String repositoryId, PolicyAlert alert) {
-    List<PolicyAlert> alerts = repositoryAlertMap.get(repositoryId);
+  public synchronized void add(String repositoryId, PolicyNotification policyNotification) {
+    List<PolicyNotification> notifications = repositoryNotificationMap.get(repositoryId);
 
-    if (alerts == null) {
-      alerts = new ArrayList<>();
-      repositoryAlertMap.put(repositoryId, alerts);
+    if (notifications == null) {
+      notifications = new ArrayList<>();
+      repositoryNotificationMap.put(repositoryId, notifications);
     }
 
-    alerts.add(alert);
-    log.debug("Added new repository policy alert for repository {}.", repositoryId);
+    notifications.add(policyNotification);
+    log.debug("Added new repository policy notification for repository {}.", repositoryId);
   }
 
-  public synchronized Map<String, List<PolicyAlert>> remove() {
-    Map<String, List<PolicyAlert>> map = repositoryAlertMap;
-    repositoryAlertMap = new LinkedHashMap<>();
+  public synchronized Map<String, List<PolicyNotification>> remove() {
+    Map<String, List<PolicyNotification>> map = repositoryNotificationMap;
+    repositoryNotificationMap = new LinkedHashMap<>();
     return map;
   }
 }

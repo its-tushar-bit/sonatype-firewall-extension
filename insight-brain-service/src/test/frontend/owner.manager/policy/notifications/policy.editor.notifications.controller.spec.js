@@ -16,10 +16,38 @@ describe("policy.editor.notifications.controller.spec.js", function() {
     ]
   };
 
+  var createJiraServiceResolver = function() {
+    var enabledDefer, getProjectsDefer;
+
+    beforeEach(module('utility.services'));
+
+    beforeEach(inject([
+      '$q', 'jira.service', function($q, jiraService) {
+        enabledDefer = $q.defer();
+        getProjectsDefer = $q.defer();
+
+        spyOn(jiraService, 'isEnabled').andReturn(enabledDefer.promise);
+        spyOn(jiraService, 'getJiraProjects').andReturn(getProjectsDefer.promise);
+      }
+    ]));
+
+    return {
+      resolveIsEnabled: function(isEnabled) {
+        enabledDefer.resolve(isEnabled);
+      },
+      resolveGetJiraProjects: function(projects) {
+        getProjectsDefer.resolve(projects);
+      }
+    };
+  };
+
   var initController,
-      scope;
+      scope,
+      jiraProjects = JiraServiceMockData.getJiraProjectsUrl();
 
   beforeEach(module('owner.manager.module'));
+
+  var jiraServiceResolver = createJiraServiceResolver();
 
   beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations) {
     scope = $rootScope.$new();
@@ -38,7 +66,8 @@ describe("policy.editor.notifications.controller.spec.js", function() {
 
     $httpBackend.whenGET('/rest/policy/stages?context=all').respond([]);
     $httpBackend.whenGET(CLMAppLocations.getRoleMappingUrl()).respond(membershipMapping);
-
+    jiraServiceResolver.resolveIsEnabled(true);
+    jiraServiceResolver.resolveGetJiraProjects(jiraProjects);
   }));
 
   describe('controller init', function() {
@@ -84,12 +113,37 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       expect(vm.recipients[1].roleId).toBe('2');
     });
 
+    it('populates recipients from jiraNotifications', function() {
+      var notifications = {
+        jiraNotifications: [
+          {
+            projectKey: 'key1',
+            issueTypeId: 1,
+            stageIds: ['proxy', 'build']
+          },
+          {
+            projectKey: 'key2',
+            issueTypeId: 2,
+            stageIds: ['develop']
+          }
+        ]
+      };
+
+      var vm = initController(notifications);
+
+      expect(vm.recipients.length).toBe(2);
+      expect(vm.recipients[0].projectKey).toBe('key1');
+      expect(vm.recipients[0].issueTypeId).toBe(1);
+      expect(vm.recipients[1].projectKey).toBe('key2');
+      expect(vm.recipients[1].issueTypeId).toBe(2);
+    });
+
     it('handles no notifications', function() {
       var vm = initController({});
       expect(vm.recipients.length).toBe(0);
     });
 
-    it('sorts vm.recipients by email or roleName', function() {
+    it('sorts vm.recipients by email, roleName or projectName', function() {
 
       var notifications = {
         userNotifications: [
@@ -111,6 +165,18 @@ describe("policy.editor.notifications.controller.spec.js", function() {
             roleId: '2',
             stageIds: ['develop']
           }
+        ],
+        jiraNotifications: [
+          {
+            projectKey: 'key2',
+            issueTypeId: 2,
+            stageIds: ['develop']
+          },
+          {
+            projectKey: 'key1',
+            issueTypeId: 1,
+            stageIds: ['proxy', 'build']
+          }
         ]
       };
 
@@ -118,8 +184,9 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       expect(vm.recipients[0].roleId).toBe('1');
       expect(vm.recipients[1].emailAddress).toBe('bob@test.com');
       expect(vm.recipients[2].roleId).toBe('2');
-      expect(vm.recipients[3].emailAddress).toBe('zoo@test.com');
-
+      expect(vm.recipients[3].projectKey).toBe('key1');
+      expect(vm.recipients[4].projectKey).toBe('key2');
+      expect(vm.recipients[5].emailAddress).toBe('zoo@test.com');
     });
 
     it('sets watcher to reload recipients when model changes', function() {
@@ -193,44 +260,70 @@ describe("policy.editor.notifications.controller.spec.js", function() {
             roleId: '2', // Developer
             stageIds: ['develop']
           }
+        ],
+        jiraNotifications: [
+          {
+            projectKey: 'key1',
+            issueTypeId: 1,
+            stageIds: ['proxy', 'build']
+          },
+          {
+            projectKey: 'key2',
+            issueTypeId: 2,
+            stageIds: ['develop']
+          }
         ]
       };
       vm = initController(notifications);
     });
 
     it('removes role recipient entry from original notifications and updates vm.recipients array', function() {
-      expect(vm.recipients.length).toBe(4);
+      expect(vm.recipients.length).toBe(6);
       expect(vm.recipients[0].roleId).toBe('1');
 
       vm.removeRecipient(vm.recipients[0]);
       expect(vm.notifications.roleNotifications.length).toBe(1);
       expect(vm.notifications.roleNotifications[0].roleId).toBe('2');
 
-      expect(vm.recipients.length).toBe(3);
+      expect(vm.recipients.length).toBe(5);
       expect(vm.recipients[0].emailAddress).toBe('bob@test.com');
     });
 
     it('removes email recipient entry from original notifications and updates vm.recipients array', function() {
-      expect(vm.recipients.length).toBe(4);
+      expect(vm.recipients.length).toBe(6);
       expect(vm.recipients[1].emailAddress).toBe('bob@test.com');
 
       vm.removeRecipient(vm.recipients[1]);
       expect(vm.notifications.userNotifications.length).toBe(1);
       expect(vm.notifications.userNotifications[0].emailAddress).toBe('zoo@test.com');
 
-      expect(vm.recipients.length).toBe(3);
+      expect(vm.recipients.length).toBe(5);
       expect(vm.recipients[1].roleId).toBe('2');
+    });
+
+    it('removes jira recipient entry from original notifications and updates vm.recipients array', function() {
+      expect(vm.recipients.length).toBe(6);
+      expect(vm.recipients[3].projectKey).toBe('key1');
+
+      vm.removeRecipient(vm.recipients[3]);
+      expect(vm.notifications.jiraNotifications.length).toBe(1);
+      expect(vm.notifications.jiraNotifications[0].projectKey).toBe('key2');
+
+      expect(vm.recipients.length).toBe(5);
+      expect(vm.recipients[3].projectKey).toBe('key2');
     });
 
     it('maintains the order of vm.recipients', function() {
       vm.addEmailRecipient('aaaaaaa@test.com');
       vm.removeRecipient(vm.recipients[0]);
-      expect(vm.recipients.length).toBe(4);
+      expect(vm.recipients.length).toBe(6);
       // should not change the sorted order of remaining entries
       expect(vm.recipients[0].emailAddress).toBe('bob@test.com');
       expect(vm.recipients[1].roleId).toBe('2');
-      expect(vm.recipients[2].emailAddress).toBe('zoo@test.com');
-      expect(vm.recipients[3].emailAddress).toBe('aaaaaaa@test.com');
+      expect(vm.recipients[2].projectKey).toBe('key1');
+      expect(vm.recipients[3].projectKey).toBe('key2');
+      expect(vm.recipients[4].emailAddress).toBe('zoo@test.com');
+      expect(vm.recipients[5].emailAddress).toBe('aaaaaaa@test.com');
 
     });
   });
@@ -257,6 +350,18 @@ describe("policy.editor.notifications.controller.spec.js", function() {
           },
           {
             roleId: '3',
+            stageIds: ['develop']
+          }
+        ],
+        jiraNotifications: [
+          {
+            projectKey: 'key1',
+            issueTypeId: 1,
+            stageIds: ['proxy', 'build']
+          },
+          {
+            projectKey: 'key2',
+            issueTypeId: 2,
             stageIds: ['develop']
           }
         ]
@@ -307,7 +412,7 @@ describe("policy.editor.notifications.controller.spec.js", function() {
 
     describe('addEmailRecipient()', function() {
       it('adds userNotifications to policy notifications and updates vm.recipients', function() {
-        expect(vm.recipients.length).toBe(4);
+        expect(vm.recipients.length).toBe(6);
 
         vm.addEmailRecipient('user-recipient@test.com');
 
@@ -315,41 +420,63 @@ describe("policy.editor.notifications.controller.spec.js", function() {
         expect(vm.notifications.userNotifications[2].emailAddress).toBe('user-recipient@test.com');
         expect(vm.notifications.userNotifications[2].stageIds).toEqual([]);
 
-        expect(vm.recipients.length).toBe(5);
-        expect(vm.recipients[4].emailAddress).toBe('user-recipient@test.com');
+        expect(vm.recipients.length).toBe(7);
+        expect(vm.recipients[6].emailAddress).toBe('user-recipient@test.com');
       });
 
       it('adds to the end of vm.recipients array, and does not sort', function() {
 
         vm.addEmailRecipient('aaaaaaaa@test.com');
-        expect(vm.recipients[4].emailAddress).toBe('aaaaaaaa@test.com');
+        expect(vm.recipients[6].emailAddress).toBe('aaaaaaaa@test.com');
       });
 
       it('prevents from adding duplicate emails', function() {
 
         vm.addEmailRecipient('bob@test.com');
 
-        expect(vm.recipients.length).toBe(4);
+        expect(vm.recipients.length).toBe(6);
         expect(vm.notifications.userNotifications.length).toBe(2);
       });
     });
 
     describe('addRoleRecipient()', function() {
       it('adds roleNotifications to policy notifications and updates vm.recipients', function() {
-        expect(vm.recipients.length).toBe(4);
+        expect(vm.recipients.length).toBe(6);
         vm.addRoleRecipient('2');
 
         expect(vm.notifications.roleNotifications.length).toBe(3);
         expect(vm.notifications.roleNotifications[2].roleId).toBe('2');
         expect(vm.notifications.roleNotifications[2].stageIds).toEqual([]);
 
-        expect(vm.recipients.length).toBe(5);
-        expect(vm.recipients[4].roleId).toBe('2');
+        expect(vm.recipients.length).toBe(7);
+        expect(vm.recipients[6].roleId).toBe('2');
       });
 
       it('adds to the end of vm.recipients array, and does not sort', function() {
         vm.addRoleRecipient('2');
-        expect(vm.recipients[4].roleId).toBe('2');
+        expect(vm.recipients[6].roleId).toBe('2');
+      });
+    });
+
+    describe('addJiraRecipient()', function() {
+      it('adds jiraNotifications to policy notifications and updates vm.recipients', function() {
+        vm.recipientType = vm.recipientTypes.JIRA;
+        vm.recipientToAdd = {
+          key: 'key3'
+        };
+        vm.recipientToAddIssueType = {
+          id: 3
+        };
+
+        vm.addRecipient();
+
+        expect(vm.notifications.jiraNotifications.length).toBe(3);
+        expect(vm.notifications.jiraNotifications[2].projectKey).toBe('key3');
+        expect(vm.notifications.jiraNotifications[2].issueTypeId).toBe(3);
+
+        expect(vm.recipients.length).toBe(7);
+        expect(vm.recipients[6].projectKey).toBe('key3');
+        expect(vm.recipients[6].issueTypeId).toBe(3);
       });
     });
   });
@@ -376,6 +503,32 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       // remove
       vm.removeRecipient(vm.recipients[2]);
       expect(vm.getAvailableRoles()).toEqual(membershipMapping.membersByRole.slice(2));
+    });
+  });
+
+  describe('availableJiraProjects', function() {
+    it('returns only projects that are not present in policy notifications', function() {
+      var notifications = {
+        jiraNotifications: []
+      };
+      var vm = initController(notifications);
+      vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', ['$setPristine']);
+
+      expect(vm.availableJiraProjects).toEqual(jiraProjects);
+
+      vm.recipientType = vm.recipientTypes.JIRA;
+      vm.recipientToAdd = {
+        key: 'key1'
+      };
+      vm.recipientToAddIssueType = {
+        id: 1
+      };
+
+      vm.addRecipient();
+      expect(vm.availableJiraProjects).toEqual(jiraProjects.slice(1));
+
+      vm.removeRecipient(vm.recipients[0]);
+      expect(vm.availableJiraProjects).toEqual(jiraProjects);
     });
   });
 
@@ -435,6 +588,36 @@ describe("policy.editor.notifications.controller.spec.js", function() {
     });
   });
 
+  describe('isStageApplicable()', function() {
+    it('disables proxy stage for jira notifications', function() {
+      var vm = initController({});
+      var isApplicable = vm.isStageApplicable({
+        projectKey: 'key',
+        issueTypeId: 'type'
+      }, 'proxy');
+      expect(isApplicable).toBe(false);
+
+      isApplicable = vm.isStageApplicable({
+        projectKey: 'key',
+        issueTypeId: 'type'
+      }, 'develop');
+      expect(isApplicable).toBe(true);
+    });
+
+    it('enables proxy stage for other notification types', function() {
+      var vm = initController({});
+      var isApplicable = vm.isStageApplicable({
+        emailAddress: 'foo@sonatype.com'
+      }, 'proxy');
+      expect(isApplicable).toBe(true);
+
+      isApplicable = vm.isStageApplicable({
+        roleId: 'foo'
+      }, 'proxy');
+      expect(isApplicable).toBe(true);
+    });
+  });
+
   describe('getDisplayName()', function() {
     it('returns recipient email for userNotifications', function() {
       var recipient = {
@@ -462,5 +645,18 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       expect(vm.getDisplayName(recipient)).toBe('Application Evaluator');
     });
 
+    it('returns jira project name and issue type for jiraNotifications', function() {
+      var recipient = {
+        projectKey: 'key1',
+        issueTypeId: 1,
+        stageIds: []
+      };
+      var notifications = {
+        jiraNotifications: [recipient]
+      };
+      var vm = initController(notifications);
+
+      expect(vm.getDisplayName(recipient)).toBe('Project One (Bug)');
+    });
   });
 });

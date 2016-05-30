@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.jira.JiraClient;
+import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -43,6 +45,7 @@ import org.junit.rules.TestName;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public abstract class AbstractBrainServiceTest
 {
@@ -79,6 +82,8 @@ public abstract class AbstractBrainServiceTest
   protected static HdsProductNotificationService mockHdsProductNotificationService;
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
+  protected static JiraClient mockJiraClient;
 
   @Before
   public void initTest() throws Exception {
@@ -147,6 +152,11 @@ public abstract class AbstractBrainServiceTest
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         mockHdsProductNotificationService = mock(HdsProductNotificationService.class);
         bind(HdsProductNotificationService.class).toInstance(mockHdsProductNotificationService);
+
+        mockJiraClient = mock(JiraClient.class);
+        JiraClientFactory jiraClientFactory = mock(JiraClientFactory.class);
+        when(jiraClientFactory.create()).thenReturn(mockJiraClient);
+        bind(JiraClientFactory.class).toInstance(jiraClientFactory);
       }
     });
     return modules;

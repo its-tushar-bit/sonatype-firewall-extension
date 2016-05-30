@@ -81,6 +81,25 @@ describe('dropdown.selector.directive.spec.js', function() {
       expect(element.find('span.warning').text()).toEqual('No Berries Available');
     });
 
+    it('Directive does not add no-options class when options are undefined', function() {
+      var scope = element.scope();
+
+      expect(element.attr('class').split(' ')).not.toContain('no-options');
+      scope.options = undefined;
+      scope.$digest();
+      expect(element.attr('class').split(' ')).not.toContain('no-options');
+      expect(element.find('span.warning').length).toBe(0);
+    });
+
+    it('Directive displays disabled dropdown when options are undefined', function() {
+      var scope = element.scope();
+      scope.options = undefined;
+      scope.$digest();
+
+      expect(element.find('.selected-item').text().trim()).toBe('No Options Set');
+      expect(element.attr('class').split(' ')).toContain('disabled');
+    });
+
     it('Directive sets ngModelController to pristine when options change', function() {
       var scope = element.scope(),
           dropdownCtrl = scope.form.dropdown,

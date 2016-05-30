@@ -24,7 +24,6 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -51,6 +50,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -84,7 +84,6 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -1055,17 +1054,20 @@ public class RepositoryServiceTest
         .getByRepositoryId(repository.getId());
     assertThat(policyViolations, hasSize(4));
 
-    List<PolicyAlert> policyAlerts = pendingRepositoryPolicyNotifications.remove().get(repository.getId());
-    assertThat(policyAlerts, hasSize(1));
+    List<PolicyNotification> policyNotifications = pendingRepositoryPolicyNotifications.remove()
+        .get(repository.getId());
+    assertThat(policyNotifications, hasSize(1));
 
-    PolicyAlert policyAlert = policyAlerts.get(0);
-    assertThat(policyAlert.getTrigger().getPolicyName(), is("Test Policy"));
+    PolicyNotification policyNotification = policyNotifications.get(0);
+    assertThat(policyNotification.getPolicyFact().getPolicyName(), is("Test Policy"));
 
-    List<? extends Action> actions = policyAlert.getActions();
-    assertThat(actions, hasSize(1));
-    assertThat(actions.get(0).getActionTypeId(), is(Action.ID_NOTIFY));
-    assertThat(actions.get(0).getTarget(), is("test@sonatype.com"));
-    assertThat(actions.get(0).getTargetType(), isEmptyOrNullString());
+    Notifications notifications = policyNotification.getNotifications();
+    assertThat(notifications.getUserNotifications(), hasSize(1));
+    assertThat(notifications.getRoleNotifications(), hasSize(0));
+    assertThat(notifications.getJiraNotifications(), hasSize(0));
+
+    UserNotification userNotification = notifications.getUserNotifications().get(0);
+    assertThat(userNotification.getEmailAddress(), is("test@sonatype.com"));
   }
 
   @Test
@@ -1101,8 +1103,9 @@ public class RepositoryServiceTest
         .getByRepositoryId(repository.getId());
     assertThat(policyViolations, hasSize(1));
 
-    List<PolicyAlert> policyAlerts = pendingRepositoryPolicyNotifications.remove().get(repository.getId());
-    assertThat(policyAlerts, nullValue());
+    List<PolicyNotification> policyNotifications = pendingRepositoryPolicyNotifications.remove()
+        .get(repository.getId());
+    assertThat(policyNotifications, nullValue());
   }
 
    @Test

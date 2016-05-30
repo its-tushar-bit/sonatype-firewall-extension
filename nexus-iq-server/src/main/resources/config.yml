@@ -95,6 +95,20 @@ http:
   # Connect using TLS.
   #tls: true
 
+# Notification JIRA settings.
+# Note that any user of the Nexus IQ Server will have access to see all projects and applicable issue types available
+# to the configured JIRA account. More details available in the Nexus IQ Server documentation. If enabled, ensure that
+# the baseUrl configuration setting is also enabled and correct, because generated tickets contain links to the server.
+#jira:
+  # The JIRA server address
+  #url: "https://127.0.0.1/"
+
+  # The username used to connect to the JIRA server
+  #username: "anonymous"
+
+  # The password used to connect to the JIRA server
+  #password: "guest"
+
 # Proxy settings.
 #proxy:
 

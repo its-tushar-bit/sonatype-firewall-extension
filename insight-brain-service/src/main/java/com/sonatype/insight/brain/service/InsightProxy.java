@@ -24,7 +24,11 @@ public class InsightProxy
   }
 
   public <T extends HttpClientUtils.Configuration> T contextualize(final T httpConfig) {
-    httpConfig.setServerUrl(insightConfig.getHdsUrl());
+    return contextualize(httpConfig, insightConfig.getHdsUrl());
+  }
+
+  public <T extends HttpClientUtils.Configuration> T contextualize(final T httpConfig, final String serverUrl) {
+    httpConfig.setServerUrl(serverUrl);
     httpConfig.setUserAgent(httpConfig.getUserAgent() + " " + insightConfig.getUserAgentSuffix());
 
     final ProxyConfig proxyConfig = insightConfig.getProxyConfig();

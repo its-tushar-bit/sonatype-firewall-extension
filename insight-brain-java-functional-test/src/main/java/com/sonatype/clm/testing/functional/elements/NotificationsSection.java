@@ -5,9 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
@@ -77,6 +79,7 @@ public class NotificationsSection
 
   public static class AddNotificationItem
   {
+    public static Condition ISSUE_TYPE_NEEDS_PROJECT = text("-- Select JIRA Project --");
 
     private final String rootSelector;
 
@@ -93,7 +96,15 @@ public class NotificationsSection
     }
 
     public Dropdown role() {
-      return new Dropdown(rootSelector, ".editor-notification-role");
+      return new Dropdown(rootSelector, "#recipient-role");
+    }
+
+    public Dropdown project() {
+      return new Dropdown(rootSelector, "#recipient-jira-project");
+    }
+
+    public Dropdown issueType() {
+      return new Dropdown(rootSelector, "#recipient-jira-issue-type");
     }
 
     public SelenideElement addButton() {

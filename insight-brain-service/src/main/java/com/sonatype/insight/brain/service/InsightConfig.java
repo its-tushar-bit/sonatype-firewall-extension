@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.net.URL;
 
+import javax.annotation.Nullable;
 import javax.mail.internet.InternetAddress;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -15,6 +16,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+
+import com.sonatype.insight.brain.jira.JiraConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yammer.dropwizard.config.Configuration;
@@ -129,6 +132,14 @@ public class InsightConfig
   private boolean showRootOrganization;
 
   /**
+   * @since 1.21.0
+   */
+  @Valid
+  @Nullable
+  @JsonProperty
+  private JiraConfig jira;
+
+  /**
    * @since 1.20
    */
   @NotNull
@@ -144,6 +155,7 @@ public class InsightConfig
   @Max(24 * 60 * 60)
   private int repositoryPolicyViolationNotificationInterval = 300;
 
+  @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -359,6 +371,21 @@ public class InsightConfig
 
   void setReverseProxyAuthentication(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
     this.reverseProxyAuthentication = reverseProxyAuthentication;
+  }
+
+  /**
+   * @since 1.21.0
+   */
+  @Nullable
+  public JiraConfig getJiraConfig() {
+    return jira;
+  }
+
+  /**
+   * @since 1.21.0
+   */
+  public void setJiraConfig(@Nullable final JiraConfig jira) {
+    this.jira = jira;
   }
 
   public boolean isExitOnFatalError() {

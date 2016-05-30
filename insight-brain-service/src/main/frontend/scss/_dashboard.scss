@@ -812,42 +812,6 @@ Dashboard tables
     padding: 0px !important;
   }
 
-  .pathnames-popover {
-    max-width: 500px;
-    -webkit-border-bottom-left-radius: 0;
-    -moz-border-radius-bottomleft: 0;
-    border-bottom-left-radius: 0;
-  }
-
-  .pathnames-popover-content {
-    overflow-x: auto;
-    white-space: nowrap;
-    padding-left: 0px;
-    margin-right: 15px;
-    margin-left: 15px;
-    margin-bottom: 10px;
-    word-break: break-all;
-  }
-
-  .pathnames-popover-arrow {
-    left: 0%;
-    border-width: 14px 17px 0px 0px;
-    border-color: #ffffff transparent transparent transparent !important;
-    position: absolute;
-    display: block;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    bottom: -14px;
-    &:after {
-      bottom: -13px;
-      border-width: 15px 18px 0px 0px;
-      margin-left: -1px;
-      border-top-color: #999 !important;
-      border-top-color: rgba(0, 0, 0, 0.25) !important;
-    }
-  }
-
   .clm-bar-text-offset {
     text-indent: -8px;
   }
@@ -1020,19 +984,54 @@ Dashboard tables
     display: inline-block;
   }
 
-  /* BEGIN Style for modal heat map help. */
-
-  .modal-help {
-    width: 700px;
-    max-height: 700px;
-    margin-left: -350px;
-  }
-
   div.modal-help-icon {
     display: inline;
     left: 8px;
     position: relative;
   }
+}
+
+.pathnames-popover {
+  max-width: 500px;
+  -webkit-border-bottom-left-radius: 0;
+  -moz-border-radius-bottomleft: 0;
+  border-bottom-left-radius: 0;
+
+  .pathnames-popover-content {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-left: 0px;
+    margin-right: 15px;
+    margin-left: 15px;
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+
+  .pathnames-popover-arrow {
+    left: 0%;
+    border-width: 14px 17px 0px 0px;
+    border-color: #ffffff transparent transparent transparent !important;
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    bottom: -14px;
+    &:after {
+      bottom: -13px;
+      border-width: 15px 18px 0px 0px;
+      margin-left: -1px;
+      border-top-color: #999 !important;
+      border-top-color: rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+}
+
+
+.modal-help {
+  width: 700px;
+  max-height: 700px;
+  margin-left: -350px;
 
   .heat-map-help {
     div {
@@ -1080,7 +1079,7 @@ Dashboard tables
     }
     .stage-risk-cell {
       width: 35px;
-      background: white;
+      background: white !important;
       &.total-risk {
         color: black;
       }
@@ -1091,51 +1090,79 @@ Dashboard tables
         border-top: 1px solid #ddd;
       }
     }
-  }
-
-  .arrow, .heat-map-help .inline-block {
-    display: inline-block;
-  }
-
-  .arrow {
-    &::before {
-      width: 0;
-      height: 0;
-      border-style: solid;
-      content: '';
-      font-size: 0px;
-      position: relative;
+    span.total-risk {
+      background-color: #444;
+      color: #FFF;
+      font-size: 14px;
+      border-bottom: 1px solid white;
     }
-    &.left {
-      width: 250px;
-      height: 7px;
-      border-bottom: solid 5px #ddd;
-      margin-left: 20px;
-      &.small {
-        width: 128px;
-      }
+    span.severe-risk {
+       background-color: #E7C2A1;
+       color: #64460A;
+       border-left: 1px solid white;
+       border-bottom: 1px solid white;
+     }
+    span.critical-risk {
+      background-color: #E6A29F;
+      color: #880D10;
+      border-left: 1px solid white;
+      border-bottom: 1px solid white;
+    }
+    span.moderate-risk {
+      background-color: #E8D9A1;
+      color: #968900;
+      border-left: 1px solid white;
+      border-bottom: 1px solid white;
+    }
+    span.low-risk {
+      background-color: #B8D7E8;
+      color: #233894;
+      border-left: 1px solid white;
+      border-bottom: 1px solid white;
+    }
+
+    .arrow, .inline-block {
+      display: inline-block;
+    }
+
+    .arrow {
       &::before {
-        border-width: 10px 20px 10px 0;
-        border-color: transparent #ddd transparent transparent;
-        left: -20px;
-        top: -5px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        content: '';
+        font-size: 0px;
+        position: relative;
       }
-    }
-    &.up {
-      width: 20px;
-      height: 68px;
-      border-left: dotted 5px #ddd;
-      margin-top: 50px;
-      &::before {
-        border-width: 0 10px 20px 10px;
-        border-color: transparent transparent #ddd transparent;
-        top: -30px;
-        left: -12px;
+      &.left {
+        width: 250px;
+        height: 7px;
+        border-bottom: solid 5px #ddd;
+        margin-left: 20px;
+        &.small {
+          width: 128px;
+        }
+        &::before {
+          border-width: 10px 20px 10px 0;
+          border-color: transparent #ddd transparent transparent;
+          left: -20px;
+          top: -5px;
+        }
+      }
+      &.up {
+        width: 20px;
+        height: 68px;
+        border-left: dotted 5px #ddd;
+        margin-top: 50px;
+        &::before {
+          border-width: 0 10px 20px 10px;
+          border-color: transparent transparent #ddd transparent;
+          top: -30px;
+          left: -12px;
+        }
       }
     }
   }
-
-  /* END Style for modal heat map help. */
 }
 
 .component-container {

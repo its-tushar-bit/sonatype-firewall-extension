@@ -622,6 +622,8 @@ Dashboard tables
 
 .dashboard-root-container,
 .component-container {
+  white-space: normal;
+  
   .nav.nav-tabs {
     margin: 0px;
   }

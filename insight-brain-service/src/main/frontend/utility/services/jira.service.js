@@ -20,8 +20,8 @@
         isEnabledDeferred = $q.defer();
         $http.get(CLMLocations.getIsJiraEnabledUrl()).then(function(isJiraEnabled) {
           isEnabledDeferred.resolve(isJiraEnabled.data);
-        }, function() {
-          isEnabledDeferred.reject(arguments);
+        }, function(error) {
+          isEnabledDeferred.reject(error);
           // Allow for retrying request
           isEnabledDeferred = null;
         });
@@ -34,8 +34,8 @@
         getProjectsDeferred = $q.defer();
         $http.get(CLMLocations.getJiraProjectsUrl()).then(function(jiraProjects) {
           getProjectsDeferred.resolve(jiraProjects.data);
-        }, function() {
-          getProjectsDeferred.reject(arguments);
+        }, function(error) {
+          getProjectsDeferred.reject(error);
           // Allow for retrying request
           getProjectsDeferred = null;
         });

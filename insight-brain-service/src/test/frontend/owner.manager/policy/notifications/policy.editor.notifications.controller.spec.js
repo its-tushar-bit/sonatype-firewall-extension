@@ -17,26 +17,41 @@ describe("policy.editor.notifications.controller.spec.js", function() {
   };
 
   var createJiraServiceResolver = function() {
-    var enabledDefer, getProjectsDefer;
+    var enabledDefer,
+        getProjectsDefer,
+        jiraService,
+        $q;
 
     beforeEach(module('utility.services'));
 
     beforeEach(inject([
-      '$q', 'jira.service', function($q, jiraService) {
-        enabledDefer = $q.defer();
-        getProjectsDefer = $q.defer();
-
-        spyOn(jiraService, 'isEnabled').andReturn(enabledDefer.promise);
-        spyOn(jiraService, 'getJiraProjects').andReturn(getProjectsDefer.promise);
+      '$q', 'jira.service', function(_$q_, _jiraService_) {
+        $q = _$q_;
+        jiraService = _jiraService_;
+        spyOn(jiraService, 'isEnabled');
+        spyOn(jiraService, 'getJiraProjects');
+        reset();
       }
     ]));
 
+    function reset() {
+      enabledDefer = $q.defer();
+      getProjectsDefer = $q.defer();
+
+      jiraService.isEnabled.andReturn(enabledDefer.promise);
+      jiraService.getJiraProjects.andReturn(getProjectsDefer.promise);
+    }
+
     return {
+      reset: reset,
       resolveIsEnabled: function(isEnabled) {
         enabledDefer.resolve(isEnabled);
       },
       resolveGetJiraProjects: function(projects) {
         getProjectsDefer.resolve(projects);
+      },
+      rejectGetJiraProjects: function(error) {
+        getProjectsDefer.reject(error);
       }
     };
   };
@@ -137,6 +152,25 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       expect(vm.recipients[1].projectKey).toBe('key2');
       expect(vm.recipients[1].issueTypeId).toBe(2);
     });
+
+    it('still shows editor if jira projects fails', inject(function(CLMAppLocations, $controller, $httpBackend) {
+      var error = 'error';
+
+      jiraServiceResolver.reset();
+      jiraServiceResolver.resolveIsEnabled(true);
+      jiraServiceResolver.rejectGetJiraProjects(error);
+
+      var ctlFn = $controller('policy.editor.notifications.controller', {
+        $scope: scope
+      }, true);
+      ctlFn.instance.notifications = [];
+      var vm = ctlFn();
+
+      $httpBackend.flush();
+
+      expect(vm.loadError).toBeUndefined();
+      expect(vm.jiraError).toEqual(error);
+    }));
 
     it('handles no notifications', function() {
       var vm = initController({});

@@ -17,6 +17,7 @@
 
     vm.addRecipientForm = undefined;
     vm.loadError = undefined;
+    vm.jiraError = undefined;
     vm.actionStages = undefined;
     vm.recipients = undefined;
     vm.recipientTypes = {EMAIL: 'Email', ROLE: 'Role', JIRA: 'JIRA'};
@@ -54,8 +55,17 @@
         $http.get(CLMAppLocations.getRoleMappingUrl()),
         JiraService.isEnabled().then(function(isEnabled) {
           if (isEnabled) {
-            vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
-            return JiraService.getJiraProjects();
+            var getJiraDeferred = $q.defer();
+            JiraService.getJiraProjects().then(function(results) {
+              getJiraDeferred.resolve({
+                projects: results
+              });
+            }, function(error) {
+              getJiraDeferred.resolve({
+                error: error
+              });
+            });
+            return getJiraDeferred.promise;
           }
         })
       ];
@@ -63,7 +73,17 @@
       $q.all(promises).then(function(results) {
         vm.actionStages = results[0];
         vm.roles = results[1].data.membersByRole;
-        jiraProjects = results[2];
+        var jiraResults = results[2];
+
+        if (!jiraResults.error) {
+          if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.JIRA) === -1) {
+            vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
+          }
+          jiraProjects = jiraResults.projects;
+        }
+        else {
+          vm.jiraError = jiraResults.error;
+        }
 
         roleNames = vm.roles ? mapRoleNames() : {};
 
@@ -78,6 +98,7 @@
       });
 
       delete vm.loadError;
+      delete vm.jiraError;
     }
 
     // produces sorted Array of all Recipients
@@ -139,8 +160,14 @@
     }
 
     function getDisplayName(recipient) {
-      return recipient.emailAddress || roleNames[recipient.roleId] ||
-          (jiraProjectNames[recipient.projectKey] + ' (' + jiraIssueTypes[recipient.issueTypeId] + ')');
+      return recipient.emailAddress || roleNames[recipient.roleId] || getJiraDisplayName(recipient);
+    }
+
+    function getJiraDisplayName(recipient) {
+      if (!vm.jiraError && jiraProjectNames[recipient.projectKey] && jiraIssueTypes[recipient.issueTypeId]) {
+        return jiraProjectNames[recipient.projectKey] + ' (' + jiraIssueTypes[recipient.issueTypeId] + ')';
+      }
+      return recipient.projectKey + ' (Issue Type ID: ' + recipient.issueTypeId + ')';
     }
 
     function toggleStage(recipient, stage) {
@@ -236,6 +263,10 @@
     }
 
     function updateAvailableJiraProjects() {
+      if (!jiraProjects) {
+        return;
+      }
+
       if (!vm.notifications.jiraNotifications || vm.notifications.jiraNotifications.length === 0) {
         vm.availableJiraProjects = jiraProjects;
         return;

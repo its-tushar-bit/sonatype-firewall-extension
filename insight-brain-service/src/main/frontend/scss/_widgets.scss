@@ -1,58 +1,6 @@
 /*
   #Widgets
 */
-
-/*
-  ##Breadcrumb
-
-  ```
-  <div breadcrumb>
-    <p class="nav-crumb">
-      <span>
-        <a href="/dashboard/newest-risk">
-          <i class="sonatype-icons dashboard">&nbsp;</i>Dashboard
-        </a>
-      </span>
-      <span>
-        <span class="last-crumb">/</span>
-        <span class="last-crumb">
-          &nbsp;Newest Risk
-        </span>
-      </span>
-    </p>
-  </div>
-  ```
-*/
-.nav-crumb {
-  vertical-align: middle;
-  margin-top: 0px;
-  padding-top: 16px;
-}
-
-.nav-crumb i:before {
-  font-size: 14px;
-  margin-right: 10px;
-  line-height: 16px;
-  color: $deep-blue;
-}
-
-.nav-crumb i:before:hover {
-  color: $link-blue;
-}
-
-.nav-crumb a {
-  margin-right: 5px;
-  color: $deep-blue;
-}
-
-.nav-crumb a:hover {
-  color: $link-blue;
-}
-
-.nav-crumb .last-crumb {
-  color: #909090;
-}
-
 /*
   ## Load error
 

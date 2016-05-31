@@ -444,7 +444,7 @@ var AngularStateUtils = {
       template: '<p class="nav-crumb"><span ng-repeat="state in states">' +
                   '<span ng-if="!$first" ng-class="{ \'last-crumb\': $last }">/</span>' +
                     '<a ng-if="!$last" ui-sref="{{state.state}}">' +
-                      '<i ng-if="state.icon" class="{{state.icon}}">&nbsp;</i>{{state.name}}' +
+                      '<i ng-if="state.icon" class="{{state.icon}}"></i>{{state.name}}' +
                     '</a>' +
                   '<span ng-if="$last" class="last-crumb">' +
                     '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{stateOverride ? stateOverride : state.name}}' +

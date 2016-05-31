@@ -623,7 +623,39 @@ Dashboard tables
 .dashboard-root-container,
 .component-container {
   white-space: normal;
-  
+
+  /* Breadcrumb */
+  .nav-crumb {
+    margin-top: 0px;
+    padding-top: 16px;
+    vertical-align: middle;
+
+    i:before {
+      color: $deep-blue;
+      font-size: 14px;
+      line-height: 16px;
+      margin-right: 8px;
+
+      &:hover {
+        color: $link-blue;
+      }
+    }
+
+    a {
+      color: $deep-blue;
+      margin-right: 5px;
+
+      &:hover {
+        color: $link-blue;
+        text-decoration: none;
+      }
+    }
+
+    .last-crumb {
+      color: #909090;
+    }
+  }
+
   .nav.nav-tabs {
     margin: 0px;
   }

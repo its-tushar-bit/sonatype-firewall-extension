@@ -17,8 +17,10 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -265,13 +267,39 @@ public class PolicyTest
   }
 
   @Test
-  public void testValidate_NotificationInvalid() {
+  public void testValidate_RoleNotificationInvalid() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
 
-    // User Notifications
+    // Add invalid notification (no role id) and validate
+    RoleNotification notification = new RoleNotification();
+    policy.getNotifications().add(notification);
+    ValidationResult result = policy.validate(null, applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid notifications:",
+        "Invalid notification: A valid role ID is required");
+
+    // Change to inexistant role id and validate again
+    notification.setRoleId("NoSuchRole");
+    result = policy.validate(null, applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid notifications:",
+        "Invalid notification: 'NoSuchRole' is not a valid role");
+
+    // Fix the notification and validate again
+    notification.setRoleId(Role.OWNER_ROLE_ID);
+    result = policy.validate(null, applicationId);
+    assertValidationResultHasNoErrors(result);
+  }
+
+  @Test
+  public void testValidate_UserNotificationInvalid() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+
+    // Add invalid notification and validate
     UserNotification notification = new UserNotification();
     policy.getNotifications().add(notification);
     ValidationResult result = policy.validate(null, applicationId);
@@ -282,15 +310,24 @@ public class PolicyTest
     notification.setEmailAddress("tester@sonatype.com");
     result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
+  }
 
-    //JIRA Notifications
+  @Test
+  public void testValidate_JiraNotificationInvalid() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+
+    // Add invalid notification and validate
     JiraNotification jiraNotification = new JiraNotification();
     policy.getNotifications().add(jiraNotification);
-    result = policy.validate(null, applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid notifications:",
         "Invalid JIRA notification: A valid project key is required",
         "Invalid JIRA notification: A valid issue type id is required");
 
+    // Fix the notification and validate again
     jiraNotification.setProjectKey("key");
     jiraNotification.setIssueTypeId(1);
     result = policy.validate(null, applicationId);

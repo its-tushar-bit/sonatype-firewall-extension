@@ -21,8 +21,6 @@ public class JiraField
 
   public static final String DESCRIPTION = "description";
 
-  public static final String LABELS = "labels";
-
   private String name;
 
   private boolean required;

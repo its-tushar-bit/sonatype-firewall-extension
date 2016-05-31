@@ -417,9 +417,9 @@ public class PolicyEvaluateResourceTest
     ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
         .forClass(JiraIssueCreateRequest.class);
     verify(mockJiraClient, timeout(5000)).createIssue(createRequestArgumentCaptor.capture());
-    Map<String, Object> createRequestFields = createRequestArgumentCaptor.getValue().getFields();
-    assertThat(createRequestFields.size(), is(4));
-    Map<String, String> projectMeta = (Map<String, String>) createRequestFields.get(JiraField.PROJECT);
+    JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
+    assertThat(jiraIssueCreateRequest.getFields().size(), is(4));
+    Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
     assertThat(projectMeta.get("key"), is("projectKey1"));
 
     messagesA.clear();

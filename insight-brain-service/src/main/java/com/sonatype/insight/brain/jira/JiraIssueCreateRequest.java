@@ -6,14 +6,12 @@
 package com.sonatype.insight.brain.jira;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.jira.JiraField.DESCRIPTION;
 import static com.sonatype.insight.brain.jira.JiraField.ISSUETYPE;
-import static com.sonatype.insight.brain.jira.JiraField.LABELS;
 import static com.sonatype.insight.brain.jira.JiraField.PROJECT;
 import static com.sonatype.insight.brain.jira.JiraField.SUMMARY;
 
@@ -24,72 +22,48 @@ import static com.sonatype.insight.brain.jira.JiraField.SUMMARY;
  */
 public class JiraIssueCreateRequest
 {
-  private Map<String, Object> fields;
+  private final Map<String, Object> fields = new LinkedHashMap<>();
 
   public Map<String, Object> getFields() {
-    if (fields == null) {
-      fields = new LinkedHashMap<>();
-    }
     return fields;
   }
 
-  public void setFields(final Map<String, Object> fields) {
-    this.fields = fields;
+  @SuppressWarnings("unchecked")
+  public <T> T getField(String name) {
+    return (T) fields.get(name);
   }
 
-  public JiraIssueCreateRequest field(final String name, final Object value) {
-    getFields().put(name, value);
+  private JiraIssueCreateRequest field(final String name, final Object value) {
+    fields.put(name, value);
     return this;
   }
 
   /**
    * Helper to set {@code project} field from a project key.
    */
-  public JiraIssueCreateRequest project(final String key) {
+  JiraIssueCreateRequest project(final String key) {
     return field(PROJECT, ImmutableMap.of("key", key));
-  }
-
-  /**
-   * Helper to set {@code project} field from a project id.
-   */
-  public JiraIssueCreateRequest project(final long id) {
-    return field(PROJECT, ImmutableMap.of("id", id));
-  }
-
-  /**
-   * Helper to set {@code issuetype} field from a issue-type name.
-   */
-  public JiraIssueCreateRequest issueType(final String name) {
-    return field(ISSUETYPE, ImmutableMap.of("name", name));
   }
 
   /**
    * Helper to set {@code issuetype} field from a issue-type id.
    */
-  public JiraIssueCreateRequest issueType(final long id) {
+  JiraIssueCreateRequest issueType(final long id) {
     return field(ISSUETYPE, ImmutableMap.of("id", id));
   }
 
   /**
    * Helper to set {@code summary} field.
    */
-  public JiraIssueCreateRequest summary(final String text) {
+  JiraIssueCreateRequest summary(final String text) {
     return field(SUMMARY, text);
   }
 
   /**
    * Helper to set {@code description} field.
    */
-  public JiraIssueCreateRequest description(final String text) {
+  JiraIssueCreateRequest description(final String text) {
     return field(DESCRIPTION, text);
-  }
-
-  /**
-   * Helper to set {@code labels} field.
-   */
-  public JiraIssueCreateRequest labels(final List<String> labels) {
-    field(LABELS, labels);
-    return this;
   }
 
   @Override

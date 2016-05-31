@@ -105,13 +105,13 @@ public class JiraPolicyAlertNotifierTest
         .forClass(JiraIssueCreateRequest.class);
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT)).createIssue(createRequestArgumentCaptor.capture());
 
-    Map<String, Object> createRequestFields = createRequestArgumentCaptor.getValue().getFields();
-    assertThat(createRequestFields.size(), is(4));
-    Map<String, String> projectMeta = (Map<String, String>) createRequestFields.get(JiraField.PROJECT);
+    JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
+    assertThat(jiraIssueCreateRequest.getFields().size(), is(4));
+    Map<String, String> projectMeta = jiraIssueCreateRequest.getField(JiraField.PROJECT);
     assertThat(projectMeta.get("key"), is(projectKey));
-    Map<String, Long> issueMeta = (Map<String, Long>) createRequestFields.get(JiraField.ISSUETYPE);
+    Map<String, Long> issueMeta = jiraIssueCreateRequest.getField(JiraField.ISSUETYPE);
     assertThat(issueMeta.get("id"), is(issueTypeId));
-    String summary = (String) createRequestFields.get(JiraField.SUMMARY);
+    String summary = jiraIssueCreateRequest.getField(JiraField.SUMMARY);
     assertThat(summary, is("Nexus IQ: Application " + application.getName() + "; BUILD stage; 1 Policy alerts"));
   }
 

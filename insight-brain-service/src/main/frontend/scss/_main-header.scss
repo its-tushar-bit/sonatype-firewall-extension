@@ -186,6 +186,13 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87, 87, 87, 1);
   }
 
   .count-circle {
+    font-size: 10px;
+    right: 20px;
+    background-color: #2476FC;
+    color: white;
+    text-align: center;
+    @extend .bold;
+    @include border-radius(50%);
     left: 8px;
     top: 18px;
     width: 16px;

@@ -83,4 +83,10 @@ public class JiraNotification
   public int hashCode() {
     return Objects.hash(projectKey, issueTypeId);
   }
+
+  @Override
+  public String toString() {
+    return "JiraNotification [projectKey=" + projectKey + ", issueTypeId=" + issueTypeId + ", getStageIds()="
+        + getStageIds() + "]";
+  }
 }

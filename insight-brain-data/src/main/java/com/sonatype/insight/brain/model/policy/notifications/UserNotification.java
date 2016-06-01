@@ -63,4 +63,9 @@ public class UserNotification
   protected void addToNotifications(Notifications notifications) {
     notifications.getUserNotifications().add(this);
   }
+
+  @Override
+  public String toString() {
+    return "UserNotification [emailAddress=" + emailAddress + ", getStageIds()=" + getStageIds() + "]";
+  }
 }

@@ -61,4 +61,9 @@ public class RoleNotification
   protected void addToNotifications(Notifications notifications) {
     notifications.getRoleNotifications().add(this);
   }
+
+  @Override
+  public String toString() {
+    return "RoleNotification [roleId=" + roleId + ", getStageIds()=" + getStageIds() + "]";
+  }
 }

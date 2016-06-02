@@ -71,7 +71,7 @@
           expand: true,
           cwd: '<%= config.frontend %>',
           src: [
-            '**/*.{html,ttf,woff,woff2,png,gif,jpg}',
+            '**/*.{html,ttf,woff,woff2,png,gif,jpg,ico}',
             '!<%= config.templates %>',
             '!lib/*',
             'lib/**/*.{js,css,ttf,woff,woff2,swf}',
@@ -83,7 +83,7 @@
           expand: true,
           cwd: '<%= config.frontend %>',
           src: [
-            '**/*.{html,js,css,ttf,woff,woff2,png,gif,jpg}',
+            '**/*.{html,js,css,ttf,woff,woff2,png,gif,jpg,ico}',
             '!lib/*',
             'lib/**/*.{js,css,ttf,woff,woff2,swf}',
             '!lib/**/test/*'

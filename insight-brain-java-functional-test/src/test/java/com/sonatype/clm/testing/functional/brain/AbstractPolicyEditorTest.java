@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
@@ -53,12 +54,20 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.ActionsSection.activeClass;
@@ -73,6 +82,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public abstract class AbstractPolicyEditorTest
@@ -92,8 +102,7 @@ public abstract class AbstractPolicyEditorTest
     loginAsAdmin();
   }
 
-  @Before
-  public void setupJiraService() throws IOException {
+  private void setupJiraService() throws IOException {
     jiraProject = new JiraProject();
     jiraProject.setKey("key1");
     jiraProject.setName("Project One");
@@ -131,13 +140,7 @@ public abstract class AbstractPolicyEditorTest
     // make sure we reset back to clean state
     assertNewPolicyStateIsCorrect();
 
-    Policy newPolicy = null;
-    for (Policy p : policyDAO.getByOwnerId(currentOwner.getId())) {
-      if (p.getName().equals("New Policy")) {
-        newPolicy = p;
-        break;
-      }
-    }
+    Policy newPolicy = getPolicyByName("New Policy");
 
     assertThat(newPolicy, is(notNullValue()));
     assertThat(newPolicy.getConstraints(), is(notNullValue()));
@@ -201,6 +204,78 @@ public abstract class AbstractPolicyEditorTest
 
     SummaryTile.localPolicy(policy.getName()).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], true);
+  }
+
+  @Test
+  public void testJIRA() throws IOException {
+    setupJiraService();
+
+    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    SummaryTile.addPolicyButton().click();
+
+    PolicyEditorPage.summarySection().policyName().val("New Policy");
+
+    ConstraintEditSection newConstraint = PolicyEditorPage.constraintSection().constraintEditor(0);
+    newConstraint.name().val("New Constraint");
+
+    AgeConditionEditSection ageCondition = newConstraint.ageCondition(0);
+    ageCondition.value().age().val("3");
+
+    AddNotificationItem addNotification = NotificationsSection.addNotification();
+
+    // add jira notifications
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(2).click();
+    addNotification.addButton().shouldHave(DISABLED);
+
+    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
+        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
+    addNotification.project().shouldBe(visible).selectedItem().click();
+    addNotification.project().listItems().findBy(text(jiraProject.getName())).click();
+    addNotification.addButton().shouldHave(DISABLED);
+
+    addNotification.issueType().shouldBe(visible).selectedItem().click();
+    addNotification.issueType().listItems().findBy(text(jiraProject.getIssueTypes().get(0).getName())).click();
+    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.project().shouldBe(visible);
+    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
+        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
+
+    // test "All projects are being notified." message
+    addNotification.project().shouldHave(text("All projects are being notified."));
+
+    NotificationsSection.notifications().shouldHave(texts("Project One (Bug)"));
+
+    PolicyEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // verify persisted policy
+    Policy policy = getPolicyByName("New Policy");
+    List<JiraNotification> notifications = policy.getNotifications().getJiraNotifications();
+    assertThat(notifications.size(), is(1));
+    assertThat(notifications.get(0).getProjectKey(), is("key1"));
+    assertThat(notifications.get(0).getIssueTypeId(), is(1L));
+
+    open(PolicyEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), policy.getId()));
+
+    NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
+    NotificationsSection.notifications().shouldHaveSize(1).get(0).shouldHave(text("No notifications configured"));
+
+    PolicyEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    policy = getPolicyByName("New Policy");
+    assertTrue(policy.getNotifications().getJiraNotifications().isEmpty());
+  }
+
+  private Policy getPolicyByName(String policyName) {
+    for (Policy p : policyDAO.getByOwnerId(currentOwner.getId())) {
+      if (p.getName().equals("New Policy")) {
+        return p;
+      }
+    }
+    return null;
   }
 
   private void testCreatePolicy_navigatingAwayWithUnsavedData(){
@@ -533,37 +608,12 @@ public abstract class AbstractPolicyEditorTest
     addNotification.notificationType().listItem(0).click();
     addNotification.email().shouldBe(empty);
 
-    // add jira notifications
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(2).click();
-    addNotification.addButton().shouldHave(DISABLED);
-
-    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
-        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
-    addNotification.project().shouldBe(visible).selectedItem().click();
-    addNotification.project().listItems().findBy(text(jiraProject.getName())).click();
-    addNotification.addButton().shouldHave(DISABLED);
-
-    addNotification.issueType().shouldBe(visible).selectedItem().click();
-    addNotification.issueType().listItems().findBy(text(jiraProject.getIssueTypes().get(0).getName())).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
-    addNotification.addButton().shouldHave(DISABLED);
-    addNotification.project().shouldBe(visible);
-    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
-        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
-
-    // test "All projects are being notified." message
-    addNotification.project().shouldHave(text("All projects are being notified."));
-
-    NotificationsSection.notifications().shouldHave(
-        texts("Developer", "test@foo.com", "aaa@sonatype.com", "Application Evaluator", "Project One (Bug)"));
-
     // delete one and save
     NotificationsSection.notificationFor("test@foo.com").deleteButton().click();
-    NotificationsSection.notifications().shouldHaveSize(4);
+    NotificationsSection.notifications().shouldHaveSize(3);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    NotificationsSection.notifications().shouldHaveSize(4);
+    NotificationsSection.notifications().shouldHaveSize(3);
     // "aaa@sonatype.com" should be first after save
     NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
     // "Application Evaluator" should be second after save
@@ -607,7 +657,6 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("aaa@sonatype.com").deleteButton().click();
     NotificationsSection.notificationFor("Developer").deleteButton().click();
     NotificationsSection.notificationFor("Application Evaluator").deleteButton().click();
-    NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
     NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
 
   }
@@ -731,25 +780,6 @@ public abstract class AbstractPolicyEditorTest
     addNotification.addButton().shouldNotHave(DISABLED).click();
     addNotification.addButton().shouldHave(DISABLED);
     addNotification.email().shouldBe(empty);
-
-    // add jira notifications
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(2).click();
-    addNotification.addButton().shouldHave(DISABLED);
-
-    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
-        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
-    addNotification.project().shouldBe(visible).selectedItem().click();
-    addNotification.project().listItems().findBy(text(jiraProject.getName())).click();
-    addNotification.addButton().shouldHave(DISABLED);
-
-    addNotification.issueType().shouldBe(visible).selectedItem().click();
-    addNotification.issueType().listItems().findBy(text(jiraProject.getIssueTypes().get(0).getName())).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
-    addNotification.addButton().shouldHave(DISABLED);
-    addNotification.project().shouldBe(visible);
-    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
-        .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
 
     NotificationsSection.notifications().get(0).shouldHave(text("Application Evaluator"));
     NotificationsSection.notifications().get(1).shouldHave(text("aaa@sonatype.com"));

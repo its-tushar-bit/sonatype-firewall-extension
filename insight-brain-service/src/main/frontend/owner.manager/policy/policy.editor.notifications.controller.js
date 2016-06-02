@@ -75,14 +75,17 @@
         vm.roles = results[1].data.membersByRole;
         var jiraResults = results[2];
 
-        if (!jiraResults.error) {
+        if (!jiraResults) {
+          // JIRA is disabled
+        }
+        else if (jiraResults.error) {
+          vm.jiraError = jiraResults.error;
+        }
+        else {
           if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.JIRA) === -1) {
             vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
           }
           jiraProjects = jiraResults.projects;
-        }
-        else {
-          vm.jiraError = jiraResults.error;
         }
 
         roleNames = vm.roles ? mapRoleNames() : {};

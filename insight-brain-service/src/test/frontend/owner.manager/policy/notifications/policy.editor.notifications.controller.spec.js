@@ -67,13 +67,15 @@ describe("policy.editor.notifications.controller.spec.js", function() {
   beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations) {
     scope = $rootScope.$new();
 
-    initController = function(notifications) {
+    initController = function(notifications, jiraEnabled) {
       var ctrlFn = $controller('policy.editor.notifications.controller', {
         $scope: scope
       }, true);
 
       ctrlFn.instance.notifications = notifications;
       var vm = ctrlFn();
+      jiraServiceResolver.resolveIsEnabled(jiraEnabled);
+      jiraServiceResolver.resolveGetJiraProjects(jiraProjects);
       $httpBackend.flush();
       scope.vm = vm; // needed to be able to test scope.$watch
       return vm;
@@ -81,8 +83,6 @@ describe("policy.editor.notifications.controller.spec.js", function() {
 
     $httpBackend.whenGET('/rest/policy/stages?context=all').respond([]);
     $httpBackend.whenGET(CLMAppLocations.getRoleMappingUrl()).respond(membershipMapping);
-    jiraServiceResolver.resolveIsEnabled(true);
-    jiraServiceResolver.resolveGetJiraProjects(jiraProjects);
   }));
 
   describe('controller init', function() {
@@ -144,7 +144,7 @@ describe("policy.editor.notifications.controller.spec.js", function() {
         ]
       };
 
-      var vm = initController(notifications);
+      var vm = initController(notifications, true);
 
       expect(vm.recipients.length).toBe(2);
       expect(vm.recipients[0].projectKey).toBe('key1');
@@ -545,7 +545,7 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       var notifications = {
         jiraNotifications: []
       };
-      var vm = initController(notifications);
+      var vm = initController(notifications, true);
       vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', ['$setPristine']);
 
       expect(vm.availableJiraProjects).toEqual(jiraProjects);
@@ -688,7 +688,7 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       var notifications = {
         jiraNotifications: [recipient]
       };
-      var vm = initController(notifications);
+      var vm = initController(notifications, true);
 
       expect(vm.getDisplayName(recipient)).toBe('Project One (Bug)');
     });

@@ -110,58 +110,47 @@ body {
   padding-right: 12px;
   overflow-y: auto;
 
+  .policy-violation-table th {
+    padding: 0;
+    text-indent: initial
+  }
+
   .application-header {
-    min-width: 107px;
+    min-width: 105px;
+    max-width: 220px;
   }
   .policy-header {
-    min-width: 68px;
+    min-width: 67px;
+    max-width: 220px;
   }
   .component-header {
-    min-width: 101px;
+    min-width: 179px;
   }
   #threat-header {
-    min-width: 65px;
+    min-width: 75px;
+    max-width: 75px;
   }
   .time-header {
-    min-width: 62px;
+    min-width: 47px;
+    max-width: 47px;
   }
-  #stage-header-build,
   #stage-header-stage-release {
-    min-width: 68px;
+    min-width: 61px;
+    max-width: 61px;
   }
-  #stage-header-release,
+  #stage-header-release {
+    min-width: 76px;
+    max-width: 76px;
+  }
   #stage-header-operate {
-    min-width: 85px;
+    min-width: 79px;
+    max-width: 79px;
   }
   #stage-header-build {
-    min-width: 43px;
+    min-width: 58px;
+    max-width: 58px;
   }
-  #stage-header-stage-release {
-    min-width: 47px;
-  }
-  #stage-header-release,
-  #stage-header-operate {
-    min-width: 57px;
-  }
-  .application-header {
-    width: 85px;
-    min-width: 85px;
-  }
-  .policy-header {
-    width: 50px;
-    min-width: 50px;
-  }
-  #threat-header {
-    width: 45px;
-    min-width: 45px;
-  }
-  .time-header {
-    width: 32px;
-    min-width: 32px;
-  }
-  .component-header {
-    min-width: 150px;
-  }
+
   a {
     color: black;
     text-decoration: none;

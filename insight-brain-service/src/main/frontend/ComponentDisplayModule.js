@@ -27,8 +27,8 @@
 
   var module = angular.module('ComponentDisplay', ['AngularCommon', 'ComponentName']).run(['$templateCache', function($templateCache) {
         $templateCache.put('pathnames-display',
-                '<div pathnames-popover="component.pathnames">' +
-                '<em>{{component.pathnames[0] | fileName | truncate:35 }}</em>' +
+                '<div pathnames-popover="component.pathnames" class="pathname">' +
+                '<em>{{component.pathnames[0] | fileName}}</em>' +
                 '</div>'
         );
         $templateCache.put('unknown-display',

@@ -19,10 +19,7 @@ h1. Nexus IQ Notification
 |*Stage*      |${stage}|
 <#-- Include contact if present -->
 <#if contact??>
-|*Contact*    |[${contact.displayName}|
-  <#if contact.email??>
-  mailto:${contact.email}]|
-  </#if>
+|*Contact*    |[${contact.displayName}|<#if contact.email??>mailto:${contact.email}]|</#if>
 </#if>
 
 <#-- Returns the background color for alert section based on threat-level -->

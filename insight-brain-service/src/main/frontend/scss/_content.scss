@@ -110,13 +110,30 @@ body {
   padding-right: 12px;
   overflow-y: auto;
 
-  .policy-violation-table th {
-    padding: 0;
-    text-indent: initial
+  @supports (overflow:-webkit-marquee) and (justify-content:inherit) { // Only effects Safari
+    th {
+      letter-spacing: -1px; // Safari has a larger letter spacing for headers, -1px is what most browsers use.
+    }
+  }
+
+  .policy-violation-table {
+    th {
+      padding: 0;
+      white-space: nowrap;
+
+      i {
+        margin-left: -2px;
+      }
+    }
+    td:not(.component-name),
+    .pathname {
+      word-break: break-all;
+      word-break: break-word; // Works only in webkit browsers (chrome/safari)
+    }
   }
 
   .application-header {
-    min-width: 105px;
+    min-width: 110px;
     max-width: 220px;
   }
   .policy-header {

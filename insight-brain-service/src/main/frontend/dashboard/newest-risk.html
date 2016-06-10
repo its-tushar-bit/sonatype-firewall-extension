@@ -4,7 +4,7 @@
            sortable='-time,-threatLevel'>
       <thead>
       <tr>
-        <th id='threat-header' colspan='2' class='clm-bar-text-offset'>
+        <th id='threat-header' colspan='2'>
           <div sort-columns="-threatLevel,-time">
             THREAT
           </div>
@@ -35,7 +35,7 @@
         <td>{{risk.time | terseAgo}}</td>
         <td>{{risk.policyName}}</td>
         <td>{{risk.applicationName}}</td>
-        <td>
+        <td class="component-name">
           <div component-display component="risk"></div>
         </td>
         <td ng-repeat='stageDetails in risk.stageDetails | stageTypeSort | stageFilter:filters'

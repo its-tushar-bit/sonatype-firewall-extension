@@ -61,7 +61,7 @@ extends BaseSpec {
 
     then: 'only the permissioned application and the all application option are shown'
     filters.applicationFilter.multiSelectList.size() == 2
-    filters.applicationFilter.counter.text() == '0 of 1'
+    filters.applicationFilter.counter.text() == '1'
   }
 
   def 'Should have no applications to choose from without permissions'() {

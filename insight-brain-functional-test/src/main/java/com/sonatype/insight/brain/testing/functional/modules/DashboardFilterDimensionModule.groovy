@@ -16,6 +16,9 @@ public class DashboardFilterDimensionModule
     multiSelectList(required: false) { moduleList FilterCheckboxRow, $('.clm-form .tree-view-item.checkbox') }
   }
 
+  boolean isCounterInactive() {
+    return counter.hasClass('inactive')
+  }
 }
 
 class FilterCheckboxRow

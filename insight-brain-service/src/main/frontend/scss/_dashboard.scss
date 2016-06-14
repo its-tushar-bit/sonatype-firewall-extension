@@ -1302,7 +1302,15 @@ Dashboard tables
         padding: 0px 4px;
         font-size: 11px;
         color: $slate;
+        line-height: 18px; /* used for vertical alignment */
         margin-right: 8px;
+
+        &.inactive {
+          background-color: $grey-3;
+          border-color: $grey-4;
+          min-width: 8px;
+          text-align: center;
+        }
       }
     }
 

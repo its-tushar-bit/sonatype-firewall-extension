@@ -178,7 +178,8 @@ extends BaseSpec {
     newestRiskPage.filters.applicationFilter.twisty.displayed
     newestRiskPage.filters.applicationFilter.twisty.click()
     newestRiskPage.filters.applicationFilter.counter.displayed
-    newestRiskPage.filters.applicationFilter.counter.text() == '0 of 2'
+    newestRiskPage.filters.applicationFilter.counter.text() == '2'
+    newestRiskPage.filters.applicationFilter.isCounterInactive()
 
     newestRiskPage.filters.applicationFilter.multiSelectList.size() == 3
     newestRiskPage.filters.applicationFilter.multiSelectList[0].checkbox.value() == false
@@ -192,7 +193,8 @@ extends BaseSpec {
     and: 'policy threat category filters are shown'
     newestRiskPage.filters.policyTypesFilter.twisty.click()
     newestRiskPage.filters.policyTypesFilter.multiSelectList.size() == 5
-    newestRiskPage.filters.policyTypesFilter.counter.text() == '0 of 4'
+    newestRiskPage.filters.policyTypesFilter.counter.text() == '4'
+    newestRiskPage.filters.policyTypesFilter.isCounterInactive()
     newestRiskPage.filters.policyTypesFilter.multiSelectList[0].name.text() == 'all policy types'
     newestRiskPage.filters.policyTypesFilter.multiSelectList[1].name.text() == 'License'
     newestRiskPage.filters.policyTypesFilter.multiSelectList[2].name.text() == 'Other'
@@ -203,7 +205,8 @@ extends BaseSpec {
     and: 'stage type filters are shown in proper chronological order'
     newestRiskPage.filters.stagesFilter.twisty.click()
     newestRiskPage.filters.stagesFilter.multiSelectList.size() == 5
-    newestRiskPage.filters.stagesFilter.counter.text() == '0 of 4'
+    newestRiskPage.filters.stagesFilter.counter.text() == '4'
+    newestRiskPage.filters.stagesFilter.isCounterInactive()
     newestRiskPage.filters.stagesFilter.multiSelectList[0].name.text() == 'all stages'
     newestRiskPage.filters.stagesFilter.multiSelectList[1].name.text() == 'Build'
     newestRiskPage.filters.stagesFilter.multiSelectList[2].name.text() == 'Stage Release'
@@ -214,7 +217,8 @@ extends BaseSpec {
     and: 'application tag filters are shown'
     newestRiskPage.filters.applicationCategoryFilter.twisty.click()
     newestRiskPage.filters.applicationCategoryFilter.multiSelectList.size() == 2
-    newestRiskPage.filters.applicationCategoryFilter.counter.text() == '0 of 1'
+    newestRiskPage.filters.applicationCategoryFilter.counter.text() == '1'
+    newestRiskPage.filters.applicationCategoryFilter.isCounterInactive()
     newestRiskPage.filters.applicationCategoryFilter.multiSelectList[0].name.text() == 'all application categories'
     newestRiskPage.filters.applicationCategoryFilter.multiSelectList[1].name.text() == firstAppTag.name
     newestRiskPage.filters.applicationCategoryFilter.twisty.click()
@@ -239,10 +243,14 @@ extends BaseSpec {
 
     then: 'filter counters have been updated'
     waitFor { newestRiskPage.filters.applicationFilter.displayed }
-    newestRiskPage.filters.applicationFilter.counter.text() == 'All of 2'
-    newestRiskPage.filters.applicationCategoryFilter.counter.text() == 'All of 1'
+    newestRiskPage.filters.applicationFilter.counter.text() == '2 of 2'
+    !newestRiskPage.filters.applicationFilter.isCounterInactive()
+    newestRiskPage.filters.applicationCategoryFilter.counter.text() == '1 of 1'
+    !newestRiskPage.filters.applicationCategoryFilter.isCounterInactive()
     newestRiskPage.filters.stagesFilter.counter.text() == '1 of 4'
+    !newestRiskPage.filters.stagesFilter.isCounterInactive()
     newestRiskPage.filters.policyTypesFilter.counter.text() == '1 of 4'
+    !newestRiskPage.filters.policyTypesFilter.isCounterInactive()
     newestRiskPage.filters.policyThreatLevelFilter.counter.text() == '2 – 7'
   }
 
@@ -819,8 +827,8 @@ extends BaseSpec {
     newestRiskPage.filters.policyThreatLevelSlider.maxValue.text() == '6'
 
     and: 'See proper counts set in the filters'
-    newestRiskPage.filters.applicationFilter.counter.text() == 'All of 2'
-    newestRiskPage.filters.applicationCategoryFilter.counter.text() == 'All of 1'
+    newestRiskPage.filters.applicationFilter.counter.text() == '2 of 2'
+    newestRiskPage.filters.applicationCategoryFilter.counter.text() == '1 of 1'
     newestRiskPage.filters.stagesFilter.counter.text() == '1 of 4'
     newestRiskPage.filters.policyTypesFilter.counter.text() == '2 of 4'
     newestRiskPage.filters.policyThreatLevelFilter.counter.text() == '3 – 6'

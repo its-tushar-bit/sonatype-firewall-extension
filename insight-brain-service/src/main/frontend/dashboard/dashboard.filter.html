@@ -3,8 +3,8 @@
     <script type="text/ng-template" id="entity-filter-template">
       <div>
         <a class="tree-view-item cannot-select" ng-click="isExpanded = !isExpanded">
-          <div class="dashboard-filter-counter">
-            {{vm.selectedCount === available.length ? 'All' : vm.selectedCount}} of {{::available.length}}
+          <div class="dashboard-filter-counter" ng-class="{inactive: vm.selectedCount === 0}">
+            {{vm.selectedCount === 0 ? '' : vm.selectedCount + ' of '}}{{::available.length}}
           </div>
           <div class="twisty-container">
             <span class="twisty" ng-class="{ expand: !isExpanded,

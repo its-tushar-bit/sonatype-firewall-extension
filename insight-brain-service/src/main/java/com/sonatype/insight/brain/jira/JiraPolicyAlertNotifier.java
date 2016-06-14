@@ -136,7 +136,6 @@ public class JiraPolicyAlertNotifier
             // render description from template; prepare template parameters with appropriate details
             Map<String, Object> params = new HashMap<>();
             params.put("baseUrl", stringBaseUrl);
-            params.put("cdnUrl", insightConfig.getCdnUrl());
             params.put("app", app);
             params.put("scanId", scanId);
             params.put("stage", stage.getStageName());

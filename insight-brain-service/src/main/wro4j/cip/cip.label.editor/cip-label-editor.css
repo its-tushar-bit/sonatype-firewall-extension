@@ -115,4 +115,5 @@ span.clmLabel {
   display: inline-block;
   margin-bottom: 10px;
   width: 49.5%;
+  vertical-align: top;
 }

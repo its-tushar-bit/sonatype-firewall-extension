@@ -368,6 +368,18 @@
         .inverse {
           background-color: $grey-4;
         }
+
+        .twisty-container {
+          cursor: not-allowed;
+
+          .twisty.expand {
+            border-left-color: $grey-4;
+          }
+        }
+
+        .hexagon path {
+          stroke: $grey-4;
+        }
       }
 
       &:last-of-type:not(:first-of-type) {

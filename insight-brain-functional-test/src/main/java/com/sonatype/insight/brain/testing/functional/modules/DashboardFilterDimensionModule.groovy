@@ -14,6 +14,7 @@ public class DashboardFilterDimensionModule
     twisty { $('.tree-view-item') }
     counter { $('.dashboard-filter-counter') }
     multiSelectList(required: false) { moduleList FilterCheckboxRow, $('.clm-form .tree-view-item.checkbox') }
+    tooltip { module TooltipModule }
   }
 
   boolean isCounterInactive() {

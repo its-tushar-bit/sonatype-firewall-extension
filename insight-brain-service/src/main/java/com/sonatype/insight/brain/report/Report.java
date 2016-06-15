@@ -245,7 +245,7 @@ public final class Report
     saveReportEntry(reportFile, "partialmatched.json", partialMatched);
     writeLicenseThreatsToReportFile(application, reportFile);
 
-    final ObjectNode data = JsonUtils.parse(extractEntry(reportFile, "data.json").buf);
+    final ObjectNode data = JsonUtils.parse(getEntry(reportFile, "data.json").buf);
     fill(data.putArray("policyCounts"), policyCounts);
     data.put("policyComponentCount", policyComponentCount);
     fill(data.putArray("securityCounts"), securityCounts);
@@ -318,8 +318,13 @@ public final class Report
     }
   }
 
-  private static Map<String, HashComponentIdentifier> applyClaimedComponents(ContainerNode<?> bomJsonData) {
+  private static Map<String, HashComponentIdentifier> applyClaimedComponents(ContainerNode<?> bomJsonData,
+                                                                             ContainerNode<?> jsonData) throws IOException
+  {
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+    int exactlyMatchedComponentCount = 0;
+    int partiallyMatchedComponentCount = 0;
+    int knownArtifactCount = 0;
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash = new LinkedHashMap<>();
     JsonNode aaData = bomJsonData.get("aaData");
@@ -347,7 +352,26 @@ public final class Report
         bomObjectNode.put("comment", hashComponentIdentifier.getComment());
         claimedComponentsByHash.put(hash, hashComponentIdentifier);
       }
+
+      String matchStateString = bomObjectNode.get("matchState").asText();
+      MatchState matchState = MatchState.getById(matchStateString);
+
+      if (!matchState.equals(MatchState.UNKNOWN)) {
+        knownArtifactCount++;
+        if (matchState.equals(MatchState.SIMILAR)) {
+          partiallyMatchedComponentCount++;
+        }
+        else {
+          exactlyMatchedComponentCount++;
+        }
+      }
     }
+
+    ObjectNode data = (ObjectNode) jsonData;
+
+    data.put("partiallyMatchedComponentCount", partiallyMatchedComponentCount);
+    data.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount);
+    data.put("knownArtifactCount", knownArtifactCount);
 
     log.debug("applyClaimedComponents: {} components, {} claimed.", aaData.size(), claimedComponentsByHash.size());
 
@@ -530,11 +554,13 @@ public final class Report
     long start = System.currentTimeMillis();
 
     ContainerNode<?> bomJsonData = loadReportEntry(reportFile, "bom.json");
-    Map<String, HashComponentIdentifier> claimedComponentsByHash = applyClaimedComponents(bomJsonData);
+    ContainerNode<?> dataJson = loadReportEntry(reportFile, "data.json");
+    Map<String, HashComponentIdentifier> claimedComponentsByHash = applyClaimedComponents(bomJsonData, dataJson);
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
     // now apply any data edits (e.g. modified flag)
     auditStore.augment(bomJsonData, "bom.json");
     saveReportEntry(reportFile, "bom.json", bomJsonData);
+    saveReportEntry(reportFile, "data.json", dataJson);
 
     // Must start from un-edited license data.
     ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, "licenses.json");

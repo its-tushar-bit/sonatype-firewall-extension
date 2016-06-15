@@ -29,6 +29,9 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import com.fasterxml.jackson.databind.node.ContainerNode;
 
 /**
  * Provides data from an application's composition report in a format suitable for consumption by 3rd-party clients.
@@ -83,7 +86,9 @@ public class ApiReportDataServiceV2
     ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
     ReportEntry securityEntry = Report.getEntry(reportFile, "security.json");
     ReportEntry licenseEntry = Report.getEntry(reportFile, "licenses.json");
-    if (bomEntry == null || securityEntry == null || licenseEntry == null) {
+    ReportEntry dataEntry = Report.getEntry(reportFile, "data.json");
+
+    if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null) {
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
@@ -106,12 +111,14 @@ public class ApiReportDataServiceV2
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
         component.securityData = securityDataAdapter.convertToDTO(comp);
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);
-        data.matchSummary.knownComponentCount++;
       }
-      data.matchSummary.totalComponentCount++;
 
       data.components.add(component);
     }
+
+    ContainerNode<?> dataJson = JsonUtils.parse(dataEntry.buf);
+    data.matchSummary.knownComponentCount = dataJson.get("knownArtifactCount").intValue();
+    data.matchSummary.totalComponentCount = dataJson.get("totalArtifactCount").intValue();
 
     return data;
   }

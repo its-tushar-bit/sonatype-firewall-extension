@@ -105,7 +105,7 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testManuallyIdentifiedComponent() throws Exception {
+  public void testManuallyIdentifiedSimilarComponent() throws Exception {
     // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
     String hash = "f0776db1593e215146d2";
     String groupId = "testClaimedComponent_G";
@@ -186,6 +186,52 @@ public class ReportResourceTest
     assertFalse(partialmatched.contains("commons-httpclient"));
     assertTrue(partialmatched.contains("c32df577f739535648b0"));
     assertTrue(partialmatched.contains("org.slf4j.api_1.6.1.v20100831-0715.jar"));
+
+    response = request.subpath("data.json").get();
+    assertResponseStatus(200, response);
+    String jsonData = response.getBodyText();
+    JsonNode actual = JsonUtils.parse(jsonData);
+    assertEquals(1, actual.get("partiallyMatchedComponentCount").asInt());
+    assertEquals(26, actual.get("exactlyMatchedComponentCount").asInt());
+    assertEquals(27, actual.get("knownArtifactCount").asInt());
+  }
+
+  @Test
+  public void testManuallyIdentifiedUnknownComponent() throws Exception {
+    String hash = "c32df577f739535648b0";
+    String groupId = "testClaimedComponent_G";
+    String artifactId = "testClaimedComponent_A";
+    String version = "testClaimedComponent_V";
+    String extension = "testClaimedComponent_E";
+    String classifier = "testClaimedComponent_C";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
+        classifier, extension);
+    Date createTime = new Date();
+    // The hash of org.slf4j.api_1.6.1.v20100831-0715.jar which is marked as unknown
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
+    hashComponentIdentifier.setCreateTime(createTime);
+    tempEntity.newClaimedComponent(hashComponentIdentifier);
+
+    String applicationPublicId = "testClaimedComponent_AppId";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    String scanId = "testClaimedComponent_ScanId";
+    String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    mockReport(scanId, "/ReportResourceTest/report.zip");
+
+    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
+
+    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    HttpResponse response = request.subpath("data.json").get();
+
+    assertResponseStatus(200, response);
+    String jsonData = response.getBodyText();
+    JsonNode actual = JsonUtils.parse(jsonData);
+    assertEquals(2, actual.get("partiallyMatchedComponentCount").asInt());
+    assertEquals(26, actual.get("exactlyMatchedComponentCount").asInt());
+    assertEquals(28, actual.get("knownArtifactCount").asInt());
   }
 
   @Test
@@ -1047,6 +1093,11 @@ public class ReportResourceTest
 
     Assert.assertEquals("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]", data.get("securityPunchCard").toString());
     Assert.assertEquals("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]", data.get("licensePunchCard").toString());
+
+    Assert.assertEquals(25, data.get("exactlyMatchedComponentCount").asInt());
+    Assert.assertEquals(27, data.get("knownArtifactCount").asInt());
+    Assert.assertEquals(2, data.get("partiallyMatchedComponentCount").asInt());
+
   }
 
   private void testLicensesJsonApplyChanges(String json) throws IOException {

@@ -51,6 +51,7 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.textCaseSensitive;
@@ -141,7 +142,7 @@ public class ApplicationSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.selectContact().shouldBe(visible).click();
     SelectContactModal.body().shouldBe(visible);
-    SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
+    SelectContactModal.searchBox().shouldBe(focused).val(tempUser.getFirstName() + "*");
     SelectContactModal.searchButton().click();
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact

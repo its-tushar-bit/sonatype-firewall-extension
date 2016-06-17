@@ -16,12 +16,14 @@
   }
 
   module.service('CLMResource', [
-    '$q', '$http', '$parse', '$rootScope', function($q, $http, $parse, $rootScope) {
+    '$q', '$http', '$parse', '$rootScope', 'store.observe.type.constant',
+    function($q, $http, $parse, $rootScope, StoreObserveTypeConstant) {
       function Store(config) {
         var store = [],
             error = false,
             storeDeferred = null,
-            resourceStore = this;
+            resourceStore = this,
+            observers = [];
 
         config.id = config.id || 'id';
         config.template = angular.isFunction(config.template) ? config.template : createTemplateFn(config.template);
@@ -91,6 +93,7 @@
               });
               store.splice(0, store.length);
               store.push.apply(store, result);
+              notifyObservers(StoreObserveTypeConstant.UPDATE, result);
               checkDeferredResolve(storeDeferred, store, relationsToLoad);
               storeDeferred.isResolved = true;
             }
@@ -108,6 +111,18 @@
           }
         }
 
+        function notifyObservers() {
+          var args = arguments;
+          observers.forEach(function(callback) {
+            try {
+              callback.apply(null, args);
+            }
+            catch (e) {
+              console.error(e, e.stack);
+            }
+          });
+        }
+
         resourceStore.get = function() {
           if (error || !storeDeferred) {
             // An error occurred previously, or the store hasn't been loaded
@@ -115,6 +130,18 @@
             doLoad();
           }
           return storeDeferred.promise;
+        };
+
+        resourceStore.peek = function() {
+          return store;
+        };
+
+        resourceStore._removeFromStoreByIndex = function(index) {
+          if (Number.isInteger(index) && index !== -1) {
+            var resource = store[index];
+            store.splice(index, 1);
+            notifyObservers(StoreObserveTypeConstant.DELETE, [resource]);
+          }
         };
 
         resourceStore.set = function(elements) {
@@ -127,6 +154,18 @@
           storeDeferred.resolve(store);
 
           return store;
+        };
+
+        resourceStore.observe = function(callback) {
+          observers.push(callback);
+
+          return unregister;
+
+          function unregister() {
+            observers = observers.filter(function(handler) {
+              return handler !== callback;
+            });
+          }
         };
 
         resourceStore.getById = function(entityId) {
@@ -354,6 +393,7 @@
             }).error(getErrorFn(deferred));
           }
           return deferred.promise.then(function(result) {
+            notifyObservers(StoreObserveTypeConstant.UPDATE, [result]);
             $rootScope.$broadcast('resource.data.modified');
             return result;
           });
@@ -361,8 +401,8 @@
 
         Resource.prototype.$delete = function() {
           var deferred = $q.defer(),
-              id = this[config.id],
-              index = -1;
+              me = this,
+              id = me[config.id];
 
           var queryStringIndex = config.url.indexOf('?');
           var url = queryStringIndex > -1 ? config.url.substring(0, queryStringIndex) : config.url;
@@ -370,16 +410,14 @@
           url = queryStringIndex > -1 ? url + config.url.substring(queryStringIndex) : url;
 
           if (id !== null && angular.isDefined(id)) {
-            $http['delete'](url, this, {params: config.params}).success(function() {
+            $http['delete'](url, me, {params: config.params}).success(function() {
               // remove from store
               angular.forEach(store, function(candidate, candidateIndex) {
                 if (candidate[config.id] === id) {
-                  index = candidateIndex;
+                  resourceStore._removeFromStoreByIndex(candidateIndex);
                 }
               });
-              if (index !== -1) {
-                store.splice(index, 1);
-              }
+
               deferred.resolve(true);
             }).error(getErrorFn(deferred));
           }

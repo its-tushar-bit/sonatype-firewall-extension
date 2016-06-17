@@ -753,4 +753,121 @@ describe('Resource', function() {
       nonReloadingTest();
     });
   });
+
+  it('peek with and without store loaded', inject(function(CLMResource, $httpBackend) {
+    var store = CLMResource.getStore({
+      id: 'id',
+      url: storeUrl,
+      type: 'app',
+      template: {id: null}
+    });
+
+    expect(store.peek()).toEqual([]);
+
+    store.get();
+    $httpBackend.expectGET(storeUrl).respond([{id: 'foo'}, {id: 'bar'}]);
+    $httpBackend.flush();
+
+    var resources = store.peek();
+    expect(resources).toBeDefined();
+    expect(resources.length).toBe(2);
+    expect(resources[0].id).toEqual('foo');
+    expect(resources[1].id).toEqual('bar');
+  }));
+
+  describe('Observe', function() {
+    var $httpBackend,
+        store,
+        callback,
+        unregister,
+        StoreObserveTypeConstant;
+
+    beforeEach(inject([
+      'CLMResource', '$httpBackend', 'store.observe.type.constant',
+      function(CLMResource, _$httpBackend_, _StoreObserveTypeConstant_) {
+        $httpBackend = _$httpBackend_;
+        StoreObserveTypeConstant = _StoreObserveTypeConstant_;
+
+        store = CLMResource.getStore({
+          id: 'id',
+          url: storeUrl,
+          type: 'app',
+          template: {id: null}
+        });
+
+        callback = jasmine.createSpy();
+        unregister = store.observe(callback);
+
+        store.get();
+        $httpBackend.expectGET(storeUrl).respond([{id: 'foo'}, {id: 'bar'}]);
+        $httpBackend.flush();
+      }
+    ]));
+
+    afterEach(function() {
+      unregister();
+    });
+
+    it('gets called on Load', function() {
+      assertCallbackArguments(StoreObserveTypeConstant.UPDATE, ['foo', 'bar']);
+    });
+
+    it('gets called on Refresh', function() {
+      callback.reset();
+
+      store.refresh();
+      $httpBackend.expectGET(storeUrl).respond([{id: 'foo2'}, {id: 'bar2'}]);
+      $httpBackend.flush();
+
+      assertCallbackArguments(StoreObserveTypeConstant.UPDATE, ['foo2', 'bar2']);
+    });
+
+    it('gets called on Resource Delete', function() {
+      var newResource = store.create();
+      newResource.id = 'abc';
+      newResource.$save();
+      $httpBackend.expectPOST(storeUrl).respond([newResource]);
+      $httpBackend.flush();
+
+      callback.reset();
+      newResource.$delete();
+      $httpBackend.expectDELETE(storeUrl + 'abc').respond([]);
+      $httpBackend.flush();
+
+      expect(callback).toHaveBeenCalledWith(StoreObserveTypeConstant.DELETE, [newResource]);
+    });
+
+    it('gets called on Resource Save', function() {
+      callback.reset();
+
+      var newResource = store.create();
+      newResource.$save();
+      $httpBackend.expectPOST(storeUrl).respond([newResource]);
+      $httpBackend.flush();
+
+      expect(callback).toHaveBeenCalledWith(StoreObserveTypeConstant.UPDATE, [newResource]);
+    });
+
+    it('unregisters properly', function() {
+      callback.reset();
+      unregister();
+
+      store.refresh();
+      $httpBackend.expectGET(storeUrl).respond([{id: 'foo2'}, {id: 'bar2'}]);
+      $httpBackend.flush();
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    function assertCallbackArguments(type, ids) {
+      expect(callback).toHaveBeenCalled();
+
+      expect(callback.calls[0].args[0]).toEqual(type);
+
+      var secondArgument = callback.calls[0].args[1];
+      expect(secondArgument.length).toBe(2);
+      expect(secondArgument[0].id).toEqual(ids[0]);
+      expect(secondArgument[1].id).toEqual(ids[1]);
+    }
+  });
 });

@@ -20,4 +20,10 @@
       return lastIndex !== -1 && lastIndex === position;
     };
   }
+
+  // Polyfill for isInteger prototype, not supported in IE. Sourced from the public domain from
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
+  Number.isInteger = Number.isInteger || function (value) {
+        return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
+      };
 }());

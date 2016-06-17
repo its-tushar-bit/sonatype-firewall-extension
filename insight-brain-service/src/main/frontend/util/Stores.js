@@ -12,8 +12,11 @@
   var storesModule = angular.module('Stores', ['CLMLocation', 'CLMAppLocation', 'ResourceModule']);
 
   storesModule.service('ApplicationStore', [
-    '$rootScope', 'CLMLocations', 'CLMResource', 'LastSelectedOrganization',
-    function($rootScope, clmLocations, clmResource, LastSelectedOrganization) {
+    '$rootScope', 'CLMLocations', 'CLMResource', 'LastSelectedOrganization', 'OrganizationStore',
+    'store.observe.type.constant',
+    function($rootScope, clmLocations, clmResource, LastSelectedOrganization, OrganizationStore,
+             StoreObserveTypeConstant)
+    {
       var applicationStore = clmResource.getStore({
         id: 'publicId',
         url: clmLocations.getApplicationsUrl(),
@@ -30,10 +33,36 @@
           };
         }
       });
-      $rootScope.$on('organizations.delete', function() {
-        applicationStore.refresh();
-      });
+
+      OrganizationStore.observe(handleParentOrganizationChanges);
+
       return applicationStore;
+
+      function handleParentOrganizationChanges(type, organizations) {
+        var applications = applicationStore.peek();
+
+        for (var i = applications.length - 1; i >= 0; i--) {
+          findParentOrgAndModifyEntry(applications[i], i);
+        }
+
+        function findParentOrgAndModifyEntry(application, appIndex) {
+          organizations.some(function(organization) {
+            if (organization.id === application.organizationId) {
+              switch (type) {
+                case StoreObserveTypeConstant.UPDATE:
+                  application.organizationName = organization.name;
+                  application.$getOriginal().organizationName = organization.name;
+                  break;
+                case StoreObserveTypeConstant.DELETE:
+                  applicationStore._removeFromStoreByIndex(appIndex);
+                  break;
+              }
+
+              return true;
+            }
+          });
+        }
+      }
     }
   ]);
 

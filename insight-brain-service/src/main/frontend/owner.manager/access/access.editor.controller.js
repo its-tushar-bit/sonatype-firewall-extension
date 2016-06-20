@@ -181,6 +181,9 @@
           if (!vm.isNew) {
             originalMembers = currentlyPicked();
           }
+          else {
+            vm.rolePicker.$setPristine();
+          }
 
           delete vm.newGroupName;
           delete vm.query;

@@ -5,13 +5,26 @@
       <i class="fa fa-puzzle-piece size-20px"></i>{{vm.isNew ? 'Add a Role' : vm.role.roleName}}
     </h2>
 
-    <form id="access-editor-search-form" name="vm.accessEditorSearch" class="clm-form" role="form" ng-class="{'prop-down': vm.isNew}" novalidate ng-submit="vm.search()">
+    <form class="clm-form" novalidate name="vm.rolePicker" ng-if="vm.isNew">
+      <div class="section">
+        <div class="field" id="access-editor-role"
+             ng-class="{'space-for-error': vm.searchError, 'no-group-search': !vm.groupSearchEnabled}">
+          <label for="access-role-name" ng-if="true">Role</label><!-- bogus ng-if to fix IE9 combobox rendering -->
+          <dropdown-selector id="access-role-name" ng-model="vm.role" options="vm.availableRoles" name="role-name"
+                             option-name-param="roleName" clm-input required
+                             empty-option-string="-- Select Role --"></dropdown-selector>
+        </div>
+      </div>
+    </form>
+
+    <form id="access-editor-search-form" name="vm.accessEditorSearch" class="clm-form" role="form"
+          ng-class="{'prop-down': vm.isNew}" novalidate ng-submit="vm.search()">
       <div class="section">
         <div class="field form-horizontal">
           <label for="access-user-search-input">Search Users</label>
           <div class="sub-label">use &lsquo;*&rsquo; as wildcard (ex. &lsquo;Isa*&rsquo; matches &lsquo;Isaac Asimov&rsquo;)</div>
           <input id="access-user-search-input" type="text" name="search" ng-model="vm.query" ng-maxlength="60"
-                 ng-disabled="vm.searchInProgress" clm-input required/><!--
+                 ng-disabled="vm.searchInProgress" clm-input><!--
        --><button id="user-search-button" class="btn" type="submit" submit-validation submit-dirty="vm.query"
                   ng-disabled="vm.searchInProgress" submit-type="search">Search</button><!--
        --><div ng-if="vm.searchError" class="section with-icon warning"><i class="fa fa-warning"></i>Search failed. {{vm.searchError}}</div>
@@ -35,21 +48,14 @@
 
     <form name="vm.accessEditor" class="clm-form" role="form" novalidate form-mask="vm.accessEditorMask"
           mask-attach-to-body ng-submit="vm.save()">
-      <div class="section">
-        <div class="field" id="access-editor-role" ng-if="vm.isNew" ng-class="{'space-for-error': vm.searchError, 'no-group-search': !vm.groupSearchEnabled}">
-          <label for="access-role-name" ng-if="true">Role</label><!-- bogus ng-if to fix IE9 combobox rendering -->
-          <dropdown-selector id="access-role-name" ng-model="vm.role" options="vm.availableRoles" name="role-name"
-                             option-name-param="roleName" clm-input required
-                             empty-option-string="-- Select Role --"></dropdown-selector>
-        </div>
-        <div class="field">
-          <label for="access-associated-users">Associated Users</label>
-          <double-column-picker id="access-associated-users" class="wide" list="vm.members" hide-filter="true"
-                                left-column-name="Available" right-column-name="Associated"
-                                item-name-param="displayName" icon-fn="vm.getIconName(item)" tooltip-fn="vm.getTooltip(item)"
-                                form-mask="vm.accessEditorSearchMask" mask-message="Searching"
-                                mask-skip-success></double-column-picker>
-        </div>
+      <input type="hidden" ng-model="vm.role" required>
+      <div class="field">
+        <label for="access-associated-users">Associated Users</label>
+        <double-column-picker id="access-associated-users" class="wide" list="vm.members" hide-filter="true"
+                              left-column-name="Available" right-column-name="Associated"
+                              item-name-param="displayName" icon-fn="vm.getIconName(item)" tooltip-fn="vm.getTooltip(item)"
+                              form-mask="vm.accessEditorSearchMask" mask-message="Searching"
+                              mask-skip-success></double-column-picker>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.retry()">
         <button type="submit" id="save-access-role-button" class="btn btn-primary" submit-validation submit-dirty="vm.isValid()"

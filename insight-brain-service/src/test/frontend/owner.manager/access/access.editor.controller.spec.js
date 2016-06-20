@@ -32,6 +32,9 @@ describe('access.editor.controller.spec.js', function() {
       mockSearchEditor = {
         $setPristine: angular.noop
       },
+      mockRolePicker = {
+        $setPristine: angular.noop
+      },
       CLMAppLocations;
 
   beforeEach(module('owner.manager.module', function($provide) {
@@ -126,6 +129,7 @@ describe('access.editor.controller.spec.js', function() {
     expect(vm.availableRoles.length).toBe(1);
     vm.accessEditor = mockAccessEditor;
     vm.accessEditorSearch = mockSearchEditor;
+    vm.rolePicker = mockRolePicker;
     vm.role = vm.availableRoles[0];
     vm.members = [{internalName: 'testUser', picked: true}];
     vm.accessEditorMask = {wrap: SpecUtil.promiseWrapper($q)};

@@ -7,9 +7,11 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ColorPicker;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.google.common.base.Joiner;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -65,5 +67,27 @@ public class CategoryEditorPage
     String baseMessage = "Are you sure you want to delete this application category?";
     return text(applicationNames == null ? baseMessage :
         baseMessage + " It is in use by the following applications: " + applicationNames + ".");
+  }
+
+  public static class DeleteErrorModal
+  {
+    private static final String ROOT_SELECTOR = "#delete-application-category-error-modal";
+
+    public static SelenideElement root() {
+      return $(ROOT_SELECTOR);
+    }
+
+    public static SelenideElement message() {
+      return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".section"));
+    }
+
+    public static SelenideElement closeButton() {
+      return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".btn"));
+    }
+
+    public static Condition associatedPoliciesText(String... policyNames) {
+      return text("You cannot delete this application category because it is associated with the following policies: " +
+          Joiner.on(", ").join(policyNames));
+    }
   }
 }

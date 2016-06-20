@@ -8,10 +8,10 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
-import com.sonatype.clm.testing.functional.elements.ErrorModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
+import com.sonatype.clm.testing.functional.pages.CategoryEditorPage.DeleteErrorModal;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
@@ -142,7 +142,7 @@ public class CategoryEditorTest
     CategoryEditorPage.deleteButton().shouldBe(visible).click();
     // then
     DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(DeleteModal.headerText("Category"));
+    DeleteModal.header().shouldHave(DeleteModal.headerText("Application Category"));
     DeleteModal.body().shouldHave(CategoryEditorPage.deleteWarningText());
     // when
     DeleteModal.cancelButton().click();
@@ -177,7 +177,7 @@ public class CategoryEditorTest
     CategoryEditorPage.deleteButton().shouldBe(visible).click();
     // then
     DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(DeleteModal.headerText("Category"));
+    DeleteModal.header().shouldHave(DeleteModal.headerText("Application Category"));
     DeleteModal.body().shouldHave(CategoryEditorPage.deleteWarningText(app.getName()));
     DeleteModal.continueButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
@@ -192,14 +192,18 @@ public class CategoryEditorTest
   @Test
   public void testDeleteCategoryAssociatedToPolicy() {
     Tag category = tempEntity.newTag(org.getId());
-    Policy policy = tempEntity.newPolicy("policy");
-    tempEntity.newPolicyTag(policy.getId(), category.getId());
+    Policy policy1 = tempEntity.newPolicy("policy UNO");
+    Policy policy2 = tempEntity.newPolicy("policy DOS");
+    tempEntity.newPolicyTag(policy1.getId(), category.getId());
+    tempEntity.newPolicyTag(policy2.getId(), category.getId());
 
     refreshOrOpen(CategoryEditorPage.urlToEdit(org.getId(), category.getId()));
     refresh();
     CategoryEditorPage.deleteButton().shouldBe(visible).click();
-    ErrorModal.closeButton().shouldBe(visible).click();
-    ErrorModal.root().shouldNotBe(visible);
+    DeleteErrorModal.root().shouldBe(visible);
+    DeleteErrorModal.message().shouldHave(DeleteErrorModal.associatedPoliciesText("policy UNO", "policy DOS"));
+    DeleteErrorModal.closeButton().shouldBe(visible).click();
+    DeleteErrorModal.root().shouldNotBe(visible);
   }
 
   private void assertInitialStateIsCorrect() {

@@ -6,12 +6,12 @@
 (function(angular) {
   'use strict';
 
-  function CategoryEditorController($scope, $stateParams, TagStore, DeleteModalService, SameOwnerStateNavigationService, $q,
-                                    PolicyTagStore, PolicyHierarchyStore, ApplicationStore, ErrorModalService)
+  function CategoryEditorController($scope, $stateParams, $modal, TagStore, DeleteModalService,
+                                    SameOwnerStateNavigationService, $q, PolicyTagStore, PolicyHierarchyStore,
+                                    ApplicationStore)
   {
     var vm = this,
         store,
-        tagPolicyList = [],
         associatedAppNames = [],
         warningMessage;
 
@@ -24,6 +24,7 @@
     vm.siblings = [];
     vm.save = save;
     vm.submitError = undefined;
+    vm.tagPolicyList = [];
 
     vm.doLoad();
 
@@ -34,13 +35,17 @@
     });
 
     function deleteCategory() {
-      if (tagPolicyList.length) {
-        ErrorModalService.show('Delete Application Category',
-            'You cannot delete this application category because it is associated with the following policies: ' +
-            tagPolicyList.join(', '));
+      if (vm.tagPolicyList.length) {
+        $modal.open({
+          animation: false,
+          backdrop: 'static',
+          keyboard: false,
+          templateUrl: 'owner.manager/category/delete.application.category.error.modal.html',
+          scope: $scope
+        });
       }
       else {
-        DeleteModalService.deleteCustom('Delete Category', warningMessage, 'Deleting',
+        DeleteModalService.deleteCustom('Delete Application Category', warningMessage, 'Deleting',
             angular.bind(vm.dirtyCategory, vm.dirtyCategory.$delete)).then(function() {
           // Model needs to be clean in order to navigate
           vm.dirtyCategory.$revert();
@@ -94,9 +99,11 @@
             });
           });
           //gather list of policy names using this application category
+          vm.tagPolicyList = [];
+
           results[4].data.forEach(function(policyTag) {
             if (policyTag.tagId === $stateParams.categoryId) {
-              tagPolicyList.push(policyMap[policyTag.policyId]);
+              vm.tagPolicyList.push(policyMap[policyTag.policyId]);
             }
           });
         }
@@ -123,8 +130,8 @@
   }
 
   CategoryEditorController.$inject = [
-    '$scope', '$stateParams', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService', '$q',
-    'PolicyTagStore', 'PolicyHierarchyStore', 'ApplicationStore', 'ErrorModalService'
+    '$scope', '$stateParams', '$modal', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService', '$q',
+    'PolicyTagStore', 'PolicyHierarchyStore', 'ApplicationStore'
   ];
 
   angular.module('owner.manager.module').controller('category.editor.controller', CategoryEditorController);

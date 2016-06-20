@@ -319,7 +319,7 @@ public final class Report
   }
 
   private static Map<String, HashComponentIdentifier> applyClaimedComponents(ContainerNode<?> bomJsonData,
-                                                                             ContainerNode<?> jsonData) throws IOException
+                                                                             ContainerNode<?> jsonData)
   {
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
     int exactlyMatchedComponentCount = 0;

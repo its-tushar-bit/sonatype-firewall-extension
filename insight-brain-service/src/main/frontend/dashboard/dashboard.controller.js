@@ -32,7 +32,7 @@
         backdrop: 'static',
         keyboard: false,
         templateUrl: 'policy-trends-dialog-template',
-        windowClass: 'dashboard-policy-trend-dialog clm-modal',
+        windowClass: 'fit-content dashboard-policy-trend-dialog clm-modal',
         controller: 'PolicyTrendController',
         resolve: {
           filters: function() {

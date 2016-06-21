@@ -286,3 +286,18 @@
     color: $off-black;
   }
 }
+
+.modal.fit-content {
+  $default-bootstrap-modal-width: 560px;
+
+  width: auto; // for IE9 support
+  width: initial;
+  min-width: $default-bootstrap-modal-width;
+  max-width: #{$minimum-content-width - (2 * 12px)}; // 12px padding on each side, as to not fill the entire window
+
+  // With larger modal sizes we need to ensure they are centered
+  left: 50%;
+  margin: 0;
+  -ms-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
+}

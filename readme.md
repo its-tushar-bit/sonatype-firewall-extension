@@ -9,7 +9,7 @@
 
 The on-premises server that customers run to evaluate policy against applications and review the results.
 
-See https://docs.sonatype.com/display/INSIGHT/Insight+Brain for more information
+See https://docs.sonatype.com/display/INSIGHT/Insight+Brain for more information.
 
 # Building #
 
@@ -32,3 +32,8 @@ specified number of milliseconds on the server. This mode can help to expose bad
 about timing of (asynchronous) operations. A delay of 500 ms doesn't delay tests too much that timeouts occur and is
 typically sufficient to trigger errors where tests are badly coded and fail to wait on page changes. PhantomJS is known
 to not support this slow motion mode properly so other browsers should be used.
+
+# Connecting to a different HDS #
+
+There is development option to connect to a different HDS.  Use the config `hdsUrl` and point to the desired location.
+

@@ -1,6 +1,6 @@
 @mixin main-content($top: '') {
-  max-width: 1366px;
-  min-width: 1024px;
+  max-width: $maximum-content-width;
+  min-width: $minimum-content-width;
   width: 100%;
   margin: 0 auto;
 

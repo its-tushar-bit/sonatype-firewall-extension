@@ -451,14 +451,9 @@ i.not-waived {
   height: 16px;
   width: 20px;
 }
-i.nuget {
+i.known-format {
   display: inline-block;
-  background: url(img/coord-nuget.png) no-repeat;
-  height: 16px;
-}
-i.maven {
-  display: inline-block;
-  background: url(img/coord-maven.png) no-repeat;
+  background: url(img/coord-component.png) no-repeat;
   height: 16px;
 }
 i.unknown-format {

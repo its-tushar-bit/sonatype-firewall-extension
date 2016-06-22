@@ -129,16 +129,13 @@
           else {
             result = '<i class="not-waived"></i> ';
           }
-          var icon = '<i class="unknown-format" title="Unknown"></i> ';
+
+          var icon;
           if (dataContext.componentIdentifier) {
-            switch(dataContext.componentIdentifier.format) {
-              case 'nuget':
-                icon = '<i class="nuget" title="NuGet"></i> ';
-                break;
-              case 'maven':
-                icon = '<i class="maven" title="Maven"></i> ';
-                break;
-            }
+            icon = '<i class="known-format" title="' + dataContext.componentIdentifier.format + '"></i> ';
+          }
+          else {
+            icon = '<i class="unknown-format" title="Unknown"></i> ';
           }
           return result + icon + encodeHtml(value);
         }

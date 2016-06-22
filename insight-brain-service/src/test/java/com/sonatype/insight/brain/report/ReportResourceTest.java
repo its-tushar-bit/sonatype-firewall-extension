@@ -232,6 +232,11 @@ public class ReportResourceTest
     assertEquals(2, actual.get("partiallyMatchedComponentCount").asInt());
     assertEquals(26, actual.get("exactlyMatchedComponentCount").asInt());
     assertEquals(28, actual.get("knownArtifactCount").asInt());
+
+    response = request.subpath("summary.json").get();
+    String summaryData = response.getBodyText();
+    actual = JsonUtils.parse(summaryData);
+    assertEquals(28, actual.get("knownArtifactCount").asInt());
   }
 
   @Test

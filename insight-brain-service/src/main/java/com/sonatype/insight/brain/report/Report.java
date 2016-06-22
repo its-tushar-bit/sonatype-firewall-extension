@@ -319,7 +319,8 @@ public final class Report
   }
 
   private static Map<String, HashComponentIdentifier> applyClaimedComponents(ContainerNode<?> bomJsonData,
-                                                                             ContainerNode<?> jsonData)
+                                                                             ContainerNode<?> dataJson,
+                                                                             ContainerNode<?> summaryJsonData)
   {
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
     int exactlyMatchedComponentCount = 0;
@@ -367,11 +368,15 @@ public final class Report
       }
     }
 
-    ObjectNode data = (ObjectNode) jsonData;
+    ObjectNode data = (ObjectNode) dataJson;
+    ObjectNode summary = (ObjectNode) summaryJsonData;
 
     data.put("partiallyMatchedComponentCount", partiallyMatchedComponentCount);
     data.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount);
     data.put("knownArtifactCount", knownArtifactCount);
+    
+    // the pdf report uses summary.json not data.json
+    summary.put("knownArtifactCount", knownArtifactCount);
 
     log.debug("applyClaimedComponents: {} components, {} claimed.", aaData.size(), claimedComponentsByHash.size());
 
@@ -555,12 +560,15 @@ public final class Report
 
     ContainerNode<?> bomJsonData = loadReportEntry(reportFile, "bom.json");
     ContainerNode<?> dataJson = loadReportEntry(reportFile, "data.json");
-    Map<String, HashComponentIdentifier> claimedComponentsByHash = applyClaimedComponents(bomJsonData, dataJson);
+    ContainerNode<?> summaryJsonData = loadReportEntry(reportFile, "summary.json");
+
+    Map<String, HashComponentIdentifier> claimedComponentsByHash = applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
     // now apply any data edits (e.g. modified flag)
     auditStore.augment(bomJsonData, "bom.json");
     saveReportEntry(reportFile, "bom.json", bomJsonData);
     saveReportEntry(reportFile, "data.json", dataJson);
+    saveReportEntry(reportFile, "summary.json", summaryJsonData);
 
     // Must start from un-edited license data.
     ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, "licenses.json");

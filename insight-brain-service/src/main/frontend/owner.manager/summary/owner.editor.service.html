@@ -3,7 +3,7 @@
     <h2>
       <i class="fa inverse size-20px"
            ng-class="{ 'fa-terminal': vm.ownerType === 'application', 'fa-sitemap': vm.ownerType === 'organization'}">
-      </i> {{:: vm.dirtyOwner.id ? 'Edit' : 'New'}} {{:: vm.getTypeName()}}
+      </i> {{vm.dirtyOwner.id ? 'Edit' : 'New'}} {{:: vm.getTypeName()}}
     </h2>
   </div>
   <form name="customIconForm" id="custom-icon-form" ng-upload="vm.fileUploadComplete(content)" action="{{::vm.iconUploadUrl}}"
@@ -15,6 +15,13 @@
     <input name="{{::vm.csrfTokenName}}" value="{{::vm.csrfTokenValue}}" type="text"/>
   </form>
   <form name="vm.ownerEditor" role="form" ng-submit="vm.save()" class="clm-form" form-mask="vm.ownerEditorMask">
+    <div ng-if="vm.iconWarning" class="clm-modal-body warn">
+      <div class="clm-alert alert">
+        <i class="fa fa-warning"></i><!--
+        --><span>The {{::vm.getTypeName()}} {{vm.dirtyOwner.name}} was successfully saved, but the icon upload failed. 
+        Reason: {{::vm.iconWarning}}</span>
+      </div>
+    </div>
     <div class="clm-modal-body">
       <div class="section">
         <div class="field">

@@ -92,14 +92,26 @@ describe('owner.editor.controller.spec.js', function() {
         });
 
         it('Error on Icon', inject(function($state, $httpBackend) {
+          spyOn($state, 'go');
+          vm.dirtyOwner.publicId = 'abcd';
+          vm.dirtyOwner.id = 'abcd';
           $httpBackend.expectPOST('/rest/' + type + '/icon').respond(500, 'Server Error');
           saveDeferred.resolve(angular.extend({id: 'abcd'}, angular.copy(vm.dirtyOwner)));
           $httpBackend.flush();
-          expect(vm.error).toEqual('Server Error');
+          $timeout.flush();
 
-          // retry clears error
+          expect(vm.error).toBeUndefined();
+          expect(vm.iconWarning).toEqual('Server Error');
+
+          expect($state.go).toHaveBeenCalledWith('management.view.' + type, type === 'application' ? {
+            applicationPublicId: vm.dirtyOwner.publicId
+          } : {
+            organizationId: 'abcd'
+          });
+
+          // retry clears the error
           vm.save();
-          expect(vm.error).toBeFalsy();
+          expect(vm.iconWarning).toBeFalsy();
         }));
 
         it('Success', inject(function($state, $httpBackend) {

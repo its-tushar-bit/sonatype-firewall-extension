@@ -11,6 +11,7 @@
   {
     var vm = this,
         deferred,
+        preventDismiss = false,
         //default to null as that is the value we use for the 'default selection'
         //keep in mind we aren't currently loading any data to say what the existing icon type is
         originalIconType = null;
@@ -20,6 +21,7 @@
     vm.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
     vm.dirtyOwner = owner.$new ? owner : owner.$clone(); // only create a copy for an existing
     vm.error = undefined;
+    vm.iconWarning = undefined;
     vm.fileUploadComplete = fileUploadComplete;
     vm.getTypeName = getTypeName;
     vm.icon = {};
@@ -55,7 +57,7 @@
     });
 
     $scope.$on('pageChangeStarted', function(event) {
-      if (isDirty()) {
+      if (isDirty() && !vm.iconWarning) {
         vm.unsavedModalVisible = true;
         event.preventDefault();
       }
@@ -66,7 +68,10 @@
     });
 
     $scope.$on('pageChangeAccepted', function() {
-      $scope.$dismiss();
+      if (!preventDismiss) {
+        $scope.$dismiss();
+      }
+      preventDismiss = false;
     });
 
     function isDirty() {
@@ -86,6 +91,7 @@
     function save() {
       var isNew = owner.$new;
       delete vm.error;
+      delete vm.iconWarning;
 
       if (vm.dirtyOwner.contact) {
         vm.dirtyOwner.contactInternalName = vm.dirtyOwner.contact.internalName;
@@ -107,6 +113,9 @@
           $http.post(CLMAppLocations.getAddIconUrl(ownerType), formData).then(function() {
             deferred.resolve(result);
           }, function(error) {
+            if (isNew || !vm.ownerEditor.name.$pristine) { // only show warning for new and mixed state
+              vm.iconWarning = messages.getHttpErrorMessage(error);
+            }
             deferred.reject(error);
           }).finally(function() {
             deferred = null;
@@ -129,7 +138,17 @@
         }
         $scope.$close();
       }, function(error) {
-        vm.error = messages.getHttpErrorMessage(error);
+        if (!vm.iconWarning) {
+          vm.error = messages.getHttpErrorMessage(error);
+        } else {
+          preventDismiss = true;
+          $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, vm.dirtyOwner, ownerType, isNew);
+          $state.go('management.view.' + ownerType, ownerType === 'application' ? {
+            applicationPublicId: vm.dirtyOwner.publicId
+          } : {
+            organizationId: vm.dirtyOwner.id
+          });
+        }
       });
     }
 

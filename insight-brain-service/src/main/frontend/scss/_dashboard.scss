@@ -1281,10 +1281,13 @@ Dashboard tables
         float: left;
       }
 
-      .filter-label {
+      .filter-label, span {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      .filter-label {
         padding: 0 8px;
 
         .tree-view-icon:first-of-type  {

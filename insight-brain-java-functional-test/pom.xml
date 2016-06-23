@@ -72,9 +72,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.sonatype.clm.testing</groupId>
-      <artifactId>selenide-shaded</artifactId>
-      <version>3.0-01</version>
+      <groupId>com.codeborne</groupId>
+      <artifactId>selenide</artifactId>
+      <version>3.6</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>

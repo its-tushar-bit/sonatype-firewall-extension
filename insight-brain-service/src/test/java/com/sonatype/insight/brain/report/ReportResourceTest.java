@@ -127,7 +127,7 @@ public class ReportResourceTest
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
 
@@ -219,7 +219,7 @@ public class ReportResourceTest
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
 
@@ -266,7 +266,7 @@ public class ReportResourceTest
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
 
@@ -289,7 +289,7 @@ public class ReportResourceTest
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     // populate JSON data cache before claiming the component
     HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
@@ -374,7 +374,7 @@ public class ReportResourceTest
 
     HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     TimeZone gmt = TimeZone.getTimeZone("GMT");
     final Calendar calendar = Calendar.getInstance(gmt);
@@ -428,7 +428,7 @@ public class ReportResourceTest
 
     HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
 
-    String reportResource = "/ReportResourceTest/report.zip";
+    String reportResource = "/ReportResourceTest/report";
     mockReport(scanId, reportResource);
 
     try (ZipInputStream zipStream = new ZipInputStream(getClass().getResourceAsStream(reportResource))) {
@@ -495,7 +495,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
     File reportDir = getCLMServer().getReportDir(appId, scanId);
     reportDir.mkdirs();
     new File(reportDir, "restricted.txt").createNewFile();
@@ -548,7 +548,7 @@ public class ReportResourceTest
 
     tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     final HttpResponse response;
     try {
@@ -578,7 +578,7 @@ public class ReportResourceTest
 
     HttpRequest request = restRequest(applicationPublicId, scanId).path("printReport");
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     HttpResponse response;
     try {
@@ -614,7 +614,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
@@ -671,7 +671,7 @@ public class ReportResourceTest
     // Evaluate the policy for a new scan for the same app. It should send notifications since this is not a
     // reevaluation.
     scanId = "ReportResourceTest_ScanId1";
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
     response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
         .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
@@ -696,7 +696,7 @@ public class ReportResourceTest
 
     HttpRequest request = restRequest(applicationPublicId, scanId).subpath("browseReport", "licenses.json");
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     // Verify before any license overrides are added
     HttpResponse response = request.get();
@@ -794,7 +794,7 @@ public class ReportResourceTest
 
     HttpRequest request = restRequest(applicationPublicId, scanId).subpath("browseReport", "security.json");
 
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     // Verify before any overrides are added
     HttpResponse response = request.get();
@@ -852,7 +852,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/standalone-legacy.zip");
+    mockReport(scanId, "/ReportResourceTest/standalone-legacy");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE");
@@ -944,7 +944,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/standalone.zip");
+    mockReport(scanId, "/ReportResourceTest/standalone");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE", "", "jar");

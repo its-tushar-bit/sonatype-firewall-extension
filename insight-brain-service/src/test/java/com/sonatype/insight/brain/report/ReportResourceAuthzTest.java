@@ -33,7 +33,7 @@ public class ReportResourceAuthzTest
   @Test
   public void testBrowseReport() throws Exception {
     String scanId = "scanId";
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     grantReadPermission(app.getId());
 
@@ -46,7 +46,7 @@ public class ReportResourceAuthzTest
   public void testPrintReport() throws Exception {
     String scanId = "scanId";
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     grantReadPermission(app.getId());
 
@@ -57,7 +57,7 @@ public class ReportResourceAuthzTest
   @Test
   public void testDownloadBundle() throws Exception {
     String scanId = "scanId";
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
@@ -69,7 +69,7 @@ public class ReportResourceAuthzTest
   @Test
   public void testReevaluatePolicy() throws Exception {
     String scanId = "scanId";
-    mockReport(scanId, "/ReportResourceTest/report.zip");
+    mockReport(scanId, "/ReportResourceTest/report");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);

@@ -1,0 +1,17 @@
+[ {
+  "groupId" : "tomcat",
+  "artifactId" : "tomcat-util",
+  "version" : "5.5.23"
+}, {
+  "groupId" : "org.dojotoolkit",
+  "artifactId" : "dojo-js",
+  "version" : "1.9.1"
+}, {
+  "groupId" : "tomcat",
+  "artifactId" : "servlets-default",
+  "version" : "5.5.4"
+}, {
+  "groupId" : "tomcat",
+  "artifactId" : "catalina-host-manager",
+  "version" : "5.5.23"
+} ]

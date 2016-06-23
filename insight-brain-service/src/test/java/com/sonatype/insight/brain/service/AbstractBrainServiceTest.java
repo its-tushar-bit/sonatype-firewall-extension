@@ -5,13 +5,18 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -41,6 +46,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 
 import static org.junit.Assert.assertEquals;
@@ -63,6 +69,9 @@ public abstract class AbstractBrainServiceTest
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Rule
   public TestName testName = new TestName();
@@ -195,7 +204,36 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void mockReport(String scanId, String resourceName) {
-    setHdsResponseForURI("rest/application/analysis/" + scanId, 200, resourceName);
+    URL resourceUrl;
+    if (!resourceName.endsWith(".zip")) {
+      File reportZipFile = zipResourceDir(resourceName);
+      try {
+        resourceUrl = reportZipFile.toURI().toURL();
+      }
+      catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    else {
+      resourceUrl = getClass().getResource(resourceName);
+    }
+    setHdsResponseForURI("rest/application/analysis/" + scanId, resourceUrl, 200);
+  }
+
+  private File zipResourceDir(String resourceName) {
+    try {
+      URL resourceUrl = getClass().getResource(resourceName);
+      File resourceDir = new File(resourceUrl.toURI());
+      if (!resourceDir.isDirectory()) {
+        throw new RuntimeException("'" + resourceDir.getAbsolutePath() + "' is not a directory.");
+      }
+      File reportZipFile = new File(tempDir.getRoot(), getClass().getSimpleName() + "-" + UUID.randomUUID() + ".zip");
+      Zipper.zip(resourceDir, reportZipFile);
+      return reportZipFile;
+    }
+    catch (IOException | URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   protected void mockComponentSummary(ComponentIdentifier componentIdentifier, ComponentSummary componentSummary)

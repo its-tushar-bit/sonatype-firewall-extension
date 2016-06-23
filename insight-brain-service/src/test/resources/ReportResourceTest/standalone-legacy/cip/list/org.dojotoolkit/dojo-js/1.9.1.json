@@ -1,0 +1,36 @@
+{
+  "list" : [ {
+    "groupId" : "org.dojotoolkit",
+    "artifactId" : "dojo-js",
+    "version" : "1.9.1",
+    "hash" : "a2f2bc8c9b103e113506",
+    "matchState" : null,
+    "declaredLicenses" : [ {
+      "licenseId" : "AFL-2.1-BSD-3-Clause",
+      "licenseName" : "AFL-2.1 or BSD-3-Clause"
+    } ],
+    "observedLicenses" : [ {
+      "licenseId" : "UNSPECIFIED",
+      "licenseName" : "Not Provided"
+    } ],
+    "overriddenLicenses" : [ ],
+    "catalogDate" : 1355586780000,
+    "relativePopularity" : 35,
+    "securityVulnerabilities" : [ {
+      "refId" : "84448",
+      "severity" : 3.5,
+      "source" : "osvdb",
+      "summary" : "This would be a summ",
+      "status" : null
+    } ],
+    "website" : null,
+    "policyAlerts" : null,
+    "licenseThreatLevel" : null,
+    "licenseThreatGroupNames" : null,
+    "majorRevisionStep" : false,
+    "identificationSource" : null,
+    "identificationSourceComment" : null,
+    "declaredLicenseIds" : [ "AFL-2.1-BSD-3-Clause" ],
+    "observedLicenseIds" : [ "UNSPECIFIED" ]
+  } ]
+}

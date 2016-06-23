@@ -1,0 +1,801 @@
+{
+  "aaData" : [ {
+    "hash" : "51ecfd2f7da58f8c60fd",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "declaredLicenses" : null,
+    "observedLicenses" : null,
+    "effectiveLicenses" : null,
+    "securityCounters" : null,
+    "effectiveLicenseThreat" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "name" : "org.apache.lucene.spellchecker_2.9.1.v20100421-0704.jar",
+    "path" : null,
+    "score" : 0.0,
+    "matchCount" : 7,
+    "totalLicenseCounters" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 7,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 0
+    },
+    "totalSecurityCounters" : {
+      "Moderate" : 0,
+      "Severe" : 0,
+      "Critical" : 0,
+      "None" : 7
+    },
+    "matchDetails" : [ {
+      "hash" : "51ecfd2f7da58f8c60fd",
+      "groupId" : "org.apache.lucene",
+      "artifactId" : "lucene-spellchecker",
+      "version" : "2.9.0",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1253822086000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "51ecfd2f7da58f8c60fd",
+      "groupId" : "org.apache.lucene",
+      "artifactId" : "lucene-spellchecker",
+      "version" : "2.9.1",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1257241252000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "51ecfd2f7da58f8c60fd",
+      "groupId" : "org.apache.lucene",
+      "artifactId" : "lucene-spellchecker",
+      "version" : "2.9.3",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1276782880000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "51ecfd2f7da58f8c60fd",
+      "groupId" : "org.apache.lucene",
+      "artifactId" : "lucene-spellchecker",
+      "version" : "2.9.4",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1291216120000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "51ecfd2f7da58f8c60fd",
+      "groupId" : "org.apache.lucene",
+      "artifactId" : "lucene-spellchecker",
+      "version" : "2.9.2",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1267036459000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "51ecfd2f7da58f8c60fd",
+      "groupId" : "org.apache.lucene",
+      "artifactId" : "lucene-spellchecker",
+      "version" : "2.4.1",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1236204130000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "51ecfd2f7da58f8c60fd",
+      "groupId" : "org.apache.lucene",
+      "artifactId" : "lucene-spellchecker",
+      "version" : "2.4.0",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1223488508000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    } ],
+    "securityIssues" : [ ]
+  }, {
+    "hash" : "c32df577f739535648b0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "declaredLicenses" : null,
+    "observedLicenses" : null,
+    "effectiveLicenses" : null,
+    "securityCounters" : null,
+    "effectiveLicenseThreat" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "name" : "org.slf4j.api_1.6.1.v20100831-0715.jar",
+    "path" : null,
+    "score" : 0.0,
+    "matchCount" : 10,
+    "totalLicenseCounters" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 6,
+      "WEAKCOPYLEFT" : 4,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 0
+    },
+    "totalSecurityCounters" : {
+      "Moderate" : 0,
+      "Severe" : 0,
+      "Critical" : 0,
+      "None" : 10
+    },
+    "matchDetails" : [ {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.slf4j",
+      "artifactId" : "slf4j-api",
+      "version" : "1.6.1",
+      "declaredLicenses" : [ "MIT" ],
+      "observedLicenses" : [ "MIT" ],
+      "effectiveLicenses" : [ "MIT" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1278361761000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.slf4j",
+      "artifactId" : "slf4j-api",
+      "version" : "1.6.0",
+      "declaredLicenses" : [ "MIT" ],
+      "observedLicenses" : [ "MIT" ],
+      "effectiveLicenses" : [ "MIT" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1273315526000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.slf4j",
+      "artifactId" : "slf4j-api",
+      "version" : "1.6.0-alpha2",
+      "declaredLicenses" : [ "MIT" ],
+      "observedLicenses" : [ "MIT" ],
+      "effectiveLicenses" : [ "MIT" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1272259135000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.slf4j",
+      "artifactId" : "slf4j-api",
+      "version" : "1.6.0-RC0",
+      "declaredLicenses" : [ "MIT" ],
+      "observedLicenses" : [ "MIT" ],
+      "effectiveLicenses" : [ "MIT" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1271883753000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.slf4j",
+      "artifactId" : "slf4j-api",
+      "version" : "1.6.3",
+      "declaredLicenses" : [ "MIT" ],
+      "observedLicenses" : [ "MIT" ],
+      "effectiveLicenses" : [ "MIT" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1318881317000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.slf4j",
+      "artifactId" : "slf4j-api",
+      "version" : "1.6.2",
+      "declaredLicenses" : [ "MIT" ],
+      "observedLicenses" : [ "MIT" ],
+      "effectiveLicenses" : [ "MIT" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1313705583000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.ow2.bundles",
+      "artifactId" : "ow2-bundles-externals-slf4j-jcl",
+      "version" : "1.0.29",
+      "declaredLicenses" : [ "LGPL-2.1" ],
+      "observedLicenses" : [ "LGPL-2.1+" ],
+      "effectiveLicenses" : [ "LGPL-2.1", "LGPL-2.1+" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1308554453000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.ow2.bundles",
+      "artifactId" : "ow2-bundles-externals-slf4j-jdk14",
+      "version" : "1.0.35",
+      "declaredLicenses" : [ "LGPL-2.1" ],
+      "observedLicenses" : [ "Not Provided" ],
+      "effectiveLicenses" : [ "LGPL-2.1" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1355925211000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.ow2.bundles",
+      "artifactId" : "ow2-bundles-externals-slf4j-jcl",
+      "version" : "1.0.34",
+      "declaredLicenses" : [ "LGPL-2.1" ],
+      "observedLicenses" : [ "Not Provided" ],
+      "effectiveLicenses" : [ "LGPL-2.1" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1347967249000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    }, {
+      "hash" : "c32df577f739535648b0",
+      "groupId" : "org.ow2.bundles",
+      "artifactId" : "ow2-bundles-externals-slf4j-jcl",
+      "version" : "1.0.35",
+      "declaredLicenses" : [ "LGPL-2.1" ],
+      "observedLicenses" : [ "Not Provided" ],
+      "effectiveLicenses" : [ "LGPL-2.1" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 0,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : null,
+      "catalogDate" : 1355925208000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ ]
+    } ],
+    "securityIssues" : [ ]
+  }, {
+    "hash" : "f0776db1593e215146d2",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "declaredLicenses" : null,
+    "observedLicenses" : null,
+    "effectiveLicenses" : null,
+    "securityCounters" : null,
+    "effectiveLicenseThreat" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "name" : "commons-httpclient-3.1.SONATYPE.jar",
+    "path" : null,
+    "score" : 0.0,
+    "matchCount" : 1,
+    "totalLicenseCounters" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 1,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 0
+    },
+    "totalSecurityCounters" : {
+      "Moderate" : 1,
+      "Severe" : 2,
+      "Critical" : 0,
+      "None" : 0
+    },
+    "matchDetails" : [ {
+      "hash" : "f0776db1593e215146d2",
+      "groupId" : "commons-httpclient",
+      "artifactId" : "commons-httpclient",
+      "version" : "3.1",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "Apache", "Apache-2.0" ],
+      "effectiveLicenses" : [ "Apache" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 2,
+        "Moderate" : 1
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : 5.8,
+      "catalogDate" : 1187703847000,
+      "name" : null,
+      "path" : null,
+      "score" : 7.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ {
+        "groupId" : "commons-httpclient",
+        "artifactId" : "commons-httpclient",
+        "version" : "3.1",
+        "hash" : "f0776db1593e215146d2",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5783",
+        "reference" : "CVE-2012-5783",
+        "source" : "cve",
+        "score" : 5.8,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "commons-httpclient",
+        "artifactId" : "commons-httpclient",
+        "version" : "3.1",
+        "hash" : "f0776db1593e215146d2",
+        "url" : "http://osvdb.org/59003",
+        "reference" : "59003",
+        "source" : "osvdb",
+        "score" : null,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "commons-httpclient",
+        "artifactId" : "commons-httpclient",
+        "version" : "3.1",
+        "hash" : "f0776db1593e215146d2",
+        "url" : "http://osvdb.org/87160",
+        "reference" : "87160",
+        "source" : "osvdb",
+        "score" : 5.8,
+        "matchState" : null,
+        "proprietary" : null
+      } ]
+    } ],
+    "securityIssues" : [ ]
+  } ]
+}

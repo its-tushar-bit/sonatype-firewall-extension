@@ -1,0 +1,97 @@
+{
+  "dependencyGraph" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.dojotoolkit",
+        "artifactId" : "dojo-js"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "catalina-host-manager"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "servlets-default"
+      }
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util"
+      }
+    }
+  } ],
+  "securityIssuesByDepth" : {
+    "1" : {
+      "Severe" : 0,
+      "Critical" : 0,
+      "Moderate" : 12
+    }
+  },
+  "gavDepths" : {
+    "tomcat:catalina-host-manager:5.5.23" : [ 1 ],
+    "tomcat:tomcat-util:5.5.23" : [ 1 ],
+    "tomcat:servlets-default:5.5.4" : [ 1 ],
+    "org.dojotoolkit:dojo-js:1.9.1" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.dojotoolkit",
+        "artifactId" : "dojo-js",
+        "version" : "1.9.1",
+        "classifier" : "",
+        "extension" : "js"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "servlets-default",
+        "version" : "5.5.4",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "catalina-host-manager",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "depths" : [ 1 ]
+  } ]
+}

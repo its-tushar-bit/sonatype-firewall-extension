@@ -1,0 +1,115 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : "1249e25aebb15358bedd",
+    "declaredLicenses" : [ "Not Declared" ],
+    "observedLicenses" : [ "No Sources" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 4
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 3.5,
+    "catalogDate" : 1323964380000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.dojotoolkit",
+        "artifactId" : "dojo-js",
+        "version" : "1.9.1",
+        "classifier" : "",
+        "extension" : "js"
+      }
+    },
+    "groupId" : "org.dojotoolkit",
+    "artifactId" : "dojo-js",
+    "version" : "1.9.1",
+    "hash" : "a2f2bc8c9b103e113506",
+    "declaredLicenses" : [ "AFL-2.1 or BSD-3-Clause" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "AFL-2.1 or BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 1
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 3.5,
+    "catalogDate" : 1355586780000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "servlets-default",
+        "version" : "5.5.4",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "groupId" : "tomcat",
+    "artifactId" : "servlets-default",
+    "version" : "5.5.4",
+    "hash" : "a397f601582e5ccd4b1a",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 3
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 3.5,
+    "catalogDate" : 0
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "catalina-host-manager",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "groupId" : "tomcat",
+    "artifactId" : "catalina-host-manager",
+    "version" : "5.5.23",
+    "hash" : "f60e9504841ba867a692",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 4
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : 3.5,
+    "catalogDate" : 0
+  } ]
+}

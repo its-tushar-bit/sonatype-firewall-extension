@@ -1,0 +1,133 @@
+<div ng-controller="PolicyViolationsController" id='cip-policy-violations'>
+  <script type='text/ng-template' id='add-waiver-modal-tmpl'>
+  <div id="add-waiver-modal">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click='$dismiss()' aria-hidden="true">&times;</button>
+      <h3>Add Policy Waiver</h3>
+    </div>
+    <div class="modal-body">
+      <div ng-show="waiverLoading">
+        <i class='icon icon-time'></i> Loading...
+      </div>
+      <div ng-show="!waiverLoading">
+        <div id="add-waiver-scope" ng-show="waiverSelectOwner" class='radio-container'>
+          <div>The waiver should be limited to:</div>
+          <label class="radio" ng-repeat="waiverTarget in waiverTargets">
+            <input type="radio" ng-model="waiver.ownerId" name="waiverSelectedTarget" ng-value="waiverTarget.id" ng-change='owner.type = waiverTarget.type'>
+            {{waiverTarget.type == 'application' ? 'Application' : 'Organization'}} <em>{{waiverTarget.name}}</em>
+          </label>
+        </div>
+        <div id="add-waiver-apply" class='radio-container'>
+          <div>
+            <span ng-show='waiverSelectOwner'>And apply to:</span>
+            <span ng-hide='waiverSelectOwner'>The waiver should apply to:</span>
+          </div>
+          <label class='radio'>
+            <input type="radio" name='waiver-hash' ng-model='waiver.hash' value='{{component.hash}}'>
+            Selected component (<em>{{component.groupId}} : {{component.artifactId}} : {{component.version}}</em>)
+          </label>
+          <label class='radio'>
+            <input type="radio" name='waiver-hash' ng-model='waiver.hash' ng-value='null'>
+            All components
+          </label>
+        </div>
+        <textarea ng-model="waiver.comment" placeholder="Enter Comment" maxlength="1000" style="width: 520px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="alert alert-error" ng-show="waiveAssignError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{waiveAssignError}}</span>
+      <button type='button' class="btn" ng-click="$dismiss()" ng-disabled="waiverSaving">Cancel</button>
+      <button type='button' class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving">Waive</button>
+    </div>
+  </div>
+  </script>
+  <script type='text/ng-template' id='view-waivers-modal-tmpl'>
+    <div id="componentExistingWaiverModal">
+      <div ng-hide="confirmDelete">
+        <div class="modal-header">
+          <button type="button" class="close" ng-click="$close()" aria-hidden="true">&times;</button>
+          <h3>Component Waivers</h3>
+        </div>
+        <div class="modal-body" ng-show="waiversLoading">
+          <span>Loading data...</span>
+        </div>
+        <div class="modal-body" ng-show="!waiversLoading">
+          <div ng-show="!waivers.length"><em style="margin-left:25px;">No waivers assigned</em></div>
+          <table ng-show="waivers.length" class="table table-condensed">
+            <thead>
+              <tr>
+                <th>Policy</th>
+                <th>Created</th>
+                <th>Owner</th>
+                <th>Comment</th>
+              </tr>
+            </thead>
+            <tr ng-repeat="waiver in waivers">
+              <td>{{waiver.policyName}}</td>
+              <td>{{waiver.createTime | date:"yyyy-MM-dd"}}</td>
+              <td>{{waiver.ownerName}}</td>
+              <td>{{waiver.comment}}</td>
+              <td>
+                <button class="btn btn-mini" ng-click="remove(waiver)" title="Remove {{placeHolder}}"><i class="icon-minus-sign"></i></button>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <span class="alert alert-error" ng-show="appError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{appError}}</span>
+          <button type="button" class="btn btn-primary" ng-click="$close()">Close</button>
+        </div>
+      </div>
+      <div ng-show="confirmDelete">
+        <div class="modal-header">
+          <h3>Remove Waiver</h3>
+        </div>
+        <div class="modal-body" >
+          Removing the waiver for {{confirmDelete.policyName}} will reinstate violations for this component if applicable.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" ng-click="confirmDelete = null">Cancel</button>
+          <button type="button" class="btn btn-danger" ng-click="removeWaiver()">Remove</button>
+        </div>
+      </div>
+    </div>
+  </script>
+  <table class="table table-condensed table-striped cip-policy-table" border="0" cellpadding="0" cellspacing="0">
+    <thead>
+      <tr>
+        <th class="cip-policy-table-header">Policy/<em>Action</em></th>
+        <th class="cip-policy-table-header">Constraint</th>
+        <th class="cip-policy-table-header">Condition Value</th>
+      </tr>
+    </thead>
+    <tr ng-repeat="policyAlert in processedPolicyAlerts">
+      <td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{policyAlert.color}}">
+        <div>
+          <b>{{policyAlert.name}}</b>
+        </div>
+        <ul style="color: #555555;">
+          <li ng-repeat="action in policyAlert.actions"><i>{{action.actionSummary}}</i></li>
+        </ul>
+      </td>
+      <td valign="top" align="left">
+        <div ng-repeat="constraint in policyAlert.constraints">
+          <div ng-repeat="condition in constraint.conditions">
+            <div style="color: #555555;" ng-show="$index == 0">
+              <b>{{constraint.constraintName}}</b>
+            </div>
+            <div ng-show="$index > 0">&nbsp;</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div ng-repeat="constraint in policyAlert.constraints">
+          <div ng-repeat="condition in constraint.conditions" style="color: #555555;">{{condition.conditionReason}}</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+  <div clm-alerts='alerts'></div>
+  <div style="text-align:center;width:100%;" ng-show='processedPolicyAlerts.length == 0'>
+    <b>No Policy Violations</b>
+  </div>
+</div>

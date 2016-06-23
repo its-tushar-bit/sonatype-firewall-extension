@@ -1,4 +1,4 @@
-describe('HierarchyStore', function() {
+describe('HierarchyStoreFactory', function() {
   'use strict';
   var store,
       storeUrl = 'http://localhost:8234/rest/policy',
@@ -26,8 +26,8 @@ describe('HierarchyStore', function() {
 
   beforeEach(module('ResourceModule', 'CLMAppLocation'));
 
-  beforeEach(inject(function(HierarchyStore) {
-    store = HierarchyStore.getStore(
+  beforeEach(inject(function(HierarchyStoreFactory) {
+    store = HierarchyStoreFactory.getStore(
         {field: 'policiesByOwner', url: storeUrl, template: {id: null}, type: 'policy', storeField: 'policies'});
   }));
 

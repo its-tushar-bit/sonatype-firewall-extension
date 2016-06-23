@@ -39,9 +39,9 @@
   }]);
 
   module.service('LdapConfigurationStore', [
-    'CLMLocations', 'CLMResource',
-    function(clmLocations, clmResource) {
-      return clmResource.getStore({
+    'CLMLocations', 'StoreFactory',
+    function(clmLocations, StoreFactory) {
+      return StoreFactory.getStore({
         id: 'id',
         url: clmLocations.getLdapConfig(),
         template: {

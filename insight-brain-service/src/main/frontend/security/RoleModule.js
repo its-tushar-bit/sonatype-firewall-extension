@@ -44,8 +44,8 @@
   ]);
 
   module.service('RoleStore', [
-    'CLMLocations', 'CLMResource', function(clmLocations, clmResource) {
-      return clmResource.getStore({
+    'CLMLocations', 'StoreFactory', function(clmLocations, StoreFactory) {
+      return StoreFactory.getStore({
         id: 'id',
         template: {
           id: null,

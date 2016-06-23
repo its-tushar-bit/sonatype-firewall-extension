@@ -30,8 +30,8 @@
   ]);
 
   licenseGroupModule.service('licenseStore', [
-    'CLMLocations', 'CLMResource', function(CLMLocations, CLMResource) {
-      var licenseStore = CLMResource.getStore({
+    'CLMLocations', 'StoreFactory', function(CLMLocations, StoreFactory) {
+      var licenseStore = StoreFactory.getStore({
         id: 'id',
         url: CLMLocations.getLicensesUrl()
       });

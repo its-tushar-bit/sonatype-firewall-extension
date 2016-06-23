@@ -12,8 +12,8 @@ describe('Resource', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  it('Get', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Get', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
           id: 'id',
           url: storeUrl,
           template: { id: null}
@@ -37,8 +37,8 @@ describe('Resource', function() {
     expect(result[1].id).toEqual('bar');
   }));
 
-  it('Gets with relational collection', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Gets with relational collection', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
       template: { id: null },
@@ -81,8 +81,8 @@ describe('Resource', function() {
     expect(result[1].related[0].relatedId).toEqual('relatedBar');
   }));
 
-  it('Error -> Get', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Error -> Get', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
           id: 'id',
           url: storeUrl,
           template: { id: null}
@@ -121,8 +121,8 @@ describe('Resource', function() {
     expect(result[1].id).toEqual('bar');
   }));
 
-  it('Error -> Get Related', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Error -> Get Related', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
       template: { id: null },
@@ -161,8 +161,8 @@ describe('Resource', function() {
     });
   }));
 
-  it('Refreshes', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Refreshes', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
           id: 'id',
           url: storeUrl,
           template: { id: null}
@@ -191,8 +191,8 @@ describe('Resource', function() {
     expect(spy).not.toHaveBeenCalled();
   }));
 
-  it('Refreshes and gets simultaneously', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Refreshes and gets simultaneously', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
       template: { id: null}
@@ -222,8 +222,8 @@ describe('Resource', function() {
     $httpBackend.flush();
   }));
 
-  it('Refreshes related', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Refreshes related', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
       template: { id: null },
@@ -272,8 +272,8 @@ describe('Resource', function() {
     expect(spy).not.toHaveBeenCalled();
   }));
 
-  it('Create', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Create', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
           id: 'id',
           url: storeUrl,
           template: { data: [], id: null }
@@ -309,8 +309,8 @@ describe('Resource', function() {
     expect(firstObj.id).toEqual('bar');
   }));
 
-  it('Creates related', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Creates related', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
       template: { id: null, data: [] },
@@ -354,8 +354,8 @@ describe('Resource', function() {
     expect(firstObj.id).toEqual('bar');
   }));
 
-  it('Reverts related', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Reverts related', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
       template: { id: null, data: [] },
@@ -396,8 +396,8 @@ describe('Resource', function() {
     expect(result[0].related[1].relatedId).toEqual('relatedFooTwo');
   }));
 
-  it('Clone', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('Clone', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
           id: 'id',
           url: storeUrl,
           template: { id: null, data: [] }
@@ -435,8 +435,8 @@ describe('Resource', function() {
   describe('isDirty', function() {
     var scope, store, data;
 
-    beforeEach(inject(function($rootScope, CLMResource, $httpBackend) {
-      store = CLMResource.getStore({
+    beforeEach(inject(function($rootScope, StoreFactory, $httpBackend) {
+      store = StoreFactory.getStore({
         id: 'id',
         url: storeUrl,
         template: { id: null, data: [] },
@@ -570,8 +570,8 @@ describe('Resource', function() {
   });
 
   describe('Delete', function() {
-    it('Existing Object', inject(function(CLMResource, $httpBackend) {
-      var store = CLMResource.getStore({
+    it('Existing Object', inject(function(StoreFactory, $httpBackend) {
+      var store = StoreFactory.getStore({
             id: 'id',
             url: storeUrl,
             template: { id: null }
@@ -599,8 +599,8 @@ describe('Resource', function() {
       expect(contents[0].id).toEqual('bar');
     }));
 
-    it('Error', inject(function(CLMResource, $httpBackend) {
-      var store = CLMResource.getStore({
+    it('Error', inject(function(StoreFactory, $httpBackend) {
+      var store = StoreFactory.getStore({
             id: 'id',
             url: storeUrl,
             template: { id: null }
@@ -632,8 +632,8 @@ describe('Resource', function() {
       expect(contents.length).toEqual(2);
     }));
 
-    it('Delete New Object', inject(function(CLMResource, $httpBackend, $rootScope) {
-      var store = CLMResource.getStore({
+    it('Delete New Object', inject(function(StoreFactory, $httpBackend, $rootScope) {
+      var store = StoreFactory.getStore({
             id: 'id',
             url: storeUrl,
             template: { id: null }
@@ -663,12 +663,12 @@ describe('Resource', function() {
   describe('getById', function () {
     var store;
 
-    beforeEach(inject(function(CLMResource, $httpBackend) {
+    beforeEach(inject(function(StoreFactory, $httpBackend) {
       var contents = null,
           spy = jasmine.createSpy('spy'),
           errorSpy = jasmine.createSpy('errorSpy');
 
-      store = CLMResource.getStore({
+      store = StoreFactory.getStore({
         id: 'id',
         url: storeUrl,
         type: 'app',
@@ -754,8 +754,8 @@ describe('Resource', function() {
     });
   });
 
-  it('peek with and without store loaded', inject(function(CLMResource, $httpBackend) {
-    var store = CLMResource.getStore({
+  it('peek with and without store loaded', inject(function(StoreFactory, $httpBackend) {
+    var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
       type: 'app',
@@ -783,12 +783,12 @@ describe('Resource', function() {
         StoreObserveTypeConstant;
 
     beforeEach(inject([
-      'CLMResource', '$httpBackend', 'store.observe.type.constant',
-      function(CLMResource, _$httpBackend_, _StoreObserveTypeConstant_) {
+      'StoreFactory', '$httpBackend', 'store.observe.type.constant',
+      function(StoreFactory, _$httpBackend_, _StoreObserveTypeConstant_) {
         $httpBackend = _$httpBackend_;
         StoreObserveTypeConstant = _StoreObserveTypeConstant_;
 
-        store = CLMResource.getStore({
+        store = StoreFactory.getStore({
           id: 'id',
           url: storeUrl,
           type: 'app',

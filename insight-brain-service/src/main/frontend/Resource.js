@@ -15,9 +15,44 @@
     };
   }
 
-  module.service('CLMResource', [
+  module.service('StoreFactory', [
     '$q', '$http', '$parse', '$rootScope', 'store.observe.type.constant',
     function($q, $http, $parse, $rootScope, StoreObserveTypeConstant) {
+
+      /**
+       * Store Constructor.
+       * Store represents RESTful collection resource (like '/rest/application' or '/rest/organization')
+       * It caches the collection as an array of Resource objects. (see Resource API below)
+       *
+       * Store API:
+       *  - get(): Promise<[Resource]>     - returns cached collection (lazily loaded if empty)
+       *  - getById(id): Promise<Resource> - returns Resource with provided id
+       *  - create(): Resource             - creates new Resource (but doesn't save it to collection)
+       *  - refresh(): Promise<[Resource]> - refreshes cached collection and returns it
+       *  - observe(callback): Function    - registers callback to observe store changes (see store.observe.type.constant)
+       *                                     returns unregister function
+       *  - peek(): [Resource]             - returns currently cached Resources
+       *
+       * Resource API:
+       *  - $save(): Promise<Resource>     - Saves Resource to collections and updates cache
+       *  - $delete(): Promise             - Deletes Resource from collections and removes it from cache
+       *  - $revert(): void                - Reverts Resource to it's original state
+       *  - $clone(): Resource             - Creates new Resource object - copy of itself
+       *  - isDirty(): boolean
+       *  - $new: boolean
+       *
+       * @param config object with following properties:
+       *  - url: <String>               - resource URL
+       *  - type: <String>              - resource type (used only in Promise reject message)
+       *
+       *  optional config properties:
+       *  - params: <Object>            - resource URL parameters
+       *  - template: <Object|Function> - object to use as a template for a new resource
+       *  - dataProperty: <String>      - property of GET result to use as resource (if not provided - the actual result object is used)
+       *  - id: <String>                - name of the property to use as ID (default is 'id')
+       *  - relationalConfigs: <Array>  - used to create LinkedResources. (we only use this in licenseGroupStore)
+       *
+       */
       function Store(config) {
         var store = [],
             error = false,
@@ -29,9 +64,9 @@
         config.template = angular.isFunction(config.template) ? config.template : createTemplateFn(config.template);
         config.relationalConfigs = config.relationalConfigs || [];
 
-        function checkDeferredResolve(deferredObject, resolve, countDown) {
+        function checkDeferredResolve(deferredObject, result, countDown) {
           if (countDown <= 0) {
-            deferredObject.resolve(resolve);
+            deferredObject.resolve(result);
           }
         }
 
@@ -53,7 +88,7 @@
 
           $http.get(config.url, {params: config.params}).success(function(data) {
             if (localDeferred === storeDeferred) {
-              var result = [];
+              var resources = [];
 
               if (config.dataProperty) {
                 data = data[config.dataProperty];
@@ -75,7 +110,7 @@
 
               angular.forEach(data, function(obj) {
                 var resource = new Resource(obj, false);
-                result.push(resource);
+                resources.push(resource);
 
                 for (var relationalProperty in config.relationalConfigs) {
                   if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
@@ -91,9 +126,11 @@
                   }
                 }
               });
+              // empty the store and push all the resources
               store.splice(0, store.length);
-              store.push.apply(store, result);
-              notifyObservers(StoreObserveTypeConstant.UPDATE, result);
+              store.push.apply(store, resources);
+
+              notifyObservers(StoreObserveTypeConstant.UPDATE, resources);
               checkDeferredResolve(storeDeferred, store, relationsToLoad);
               storeDeferred.isResolved = true;
             }
@@ -510,8 +547,8 @@
     }
   ]);
 
-  module.service('HierarchyStore', [
-    '$http', '$q', 'CLMResource', 'CLMAppLocations', function($http, $q, CLMResource, CLMAppLocations) {
+  module.service('HierarchyStoreFactory', [
+    '$http', '$q', 'StoreFactory', 'CLMAppLocations', function($http, $q, StoreFactory, CLMAppLocations) {
       function getErrorFn(deferred) {
         return function(data, status, headers, config) {
           deferred.reject({
@@ -523,6 +560,50 @@
         };
       }
 
+      /**
+       * HierarchyStore Constructor.
+       *
+       * Lets say we have the following hierarchy
+       * - rootOrg
+       *    - myOrg
+       *        - myApp
+       *
+       * Given config.url, such that get(config.url) returns flat collection of hierarchy:
+       * - myApp
+       *    - policies[]
+       * - rootOrg
+       *    - policies[]
+       * - myOrg
+       *    - policies[]
+       *
+       *
+       * Creates Store representing this hierarchy where each object in the hierarchy (owner)
+       * - has its children denoted by 'config.storeField' (policies in the example above) converted to Resource objects.
+       * - has "store" property - Store instance representing collection of its children
+       * - myApp
+       *    - policies[Resource]
+       *    - store
+       *
+       * - myOrg
+       *    - policies[Resource]
+       *    - store
+       *
+       * - rootOrg
+       *    - policies[Resource]
+       *    - store
+       *
+       * Note: owner (an object in hierarchy) itself is not converted into Resource
+       *
+       * HierarchyStore API
+       *  - get(): Promise<[owner]> - returns list of owners
+       *  - refresh(): Promise<[owner]> - same as get() excpet reloads the cache
+       *  - getById(entityId): Promise<Resource> - search through the children Resources of each owner
+       *
+       * @param config see Store
+       * HierarchyStore specific config parameters
+       *  - crudUrl: (ownerType, ownerId) -> URL - function, if provided, called to derive Resource URL, used for children (owned entities)
+       *  - storeField: String - name of the field containing the children (owned entities). Uses 'entities' by default.@constructor
+       */
       function HierarchyStore(config) {
         var storeDeferred,
             error,
@@ -545,7 +626,7 @@
                       owner.ownerType === 'application' ? CLMAppLocations.getEntityId() : owner.ownerId);
                 }
 
-                var ownerStore = CLMResource.getStore(angular.copy(storeConfig));
+                var ownerStore = StoreFactory.getStore(angular.copy(storeConfig));
                 owner[config.storeField] = ownerStore.set(owner[config.storeField]);
                 // note a consumer attempting to get/refresh on the store will not have good results
                 owner.store = ownerStore;

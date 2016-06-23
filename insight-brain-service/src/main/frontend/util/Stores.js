@@ -12,12 +12,12 @@
   var storesModule = angular.module('Stores', ['CLMLocation', 'CLMAppLocation', 'ResourceModule']);
 
   storesModule.service('ApplicationStore', [
-    '$rootScope', 'CLMLocations', 'CLMResource', 'LastSelectedOrganization', 'OrganizationStore',
+    '$rootScope', 'CLMLocations', 'StoreFactory', 'LastSelectedOrganization', 'OrganizationStore',
     'store.observe.type.constant',
-    function($rootScope, clmLocations, clmResource, LastSelectedOrganization, OrganizationStore,
+    function($rootScope, clmLocations, StoreFactory, LastSelectedOrganization, OrganizationStore,
              StoreObserveTypeConstant)
     {
-      var applicationStore = clmResource.getStore({
+      var applicationStore = StoreFactory.getStore({
         id: 'publicId',
         url: clmLocations.getApplicationsUrl(),
         type: 'application',
@@ -67,8 +67,8 @@
   ]);
 
   storesModule.service('OrganizationStore', [
-    'CLMLocations', 'CLMResource', function(CLMLocations, clmResource) {
-      return clmResource.getStore({
+    'CLMLocations', 'StoreFactory', function(CLMLocations, StoreFactory) {
+      return StoreFactory.getStore({
         id: 'id',
         url: CLMLocations.getOrganizationsUrl(),
         type: 'organization',
@@ -81,16 +81,16 @@
   ]);
 
   storesModule.service('StageTypeStore', [
-    'CLMResource', 'CLMLocations', function(CLMResource, CLMLocations) {
-      var actionStageTypeStore = CLMResource.getStore({
+    'StoreFactory', 'CLMLocations', function(StoreFactory, CLMLocations) {
+      var actionStageTypeStore = StoreFactory.getStore({
         id: 'stageTypeId',
         url: CLMLocations.getActionStageUrl()
       });
-      var dashboardStageTypeStore = CLMResource.getStore({
+      var dashboardStageTypeStore = StoreFactory.getStore({
         id: 'stageTypeId',
         url: CLMLocations.getDashboardStageUrl()
       });
-      var cliTypeStore = CLMResource.getStore({
+      var cliTypeStore = StoreFactory.getStore({
         id: 'stageTypeId',
         url: CLMLocations.getCliStageUrl()
       });
@@ -128,8 +128,8 @@
   ]);
 
   storesModule.service('PolicyStore', [
-    'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', '$q',
-    function(constraintStore, clmLocations, clmAppLocations, clmResource, $q) {
+    'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'StoreFactory', '$q',
+    function(constraintStore, clmLocations, clmAppLocations, StoreFactory, $q) {
       var conditionTypes = null,
       policyStoreTemplate = {
         id: 'id',
@@ -166,7 +166,7 @@
               angular.forEach(policyStores, function(value, key) {
                 policyStores[key] = null;
               });
-              store = clmResource.getStore(angular.extend({ url: clmAppLocations.getPolicyUrl() },
+              store = StoreFactory.getStore(angular.extend({ url: clmAppLocations.getPolicyUrl() },
                   policyStoreTemplate));
               policyStores[ownerId] = store;
               deferred.resolve(store);
@@ -187,15 +187,15 @@
   ]);
 
   storesModule.service('ConstraintStore', [
-    'CLMLocations', 'CLMAppLocations', 'CLMResource', '$q', function(clmLocations, clmAppLocations, clmResource, $q) {
-      var conditionTypeStore = clmResource.getStore({
+    'CLMLocations', 'CLMAppLocations', 'StoreFactory', '$q', function(clmLocations, clmAppLocations, StoreFactory, $q) {
+      var conditionTypeStore = StoreFactory.getStore({
         id: 'id',
         url: clmLocations.getConditionTypeUrl()
       });
 
       return {
         'get': function() {
-          var conditionValueTypeStore = clmResource.getStore({
+          var conditionValueTypeStore = StoreFactory.getStore({
             id: 'id',
             url: clmAppLocations.getConditionValueTypeUrl()
           }),
@@ -251,14 +251,14 @@
    *   getUrl a function that returns the store URL at the point the store is requested
    *   getKey (optional) a function that returns the key at the point the store is requested
    */
-  function CachedStoreFactory(CLMResource, CLMAppLocations) {
+  function CachedStoreFactory(StoreFactory, CLMAppLocations) {
     function CachedStore(config) {
       var store, storeKey = null;
 
       function refreshStore() {
         var key = config.getKey ? config.getKey() : CLMAppLocations.getEntityId();
         if (!store || key !== storeKey) {
-          store = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
+          store = StoreFactory.getStore(angular.extend({ url: config.getUrl() }, config));
           storeKey = key;
         }
 
@@ -288,7 +288,7 @@
     };
   }
 
-  storesModule.service('CachedStore', ['CLMResource', 'CLMAppLocations', CachedStoreFactory]);
+  storesModule.service('CachedStore', ['StoreFactory', 'CLMAppLocations', CachedStoreFactory]);
 
-  storesModule.service('CachedHierarchyStore', ['HierarchyStore', 'CLMAppLocations', CachedStoreFactory]);
+  storesModule.service('CachedHierarchyStore', ['HierarchyStoreFactory', 'CLMAppLocations', CachedStoreFactory]);
 }());

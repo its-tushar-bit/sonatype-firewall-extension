@@ -51,7 +51,7 @@
             });
           }]);
 
-  module.service('UserStore', ['CLMLocations', 'CLMResource', function(clmLocations, clmResource) {
+  module.service('UserStore', ['CLMLocations', 'StoreFactory', function(clmLocations, StoreFactory) {
     var config = {
       id: 'id',
       template: {
@@ -63,7 +63,7 @@
         email: ''
       },
       url: clmLocations.getUserUrl()
-    }, store = clmResource.getStore(config);
+    }, store = StoreFactory.getStore(config);
 
     return store;
   }]);

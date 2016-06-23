@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -19,7 +20,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 import javax.mail.Message;
 
@@ -72,7 +72,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.junit.Assert;
@@ -431,58 +430,68 @@ public class ReportResourceTest
     String reportResource = "/ReportResourceTest/report";
     mockReport(scanId, reportResource);
 
-    try (ZipInputStream zipStream = new ZipInputStream(getClass().getResourceAsStream(reportResource))) {
-      for (ZipEntry entry = zipStream.getNextEntry(); entry != null; entry = zipStream.getNextEntry()) {
-        final HttpResponse response = request.subpath(entry.getName()).get();
-        final String contentType = response.getContentType();
-        assertResponseStatus(200, response);
+    URL reportResourceUrl = getClass().getResource(reportResource);
+    File reportResourceDir = new File(reportResourceUrl.toURI());
+    int verifiedFileCount = 0;
+    for (File file : reportResourceDir.listFiles()) {
+      if (file.isDirectory()) {
+        continue;
+      }
 
-        if ("data.json".equals(entry.getName())) {
-          String actual = response.getBodyText();
-          testDataJsonApplyChanges(actual);
-        }
-        else if ("licenses.json".equals(entry.getName())) {
-          String actual = response.getBodyText();
+      verifiedFileCount++;
 
-          testLicensesJsonApplyChanges(actual);
-          testJsonApplyComponentChanges(actual);
-        }
-        else if ("licensethreats.json".equals(entry.getName())) {
-          String actual = response.getBodyText();
+      String entry = file.getName();
+      final HttpResponse response = request.subpath(entry).get();
+      final String contentType = response.getContentType();
+      assertResponseStatus(200, response);
 
-          testLicenseThreatsJsonApplyChanges(actual);
-        }
-        else if ("partialmatched.json".equals(entry.getName())) {
-          String actual = response.getBodyText();
+      if ("data.json".equals(entry)) {
+        String actual = response.getBodyText();
+        testDataJsonApplyChanges(actual);
+      }
+      else if ("licenses.json".equals(entry)) {
+        String actual = response.getBodyText();
 
-          testPartialMatchedJsonApplyChanges(actual);
+        testLicensesJsonApplyChanges(actual);
+        testJsonApplyComponentChanges(actual);
+      }
+      else if ("licensethreats.json".equals(entry)) {
+        String actual = response.getBodyText();
+
+        testLicenseThreatsJsonApplyChanges(actual);
+      }
+      else if ("partialmatched.json".equals(entry)) {
+        String actual = response.getBodyText();
+
+        testPartialMatchedJsonApplyChanges(actual);
+      }
+      else if ("security.json".equals(entry)) {
+        JsonNode actual = JsonUtils.parse(response.getBodyText());
+        JsonNode expected = JsonUtils.parse(FileUtils.fileRead(file));
+        for (JsonNode node : expected.get("aaData")) {
+          ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
+          ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
         }
-        else if ("security.json".equals(entry.getName())) {
-          JsonNode actual = JsonUtils.parse(response.getBodyText());
-          JsonNode expected = JsonUtils.parse(IOUtil.toString(zipStream));
-          for (JsonNode node : expected.get("aaData")) {
-            ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
-            ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
-          }
-          assertThat(actual, is(expected));
-        }
-        else if ("index.html".equals(entry.getName())) {
-          String actual = response.getBodyText();
-          assertTrue("The app public id was not included in the report",
-              actual.contains("applicationId = '" + applicationPublicId + "'"));
-        }
-        else if ("bom.json".equals(entry.getName())) {
-          String actual = response.getBodyText();
-          testJsonApplyComponentChanges(actual);
-        }
-        else if (contentType.startsWith("text") || contentType.endsWith("json")) {
-          assertThat(response.getBodyText(), equalToIgnoringWhiteSpace(IOUtil.toString(zipStream, "UTF-8")));
-        }
-        else {
-          assertThat(response.getBodyBytes(), equalTo(IOUtil.toByteArray(zipStream)));
-        }
+        assertThat(actual, is(expected));
+      }
+      else if ("index.html".equals(entry)) {
+        String actual = response.getBodyText();
+        assertTrue("The app public id was not included in the report",
+            actual.contains("applicationId = '" + applicationPublicId + "'"));
+      }
+      else if ("bom.json".equals(entry)) {
+        String actual = response.getBodyText();
+        testJsonApplyComponentChanges(actual);
+      }
+      else if (contentType.startsWith("text") || contentType.endsWith("json")) {
+        assertThat(response.getBodyText(), equalToIgnoringWhiteSpace(FileUtils.fileRead(file)));
+      }
+      else {
+        assertThat("Unexpected content for " + entry, response.getBodyBytes(),
+            equalTo(org.apache.commons.io.FileUtils.readFileToByteArray(file)));
       }
     }
+    assertThat(verifiedFileCount, is(110));
 
     assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
   }

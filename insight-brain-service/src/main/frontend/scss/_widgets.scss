@@ -311,7 +311,8 @@
 
     label.tree-view-item {
       @extend .regular;
-      padding-left: 31px; /* 7px from below, 24px for the icon */
+      padding-left: 0px;
+      margin-left: 24px;
     }
 
     .tree-view-item {
@@ -412,7 +413,7 @@
   padding-bottom: 2px;
 }
 .tooltip-arrow {
-  .tooltip.top & {
+  .tooltip.top &, .tooltip.top-left & {
     border-top-color: $off-black;
   }
 
@@ -438,12 +439,12 @@
     content: "";
     border: 5px solid transparent;
 
-    .tooltip.top &, .tooltip.bottom & {
+    .tooltip.top &, .tooltip.bottom &, .tooltip.top-left & {
       left: 50%;
       margin-left: -5px;
     }
 
-    .tooltip.top & {
+    .tooltip.top &, .tooltip.top-left & {
       border-top-color: $slate;
       border-bottom-width: 0;
       margin-top: -6px;

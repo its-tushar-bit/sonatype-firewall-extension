@@ -6,8 +6,9 @@
            ng-click="isExpanded = available.length && !isExpanded"
            ng-class="{disabled: !available.length}"
            data-tooltip="{{:: available.length ? '' : 'There are no ' + longName + ' to filter.'}}"
-           data-tooltip-placement="top"
-           data-tooltip-append-to-body="true">
+           data-tooltip-placement="top-left"
+           data-tooltip-append-to-body="true"
+           tooltip-class="filter-label-tooltip">
           <div class="dashboard-filter-counter" ng-class="{inactive: vm.selectedCount === 0}">
             {{vm.selectedCount === 0 ? '' : vm.selectedCount + ' of '}}{{::available.length}}
           </div>
@@ -33,7 +34,7 @@
             </label>
             <label class="tree-view-item checkbox"
                tooltip="{{::(tooltipField ? 'in ' + entity[tooltipField] : '')}}" tooltip-append-to-body="true"
-               data-tooltip-popup-delay="200" tooltip-class="dashboard-treeview-tooltip"
+               data-tooltip-popup-delay="200" data-tooltip-placement="top-left" tooltip-class="filter-item-tooltip"
                ng-repeat="entity in available | fuzzy:vm.filter:nameField | orderBy: sortEntities ? [nameField] : []"
                ng-click="$event.stopPropagation()">
                 <input type="checkbox" name="{{::entity.id}}" ng-model="selected[entity[idField]]"

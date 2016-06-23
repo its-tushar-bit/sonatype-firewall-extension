@@ -1344,7 +1344,11 @@ Dashboard tables
   }
 }
 
-.dashboard-treeview-tooltip {
-  margin-top: 4px !important;
-  margin-left: -53px;
+.tooltip.top-left {
+  &.filter-item-tooltip .tooltip-arrow {
+    margin-left: 23px;
+  }
+  &.filter-label-tooltip .tooltip-arrow {
+    margin-left: 53px;
+  }
 }

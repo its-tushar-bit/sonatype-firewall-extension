@@ -98,7 +98,9 @@
       }
 
       vm.ownerEditorMask.wrap(vm.dirtyOwner.$save().then(function(result) {
-        var form = $('#custom-icon-form');
+        var form = $('#custom-icon-form'), 
+            nameChanged = !vm.ownerEditor.name.$pristine;
+        vm.ownerEditor.name.$setPristine();
 
         form.find('input[name=' + ownerType + 'Id]').val(result.id);
 
@@ -113,7 +115,7 @@
           $http.post(CLMAppLocations.getAddIconUrl(ownerType), formData).then(function() {
             deferred.resolve(result);
           }, function(error) {
-            if (isNew || !vm.ownerEditor.name.$pristine) { // only show warning for new and mixed state
+            if (isNew || nameChanged === true) { // only show warning for new and mixed state
               vm.iconWarning = messages.getHttpErrorMessage(error);
             }
             deferred.reject(error);

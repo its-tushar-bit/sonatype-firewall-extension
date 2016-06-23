@@ -36,6 +36,9 @@ describe('owner.editor.controller.spec.js', function() {
         });
 
         vm.ownerEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+        vm.ownerEditor = {
+          name: { $setPristine: jasmine.createSpy() }
+        };
       }));
 
       describe('Page Changes', function() {
@@ -122,6 +125,7 @@ describe('owner.editor.controller.spec.js', function() {
           $httpBackend.flush();
           $timeout.flush();
 
+          expect(vm.ownerEditor.name.$setPristine).toHaveBeenCalled();
           expect($state.go).toHaveBeenCalledWith('management.view.' + type, type === 'application' ? {
             applicationPublicId: vm.dirtyOwner.publicId
           } : {

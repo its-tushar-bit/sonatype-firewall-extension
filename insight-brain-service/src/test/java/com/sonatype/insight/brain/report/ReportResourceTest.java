@@ -95,6 +95,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ReportResourceTest
     extends AbstractResourceTest
@@ -191,8 +192,8 @@ public class ReportResourceTest
     String jsonData = response.getBodyText();
     JsonNode actual = JsonUtils.parse(jsonData);
     assertEquals(1, actual.get("partiallyMatchedComponentCount").asInt());
-    assertEquals(26, actual.get("exactlyMatchedComponentCount").asInt());
-    assertEquals(27, actual.get("knownArtifactCount").asInt());
+    assertEquals(27, actual.get("exactlyMatchedComponentCount").asInt());
+    assertEquals(28, actual.get("knownArtifactCount").asInt());
   }
 
   @Test
@@ -229,13 +230,13 @@ public class ReportResourceTest
     String jsonData = response.getBodyText();
     JsonNode actual = JsonUtils.parse(jsonData);
     assertEquals(2, actual.get("partiallyMatchedComponentCount").asInt());
-    assertEquals(26, actual.get("exactlyMatchedComponentCount").asInt());
-    assertEquals(28, actual.get("knownArtifactCount").asInt());
+    assertEquals(27, actual.get("exactlyMatchedComponentCount").asInt());
+    assertEquals(29, actual.get("knownArtifactCount").asInt());
 
     response = request.subpath("summary.json").get();
     String summaryData = response.getBodyText();
     actual = JsonUtils.parse(summaryData);
-    assertEquals(28, actual.get("knownArtifactCount").asInt());
+    assertEquals(29, actual.get("knownArtifactCount").asInt());
   }
 
   @Test
@@ -706,6 +707,8 @@ public class ReportResourceTest
     HttpRequest request = restRequest(applicationPublicId, scanId).subpath("browseReport", "licenses.json");
 
     mockReport(scanId, "/ReportResourceTest/report");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-pool", "commons-pool",
+        "1.4", "", "jar");
 
     // Verify before any license overrides are added
     HttpResponse response = request.get();
@@ -714,10 +717,8 @@ public class ReportResourceTest
     String licenseJsonString = response.getBodyText();
     JsonNode licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
     for (JsonNode licenseJsonNode : licenseJsonData) {
-      String groupId = licenseJsonNode.get("groupId").asText();
-      String artifactId = licenseJsonNode.get("artifactId").asText();
-      String version = licenseJsonNode.get("version").asText();
-      if ("commons-pool".equals(groupId) && "commons-pool".equals(artifactId) && "1.4".equals(version)) {
+      if (componentIdentifier
+          .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
         assertNull(licenseJsonNode.get("overriddenLicenses"));
         found++;
       }
@@ -725,8 +726,6 @@ public class ReportResourceTest
     Assert.assertEquals("Did not find expected license", 1, found);
 
     // Override the license at organization level
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-pool",
-        "commons-pool", "1.4");
     LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
     response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
@@ -740,10 +739,8 @@ public class ReportResourceTest
     licenseJsonString = response.getBodyText();
     licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
     for (JsonNode licenseJsonNode : licenseJsonData) {
-      String groupId = licenseJsonNode.get("groupId").asText();
-      String artifactId = licenseJsonNode.get("artifactId").asText();
-      String version = licenseJsonNode.get("version").asText();
-      if ("commons-pool".equals(groupId) && "commons-pool".equals(artifactId) && "1.4".equals(version)) {
+      if (componentIdentifier
+          .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
         String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
         Assert.assertEquals("[\"GPL-3.0\"]", overridenLicenseNamesStr);
         int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
@@ -773,10 +770,8 @@ public class ReportResourceTest
     licenseJsonString = response.getBodyText();
     licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
     for (JsonNode licenseJsonNode : licenseJsonData) {
-      String groupId = licenseJsonNode.get("groupId").asText();
-      String artifactId = licenseJsonNode.get("artifactId").asText();
-      String version = licenseJsonNode.get("version").asText();
-      if ("commons-pool".equals(groupId) && "commons-pool".equals(artifactId) && "1.4".equals(version)) {
+      if (componentIdentifier
+          .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
         String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
         Assert.assertEquals("[\"GPL-2.0\"]", overridenLicenseNamesStr);
         int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
@@ -1095,12 +1090,12 @@ public class ReportResourceTest
     Assert.assertEquals(2, data.get("weakcopyleftLicenseCount").asInt());
     Assert.assertEquals(2, data.get("nonStandardLicenseCount").asInt());
     Assert.assertEquals(3, data.get("copyleftLicenseCount").asInt());
-    Assert.assertEquals(20, data.get("liberalLicenseCount").asInt());
+    Assert.assertEquals(21, data.get("liberalLicenseCount").asInt());
     Assert.assertEquals(1, data.get("notProvidedLicenseCount").asInt());
-    Assert.assertEquals("[10,0,1,0,0,11,2,0,0,4,0]", data.get("effectiveLicenseCounts").toString());
+    Assert.assertEquals("[11,0,1,0,0,11,2,0,0,4,0]", data.get("effectiveLicenseCounts").toString());
 
-    Assert.assertEquals(7, data.get("insecureArtifactCount").asInt());
-    Assert.assertEquals("[0,4,0,0,2,12,15,2,0,1]", data.get("securityCounts").toString());
+    Assert.assertEquals(8, data.get("insecureArtifactCount").asInt());
+    Assert.assertEquals("[0,4,0,0,2,13,15,2,0,1]", data.get("securityCounts").toString());
 
     Assert.assertEquals("[0,0,0,0,0,0,0,0,0,0,0]", data.get("policyCounts").toString());
     Assert.assertEquals(0, data.get("policyComponentCount").asInt());
@@ -1108,8 +1103,8 @@ public class ReportResourceTest
     Assert.assertEquals("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]", data.get("securityPunchCard").toString());
     Assert.assertEquals("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]", data.get("licensePunchCard").toString());
 
-    Assert.assertEquals(25, data.get("exactlyMatchedComponentCount").asInt());
-    Assert.assertEquals(27, data.get("knownArtifactCount").asInt());
+    Assert.assertEquals(26, data.get("exactlyMatchedComponentCount").asInt());
+    Assert.assertEquals(28, data.get("knownArtifactCount").asInt());
     Assert.assertEquals(2, data.get("partiallyMatchedComponentCount").asInt());
 
   }
@@ -1160,20 +1155,38 @@ public class ReportResourceTest
     }
   }
 
-  private void testJsonApplyDisplayNameChanges(JsonNode jsonNode) {
+  private void testJsonApplyDisplayNameChanges(JsonNode jsonNode) throws IOException {
+    ComponentIdentifier componentIdentifier = JsonUtils.asPojo(jsonNode.get("componentIdentifier"),
+        ComponentIdentifier.class);
     ArrayNode displayNameNode = (ArrayNode) jsonNode.get("displayName").get("parts");
     assertThat(displayNameNode, is(notNullValue()));
-    assertThat(displayNameNode.size(), is(5));
-    Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));
-    Assert.assertThat(displayNameNode.get(0).get("value").textValue(), is(jsonNode.get("groupId").textValue()));
-    Assert.assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
-    Assert.assertThat(displayNameNode.get(1).get("value").textValue(), is(" : "));
-    Assert.assertThat(displayNameNode.get(2).get("field").textValue(), is("Artifact"));
-    Assert.assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("artifactId").textValue()));
-    Assert.assertThat(displayNameNode.get(3).get("field"), is(nullValue()));
-    Assert.assertThat(displayNameNode.get(3).get("value").textValue(), is(" : "));
-    Assert.assertThat(displayNameNode.get(4).get("field").textValue(), is("Version"));
-    Assert.assertThat(displayNameNode.get(4).get("value").textValue(), is(jsonNode.get("version").textValue()));
+    switch (componentIdentifier.getFormat()) {
+      case ComponentIdentifier.FORMAT_MAVEN:
+        assertThat(displayNameNode.size(), is(5));
+        Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));
+        Assert.assertThat(displayNameNode.get(0).get("value").textValue(), is(jsonNode.get("groupId").textValue()));
+        Assert.assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
+        Assert.assertThat(displayNameNode.get(1).get("value").textValue(), is(" : "));
+        Assert.assertThat(displayNameNode.get(2).get("field").textValue(), is("Artifact"));
+        Assert.assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("artifactId").textValue()));
+        Assert.assertThat(displayNameNode.get(3).get("field"), is(nullValue()));
+        Assert.assertThat(displayNameNode.get(3).get("value").textValue(), is(" : "));
+        Assert.assertThat(displayNameNode.get(4).get("field").textValue(), is("Version"));
+        Assert.assertThat(displayNameNode.get(4).get("value").textValue(), is(jsonNode.get("version").textValue()));
+        break;
+      case ComponentIdentifier.FORMAT_ANAME:
+        assertThat(displayNameNode.size(), is(3));
+        Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Name"));
+        Assert.assertThat(displayNameNode.get(0).get("value").textValue(),
+            is(componentIdentifier.get(ComponentIdentifier.ANAME_NAME)));
+        Assert.assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
+        Assert.assertThat(displayNameNode.get(1).get("value").textValue(), is(" "));
+        Assert.assertThat(displayNameNode.get(2).get("field").textValue(), is("Version"));
+        Assert.assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("version").textValue()));
+        break;
+      default:
+        fail("Unexpected format " + componentIdentifier.getFormat());
+    }
   }
 
   private int testLicenseThreatsApplyChanges(JsonNode licenses) {

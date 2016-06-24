@@ -417,6 +417,12 @@
     border-top-color: $off-black;
   }
 
+  .tooltip.top-left & { // missing in our version of bootstrap
+    bottom: 0;
+    margin-bottom: -5px;
+    border-width: 5px 5px 0;
+  }
+
   .tooltip.bottom & {
     border-bottom-color: $off-black;
   }

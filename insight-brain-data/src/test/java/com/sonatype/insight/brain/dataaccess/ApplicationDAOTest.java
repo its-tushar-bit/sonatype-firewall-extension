@@ -24,6 +24,7 @@ import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -675,6 +676,14 @@ public class ApplicationDAOTest
 
     applicationDAO.delete(application);
     assertThat(labelDAO.getByOwnerId(application.getId()), hasSize(0));
+  }
+
+  @Test
+  public void testCascadeDeleteToProprietaryConfig() {
+    tempEntity.newProprietaryConfig(application.getId());
+
+    applicationDAO.delete(application);
+    assertThat(new ProprietaryConfigDAO().getByOwnerId(application.getId()), is(nullValue()));
   }
 
   @Test

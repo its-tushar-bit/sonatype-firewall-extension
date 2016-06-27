@@ -15,7 +15,7 @@ import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient.Context;
-import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -358,7 +358,7 @@ public class ConfigurationClientTest
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
     config.setRegexes(regexes);
-    ProprietaryConfigDAO dao = new ProprietaryConfigDAO(getCLMServer().getDataDir());
+    ObsoleteProprietaryConfigDAO dao = new ObsoleteProprietaryConfigDAO(getCLMServer().getDataDir());
     dao.update(config);
 
     config = new ConfigurationClient(getCLMServer().getClientConfiguration()).getProprietaryConfiguration();

@@ -18,7 +18,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.security.Authorize;
@@ -71,7 +71,7 @@ public class ProprietaryConfigResource
     newDAO().session(currentUser.getUsername(), currentUser.getIP(request), where).update(config);
   }
 
-  private ProprietaryConfigDAO newDAO() {
-    return new ProprietaryConfigDAO(work.getDataDir());
+  private ObsoleteProprietaryConfigDAO newDAO() {
+    return new ObsoleteProprietaryConfigDAO(work.getDataDir());
   }
 }

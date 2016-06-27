@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -22,14 +23,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProprietaryConfigDAO
+/**
+ * @deprecated Use {@link ProprietaryConfigDAO} instead.
+ */
+@Deprecated
+public class ObsoleteProprietaryConfigDAO
 {
   // copied from insight-scanner/RegexSelector.java
-  public static final List<String> REGEX_BLACK_LIST = Collections.unmodifiableList(Arrays.asList(".*", "^.*$"));
+  private static final List<String> REGEX_BLACK_LIST = Collections.unmodifiableList(Arrays.asList(".*", "^.*$"));
 
   private static final String CONFIG_FILENAME = "proprietary.json";
 
-  private static final Logger log = LoggerFactory.getLogger(ProprietaryConfigDAO.class);
+  private static final Logger log = LoggerFactory.getLogger(ObsoleteProprietaryConfigDAO.class);
 
   private final JsonStore store;
 
@@ -39,11 +44,11 @@ public class ProprietaryConfigDAO
 
   private String where;
 
-  public ProprietaryConfigDAO(File workDir) {
+  public ObsoleteProprietaryConfigDAO(File workDir) {
     store = JsonUtils.fileStore(workDir);
   }
 
-  public ProprietaryConfigDAO session(final String _user, final String _ip, final String _where) {
+  public ObsoleteProprietaryConfigDAO session(final String _user, final String _ip, final String _where) {
     user = _user;
     ip = _ip;
     where = _where;

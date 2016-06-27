@@ -11,7 +11,7 @@ import java.util.Arrays;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.model.Scan;
@@ -39,11 +39,11 @@ public class ScannerTest
   @Inject
   private InsightWork work;
 
-  private ProprietaryConfigDAO proprietaryConfigDAO;
+  private ObsoleteProprietaryConfigDAO proprietaryConfigDAO;
 
   @Before
   public void init() throws Exception {
-    proprietaryConfigDAO = new ProprietaryConfigDAO(work.getDataDir());
+    proprietaryConfigDAO = new ObsoleteProprietaryConfigDAO(work.getDataDir());
   }
 
   @Test

@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.configuration.ProprietaryConfig;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -321,6 +323,13 @@ public class ApplicationDAO
     List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationId(tx, application.getId());
     for (ApplicationComponent appComponent : appComponents) {
       applicationComponentDAO.delete(tx, appComponent);
+    }
+
+    // Cascade to proprietary config
+    ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+    ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(tx, application.getId());
+    if (proprietaryConfig != null) {
+      proprietaryConfigDAO.delete(tx, proprietaryConfig);
     }
 
     super.delete(tx, application);

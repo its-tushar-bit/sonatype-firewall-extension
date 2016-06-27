@@ -15,7 +15,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
@@ -53,7 +53,7 @@ class Scanner
 
   private final ScanWriterFactory writerFactory;
 
-  private final ProprietaryConfigDAO proprietaryConfigDAO;
+  private final ObsoleteProprietaryConfigDAO proprietaryConfigDAO;
 
   private final FileCleaner fileCleaner;
 
@@ -69,7 +69,7 @@ class Scanner
     this.clientScanner = clientScanner;
     this.fileScanner = fileScanner;
     this.writerFactory = writerFactory;
-    proprietaryConfigDAO = new ProprietaryConfigDAO(work.getDataDir());
+    proprietaryConfigDAO = new ObsoleteProprietaryConfigDAO(work.getDataDir());
     this.fileCleaner = fileCleaner;
   }
 

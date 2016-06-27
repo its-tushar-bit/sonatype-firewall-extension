@@ -16,6 +16,7 @@ import java.util.UUID;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -176,6 +178,8 @@ public class TemporaryEntity
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
+
+  private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
   private Collection<Application> apps;
 
@@ -1341,5 +1345,11 @@ public class TemporaryEntity
     securityVulnerabilityOverrideDAO.insert(override);
     securityVulnerabilityOverrides.add(override);
     return override;
+  }
+
+  public ProprietaryConfig newProprietaryConfig(String ownerId) {
+    ProprietaryConfig config = new ProprietaryConfig(ownerId, null /* packages */, null /* regexes */);
+    proprietaryConfigDAO.insert(config);
+    return config;
   }
 }

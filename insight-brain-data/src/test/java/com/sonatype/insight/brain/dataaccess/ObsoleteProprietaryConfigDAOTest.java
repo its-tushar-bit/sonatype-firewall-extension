@@ -19,17 +19,21 @@ import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class ProprietaryConfigDAOTest
+/**
+ * @deprecated The tested class is deprecated.
+ */
+@Deprecated
+public class ObsoleteProprietaryConfigDAOTest
 {
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
-  private ProprietaryConfigDAO dao;
+  private ObsoleteProprietaryConfigDAO dao;
 
   @Before
   public void init() throws Exception {
-    dao = new ProprietaryConfigDAO(tmpDir.newFolder());
+    dao = new ObsoleteProprietaryConfigDAO(tmpDir.newFolder());
   }
 
   @Test

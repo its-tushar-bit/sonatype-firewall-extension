@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.configuration.ProprietaryConfig;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -193,6 +195,13 @@ public class OrganizationDAO
     List<Tag> tags = tagDAO.getByOrganizationId(tx, organization.getId());
     for (Tag tag : tags) {
       tagDAO.delete(tx, tag);
+    }
+
+    // Cascade to proprietary config
+    ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+    ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(tx, organization.getId());
+    if (proprietaryConfig != null) {
+      proprietaryConfigDAO.delete(tx, proprietaryConfig);
     }
 
     super.delete(tx, organization);

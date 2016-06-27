@@ -491,3 +491,12 @@ CREATE TABLE repository_policy_violation (
   CONSTRAINT repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id)
 );
 CREATE INDEX repository_policy_violation_pathname_idx ON repository_policy_violation(pathname);
+
+CREATE TABLE proprietary_config (
+  proprietary_config_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
+  packages_json CLOB NULL,
+  regexes_json CLOB NULL,
+  CONSTRAINT proprietary_config_pk PRIMARY KEY (proprietary_config_id),
+  CONSTRAINT proprietary_config_owner_uk UNIQUE KEY (owner_id)
+);

@@ -63,7 +63,7 @@ public class ScanTaskStateTest
 
   @Test
   public void scanning() throws IOException {
-    when(scanner.scan((File) any(), (String) any(), (File) any())).then(captureState);
+    when(scanner.scan((File) any(), (String) any(), (File) any(), (String) any())).then(captureState);
 
     task.run();
 
@@ -113,7 +113,7 @@ public class ScanTaskStateTest
   @Test
   @SuppressWarnings("unchecked")
   public void error() throws IOException {
-    when(scanner.scan((File) any(), (String) any(), (File) any())).thenThrow(RuntimeException.class);
+    when(scanner.scan((File) any(), (String) any(), (File) any(), (String) any())).thenThrow(RuntimeException.class);
 
     task.run();
 

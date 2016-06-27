@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -75,7 +76,7 @@ public class ScanTaskTest
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
     when(uploader.upload(eq(tmpScanFile), eq(app))).thenReturn(scanReceipt);
-    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir))).thenReturn(tmpScanFile);
+    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq("public-app-id"))).thenReturn(tmpScanFile);
   }
 
   private static class StageMatcher
@@ -124,7 +125,7 @@ public class ScanTaskTest
     assertThat(scanFile.isFile(), is(false));
     task.run();
 
-    verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(scanDir));
+    verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq("public-app-id"));
     assertThat(tmpScanFile.isFile(), is(false));
     assertThat(scanFile.isFile(), is(true));
   }
@@ -157,7 +158,8 @@ public class ScanTaskTest
   public void erorredTaskHasTicketWithErrorMessage() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false);
 
-    when(scanner.scan((File) any(), (String) any(), (File) any())).thenThrow(RuntimeException.class);
+    when(scanner.scan((File) any(), (String) any(), (File) any(), eq("public-app-id")))
+        .thenThrow(RuntimeException.class);
 
     task.init(app, bundleFile, bundleFilename, stage, false);
     task.run();
@@ -184,7 +186,8 @@ public class ScanTaskTest
   @Test
   @SuppressWarnings("unchecked")
   public void erorredTaskDeletesTemporaryApplicationBinary() throws IOException {
-    when(scanner.scan((File) any(), (String) any(), (File) any())).thenThrow(RuntimeException.class);
+    when(scanner.scan((File) any(), (String) any(), (File) any(), eq("public-app-id")))
+        .thenThrow(RuntimeException.class);
 
     File appBinary = new File("any");
     task.init(app, appBinary, bundleFilename, stage, false);

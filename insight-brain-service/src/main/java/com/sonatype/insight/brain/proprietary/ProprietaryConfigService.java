@@ -33,16 +33,19 @@ public class ProprietaryConfigService
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   ProprietaryConfig getConfigApplicationEvaluator(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
-    return getConfig(applicationPublicId);
+    return getConfig(OwnerType.APPLICATION, applicationPublicId);
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   ProprietaryConfig getConfigComponentEvaluator(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
-    return getConfig(applicationPublicId);
+    return getConfig(OwnerType.APPLICATION, applicationPublicId);
   }
 
-  private ProprietaryConfig getConfig(String publicOwnerId) {
-    String ownerId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, publicOwnerId);
+  /**
+   * NOTE: Permissions are NOT checked for this call
+   */
+  public ProprietaryConfig getConfig(OwnerType ownerType, String publicOwnerId) {
+    String ownerId = IdUtils.getInternalOwnerId(ownerType, publicOwnerId);
 
     ProprietaryConfig result = new ProprietaryConfig();
     result.setPackages(new ArrayList<String>());

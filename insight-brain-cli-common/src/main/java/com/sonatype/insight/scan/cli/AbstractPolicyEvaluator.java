@@ -110,7 +110,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   private ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient) throws ExitException {
     log.debug("Retrieving configuration for proprietary components from the IQ Server...");
     try {
-      return restClient.getProprietaryConfiguration();
+      return restClient.getProprietaryConfigForApplicationEvaluation(params.getApplicationId());
     }
     catch (IOException e) {
       if (e instanceof HttpResponseException && ((HttpResponseException) e).getStatusCode() == 404) {

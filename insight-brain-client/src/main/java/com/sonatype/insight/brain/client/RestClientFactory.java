@@ -80,8 +80,26 @@ public class RestClientFactory
       return new ConfigurationClient(config).getApplicationsForApplicationEvaluation();
     }
 
-    public ProprietaryConfig getProprietaryConfiguration() throws IOException {
-      return new ConfigurationClient(config).getProprietaryConfiguration();
+    /**
+     * Get the proprietary configuration used for an application evaluation.
+     * 
+     * @since 1.22.0
+     */
+    public ProprietaryConfig getProprietaryConfigForApplicationEvaluation(String applicationPublicId)
+        throws IOException
+    {
+      return new ConfigurationClient(config).getProprietaryConfigForApplicationEvaluation(applicationPublicId);
+    }
+
+    /**
+     * Get the proprietary configuration used for a component evaluation.
+     * 
+     * @since 1.22.0
+     */
+    public ProprietaryConfig getProprietaryConfigForComponentEvaluation(String applicationPublicId)
+        throws IOException
+    {
+      return new ConfigurationClient(config).getProprietaryConfigForComponentEvaluation(applicationPublicId);
     }
 
     public PolicyEvaluationResult evaluatePolicy(String appId, String scanId, String stageId) throws IOException {

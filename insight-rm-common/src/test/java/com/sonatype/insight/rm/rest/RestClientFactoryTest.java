@@ -58,26 +58,26 @@ public class RestClientFactoryTest
   }
 
   @Test
-  public void testGetProprietaryConfiguration() throws Exception {
+  public void testGetProprietaryConfigForApplicationEvaluation() throws Exception {
     ProprietaryConfig config = new ProprietaryConfig();
     ConfigurationClient configClient = mock(ConfigurationClient.class);
-    when(configClient.getProprietaryConfiguration()).thenReturn(config);
+    when(configClient.getProprietaryConfigForApplicationEvaluation(eq("appId"))).thenReturn(config);
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    assertSame(config, client.getProprietaryConfiguration());
+    assertSame(config, client.getProprietaryConfigForApplicationEvaluation("appId"));
   }
 
   @Test
-  public void testGetProprietaryConfiguration_OldBrain() throws Exception {
+  public void testGetProprietaryConfigForApplicationEvaluation_OldBrain() throws Exception {
     HttpResponseException hre = new HttpResponseException(404, "old brain");
     ConfigurationClient configClient = mock(ConfigurationClient.class);
-    when(configClient.getProprietaryConfiguration()).thenThrow(hre);
+    when(configClient.getProprietaryConfigForApplicationEvaluation(eq("appId"))).thenThrow(hre);
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
     try {
       RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-      client.getProprietaryConfiguration();
+      client.getProprietaryConfigForApplicationEvaluation("appId");
       fail("Expected HttpException");
     }
     catch (HttpException e) {

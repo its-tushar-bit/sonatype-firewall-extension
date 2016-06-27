@@ -91,16 +91,6 @@ public class RestClientFactory
     }
 
     @Override
-    public ProprietaryConfig getProprietaryConfiguration() throws IOException {
-      try {
-        return newConfigurationClient(config).getProprietaryConfiguration();
-      }
-      catch (IOException e) {
-        throw handleError(e);
-      }
-    }
-
-    @Override
     public App forApplication(final String appId) {
       return new AppSpecificClient(config, appId);
     }
@@ -135,6 +125,18 @@ public class RestClientFactory
     @Override
     public Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId) {
       return new RepositorySpecificClient(config, repositoryManagerInstanceId, repositoryPublicId);
+    }
+
+    @Override
+    public ProprietaryConfig getProprietaryConfigForApplicationEvaluation(String applicationPublicId)
+        throws IOException
+    {
+      try {
+        return newConfigurationClient(config).getProprietaryConfigForApplicationEvaluation(applicationPublicId);
+      }
+      catch (IOException e) {
+        throw handleError(e);
+      }
     }
   }
 

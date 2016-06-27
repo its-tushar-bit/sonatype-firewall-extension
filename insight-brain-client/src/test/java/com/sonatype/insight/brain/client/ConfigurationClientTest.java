@@ -15,7 +15,6 @@ import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient.Context;
-import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -196,12 +195,8 @@ public class ConfigurationClientTest
   @Test
   public void testGetApplicationsForApplicationEvaluation() throws Exception {
     Application application = tempEntity.newApplicationWithParent("valid-id");
-    User user = tempEntity.newUser("username");
-    Role role = tempEntity.newRole(false /* global */, Permission.EVALUATE_APPLICATION);
-    tempEntity.newMembershipMapping(application.getId(), role.getId(), user.getUsername());
+    Configuration config = createConfigForPerm(application.getId(), Permission.EVALUATE_APPLICATION);
 
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(SimpleAuthentication.parse(user.getUsername() + ":" + user.getPassword()));
     ApplicationSummaryList applicationSummaryList = new ConfigurationClient(config)
         .getApplicationsForApplicationEvaluation();
     assertApplicationSummaryList(applicationSummaryList, application);
@@ -352,16 +347,32 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testGetProprietaryConfiguration() throws Exception {
+  public void testGetProprietaryConfigForApplicationEvaluation() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("proprietary");
+    Configuration clientConfig = createConfigForPerm(application.getId(), Permission.EVALUATE_APPLICATION);
+
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
     List<String> regexes = Arrays.asList("org.sonatype.*", "com.sonatype.*");
-    ProprietaryConfig config = new ProprietaryConfig();
-    config.setPackages(packages);
-    config.setRegexes(regexes);
-    ObsoleteProprietaryConfigDAO dao = new ObsoleteProprietaryConfigDAO(getCLMServer().getDataDir());
-    dao.update(config);
+    tempEntity.newProprietaryConfig(application.getId(), packages, regexes);
 
-    config = new ConfigurationClient(getCLMServer().getClientConfiguration()).getProprietaryConfiguration();
+    ProprietaryConfig config = new ConfigurationClient(clientConfig)
+        .getProprietaryConfigForApplicationEvaluation(application.getPublicId());
+
+    assertEquals(packages, config.getPackages());
+    assertEquals(regexes, config.getRegexes());
+  }
+
+  @Test
+  public void testGetProprietaryConfigForComponentEvaluation() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("proprietary");
+    Configuration clientConfig = createConfigForPerm(application.getId(), Permission.EVALUATE_COMPONENT);
+
+    List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
+    List<String> regexes = Arrays.asList("org.sonatype.*", "com.sonatype.*");
+    tempEntity.newProprietaryConfig(application.getId(), packages, regexes);
+
+    ProprietaryConfig config = new ConfigurationClient(clientConfig)
+        .getProprietaryConfigForComponentEvaluation(application.getPublicId());
 
     assertEquals(packages, config.getPackages());
     assertEquals(regexes, config.getRegexes());
@@ -414,5 +425,15 @@ public class ConfigurationClientTest
     catch (HttpResponseException e) {
       MatcherAssert.assertThat(e.getMessage(), is("Unauthorized"));
     }
+  }
+
+  private Configuration createConfigForPerm(String applicationId, Permission permission) {
+    User user = tempEntity.newUser("username");
+    Role role = tempEntity.newRole(false /* global */, permission);
+    tempEntity.newMembershipMapping(applicationId, role.getId(), user.getUsername());
+
+    Configuration clientConfig = getCLMServer().getClientConfiguration();
+    clientConfig.setServerAuth(SimpleAuthentication.parse(user.getUsername() + ":" + user.getPassword()));
+    return clientConfig;
   }
 }

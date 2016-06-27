@@ -30,7 +30,13 @@ public interface RestClient
 
     ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException;
 
-    ProprietaryConfig getProprietaryConfiguration() throws IOException;
+    /**
+     * Get the proprietary configuration used for an application evaluation.
+     * 
+     * @since 1.22.0
+     */
+    ProprietaryConfig getProprietaryConfigForApplicationEvaluation(String applicationPublicId)
+        throws IOException;
 
     App forApplication(String appId);
 

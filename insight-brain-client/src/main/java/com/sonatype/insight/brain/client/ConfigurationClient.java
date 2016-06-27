@@ -105,8 +105,29 @@ public class ConfigurationClient
     }
   }
 
-  public ProprietaryConfig getProprietaryConfiguration() throws IOException {
-    Result result = get(path("rest/config/proprietary"));
+  /**
+   * Get the proprietary configuration used for an application evaluation.
+   * 
+   * @since 1.22.0
+   */
+  public ProprietaryConfig getProprietaryConfigForApplicationEvaluation(String applicationPublicId)
+      throws IOException
+  {
+    Result result = get(path("rest/config/proprietary").query("goal", "EVALUATE_APPLICATION", "applicationPublicId",
+        applicationPublicId));
+    return JsonUtils.parse(result.text(), ProprietaryConfig.class);
+  }
+
+  /**
+   * Get the proprietary configuration used for a component evaluation.
+   * 
+   * @since 1.22.0
+   */
+  public ProprietaryConfig getProprietaryConfigForComponentEvaluation(String applicationPublicId)
+      throws IOException
+  {
+    Result result = get(path("rest/config/proprietary").query("goal", "EVALUATE_COMPONENT", "applicationPublicId",
+        applicationPublicId));
     return JsonUtils.parse(result.text(), ProprietaryConfig.class);
   }
 

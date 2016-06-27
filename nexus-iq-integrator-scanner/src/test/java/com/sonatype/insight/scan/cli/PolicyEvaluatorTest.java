@@ -299,7 +299,7 @@ public class PolicyEvaluatorTest
     ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.getProprietaryConfiguration()).thenReturn(proprietaryConfig);
+    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
     when(restClient.uploadScan(eq("the-app-id"), scanFile.capture())).thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
@@ -337,7 +337,7 @@ public class PolicyEvaluatorTest
     ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.getProprietaryConfiguration()).thenReturn(proprietaryConfig);
+    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
     when(restClient.uploadScan(eq("the-app-id"), scanFile.capture())).thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
@@ -369,7 +369,7 @@ public class PolicyEvaluatorTest
     ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.getProprietaryConfiguration()).thenReturn(proprietaryConfig);
+    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
     when(restClient.uploadScan(eq("the-app-id"), scanFile.capture())).thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
@@ -399,7 +399,8 @@ public class PolicyEvaluatorTest
     ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.getProprietaryConfiguration()).thenThrow(new HttpResponseException(404, "outdated"));
+    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id"))
+        .thenThrow(new HttpResponseException(404, "outdated"));
     when(restClient.uploadScan(eq("the-app-id"), scanFile.capture())).thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
@@ -415,7 +416,8 @@ public class PolicyEvaluatorTest
   public void testGlobalProprietaryConfigFailure() throws Exception {
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.getProprietaryConfiguration()).thenThrow(new HttpResponseException(500, "error"));
+    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id"))
+        .thenThrow(new HttpResponseException(500, "error"));
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     try {
       evaluator.run(params);

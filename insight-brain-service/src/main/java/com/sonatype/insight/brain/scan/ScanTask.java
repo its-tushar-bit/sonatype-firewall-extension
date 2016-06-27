@@ -182,7 +182,7 @@ class ScanTask
 
       // create the scan data
       state = State.SCANNING_COMPONENTS;
-      File scanFile = scanner.scan(binFile, filename, work.getScanDir(app.getId()));
+      File scanFile = scanner.scan(binFile, filename, work.getScanDir(app.getId()), app.getPublicId());
 
       // upload the scan
       state = State.UPLOADING_SCAN;

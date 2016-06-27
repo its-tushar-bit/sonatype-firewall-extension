@@ -19,7 +19,8 @@ public enum Permission
 
   VIEW_ROLES("View", PermissionCategory.ADMINISTRATOR, "All Roles", true /* global */, true /* allowedInCustomRoles */),
 
-  MANAGE_PROPRIETARY("Edit", PermissionCategory.ADMINISTRATOR, "Proprietary Components", true /* global */, true /* allowedInCustomRoles */),
+  MANAGE_PROPRIETARY("Edit", PermissionCategory.CLM, "Proprietary Components", false /* global */,
+      true /* allowedInCustomRoles */),
 
   CLAIM_COMPONENT("Claim", PermissionCategory.CLM, "Components", true /* global */, true /* allowedInCustomRoles */),
 

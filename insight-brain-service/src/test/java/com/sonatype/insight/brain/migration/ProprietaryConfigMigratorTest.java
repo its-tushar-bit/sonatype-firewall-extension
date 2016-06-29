@@ -1,0 +1,137 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.migration;
+
+import java.io.File;
+import java.util.Collections;
+
+import com.sonatype.insight.brain.configuration.ProprietaryConfig;
+import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+
+public class ProprietaryConfigMigratorTest
+{
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
+  private ProprietaryConfigMigrator migrator;
+
+  private ObsoleteProprietaryConfigDAO obsoleteProprietaryConfigDAO;
+
+  private ProprietaryConfigDAO proprietaryConfigDAO;
+
+  private InsightWork work;
+
+  @Before
+  public void setUp() throws Exception {
+    InsightConfig insightConfig = new InsightConfig();
+    File workDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(workDir.getAbsolutePath());
+    work = new InsightWork(insightConfig);
+    work.getDataDir().mkdirs();
+    obsoleteProprietaryConfigDAO = new ObsoleteProprietaryConfigDAO(work.getDataDir());
+    proprietaryConfigDAO = new ProprietaryConfigDAO();
+    migrator = new ProprietaryConfigMigrator(work, proprietaryConfigDAO);
+  }
+
+  @After
+  public void tearDown() {
+    // clean up any migrated proprietary config, since it doesn't get cleaned up automatically due to the root org.
+    ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    if (proprietaryConfig != null) {
+      proprietaryConfigDAO.delete(proprietaryConfig);
+    }
+  }
+
+  @Test
+  public void testMigrateWithExistingJsonFile() throws Exception {
+    // setup
+    com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = new com.sonatype.clm.dto.model.ProprietaryConfig();
+    obsoleteConfig.setPackages(Collections.singletonList("com.test.package"));
+    obsoleteConfig.setRegexes(Collections.singletonList("regex"));
+    obsoleteProprietaryConfigDAO.update(obsoleteConfig);
+
+    // execute
+    migrator.migrate();
+
+    // assert
+    File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
+    assertThat(markerFile.exists(), is(true));
+    ProprietaryConfig migratedConfig = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(migratedConfig, is(notNullValue()));
+    assertThat(migratedConfig.getPackages(), is(obsoleteConfig.getPackages()));
+    assertThat(migratedConfig.getRegexes(), is(obsoleteConfig.getRegexes()));
+    assertThat(migratedConfig.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
+  }
+
+  @Test
+  public void testMigrateWithoutExistingJsonFile() throws Exception {
+    // execute
+    migrator.migrate();
+
+    // assert
+    File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
+    assertThat(markerFile.exists(), is(true));
+    com.sonatype.insight.brain.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
+        .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(migratedConfig, is(nullValue()));
+  }
+
+  @Test
+  public void testMigrateWithEmptyJsonFile() throws Exception {
+    // setup
+    com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = new com.sonatype.clm.dto.model.ProprietaryConfig();
+    obsoleteConfig.setPackages(Collections.<String>emptyList());
+    obsoleteConfig.setRegexes(Collections.<String>emptyList());
+    obsoleteProprietaryConfigDAO.update(obsoleteConfig);
+
+    // execute
+    migrator.migrate();
+
+    // assert
+    File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
+    assertThat(markerFile.exists(), is(true));
+    com.sonatype.insight.brain.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
+        .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(migratedConfig, is(nullValue()));
+  }
+
+  @Test
+  public void testMigrateAlreadyMigrated() throws Exception {
+    // setup
+    File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
+    markerFile.createNewFile();
+
+    com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = new com.sonatype.clm.dto.model.ProprietaryConfig();
+    obsoleteConfig.setPackages(Collections.singletonList("com.test.package"));
+    obsoleteConfig.setRegexes(Collections.singletonList("regex"));
+    obsoleteProprietaryConfigDAO.update(obsoleteConfig);
+
+    // execute
+    migrator.migrate();
+
+    // assert
+    assertThat(markerFile.exists(), is(true));
+    com.sonatype.insight.brain.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
+        .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(migratedConfig, is(nullValue()));
+  }
+
+}

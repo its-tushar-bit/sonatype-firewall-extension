@@ -339,6 +339,11 @@ public class TemporaryEntity
         repositoryManagerDAO.delete(repositoryManager);
       }
     }
+
+    ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    if (config != null) {
+      proprietaryConfigDAO.delete(config);
+    }
   }
 
   public String uuid() {
@@ -1349,6 +1354,12 @@ public class TemporaryEntity
 
   public ProprietaryConfig newProprietaryConfig(String ownerId) {
     ProprietaryConfig config = new ProprietaryConfig(ownerId, null /* packages */, null /* regexes */);
+    proprietaryConfigDAO.insert(config);
+    return config;
+  }
+
+  public ProprietaryConfig newProprietaryConfig(String ownerId, List<String> packages, List<String> regexes) {
+    ProprietaryConfig config = new ProprietaryConfig(ownerId, packages, regexes);
     proprietaryConfigDAO.insert(config);
     return config;
   }

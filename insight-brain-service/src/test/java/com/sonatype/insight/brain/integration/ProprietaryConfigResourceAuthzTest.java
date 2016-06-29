@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.proprietary;
+package com.sonatype.insight.brain.integration;
 
 import java.io.File;
 import java.util.Arrays;
@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.integration.ProprietaryConfigResource;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.After;

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.proprietary;
+package com.sonatype.insight.brain.integration;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,10 +21,12 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.PolicyResource;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +34,12 @@ import org.slf4j.LoggerFactory;
 @Path(ProprietaryConfigResource.RESOURCE_PATH)
 public class ProprietaryConfigResource
 {
+  // This path is maintained to enable forward & backward support for Nexus
   public static final String RESOURCE_PATH = "rest/config/proprietary";
+
+  public static final String APPLICATION_PARAM = "applicationPublicId";
+
+  public static final String GOAL_PARAM = "goal";
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
@@ -40,15 +47,26 @@ public class ProprietaryConfigResource
 
   private final CurrentUser currentUser;
 
+  private ProprietaryConfigService proprietaryConfigService;
+
   @Inject
-  public ProprietaryConfigResource(InsightWork work, CurrentUser currentUser) {
+  public ProprietaryConfigResource(InsightWork work,
+                                   CurrentUser currentUser,
+                                   ProprietaryConfigService proprietaryConfigService)
+  {
     this.work = work;
     this.currentUser = currentUser;
+    this.proprietaryConfigService = proprietaryConfigService;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ProprietaryConfig get() {
+  public ProprietaryConfig get(@QueryParam(GOAL_PARAM) Goal goal,
+                               @QueryParam(APPLICATION_PARAM) String applicationPublicId)
+  {
+    if (goal != null && StringUtils.isNotBlank(applicationPublicId)) {
+      return proprietaryConfigService.getConfig(goal, applicationPublicId);
+    }
     return newDAO().get();
   }
 
@@ -62,6 +80,7 @@ public class ProprietaryConfigResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.MANAGE_PROPRIETARY)
+  @Deprecated
   public void update(@QueryParam("where") final String where,
                      @Context final HttpServletRequest request,
                      final ProprietaryConfig config)

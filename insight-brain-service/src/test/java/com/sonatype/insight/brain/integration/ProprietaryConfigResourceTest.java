@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.proprietary;
+package com.sonatype.insight.brain.integration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.After;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -27,7 +29,18 @@ public class ProprietaryConfigResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ProprietaryConfigResource.RESOURCE_PATH);
+    return restRequest(null, null);
+  }
+
+  protected HttpRequest restRequest(Goal goal, String applicationId) {
+    HttpRequest request = super.restRequest().path(ProprietaryConfigResource.RESOURCE_PATH);
+    if (goal != null) {
+      request.query(ProprietaryConfigResource.GOAL_PARAM, goal);
+    }
+    if (applicationId != null) {
+      request.query(ProprietaryConfigResource.APPLICATION_PARAM, applicationId);
+    }
+    return request;
   }
 
   @After
@@ -39,6 +52,38 @@ public class ProprietaryConfigResourceTest
   @Test
   public void testGet_InitialConfig() throws Exception {
     HttpResponse response = restRequest().get();
+    assertResponseStatus(200, response);
+    ProprietaryConfig config = response.getBody(ProprietaryConfig.class);
+    assertNotNull(config);
+    assertEquals(0, config.getPackages().size());
+  }
+
+  @Test
+  public void testGet_InvalidGoal() throws Exception {
+    tempEntity.newApplicationWithParent("app-id");
+
+    HttpResponse response = restRequest(Goal.SUMMARIZE_EVALUATION, "app-id").get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(),
+        is("Proprietary Configuration requested for invalid goal: " + Goal.SUMMARIZE_EVALUATION));
+  }
+
+  @Test
+  public void testGet_GoalEvaluateApplication() throws Exception {
+    tempEntity.newApplicationWithParent("app-id");
+
+    HttpResponse response = restRequest(Goal.EVALUATE_APPLICATION, "app-id").get();
+    assertResponseStatus(200, response);
+    ProprietaryConfig config = response.getBody(ProprietaryConfig.class);
+    assertNotNull(config);
+    assertEquals(0, config.getPackages().size());
+  }
+
+  @Test
+  public void testGet_GoalEvaluateComponent() throws Exception {
+    tempEntity.newApplicationWithParent("app-id");
+
+    HttpResponse response = restRequest(Goal.EVALUATE_COMPONENT, "app-id").get();
     assertResponseStatus(200, response);
     ProprietaryConfig config = response.getBody(ProprietaryConfig.class);
     assertNotNull(config);

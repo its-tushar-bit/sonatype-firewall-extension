@@ -10,11 +10,13 @@ import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO
 import com.sonatype.insight.brain.testing.functional.configuration.ProprietaryComponentsPage
 
 import spock.lang.Stepwise
+import spock.lang.Ignore
 
 /**
  * @since 1.11
  */
 @Stepwise
+@Ignore
 class ProprietaryComponentSpec
     extends BaseSpec
 {

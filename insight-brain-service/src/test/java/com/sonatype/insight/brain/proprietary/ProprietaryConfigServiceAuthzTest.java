@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.integration.Goal;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
-import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
@@ -20,6 +19,17 @@ public class ProprietaryConfigServiceAuthzTest
 {
   @Inject
   private ProprietaryConfigService service;
+
+  @Test
+  public void testGetConfig_NoGoal_Authorized() throws Exception {
+    login();
+    service.getConfig((Goal) null, null);
+  }
+
+  @Test
+  public void testGetConfig_NoGoal_Unauthenticated() throws Exception {
+    service.getConfig((Goal) null, null);
+  }
 
   @Test
   public void testGetConfig_EvaluateApplication_Authorized() throws Exception {
@@ -33,7 +43,7 @@ public class ProprietaryConfigServiceAuthzTest
     service.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  // Anonymous access is currently allowed
   public void testGetConfig_EvaluateApplication_Unauthenticated() throws Exception {
     service.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
@@ -50,7 +60,7 @@ public class ProprietaryConfigServiceAuthzTest
     service.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  // Anonymous access is currently allowed
   public void testGetConfig_EvaluateComponent_Unauthenticated() throws Exception {
     service.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }

@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.integration.Goal;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -20,6 +21,8 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @since 1.22.0
@@ -31,12 +34,12 @@ public class ProprietaryConfigService
 
   private OwnerDAO ownerDAO = new OwnerDAO();
 
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
   ProprietaryConfig getConfigApplicationEvaluator(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
     return getConfig(OwnerType.APPLICATION, applicationPublicId);
   }
 
-  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT, anonymousAllowed = true)
   ProprietaryConfig getConfigComponentEvaluator(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
     return getConfig(OwnerType.APPLICATION, applicationPublicId);
   }
@@ -63,6 +66,11 @@ public class ProprietaryConfigService
   }
 
   public ProprietaryConfig getConfig(Goal goal, String applicationPublicId) {
+    if (goal == null || StringUtils.isBlank(applicationPublicId)) {
+      // to support pre-1.22 clients, should be removed along w/ anonymous access
+      return getConfig(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+    }
+
     switch (goal) {
       case EVALUATE_APPLICATION:
         return getConfigApplicationEvaluator(applicationPublicId);

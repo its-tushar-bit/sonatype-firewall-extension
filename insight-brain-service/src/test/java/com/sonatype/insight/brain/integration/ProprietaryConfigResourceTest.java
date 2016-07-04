@@ -16,10 +16,9 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -59,16 +58,6 @@ public class ProprietaryConfigResourceTest
   }
 
   @Test
-  public void testGet_InvalidGoal() throws Exception {
-    tempEntity.newApplicationWithParent("app-id");
-
-    HttpResponse response = restRequest(Goal.SUMMARIZE_EVALUATION, "app-id").get();
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText(),
-        is("Proprietary Configuration requested for invalid goal: " + Goal.SUMMARIZE_EVALUATION));
-  }
-
-  @Test
   public void testGet_GoalEvaluateApplication() throws Exception {
     tempEntity.newApplicationWithParent("app-id");
 
@@ -91,6 +80,7 @@ public class ProprietaryConfigResourceTest
   }
 
   @Test
+  @Ignore
   public void testUpdate() throws Exception {
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
     List<String> regexes = Arrays.asList(".*\\.zip");

@@ -11,8 +11,6 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.integration.ProprietaryConfigResource;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.After;
@@ -43,17 +41,5 @@ public class ProprietaryConfigResourceAuthzTest
     grantManageProprietaryPermission();
 
     testAuthzPut(restRequest().path("update").body(config));
-  }
-
-  @Test
-  public void testGet_UnauthenticatedAnonymousAllowed() throws Exception {
-    HttpResponse response = restRequest().anon().get();
-    assertResponseStatus(200, response);
-  }
-
-  @Test
-  public void testGet_UnauthenticatedUserNotAllowed() throws Exception {
-    HttpResponse response = restRequest().auth("unknownUser", "unknownPassword").get();
-    assertResponseStatus(401, response);
   }
 }

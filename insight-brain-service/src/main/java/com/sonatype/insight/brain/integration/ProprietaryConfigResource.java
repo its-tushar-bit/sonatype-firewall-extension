@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,10 +63,7 @@ public class ProprietaryConfigResource
   public ProprietaryConfig get(@QueryParam(GOAL_PARAM) Goal goal,
                                @QueryParam(APPLICATION_PARAM) String applicationPublicId)
   {
-    if (goal != null && StringUtils.isNotBlank(applicationPublicId)) {
-      return proprietaryConfigService.getConfig(goal, applicationPublicId);
-    }
-    return newDAO().get();
+    return proprietaryConfigService.getConfig(goal, applicationPublicId);
   }
 
   @PUT

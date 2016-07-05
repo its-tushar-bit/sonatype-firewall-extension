@@ -7,10 +7,13 @@ package com.sonatype.insight.brain.proprietary;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.integration.Goal;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigResource.FilePathRegex;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
@@ -18,52 +21,103 @@ public class ProprietaryConfigServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private ProprietaryConfigService service;
+  private ProprietaryConfigService proprietaryConfigService;
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetProprietaryConfigHierarchy_Unauthorized() {
+    login();
+    proprietaryConfigService.getProprietaryConfigHierarchy(org.getType(), org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetProprietaryConfigHierarchy_Unauthenticated() {
+    proprietaryConfigService.getProprietaryConfigHierarchy(org.getType(), org.getId());
+  }
+
+  @Test
+  public void testGetProprietaryConfigHierarchy_Authorized() {
+    grantReadPermission(org.getId());
+    proprietaryConfigService.getProprietaryConfigHierarchy(org.getType(), org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpsertProprietaryConfig_Unauthorized() {
+    grantReadPermission(org.getId());
+    proprietaryConfigService.upsertProprietaryConfig(org.getType(), org.getId(), new ProprietaryConfig());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpsertProprietaryConfig_Unauthenticated() {
+    proprietaryConfigService.upsertProprietaryConfig(org.getType(), org.getId(), new ProprietaryConfig());
+  }
+
+  @Test
+  public void testUpsertProprietaryConfig_Authorized() {
+    grantManageProprietaryPermission(org.getId());
+    proprietaryConfigService.upsertProprietaryConfig(org.getType(), org.getId(), new ProprietaryConfig());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddFilePathRegexToProprietaryConfig_Unauthorized() {
+    grantReadPermission(org.getId());
+    proprietaryConfigService.addFilePathRegexToProprietaryConfig(org.getType(), org.getId(), null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddFilePathRegexToProprietaryConfig_Unauthenticated() {
+    proprietaryConfigService.addFilePathRegexToProprietaryConfig(org.getType(), org.getId(), null);
+  }
+
+  @Test
+  public void testAddFilePathRegexToProprietaryConfig_Authorized() {
+    grantManageProprietaryPermission(org.getId());
+    proprietaryConfigService.addFilePathRegexToProprietaryConfig(org.getType(), org.getId(), new FilePathRegex());
+  }
 
   @Test
   public void testGetConfig_NoGoal_Authorized() throws Exception {
     login();
-    service.getConfig((Goal) null, null);
+    proprietaryConfigService.getConfig((Goal) null, null);
   }
 
   @Test
   public void testGetConfig_NoGoal_Unauthenticated() throws Exception {
-    service.getConfig((Goal) null, null);
+    proprietaryConfigService.getConfig((Goal) null, null);
   }
 
   @Test
   public void testGetConfig_EvaluateApplication_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    service.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
+    proprietaryConfigService.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetConfig_EvaluateApplication_Unauthorized() throws Exception {
     login();
-    service.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
+    proprietaryConfigService.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   // Anonymous access is currently allowed
   @Test
   public void testGetConfig_EvaluateApplication_Unauthenticated() throws Exception {
-    service.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
+    proprietaryConfigService.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   @Test
   public void testGetConfig_EvaluateComponent_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
-    service.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
+    proprietaryConfigService.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetConfig_EvaluateComponent_Unauthorized() throws Exception {
     login();
-    service.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
+    proprietaryConfigService.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 
   // Anonymous access is currently allowed
   @Test
   public void testGetConfig_EvaluateComponent_Unauthenticated() throws Exception {
-    service.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
+    proprietaryConfigService.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 }

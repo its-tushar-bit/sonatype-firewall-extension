@@ -78,47 +78,4 @@ public class ProprietaryConfigResourceTest
     assertNotNull(config);
     assertEquals(0, config.getPackages().size());
   }
-
-  @Test
-  @Ignore
-  public void testUpdate() throws Exception {
-    List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
-    List<String> regexes = Arrays.asList(".*\\.zip");
-    ProprietaryConfig config = new ProprietaryConfig();
-    config.setPackages(packages);
-    config.setRegexes(regexes);
-    HttpResponse response = restRequest().path("update").body(config).put();
-    assertResponseStatus(204, response);
-
-    response = restRequest().get();
-    assertResponseStatus(200, response);
-    config = response.getBody(ProprietaryConfig.class);
-    assertEquals(packages, config.getPackages());
-  }
-
-  @Test
-  public void testInvalidRegex() throws Exception {
-    assertInvalidRegex(Arrays.asList("*"), "Dangling meta character '*' near index 0\n*\n^");
-  }
-
-  @Test
-  public void testInvalidRegexNPE() throws Exception {
-    List<String> regexes = new ArrayList<>();
-    regexes.add(null);
-    assertInvalidRegex(regexes, "null");
-  }
-
-  @Test
-  public void testInvalidRegexBlacklisted() throws Exception {
-    assertInvalidRegex(Arrays.asList(".*", "^.*$"), "This regex is specifically disallowed: .*\nThis regex is "
-        + "specifically disallowed: ^.*$");
-  }
-
-  private void assertInvalidRegex(final List<String> regexes, final String expectedMessage) throws Exception {
-    ProprietaryConfig config = new ProprietaryConfig();
-    config.setRegexes(regexes);
-    HttpResponse response = restRequest().path("update").body(config).put();
-    assertResponseStatus(400, response);
-    assertEquals(expectedMessage, response.getBodyText());
-  }
 }

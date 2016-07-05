@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.configuration;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -77,14 +77,14 @@ public class ProprietaryConfig
       }
     }
     if (packages == null) {
-      packages = Collections.<String> emptyList();
+      packages = new ArrayList<>();
     }
     return packages;
   }
 
   public void setPackages(List<String> packages) {
     if (packages == null || packages.isEmpty()) {
-      this.packages = Collections.<String> emptyList();
+      this.packages = new ArrayList<>();
       packagesJson = null;
       return;
     }
@@ -104,7 +104,7 @@ public class ProprietaryConfig
       }
     }
     if (regexes == null) {
-      regexes = Collections.<String> emptyList();
+      regexes = new ArrayList<>();
     }
     return regexes;
   }
@@ -116,7 +116,7 @@ public class ProprietaryConfig
 
   public void setRegexes(List<String> regexes) {
     if (regexes == null || regexes.isEmpty()) {
-      this.regexes = Collections.<String> emptyList();
+      this.regexes = new ArrayList<>();
       regexesJson = null;
       return;
     }

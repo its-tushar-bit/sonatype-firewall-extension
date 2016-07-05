@@ -112,4 +112,8 @@ public class AbstractServiceAuthzTest
   protected void grantAddApplicationPermission(String contextId) {
     grantPermission(contextId, Permission.ADD_APPLICATION);
   }
+
+  protected void grantManageProprietaryPermission(String contextId) {
+    grantPermission(contextId, Permission.MANAGE_PROPRIETARY);
+  }
 }

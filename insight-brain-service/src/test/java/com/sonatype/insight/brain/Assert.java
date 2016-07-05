@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.mail.Message;
 
+import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -20,6 +21,13 @@ import static org.junit.Assert.assertThat;
  */
 public class Assert
 {
+  public static void assertProprietaryConfig(ProprietaryConfig expected, ProprietaryConfig actual) {
+    assertThat(expected.getOwnerId(), is(actual.getOwnerId()));
+    assertThat(expected.getId(), is(actual.getId()));
+    assertThat(expected.getPackages(), is(actual.getPackages()));
+    assertThat(expected.getRegexes(), is(actual.getRegexes()));
+  }
+
   public static void assertTag(Tag expected, Tag actual) {
     assertThat(actual.getOrganizationId(), is(expected.getOrganizationId()));
     assertThat(actual.getName(), is(expected.getName()));

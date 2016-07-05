@@ -44,6 +44,7 @@ public class ProprietaryConfigServiceAuthzTest
   }
 
   // Anonymous access is currently allowed
+  @Test
   public void testGetConfig_EvaluateApplication_Unauthenticated() throws Exception {
     service.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
@@ -61,6 +62,7 @@ public class ProprietaryConfigServiceAuthzTest
   }
 
   // Anonymous access is currently allowed
+  @Test
   public void testGetConfig_EvaluateComponent_Unauthenticated() throws Exception {
     service.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }

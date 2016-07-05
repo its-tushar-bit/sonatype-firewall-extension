@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.io.ScanReader;
@@ -33,9 +32,6 @@ public class ScannerTest
 
   @Inject
   private ScanReader scanReader;
-
-  @Inject
-  private InsightWork work;
 
   @Test
   public void testScan() throws Exception {

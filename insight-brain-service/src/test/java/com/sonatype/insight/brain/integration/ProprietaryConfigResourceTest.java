@@ -6,17 +6,12 @@
 package com.sonatype.insight.brain.integration;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

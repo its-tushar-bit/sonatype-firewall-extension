@@ -12,11 +12,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.configuration.ProprietaryConfig;
-import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,18 +31,17 @@ public class ProprietaryConfigMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(ProprietaryConfigMigrator.class);
 
+  static final String PROPRIETARY_CONFIG_FILENAME = "proprietary.json";
+
   static final String MARKER_FILE_NAME = "proprietaryconfig-migrated";
 
   private final InsightWork work;
-
-  private final ObsoleteProprietaryConfigDAO obsoleteProprietaryConfigDAO;
 
   private final ProprietaryConfigDAO proprietaryConfigDAO;
 
   @Inject
   public ProprietaryConfigMigrator(InsightWork work, ProprietaryConfigDAO proprietaryConfigDAO) {
     this.work = work;
-    this.obsoleteProprietaryConfigDAO = new ObsoleteProprietaryConfigDAO(work.getDataDir());
     this.proprietaryConfigDAO = proprietaryConfigDAO;
   }
 
@@ -55,7 +55,7 @@ public class ProprietaryConfigMigrator
       return;
     }
 
-    com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = obsoleteProprietaryConfigDAO.get();
+    com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = getObsoleteProprietaryConfig();
 
     if (obsoleteConfig.getRegexes().isEmpty() && obsoleteConfig.getPackages().isEmpty()) {
       markerFile.createNewFile();
@@ -71,5 +71,17 @@ public class ProprietaryConfigMigrator
     markerFile.createNewFile();
 
     log.info("Migrated proprietary config data in {} ms.", System.currentTimeMillis() - start);
+  }
+
+  private com.sonatype.clm.dto.model.ProprietaryConfig getObsoleteProprietaryConfig() {
+    try {
+      final JsonNode config = JsonUtils.fileStore(work.getDataDir()).restore(PROPRIETARY_CONFIG_FILENAME);
+      return (config != null) ? JsonUtils.asPojo(config, com.sonatype.clm.dto.model.ProprietaryConfig.class)
+          : new com.sonatype.clm.dto.model.ProprietaryConfig();
+    }
+    catch (IOException e) {
+      log.error("Failed to load proprietary component configuration", e);
+      throw new RuntimeException(e);
+    }
   }
 }

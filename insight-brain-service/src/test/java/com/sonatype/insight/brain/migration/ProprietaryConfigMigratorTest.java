@@ -6,14 +6,15 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import com.sonatype.insight.brain.configuration.ProprietaryConfig;
-import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -33,8 +34,6 @@ public class ProprietaryConfigMigratorTest
 
   private ProprietaryConfigMigrator migrator;
 
-  private ObsoleteProprietaryConfigDAO obsoleteProprietaryConfigDAO;
-
   private ProprietaryConfigDAO proprietaryConfigDAO;
 
   private InsightWork work;
@@ -46,7 +45,6 @@ public class ProprietaryConfigMigratorTest
     insightConfig.setSonatypeWork(workDir.getAbsolutePath());
     work = new InsightWork(insightConfig);
     work.getDataDir().mkdirs();
-    obsoleteProprietaryConfigDAO = new ObsoleteProprietaryConfigDAO(work.getDataDir());
     proprietaryConfigDAO = new ProprietaryConfigDAO();
     migrator = new ProprietaryConfigMigrator(work, proprietaryConfigDAO);
   }
@@ -66,7 +64,7 @@ public class ProprietaryConfigMigratorTest
     com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = new com.sonatype.clm.dto.model.ProprietaryConfig();
     obsoleteConfig.setPackages(Collections.singletonList("com.test.package"));
     obsoleteConfig.setRegexes(Collections.singletonList("regex"));
-    obsoleteProprietaryConfigDAO.update(obsoleteConfig);
+    writeProprietaryConfigFile(obsoleteConfig);
 
     // execute
     migrator.migrate();
@@ -100,7 +98,7 @@ public class ProprietaryConfigMigratorTest
     com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = new com.sonatype.clm.dto.model.ProprietaryConfig();
     obsoleteConfig.setPackages(Collections.<String>emptyList());
     obsoleteConfig.setRegexes(Collections.<String>emptyList());
-    obsoleteProprietaryConfigDAO.update(obsoleteConfig);
+    writeProprietaryConfigFile(obsoleteConfig);
 
     // execute
     migrator.migrate();
@@ -122,7 +120,7 @@ public class ProprietaryConfigMigratorTest
     com.sonatype.clm.dto.model.ProprietaryConfig obsoleteConfig = new com.sonatype.clm.dto.model.ProprietaryConfig();
     obsoleteConfig.setPackages(Collections.singletonList("com.test.package"));
     obsoleteConfig.setRegexes(Collections.singletonList("regex"));
-    obsoleteProprietaryConfigDAO.update(obsoleteConfig);
+    writeProprietaryConfigFile(obsoleteConfig);
 
     // execute
     migrator.migrate();
@@ -134,4 +132,8 @@ public class ProprietaryConfigMigratorTest
     assertThat(migratedConfig, is(nullValue()));
   }
 
+  private void writeProprietaryConfigFile(com.sonatype.clm.dto.model.ProprietaryConfig config) throws IOException {
+    JsonUtils.fileStore(work.getDataDir()).commit(ProprietaryConfigMigrator.PROPRIETARY_CONFIG_FILENAME,
+        JsonUtils.stamp("user", "ip", null, JsonUtils.asTree(config)));
+  }
 }

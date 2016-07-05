@@ -6,11 +6,10 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.clm.dto.model.ProprietaryConfig
-import com.sonatype.insight.brain.dataaccess.ObsoleteProprietaryConfigDAO
 import com.sonatype.insight.brain.testing.functional.configuration.ProprietaryComponentsPage
 
-import spock.lang.Stepwise
 import spock.lang.Ignore
+import spock.lang.Stepwise
 
 /**
  * @since 1.11
@@ -18,132 +17,131 @@ import spock.lang.Ignore
 @Stepwise
 @Ignore
 class ProprietaryComponentSpec
-    extends BaseSpec
-{
+extends BaseSpec {
 
   private static final ProprietaryConfig CONFIG = new ProprietaryConfig(packages: ['com.sonatype'],
-      regexes: ['.*data\\.zip'])
+  regexes: ['.*data\\.zip'])
 
   def setupSpec() {
-    ObsoleteProprietaryConfigDAO proprietaryConfigDAO = new ObsoleteProprietaryConfigDAO(
-        new File(serviceRule.configuration.sonatypeWork, 'data'))
-    proprietaryConfigDAO.update(CONFIG)
+    //    ObsoleteProprietaryConfigDAO proprietaryConfigDAO = new ObsoleteProprietaryConfigDAO(
+    //        new File(serviceRule.configuration.sonatypeWork, 'data'))
+    //proprietaryConfigDAO.update(CONFIG)
   }
 
   def "Should be able to load and view existing configuration"() {
     when: 'first viewing the page'
-      loginAsAdminVia(ProprietaryComponentsPage)
+    loginAsAdminVia(ProprietaryComponentsPage)
 
     then: 'we see already stored values'
-      !error.displayed
-      buttons.button('Reset').disabled
-      buttons.save.disabled
-      rows.size() == 2
-      rows[0].value == CONFIG.packages[0]
-      !rows[0].isRegex
-      rows[1].value == CONFIG.regexes[0]
-      rows[1].isRegex
+    !error.displayed
+    buttons.button('Reset').disabled
+    buttons.save.disabled
+    rows.size() == 2
+    rows[0].value == CONFIG.packages[0]
+    !rows[0].isRegex
+    rows[1].value == CONFIG.regexes[0]
+    rows[1].isRegex
   }
 
   def "Can add a new proprietary package to the list"() {
     when: 'adding a new package'
-      input << 'org.sonatype'
-      add.click()
+    input << 'org.sonatype'
+    add.click()
 
     then: 'it is added to the end of the package list'
-      !buttons.button('Reset').disabled
-      !buttons.save.disabled
-      rows.size() == 3
-      rows[1].value == 'org.sonatype'
-      !rows[1].isRegex
+    !buttons.button('Reset').disabled
+    !buttons.save.disabled
+    rows.size() == 3
+    rows[1].value == 'org.sonatype'
+    !rows[1].isRegex
   }
 
   def "Can add a new proprietary regex to the list"() {
     when: 'adding a new regex'
-      regex.value(true)
-      input << '.*sonatype.*'
-      add.click()
+    regex.value(true)
+    input << '.*sonatype.*'
+    add.click()
 
     then: 'it is added to the end of the regex list'
-      rows.size() == 4
-      rows[3].value == '.*sonatype.*'
-      rows[3].isRegex
+    rows.size() == 4
+    rows[3].value == '.*sonatype.*'
+    rows[3].isRegex
   }
 
   def "Can save new entries"() {
     when: 'we save the new entries'
-      buttons.save.click()
+    buttons.save.click()
 
     then: 'the data is pushed to the server'
-      rows.size() == 4
-      waitFor { buttons.displayed }
+    rows.size() == 4
+    waitFor { buttons.displayed }
 
     and: 'the buttons disable'
-      buttons.button('Reset').disabled
-      buttons.save.disabled
+    buttons.button('Reset').disabled
+    buttons.save.disabled
   }
 
   def "Already specified packages result in an error"() {
     when: 'we add a package already stored'
-      regex.value(false)
-      input << CONFIG.packages[0]
+    regex.value(false)
+    input << CONFIG.packages[0]
 
     then: 'an error is shown and the Reset button is enabled'
-      popoverText(input) == 'Component prefix already specified'
-      buttons.save.disabled
+    popoverText(input) == 'Component prefix already specified'
+    buttons.save.disabled
   }
 
   def "We can clear an error by removing the entry"() {
     when: 'we clear an existing error'
-      input.value('')
+    input.value('')
 
     then: 'the error is replaced and buttons are disabled'
-      popoverText(input) == 'Please enter a value'
-      buttons.save.disabled
+    popoverText(input) == 'Please enter a value'
+    buttons.save.disabled
   }
 
   def "Already specified regexes result in an error"() {
     when: 'we add a package already stored'
-      regex.value(true)
-      input <<  CONFIG.regexes[0]
+    regex.value(true)
+    input <<  CONFIG.regexes[0]
 
     then: 'an error is shown and the Reset button is enabled'
-      popoverText(input) == 'Component regex already specified'
-      buttons.save.disabled
+    popoverText(input) == 'Component regex already specified'
+    buttons.save.disabled
   }
 
   def "Packages with wildcards should be rejected"() {
     when: 'we add a package containing a wildcard'
-      regex.value(false)
-      input <<  'com.**'
+    regex.value(false)
+    input <<  'com.**'
 
     then: 'an error is shown and the Reset button is enabled'
-      popoverText(input) == 'Wildcards are not allowed/required for packages'
-      buttons.save.disabled
+    popoverText(input) == 'Wildcards are not allowed/required for packages'
+    buttons.save.disabled
   }
 
   def "Packages which have a bad prefix should be rejected"() {
     when: 'we add a package containing a bad prefix'
-      input.value('.')
+    input.value('.')
 
     then: 'an error is shown and the Reset button is enabled'
-      popoverText(input) == 'Invalid package prefix:\ne.g. com.sonatype'
-      buttons.save.disabled
+    popoverText(input) == 'Invalid package prefix:\ne.g. com.sonatype'
+    buttons.save.disabled
   }
 
   def "Unparseable regexes result in an error"() {
     when: 'we add a regex that cannot be parsed and try to save it'
-      regex.value(true)
-      input <<  '*'
-      add.click()
-      buttons.save.click()
+    regex.value(true)
+    input <<  '*'
+    add.click()
+    buttons.save.click()
 
     then: 'the server returns an error'
-      waitFor { error.displayed }
-      error.text().startsWith('Dangling meta character')
-      report('regex error message')
+    waitFor { error.displayed }
+    error.text().startsWith('Dangling meta character')
+    report('regex error message')
 
     cleanup: 'clear existing error'
-      buttons.button('Reset').click()
+    buttons.button('Reset').click()
   }
 }

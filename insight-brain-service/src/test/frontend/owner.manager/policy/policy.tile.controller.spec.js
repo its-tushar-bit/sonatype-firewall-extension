@@ -20,7 +20,10 @@ describe('policy.tile.controller.spec.js', function() {
       stageTypeStoreDefer,
       EventNameConstant,
       MonitoredStageService,
-      mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore');
+      mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
+      mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore('ProprietaryConfigurationHierarchyStore'),
+      mockProprietaryConfigurationHierarchyStoreData = StoreUtils().createMockHierarchyStoreData(ProprietaryMockData
+          .getProprietaryConfiguration(), 'proprietaryConfigByOwners');
 
   beforeEach(inject(['monitored.stage.service', function(_MonitoredStageService_) {
         MonitoredStageService = _MonitoredStageService_;
@@ -55,6 +58,7 @@ describe('policy.tile.controller.spec.js', function() {
     resolveStageTypeStore(MockData.getDashboardStageData());
     spyOn(MonitoredStageService, 'getMonitoredStage').andReturn({ stageName: 'Develop', stageTypeId: 'develop' });
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
 
     expect(vm.ownerName).toEqual(mockPolicyStoreData[0].ownerName);
@@ -78,6 +82,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
 
     expect(vm.monitoredStage.stageName).toBe('Do not monitor');
@@ -87,6 +92,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockPolicyHierarchyStore.rejectGet("dagnabbit");
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
 
     $timeout.flush();
 
@@ -96,6 +102,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
 
     expect(vm.error).toBeUndefined();
@@ -123,6 +130,17 @@ describe('policy.tile.controller.spec.js', function() {
     $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, {name: 'Bob'});
 
     expect(vm.ownerName).toEqual('Bob');
+  });
+
+  it('Proprietary config counts properly updated', function() {
+    mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
+    resolveStageTypeStore(MockData.getDashboardStageData());
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
+    $timeout.flush();
+
+    expect(vm.localProprietaryCount).toEqual(3);
+    expect(vm.inheritedProprietaryCount).toEqual(1);
   });
 
   function resolveStageTypeStore(value) {

@@ -245,6 +245,25 @@
     }
   ]);
 
+
+  storesModule.service('ProprietaryConfigurationHierarchyStore', [
+    'CLMAppLocations', 'CachedHierarchyStore', function(CLMAppLocations, CachedHierarchyStore) {
+      var proprietaryConfigStoreTemplate = {
+        template: {
+          id: undefined,
+          packages: [],
+          regexes: []
+        },
+        type: 'proprietary configuration',
+        getUrl: CLMAppLocations.getProprietaryConfigUrl,
+        crudUrl: CLMAppLocations.getProprietaryConfigUrl,
+        field: 'proprietaryConfigByOwners'
+      };
+
+      return CachedHierarchyStore.get(proprietaryConfigStoreTemplate);
+    }
+  ]);
+
   /* A service which allows stores to be cached by a key, or if not provided the entity id.
    * Stores and their contents will be cached across the SPA.
    * configuration is the same as Resource except:

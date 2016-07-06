@@ -13,7 +13,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class PolicyTile
     extends OwnerTile
 {
-  private static final String POLICY_HIERARCHY = ".simple-list:not(#continuous-monitoring)";
+  private static final String POLICY_HIERARCHY = ".simple-list:not(#continuous-monitoring):not(#proprietary-component-matchers)";
 
   public PolicyTile() {
     super("#owner-pill-policy");

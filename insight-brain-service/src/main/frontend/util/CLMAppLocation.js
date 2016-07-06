@@ -185,6 +185,10 @@
           return baseUrl.get() + '/rest/user/permissions/' + path;
         },
 
+        getProprietaryConfigUrl: function() {
+          return baseUrl.get() + '/rest/proprietary/' + getServicePathWithId();
+        },
+
         isApplication: isApplication,
         isOrganization: isOrganization,
         isRootOrg: isRootOrg,

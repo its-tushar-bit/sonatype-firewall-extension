@@ -7,7 +7,8 @@
   'use strict';
 
   function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
-                                PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore)
+                                PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
+                                ProprietaryConfigurationHierarchyStore)
   {
     var vm = this;
     vm.ownerName = undefined;
@@ -15,6 +16,8 @@
     vm.error = undefined;
     vm.actionStages = undefined;
     vm.monitoredStage = undefined;
+    vm.localProprietaryCount = 0;
+    vm.inheritedProprietaryCount = 0;
     vm.editPolicy = editPolicy;
     vm.doLoad = doLoad;
 
@@ -28,7 +31,8 @@
       $q.all([
         PolicyHierarchyStore.get(),
         StageTypeStore.getActionStages(),
-        PolicyMonitoringStore.getApplicable()
+        PolicyMonitoringStore.getApplicable(),
+        ProprietaryConfigurationHierarchyStore.get()
       ]).then(function(results) {
         vm.policiesByOwner = results[0];
         vm.actionStages = results[1];
@@ -54,6 +58,18 @@
           vm.monitoredStage = MonitoredStageService.createInheritOrNoMonitorOption(policyMonitoringByOwner,
               vm.actionStages);
         }
+
+        var proprietaryMatchers = results[3];
+        proprietaryMatchers.forEach(function(configOwner, index) {
+          var config = configOwner.proprietaryConfig,
+              matcherTotal = config.packages.length + config.regexes.length;
+          if (index === 0) {
+            vm.localProprietaryCount += matcherTotal;
+          }
+          else {
+            vm.inheritedProprietaryCount += matcherTotal;
+          }
+        });
       }, function(error) {
         vm.error = error;
       });
@@ -72,7 +88,8 @@
 
   PolicyTileController.$inject = [
     '$scope', '$q', 'StageTypeStore', 'SameOwnerStateNavigationService',
-    'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore'
+    'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore',
+    'ProprietaryConfigurationHierarchyStore'
   ];
 
   angular //

@@ -95,6 +95,10 @@ public class OwnerSummaryPage
       return $("#continuous-monitoring div.title");
     }
 
+    public static SelenideElement proprietaryComponentMatchers() {
+      return $("#proprietary-component-matchers div.title");
+    }
+    
     public static SelenideElement localAccessRole(String roleName) {
       return $$("#owner-pill-access table td.role").findBy(text(roleName));
     }

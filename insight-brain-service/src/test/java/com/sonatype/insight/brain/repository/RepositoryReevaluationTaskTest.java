@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -136,10 +137,10 @@ public class RepositoryReevaluationTaskTest
 
     List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(components, hasSize(2));
-    assertHasComponent(components, component.getPathname(), MatchState.EXACT, "claimed", claimedIdentifier, true,
-        timeBeforeReevaluation);
-    assertHasComponent(components, unknownComponent.getPathname(), MatchState.EXACT, "Sonatype", newIdentifier, false,
-        timeBeforeReevaluation);
+    assertHasComponent(components, component.getPathname(), MatchState.EXACT, IdentificationSource.MANUAL.getId(),
+        claimedIdentifier, true, timeBeforeReevaluation);
+    assertHasComponent(components, unknownComponent.getPathname(), MatchState.EXACT,
+        IdentificationSource.SONATYPE.getId(), newIdentifier, false, timeBeforeReevaluation);
 
     try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
       List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
@@ -182,6 +183,7 @@ public class RepositoryReevaluationTaskTest
     for (RepositoryComponent component : components) {
       if (component.getPathname().equals(pathname)) {
         assertThat(component.getMatchStateId(), is(matchState.getId()));
+        assertThat(component.getIdentificationSourceId(), is(identificationSource));
         assertThat(component.getComponentIdentifier(), is(componentIdentifier));
         assertThat(component.isQuarantined(), is(quarantined));
         assertThat(component.getLastEvaluationTime(), is(greaterThanOrEqualTo(timeBeforeReevaluation)));

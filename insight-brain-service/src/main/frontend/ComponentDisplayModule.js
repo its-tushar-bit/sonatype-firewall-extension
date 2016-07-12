@@ -10,8 +10,8 @@
   angular.module('ComponentName', []).run(['$templateCache', function($templateCache) {
     $templateCache.put('displayname',
             '<span ng-repeat="part in displayName.parts">' +
-            '<span ng-if="part.field">{{ part.value }}</span>' +
-            '<span ng-if="!part.field" class="wrap-force-break">{{ part.value }}</span>' +
+            '<span ng-if="part.field">{{ part.value | periodDelimiter }}</span>' +
+            '<span ng-if="!part.field" class="wrap-force-break">{{ part.value | periodDelimiter }}</span>' +
             '</span>'
     );
   }]).directive('componentName', function () {
@@ -72,5 +72,16 @@
     return {
       renderToString: renderToString
     };
+  });
+
+  module.filter('periodDelimiter', function() {
+    return addWordBreakAfterPeriods;
+
+    function addWordBreakAfterPeriods(input) {
+      // NOTE: You can't see it, but we are replacing the periods with a period followed by a zero-width space.
+      // This makes our periods into word breaking delimiters. Also, we only replace the periods in between words as
+      // to preserve version numbers.
+      return input.replace(/(?=\.\D+)\.(?=\D+)/g, '.​');
+    }
   });
 }());

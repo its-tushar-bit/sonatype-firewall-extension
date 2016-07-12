@@ -7,7 +7,7 @@ describe('ComponentDisplay', function() {
     $compile = _$compile_;
     scope = $rootScope.$new();
   }));
-  
+
   afterEach(function () {
     scope.$destroy();
   });
@@ -70,4 +70,16 @@ describe('ComponentDisplay', function() {
       })).toBe('foo : bar');
     });
   });
+
+  describe('periodDelimiter Filter', function() {
+    it('properly adds zero-width space', inject(function($filter) {
+      var periodDelimiterFilter = $filter('periodDelimiter'),
+          zeroWidthSpace = '%E2%80%8B';
+
+      expect(periodDelimiterFilter).toBeDefined();
+      expect(encodeURI(periodDelimiterFilter('org.apache.geronimo.framework:geronimo-security:2.1'))).toEqual(
+          'org.' + zeroWidthSpace + 'apache.' + zeroWidthSpace + 'geronimo.' + zeroWidthSpace +
+          'framework:geronimo-security:2.1');
+    }));
+  })
 });

@@ -180,7 +180,7 @@
             <ul>
               <li class="simple clickable" same-owner-edit-sref="component-matchers-policy">
                 <div class="title">
-                  {{::vm.localProprietaryCount}} local, {{::vm.inheritedProprietaryCount}} inherited
+                  {{::vm.localProprietaryCount}} local<span ng-if="::!vm.isRootOrg">, {{::vm.inheritedProprietaryCount}} inherited</span>
                 </div>
                 <i class="fa fa-chevron-right"></i>
               </li>

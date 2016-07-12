@@ -14,4 +14,8 @@ public class ProprietaryComponentMatchersEditorPage
   public static Condition summaryText(int localCount, int inheritedCount) {
     return text(localCount + " local, " + inheritedCount + " inherited");
   }
+
+  public static Condition summaryText(int localCount) {
+    return text(localCount + " local");
+  }
 }

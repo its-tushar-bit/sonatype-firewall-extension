@@ -8,7 +8,7 @@
 
   function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
                                 PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
-                                ProprietaryConfigurationHierarchyStore)
+                                ProprietaryConfigurationHierarchyStore, CLMAppLocations)
   {
     var vm = this;
     vm.ownerName = undefined;
@@ -18,6 +18,7 @@
     vm.monitoredStage = undefined;
     vm.localProprietaryCount = 0;
     vm.inheritedProprietaryCount = 0;
+    vm.isRootOrg = CLMAppLocations.isRootOrg();
     vm.editPolicy = editPolicy;
     vm.doLoad = doLoad;
 
@@ -89,7 +90,7 @@
   PolicyTileController.$inject = [
     '$scope', '$q', 'StageTypeStore', 'SameOwnerStateNavigationService',
     'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore',
-    'ProprietaryConfigurationHierarchyStore'
+    'ProprietaryConfigurationHierarchyStore', 'CLMAppLocations'
   ];
 
   angular //

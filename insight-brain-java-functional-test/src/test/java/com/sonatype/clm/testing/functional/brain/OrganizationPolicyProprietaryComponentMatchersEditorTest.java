@@ -5,9 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
+import com.sonatype.clm.testing.functional.pages.ProprietaryComponentMatchersEditorPage;
 import com.sonatype.insight.brain.model.Organization;
 
 import org.junit.Before;
+import org.junit.Test;
 
 public class OrganizationPolicyProprietaryComponentMatchersEditorTest
     extends AbstractPolicyProprietaryComponentMatchersEditorTest
@@ -21,4 +25,9 @@ public class OrganizationPolicyProprietaryComponentMatchersEditorTest
     super.init(organization);
   }
 
+  @Test
+  public void testEditProprietaryComponentMatchersRootOrg() {
+    OwnerTreeView.RootOrganizationNode.treeViewElement().click();
+    SummaryTile.proprietaryComponentMatchers().shouldHave(ProprietaryComponentMatchersEditorPage.summaryText(2));
+  }
 }

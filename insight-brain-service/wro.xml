@@ -140,7 +140,6 @@
     <js>/wro4j/version-graph/version.graph/licenses.directive.js</js>
     <js>/wro4j/version-graph/version.graph/name.part.filter.js</js>
     <js>/wro4j/version-graph/version.graph/properties.service.js</js>
-    <js>/wro4j/version-graph/version.graph/selected.app.service.js</js>
     <js>/wro4j/version-graph/version.graph/state.service.js</js>
     <js>/wro4j/version-graph/version.graph/status.controller.js</js>
   </group>
@@ -236,7 +235,7 @@
 
   <group name='audit-report'>
     <js>/frontend/lib/protovis/protovis-tipsy.js</js>
-    <js>/frontend/lib/date.format.js</js>
+    <js>/wro4j/lib/date.format.js</js>
     <js>/wro4j/lib/jquery/jquery.tipsy.js</js>
     <js>/wro4j/lib/slickgrid/jquery.event.drag-2.0.min.js</js>
 
@@ -268,7 +267,6 @@
     <js>/wro4j/audit-report/audit.module/audit.module.js</js>
     <js>/wro4j/audit-report/audit.module/audit.summary.controller.js</js>
     <js>/wro4j/audit-report/audit.module/coverage.donut.directive.js</js>
-    <js>/wro4j/audit-report/audit.module/reevaluator.controller.js</js>
     <js>/wro4j/audit-report/audit.module/audit.threat.directive.js</js>
     <js>/wro4j/audit-report/audit.module/owner.context.service.js</js>
     <js>/wro4j/audit-report/audit.module/repository.violation.table.filter.directive.js</js>

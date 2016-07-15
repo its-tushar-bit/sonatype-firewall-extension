@@ -228,7 +228,7 @@ public class RepositoryReevaluationTaskTest
   private Policy createPolicy() {
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "new", 9);
     Constraint constraintOrg = new Constraint(null, "Constraint Name Org", LogicalOperator.AND);
-    constraintOrg.addCondition(new Condition(CoordinatesConditionType.ID, "match", "com"));
+    constraintOrg.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:com"));
     policy.setConstraints(Collections.singletonList(constraintOrg));
 
     new PolicyDAO().update(policy);

@@ -8,10 +8,13 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
@@ -19,6 +22,10 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.endsWith;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class CoordinatesConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -28,9 +35,18 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluateMatchExact() {
+  public void testEvaluate_Maven_MatchExact() {
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_MAVEN);
+  }
+
+  @Test
+  public void testEvaluate_Aname_MatchExact() {
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_ANAME);
+  }
+
+  private void testEvaluate_MatchExact(String format) {
     // Create policy constraints
-    Constraint constraint = createConstraint("match", "g2:a2:v2");
+    Constraint constraint = createConstraint("match", format + ":g2:a2:v2");
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -40,9 +56,9 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1");
     components.add(component1);
-    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.SIMILAR);
+    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2");
     components.add(component2);
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
@@ -58,9 +74,9 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluateMatchGavWithSpaces() {
+  public void testEvaluate_Maven_MatchGavWithSpaces() {
     // Create policy constraints
-    Constraint constraint = createConstraint("match", "g1 : a1 : v1");
+    Constraint constraint = createConstraint("match", "maven:g1 : a1 : v1");
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -83,9 +99,18 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluateMatchWildcard() {
+  public void testEvaluate_Maven_MatchWildcard() {
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_MAVEN);
+  }
+
+  @Test
+  public void testEvaluate_Aname_MatchWildcard() {
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_ANAME);
+  }
+
+  private void testEvaluate_MatchWildcard(String format) {
     // Create policy constraints
-    Constraint constraint = createConstraint("match", "g2:a*:v2");
+    Constraint constraint = createConstraint("match", format + ":g2:a*:v2");
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -95,9 +120,9 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1");
     components.add(component1);
-    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.SIMILAR);
+    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2");
     components.add(component2);
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
@@ -113,9 +138,18 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluateDoNotMatchExact() {
+  public void testEvaluate_Maven_DoNotMatchExact() {
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_MAVEN);
+  }
+
+  @Test
+  public void testEvaluate_Aname_DoNotMatchExact() {
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_ANAME);
+  }
+
+  private void testEvaluate_DoNotMatchExact(String format) {
     // Create policy constraints
-    Constraint constraint = createConstraint("do not match", "g2:a2:v2");
+    Constraint constraint = createConstraint("do not match", format + ":g2:a2:v2");
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -125,9 +159,9 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1");
     components.add(component1);
-    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.SIMILAR);
+    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2");
     components.add(component2);
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
@@ -143,9 +177,18 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluateDoNotMatchWildcard() {
+  public void testEvaluate_Maven_DoNotMatchWildcard() {
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_MAVEN);
+  }
+
+  @Test
+  public void testEvaluate_Aname_DoNotMatchWildcard() {
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_ANAME);
+  }
+
+  private void testEvaluate_DoNotMatchWildcard(String format) {
     // Create policy constraints
-    Constraint constraint = createConstraint("do not match", "g2:a*:v2");
+    Constraint constraint = createConstraint("do not match", format + ":g2:a*:v2");
     List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
@@ -155,9 +198,9 @@ public class CoordinatesConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forCoordinates(MatchState.EXACT, format, "g1", "a1", "v1");
     components.add(component1);
-    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.SIMILAR);
+    Component component2 = ComponentFactory.forCoordinates(MatchState.SIMILAR, format, "g2", "a2", "v2");
     components.add(component2);
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
@@ -173,10 +216,10 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluateEscapeUnsafeCharacter() {
+  public void testEvaluate_EscapeUnsafeCharacter() {
     String artifactId = "\\\"\r\n\t'";
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
-    policy.addConstraint(createConstraint("match", "g1:" + artifactId));
+    policy.addConstraint(createConstraint("match", "maven:g1:" + artifactId));
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
@@ -189,5 +232,42 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
         "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testValidateCondition_NullCoordinates() {
+    Condition condition = new Condition(CoordinatesConditionType.ID, "match", null);
+    try {
+      new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
+      fail("Expected InvalidConditionException");
+    }
+    catch (InvalidConditionException expected) {
+      assertThat(expected.getMessage(), endsWith("Missing coordinates"));
+    }
+  }
+
+  @Test
+  public void testValidateCondition_EmptyCoordinates() {
+    Condition condition = new Condition(CoordinatesConditionType.ID, "match", " ");
+    try {
+      new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
+      fail("Expected InvalidConditionException");
+    }
+    catch (InvalidConditionException expected) {
+      assertThat(expected.getMessage(), endsWith("Missing coordinates"));
+    }
+  }
+
+  @Test
+  public void testValidateCondition_UnsupportedCoordinateFormat() {
+    Condition condition = new Condition(CoordinatesConditionType.ID, "match", "nuget");
+    try {
+      new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
+      fail("Expected InvalidConditionException");
+    }
+    catch (InvalidConditionException expected) {
+      assertThat(expected.getMessage(),
+          endsWith("Unsupported component identifier format for coordinates policy condition: 'nuget'"));
+    }
   }
 }

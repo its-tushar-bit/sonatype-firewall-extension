@@ -697,7 +697,7 @@ public class PolicyEvaluateResourceTest
     policyDAO.insert(policy1);
 
     final Constraint constraint2 = new Constraint("C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND);
-    constraint2.addCondition(new Condition(CoordinatesConditionType.ID, "match", "tomcat"));
+    constraint2.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat"));
     final Policy policy2 = new Policy("P2", "PolicyEvaluateResourceTest policy2");
     policy2.setThreatLevel(4);
     policy2.addConstraint(constraint2);
@@ -705,7 +705,7 @@ public class PolicyEvaluateResourceTest
     policyDAO.insert(policy2);
 
     final Constraint constraint3 = new Constraint("C3", "PolicyEvaluateResourceTest constraint 3", LogicalOperator.AND);
-    constraint3.addCondition(new Condition(CoordinatesConditionType.ID, "match", "org.*"));
+    constraint3.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:org.*"));
     final Policy policy3 = new Policy("P3", "PolicyEvaluateResourceTest policy3");
     policy3.setThreatLevel(3);
     policy3.addConstraint(constraint3);
@@ -845,9 +845,9 @@ public class PolicyEvaluateResourceTest
     String scanId = "testEvaluateFirstOccurrencePolicyViolations";
 
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.OR);
-    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "tomcat:tomcat-util:5.5.23");
+    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "maven:tomcat:tomcat-util:5.5.23");
     constraint1.addCondition(condition1);
-    Condition condition2 = new Condition(CoordinatesConditionType.ID, "match", "commons-pool:commons-pool:1.4");
+    Condition condition2 = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
     constraint1.addCondition(condition2);
     Policy policy = new Policy("P1", "PolicyEvaluateResourceTest policy");
     policy.setThreatLevel(8);
@@ -877,7 +877,7 @@ public class PolicyEvaluateResourceTest
 
     // Change one of the policy conditions and re-evaluate the policy.
     // This should cause a policy violation to be cleared and a new policy violation to appear.
-    policy.getConstraints().get(0).getConditions().get(0).setValue("commons-dbcp:commons-dbcp:1.4");
+    policy.getConstraints().get(0).getConditions().get(0).setValue("maven:commons-dbcp:commons-dbcp:1.4");
     policyDAO.update(policy);
     // Evaluate policy again for the same scan
     response = evalRequest(applicationPublicId, scanId, stage).post();
@@ -898,7 +898,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate_FirstOccurrencePolicyViolations_TwoStages() throws Exception {
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.OR);
-    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "commons-pool:commons-pool:1.4");
+    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4");
     constraint1.addCondition(condition1);
     Policy policy = new Policy("P1", "PolicyEvaluateResourceTest policy");
     policy.setThreatLevel(8);

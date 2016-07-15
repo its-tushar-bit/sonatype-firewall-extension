@@ -154,7 +154,7 @@ public class RepositoryPolicyAlertEmailerTest
     policy.setThreatLevel(5);
     policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
     Constraint constraint = new Constraint(null, "Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "foobar"));
+    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:foobar"));
     policy.addConstraint(constraint);
     policy.getNotifications().add(new UserNotification("email@sonatype.com", ProxyStageType.ID));
     policy.getNotifications().add(new RoleNotification(role.getId(), ProxyStageType.ID));

@@ -261,7 +261,7 @@ public class WaiverTest
 
   private void createGavViolatingPolicy(String ownerId) {
     // create policy
-    Condition condition = new Condition(CoordinatesConditionType.ID, "match", "*");
+    Condition condition = new Condition(CoordinatesConditionType.ID, "match", "maven:*");
     Constraint constraint = new Constraint();
     constraint.setName("All coordinates");
     constraint.addCondition(condition);

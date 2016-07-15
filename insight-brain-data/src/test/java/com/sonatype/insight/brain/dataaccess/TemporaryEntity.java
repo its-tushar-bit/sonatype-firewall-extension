@@ -837,7 +837,7 @@ public class TemporaryEntity
     policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
     Constraint constraint = new Constraint(null, "Constraint", LogicalOperator.AND);
     // purposeful to generally not match anything
-    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "foobar"));
+    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "maven:foobar"));
     policy.addConstraint(constraint);
     return newPolicy(policy);
   }

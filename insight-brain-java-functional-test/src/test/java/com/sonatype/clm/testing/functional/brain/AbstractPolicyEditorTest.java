@@ -343,7 +343,7 @@ public abstract class AbstractPolicyEditorTest
     Constraint constraint3 = new Constraint(policy.getId() + "3", "Third Constraint with Two Conditions",
         LogicalOperator.OR);
     constraint3.addCondition(new Condition("RelativePopularity", "<", "50"));
-    constraint3.addCondition(new Condition("Coordinates", "do not match", "blah:blah:blah"));
+    constraint3.addCondition(new Condition("Coordinates", "do not match", "maven:blah:blah:blah"));
 
     policy.setConstraints(Arrays.asList(constraint1, constraint2, constraint3));
 
@@ -432,7 +432,7 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary3.editConstraintButton().shouldBe(visible, enabled);
 
     constraintSummary3.condition(0).shouldHave(text("Relative Popularity (Percentage) less than 50"));
-    constraintSummary3.condition(1).shouldHave(text("Coordinates (GAV) do not match blah:blah:blah"));
+    constraintSummary3.condition(1).shouldHave(text("Coordinates do not match maven:blah:blah:blah"));
   }
 
   private void testEditPolicy_constraintSection_editors(Policy policy) {
@@ -499,10 +499,10 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.addConditiontButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(3);
     constraintEdit.condition(2).type().selectedItem().shouldHave(text("Age")).click();
-    constraintEdit.condition(2).type().listItem(11).shouldHave(text("Coordinates (GAV)")).click();
+    constraintEdit.condition(2).type().listItem(11).shouldHave(text("Coordinates")).click();
     constraintEdit.inputCondition(2).operator().selectedItem().shouldHave(text("match")).click();
     constraintEdit.inputCondition(2).operator().listItem(1).shouldHave(text("do not match")).click();
-    constraintEdit.inputCondition(2).value().shouldBe(empty).val("com.eclipse.*");
+    constraintEdit.inputCondition(2).value().shouldBe(empty).val("maven:com.eclipse.*");
     PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
@@ -513,11 +513,11 @@ public abstract class AbstractPolicyEditorTest
 
     Condition coordinatesCondition = constraints.get(0).getConditions().get(2);
     assertThat(coordinatesCondition.getConditionTypeId(), is("Coordinates"));
-    assertThat(coordinatesCondition.getValue(), is("com.eclipse.*"));
+    assertThat(coordinatesCondition.getValue(), is("maven:com.eclipse.*"));
     assertThat(coordinatesCondition.getOperator(), is("do not match"));
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintEdit.condition(2).type().selectedItem().shouldHave(text("Coordinates (GAV)")).click();
+    constraintEdit.condition(2).type().selectedItem().shouldHave(text("Coordinates")).click();
     constraintEdit.condition(2).type().listItem(5).shouldHave(text("Security Vulnerability")).click();
     constraintEdit.condition(2).operator().selectedItem().shouldHave(text("present")).click();
     constraintEdit.condition(2).operator().listItem(1).shouldHave(text("absent")).click();

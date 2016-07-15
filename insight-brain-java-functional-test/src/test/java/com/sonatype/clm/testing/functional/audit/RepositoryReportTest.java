@@ -79,17 +79,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.disappear;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.present;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -127,7 +117,7 @@ public class RepositoryReportTest
 
     extremelyBadPolicy = createPolicy(10, "Extremely Bad", MatchStateConditionType.ID, "is",
         MatchState.EXACT.toString());
-    notInSummaryPolicy = createPolicy(9, "Not in summary", CoordinatesConditionType.ID, "match", "critical:*");
+    notInSummaryPolicy = createPolicy(9, "Not in summary", CoordinatesConditionType.ID, "match", "maven:critical:*");
 
     insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
   }

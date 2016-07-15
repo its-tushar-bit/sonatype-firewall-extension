@@ -22,4 +22,21 @@ public class ComponentFactory
     component.setMatchState(matchState);
     return component;
   }
+
+  public static Component forCoordinates(MatchState matchState, String format, String... coord) {
+    ComponentIdentifier componentIdentifier;
+    switch (format) {
+      case ComponentIdentifier.FORMAT_MAVEN:
+        componentIdentifier = ComponentIdentifier.createMavenCoordinates(coord[0], coord[1], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_ANAME:
+        componentIdentifier = ComponentIdentifier.createAnameCoordinates(coord[0], coord[1], coord[2]);
+        break;
+      default:
+        throw new IllegalArgumentException("Unsupported component identifier format:" + format);
+    }
+    Component component = new Component(componentIdentifier);
+    component.setMatchState(matchState);
+    return component;
+  }
 }

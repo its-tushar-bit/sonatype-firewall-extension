@@ -58,16 +58,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.focused;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.ActionsSection.activeClass;
@@ -271,7 +262,7 @@ public abstract class AbstractPolicyEditorTest
 
   private Policy getPolicyByName(String policyName) {
     for (Policy p : policyDAO.getByOwnerId(currentOwner.getId())) {
-      if (p.getName().equals("New Policy")) {
+      if (p.getName().equals(policyName)) {
         return p;
       }
     }

@@ -35,7 +35,7 @@ public class PolicyCoordinatesConditionTypeMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyCoordinatesConditionTypeMigrator.class);
 
-  static final String MARKER_FILE_NAME = "policy-coordinates-condition-type-migrated";
+  static final String MARKER_FILE_NAME = "policycoordinatesconditiontype-migrated";
 
   private final InsightWork insightWork;
 

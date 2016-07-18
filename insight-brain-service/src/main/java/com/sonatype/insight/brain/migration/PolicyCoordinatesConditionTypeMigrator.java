@@ -82,7 +82,7 @@ public class PolicyCoordinatesConditionTypeMigrator
         System.currentTimeMillis() - start);
   }
 
-  private boolean migrate(Policy policy) throws IOException {
+  private boolean migrate(Policy policy) {
     boolean migrated = false;
     if (policy.getConstraints() != null) {
       for (Constraint constraint : policy.getConstraints()) {

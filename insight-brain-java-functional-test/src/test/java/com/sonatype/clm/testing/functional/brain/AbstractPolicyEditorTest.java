@@ -390,7 +390,7 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_constraintSection_summaries(Policy policy) {
     List<Constraint> constraints = policy.getConstraints();
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
-    constraintSection.addConstraintButton().shouldBe(visible, enabled);
+    constraintSection.addConstrainButton().shouldBe(visible, enabled);
     constraintSection.constraintSummaries().shouldHaveSize(constraints.size());
 
     ConstraintSection.ConstraintSummary constraintSummary1 = constraintSection.constraintSummary(0);
@@ -712,7 +712,7 @@ public abstract class AbstractPolicyEditorTest
 
   public void testCreatePolicy_constraintSection() {
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
-    constraintSection.addConstraintButton().shouldBe(visible, enabled);
+    constraintSection.addConstrainButton().shouldBe(visible, enabled);
 
     constraintSection.constraintEditors().shouldHaveSize(1);
 

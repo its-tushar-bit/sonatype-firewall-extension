@@ -33,7 +33,7 @@ public class ConstraintSection
     return new ConstraintEditSection(rootSelector + "  .constraint:nth-child(" + (i + 1) + ") .constraint-editor", i);
   }
 
-  public SelenideElement addConstraintButton() {
+  public SelenideElement addConstrainButton() {
     return $("#add-constraint-button");
   }
 

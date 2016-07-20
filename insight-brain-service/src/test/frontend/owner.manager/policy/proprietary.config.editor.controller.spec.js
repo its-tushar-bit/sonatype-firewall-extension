@@ -138,6 +138,30 @@ describe("proprietary.config.editor.controller.spec.js", function() {
     expect(vm.dirtyProprietaryConfig.regexes.length).toBe(0);
   });
 
+  it('removes same regex and package name', function() {
+    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
+    $httpBackend.flush();
+
+    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
+
+    // add a regex that matches the string of an existing package name
+    vm.matcherType = vm.matcherTypes.REGEX;
+    vm.regexMatcher = 'com.sonatype';
+    vm.addMatcher();
+    
+    expect(vm.localMatchers.length).toBe(4);
+    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
+    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(2);
+    expect(vm.localMatchers[0]).toEqual({'type': vm.matcherTypes.PACKAGE, 'matcher': 'com.sonatype'});
+    expect(vm.localMatchers[3]).toEqual({'type': vm.matcherTypes.REGEX, 'matcher': 'com.sonatype'});
+
+    vm.removeMatcher(vm.localMatchers[3]);
+    expect(vm.localMatchers.length).toBe(3);
+    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
+    // only the regex to be deleted
+    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(1);
+  });
+
   it('Expect field to be cleared on add', function() {
     $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();

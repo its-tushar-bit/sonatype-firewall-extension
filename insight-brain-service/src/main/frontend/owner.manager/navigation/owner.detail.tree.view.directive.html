@@ -78,10 +78,7 @@
          ng-if="vm.policyState.isExpanded ||  vm.state.$current.name.endsWith('policy')"
          ui-sref=".proprietary-config-policy"
          ui-sref-active="selected">
-        <span class="fa proprietary-components-icon size-16px tree-view-icon"><!--
-          Empty span needed for stacking icon styling
-        --><span></span>
-        </span>Proprietary Components
+        <img class="tree-view-icon" src="img/proprietary_component_16px.png"> Proprietary Components
       </a>
     </div>
     <div id="labelTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">

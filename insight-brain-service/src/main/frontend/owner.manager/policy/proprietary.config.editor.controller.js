@@ -106,7 +106,7 @@
     function removeMatcher(theMatcher) {
 
       vm.localMatchers = vm.localMatchers.filter(function(aMatcher) {
-        return aMatcher.matcher !== theMatcher.matcher;
+        return aMatcher !== theMatcher;
       });
       if (theMatcher.type === vm.matcherTypes.REGEX) {
         vm.dirtyProprietaryConfig.regexes = vm.dirtyProprietaryConfig.regexes.filter(function(aMatcher) {

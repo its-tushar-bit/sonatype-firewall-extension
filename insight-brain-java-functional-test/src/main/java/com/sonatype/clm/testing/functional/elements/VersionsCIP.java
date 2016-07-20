@@ -84,4 +84,8 @@ public class VersionsCIP
   public static SelenideElement unknownComponentMessage() {
     return $("div[ng-if='isUnknown']");
   }
+
+  public static SelenideElement addProprietaryMatchersButton() {
+    return $("#add-proprietary-btn");
+  }
 }

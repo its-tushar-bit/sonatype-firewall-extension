@@ -59,18 +59,22 @@
 
   <group name='cip-loader-core'>
     <group-ref>cip</group-ref>
+    <group-ref>cip-proprietary-matchers</group-ref>
     <js>/wro4j/cip/cip-loader.js</js>
     <js>/wro4j/cip/cip-component-util.js</js>
-
     <js>/wro4j/cip/ci-label-tab.js</js>
-
     <js>/wro4j/cip/ci-policy-violations-tab.js</js>
     <js>/wro4j/cip/ci.policy.violations.service.js</js>
-
     <js>/wro4j/cip/ci-license-tab.js</js>
-
     <js>/wro4j/cip/ci-vulnerability-tab.js</js>
     <js>/wro4j/cip/ci-version-graph.js</js>
+  </group>
+
+  <group name='cip-proprietary-matchers'>
+    <js>/wro4j/cip/proprietary.matchers.modal/proprietary.matchers.module.js</js>
+    <js>/wro4j/cip/proprietary.matchers.modal/proprietary.matchers.service.js</js>
+    <js>/wro4j/cip/proprietary.matchers.modal/proprietary.matchers.modal.controller.js</js>
+    <js>/wro4j/cip/proprietary.matchers.modal/proprietary.matchers.modal.js</js>
   </group>
 
   <group name='external'>
@@ -97,12 +101,17 @@
 
   <group name='cip'>
     <css>/frontend/lib/bootstrap/bootstrap-variables.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_component-animations.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tooltip.scss</css>
     <css>/frontend/scss/_global.scss</css>
     <css>/frontend/scss/_clm-modal.scss</css>
     <css>/frontend/scss/_mask.scss</css>
+    <js>/frontend/lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap-tooltip.js</js>
     <js>/frontend/utility/directives/utility.directives.module.js</js>
     <js>/frontend/utility/directives/load.wrapper.directive.js</js>
     <js>/frontend/utility/directives/form.mask.directive.js</js>
+    <js>/frontend/utility/directives/submit.validation.directive.js</js>
     <js>/frontend/utility/services/utility.services.module.js</js>
     <js>/frontend/utility/services/unauthenticated.request.queue.service.js</js>
     <js>/frontend/utility/services/login.modal.controller.js</js>
@@ -124,6 +133,10 @@
 
   <group name='version-graph'>
     <css>/wro4j/version-graph/content.css</css>
+    <css>/wro4j/version-graph/buttons.css</css>
+    <css>/wro4j/version-graph/icons.css</css>
+    <css>/wro4j/version-graph/modal.css</css>
+    <css>/wro4j/version-graph/tooltip.css</css>
     <js>/wro4j/version-graph/appcheck.js</js>
     <js>/wro4j/version-graph/version.graph/version.graph.module.js</js>
     <js>/wro4j/version-graph/version.graph/information.panel.directive.js</js>

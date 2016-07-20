@@ -1,0 +1,60 @@
+<div id="add-proprietary-matchers-modal">
+
+  <form class="clm-form" name="vm.addMatchersForm" ng-submit="vm.save()"
+        form-mask="vm.formMask" mask-message="Adding matchers">
+
+    <div class='clm-modal-header'>
+      <h2><i class="clm-icon-proprietary-component-20px"></i>Add Proprietary Component Matchers</h2>
+    </div>
+
+    <div class="scrollable">
+      <div class="alert-info">
+        <i class="clm-icon-info"></i>
+        <div>
+          The following matchers will be added to the
+          <a ng-href="{{::vm.basePath}}assets/index.html#/management/view/application/{{::vm.appId}}/proprietary"
+             target='_blank'>
+            {{::vm.appId}} configuration<i class="clm-icon-external-link"></i></a>
+          (duplicates will be ignored). The new matchers will be in effect for the next application analysis.
+        </div>
+      </div>
+
+      <div class="clm-modal-body">
+        <div class="section">
+          <div id="path-matchers" class="field">
+            <label>
+              Matchers
+            </label>
+            <label class="checkbox" ng-repeat="pathName in ::vm.pathNames">
+              <input type="checkbox" ng-checked="vm.isSelected(pathName)"
+                     ng-click="vm.toggleSelected(pathName)">
+              <span>{{::pathName}}</span>
+            </label>
+          </div>
+          <div class="field">
+            <label for="regex-matcher">Regular Expression
+              <span class="optional">- optional</span>
+              <span class="note">will be added in addition to any matchers checked above</span>
+            </label>
+            <input id="regex-matcher" clm-input name="regex-matcher" type="text" ng-model="vm.regex">
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="clm-modal-footer" ng-class="{ error : vm.error }">
+      <div ng-if="vm.error" class="section with-icon"><i class="clm-icon-error"></i>{{::vm.error}}</div>
+      <button ng-if="!vm.error" class="clm-btn clm-btn-primary" type="submit"
+              submit-validation submit-tooltip-target="body" submit-type="Add" submit-dirty="vm.isValid()">
+        Add
+      </button>
+      <button ng-if="vm.error" class="clm-btn clm-btn-error" type="submit"
+              submit-validation submit-tooltip-target="body" submit-type="Add" submit-dirty="vm.isValid()">
+        <i class="clm-icon-retry"></i>Retry
+      </button>
+      <button id="dismissBtn" class="clm-btn" type="button" ng-click="$dismiss()">Cancel</button>
+    </div>
+
+  </form>
+</div>

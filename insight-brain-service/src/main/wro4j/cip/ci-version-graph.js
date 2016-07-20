@@ -48,9 +48,15 @@
           ownerType: 'application',
           ownerId: applicationId
         };
+      }).service('SelectedComponent', function() {
+        return {
+          get: function () {
+            return me.component || me.gav;
+          }
+        };
       });
       angular.bootstrap(container[0], ['version.graph', 'componentProvider' + timestamp, 'HttpInterceptors',
-          'UnauthenticatedResponseHttpInterceptor']);
+          'UnauthenticatedResponseHttpInterceptor', 'proprietary.matchers']);
     };
     return VersionGraphTab;
   }
@@ -61,7 +67,8 @@
     selectApplication : false,
     openView : angular.noop,
     linkTarget : '_blank',
-    path: CLM.assetsPath + '/version-graph/'
+    path: CLM.assetsPath + '/version-graph/',
+    canAddProprietary: true
   };
 
   CLM.loadPlugin(createPlugin, 'Component Info');

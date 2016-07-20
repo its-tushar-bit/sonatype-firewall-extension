@@ -175,3 +175,46 @@ form.form-horizontal .control-label {
 .modal > form.form-horizontal {
   margin-bottom: 0px
 }
+
+/* add proprietary matchers */
+#add-proprietary-btn {
+  margin-left: 198px;
+  margin-top: 2px;
+}
+
+#add-proprietary-matchers-modal label .optional {
+  font-style: italic;
+  color: #575757;
+  font-family: Proxima Nova Regular, sans-serif;
+}
+
+#add-proprietary-matchers-modal label .note {
+  display: block;
+  font-family: Proxima Nova Regular, sans-serif;
+  font-size: 14px;
+}
+
+#add-proprietary-matchers-modal .alert-info i.clm-icon-info {
+  float: left;
+}
+
+#add-proprietary-matchers-modal .alert-info i + div {
+  margin-left: 25px;
+}
+
+#add-proprietary-matchers-modal .scrollable {
+  max-height: 318px;
+  overflow: auto;
+}
+
+#regex-matcher {
+  width: 524px;
+}
+
+#add-proprietary-matchers-modal .alert-info i.clm-icon-external-link {
+  margin-left: 2px;
+}
+
+#add-proprietary-matchers-modal input[type=checkbox] + span {
+  word-wrap: break-word;
+}

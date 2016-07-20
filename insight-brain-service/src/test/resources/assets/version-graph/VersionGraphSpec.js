@@ -360,41 +360,123 @@ var clmEndpointTemplate = {
     describe('Nexus', createApplicationsTests('nexus'));
 
     describe('ComponentController', function () {
-      var scope = null;
 
-      beforeEach(inject(function ($controller, $rootScope) {
-        clmEndpoint.selectApplication = true;
-        scope = $rootScope.$new();
-        $controller('ComponentController', {
-          $scope : scope
+      describe('initialization', function() {
+        var scope = null;
+
+        beforeEach(inject(function($controller, $rootScope) {
+          clmEndpoint.selectApplication = true;
+          scope = $rootScope.$new();
+          $controller('ComponentController', {
+            $scope: scope,
+            'proprietary.matchers.modal': {},
+            SelectedComponent: {}
+          });
+        }));
+
+        it('sets componentDetailsList', inject(function($httpBackend, $rootScope) {
+          var gav = {
+            groupId: 'foo',
+            artifactId: 'bar',
+            version: '1',
+            proprietary: true
+          };
+
+          Insight.setGav(gav);
+
+          $httpBackend.verifyNoOutstandingRequest();
+
+          Insight.clearGav();
+          $rootScope.$apply(function() {
+            document.cookie = 'clmAppId=myFirstApp';
+          });
+          $httpBackend.verifyNoOutstandingRequest();
+
+          spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').andReturn('foo');
+          $httpBackend.expectGET('foo').respond({list: [{}]});
+          Insight.setGav(gav);
+          $httpBackend.flush();
+          expect(scope.componentDetailsList).not.toBeNull();
+          expect(scope.componentDetailsList.length).toEqual(1);
+        }));
+      });
+
+      describe('Add Proprietary Component Matchers', function() {
+        var scope = null,
+            properties,
+            proprietaryModal,
+            selectedComponent;
+
+        beforeEach(function() {
+          clmEndpoint.selectApplication = true;
+          proprietaryModal = jasmine.createSpyObj('proprietaryModal', ['open']);
+          selectedComponent = jasmine.createSpyObj('selectedComponent', ['get']);
+
+          module('version.graph', function($provide) {
+            $provide.value('proprietary.matchers.modal', proprietaryModal);
+            $provide.value('SelectedComponent', selectedComponent);
+          });
+
+          inject(function ($controller, $rootScope, Properties) {
+            properties = Properties;
+            scope = $rootScope.$new();
+            $controller('ComponentController', {
+              $scope : scope,
+              OwnerContext: {
+                ownerId: 'testParentApplication'
+              }
+            });
+          });
         });
-      }));
 
-      it('Http Requests', inject(function ($httpBackend, $rootScope) {
-        var gav = {
-          groupId : 'foo',
-          artifactId : 'bar',
-          version : '1',
-          proprietary : true
-        };
+        describe('canShowAddProprietary()', function() {
+          describe('when clmEndpoint.canAddProprietary is undefined', function() {
+            beforeEach(function() {
+              clmEndpoint.canAddProprietary = undefined;
+            });
 
-        Insight.setGav(gav);
+            it('returns false if component is marked as proprietary', function() {
+              properties.setProprietary(true);
+              expect(scope.canShowAddProprietary()).toBe(false);
+            });
 
-        $httpBackend.verifyNoOutstandingRequest();
+            it('returns false if component is not marked as proprietary', function() {
+              properties.setProprietary(false);
+              expect(scope.canShowAddProprietary()).toBe(false);
+            });
+          });
 
-        Insight.clearGav();
-        $rootScope.$apply(function () {
-          document.cookie = 'clmAppId=myFirstApp';
+
+          describe('when clmEndpoint.canAddProprietary is true', function() {
+            beforeEach(function() {
+              clmEndpoint.canAddProprietary = true;
+            });
+
+            it('returns false if component is marked as proprietary', function() {
+              properties.setProprietary(true);
+              expect(scope.canShowAddProprietary()).toBe(false);
+            });
+
+            it('returns true if component is not marked as proprietary', function() {
+              properties.setProprietary(false);
+              expect(scope.canShowAddProprietary()).toBe(true);
+            });
+          });
         });
-        $httpBackend.verifyNoOutstandingRequest();
 
-        spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').andReturn('foo');
-        $httpBackend.expectGET('foo').respond({ list: [ {} ] });
-        Insight.setGav(gav);
-        $httpBackend.flush();
-        expect(scope.componentDetailsList).not.toBeNull();
-        expect(scope.componentDetailsList.length).toEqual(1);
-      }));
+        describe('showAddProprietary()', function() {
+          it('calls modal with owner Id and pathnames', function() {
+
+            // mock selected component
+            selectedComponent.get.andReturn({
+              pathnames: ['foo', 'bar']
+            });
+
+            scope.showAddProprietary();
+            expect(proprietaryModal.open).toHaveBeenCalledWith('testParentApplication', ['foo', 'bar']);
+          });
+        })
+      });
     });
 
     describe('DetailsController', function () {

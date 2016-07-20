@@ -77,11 +77,18 @@
           IQ for Eclipse configuration</a>.
         </div>
       </div>
-      <div ng-if='isUnknown' class='alert alert-centered fade in' style='line-height:50px'>
-        <span style='font-size: 50px; font-weight: bold'>?</span>
-        <span style='padding-left: 40px;vertical-align:top'>
-          The component is unknown.
-        </span>
+      <div ng-if='isUnknown' >
+        <div class="alert alert-centered fade in" style='line-height:50px'>
+          <span style='font-size: 50px; font-weight: bold'>?</span>
+          <span style='padding-left: 40px;vertical-align:top'>
+            The component is unknown.
+          </span>
+        </div>
+
+        <button ng-if="::canShowAddProprietary()" id="add-proprietary-btn" class="clm-btn" ng-click="showAddProprietary()">
+          Add Proprietary Component Matchers
+        </button>
+
       </div>
       <div ng-show='!isUnknown && !errorMessage'>
         <div class='cip-box' ng-controller='DetailsController'>

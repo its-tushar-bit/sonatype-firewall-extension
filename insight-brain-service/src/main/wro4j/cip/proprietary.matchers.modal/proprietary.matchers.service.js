@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+(function(angular) {
+  'use strict';
+
+  function ProprietaryMatchersService($http, $q, Messages)
+  {
+    return {
+      addComponentMatchers: addComponentMatchers
+    };
+
+    /**
+     * Add proprietary matchers to application configuration based on provided path names and regex.
+     * If a matcher already exist, it will be ignored (on the server side).
+     *
+     * @param ownerAppID String
+     * @param pathNames Array of File Path Strings
+     * @param regex String
+     * @returns Promise resolving to Proprietary Config including the newly added file paths and regex,
+     *          or rejecting with error message.
+     */
+    function addComponentMatchers(ownerAppID, pathNames, regex) {
+
+      var url = CLM.path + 'rest/proprietary/application/' + ownerAppID + '/add';
+
+      var data = {
+        paths: pathNames,
+        regex: regex
+      };
+
+      return $http.post(url, data).then(function(response) {
+        return response.data;
+      }, function(error) {
+        return $q.reject(Messages.getHttpErrorMessage(error));
+      });
+    }
+  }
+
+  ProprietaryMatchersService.$inject = ['$http', '$q', 'Messages'];
+
+  angular //
+      .module('proprietary.matchers') //
+      .service('proprietary.matchers.service', ProprietaryMatchersService);
+
+})(angular);

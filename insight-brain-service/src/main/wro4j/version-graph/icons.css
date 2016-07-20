@@ -1,0 +1,42 @@
+i.clm-icon-proprietary-component-20px {
+  display: inline-block;
+  width: 24px;
+  height: 20px;
+  vertical-align: text-top;
+  background: url(img/icon-proprietary_component_20px.png) no-repeat;
+}
+
+i.clm-icon-info {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: text-top;
+  background: url(img/icon-info.png) no-repeat;
+}
+
+i.clm-icon-error {
+  display: inline-block;
+  width: 16px;
+  height: 15px;
+  vertical-align: text-top;
+  background: url(img/icon-error.png) no-repeat;
+}
+
+i.clm-icon-retry {
+  display: inline-block;
+  width: 12px;
+  height: 13px;
+  vertical-align: middle;
+  margin-bottom: 3px;
+  background: url(img/icon-retry.png) no-repeat;
+}
+
+i.clm-icon-external-link {
+  display: inline-block;
+  width: 12px;
+  height: 10px;
+  vertical-align: middle;
+  margin-bottom: 2px;
+  text-decoration: none;
+  background: url(img/icon-external_link.png) no-repeat;
+}

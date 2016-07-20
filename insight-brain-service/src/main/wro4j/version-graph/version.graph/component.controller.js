@@ -7,7 +7,8 @@
 (function() {
   'use strict';
 
-  function ComponentController($scope, Coordinates, OwnerContext, errorMessage, Properties, $http) {
+  function ComponentController($scope, Coordinates, OwnerContext, errorMessage, Properties, $http,
+                               $injector) {
     function coordinatesChanged() {
       var coordinates = Coordinates.get() ? { coordinates : Coordinates.get(), appId : OwnerContext.ownerId } : null;
 
@@ -58,8 +59,22 @@
     $scope.$watch(function () {
       return OwnerContext.ownerId;
     }, coordinatesChanged);
+
+    $scope.showAddProprietary = function() {
+      var ProprietaryMatchersModal = $injector.get('proprietary.matchers.modal');
+      var SelectedComponent = $injector.get('SelectedComponent');
+      ProprietaryMatchersModal.open(OwnerContext.ownerId, SelectedComponent.get().pathnames);
+    };
+    
+    $scope.canShowAddProprietary = function() {
+      return clmEndpoint.canAddProprietary === true && !Properties.getProprietary();
+    };
   }
-  ComponentController.$inject = ['$scope', 'Coordinates', 'OwnerContext', 'ErrorMessage', 'Properties', '$http'];
+
+  ComponentController.$inject = [
+    '$scope', 'Coordinates', 'OwnerContext', 'ErrorMessage', 'Properties', '$http',
+    '$injector'
+  ];
 
   angular.module('version.graph').controller('ComponentController', ComponentController);
 }());

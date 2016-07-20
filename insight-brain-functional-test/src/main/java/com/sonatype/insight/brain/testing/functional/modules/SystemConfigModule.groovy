@@ -22,7 +22,6 @@ class SystemConfigModule
     manageRoles(required: false) { $('#system-configuration-roles > a') }
     manageAdministrators(required: false) { $('#system-configuration-administrators > a') }
     manageProductLicense(required: false) { $('#system-configuration-product-license > a') }
-    manageProprietary(required: false) { $('#system-configuration-proprietary > a') }
     manageLdap(required: false) { $('#system-configuration-ldap > a') }
   }
 }

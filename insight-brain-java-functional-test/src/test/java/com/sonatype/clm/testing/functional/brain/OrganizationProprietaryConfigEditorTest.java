@@ -7,14 +7,15 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
-import com.sonatype.clm.testing.functional.pages.ProprietaryComponentMatchersEditorPage;
 import com.sonatype.insight.brain.model.Organization;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class OrganizationPolicyProprietaryComponentMatchersEditorTest
-    extends AbstractPolicyProprietaryComponentMatchersEditorTest
+import static com.codeborne.selenide.Condition.text;
+
+public class OrganizationProprietaryConfigEditorTest
+    extends AbstractProprietaryConfigEditorTest
 {
 
   private Organization organization;
@@ -28,6 +29,6 @@ public class OrganizationPolicyProprietaryComponentMatchersEditorTest
   @Test
   public void testEditProprietaryComponentMatchersRootOrg() {
     OwnerTreeView.RootOrganizationNode.treeViewElement().click();
-    SummaryTile.proprietaryComponentMatchers().shouldHave(ProprietaryComponentMatchersEditorPage.summaryText(2));
+    SummaryTile.proprietaryComponentMatchers().shouldHave(text("2 local"));
   }
 }

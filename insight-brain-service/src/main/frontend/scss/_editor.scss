@@ -100,7 +100,13 @@
   }
 }
 
-#policy-editor {
+#proprietary-config-editor {
+  p {
+    max-width: $maximum-paragraph-width;
+  }
+}
+
+#policy-editor, #proprietary-config-editor {
   .editor-section {
     .editor-section-header {
       @extend .semi-bold;
@@ -209,7 +215,7 @@
     }
   }
 
-  #policy-edit-actions, #policy-edit-notifications {
+  #policy-edit-actions, #policy-edit-notifications, .inherited-proprietary-component-matchers, .local-proprietary-component-matchers {
     .editor-section-header {
       margin-top: 20px;
       margin-bottom: 0px;
@@ -231,6 +237,10 @@
         th {
           background-color: $grey-1;
           color: $slate;
+
+          h4.subsection-header {
+            padding-bottom: 8px;
+          }
         }
       }
 
@@ -315,7 +325,20 @@
     }
   }
 
-  .add-notification {
+  .inherited-proprietary-component-matchers, .local-proprietary-component-matchers {
+    table {
+      border-top-width: 0px;
+      
+      thead tr {
+        th {
+          background-color: $white;
+          color: $off-black;
+        }
+      }
+    }
+  }
+
+  .add-notification, .add-matcher {
     margin-top: 12px;
 
     .no-label {
@@ -324,6 +347,10 @@
 
     .editor-notification-type {
       width: 90px;
+    }
+
+    .editor-matcher-type {
+      width: 160px;
     }
 
     .field:nth-child(n + 2) {

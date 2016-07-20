@@ -9,7 +9,8 @@
   angular.module('owner.manager.module',
       [
         'Stores', 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule',
-        'utility', 'utility.directives', 'PermissionServiceModule', 'Policy', 'CLMLocation', 'utility.services'
+        'utility', 'utility.directives', 'PermissionServiceModule', 'Policy', 'CLMLocation', 'utility.services',
+        'Validators'
       ])
       .config([
         '$stateProvider', function($stateProvider) {
@@ -200,6 +201,19 @@
                   controller: 'monitored.stage.editor.controller',
                   controllerAs: 'vm',
                   templateUrl: 'owner.manager/policy/monitored.stage.editor.view.html?' + clmBuildTimestamp
+                }
+              }
+            }).state('management.edit.' + ownerType.type + '.proprietary-config-policy', {
+              parent: 'management.edit.' + ownerType.type,
+              url: '/proprietary',
+              data : {
+                title : ownerType.name + ' Proprietary Components'
+              },
+              views: {
+                '@management': {
+                  controller: 'proprietary.config.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/policy/proprietary.config.editor.view.html?' + clmBuildTimestamp
                 }
               }
             }).state('management.edit.' + ownerType.type + '.edit-license-threat-group', {

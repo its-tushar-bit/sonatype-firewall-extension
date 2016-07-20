@@ -49,31 +49,6 @@ extends BaseSpec {
     systemConfig.manageAdministrators.present
     systemConfig.manageProductLicense.present
     systemConfig.manageLdap.present
-    !systemConfig.manageProprietary.present
-  }
-
-  def "cog icon and proper items shown for MANAGE_PROPRIETARY privileged user"() {
-    given: "a MANAGE_PROPRIETARY privileged user"
-    User proprietaryPrivilegedUser = temporaryEntity.newUser()
-    Role role = temporaryEntity.newRole(true, Permission.MANAGE_PROPRIETARY)
-    temporaryEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), proprietaryPrivilegedUser.getUsername())
-
-    when: "who logs into the system"
-    loginAsUserVia(proprietaryPrivilegedUser.getUsername(), proprietaryPrivilegedUser.getPassword())
-
-    then: "can see the cog menu"
-    waitFor { systemConfig.dropdown.present }
-
-    when: "user clicks on the cog menu"
-    systemConfig.dropdown.click()
-
-    then: "user sees only the proprietary menu item"
-    waitFor { systemConfig.manageProprietary.present }
-    !systemConfig.manageUsers.present
-    !systemConfig.manageRoles.present
-    !systemConfig.manageAdministrators.present
-    !systemConfig.manageProductLicense.present
-    !systemConfig.manageLdap.present
   }
 
   def "cog icon and proper items shown for VIEW_ROLES privileged user"() {
@@ -97,6 +72,5 @@ extends BaseSpec {
     !systemConfig.manageAdministrators.present
     !systemConfig.manageProductLicense.present
     !systemConfig.manageLdap.present
-    !systemConfig.manageProprietary.present
   }
 }

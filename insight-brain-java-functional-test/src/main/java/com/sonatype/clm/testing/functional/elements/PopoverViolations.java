@@ -43,4 +43,8 @@ public class PopoverViolations
   public void shouldShowRequiredError() {
     element.shouldBe(visible).shouldHave(text("Please enter a value"));
   }
+
+  public void shouldShowError(String message) {
+    element.shouldBe(visible).shouldHave(text(message));
+  }
 }

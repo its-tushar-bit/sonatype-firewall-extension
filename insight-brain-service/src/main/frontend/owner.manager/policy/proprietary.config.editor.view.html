@@ -1,0 +1,121 @@
+<div id="proprietary-config-editor" class="tile-editor-container">
+  <div class="tile" load-wrapper="vm.loadError" loading="!vm.dirtyProprietaryConfig" reload="vm.doLoad()">
+    <h2>
+      <span class="fa proprietary-components-icon size-20px"><!--
+          Empty span needed for stacking icon styling
+        --><span></span>
+      </span>Proprietary Component Configuration
+    </h2>
+
+    <div class="section">
+      <div class="field">
+        <p>
+          These entries are provided to Nexus IQ scanners and are used to help identify internal components. If a
+          specified package or file is contained within a component, it will be considered proprietary.
+        </p>
+      </div>
+    </div>
+
+    <div class="section inherited-proprietary-component-matchers" ng-repeat="owner in vm.proprietaryConfigs.slice(1).reverse()">
+      <table class="clm-form" ng-if="owner.proprietaryConfig[0].packages.length > 0 || owner.proprietaryConfig[0].regexes.length > 0">
+        <thead>
+          <tr>
+            <th class="greedy-column"><h4 class="subsection-header">INHERITED FROM {{::owner.ownerName}}</h4></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="matcher in owner.proprietaryConfig[0].packages">
+            <td class="greedy-column">
+              {{::matcher}}
+            </td>
+          </tr>
+          <tr ng-repeat="matcher in owner.proprietaryConfig[0].regexes">
+            <td class="greedy-column">
+              {{::matcher}} <i class="regular">(regex)</i>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section local-proprietary-component-matchers">
+      <table class="clm-form">
+        <thead>
+        <tr>
+          <th class="greedy-column"><h4>LOCAL</h4></th>
+          <th class="delete"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-if="!vm.localMatchers || vm.localMatchers.length === 0">
+          <td colspan="2">
+            <div class="empty-list">No local matchers configured</div>
+          </td>
+        </tr>
+        <tr ng-repeat="matcher in vm.localMatchers" data-matcher-type="{{::matcher.type}}"
+            data-matcher-value="{{matcher.matcher}}">
+          <td class="greedy-column">
+            <span>{{::matcher.matcher}} <i class="regular" ng-if="matcher.type === vm.matcherTypes.REGEX">(regex)</i></span>
+          </td>
+          <td class="delete">
+            <button class="btn btn-tertiary btn-icon-only" type="button"
+                    ng-click="vm.removeMatcher(matcher)"><!--
+                   --><i class="fa fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <form name="vm.proprietaryConfigEditor" class="clm-form" role="form" 
+          ng-submit="vm.proprietaryConfigEditor.$valid  && vm.dirtyProprietaryConfig.isDirty() && vm.save()"
+          novalidate form-mask="vm.proprietaryConfigEditorMask" mask-attach-to-body>
+      <div class="section">
+        <div class="section add-matcher">
+          <div class="inline-fields">
+            <div class="field">
+              <label for="matcher-type">Matcher Type</label>
+              <dropdown-selector id="matcher-type" class="editor-matcher-type" ng-model="vm.matcherType"
+                                 name="matcher-type" options="vm.matcherTypeOptions" ng-change="vm.resetMatcher()"
+                                 ng-disabled="vm.disabled"></dropdown-selector>
+            </div>
+            <div class="field">
+              <label for="matcher-value">Value</label>
+              <input clm-input id="matcher-value" class="editor-matcher-value" name="matcher-value"
+                     ng-if="vm.matcherType === vm.matcherTypes.PACKAGE" ng-model="vm.packageMatcher"
+                     type="text" unique-validator="vm.dirtyProprietaryConfig.packages"
+                     input-validator="vm.validatePackage" placeholder="ex. com.sonatype"
+                     messages="{
+                     invalidPrefix: 'Invalid package prefix:<br />e.g. com.sonatype',
+                     wildcards: 'Wildcards are not allowed/required for packages',
+                     unique: 'Package prefix already specified'
+                     }"
+                     enter-key-call="vm.addMatcher($event)">
+              <input clm-input id="matcher-value" class="editor-matcher-value" name="matcher-value"
+                     ng-if="vm.matcherType === vm.matcherTypes.REGEX" ng-model="vm.regexMatcher"
+                     type="text" unique-validator="vm.dirtyProprietaryConfig.regexes"
+                     placeholder="ex. com.sonatype.*"
+                     messages="{
+                     unique: 'Regular Expression already specified'
+                     }"
+                     enter-key-call="vm.addMatcher($event)">
+            </div>
+            <div class="field no-label">
+              <button id="editor-matcher-add" class='btn' type="button" ng-click="vm.addMatcher()"
+                      ng-class="{ disabled: vm.isAddButtonDisabled() }" ng-disabled="vm.isAddButtonDisabled()">
+                <i class="fa fa-plus"></i>Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
+        <button type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyProprietaryConfig.isDirty()"
+                submit-type="update">
+          Update
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

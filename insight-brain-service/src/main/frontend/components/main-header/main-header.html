@@ -75,9 +75,6 @@
                   <li id="system-configuration-product-license" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('productlicense') }">
                     <a ui-sref='productlicense'>Product License</a>
                   </li>
-                  <li id="system-configuration-proprietary" ng-if="permissions.MANAGE_PROPRIETARY" ng-class="{'active': $state.is('proprietarycomponents') }">
-                    <a ui-sref='proprietarycomponents'>Proprietary Components</a>
-                  </li>
                   <li id="system-configuration-ldap" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.includes('ldap') }">
                     <a ui-sref='ldap'>LDAP</a>
                   </li>

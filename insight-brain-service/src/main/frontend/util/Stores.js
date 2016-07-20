@@ -246,7 +246,7 @@
   ]);
 
 
-  storesModule.service('ProprietaryConfigurationHierarchyStore', [
+  storesModule.service('ProprietaryConfigHierarchyStore', [
     'CLMAppLocations', 'CachedHierarchyStore', function(CLMAppLocations, CachedHierarchyStore) {
       var proprietaryConfigStoreTemplate = {
         template: {
@@ -257,7 +257,9 @@
         type: 'proprietary configuration',
         getUrl: CLMAppLocations.getProprietaryConfigUrl,
         crudUrl: CLMAppLocations.getProprietaryConfigUrl,
-        field: 'proprietaryConfigByOwners'
+        field: 'proprietaryConfigByOwners',
+        storeField: 'proprietaryConfig',
+        id: 'ownerId'
       };
 
       return CachedHierarchyStore.get(proprietaryConfigStoreTemplate);

@@ -184,9 +184,14 @@
         resourceStore.set = function(elements) {
           storeDeferred = $q.defer();
 
-          angular.forEach(elements, function(obj) {
-            store.push(new Resource(obj, false));
-          });
+          if (angular.isArray(elements)) {
+            angular.forEach(elements, function(obj) {
+              store.push(new Resource(obj, false));
+            });
+          }
+          else {
+            store.push(new Resource(elements, false));
+          }
 
           storeDeferred.resolve(store);
 

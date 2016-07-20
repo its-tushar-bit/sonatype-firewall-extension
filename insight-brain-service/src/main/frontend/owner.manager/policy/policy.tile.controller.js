@@ -8,7 +8,7 @@
 
   function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
                                 PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
-                                ProprietaryConfigurationHierarchyStore, CLMAppLocations)
+                                ProprietaryConfigHierarchyStore, CLMAppLocations)
   {
     var vm = this;
     vm.ownerName = undefined;
@@ -33,7 +33,7 @@
         PolicyHierarchyStore.get(),
         StageTypeStore.getActionStages(),
         PolicyMonitoringStore.getApplicable(),
-        ProprietaryConfigurationHierarchyStore.get()
+        ProprietaryConfigHierarchyStore.get()
       ]).then(function(results) {
         vm.policiesByOwner = results[0];
         vm.actionStages = results[1];
@@ -62,7 +62,7 @@
 
         var proprietaryMatchers = results[3];
         proprietaryMatchers.forEach(function(configOwner, index) {
-          var config = configOwner.proprietaryConfig,
+          var config = configOwner.proprietaryConfig[0],
               matcherTotal = config.packages.length + config.regexes.length;
           if (index === 0) {
             vm.localProprietaryCount += matcherTotal;
@@ -90,7 +90,7 @@
   PolicyTileController.$inject = [
     '$scope', '$q', 'StageTypeStore', 'SameOwnerStateNavigationService',
     'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore',
-    'ProprietaryConfigurationHierarchyStore', 'CLMAppLocations'
+    'ProprietaryConfigHierarchyStore', 'CLMAppLocations'
   ];
 
   angular //

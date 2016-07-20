@@ -21,9 +21,9 @@ describe('policy.tile.controller.spec.js', function() {
       EventNameConstant,
       MonitoredStageService,
       mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
-      mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore('ProprietaryConfigurationHierarchyStore'),
+      mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore('ProprietaryConfigHierarchyStore'),
       mockProprietaryConfigurationHierarchyStoreData = StoreUtils().createMockHierarchyStoreData(ProprietaryMockData
-          .getProprietaryConfiguration(), 'proprietaryConfigByOwners');
+          .getProprietaryConfigurationStoreMockData(), 'proprietaryConfigByOwners');
 
   beforeEach(inject(['monitored.stage.service', function(_MonitoredStageService_) {
         MonitoredStageService = _MonitoredStageService_;

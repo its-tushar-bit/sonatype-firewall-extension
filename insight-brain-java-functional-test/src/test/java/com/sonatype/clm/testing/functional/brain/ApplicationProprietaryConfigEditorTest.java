@@ -9,8 +9,8 @@ import com.sonatype.insight.brain.model.Application;
 
 import org.junit.Before;
 
-public class ApplicationPolicyProprietaryComponentMatchersEditorTest
-    extends AbstractPolicyProprietaryComponentMatchersEditorTest
+public class ApplicationProprietaryConfigEditorTest
+    extends AbstractProprietaryConfigEditorTest
 {
 
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
@@ -19,8 +19,7 @@ public class ApplicationPolicyProprietaryComponentMatchersEditorTest
 
   @Before
   public void init() {
-    //note the ȧ being used to force a character to be encoded
-    application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
+    application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "app", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
 
     super.init(application);

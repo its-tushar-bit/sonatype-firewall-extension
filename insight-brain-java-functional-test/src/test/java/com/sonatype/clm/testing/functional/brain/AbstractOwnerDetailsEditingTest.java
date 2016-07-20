@@ -167,7 +167,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
-      detailGroup.items().shouldHaveSize(5);
+      detailGroup.items().shouldHaveSize(6);
       detailGroup.item(1).root().shouldBe(visible).click();
       detailGroup.item(1).root().shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
@@ -192,7 +192,7 @@ public abstract class AbstractOwnerDetailsEditingTest
   }
 
   private void testMonitoring(OwnerDetailTreeViewGroup detailGroup) {
-    OwnerDetailTreeViewItem monitoredStage = detailGroup.item(detailGroup.items().size() - 1);
+    OwnerDetailTreeViewItem monitoredStage = detailGroup.item(detailGroup.items().size() - 2);
     monitoredStage.icon().shouldBe(visible);
     monitoredStage.root().shouldBe(visible).click();
     monitoredStage.root().shouldBe(CLM.SELECTED);

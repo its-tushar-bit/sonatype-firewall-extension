@@ -200,6 +200,11 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
     line-height: 14px;
   }
 
+  &.size-12px {
+    font-size: 12px;
+    line-height: 12px;
+  }
+
   &.outline {
     // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
     text-shadow: $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px;
@@ -295,4 +300,82 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
 .fa.loading-spinner {
   margin-right: 8px;
+}
+
+.tree-view-item:not(.selected) {
+  .proprietary-components-icon {
+    span:before, span:after {
+      color: $grey-2;
+    }
+  }
+}
+
+// This icon requires the use of size-xx class. Currently only size-16 and size-20 are supported.
+.proprietary-components-icon {
+  display: inline-block;
+  white-space: nowrap;
+
+  &:before {
+    content: "\f1b2"; // fa-cube
+    display: inline-block;
+  }
+
+  // stack using absolute positioning
+  &:after {
+    content: "\f023"; // fa-lock
+    position: absolute;
+  }
+
+  // for filling in the shackle on the lock
+  span:before {
+    content: "\f111"; // fa-circle
+    color: $white;
+    position: absolute;
+  }
+
+  span:after {
+    content: "\f023"; // fa-lock
+    color: $white;
+    position: absolute;
+  }
+
+  &.size-20px {
+    &:after {
+      font-size: 16px;
+      margin-top: -2px;
+      margin-left: -8px;
+    }
+
+    span:before {
+      font-size: 8px;
+      margin-top: -5px;
+      margin-left: -6px;
+    }
+
+    span:after {
+      font-size: 18px;
+      margin-top: -2px;
+      margin-left: -9px;
+    }
+  }
+
+  &.size-16px {
+    &:after {
+      font-size: 12px;
+      margin-top: -2px;
+      margin-left: -6px;
+    }
+
+    span:before {
+      font-size: 6px;
+      margin-top: -5px;
+      margin-left: -4px;
+    }
+
+    span:after {
+      font-size: 14px;
+      margin-top: -2px;
+      margin-left: -7px;
+    }
+  }
 }

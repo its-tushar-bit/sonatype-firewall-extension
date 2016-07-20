@@ -33,7 +33,7 @@ public class ConstraintSection
     return new ConstraintEditSection(rootSelector + "  .constraint:nth-child(" + (i + 1) + ") .constraint-editor", i);
   }
 
-  public SelenideElement addConstrainButton() {
+  public SelenideElement addConstraintButton() {
     return $("#add-constraint-button");
   }
 
@@ -102,7 +102,7 @@ public class ConstraintSection
       return $$(rootSelector + " table tr.editor-condition");
     }
 
-    public SelenideElement addConditiontButton() {
+    public SelenideElement addConditionButton() {
       return $(rootSelector + " .add-condition-button");
     }
 

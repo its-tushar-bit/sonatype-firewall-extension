@@ -277,7 +277,7 @@ public abstract class AbstractPolicyEditorTest
 
     //make sure certain fields are making the editor dirty
     PolicyEditorPage.constraintsPill().click();
-    constraintEditor.addConditiontButton().click();
+    constraintEditor.addConditionButton().click();
     handleUnsavedChangesDialog(unsavedModal, editorUrl);
     constraintEditor.condition(1).deleteConditionButton().click();
     constraintEditor.condition(0).type().selectedItem().click();
@@ -390,7 +390,7 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_constraintSection_summaries(Policy policy) {
     List<Constraint> constraints = policy.getConstraints();
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
-    constraintSection.addConstrainButton().shouldBe(visible, enabled);
+    constraintSection.addConstraintButton().shouldBe(visible, enabled);
     constraintSection.constraintSummaries().shouldHaveSize(constraints.size());
 
     ConstraintSection.ConstraintSummary constraintSummary1 = constraintSection.constraintSummary(0);
@@ -473,7 +473,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(updatedAgeCondition.getOperator(), is("younger than"));
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintEdit.addConditiontButton().shouldBe(visible, enabled).click();
+    constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(2);
     constraintEdit.condition(1).type().selectedItem().shouldHave(text("Age")).click();
     constraintEdit.condition(1).type().listItem(3).shouldHave(text("License Threat Group")).click();
@@ -496,7 +496,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(ltgCondition.getOperator(), is("is not"));
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintEdit.addConditiontButton().shouldBe(visible, enabled).click();
+    constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(3);
     constraintEdit.condition(2).type().selectedItem().shouldHave(text("Age")).click();
     constraintEdit.condition(2).type().listItem(11).shouldHave(text("Coordinates")).click();
@@ -712,7 +712,7 @@ public abstract class AbstractPolicyEditorTest
 
   public void testCreatePolicy_constraintSection() {
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
-    constraintSection.addConstrainButton().shouldBe(visible, enabled);
+    constraintSection.addConstraintButton().shouldBe(visible, enabled);
 
     constraintSection.constraintEditors().shouldHaveSize(1);
 

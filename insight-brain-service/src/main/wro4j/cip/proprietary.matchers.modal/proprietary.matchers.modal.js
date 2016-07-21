@@ -18,7 +18,7 @@
         keyboard: false,
         windowClass: 'clm-modal',
         controller: 'proprietary.matchers.modal.controller as vm',
-        templateUrl: '/assets/version-graph/proprietary.matchers.modal.html',
+        templateUrl: CLM.assetsPath + 'cip/proprietary.matchers.modal.html',
         resolve: {
           ownerAppId: function() {
             return ownerAppId;

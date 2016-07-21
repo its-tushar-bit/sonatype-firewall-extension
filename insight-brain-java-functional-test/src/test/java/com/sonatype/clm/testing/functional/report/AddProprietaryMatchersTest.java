@@ -31,6 +31,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.value;
@@ -98,6 +99,10 @@ public class AddProprietaryMatchersTest
     modal.pathMatcherCheckboxes().shouldHaveSize(2);
     modal.pathMatcherCheckboxes().first().shouldBe(selected);
     modal.pathMatcherCheckboxes().last().shouldBe(selected);
+
+    // test link to app config
+    String expectedHref = Configuration.baseUrl + "assets/index.html#/management/edit/application/AddProprietaryMatchersTest/proprietary";
+    modal.linkToAppConfig().shouldBe(visible).shouldHave(attribute("href", expectedHref));
 
     // submit all pathNames plus regex
     modal.regexInput().val("foo");

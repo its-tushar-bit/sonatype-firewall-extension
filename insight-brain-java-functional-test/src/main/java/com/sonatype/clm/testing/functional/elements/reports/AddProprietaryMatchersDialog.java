@@ -44,4 +44,8 @@ public class AddProprietaryMatchersDialog
   public SelenideElement retryButton() {
     return child(FOOTER_SELECTOR, ".clm-btn-error");
   }
+
+  public SelenideElement linkToAppConfig() {
+    return child(".alert-info", "a[target=_blank]");
+  }
 }

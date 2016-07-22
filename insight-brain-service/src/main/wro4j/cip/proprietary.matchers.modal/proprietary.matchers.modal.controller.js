@@ -11,6 +11,7 @@
     var vm = this;
 
     vm.addMatchersForm = undefined;
+    vm.applicationName = undefined;
     vm.appId = ownerAppId;
     vm.pathNames = pathNames;
     vm.selectedPathNames = angular.copy(pathNames);
@@ -22,7 +23,25 @@
     vm.isSelected = isSelected;
     vm.toggleSelected = toggleSelected;
     vm.isValid = isValid;
+    vm.isLoading = isLoading;
     vm.save = save;
+
+    doLoad();
+
+    function doLoad() {
+      ProprietaryMatchersService.getApplicationInfo(ownerAppId)
+          .then(function(application) {
+            vm.applicationName = application.name;
+          })
+          .catch(function() {
+            // use app id if failed to get app info
+            vm.applicationName = ownerAppId;
+          });
+    }
+
+    function isLoading() {
+      return vm.applicationName === undefined;
+    }
 
     function isSelected(path) {
       return vm.selectedPathNames.indexOf(path) >= 0;
@@ -37,7 +56,7 @@
         vm.selectedPathNames.push(path);
       }
     }
-    
+
     function isValid() {
       return vm.selectedPathNames.length || vm.regex;
     }

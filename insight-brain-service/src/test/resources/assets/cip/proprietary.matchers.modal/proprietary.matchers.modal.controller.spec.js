@@ -11,7 +11,8 @@ describe('proprietary.matchers.modal.controller.spec', function() {
     $q = _$q_;
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy('$close');
-    proprietaryMatchersService = jasmine.createSpyObj('service', ['addComponentMatchers']);
+    proprietaryMatchersService = jasmine.createSpyObj('service', ['addComponentMatchers', 'getApplicationInfo']);
+    proprietaryMatchersService.getApplicationInfo.andReturn($q.resolve({name: 'test application'}));
 
     CLM = {
       path: '../brain/'
@@ -33,13 +34,36 @@ describe('proprietary.matchers.modal.controller.spec', function() {
     };
   }));
 
-  it('initialization', function() {
-    var vm = initController();
-    expect(vm.pathNames).toBe(pathNames);
-    expect(vm.selectedPathNames).toEqual(['foo', 'bar', 'baz']);
-    expect(vm.basePath).toBe('../brain/');
-    // should copy pathNames into selectedPathNames
-    expect(vm.selectedPathNames).not.toBe(vm.pathNames);
+  describe('initialization', function() {
+    it('sets initial state properly', function() {
+      var vm = initController();
+      expect(vm.pathNames).toBe(pathNames);
+      expect(vm.selectedPathNames).toEqual(['foo', 'bar', 'baz']);
+      expect(vm.basePath).toBe('../brain/');
+      // should copy pathNames into selectedPathNames
+      expect(vm.selectedPathNames).not.toBe(vm.pathNames);
+      expect(vm.isLoading()).toBe(true);
+      expect(vm.applicationName).toBeUndefined();
+    });
+
+    it('when getApplicationInfo() succeeds - uses app name', function() {
+      var vm = initController();
+      expect(vm.applicationName).toBeUndefined();
+      expect(vm.isLoading()).toBe(true);
+      scope.$apply(); // resolve promises
+      expect(vm.applicationName).toBe('test application');
+      expect(vm.isLoading()).toBe(false);
+    });
+
+    it('when getApplicationInfo() fails - uses app id', function() {
+      proprietaryMatchersService.getApplicationInfo.andReturn($q.reject('error'));
+      var vm = initController();
+      expect(vm.applicationName).toBeUndefined();
+      expect(vm.isLoading()).toBe(true);
+      scope.$apply(); // resolve promises
+      expect(vm.applicationName).toBe('testApplication123');
+      expect(vm.isLoading()).toBe(false);
+    });
   });
 
   it('isSelected()', function() {

@@ -57,4 +57,30 @@ describe('proprietary.matchers.service.spec', function() {
       expect(result).toBe('Invalid regex');
     });
   });
+
+  describe('getApplicationInfo()', function() {
+
+    it('returns response json', function() {
+      var expectedUrl = '../rest/application/testApp123';
+      var applicationInfo = {
+        "name": "Test Application"
+      };
+      $httpBackend.expectGET(expectedUrl).respond(200, applicationInfo);
+      proprietaryMatchersService.getApplicationInfo('testApp123').then(function(info) {
+        expect(info).toEqual(applicationInfo);
+      });
+      $httpBackend.flush();
+    });
+
+    it('rejects with error message in case of failure', function() {
+      var expectedUrl = '../rest/application/testApp123';
+      $httpBackend.expectGET(expectedUrl).respond(400, 'not found');
+      var result = undefined;
+      proprietaryMatchersService.getApplicationInfo('testApp123').catch(function(message) {
+        result = message;
+      });
+      $httpBackend.flush();
+      expect(result).toBe('not found');
+    });
+  });
 });

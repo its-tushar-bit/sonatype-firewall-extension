@@ -1,25 +1,25 @@
 <div id="add-proprietary-matchers-modal">
 
+  <div class='clm-modal-header'>
+    <h2><i class="clm-icon-proprietary-component-20px"></i>Add Proprietary Component Matchers</h2>
+  </div>
+
   <form class="clm-form" name="vm.addMatchersForm" ng-submit="vm.save()"
         form-mask="vm.formMask" mask-message="Adding matchers">
 
-    <div class='clm-modal-header'>
-      <h2><i class="clm-icon-proprietary-component-20px"></i>Add Proprietary Component Matchers</h2>
-    </div>
-
     <div class="scrollable">
-      <div class="alert-info">
+      <div class="alert-info" ng-hide="vm.isLoading()">
         <i class="clm-icon-info"></i>
         <div>
           The following matchers will be added to the
           <a ng-href="{{::vm.basePath}}assets/index.html#/management/edit/application/{{::vm.appId}}/proprietary"
              target='_blank'>
-            {{::vm.appId}} configuration<i class="clm-icon-external-link"></i></a>
+            {{::vm.applicationName}} configuration<i class="clm-icon-external-link"></i></a>
           (duplicates will be ignored). The new matchers will be in effect for the next application analysis.
         </div>
       </div>
 
-      <div class="clm-modal-body">
+      <div class="clm-modal-body" load-wrapper loading="vm.isLoading()">
         <div class="section">
           <div id="path-matchers" class="field">
             <label>

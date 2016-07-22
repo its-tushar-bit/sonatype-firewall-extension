@@ -9,8 +9,25 @@
   function ProprietaryMatchersService($http, $q, Messages)
   {
     return {
-      addComponentMatchers: addComponentMatchers
+      addComponentMatchers: addComponentMatchers,
+      getApplicationInfo: getApplicationInfo
     };
+
+    /**
+     * @param appId String
+     * @returns Promise resolving to Application Info,
+     *          or rejecting with error message.
+     */
+    function getApplicationInfo(appId) {
+      
+      var url = CLM.path + 'rest/application/' + appId;
+
+      return $http.get(url).then(function(response) {
+        return response.data;
+      }, function(error) {
+        return $q.reject(Messages.getHttpErrorMessage(error));
+      });
+    }
 
     /**
      * Add proprietary matchers to application configuration based on provided path names and regex.

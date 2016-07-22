@@ -71,9 +71,9 @@ public class AuthorizationCheckerTest
   }
 
   @Test
-  public void testIsPermitted_ClmAdminHasClmAccess() {
+  public void testIsPermitted_PolicyAdminHasIqPermissions() {
     User user = tempEntity.newUser();
-    newMembershipMapping(user, MembershipMapping.GLOBAL_CONTEXT_ID, Role.CLM_ADMIN_ROLE_ID);
+    newMembershipMapping(user, MembershipMapping.GLOBAL_CONTEXT_ID, Role.POLICY_ADMIN_ROLE_ID);
     Collection<String> contextIds = Arrays.asList("app", "org", MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal admin = newPrincipal(user);

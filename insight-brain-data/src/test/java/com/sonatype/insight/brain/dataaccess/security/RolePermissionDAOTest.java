@@ -41,8 +41,8 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testClmAdminRoleHasClmPermissions() throws Exception {
-    Role role = roleDAO.getById(Role.CLM_ADMIN_ROLE_ID);
+  public void testPolicyAdminRoleHasIqPermissions() throws Exception {
+    Role role = roleDAO.getById(Role.POLICY_ADMIN_ROLE_ID);
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
     assertThat(

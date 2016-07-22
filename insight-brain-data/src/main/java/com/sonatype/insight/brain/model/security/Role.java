@@ -31,9 +31,9 @@ public class Role
   public static final String SYSTEM_ADMIN_ROLE_ID = "1b92fae3e55a411793a091fb821c422d";
 
   /**
-   * The id of the "CLM Administrator" role in the role database table.
+   * The id of the "Policy Administrator" role in the role database table.
    */
-  public static final String CLM_ADMIN_ROLE_ID = "b9646757e98e486da7d730025f5245f8";
+  public static final String POLICY_ADMIN_ROLE_ID = "b9646757e98e486da7d730025f5245f8";
 
   /**
    * The id of the "Owner" role in the role database table.

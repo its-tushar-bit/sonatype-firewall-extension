@@ -9,7 +9,7 @@ public enum PermissionCategory
 {
   ADMINISTRATOR("Administrator"),
 
-  CLM("CLM");
+  IQ("IQ");
 
   private final String displayName;
 

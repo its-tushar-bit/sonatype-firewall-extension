@@ -62,7 +62,7 @@ public class RoleServiceTest
     assertListedPermissions(category, Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES);
 
     category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
+    assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }
@@ -84,7 +84,7 @@ public class RoleServiceTest
     assertListedPermissions(category, Permission.VIEW_ROLES);
 
     category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
+    assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }
@@ -104,7 +104,7 @@ public class RoleServiceTest
     assertListedPermissions(category, Permission.VIEW_ROLES);
 
     category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
+    assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
         Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }

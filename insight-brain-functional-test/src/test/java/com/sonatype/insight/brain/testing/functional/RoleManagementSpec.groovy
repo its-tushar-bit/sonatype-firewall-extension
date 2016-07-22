@@ -34,7 +34,7 @@ extends BaseSpec {
 
     and: 'the list of roles is sorted properly'
     roleManagementPage.builtinRoles[0].name.text() == 'System Administrator'
-    roleManagementPage.builtinRoles[1].name.text() == 'CLM Administrator'
+    roleManagementPage.builtinRoles[1].name.text() == 'Policy Administrator'
     roleManagementPage.builtinRoles[2].name.text() == 'Owner'
     roleManagementPage.builtinRoles[3].name.text() == 'Developer'
     roleManagementPage.builtinRoles[4].name.text() == 'Application Evaluator'
@@ -54,7 +54,7 @@ extends BaseSpec {
 
     roleEditorPage.pageTitle.text() == 'Developer'
 
-    DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName)
+    DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.IQ.displayName)
     policyCategory.permissions.size() == 7
     assertPermission(policyCategory.permission(0), !ON, !ENABLED, Permission.MANAGE_PROPRIETARY)
     assertPermission(policyCategory.permission(1), !ON, !ENABLED, Permission.CLAIM_COMPONENT)
@@ -85,8 +85,8 @@ extends BaseSpec {
     !roleEditorPage.deleteRole.present
 
     when: 'setting permission for claiming'
-    String permissionDescription = roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName).permission(0).description.text()
-    roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName).permission(0).toggleSwitch.toggle.click()
+    String permissionDescription = roleEditorPage.permissionCategory(PermissionCategory.IQ.displayName).permission(0).description.text()
+    roleEditorPage.permissionCategory(PermissionCategory.IQ.displayName).permission(0).toggleSwitch.toggle.click()
 
     and: 'enters a duplicate name'
     roleEditorPage.nameEditor << 'Owner'

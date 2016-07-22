@@ -49,7 +49,7 @@ public class RoleServiceAuthzTest
   @Test
   public void testGetRoleById_Authorized() {
     grantGlobalPermission(Permission.VIEW_ROLES);
-    RoleDTO roleDTO = roleService.getRoleById(Role.CLM_ADMIN_ROLE_ID);
+    RoleDTO roleDTO = roleService.getRoleById(Role.POLICY_ADMIN_ROLE_ID);
     assertThat(roleDTO, notNullValue());
   }
 

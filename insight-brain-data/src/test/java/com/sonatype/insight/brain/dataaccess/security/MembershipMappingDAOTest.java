@@ -140,7 +140,7 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testAdminUserMappedToSystemAdminAndClmAdminRoles() throws Exception {
+  public void testAdminUserMappedToSystemAdminAndPolicyAdminRoles() throws Exception {
     List<MembershipMapping> memberships = membershipDAO.getByContextIdAndUser(MembershipMapping.GLOBAL_CONTEXT_ID,
         User.ADMIN_USERNAME);
     assertThat(memberships, is(notNullValue()));
@@ -153,7 +153,7 @@ public class MembershipMappingDAOTest
       assertThat(role, is(notNullValue()));
       globalRoleIds.add(role.getId());
     }
-    assertThat(globalRoleIds, containsInAnyOrder(Role.SYSTEM_ADMIN_ROLE_ID, Role.CLM_ADMIN_ROLE_ID));
+    assertThat(globalRoleIds, containsInAnyOrder(Role.SYSTEM_ADMIN_ROLE_ID, Role.POLICY_ADMIN_ROLE_ID));
 
   }
 

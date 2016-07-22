@@ -19,20 +19,20 @@ public enum Permission
 
   VIEW_ROLES("View", PermissionCategory.ADMINISTRATOR, "All Roles", true /* global */, true /* allowedInCustomRoles */),
 
-  MANAGE_PROPRIETARY("Edit", PermissionCategory.CLM, "Proprietary Components", false /* global */,
+  MANAGE_PROPRIETARY("Edit", PermissionCategory.IQ, "Proprietary Components", false /* global */,
       true /* allowedInCustomRoles */),
 
-  CLAIM_COMPONENT("Claim", PermissionCategory.CLM, "Components", true /* global */, true /* allowedInCustomRoles */),
+  CLAIM_COMPONENT("Claim", PermissionCategory.IQ, "Components", true /* global */, true /* allowedInCustomRoles */),
 
-  WRITE("Edit", PermissionCategory.CLM, "CLM Elements", false /* global */, true /* allowedInCustomRoles */),
+  WRITE("Edit", PermissionCategory.IQ, "IQ Elements", false /* global */, true /* allowedInCustomRoles */),
 
-  READ("View", PermissionCategory.CLM, "CLM Elements", false /* global */, true /* allowedInCustomRoles */),
+  READ("View", PermissionCategory.IQ, "IQ Elements", false /* global */, true /* allowedInCustomRoles */),
 
-  EVALUATE_APPLICATION("Evaluate", PermissionCategory.CLM, "Applications", false /* global */, true /* allowedInCustomRoles */),
+  EVALUATE_APPLICATION("Evaluate", PermissionCategory.IQ, "Applications", false /* global */, true /* allowedInCustomRoles */),
 
-  EVALUATE_COMPONENT("Evaluate", PermissionCategory.CLM, "Individual Components", false /* global */, true /* allowedInCustomRoles */),
+  EVALUATE_COMPONENT("Evaluate", PermissionCategory.IQ, "Individual Components", false /* global */, true /* allowedInCustomRoles */),
 
-  ADD_APPLICATION("Add", PermissionCategory.CLM, "Applications", false /* global */, true /* allowedInCustomRoles */);
+  ADD_APPLICATION("Add", PermissionCategory.IQ, "Applications", false /* global */, true /* allowedInCustomRoles */);
 
   private final String displayName;
 

@@ -381,7 +381,7 @@ public class RootOrganizationConfigMigratorTest
   }
 
   private void addRoleNotification(Policy policy, String stageTypeId) {
-    policy.getNotifications().add(new RoleNotification(Role.CLM_ADMIN_ROLE_ID, stageTypeId));
+    policy.getNotifications().add(new RoleNotification(Role.POLICY_ADMIN_ROLE_ID, stageTypeId));
     policyDAO.update(policy);
   }
 
@@ -391,7 +391,7 @@ public class RootOrganizationConfigMigratorTest
   }
 
   private void addMonitoringRoleNotification(Policy policy) {
-    policy.getNotifications().add(new RoleNotification(Role.CLM_ADMIN_ROLE_ID, Notification.CONTINUOUS_MONITORING));
+    policy.getNotifications().add(new RoleNotification(Role.POLICY_ADMIN_ROLE_ID, Notification.CONTINUOUS_MONITORING));
     policyDAO.update(policy);
   }
 

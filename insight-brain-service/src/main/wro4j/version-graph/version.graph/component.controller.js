@@ -8,9 +8,10 @@
   'use strict';
 
   function ComponentController($scope, Coordinates, OwnerContext, errorMessage, Properties, $http,
-                               $injector) {
+                               $injector)
+  {
     function coordinatesChanged() {
-      var coordinates = Coordinates.get() ? { coordinates : Coordinates.get(), appId : OwnerContext.ownerId } : null;
+      var coordinates = Coordinates.get() ? {coordinates: Coordinates.get(), appId: OwnerContext.ownerId} : null;
 
       $scope.errorMessage = null;
 
@@ -20,43 +21,45 @@
         $scope.coordinates = coordinates;
 
         if (coordinates && coordinates.appId && !Properties.isUnknown()) {
-          $http.get(Brain[clmEndpoint.type].getComponentListUrl(OwnerContext.ownerType, OwnerContext.ownerId, Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(), Coordinates.get(), Properties.getPathname())).success(function (data) {
+          $http.get(Brain[clmEndpoint.type].getComponentListUrl(OwnerContext.ownerType, OwnerContext.ownerId,
+              Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(),
+              Coordinates.get(), Properties.getPathname())).success(function(data) {
             $scope.componentDetailsList = data.list ? data.list : data;
             for (var i = 0; i < $scope.componentDetailsList.length; i++) {
               $scope.componentDetailsList[i].proprietary = Coordinates.get().proprietary;
             }
             $scope.loaded = true;
-          }).error(function () {
+          }).error(function() {
             $scope.setError(arguments);
           });
         }
       }
     }
 
-    $scope.setError = function (error) {
+    $scope.setError = function(error) {
       $scope.errorMessage = errorMessage(error);
     };
 
-    $scope.retryFn = function () {
+    $scope.retryFn = function() {
       $scope.$broadcast('reload');
     };
 
-    $scope.$on('reload', function () {
+    $scope.$on('reload', function() {
       $scope.coordinates = null;
       coordinatesChanged();
     });
 
-    $scope.$watch(function () {
+    $scope.$watch(function() {
       return Properties.isUnknown();
-    }, function () {
+    }, function() {
       $scope.isUnknown = Properties.isUnknown();
     });
 
-    $scope.$watch(function () {
+    $scope.$watch(function() {
       return Coordinates.get();
     }, coordinatesChanged);
 
-    $scope.$watch(function () {
+    $scope.$watch(function() {
       return OwnerContext.ownerId;
     }, coordinatesChanged);
 
@@ -65,7 +68,7 @@
       var SelectedComponent = $injector.get('SelectedComponent');
       ProprietaryMatchersModal.open(OwnerContext.ownerId, SelectedComponent.get().pathnames);
     };
-    
+
     $scope.canShowAddProprietary = function() {
       return clmEndpoint.canAddProprietary === true && !Properties.getProprietary();
     };

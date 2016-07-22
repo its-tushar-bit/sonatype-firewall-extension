@@ -1,16 +1,16 @@
 var clmEndpointTemplate = {
-        openView : angular.noop,
-        type : 'ide'
+      openView: angular.noop,
+      type: 'ide'
     },
     clmEndpoint = angular.copy(clmEndpointTemplate);
 
-(function () {
+(function() {
   'use strict';
 
-  describe('CIP Tests', function () {
+  describe('CIP Tests', function() {
     beforeEach(module('version.graph.app', 'ComponentName'));
 
-    afterEach(function () {
+    afterEach(function() {
       clmEndpoint = angular.copy(clmEndpointTemplate);
       document.cookie = 'clmAppId=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
     });
@@ -59,8 +59,8 @@ var clmEndpointTemplate = {
 
     });
 
-    describe('setLogger', function () {
-      afterEach(function () {
+    describe('setLogger', function() {
+      afterEach(function() {
         Insight.resetLogger();
       });
 
@@ -70,11 +70,11 @@ var clmEndpointTemplate = {
         Insight.setLogger(spy);
 
         // wait for an async call
-        waitsFor(function () {
+        waitsFor(function() {
           return spy.callCount > 0;
         }, "log to have been called", 10);
 
-        runs(function () {
+        runs(function() {
           expect(spy).toHaveBeenCalled();
           expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
         });
@@ -90,24 +90,24 @@ var clmEndpointTemplate = {
       }));
     });
 
-    describe('Coordinates', function () {
-      it('setCoordinates', inject(function (Coordinates) {
+    describe('Coordinates', function() {
+      it('setCoordinates', inject(function(Coordinates) {
         Coordinates.set('maven', {
-          id : 'setCoordinates'
+          id: 'setCoordinates'
         });
 
-        expect(Coordinates.get()).toEqual({ id : 'setCoordinates' });
-        expect(Coordinates.getSelected()).toEqual({ id : 'setCoordinates' });
+        expect(Coordinates.get()).toEqual({id: 'setCoordinates'});
+        expect(Coordinates.getSelected()).toEqual({id: 'setCoordinates'});
         expect(Coordinates.getFormat()).toEqual('maven');
       }));
 
-      it('Insight.setCoordinates', inject(function (Coordinates, Properties) {
+      it('Insight.setCoordinates', inject(function(Coordinates, Properties) {
         Insight.setCoordinates('maven', {
-          id : 'setCoordinates'
-        }, { matchState : 'exact', proprietary : true , filename : 'foo.jar', hash : 'abc123'});
+          id: 'setCoordinates'
+        }, {matchState: 'exact', proprietary: true, filename: 'foo.jar', hash: 'abc123'});
 
-        expect(Coordinates.get()).toEqual({ id : 'setCoordinates' });
-        expect(Coordinates.getSelected()).toEqual({ id : 'setCoordinates' });
+        expect(Coordinates.get()).toEqual({id: 'setCoordinates'});
+        expect(Coordinates.getSelected()).toEqual({id: 'setCoordinates'});
         expect(Coordinates.getFormat()).toEqual('maven');
 
         expect(Properties.getMatchState()).toEqual('exact');
@@ -116,12 +116,12 @@ var clmEndpointTemplate = {
         expect(Properties.getHash()).toEqual('abc123');
       }));
 
-      it('Insight.setCoordinates with unknown', inject(function (Coordinates, Properties) {
+      it('Insight.setCoordinates with unknown', inject(function(Coordinates, Properties) {
         Insight.setCoordinates(null, null,
-          { matchState : 'unknown', proprietary : false , filename : 'foo.jar', hash : 'abc123'});
+            {matchState: 'unknown', proprietary: false, filename: 'foo.jar', hash: 'abc123'});
 
-        expect(Coordinates.get()).toEqual({ });
-        expect(Coordinates.getSelected()).toEqual({  });
+        expect(Coordinates.get()).toEqual({});
+        expect(Coordinates.getSelected()).toEqual({});
         expect(Coordinates.getFormat()).toEqual(null);
 
         expect(Properties.getMatchState()).toEqual('unknown');
@@ -130,15 +130,15 @@ var clmEndpointTemplate = {
         expect(Properties.getHash()).toEqual('abc123');
       }));
 
-      it('Selected', inject(function (Coordinates) {
+      it('Selected', inject(function(Coordinates) {
         var gav = {
-          groupId : 'gid',
-          artifactId : 'aid',
-          version : '1'
+          groupId: 'gid',
+          artifactId: 'aid',
+          version: '1'
         }, sel = {
-          groupId : 'gid',
-          artifactId : 'aid',
-          version : '2'
+          groupId: 'gid',
+          artifactId: 'aid',
+          version: '2'
         };
         Coordinates.set('maven', gav);
 
@@ -146,26 +146,27 @@ var clmEndpointTemplate = {
         expect(Coordinates.get()).toEqual(gav);
         expect(Coordinates.getSelected()).toEqual(sel);
 
-        Coordinates.setSelected(angular.extend({}, sel, { version : gav.version }));
+        Coordinates.setSelected(angular.extend({}, sel, {version: gav.version}));
         expect(Coordinates.getSelected()).toEqual(gav);
         expect(Coordinates.getFormat()).toEqual('maven');
       }));
 
-      it('Insight.setGAV', inject(function (Coordinates, Properties) {
+      it('Insight.setGAV', inject(function(Coordinates, Properties) {
         spyOn(Coordinates, 'set').andCallThrough();
         Insight.setGav({
-          groupId : 'g1',
-          artifactId : 'a1',
-          version : 'v1',
-          classifier : 'war',
-          hash : '01234',
-          proprietary : false,
-          matchState : 'similar',
-          filename : 'foo.war'
+          groupId: 'g1',
+          artifactId: 'a1',
+          version: 'v1',
+          classifier: 'war',
+          hash: '01234',
+          proprietary: false,
+          matchState: 'similar',
+          filename: 'foo.war'
         });
 
-        expect(Coordinates.set).toHaveBeenCalledWith('maven', { groupId : 'g1', artifactId : 'a1', version : 'v1', classifier : 'war' });
-        expect(Coordinates.get()).toEqual({ groupId : 'g1', artifactId : 'a1', version : 'v1', classifier : 'war' });
+        expect(Coordinates.set).toHaveBeenCalledWith('maven',
+            {groupId: 'g1', artifactId: 'a1', version: 'v1', classifier: 'war'});
+        expect(Coordinates.get()).toEqual({groupId: 'g1', artifactId: 'a1', version: 'v1', classifier: 'war'});
         expect(Coordinates.getFormat()).toEqual('maven');
 
         expect(Properties.getHash()).toEqual('01234');
@@ -174,22 +175,23 @@ var clmEndpointTemplate = {
         expect(Properties.getProprietary()).toEqual(false);
       }));
 
-      it('Insight.clearGAV', inject(function (Coordinates, State, Properties) {
+      it('Insight.clearGAV', inject(function(Coordinates, State, Properties) {
         spyOn(Coordinates, 'set').andCallThrough();
         spyOn(State, 'set').andCallThrough();
         Insight.setGav({
-          groupId : 'g1',
-          artifactId : 'a1',
-          version : 'v1',
-          classifier : 'war',
-          hash : '01234',
-          proprietary : false,
-          matchState : 'similar',
-          filename : 'foo.war'
+          groupId: 'g1',
+          artifactId: 'a1',
+          version: 'v1',
+          classifier: 'war',
+          hash: '01234',
+          proprietary: false,
+          matchState: 'similar',
+          filename: 'foo.war'
         });
 
-        expect(Coordinates.set).toHaveBeenCalledWith('maven', { groupId : 'g1', artifactId : 'a1', version : 'v1', classifier : 'war' });
-        expect(Coordinates.get()).toEqual({ groupId : 'g1', artifactId : 'a1', version : 'v1', classifier : 'war' });
+        expect(Coordinates.set).toHaveBeenCalledWith('maven',
+            {groupId: 'g1', artifactId: 'a1', version: 'v1', classifier: 'war'});
+        expect(Coordinates.get()).toEqual({groupId: 'g1', artifactId: 'a1', version: 'v1', classifier: 'war'});
         expect(Coordinates.getFormat()).toEqual('maven');
 
         expect(Properties.getHash()).toEqual('01234');
@@ -212,99 +214,99 @@ var clmEndpointTemplate = {
       }));
     });
 
-    describe('State', function () {
-      describe('Insight.setError', function () {
-        it('Invalid AppID', inject(function (State) {
+    describe('State', function() {
+      describe('Insight.setError', function() {
+        it('Invalid AppID', inject(function(State) {
           Insight.setError({
-            errorCode : 404
+            errorCode: 404
           });
           expect(State.get()).toEqual('invalid-appid');
           expect(State.getArgs()).toEqual({
-            errorCode : 404
+            errorCode: 404
           });
         }));
-        it('Invalid Credentials', inject(function (State) {
+        it('Invalid Credentials', inject(function(State) {
           Insight.setError({
-            errorCode : 401
+            errorCode: 401
           });
           expect(State.get()).toEqual('invalid-credentials');
           expect(State.getArgs()).toEqual({
-            errorCode : 401
+            errorCode: 401
           });
         }));
-        it('Failure', inject(function (State) {
+        it('Failure', inject(function(State) {
           Insight.setError({
-            errorCode : 444
+            errorCode: 444
           });
           expect(State.get()).toEqual('failure');
           expect(State.getArgs()).toEqual({
-            errorCode : 444
+            errorCode: 444
           });
         }));
       });
 
-      it('Insight.setFiltered', inject(function (State) {
+      it('Insight.setFiltered', inject(function(State) {
         Insight.setFiltered('foo');
         expect(State.get()).toEqual('filtered');
         expect(State.getArgs()).toEqual('foo');
       }));
 
-      it('Insight.setPending', inject(function (State) {
+      it('Insight.setPending', inject(function(State) {
         Insight.setPending('foo');
         expect(State.get()).toEqual('pending');
         expect(State.getArgs()).toEqual('foo');
       }));
 
-      it('Insight.setUnassigned', inject(function (State) {
+      it('Insight.setUnassigned', inject(function(State) {
         Insight.setUnassigned('foo');
         expect(State.get()).toEqual('unassigned');
         expect(State.getArgs()).toEqual('foo');
       }));
     });
 
-    describe('OwnerContext', function () {
-      describe('IDE Mode', function () {
-        it ('Retrieves from setGav', inject(function (OwnerContext) {
+    describe('OwnerContext', function() {
+      describe('IDE Mode', function() {
+        it('Retrieves from setGav', inject(function(OwnerContext) {
           Insight.setGav({
-            appId : 'foo'
+            appId: 'foo'
           });
           expect(OwnerContext.ownerId).toEqual('foo');
         }));
-        it ('Retrieves from setCoordinates', inject(function (OwnerContext) {
+        it('Retrieves from setCoordinates', inject(function(OwnerContext) {
           Insight.setCoordinates('maven', {}, {
-            appId : 'foo'
+            appId: 'foo'
           });
           expect(OwnerContext.ownerId).toEqual('foo');
         }));
 
-        it ('Doesn\'t Persist', inject(function (OwnerContext) {
+        it('Doesn\'t Persist', inject(function(OwnerContext) {
           OwnerContext.setApplicationId('foo');
           expect(document.cookie.indexOf('foo')).toEqual(-1);
         }));
 
-        it ('Doesn\'t Use Cookie', inject(function (OwnerContext) {
+        it('Doesn\'t Use Cookie', inject(function(OwnerContext) {
           document.cookie = 'clmAppId=bar';
           expect(OwnerContext.ownerId).toBeFalsy();
         }));
       });
 
-      describe('RM Mode', function () {
+      describe('RM Mode', function() {
         var oldVal = null;
-        beforeEach(function () {
+        beforeEach(function() {
           oldVal = clmEndpoint.selectApplication;
           clmEndpoint.selectApplication = true;
         });
-        afterEach(function () {
+        afterEach(function() {
           clmEndpoint.selectApplication = oldVal;
         });
-        it ('Loads from cookie', inject(function (OwnerContext, $rootScope) {
-          $rootScope.$apply(function () {
+        it('Loads from cookie', inject(function(OwnerContext, $rootScope) {
+          $rootScope.$apply(function() {
             document.cookie = 'clmAppId=bar';
           });
           expect(OwnerContext.ownerId).toEqual('bar');
         }));
 
-        it ('Saves to cookie', inject(function (OwnerContext) {
+        it('Saves to cookie', inject(function(OwnerContext) {
           OwnerContext.setApplicationId('save');
           expect(document.cookie).toEqual('clmAppId=save');
         }));
@@ -312,37 +314,41 @@ var clmEndpointTemplate = {
     });
 
     function createApplicationsTests(type) {
-      return function () {
-        describe('Applications', function () {
-          beforeEach(function () {
+      return function() {
+        describe('Applications', function() {
+          beforeEach(function() {
             clmEndpoint.type = type;
           });
 
-          it('Success', inject(function (Applications, $httpBackend, $rootScope) {
+          it('Success', inject(function(Applications, $httpBackend, $rootScope) {
             var applications = null;
 
-            Applications.get().then(function (data) {
+            Applications.get().then(function(data) {
               applications = data;
             });
 
             $httpBackend.expectGET().respond(200, {
-              applicationSummaries: [{
-                publicId: 'myAppId',
-                name: 'My First App'
-              }]
+              applicationSummaries: [
+                {
+                  publicId: 'myAppId',
+                  name: 'My First App'
+                }
+              ]
             });
             $httpBackend.flush();
             $rootScope.$apply();
-            expect(applications).toEqual([{
-              publicId: 'myAppId',
-              name: 'My First App'
-            }]);
+            expect(applications).toEqual([
+              {
+                publicId: 'myAppId',
+                name: 'My First App'
+              }
+            ]);
           }));
 
-          it('Error', inject(function (Applications, $httpBackend, $rootScope) {
+          it('Error', inject(function(Applications, $httpBackend, $rootScope) {
             var error = null;
 
-            Applications.get().then(angular.noop, function (data) {
+            Applications.get().then(angular.noop, function(data) {
               error = data;
             });
 
@@ -359,7 +365,7 @@ var clmEndpointTemplate = {
 
     describe('Nexus', createApplicationsTests('nexus'));
 
-    describe('ComponentController', function () {
+    describe('ComponentController', function() {
 
       describe('initialization', function() {
         var scope = null;
@@ -417,11 +423,11 @@ var clmEndpointTemplate = {
             $provide.value('SelectedComponent', selectedComponent);
           });
 
-          inject(function ($controller, $rootScope, Properties) {
+          inject(function($controller, $rootScope, Properties) {
             properties = Properties;
             scope = $rootScope.$new();
             $controller('ComponentController', {
-              $scope : scope,
+              $scope: scope,
               OwnerContext: {
                 ownerId: 'testParentApplication'
               }
@@ -445,7 +451,6 @@ var clmEndpointTemplate = {
               expect(scope.canShowAddProprietary()).toBe(false);
             });
           });
-
 
           describe('when clmEndpoint.canAddProprietary is true', function() {
             beforeEach(function() {
@@ -479,29 +484,29 @@ var clmEndpointTemplate = {
       });
     });
 
-    describe('DetailsController', function () {
+    describe('DetailsController', function() {
       var scope = null;
 
-      beforeEach(inject(function ($controller, $rootScope) {
+      beforeEach(inject(function($controller, $rootScope) {
         scope = $rootScope.$new();
         clmEndpoint.selectApplication = true;
         $controller('DetailsController', {
-          $scope : scope
+          $scope: scope
         });
       }));
 
-      afterEach(function () {
+      afterEach(function() {
         scope.$destroy();
       });
 
-      it('Http Requests', inject(function ($httpBackend, Coordinates, Properties) {
+      it('Http Requests', inject(function($httpBackend, Coordinates, Properties) {
         var gav = {
-          groupId : 'foo',
-          artifactId : 'bar',
-          version : '1',
-          hash : '01234',
-          proprietary : true,
-          matchState : 'similar'
+          groupId: 'foo',
+          artifactId: 'bar',
+          version: '1',
+          hash: '01234',
+          proprietary: true,
+          matchState: 'similar'
         };
 
         Insight.setGav(gav);
@@ -509,64 +514,66 @@ var clmEndpointTemplate = {
         $httpBackend.verifyNoOutstandingRequest();
 
         Insight.clearGav();
-        scope.$apply(function () {
+        scope.$apply(function() {
           document.cookie = 'clmAppId=myFirstApp';
         });
         $httpBackend.verifyNoOutstandingRequest();
 
         spyOn(Brain[clmEndpoint.type], 'getComponentUrl').andReturn('foo');
-        $httpBackend.expectGET('foo').respond({ securityVulnerabilities : [], policyAlerts: [] });
-        Insight.setGav(angular.extend({ matchState : 'similar' }, gav));
+        $httpBackend.expectGET('foo').respond({securityVulnerabilities: [], policyAlerts: []});
+        Insight.setGav(angular.extend({matchState: 'similar'}, gav));
         $httpBackend.flush();
-        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven', '01234', 'similar', true, {
-          groupId : 'foo',
-          artifactId : 'bar',
-          version : '1'
-        }, undefined);
+        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven',
+            '01234', 'similar', true, {
+              groupId: 'foo',
+              artifactId: 'bar',
+              version: '1'
+            }, undefined);
 
         // Another version selected
         $httpBackend.expectGET('foo').respond({
           securityVulnerabilities: [],
           policyAlerts: []
         });
-        scope.$apply(function () {
-          Coordinates.setSelected({ groupId : 'foo', artifactId : 'bar', version : '2' });
+        scope.$apply(function() {
+          Coordinates.setSelected({groupId: 'foo', artifactId: 'bar', version: '2'});
           Properties.setHash('abcd');
         });
         $httpBackend.flush();
-        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven', 'abcd', null, true, {
-          groupId : 'foo',
-          artifactId : 'bar',
-          version : '2'
-        }, undefined);
+        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven',
+            'abcd', null, true, {
+              groupId: 'foo',
+              artifactId: 'bar',
+              version: '2'
+            }, undefined);
 
         // Unknown GAV
-        scope.$apply(function () {
-          Coordinates.set('maven', { groupId : 'foo', artifactId : 'bar', version : 1});
+        scope.$apply(function() {
+          Coordinates.set('maven', {groupId: 'foo', artifactId: 'bar', version: 1});
           Properties.setMatchState('unknown');
         });
         $httpBackend.verifyNoOutstandingRequest();
       }));
 
-      it('isManual', inject(function ($httpBackend) {
+      it('isManual', inject(function($httpBackend) {
         expect(scope.isManual()).toBeFalsy();
 
         scope.componentDetails = {
-          identificationSource : 'Manual'
+          identificationSource: 'Manual'
         };
         expect(scope.isManual()).toBeTruthy();
 
         scope.componentDetails = {
-          identificationSource : 'Sonatype'
+          identificationSource: 'Sonatype'
         };
         expect(scope.isManual()).toBeFalsy();
       }));
 
-      it('canMigrate', inject(function (Coordinates) {
+      it('canMigrate', inject(function(Coordinates) {
         var gav = {
-              groupId : 'foo',
-              artifactId : 'bar',
-              version : '1'
+              groupId: 'foo',
+              artifactId: 'bar',
+              version: '1'
             },
             selected = angular.copy(gav);
 
@@ -583,28 +590,28 @@ var clmEndpointTemplate = {
 
       it('getMaximumSeverity', inject(function($httpBackend, Coordinates, OwnerContext) {
         scope.componentDetails = {
-          securityVulnerabilities : []
+          securityVulnerabilities: []
         };
         expect(scope.getMaximumSeverity()).toEqual('NA');
 
         scope.componentDetails = {
-          securityVulnerabilities : [{ severity : null }]
+          securityVulnerabilities: [{severity: null}]
         };
         expect(scope.getMaximumSeverity()).toEqual('Unscored');
 
         var gav = {
-           groupId : 'groupId',
-           artifactId : 'artifactId',
-           version : 'version'
+          groupId: 'groupId',
+          artifactId: 'artifactId',
+          version: 'version'
         };
 
         spyOn(Brain[clmEndpoint.type], 'getComponentUrl').andReturn('foo');
         $httpBackend.expectGET('foo').respond({
-          securityVulnerabilities : [{ severity : null }, { severity : 2 }, { severity : 9 }, { severity : 8 }],
+          securityVulnerabilities: [{severity: null}, {severity: 2}, {severity: 9}, {severity: 8}],
           policyAlerts: []
         });
 
-        scope.$apply(function () {
+        scope.$apply(function() {
           Coordinates.set('maven', gav);
           OwnerContext.setApplicationId('appId');
         });
@@ -615,56 +622,58 @@ var clmEndpointTemplate = {
 
       it('getColorClass', inject(function($httpBackend, Coordinates) {
         scope.componentDetails = {
-          securityVulnerabilities : []
+          securityVulnerabilities: []
         };
         expect(scope.getColorClass()).toEqual(' unspecified');
 
         scope.componentDetails = {
-          securityVulnerabilities : [{ severity : null }]
+          securityVulnerabilities: [{severity: null}]
         };
         expect(scope.getColorClass()).toEqual(' moderate');
 
         scope.componentDetails = {
-          securityVulnerabilities : [{ severity : 0 }]
+          securityVulnerabilities: [{severity: 0}]
         };
         expect(scope.getColorClass()).toEqual(' moderate');
 
         scope.componentDetails = {
-          securityVulnerabilities : [{ severity : 4 }]
+          securityVulnerabilities: [{severity: 4}]
         };
         expect(scope.getColorClass()).toEqual(' severe');
 
         scope.componentDetails = {
-          securityVulnerabilities : [{ severity : 7 }]
+          securityVulnerabilities: [{severity: 7}]
         };
         expect(scope.getColorClass()).toEqual(' critical');
       }));
 
       it('calculates highestPolicyThreat', inject(function($httpBackend, Coordinates, OwnerContext) {
         var gav = {
-          groupId : 'groupId',
-          artifactId : 'artifactId',
-          version : 'version'
+          groupId: 'groupId',
+          artifactId: 'artifactId',
+          version: 'version'
         };
         expect(scope.highestPolicyThreat).toEqual(null);
 
         spyOn(Brain[clmEndpoint.type], 'getComponentUrl').andReturn('foo');
         $httpBackend.expectGET('foo').respond({
-          securityVulnerabilities : [],
-          policyAlerts: [{
-            trigger: {
-              policyName: 'foo',
-              threatLevel: 1
+          securityVulnerabilities: [],
+          policyAlerts: [
+            {
+              trigger: {
+                policyName: 'foo',
+                threatLevel: 1
+              }
+            }, {
+              trigger: {
+                policyName: 'bar',
+                threatLevel: 10
+              }
             }
-           }, {
-            trigger: {
-              policyName: 'bar',
-              threatLevel: 10
-            }
-          }]
+          ]
         });
 
-        scope.$apply(function () {
+        scope.$apply(function() {
           Coordinates.set('maven', gav);
           OwnerContext.setApplicationId('appId');
         });
@@ -675,217 +684,229 @@ var clmEndpointTemplate = {
       }));
     });
 
-    describe('Insight.registerViewDetailsListener', function () {
+    describe('Insight.registerViewDetailsListener', function() {
       var listener, scope;
-      beforeEach(inject(function ($rootScope) {
+      beforeEach(inject(function($rootScope) {
         listener = jasmine.createSpy('listener');
         scope = $rootScope.$new();
         Insight.registerViewDetailsListener(listener);
-        Insight.setCoordinates('maven', { groupId : 'org.group', artifactId : 'stuff', classifier : 'sources', extension : 'jar', version : '1.0.0' }, { hash : 'abcd', proprietary : true, matchState : 'similar', appId : 'myapp' });
+        Insight.setCoordinates('maven',
+            {groupId: 'org.group', artifactId: 'stuff', classifier: 'sources', extension: 'jar', version: '1.0.0'},
+            {hash: 'abcd', proprietary: true, matchState: 'similar', appId: 'myapp'});
       }));
 
-      it('same version selected', function () {
+      it('same version selected', function() {
         scope.$emit('viewDetails', '1.0.0');
-        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '1.0.0', 'sources', 'jar', 'abcd', 'similar', true);
+        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '1.0.0', 'sources', 'jar', 'abcd',
+            'similar', true);
       });
 
-      it('different version selected', inject(function (Coordinates, Properties) {
-        Coordinates.setSelected({ version : '2.0.0' });
+      it('different version selected', inject(function(Coordinates, Properties) {
+        Coordinates.setSelected({version: '2.0.0'});
         Properties.setHash('1234');
         scope.$emit('viewDetails', '2.0.0');
-        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '2.0.0', 'sources', 'jar', '1234', null, true);
+        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '2.0.0', 'sources', 'jar', '1234', null,
+            true);
       }));
     });
 
-    describe('Insight.registerCoordsViewDetailsListener', function () {
+    describe('Insight.registerCoordsViewDetailsListener', function() {
       var listener, scope;
-      beforeEach(inject(function ($rootScope) {
+      beforeEach(inject(function($rootScope) {
         listener = jasmine.createSpy('listener');
         scope = $rootScope.$new();
         Insight.registerCoordsViewDetailsListener(listener);
-        Insight.setCoordinates('maven', { groupId : 'org.group', artifactId : 'stuff', classifier : 'sources', extension : 'jar', version : '1.0.0' }, { hash : 'abcd', proprietary : true, matchState : 'similar', appId : 'myapp' });
+        Insight.setCoordinates('maven',
+            {groupId: 'org.group', artifactId: 'stuff', classifier: 'sources', extension: 'jar', version: '1.0.0'},
+            {hash: 'abcd', proprietary: true, matchState: 'similar', appId: 'myapp'});
       }));
 
-      it('same version selected', inject(function ($rootScope) {
+      it('same version selected', inject(function($rootScope) {
         scope.$emit('viewDetails', '1.0.0');
-        expect(listener).toHaveBeenCalledWith('myapp', 'maven', ['groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '1.0.0'], 'abcd', 'similar', true);
+        expect(listener).toHaveBeenCalledWith('myapp', 'maven', [
+          'groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '1.0.0'
+        ], 'abcd', 'similar', true);
       }));
 
-      it('different version selected', inject(function (Coordinates, Properties) {
-        Coordinates.setSelected({ version : '2.0.0' });
+      it('different version selected', inject(function(Coordinates, Properties) {
+        Coordinates.setSelected({version: '2.0.0'});
         Properties.setHash('1234');
         scope.$emit('viewDetails', '2.0.0');
-        expect(listener).toHaveBeenCalledWith('myapp', 'maven', ['groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '2.0.0'], '1234', null, true);
+        expect(listener).toHaveBeenCalledWith('myapp', 'maven', [
+          'groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '2.0.0'
+        ], '1234', null, true);
       }));
     });
 
-    describe('graph', function () {
+    describe('graph', function() {
       var scope = null,
           parentScope = null;
 
-      beforeEach(inject(function ($compile, $rootScope, Coordinates, Properties) {
+      beforeEach(inject(function($compile, $rootScope, Coordinates, Properties) {
         spyOn(Insight, 'ComponentInformation').andReturn(undefined);
 
         parentScope = $rootScope.$new();
-        parentScope.componentDetails = [{
-          "componentIdentifier" : { "coordinates" : { "version" : "sources" } },
-          "popularity": 1,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["LIBERAL"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "LIBERAL",
-          "securityThreats": ["Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "4.0.4" } },
-          "popularity": 4,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "4.0.6" } },
-          "popularity": 2,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "4.1.9" } },
-          "popularity": 13,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "4.1.31" } },
-          "popularity": 2,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "4.1.34" } },
-          "popularity": 0,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "4.1.36" } },
-          "popularity": 1,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.0.16" } },
-          "popularity": 3,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.0.18" } },
-          "popularity": 1,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.0.28" } },
-          "hash": "caee9b1866f734373bdb",
-          "popularity": 67,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.4" } },
-          "popularity": 3,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["LIBERAL"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "LIBERAL",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.7-alpha" } },
-          "popularity": 2,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.7" } },
-          "popularity": 2,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.8-alpha" } },
-          "popularity": 1,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.9-alpha" } },
-          "popularity": 2,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.9" } },
-          "popularity": 8,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.12" } },
-          "popularity": 3,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["NOT-PROVIDED"],
-          "effectiveLicenseThreat": "NOT-PROVIDED",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.15" } },
-          "popularity": 14,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["NOT-PROVIDED"],
-          "declaredLicenseThreats": ["LIBERAL"],
-          "effectiveLicenseThreat": "LIBERAL",
-          "securityThreats": ["Moderate", "Severe"]
-        }, {
-          "componentIdentifier" : { "coordinates" : { "version" : "5.5.23" } },
-          "hash" : "b98a1711908a4641301a",
-          "popularity": 100,
-          "majorRevisionStep": false,
-          "observedLicenseThreats": ["LIBERAL"],
-          "declaredLicenseThreats": ["LIBERAL"],
-          "effectiveLicenseThreat": "LIBERAL",
-          "securityThreats": ["Moderate", "Severe"],
-          "website": "http://tomcat.apache.org/"
-        }];
+        parentScope.componentDetails = [
+          {
+            "componentIdentifier": {"coordinates": {"version": "sources"}},
+            "popularity": 1,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["LIBERAL"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "LIBERAL",
+            "securityThreats": ["Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "4.0.4"}},
+            "popularity": 4,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "4.0.6"}},
+            "popularity": 2,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "4.1.9"}},
+            "popularity": 13,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "4.1.31"}},
+            "popularity": 2,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "4.1.34"}},
+            "popularity": 0,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "4.1.36"}},
+            "popularity": 1,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.0.16"}},
+            "popularity": 3,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.0.18"}},
+            "popularity": 1,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.0.28"}},
+            "hash": "caee9b1866f734373bdb",
+            "popularity": 67,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.4"}},
+            "popularity": 3,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["LIBERAL"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "LIBERAL",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.7-alpha"}},
+            "popularity": 2,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.7"}},
+            "popularity": 2,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.8-alpha"}},
+            "popularity": 1,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.9-alpha"}},
+            "popularity": 2,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.9"}},
+            "popularity": 8,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.12"}},
+            "popularity": 3,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["NOT-PROVIDED"],
+            "effectiveLicenseThreat": "NOT-PROVIDED",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.15"}},
+            "popularity": 14,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["NOT-PROVIDED"],
+            "declaredLicenseThreats": ["LIBERAL"],
+            "effectiveLicenseThreat": "LIBERAL",
+            "securityThreats": ["Moderate", "Severe"]
+          }, {
+            "componentIdentifier": {"coordinates": {"version": "5.5.23"}},
+            "hash": "b98a1711908a4641301a",
+            "popularity": 100,
+            "majorRevisionStep": false,
+            "observedLicenseThreats": ["LIBERAL"],
+            "declaredLicenseThreats": ["LIBERAL"],
+            "effectiveLicenseThreat": "LIBERAL",
+            "securityThreats": ["Moderate", "Severe"],
+            "website": "http://tomcat.apache.org/"
+          }
+        ];
 
         Coordinates.set('maven', {
-          version : '5.0.28'
+          version: '5.0.28'
         });
         Properties.setHash('abcd');
 
@@ -893,23 +914,23 @@ var clmEndpointTemplate = {
         parentScope.$apply();
       }));
 
-      afterEach(function () {
+      afterEach(function() {
         parentScope.$destroy();
       });
 
-      it('Version Click', inject(function (Coordinates, Properties) {
-         Insight.ComponentInformation.mostRecentCall.args[0].versionClick('5.5.23');
-         expect(Coordinates.getSelected()).toEqual({ "version" : "5.5.23" });
-         expect(Properties.getHash()).toEqual("b98a1711908a4641301a");
+      it('Version Click', inject(function(Coordinates, Properties) {
+        Insight.ComponentInformation.mostRecentCall.args[0].versionClick('5.5.23');
+        expect(Coordinates.getSelected()).toEqual({"version": "5.5.23"});
+        expect(Properties.getHash()).toEqual("b98a1711908a4641301a");
 
-         Insight.ComponentInformation.mostRecentCall.args[0].versionClick('5.0.28');
-         expect(Coordinates.getSelected()).toEqual({ "version" : "5.0.28" });
-         expect(Properties.getHash()).toEqual("abcd");
+        Insight.ComponentInformation.mostRecentCall.args[0].versionClick('5.0.28');
+        expect(Coordinates.getSelected()).toEqual({"version": "5.0.28"});
+        expect(Properties.getHash()).toEqual("abcd");
       }));
 
-      it('Double Version Click', inject(function ($rootScope) {
+      it('Double Version Click', inject(function($rootScope) {
         var version = null;
-        parentScope.$on('viewDetails', function (event, v) {
+        parentScope.$on('viewDetails', function(event, v) {
           version = v;
         });
         Insight.ComponentInformation.mostRecentCall.args[0].versionDblClick('5.5.23');

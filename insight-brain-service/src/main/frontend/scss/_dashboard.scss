@@ -697,6 +697,14 @@ Dashboard tables
 
   .dashboard-tables {
     margin-top: 10px;
+
+    .wrap-force-break {
+      word-spacing: -0.1em;
+    }
+
+    .word-break-all {
+      word-break: break-all;
+    }
   }
 
   table {
@@ -917,15 +925,6 @@ Dashboard tables
     to {
       opacity: 1;
     }
-  }
-
-
-  .wrap-force-break {
-    word-spacing: -0.1em;
-  }
-
-  .word-break-all {
-    word-break: break-all;
   }
 
   .component-match-content {

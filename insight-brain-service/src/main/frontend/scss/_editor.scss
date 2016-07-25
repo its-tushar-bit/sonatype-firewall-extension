@@ -187,21 +187,6 @@
           margin-right: 4px;
         }
 
-        table {
-          margin-top: 12px;
-
-          td {
-            padding-bottom: 6px;
-
-            &:not(:last-child) {
-              padding-right: 6px;
-            }
-
-            .editor-condition-operator {
-              width: 125px;
-            }
-          }
-        }
       }
     }
 

@@ -64,12 +64,16 @@ public abstract class BasicElement<T extends BasicElement<T>>
     getElement().click();
   }
 
+  protected String childSelector(String... selectors) {
+    return createSelector(selector, createSelector(selectors));
+  }
+
   protected SelenideElement child(String... selectors) {
-    return $(createSelector(selector, createSelector(selectors)));
+    return $(childSelector(selectors));
   }
 
   protected ElementsCollection children(String... selectors) {
-    return $$(createSelector(selector, createSelector(selectors)));
+    return $$(childSelector(selectors));
   }
 
   private SelenideElement getElement() {

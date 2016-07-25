@@ -114,7 +114,7 @@ var PolicyResourceMockData = {
         'valueTypeId': 'MatchStateValueType'
       }, {
         'id': 'Coordinates',
-        'name': 'Coordinates (GAV)',
+        'name': 'Coordinates',
         'supportedOperators': ['match', 'do not match'],
         'threatCategory': 'OTHER',
         'valueTypeId': 'CoordinatesValueType'

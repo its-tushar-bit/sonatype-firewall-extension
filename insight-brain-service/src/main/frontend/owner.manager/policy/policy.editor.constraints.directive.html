@@ -51,59 +51,88 @@
                              option-value-param="operator" option-name-param="name" clm-input
                              required></dropdown-selector>
           of the following are true:
-          <table>
-            <tr class="editor-condition" ng-repeat="condition in constraint.conditions">
-              <td>
-                <dropdown-selector class="editor-condition-type" ng-model="condition.conditionTypeId"
-                                   name="condition-type-{{constraint.id + $index}}" option-value-param="id"
-                                   options="vm.conditionTypes" option-name-param="name"
-                                   ng-change="vm.updateConditionType(condition)" clm-input required></dropdown-selector>
-              </td>
-              <td>
-                <dropdown-selector class="editor-condition-operator" ng-model="condition.operator"
-                                   name="condition-operator-{{constraint.id + $index}}"
-                                   options="vm.conditionTypesMap[condition.conditionTypeId].supportedOperators"></dropdown-selector>
-              </td>
-              <td class="editor-condition-value">
-                <dropdown-selector ng-model="condition.value" option-value-param="id" required
-                                   ng-if="vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues"
-                                   name="condition-value-{{constraint.id + $index}}"
-                                   no-options-string="No {{vm.conditionTypesMap[condition.conditionTypeId].name}}{{vm.conditionTypesMap[condition.conditionTypeId].name.endsWith('s') ? 'es' : 's'}} available"
-                                   options="vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues"
-                                   option-name-param="{{condition.conditionTypeId === 'Label' ? 'label' : condition.conditionTypeId === 'License' ? 'shortDisplayName' : 'name'}}"></dropdown-selector>
-                <div ng-if="!vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues" ng-switch
-                     on="vm.conditionTypesMap[condition.conditionTypeId].valueTypeId">
-                  <age-in-days-input ng-switch-when="AgeInDaysValueType" ng-model="condition.value"
-                                     name="condition-value-{{constraint.id + $index}}"></age-in-days-input>
-                  <input type="number" min="0" max="100" ng-model="condition.value"
-                         name="conditionPercentageValue-{{constraint.id + $index}}" ng-switch-when="PercentageValueType"
-                         ng-pattern="/^((\d{1,2})|(100))$/" messages="{pattern: 'Value must be from 0 to 100'}" clm-input required>
-                  <span ng-switch-default ng-switch
-                        on="vm.conditionTypesMap[condition.conditionTypeId].valueType.dataType">
-                    <input type="text" ng-model="condition.value" name="conditionStringValue-{{constraint.id + $index}}"
-                           ng-switch-when="String" clm-input required>
-                    <input type="number" min="0" max="10" ng-model="condition.value"
-                           name="conditionIntegerValue-{{constraint.id + $index}}" ng-switch-when="Integer"
-                           ng-pattern="/^(\d|10)$/" messages="{pattern: 'Value must be from 0 to 10'}"
-                           title="Please enter a whole number" clm-input required>
-                    <input type="text" ng-model="condition.value" name="conditionFloatValue-{{constraint.id + $index}}"
-                           ng-switch-when="Float" ng-pattern="/^\d+(\.\d+)?$/" messages="{pattern: 'Please enter a decimal number'}"
-                           title="Please enter a decimal number" clm-input required>
-                  </span>
-                </div>
-              </td>
-              <td>
+
+          <div class="policy-conditions">
+            <div class="policy-condition" ng-repeat="condition in constraint.conditions">
                 <button class="btn btn-tertiary btn-icon-only delete-condition-button" type="button"
                         ng-click="vm.deleteCondition(constraint, $index)"
                         ng-disabled="constraint.conditions.length < 2"><!--
                 --><i class="fa fa-trash"></i>
                 </button>
-              </td>
-            </tr>
-          </table>
-          <button class="btn btn-tertiary add-condition-button" type="button" ng-click="vm.addCondition(constraint)">
-            <i class="fa fa-plus"></i>Add Condition
-          </button>
+                <div class="condition-type">
+                    <dropdown-selector class="editor-condition-type" ng-model="condition.conditionTypeId"
+                                       name="condition-type-{{::constraint.id + $index}}" option-value-param="id"
+                                       options="vm.conditionTypes" option-name-param="name"
+                                       ng-change="vm.updateConditionType(condition)" clm-input required></dropdown-selector>
+                </div>
+                <div class="condition-operator">
+                    <dropdown-selector class="editor-condition-operator" ng-model="condition.operator"
+                                       name="condition-operator-{{::constraint.id + $index}}"
+                                       options="vm.conditionTypesMap[condition.conditionTypeId].supportedOperators"></dropdown-selector>
+                </div>
+                <div class="condition-value">
+                  <dropdown-selector ng-model="condition.value" option-value-param="id" required
+                                     ng-if="vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues"
+                                     name="condition-value-{{::constraint.id + $index}}"
+                                     no-options-string="No {{vm.conditionTypesMap[condition.conditionTypeId].name}}{{vm.conditionTypesMap[condition.conditionTypeId].name.endsWith('s') ? 'es' : 's'}} available"
+                                     options="vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues"
+                                     option-name-param="{{condition.conditionTypeId === 'Label' ? 'label' : condition.conditionTypeId === 'License' ? 'shortDisplayName' : 'name'}}"></dropdown-selector>
+                  <div ng-if="!vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues" ng-switch
+                       on="vm.conditionTypesMap[condition.conditionTypeId].valueTypeId">
+                    <age-in-days-input ng-switch-when="AgeInDaysValueType" ng-model="condition.value"
+                                       name="condition-value-{{::constraint.id + $index}}"></age-in-days-input>
+
+                    <span ng-switch-when="CoordinatesValueType"><!--
+                    --><coordinates-input value="condition.value"><!--
+                      --><dropdown-selector ng-model="vm.coordinates.format" required
+                                            options="['maven', 'a-name']"></dropdown-selector><!--
+                      --><ng-switch on="vm.coordinates.format"><!--
+                        --><span ng-switch-when="maven"><!--
+                           --><input type="text" placeholder="Group ID" name="groupid-{{::identifier}}"
+                                     ng-model="vm.coordinates.groupId" ng-pattern="vm.invalidRegex"
+                                     ng-required="!(vm.coordinates.version || vm.coordinates.artifactId)"><!--
+                         --><input type="text" placeholder="Artifact ID" name="artifactid-{{::identifier}}"
+                                     ng-model="vm.coordinates.artifactId" ng-pattern="vm.invalidRegex"
+                                     ng-required="!(vm.coordinates.version || vm.coordinates.groupId)"><!--
+                         --></span><!--
+                         --><span ng-switch-when="a-name"><!--
+                           --><input type="text" placeholder="Name" name="name-{{::identifier}}" 
+                                     ng-model="vm.coordinates.name" ng-pattern="vm.invalidRegex"
+                                     ng-required="!(vm.coordinates.version || vm.coordinates.qualifier)"><!--
+                           --><input type="text" placeholder="Qualifier" name="qualifier-{{::identifier}}"
+                                     ng-model="vm.coordinates.qualifier" ng-pattern="vm.invalidRegex"
+                                     ng-required="!(vm.coordinates.version || vm.coordinates.name)"><!--
+                        --></span><!--
+                      --></ng-switch><!--
+                      --><input type="text" placeholder="Version"  name="version-{{::identifier}}"
+                                ng-model="vm.coordinates.version" ng-pattern="vm.invalidRegex"
+                                     ng-required="!(vm.coordinates.qualifier || vm.coordinates.name ||
+                                                    vm.coordinates.groupId || vm.coordinates.artifactId)"><!--
+                    --></coordinates-input><!--
+                  --></span>
+
+                    <input type="number" min="0" max="100" ng-model="condition.value"
+                           name="conditionPercentageValue-{{::constraint.id + $index}}" ng-switch-when="PercentageValueType"
+                           ng-pattern="/^((\d{1,2})|(100))$/" messages="{pattern: 'Value must be from 0 to 100'}" clm-input required>
+                    <span ng-switch-default ng-switch
+                          on="vm.conditionTypesMap[condition.conditionTypeId].valueType.dataType">
+                      <input type="text" ng-model="condition.value" name="conditionStringValue-{{::constraint.id + $index}}"
+                             ng-switch-when="String" clm-input required>
+                      <input type="number" min="0" max="10" ng-model="condition.value"
+                             name="conditionIntegerValue-{{::constraint.id + $index}}" ng-switch-when="Integer"
+                             ng-pattern="/^(\d|10)$/" messages="{pattern: 'Value must be from 0 to 10'}"
+                             title="Please enter a whole number" clm-input required>
+                      <input type="text" ng-model="condition.value" name="conditionFloatValue-{{::constraint.id + $index}}"
+                             ng-switch-when="Float" ng-pattern="/^\d+(\.\d+)?$/" messages="{pattern: 'Please enter a decimal number'}"
+                             title="Please enter a decimal number" clm-input required>
+                    </span>
+                  </div>
+                </div>
+            </div>
+            <button class="btn btn-tertiary add-condition-button" type="button" ng-click="vm.addCondition(constraint)">
+              <i class="fa fa-plus"></i>Add Condition
+            </button>
+          </div>
         </div>
       </div>
     </div>

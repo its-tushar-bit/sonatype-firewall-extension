@@ -99,7 +99,7 @@ PolicyMockData = {
         }
       },
       {
-        "name": "Coordinates (GAV)",
+        "name": "Coordinates",
         "id": "Coordinates",
         "supportedOperators": ["match", "do not match"],
         "valueTypeId": "CoordinatesValueType",

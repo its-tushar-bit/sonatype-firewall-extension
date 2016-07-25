@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -12,6 +14,8 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ConstraintSection
 {
@@ -99,86 +103,140 @@ public class ConstraintSection
     }
 
     public ElementsCollection conditions() {
-      return $$(rootSelector + " table tr.editor-condition");
+      return $$(rootSelector + " .policy-conditions .policy-condition");
     }
 
     public SelenideElement addConditionButton() {
       return $(rootSelector + " .add-condition-button");
     }
 
-    public ConditionEditSection condition(int i) {
-      return new ConditionEditSection(rootSelector + " table tr.editor-condition:nth-child(" + (i + 1) + ")");
+    public ConditionEditSection<?> condition(int i) {
+      return new ConditionEditSection(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
     }
 
     public AgeConditionEditSection ageCondition(int i) {
-      return new AgeConditionEditSection(rootSelector + " table tr.editor-condition:nth-child(" + (i + 1) + ")");
+      return new AgeConditionEditSection(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
     }
 
     public DropdownConditionEditSection dropdownCondition(int i) {
-      return new DropdownConditionEditSection(rootSelector + " table tr.editor-condition:nth-child(" + (i + 1) + ")");
+      return new DropdownConditionEditSection(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
     }
 
     public InputConditionEditSection inputCondition(int i) {
-      return new InputConditionEditSection(rootSelector + " table tr.editor-condition:nth-child(" + (i + 1) + ")");
+      return new InputConditionEditSection(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
     }
 
-    public static class ConditionEditSection
-    {
-      protected String rootSelector;
+    public CoordinatesCondition coordinatesCondition(int i) {
+      return new CoordinatesCondition(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
+    }
 
-      public ConditionEditSection(String rootSelector) {
-        this.rootSelector = rootSelector;
+    public static class ConditionEditSection<T>
+        extends BasicElement<ConditionEditSection<T>>
+    {
+
+      public ConditionEditSection(String... rootSelectors) {
+        super(rootSelectors);
       }
 
       public Dropdown type() {
-        return new Dropdown(rootSelector + " .editor-condition-type");
+        return new Dropdown(childSelector(".condition-type"));
       }
 
       public Dropdown operator() {
-        return new Dropdown(rootSelector + " .editor-condition-operator");
+        return new Dropdown(childSelector(".condition-operator"));
       }
 
       public SelenideElement deleteConditionButton() {
-        return $(rootSelector + " .delete-condition-button");
+        return child(".delete-condition-button");
       }
     }
 
     public static class DropdownConditionEditSection
-        extends ConditionEditSection
+        extends ConditionEditSection<DropdownConditionEditSection>
     {
 
-      public DropdownConditionEditSection(final String rootSelector) {
+      public DropdownConditionEditSection(final String... rootSelector) {
         super(rootSelector);
       }
 
       public Dropdown value() {
-        return new Dropdown(rootSelector + " .editor-condition-value");
+        return new Dropdown(childSelector(".condition-value"));
       }
     }
 
     public static class AgeConditionEditSection
-        extends ConditionEditSection
+        extends ConditionEditSection<AgeConditionEditSection>
     {
 
-      public AgeConditionEditSection(final String rootSelector) {
+      public AgeConditionEditSection(final String... rootSelector) {
         super(rootSelector);
       }
 
       public AgeInput value() {
-        return new AgeInput(rootSelector + " .editor-condition-value");
+        return new AgeInput(childSelector(".condition-value"));
       }
     }
 
     public static class InputConditionEditSection
-        extends ConditionEditSection
+        extends ConditionEditSection<InputConditionEditSection>
     {
 
-      public InputConditionEditSection(final String rootSelector) {
+      public InputConditionEditSection(final String... rootSelector) {
         super(rootSelector);
       }
 
       public SelenideElement value() {
-        return $(rootSelector + " .editor-condition-value input");
+        return child(".condition-value input");
+      }
+    }
+
+    public static class CoordinatesCondition
+        extends ConditionEditSection<CoordinatesCondition>
+    {
+      public CoordinatesCondition(String... rootSelector) {
+        super(rootSelector);
+      }
+
+      public void setType() {
+        // this isn't great perf
+        Dropdown typeDropdown = type();
+        typeDropdown.selectedItem().click();
+        typeDropdown.listItems().findBy(text("Coordinates")).click();
+      }
+
+      public void setOperator(String op) {
+        // this isn't great perf
+        Dropdown typeDropdown = operator();
+        typeDropdown.selectedItem().click();
+        typeDropdown.listItems().findBy(text(op)).click();
+      }
+
+      public Dropdown format() {
+        return new Dropdown(childSelector(".condition-value", "dropdown-selector"));
+      }
+
+      public SelenideElement groupId() {
+        return child(".condition-value", "input[name*=\"groupid\"]");
+      }
+
+      public SelenideElement artifactId() {
+        return child(".condition-value", "input[name*=\"artifactid\"]");
+      }
+
+      public SelenideElement name() {
+        return child(".condition-value", "input[name*=\"name\"]");
+      }
+
+      public SelenideElement qualifier() {
+        return child(".condition-value", "input[name*=\"qualifier\"]");
+      }
+
+      public SelenideElement version() {
+        return child(".condition-value", "input[name*=\"version\"]");
+      }
+
+      public SelenideElement value() {
+        return child(".condition-value", ".condition-value input");
       }
     }
   }

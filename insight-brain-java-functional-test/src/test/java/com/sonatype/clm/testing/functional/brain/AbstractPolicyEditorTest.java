@@ -18,7 +18,9 @@ import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.AgeConditionEditSection;
+import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.CoordinatesCondition;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
@@ -44,6 +46,8 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
@@ -139,11 +143,14 @@ public abstract class AbstractPolicyEditorTest
     Constraint constraint = newPolicy.getConstraints().get(0);
     assertThat(constraint.getName(), is("New Constraint"));
     assertThat(constraint.getOperator(), is(LogicalOperator.OR));
-    assertThat(constraint.getConditions().size(), is(1));
-    Condition condition = constraint.getConditions().get(0);
-    assertThat(condition.getConditionTypeId(), is("AgeInDays"));
-    assertThat(condition.getOperator(), is("older than"));
-    assertThat(condition.getValue(), is(Integer.toString(3 * 365)));
+
+    assertThat(constraint.getConditions().size(), is(3));
+    assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
+        Integer.toString(3 * 365));
+    assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
+        "maven:org.apache:tomcat:5.0.28");
+    assertCondition(constraint.getConditions().get(2), CoordinatesConditionType.ID, "do not match",
+        "a-name:jquery::1.0.28");
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD), is("warn"));
 
@@ -157,6 +164,16 @@ public abstract class AbstractPolicyEditorTest
         containsInAnyOrder(Notification.CONTINUOUS_MONITORING));
     
     testCreatePolicy_navigatingAwayWithUnsavedData();
+  }
+
+  private static void assertCondition(Condition actualCondition,
+                                      String expectedType,
+                                      String expectedOp,
+                                      String expectedValue)
+  {
+    assertThat(actualCondition.getConditionTypeId(), is(expectedType));
+    assertThat(actualCondition.getOperator(), is(expectedOp));
+    assertThat(actualCondition.getValue(), is(expectedValue));
   }
 
   @Test
@@ -343,7 +360,7 @@ public abstract class AbstractPolicyEditorTest
     Constraint constraint3 = new Constraint(policy.getId() + "3", "Third Constraint with Two Conditions",
         LogicalOperator.OR);
     constraint3.addCondition(new Condition("RelativePopularity", "<", "50"));
-    constraint3.addCondition(new Condition("Coordinates", "do not match", "maven:blah:blah:blah"));
+    constraint3.addCondition(new Condition(CoordinatesConditionType.ID, "do not match", "maven:blah:blah:blah"));
 
     policy.setConstraints(Arrays.asList(constraint1, constraint2, constraint3));
 
@@ -498,11 +515,12 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(3);
-    constraintEdit.condition(2).type().selectedItem().shouldHave(text("Age")).click();
-    constraintEdit.condition(2).type().listItem(11).shouldHave(text("Coordinates")).click();
-    constraintEdit.inputCondition(2).operator().selectedItem().shouldHave(text("match")).click();
-    constraintEdit.inputCondition(2).operator().listItem(1).shouldHave(text("do not match")).click();
-    constraintEdit.inputCondition(2).value().shouldBe(empty).val("maven:com.eclipse.*");
+    constraintEdit.condition(2).type().selectedItem().shouldHave(text("Age"));
+
+    CoordinatesCondition coordConditionEditor = constraintEdit.coordinatesCondition(2);
+    coordConditionEditor.setType();
+    coordConditionEditor.setOperator("do not match");
+    coordConditionEditor.groupId().val("com.eclipse.*");
     PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
@@ -729,6 +747,26 @@ public abstract class AbstractPolicyEditorTest
     ageCondition.value().modifier().selectedItem().shouldHave(text("Years"));
     ageCondition.value().age().shouldBe(empty).val("3");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    CoordinatesCondition coordsCondition = newConstraint.coordinatesCondition(1);
+    coordsCondition.setType();
+    coordsCondition.format().selectedItem().shouldHave(text("maven"));
+    coordsCondition.groupId().val("org.apache");
+    coordsCondition.artifactId().val("tomcat");
+    coordsCondition.version().val("5.0.28");
+
+    newConstraint.addConditionButton().click();
+    coordsCondition = newConstraint.coordinatesCondition(2);
+    coordsCondition.setType();
+    coordsCondition.setOperator("do not match");
+
+    Dropdown format = coordsCondition.format();
+    format.selectedItem().click();
+    format.listItem(1).click();
+    format.selectedItem().shouldHave(text("a-name"));
+    coordsCondition.name().val("jquery");
+    coordsCondition.version().val("1.0.28");
   }
 
   private void testCreatePolicy_actionsSection() {

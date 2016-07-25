@@ -90,3 +90,83 @@ table.policy-actions > tbody > tr > td {
 table.policy-actions td:last-child, table.policy-actions th:last-child {
   border-right: $gray-border;
 }
+
+$condition-indent-width: 24px;
+$condition-row-padding: 6px;
+$left-margin: 8px;
+
+.add-condition-button {
+  margin-top: $condition-row-padding;
+  margin-left: $condition-indent-width;
+}
+
+.policy-condition {
+
+  border-bottom: 1px solid $grey-1;
+  margin-left: $condition-indent-width - $left-margin;
+  margin-right: $condition-indent-width;
+  padding-bottom: $condition-row-padding;
+
+  .constraint-operator + & {
+    border-top: 1px solid $grey-1;
+    margin-top: $condition-row-padding;
+  }
+
+  /* Clears rows */
+  &:after, &:before {
+    content: '';
+    display: table;
+    line-height: 0px;
+  }
+  &:after {
+    clear: both;
+  }
+
+
+  & > div {
+    float: left;
+    margin-left: $left-margin;
+    margin-top: $condition-row-padding;
+  }
+
+  .condition-type dropdown-selector {
+    /* arbitrary width based on the longest string */
+    width: 237px;
+  }
+
+  .condition-operator dropdown-selector {
+    width: 125px;
+  }
+
+  .condition-value {
+    min-width: 250px;
+  }
+
+  .delete-condition-button {
+    float: right;
+    margin-left: $left-margin;
+    margin-top: $condition-row-padding;
+  }
+}
+
+coordinates-input {
+  dropdown-selector {
+    width: 88px;
+  }
+
+  .clm-form & input[type=text] {
+    margin-left: $left-margin;
+
+    &[name*="groupid-"], &[name*="name-"] {
+      width: 140px;
+    }
+
+    &[name*="artifactid-"], &[name*="qualifier-"] {
+      width: 120px;
+    }
+
+    &[name*="version-"] {
+      width: 80px;
+    }
+  }
+}

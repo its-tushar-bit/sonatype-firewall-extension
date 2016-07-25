@@ -211,6 +211,10 @@
           vm.searchInProgress = false;
           vm.members = result.data.members;
           updatePickedUsers(pickedUsers);
+
+          if (result.data.error) {
+            vm.searchError = result.data.error;
+          }
         }, function(error) {
           vm.searchInProgress = false;
           vm.searchError = Messages.getHttpErrorMessage(error);

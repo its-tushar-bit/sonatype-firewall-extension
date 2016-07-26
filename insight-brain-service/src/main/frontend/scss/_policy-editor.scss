@@ -107,7 +107,7 @@ $left-margin: 8px;
   margin-right: $condition-indent-width;
   padding-bottom: $condition-row-padding;
 
-  .constraint-operator + & {
+  &:first-child {
     border-top: 1px solid $grey-1;
     margin-top: $condition-row-padding;
   }

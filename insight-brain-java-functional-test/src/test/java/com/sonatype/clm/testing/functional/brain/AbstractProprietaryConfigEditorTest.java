@@ -35,14 +35,13 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.PACKAGE;
+import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.REGEX;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.DUPLICATE_PACKAGE_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.DUPLICATE_REGEX_MATCHER_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.INVALID_PACKAGE_MESSAGE;
-import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.PACKAGE;
-import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.REGEX;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.WILDCARD_PACKAGE_MESSAGE;
 import static java.util.Arrays.asList;
-import static java.util.Collections.EMPTY_LIST;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -63,7 +62,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
   protected void init(Owner currentOwner) {
     tempEntity.newProprietaryConfig(currentOwner.getParentOwnerId(), asList("com.inherited"), asList(".*test\\.zip"));
-    tempEntity.newProprietaryConfig(currentOwner.getId(), asList("com.local"), EMPTY_LIST);
+    tempEntity.newProprietaryConfig(currentOwner.getId(), asList("com.local"), Collections.<String> emptyList());
 
     this.currentOwner = currentOwner;
 

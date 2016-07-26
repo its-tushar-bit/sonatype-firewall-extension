@@ -91,7 +91,7 @@ public class AbstractComponentTest
     binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
   }
 
-  protected void customizeConfig(InsightConfig config) {
+  protected void customizeConfig(@SuppressWarnings("unused") InsightConfig config) {
     // hook for tests to tweak config before components grab it
   }
 }

@@ -227,7 +227,7 @@ class TagService
   }
 
   @Authorize(permission = Permission.WRITE)
-  List<Tag> updatePolicyTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
+  List<Tag> updatePolicyTags(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
                              String policyId,
                              final List<Tag> newTags)
   {

@@ -75,7 +75,8 @@ class ScanService
    * @throws NotFoundException if there is no ticket for the given ticketId
    */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ScanTicket getTicket(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId, String ticketId)
+  public ScanTicket getTicket(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
+                              String ticketId)
       throws NotFoundException
   {
     ScanTask task = taskRepository.getByIdNotNull(ticketId);

@@ -69,8 +69,8 @@ public class UserService
    * Retrieves a list of users that can be used to assign role-to-user memberships for an application or organization.
    */
   @Authorize(permission = Permission.WRITE)
-  protected FindMembersDTO findMembersForNonGlobalRoles(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-                                                        @AuthzContext(AuthzContext.Key.ID) String ownerId,
+  protected FindMembersDTO findMembersForNonGlobalRoles(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+                                                        @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) String ownerId,
                                                         String query,
                                                         boolean groupsEnabled)
   {

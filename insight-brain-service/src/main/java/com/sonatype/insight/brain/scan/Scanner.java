@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
 import com.sonatype.insight.scan.config.ScanPropertiesLoader;
@@ -63,7 +62,6 @@ class Scanner
                  ClientScanner clientScanner,
                  FileScanner fileScanner,
                  ScanWriterFactory writerFactory,
-                 InsightWork work,
                  FileCleaner fileCleaner,
                  ProprietaryConfigService proprietaryConfigService)
   {

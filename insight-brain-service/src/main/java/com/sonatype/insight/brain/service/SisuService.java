@@ -95,21 +95,23 @@ public abstract class SisuService<T extends Configuration>
   //
   // Allow the application to customize the scanning
   //
-  protected BeanScanning scanning(T configuration) {
+  protected BeanScanning scanning(@SuppressWarnings("unused") T configuration) {
     return BeanScanning.ON;
   }
 
   //
   // Allow the application to customize the modules
   //
-  protected List<Module> modules(T configuration) {
+  protected List<Module> modules(@SuppressWarnings("unused") T configuration) {
     return Collections.emptyList();
   }
 
   //
   // Allow the application to customize the environment
   //
-  protected void customize(T configuration, Environment environment) {
+  protected void customize(@SuppressWarnings("unused") T configuration,
+                           @SuppressWarnings("unused") Environment environment)
+  {
   }
 
   private void runWithInjector(T configuration, Environment environment, Injector injector) {
@@ -138,7 +140,7 @@ public abstract class SisuService<T extends Configuration>
    * Allows subclasses to exclude components that are present on their classpath but not meant to be used by the
    * application. Especially useful for tests where the classpath is not specific to just one app.
    */
-  protected boolean acceptComponent(Class<?> type) {
+  protected boolean acceptComponent(@SuppressWarnings("unused") Class<?> type) {
     return true;
   }
 

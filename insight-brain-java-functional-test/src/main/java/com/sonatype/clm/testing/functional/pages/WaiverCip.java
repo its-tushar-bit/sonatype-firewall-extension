@@ -12,14 +12,14 @@ import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.hasClass;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class WaiverCip
     extends ReportCip
@@ -145,11 +145,15 @@ public class WaiverCip
       return $(createSelector(selector, ".btn-primary"));
     }
 
-    public void shouldBe(int threatLevel, String policyName, String[] expectedConstraints, String[] expectedConditions)
+    public void shouldBe(String cssClass,
+                         String policyName,
+                         String[] expectedConstraints,
+                         String[] expectedConditions)
     {
       policyName().shouldHave(text(policyName));
       constraints().shouldHave(CollectionCondition.texts(expectedConstraints));
       conditions().shouldHave(CollectionCondition.texts(expectedConditions));
+      policyName().shouldHave(hasClass(cssClass));
     }
   }
 

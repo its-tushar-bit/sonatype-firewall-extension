@@ -473,9 +473,9 @@ public class RepositoryReportTest
 
     // Check existing violations
     WaiverCip.rows().shouldHaveSize(2);
-    WaiverCip.row(0).shouldBe(10, CRITICAL_ROW.policyName, new String[] { CRITICAL_ROW.policyName + " constraint" },
-        new String[] { "Match State was exact" });
-    WaiverCip.row(1).shouldBe(10, CRITICAL_ROW_SECONDARY.policyName,
+    WaiverCip.row(0).shouldBe("cip-policy-red", CRITICAL_ROW.policyName,
+        new String[] { CRITICAL_ROW.policyName + " constraint" }, new String[] { "Match State was exact" });
+    WaiverCip.row(1).shouldBe("cip-policy-red", CRITICAL_ROW_SECONDARY.policyName,
         new String[] { CRITICAL_ROW_SECONDARY.policyName + " constraint" },
         new String[] { "Coordinates were critical : threat : 1.0" });
 

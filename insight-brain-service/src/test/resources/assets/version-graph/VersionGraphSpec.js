@@ -436,45 +436,97 @@ var clmEndpointTemplate = {
         });
 
         describe('canShowAddProprietary()', function() {
-          describe('when clmEndpoint.canAddProprietary is undefined', function() {
+
+          describe('when non maven pathnames present', function() {
             beforeEach(function() {
-              clmEndpoint.canAddProprietary = undefined;
+              // mock selected component with non maven pathnames present
+              selectedComponent.get.andReturn({
+                pathnames: ['foo', 'dependency:/baz', 'bar']
+              });
             });
 
-            it('returns false if component is marked as proprietary', function() {
-              properties.setProprietary(true);
-              expect(scope.canShowAddProprietary()).toBe(false);
+            describe('when clmEndpoint.canAddProprietary is undefined', function() {
+              beforeEach(function() {
+                clmEndpoint.canAddProprietary = undefined;
+              });
+
+              it('returns false if component is marked as proprietary', function() {
+                properties.setProprietary(true);
+                expect(scope.canShowAddProprietary()).toBe(false);
+              });
+
+              it('returns false if component is not marked as proprietary', function() {
+                properties.setProprietary(false);
+                expect(scope.canShowAddProprietary()).toBe(false);
+              });
             });
 
-            it('returns false if component is not marked as proprietary', function() {
-              properties.setProprietary(false);
-              expect(scope.canShowAddProprietary()).toBe(false);
+            describe('when clmEndpoint.canAddProprietary is true', function() {
+              beforeEach(function() {
+                clmEndpoint.canAddProprietary = true;
+              });
+
+              it('returns false if component is marked as proprietary', function() {
+                properties.setProprietary(true);
+                expect(scope.canShowAddProprietary()).toBe(false);
+              });
+
+              it('returns  true if component is not marked as proprietary', function() {
+                properties.setProprietary(false);
+                expect(scope.canShowAddProprietary()).toBe(true);
+              });
             });
           });
 
-          describe('when clmEndpoint.canAddProprietary is true', function() {
+          describe('when non maven pathnames are not present', function() {
             beforeEach(function() {
-              clmEndpoint.canAddProprietary = true;
+              // mock selected component with non maven pathnames present
+              selectedComponent.get.andReturn({
+                pathnames: ['dependency:/foo', 'dependency:/baz', 'dependency:/bar']
+              });
             });
 
-            it('returns false if component is marked as proprietary', function() {
-              properties.setProprietary(true);
-              expect(scope.canShowAddProprietary()).toBe(false);
+            describe('when clmEndpoint.canAddProprietary is undefined', function() {
+              beforeEach(function() {
+                clmEndpoint.canAddProprietary = undefined;
+              });
+
+              it('returns false if component is marked as proprietary', function() {
+                properties.setProprietary(true);
+                expect(scope.canShowAddProprietary()).toBe(false);
+              });
+
+              it('returns false if component is not marked as proprietary', function() {
+                properties.setProprietary(false);
+                expect(scope.canShowAddProprietary()).toBe(false);
+              });
             });
 
-            it('returns true if component is not marked as proprietary', function() {
-              properties.setProprietary(false);
-              expect(scope.canShowAddProprietary()).toBe(true);
+            describe('and clmEndpoint.canAddProprietary is true', function() {
+              beforeEach(function() {
+                clmEndpoint.canAddProprietary = true;
+              });
+
+              it('returns false  if component is marked as proprietary', function() {
+                properties.setProprietary(true);
+                expect(scope.canShowAddProprietary()).toBe(false);
+              });
+
+              it('returns false if component is not marked as proprietary', function() {
+                properties.setProprietary(false);
+                expect(scope.canShowAddProprietary()).toBe(false);
+              });
             });
           });
+
         });
 
         describe('showAddProprietary()', function() {
-          it('calls modal with owner Id and pathnames', function() {
+          it('calls modal with owner Id and filtered pathnames', function() {
 
             // mock selected component
             selectedComponent.get.andReturn({
-              pathnames: ['foo', 'bar']
+              pathnames: ['foo', 'dependency:/baz', 'bar']
             });
 
             scope.showAddProprietary();

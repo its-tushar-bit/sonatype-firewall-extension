@@ -81,20 +81,26 @@ public class AddProprietaryMatchersTest
   public void testAddProprietaryMatchersDialog() {
     AddProprietaryMatchersDialog modal = new AddProprietaryMatchersDialog();
 
-    // test AddProprietaryButton is not visible if already proprietary
     refreshOrOpen(ReportPage.url(app, SCAN_ID));
     ReportPage.policyTabButton().shouldBe(visible).click();
-    ReportPolicyPage.rows().shouldHaveSize(2);
+    ReportPolicyPage.rows().shouldHaveSize(3);
+
+    // test AddProprietaryButton is not visible if all pathNames are maven coordinates
+    ReportPolicyPage.row(2).openCip();
+    VersionsCIP.addProprietaryMatchersButton().shouldNotBe(visible);
+
+    // test AddProprietaryButton is not visible if already proprietary
     ReportPolicyPage.row(1).openCip();
     VersionsCIP.addProprietaryMatchersButton().shouldNotBe(visible);
 
     // test Cancel button
-    openDialog();
+    ReportPolicyPage.row(0).openCip();
+    VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
     modal.cancelButton().shouldBe(visible).click();
     modal.shouldNotBe(visible);
 
     // test init state
-    openDialog();
+    VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
     modal.regexInput().shouldHave(value(""));
     modal.pathMatcherCheckboxes().shouldHaveSize(2);
     modal.pathMatcherCheckboxes().first().shouldBe(selected);
@@ -115,7 +121,7 @@ public class AddProprietaryMatchersTest
     assertThat(config.getRegexes().get(2), is("foo"));
 
     // submit same data - config should not change
-    openDialog();
+    VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
     modal.regexInput().val("foo");
     modal.addButton().shouldNotBe(DISABLED).click();
     modal.shouldNotBe(visible);
@@ -126,7 +132,7 @@ public class AddProprietaryMatchersTest
     assertThat(config.getRegexes().get(2), is("foo"));
 
     // nothing selected
-    openDialog();
+    VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
     modal.pathMatcherCheckboxes().first().click();
     modal.addButton().shouldNotBe(DISABLED);
     modal.pathMatcherCheckboxes().last().click();
@@ -169,13 +175,5 @@ public class AddProprietaryMatchersTest
     policy.addConstraint(constraint);
     policy.setOwnerId(ownerId);
     tempEntity.newPolicy(policy);
-  }
-
-  private void openDialog() {
-    refreshOrOpen(ReportPage.url(app, SCAN_ID));
-    ReportPage.policyTabButton().shouldBe(visible).click();
-    ReportPolicyPage.rows().shouldHaveSize(2);
-    ReportPolicyPage.row(0).openCip();
-    VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
   }
 }

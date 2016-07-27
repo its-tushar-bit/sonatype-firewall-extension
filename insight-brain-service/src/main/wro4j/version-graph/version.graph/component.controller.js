@@ -64,14 +64,29 @@
     }, coordinatesChanged);
 
     $scope.showAddProprietary = function() {
+      // 'proprietary.matchers.modal' is available only in the context of CIP (if clmEndpoint.canAddProprietary)
       var ProprietaryMatchersModal = $injector.get('proprietary.matchers.modal');
-      var SelectedComponent = $injector.get('SelectedComponent');
-      ProprietaryMatchersModal.open(OwnerContext.ownerId, SelectedComponent.get().pathnames);
+      ProprietaryMatchersModal.open(OwnerContext.ownerId, getPathNames());
     };
 
     $scope.canShowAddProprietary = function() {
-      return clmEndpoint.canAddProprietary === true && !Properties.getProprietary();
+      if (!clmEndpoint.canAddProprietary || Properties.getProprietary()) {
+        return false;
+      }
+      // don't show if there are no pathNames
+      return getPathNames().length !== 0;
     };
+
+    function getPathNames() {
+      // SelectedComponent is available only in the context of CIP (if clmEndpoint.canAddProprietary)
+      var SelectedComponent = $injector.get('SelectedComponent');
+      return SelectedComponent.get().pathnames.filter(isNotDependency);
+    }
+  }
+
+  function isNotDependency(pathName) {
+    // doesn't start with "dependency:\"
+    return !/^dependency:\//.test(pathName);
   }
 
   ComponentController.$inject = [

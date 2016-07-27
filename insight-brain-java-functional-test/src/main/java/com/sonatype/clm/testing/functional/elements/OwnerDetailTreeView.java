@@ -5,11 +5,15 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.SelenideElement;
+import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+
 import static com.codeborne.selenide.Selenide.$;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class OwnerDetailTreeView
 {
@@ -32,67 +36,57 @@ public class OwnerDetailTreeView
   }
 
   public static OwnerDetailTreeViewGroup applicationCategoryGroup() {
-    return new OwnerDetailTreeViewGroup($("#applicationCategoryTreeViewGroup"));
+    return new OwnerDetailTreeViewGroup("#applicationCategoryTreeViewGroup");
   }
 
   public static OwnerDetailTreeViewGroup policyGroup() {
-    return new OwnerDetailTreeViewGroup($("#policyTreeViewGroup"));
+    return new OwnerDetailTreeViewGroup("#policyTreeViewGroup");
   }
 
   public static OwnerDetailTreeViewGroup componentLabelGroup() {
-    return new OwnerDetailTreeViewGroup($("#labelTreeViewGroup"));
+    return new OwnerDetailTreeViewGroup("#labelTreeViewGroup");
   }
 
   public static OwnerDetailTreeViewGroup LTGGroup() {
-    return new OwnerDetailTreeViewGroup($("#licenseThreatGroupTreeViewGroup"));
+    return new OwnerDetailTreeViewGroup("#licenseThreatGroupTreeViewGroup");
   }
 
   public static OwnerDetailTreeViewGroup accessGroup() {
-    return new OwnerDetailTreeViewGroup($("#accessTreeViewGroup"));
+    return new OwnerDetailTreeViewGroup("#accessTreeViewGroup");
   }
 
   public static class OwnerDetailTreeViewGroup
+      extends BasicElement<OwnerDetailTreeViewGroup>
   {
-    private SelenideElement root;
-
-    public OwnerDetailTreeViewGroup(SelenideElement root) {
-      this.root = root;
-    }
-
-    public SelenideElement root() {
-      return root;
+    public OwnerDetailTreeViewGroup(String... selectors) {
+      super(selectors);
     }
 
     public SelenideElement twisty() {
-      return root().$(".twisty");
+      return child(".twisty");
     }
 
     public ElementsCollection items() {
-      return root().$$(".tree-view-item");
+      return children(".tree-view-item");
     }
 
     public ElementsCollection entryItems() {
-      return root().$$(".tree-view-item:nth-child(n+3)"); // skip root and 'Add ...' entries
+      return children(".tree-view-item:nth-child(n+3)"); // skip root and 'Add ...' entries
     }
 
     public OwnerDetailTreeViewItem item(int num) {
-      return new OwnerDetailTreeViewItem(root().$$(".tree-view-item").get(num));
+      return new OwnerDetailTreeViewItem(childSelector(".tree-view-item", nthChild(num + 1)));
     }
 
     public static class OwnerDetailTreeViewItem
+        extends BasicElement<OwnerDetailTreeViewItem>
     {
-      private SelenideElement root;
-
-      public OwnerDetailTreeViewItem(SelenideElement root) {
-        this.root = root;
-      }
-
-      public SelenideElement root() {
-        return root;
+      public OwnerDetailTreeViewItem(String... selectors) {
+        super(selectors);
       }
 
       public SelenideElement icon() {
-        return root.$(".fa, .hexagon");
+        return child(".tree-view-icon");
       }
     }
   }

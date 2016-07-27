@@ -101,8 +101,8 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3);
-    OwnerDetailTreeView.accessGroup().item(2).root().shouldHave(text(roleName));
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1);
+    OwnerDetailTreeView.accessGroup().item(2).shouldHave(text(roleName));
     assertThatRoleNotAvailableInDropdown(roleName);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
@@ -120,7 +120,7 @@ public abstract class AbstractAccessEditorTest
     goFromSummaryToEditRole(role);
 
     waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
-    OwnerDetailTreeView.accessGroup().item(2).root().shouldBe(CLM.SELECTED);
+    OwnerDetailTreeView.accessGroup().item(2).shouldBe(CLM.SELECTED);
     AccessEditorPage.title().shouldHave(text(role.getName()));
 
     DoubleColumnPicker picker = new DoubleColumnPicker();
@@ -205,7 +205,7 @@ public abstract class AbstractAccessEditorTest
   }
 
   private void assertAddRoleInitialStateIsCorrect(int numAvailableRoles) {
-    OwnerDetailTreeView.accessGroup().item(1).root().shouldBe(CLM.SELECTED);
+    OwnerDetailTreeView.accessGroup().item(1).shouldBe(CLM.SELECTED);
     AccessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);
     AccessEditorPage.roleDropdown().listItems().shouldHaveSize(numAvailableRoles);
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(new DoubleColumnPicker(), 0, false);

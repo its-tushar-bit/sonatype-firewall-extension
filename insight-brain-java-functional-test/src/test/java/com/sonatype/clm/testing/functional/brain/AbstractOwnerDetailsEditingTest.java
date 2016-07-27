@@ -101,11 +101,11 @@ public abstract class AbstractOwnerDetailsEditingTest
     }
     else {
       OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text("Repositories"));
-      OwnerDetailTreeView.applicationCategoryGroup().root().shouldNotBe(visible);
-      OwnerDetailTreeView.policyGroup().root().shouldNotBe(visible);
-      OwnerDetailTreeView.componentLabelGroup().root().shouldNotBe(visible);
-      OwnerDetailTreeView.LTGGroup().root().shouldNotBe(visible);
-      OwnerDetailTreeView.accessGroup().root().shouldBe(visible);
+      OwnerDetailTreeView.applicationCategoryGroup().shouldNotBe(visible);
+      OwnerDetailTreeView.policyGroup().shouldNotBe(visible);
+      OwnerDetailTreeView.componentLabelGroup().shouldNotBe(visible);
+      OwnerDetailTreeView.LTGGroup().shouldNotBe(visible);
+      OwnerDetailTreeView.accessGroup().shouldBe(visible);
       //CLM-5937 should also test the access routing testRouting_Access(OwnerDetailTreeView.accessGroup());
     }
   }
@@ -124,14 +124,14 @@ public abstract class AbstractOwnerDetailsEditingTest
 
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
       detailGroup.items().shouldHaveSize(3);
-      detailGroup.item(1).root().shouldBe(visible).click();
-      detailGroup.item(1).root().shouldBe(CLM.SELECTED);
+      detailGroup.item(1).shouldBe(visible).click();
+      detailGroup.item(1).shouldBe(CLM.SELECTED);
       waitUntilUrl(CategoryEditorPage.urlToCreate(currentOwner.getPublicId()));
 
       back();
 
-      detailGroup.item(2).root().shouldBe(visible).shouldHave(text(category.getName())).click();
-      detailGroup.item(2).root().shouldBe(CLM.SELECTED);
+      detailGroup.item(2).shouldBe(visible).shouldHave(text(category.getName())).click();
+      detailGroup.item(2).shouldBe(CLM.SELECTED);
       detailGroup.item(2).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toString()));
       waitUntilUrl(CategoryEditorPage.urlToEdit(currentOwner.getPublicId(), category.getId()));
 
@@ -139,7 +139,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     }
     else {
       detailGroup.items().shouldHaveSize(2);
-      detailGroup.item(1).root().shouldBe(visible).shouldHave(CLM.DISABLED).click();
+      detailGroup.item(1).shouldBe(visible).shouldHave(CLM.DISABLED).click();
 
       // Click should not redirect
       waitUntilUrl(OwnerDetailsEditingPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
@@ -151,7 +151,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.twisty().click();
       detailGroup.twisty().shouldBe(visible).shouldHave(CLM.COLLAPSED);
       detailGroup.items().shouldHaveSize(2);
-      detailGroup.item(1).root().shouldBe(visible).shouldNotHave(CLM.DISABLED).click();
+      detailGroup.item(1).shouldBe(visible).shouldNotHave(CLM.DISABLED).click();
 
       waitUntilUrl(ApplicationCategoryEditorPage.urlToEdit(currentOwner.getPublicId()));
 
@@ -168,20 +168,20 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
       detailGroup.items().shouldHaveSize(6);
-      detailGroup.item(1).root().shouldBe(visible).click();
-      detailGroup.item(1).root().shouldBe(CLM.SELECTED);
+      detailGroup.item(1).shouldBe(visible).click();
+      detailGroup.item(1).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
 
       back();
 
-      detailGroup.item(2).root().shouldBe(visible).shouldHave(text(policies[1].getName())).click();
-      detailGroup.item(2).root().shouldBe(CLM.SELECTED);
+      detailGroup.item(2).shouldBe(visible).shouldHave(text(policies[1].getName())).click();
+      detailGroup.item(2).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), policies[1].getId()));
 
       back();
 
-      detailGroup.item(3).root().shouldBe(visible).shouldHave(text(policies[0].getName())).click();
-      detailGroup.item(3).root().shouldBe(CLM.SELECTED);
+      detailGroup.item(3).shouldBe(visible).shouldHave(text(policies[0].getName())).click();
+      detailGroup.item(3).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), policies[0].getId()));
 
       back();
@@ -194,8 +194,8 @@ public abstract class AbstractOwnerDetailsEditingTest
   private void testMonitoring(OwnerDetailTreeViewGroup detailGroup) {
     OwnerDetailTreeViewItem monitoredStage = detailGroup.item(detailGroup.items().size() - 2);
     monitoredStage.icon().shouldBe(visible);
-    monitoredStage.root().shouldBe(visible).click();
-    monitoredStage.root().shouldBe(CLM.SELECTED);
+    monitoredStage.shouldBe(visible).click();
+    monitoredStage.shouldBe(CLM.SELECTED);
     waitUntilUrl(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     back();
   }
@@ -206,14 +206,14 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
 
     detailGroup.items().shouldHaveSize(3);
-    detailGroup.item(1).root().shouldBe(visible).click();
-    detailGroup.item(1).root().shouldBe(CLM.SELECTED);
+    detailGroup.item(1).shouldBe(visible).click();
+    detailGroup.item(1).shouldBe(CLM.SELECTED);
     waitUntilUrl(LabelEditorPage.urlToCreate(currentOwner.getType().toString(), currentOwner.getPublicId()));
 
     back();
 
-    detailGroup.item(2).root().shouldBe(visible).shouldHave(text(label.getLabel())).click();
-    detailGroup.item(2).root().shouldBe(CLM.SELECTED);
+    detailGroup.item(2).shouldBe(visible).shouldHave(text(label.getLabel())).click();
+    detailGroup.item(2).shouldBe(CLM.SELECTED);
     detailGroup.item(2).icon().shouldBe(visible).shouldHave(cssClass(label.getColor().toValue()));
     waitUntilUrl(LabelEditorPage
         .urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), label.getId()));
@@ -231,20 +231,20 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
 
       detailGroup.items().shouldHaveSize(4);
-      detailGroup.item(1).root().shouldBe(visible).click();
-      detailGroup.item(1).root().shouldBe(CLM.SELECTED);
+      detailGroup.item(1).shouldBe(visible).click();
+      detailGroup.item(1).shouldBe(CLM.SELECTED);
       waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
 
       back();
 
-      detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ltgs[1].getName())).click();
-      detailGroup.item(2).root().shouldBe(CLM.SELECTED);
+      detailGroup.item(2).shouldBe(visible).shouldHave(text(ltgs[1].getName())).click();
+      detailGroup.item(2).shouldBe(CLM.SELECTED);
       waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltgs[1].getId()));
 
       back();
 
-      detailGroup.item(3).root().shouldBe(visible).shouldHave(text(ltgs[0].getName())).click();
-      detailGroup.item(3).root().shouldBe(CLM.SELECTED);
+      detailGroup.item(3).shouldBe(visible).shouldHave(text(ltgs[0].getName())).click();
+      detailGroup.item(3).shouldBe(CLM.SELECTED);
       waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltgs[0].getId()));
 
       back();
@@ -263,14 +263,14 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
 
     detailGroup.items().shouldHaveSize(3);
-    detailGroup.item(1).root().shouldBe(visible).click();
-    detailGroup.item(1).root().shouldBe(CLM.SELECTED);
+    detailGroup.item(1).shouldBe(visible).click();
+    detailGroup.item(1).shouldBe(CLM.SELECTED);
     waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner.getType().toString(), currentOwner.getPublicId()));
 
     back();
 
-    detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ROLES.get(0).getName())).click();
-    detailGroup.item(2).root().shouldBe(CLM.SELECTED);
+    detailGroup.item(2).shouldBe(visible).shouldHave(text(ROLES.get(0).getName())).click();
+    detailGroup.item(2).shouldBe(CLM.SELECTED);
     detailGroup.item(2).icon().shouldBe(visible);
     waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), ROLES.get(0)
         .getId()));
@@ -279,7 +279,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(i).getId(), "admin");
     }
     refresh();
-    detailGroup.item(1).root().shouldBe(visible).shouldBe(CLM.DISABLED);
+    detailGroup.item(1).shouldBe(visible).shouldBe(CLM.DISABLED);
 
     back();
 

@@ -66,14 +66,24 @@ public abstract class AbstractAccessEditorTest
 
   protected void init(Owner owner) {
     this.currentOwner = owner;
+
+    User u1 = tempEntity.newUser();
+    User u2 = tempEntity.newUser();
+    Role role = APPLICATION_ROLES.get(0);
+    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
+    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u2.getUsername());
+
+    role = APPLICATION_ROLES.get(2);
+    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
+
     open(OwnerSummaryPage.url(owner.getType().toString(), owner.getPublicId()));
   }
 
   @Test
   public void testAddRole() {
     goFromSummaryToAddRole();
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size());
-    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(2);
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 2);
+    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(4);
 
     Dropdown roleDropdown = AccessEditorPage.roleDropdown();
     roleDropdown.selectedItem().shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
@@ -86,7 +96,7 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.searchButton().shouldBe(enabled).click();
 
     DoubleColumnPicker picker = new DoubleColumnPicker();
-    picker.availableItems().shouldHaveSize(2);
+    picker.availableItems().shouldHaveSize(4);
 
     Item availableItem = picker.availableItem(0);
     availableItem.label().shouldHave(text("Admin Builtin"));
@@ -100,23 +110,18 @@ public abstract class AbstractAccessEditorTest
     picker.pickCheckedItemsButton().click();
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1);
-    OwnerDetailTreeView.accessGroup().item(2).shouldHave(text(roleName));
+    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(5);
+    OwnerDetailTreeView.accessGroup().item(4).shouldHave(text(roleName));
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 3);
     assertThatRoleNotAvailableInDropdown(roleName);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
-    assertThat(membershipMappings, hasSize(2));
+    assertThat(membershipMappings, hasSize(4));
   }
 
   @Test
   public void testEdit() {
-    User u1 = tempEntity.newUser();
-    User u2 = tempEntity.newUser();
     Role role = APPLICATION_ROLES.get(0);
-    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
-    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u2.getUsername());
-    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(2));
     goFromSummaryToEditRole(role);
 
     waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
@@ -154,15 +159,16 @@ public abstract class AbstractAccessEditorTest
 
   @Test
   public void testRemoveBySavingWithNoPickedUsers() {
-    User u1 = tempEntity.newUser();
     Role role = APPLICATION_ROLES.get(2);
-    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
-    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(1));
-    open(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
+    refreshOrOpen(
+        AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
+
+    DoubleColumnPicker picker = new DoubleColumnPicker();
+    picker.pickedItems().shouldHaveSize(1);
+
     AccessEditorPage.title().hover(); // hide the tooltip
     int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
 
-    DoubleColumnPicker picker = new DoubleColumnPicker();
     picker.checkAllRight().click();
     picker.unpickCheckedItemsButton().click();
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
@@ -179,10 +185,7 @@ public abstract class AbstractAccessEditorTest
 
   @Test
   public void testRemove() {
-    User u1 = tempEntity.newUser();
     Role role = APPLICATION_ROLES.get(2);
-    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
-    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(1));
     open(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
     AccessEditorPage.title().hover(); // hide the tooltip
     int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();

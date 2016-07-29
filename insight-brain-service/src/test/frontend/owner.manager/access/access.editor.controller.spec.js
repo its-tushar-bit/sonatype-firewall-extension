@@ -4,17 +4,6 @@ describe('access.editor.controller.spec.js', function() {
       $httpBackend,
       deleteServiceResourceDefer,
       $timeout,
-      mockCLMAppLocations = {
-        isApplication: function() {
-          return true;
-        },
-        getEntityId: function() {
-          return 'asdf';
-        },
-        getRoleMappingUrl: function() {
-          return '/roleMappingUrl';
-        }
-      },
       mockDeleteService = {
         deleteCustom: function() {
           return deleteServiceResourceDefer.promise;
@@ -43,15 +32,17 @@ describe('access.editor.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $controller, _$timeout_, _$q_, _$httpBackend_, _CLMAppLocations_) {
-        scope = $rootScope.$new();
-        $timeout = _$timeout_;
-        $httpBackend = _$httpBackend_;
-        $q = _$q_;
-        deleteServiceResourceDefer = $q.defer();
-        CLMAppLocations = _CLMAppLocations_;
-      }
-  ));
+  beforeEach(inject(function($rootScope, $controller, _$timeout_, _$q_, _$httpBackend_, _CLMAppLocations_, $state, ApplicationId) {
+    scope = $rootScope.$new();
+    $timeout = _$timeout_;
+    $httpBackend = _$httpBackend_;
+    $q = _$q_;
+    deleteServiceResourceDefer = $q.defer();
+    CLMAppLocations = _CLMAppLocations_;
+
+    $state.current.name = 'application'; // used by CLMAppLocations
+    spyOn(ApplicationId, 'encoded').andReturn('abc');
+  }));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();
@@ -61,10 +52,10 @@ describe('access.editor.controller.spec.js', function() {
   it('Sets roles and users', function() {
     inject(function($controller) {
       vm = $controller('access.editor.controller', {$scope: scope, $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'},
-        isAuthorized: true, CLMAppLocations: mockCLMAppLocations});
+        isAuthorized: true});
     });
 
-    $httpBackend.expectGET(mockCLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
+    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
     $httpBackend.flush();
 
     expect(vm.role).toBeDefined();
@@ -122,9 +113,9 @@ describe('access.editor.controller.spec.js', function() {
   it('Adding the last role removes it from available, broadcasts update and transfers to edit', function() {
     inject(function($controller) {
       vm = $controller('access.editor.controller', {$scope: scope, isAuthorized: true,
-        $rootScope: mockRootScope, SameOwnerStateNavigationService: mockSameOwnerStateNavigationService, CLMAppLocations: mockCLMAppLocations});
+        $rootScope: mockRootScope, SameOwnerStateNavigationService: mockSameOwnerStateNavigationService});
     });
-    $httpBackend.expectGET(mockCLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
+    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
     $httpBackend.flush();
     expect(vm.availableRoles.length).toBe(1);
     vm.accessEditor = mockAccessEditor;
@@ -135,7 +126,7 @@ describe('access.editor.controller.spec.js', function() {
     vm.accessEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();
-    $httpBackend.expectPUT(mockCLMAppLocations.getRoleMappingUrl()).respond(200);
+    $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(vm.role.roleId)).respond(200);
     $httpBackend.flush();
     $timeout(function(){}, 1000); // mask delay = 0.8s
     $timeout.flush();

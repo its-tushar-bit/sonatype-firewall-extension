@@ -40,14 +40,6 @@ public class ApplicationAccessEditorTest
 
   @Before
   public void init() {
-    serverId = tempEntity.newLdapServer("LDAP").getId();
-    tempEntity.newLdapConnection(serverId);
-
-    LdapUserMapping userMapping = tempEntity.newLdapUserMapping(serverId);
-    userMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    userMapping.setDynamicGroupSearchEnabled(false);
-    new LdapUserMappingDAO().update(userMapping);
-
     // note the ȧ being used to force a character to be encoded
     super.init(tempEntity.newApplicationWithParent("test_ȧpp_id"));
   }
@@ -67,6 +59,15 @@ public class ApplicationAccessEditorTest
 
   @Test
   public void testAddGroupWithoutSearching() {
+    serverId = tempEntity.newLdapServer("LDAP").getId();
+    tempEntity.newLdapConnection(serverId);
+
+    LdapUserMapping userMapping = tempEntity.newLdapUserMapping(serverId);
+    userMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    userMapping.setDynamicGroupSearchEnabled(false);
+    new LdapUserMappingDAO().update(userMapping);
+
+    refresh(); // reload because UI data is cached
     goFromSummaryToAddRole();
 
     // select a role

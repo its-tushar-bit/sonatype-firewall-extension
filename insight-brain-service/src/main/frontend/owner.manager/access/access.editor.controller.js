@@ -7,7 +7,7 @@
   'use strict';
 
   function AccessEditorController($rootScope, $scope, $stateParams, $http, CLMAppLocations, Messages, LocalRoleService,
-                                  SameOwnerStateNavigationService, DeleteModalService)
+                                  SameOwnerStateNavigationService, DeleteModalService, RoleMappingService)
   {
     var originalMembers,
         ownerType,
@@ -51,9 +51,10 @@
       delete vm.loadError;
       vm.members = [];
 
-      $http.get(CLMAppLocations.getRoleMappingUrl()).then(function(result) {
+      RoleMappingService.get().then(function(response) {
+        var roleMappings = angular.copy(response); // copied as we modify objects
         if (!vm.isNew) {
-          result.data.membersByRole.some(function(role) {
+          roleMappings.membersByRole.some(function(role) {
             if ($stateParams.roleId === role.roleId) {
               vm.role = {
                 roleId: role.roleId,
@@ -74,9 +75,9 @@
             return;
           }
         }
-        vm.groupSearchEnabled = result.data.groupSearchEnabled;
-        vm.availableRoles = LocalRoleService.getRolesWithoutLocalMembers(result.data.membersByRole);
-        ldapRealm = result.data.ldapRealm;
+        vm.groupSearchEnabled = roleMappings.groupSearchEnabled;
+        vm.availableRoles = LocalRoleService.getRolesWithoutLocalMembers(roleMappings.membersByRole);
+        ldapRealm = roleMappings.ldapRealm;
       }, function(error) {
         vm.loadError = Messages.getHttpErrorMessage(error);
       });
@@ -124,7 +125,7 @@
           (ownerType === 'repository_container' ? 'all repositories' : 'this ' + ownerType) + '.' + customMessage,
           'Removing',
           function() {
-            return $http.put(CLMAppLocations.getRoleMappingUrl(vm.role.roleId), []);
+            return RoleMappingService.put(vm.role.roleId, []);
           }
       ).then(function() {
         isNavigatingAfterRemove = true;
@@ -144,8 +145,7 @@
           vm.removeRole('Next time, consider using the "Remove Role" button; it will save you some clicks!');
         }
         else {
-          vm.accessEditorMask.wrap($http.put(CLMAppLocations.getRoleMappingUrl(vm.role.roleId),
-              currentlyPicked())).then(function() {
+          vm.accessEditorMask.wrap(RoleMappingService.put(vm.role.roleId, currentlyPicked())).then(function() {
 
             if (vm.isNew) {
               $rootScope.$broadcast('resource.data.modified');
@@ -259,7 +259,7 @@
 
   AccessEditorController.$inject = [
     '$rootScope', '$scope', '$stateParams', '$http', 'CLMAppLocations', 'Messages', 'local.role.service',
-    'SameOwnerStateNavigationService', 'DeleteModalService'
+    'SameOwnerStateNavigationService', 'DeleteModalService', 'role.mapping.service'
   ];
 
   angular //

@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorNotificationsController($scope, $q, $http, CLMAppLocations, StageTypeStore, JiraService)
+  function PolicyEditorNotificationsController($scope, $q, RoleMappingService, StageTypeStore, JiraService)
   {
     var vm = this,
         availableRoles,
@@ -52,7 +52,7 @@
     function doLoad() {
       var promises = [
         StageTypeStore.getActionStages(),
-        $http.get(CLMAppLocations.getRoleMappingUrl()),
+        RoleMappingService.get(),
         JiraService.isEnabled().then(function(isEnabled) {
           if (isEnabled) {
             var getJiraDeferred = $q.defer();
@@ -72,7 +72,7 @@
 
       $q.all(promises).then(function(results) {
         vm.actionStages = results[0];
-        vm.roles = results[1].data.membersByRole;
+        vm.roles = results[1].membersByRole;
         var jiraResults = results[2];
 
         if (!jiraResults) {
@@ -301,7 +301,7 @@
   }
 
   PolicyEditorNotificationsController.$inject = [
-    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore', 'jira.service'
+    '$scope', '$q', 'role.mapping.service', 'StageTypeStore', 'jira.service'
   ];
 
   angular //

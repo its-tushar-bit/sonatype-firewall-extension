@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function AccessTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService, LocalRoleService,
+  function AccessTileController($scope, RoleMappingService, SameOwnerStateNavigationService, LocalRoleService,
                                 EventNameConstant)
   {
     var vm = this;
@@ -21,12 +21,14 @@
 
     vm.doLoad();
 
-    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
+    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function() {
+      doLoad(true);
+    });
     $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
-    function doLoad() {
-      $http.get(CLMAppLocations.getRoleMappingUrl()).then(function(results) {
-        vm.membersByRole = results.data.membersByRole;
+    function doLoad(reload) {
+      RoleMappingService[reload ? 'refresh' : 'get']().then(function(roleMappings) {
+        vm.membersByRole = roleMappings.membersByRole;
         vm.membersByRole.forEach(function(role) {
           role.membersByOwner.forEach(function(memberOwner, index) {
             memberOwner.inherited = index > 0;
@@ -69,7 +71,7 @@
   }
 
   AccessTileController.$inject = [
-    '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'local.role.service', 'event.name.constant'
+    '$scope', 'role.mapping.service', 'SameOwnerStateNavigationService', 'local.role.service', 'event.name.constant'
   ];
 
   angular //

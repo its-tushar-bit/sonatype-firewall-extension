@@ -10,8 +10,6 @@
         "groupId": "antlr",
         "artifactId": "antlr",
         "version": "2.7.2",
-        "status": "Overridden",
-        "overriddenLicenses": ["AFL-1.2"],
         "source": "osvdb",
         "reference": "78501",
         "status": "Not Applicable",

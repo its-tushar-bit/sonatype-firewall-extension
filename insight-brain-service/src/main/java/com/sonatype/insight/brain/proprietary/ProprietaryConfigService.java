@@ -162,6 +162,12 @@ public class ProprietaryConfigService
   public com.sonatype.clm.dto.model.ProprietaryConfig getConfig(Goal goal, String applicationPublicId) {
     if (goal == null || StringUtils.isBlank(applicationPublicId)) {
       // to support pre-1.22 clients, should be removed along w/ anonymous access
+      // Last versions that use this path:
+      // - insight-brain 1.21.0
+      // - insight-ci 2.16.0 (maybe later versions too)
+      // - clm-bamboo-plugin 1.2.0 (maybe later versions too)
+      // - insight-ide 2.10.1.20160404-1434 (maybe later versions too)
+      // - clm-maven-plugin 2.5.0
       return getConfig(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
     }
 

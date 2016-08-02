@@ -353,9 +353,7 @@ public class ReportResource
                 listPath += toDataPath(clmDetails.getComponentIdentifier()) + "/list.json";
               }
               else {
-                listPath += toLegacyDataPath(clmDetails.getGroupId(), clmDetails.getArtifactId(),
-                    clmDetails.getVersion())
-                    + ".json";
+                listPath += toLegacyDataPath(clmDetails) + ".json";
               }
               if (reportZip.getEntry(listPath) == null && !updater.contains(dataPath + listPath)) {
                 // CIP expects this to be an empty (!) array for every GAV but the HDS doesn't know about claimed
@@ -396,6 +394,12 @@ public class ReportResource
 
   private String toLegacyDataPath(String groupId, String artifactId, String version) {
     return groupId + '/' + artifactId + '/' + version;
+  }
+
+  @SuppressWarnings("deprecation")
+  private String toLegacyDataPath(NamedComponentDetails namedComponentDetails) {
+    return toLegacyDataPath(namedComponentDetails.getGroupId(), namedComponentDetails.getArtifactId(),
+        namedComponentDetails.getVersion());
   }
 
   private void addUniqueComponentsToUpdater(final String applicationPublicId,

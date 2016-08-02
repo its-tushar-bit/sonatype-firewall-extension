@@ -183,6 +183,7 @@ public class WaivedPolicyViolationMigrator
     });
   }
 
+  @SuppressWarnings("deprecation")
   private void createWaivedPolicyViolation(TransactionContext tx,
                                            PolicyEvaluation policyEvaluation,
                                            PolicyThreats.Component componentWithViolations,

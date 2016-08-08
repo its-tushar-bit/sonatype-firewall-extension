@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v1;
+package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,6 +24,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v1.ApiMemberMappingAdapter;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleListDTO;
@@ -43,7 +44,7 @@ import org.codehaus.plexus.util.StringUtils;
  */
 @Named
 @Path(PublicApiPaths.APP_RESOURCE_PATH)
-public class ApiApplicationResource
+public class ApiApplicationResourceV2
 {
   /**
    * Internal application Id
@@ -61,7 +62,7 @@ public class ApiApplicationResource
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
   @Inject
-  public ApiApplicationResource(final ApiApplicationService apiApplicationService,
+  public ApiApplicationResourceV2(final ApiApplicationService apiApplicationService,
                                 final MembershipMappingService membershipMappingService,
                                 final ApiMemberMappingAdapter apiMemberMappingAdapter)
   {

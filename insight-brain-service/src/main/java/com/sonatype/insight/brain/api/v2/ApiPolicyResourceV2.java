@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v1;
+package com.sonatype.insight.brain.api.v2;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -22,12 +22,12 @@ import com.sonatype.insight.brain.api.v1.service.ApiPolicyService;
  */
 @Named
 @Path(PublicApiPaths.POLICY_RESOURCE_PATH)
-public class ApiPolicyResource
+public class ApiPolicyResourceV2
 {
   private final ApiPolicyService apiPolicyService;
 
   @Inject
-  public ApiPolicyResource(final ApiPolicyService apiPolicyService) {
+  public ApiPolicyResourceV2(final ApiPolicyService apiPolicyService) {
     this.apiPolicyService = apiPolicyService;
   }
 

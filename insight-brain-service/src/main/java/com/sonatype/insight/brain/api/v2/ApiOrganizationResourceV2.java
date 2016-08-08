@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v1;
+package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +19,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v1.ApiMemberMappingAdapter;
 import com.sonatype.insight.brain.api.v1.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v1.service.ApiOrganizationService;
@@ -33,7 +34,7 @@ import com.sonatype.insight.brain.security.MembershipMappingService;
  */
 @Named
 @Path(PublicApiPaths.ORG_RESOURCE_PATH)
-public class ApiOrganizationResource
+public class ApiOrganizationResourceV2
 {
 
   public static final String ROLE_MEMBERS_PATH = "{organizationId}/roleMembers";
@@ -45,7 +46,7 @@ public class ApiOrganizationResource
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
   @Inject
-  public ApiOrganizationResource(final ApiOrganizationService apiOrganizationService,
+  public ApiOrganizationResourceV2(final ApiOrganizationService apiOrganizationService,
                                  final MembershipMappingService membershipMappingService,
                                  final ApiMemberMappingAdapter apiMemberMappingAdapter)
   {

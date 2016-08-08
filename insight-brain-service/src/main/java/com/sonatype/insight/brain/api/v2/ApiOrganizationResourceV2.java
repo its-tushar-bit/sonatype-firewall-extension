@@ -19,10 +19,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v1.ApiMemberMappingAdapter;
-import com.sonatype.insight.brain.api.v1.dto.ApiOrganizationListDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingListDTO;
-import com.sonatype.insight.brain.api.v1.service.ApiOrganizationService;
+import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiOrganizationService;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;

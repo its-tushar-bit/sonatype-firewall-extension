@@ -11,7 +11,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v1.service.ApiApplicationService;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;

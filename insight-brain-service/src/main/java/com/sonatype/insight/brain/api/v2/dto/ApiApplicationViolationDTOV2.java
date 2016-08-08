@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.api.v1.dto.ApiApplicationBaseDTO;
-
 /**
  * @since 1.13.0
  */

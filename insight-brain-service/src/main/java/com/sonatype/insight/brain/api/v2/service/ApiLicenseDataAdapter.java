@@ -14,8 +14,8 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;

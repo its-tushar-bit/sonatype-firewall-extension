@@ -14,8 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v1.ApiApplicationAdapter;
-import com.sonatype.insight.brain.api.v1.service.PolicyViolationAdapter;
+import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;

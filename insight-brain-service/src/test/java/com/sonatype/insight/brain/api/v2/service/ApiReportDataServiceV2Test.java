@@ -14,10 +14,10 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;

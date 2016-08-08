@@ -24,12 +24,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v1.ApiMemberMappingAdapter;
-import com.sonatype.insight.brain.api.v1.dto.ApiApplicationDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiApplicationListDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiRoleListDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingListDTO;
-import com.sonatype.insight.brain.api.v1.service.ApiApplicationService;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiApplicationService;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;

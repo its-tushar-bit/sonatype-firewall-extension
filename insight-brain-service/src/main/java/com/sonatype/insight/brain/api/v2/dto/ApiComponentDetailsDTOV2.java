@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
 
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.utils.ISODateSerializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

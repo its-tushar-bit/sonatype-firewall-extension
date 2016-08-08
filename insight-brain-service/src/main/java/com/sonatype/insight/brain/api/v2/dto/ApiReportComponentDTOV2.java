@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.api.v2.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
-
 /**
  *
  * @since 1.13.0

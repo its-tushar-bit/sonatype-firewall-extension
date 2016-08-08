@@ -13,8 +13,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v1.dto.ApiPolicyListDTO;
-import com.sonatype.insight.brain.api.v1.service.ApiPolicyService;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyListDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiPolicyService;
 
 /**
  *

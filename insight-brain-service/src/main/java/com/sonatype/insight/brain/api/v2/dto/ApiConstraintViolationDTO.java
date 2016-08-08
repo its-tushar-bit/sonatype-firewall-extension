@@ -9,10 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @since 1.14.1
+ * @since 1.12.0
  */
-public class ApiLicenseDataDTOV2
-    extends ApiLicenseDataDTO
+public class ApiConstraintViolationDTO
 {
-  public List<ApiLicenseThreatDTOV2> effectiveLicenseThreats = new ArrayList<>();
+  public String constraintId;
+
+  public String constraintName;
+
+  public List<ApiConstraintViolationReasonDTO> reasons = new ArrayList<>();
 }

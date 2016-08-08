@@ -5,14 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * @since 1.14.1
- */
-public class ApiLicenseDataDTOV2
-    extends ApiLicenseDataDTO
+public class ApiLicenseDTO
 {
-  public List<ApiLicenseThreatDTOV2> effectiveLicenseThreats = new ArrayList<>();
+  public String licenseId;
+
+  public String licenseName;
 }

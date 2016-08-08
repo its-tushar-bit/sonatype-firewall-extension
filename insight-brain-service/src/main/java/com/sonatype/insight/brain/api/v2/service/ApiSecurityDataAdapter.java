@@ -9,8 +9,8 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.SecurityThreatLevel;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;

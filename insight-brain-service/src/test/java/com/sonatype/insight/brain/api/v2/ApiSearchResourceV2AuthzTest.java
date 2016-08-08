@@ -13,8 +13,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v1.SearchTestHelper;
-import com.sonatype.insight.brain.api.v1.SearchTestHelper.ComponentInfo;
+import com.sonatype.insight.brain.api.v2.SearchTestHelper.ComponentInfo;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 

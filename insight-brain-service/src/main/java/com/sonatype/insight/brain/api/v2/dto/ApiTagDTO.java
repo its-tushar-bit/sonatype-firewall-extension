@@ -5,14 +5,18 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.sonatype.insight.brain.model.Color;
 
 /**
- * @since 1.14.1
+ * @since 1.11.0
  */
-public class ApiLicenseDataDTOV2
-    extends ApiLicenseDataDTO
+public class ApiTagDTO
 {
-  public List<ApiLicenseThreatDTOV2> effectiveLicenseThreats = new ArrayList<>();
+  public String id;
+
+  public String name;
+
+  public String description;
+
+  public Color color;
 }

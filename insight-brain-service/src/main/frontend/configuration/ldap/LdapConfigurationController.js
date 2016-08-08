@@ -12,46 +12,6 @@
     alerts.push(alert);
   }
 
-  var module = angular.module('LdapConfiguration',
-  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'EditorTools'],
-  ['$stateProvider', function($stateProvider) {
-    $stateProvider.state('ldap', {
-      url: '/ldap',
-      controller: 'LdapConfigurationController',
-      templateUrl: 'configuration/components/ldap.html?' + clmBuildTimestamp,
-      data : {
-        title : 'LDAP Configuration'
-      },
-      resolve : {
-        'isAuthorized' : ['PermissionService', function (PermissionService) {
-          return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-        }]
-      }
-    }).state('ldap.connection', {
-      parent: 'ldap',
-      controller: 'LdapConnectionController',
-      templateUrl: 'configuration/components/ldap-connection.html?' + clmBuildTimestamp
-    }).state('ldap.usermapping', {
-      parent: 'ldap',
-      controller: 'LdapUsermappingController',
-      templateUrl: 'configuration/components/ldap-usermapping.html?' + clmBuildTimestamp
-    });
-  }]);
-
-  module.service('LdapConfigurationStore', [
-    'CLMLocations', 'StoreFactory',
-    function(clmLocations, StoreFactory) {
-      return StoreFactory.getStore({
-        id: 'id',
-        url: clmLocations.getLdapConfig(),
-        template: {
-          id: null,
-          name: ''
-        }
-      });
-    }
-  ]);
-
   function resetDialog($modal, discardFn, discardLabel) {
     if (!discardLabel) {
       discardLabel = 'Discard';
@@ -122,7 +82,9 @@
       });
     });
   }
-  
+
+  var module = angular.module('ldap.module');
+
   module.controller('LdapConfigurationController', [
     '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog', 'isAuthorized',
     function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog, isAuthorized) {

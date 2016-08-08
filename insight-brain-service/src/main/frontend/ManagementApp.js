@@ -7,7 +7,7 @@
   'use strict';
   angular.module('managementApp',
       [
-        'MainModule', 'UserModule', 'RoleModule', 'LdapConfiguration', 'owner.manager.module',
+        'MainModule', 'UserModule', 'RoleModule', 'ldap.module', 'owner.manager.module',
         'root.organization.migrate', 'ProductLicense'
       ]);
 }());

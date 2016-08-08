@@ -1,7 +1,7 @@
 describe('Tests for the LdapConfigurationController', function() {
   var scope, dialogScope;
 
-  beforeEach(module('LdapConfiguration', 'HttpInterceptors', function($provide, $stateProvider) {
+  beforeEach(module('ldap.module', 'HttpInterceptors', function($provide, $stateProvider) {
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = scope.$new();

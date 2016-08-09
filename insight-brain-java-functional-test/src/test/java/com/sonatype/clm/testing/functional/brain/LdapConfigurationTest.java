@@ -6,9 +6,10 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.InlineEditor;
+import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
+import com.sonatype.clm.testing.functional.elements.LdapNameEditor;
+import com.sonatype.clm.testing.functional.elements.LdapNameEditor.NameEditor;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
-import com.sonatype.clm.testing.functional.pages.LdapConnectionConfigurationPage;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 
@@ -23,6 +24,7 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -59,63 +61,63 @@ public class LdapConfigurationTest
   public void testCreateLdapServer() {
     new LdapServerDAO().delete(server);
     refresh();
-    LdapConfigurationPage.root().should(appear);
-    InlineEditor ldapName = LdapConfigurationPage.name();
-    ldapName.getElement().should(appear);
-    ldapName.getElement().shouldBe(visible);
+    LdapConfigurationPage.root().shouldBe(visible);
+    LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
+    NameEditor nameEditor = ldapNameEditor.nameEditor();
 
-    LdapConfigurationPage.nameSaveButton().shouldBe(visible);
-    LdapConfigurationPage.nameCancelButton().shouldBe(visible);
+    ldapNameEditor.saveButton().shouldBe(visible, disabled);
+    ldapNameEditor.cancelButton().shouldBe(visible, enabled);
 
-    ldapName.setValue("CLM Ldap Server");
-    LdapConfigurationPage.nameSaveButton().click();
+    nameEditor.shouldBe(visible).setValue("CLM Ldap Server");
+    ldapNameEditor.saveButton().shouldBe(visible, enabled).click();
 
     // On connection configuration page
-    LdapConnectionConfigurationPage.hostname().shouldBe(visible);
-    LdapConnectionConfigurationPage.port().shouldHave(value("389"));
-    LdapConnectionConfigurationPage.saveButton().shouldBe(disabled);
+    LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
+    ldapConnectionForm.hostname().shouldBe(visible);
+    ldapConnectionForm.port().shouldHave(value("389"));
+    ldapConnectionForm.saveButton().shouldBe(disabled);
   }
 
   @Test
   public void testResetForm() {
-    LdapConnectionConfigurationPage.hostname().should(appear);
-    LdapConnectionConfigurationPage.hostname().setValue("ldap.clm");
-    LdapConnectionConfigurationPage.searchBase().setValue("dc=win,dc=blackforest,dc=local");
+    LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
 
-    for (SelenideElement field : LdapConnectionConfigurationPage.getRequiredFields()) {
+    ldapConnectionForm.hostname().shouldBe(visible, empty).setValue("ldap.clm");
+    ldapConnectionForm.searchBase().shouldBe(visible, empty).setValue("dc=win,dc=blackforest,dc=local");
+
+    for (SelenideElement field : ldapConnectionForm.getRequiredFields()) {
       field.shouldNotHave(cssClass("ng-invalid-required"));
     }
 
-    LdapConnectionConfigurationPage.saveButton().shouldBe(enabled);
+    ldapConnectionForm.saveButton().shouldBe(visible, enabled);
+    ldapConnectionForm.cancelButton().click();
 
-    LdapConnectionConfigurationPage.cancelButton().click();
+    // Continue and discard changes (reset)
+    LdapConfigurationPage.discardChangesModalButton().shouldBe(visible, enabled).click();
+    LdapConfigurationPage.discardChangesModalButton().shouldNotBe(visible);
 
-    LdapConnectionConfigurationPage.discardChangesButton().shouldBe(visible, enabled);
-    LdapConnectionConfigurationPage.discardChangesButton().click();
-
-    LdapConnectionConfigurationPage.discardChangesButton().shouldNotBe(visible);
-    LdapConnectionConfigurationPage.saveButton().shouldBe(disabled);
-    LdapConnectionConfigurationPage.cancelButton().click();
+    ldapConnectionForm.saveButton().shouldBe(disabled);
+    ldapConnectionForm.cancelButton().shouldBe(disabled);
   }
 
   @Test
   public void testErrorPopovers() {
-    LdapConnectionConfigurationPage.hostname().should(appear);
+    LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
+    ldapConnectionForm.hostname().shouldBe(visible);
 
-    for (SelenideElement element : LdapConnectionConfigurationPage.getRequiredFields()) {
+    for (SelenideElement element : ldapConnectionForm.getRequiredFields()) {
       element.sendKeys("a");
       element.sendKeys(Keys.BACK_SPACE);
       popoverViolations(element).shouldHave(text("Please enter a value"));
     }
 
-    LdapConnectionConfigurationPage.cancelButton().click();
-    LdapConnectionConfigurationPage.discardChangesButton().shouldBe(visible, enabled);
-    LdapConnectionConfigurationPage.discardChangesButton().click();
+    ldapConnectionForm.cancelButton().click();
+    LdapConfigurationPage.discardChangesModalButton().shouldBe(visible, enabled).click();
   }
 
   @Test
   public void testDeleteServer() {
-    LdapConfigurationPage.deleteButton().should(appear).shouldBe(visible);
+    LdapConfigurationPage.deleteButton().shouldBe(visible);
     LdapConfigurationPage.deleteButton().click();
     LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
     LdapConfigurationPage.root().should(disappear);

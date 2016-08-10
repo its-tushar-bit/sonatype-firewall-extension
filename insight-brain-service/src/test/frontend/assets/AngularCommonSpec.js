@@ -1,25 +1,29 @@
 describe('AngularCommon', function() {
   var scope, compile, httpBackend, regex, form;
 
-  beforeEach(module('AngularCommon', 'CommonServices', 'utility.services'));
-  beforeEach(function() {
-    module(function($provide) {
-      $provide.value('$state', {
-        $current: {
-          name: 'dashboard.component',
-          data: {
-            crumb: 'Component Details'
-          },
-          parent: {
+  beforeEach(module('AngularCommon', 'CommonServices', 'utility.services', function($provide) {
+    var $state = {
+      current: {
+        name: 'dashboard.component',
+        data: {
+          crumb: 'Component Details'
+        },
+        parent: 'dashboard'
+      },
+      get: function(name) {
+        if (name === 'dashboard') {
+          return {
             name: 'dashboard',
             data: {
               crumb: 'Dashboard'
             }
           }
         }
-      });
-    });
-  });
+      },
+      href: angular.noop
+    };
+    $provide.value('$state', $state);
+  }));
 
   beforeEach(inject(function($httpBackend, $rootScope, $compile, regexFactory, $timeout) {
     scope = $rootScope.$new();

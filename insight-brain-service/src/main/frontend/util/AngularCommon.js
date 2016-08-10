@@ -452,7 +452,7 @@ var AngularStateUtils = {
                 '</p>',
       link: function(scope) {
         function loadCurrentState() {
-          var state = $state.$current;
+          var state = $state.current;
           var states = [],
               previousState = StateHistoryService.getPreviousState();
 
@@ -472,7 +472,7 @@ var AngularStateUtils = {
                 state: state.name
               });
             }
-            state = state.parent;
+            state = $state.get(state.parent);
           }
           scope.states = states;
         }

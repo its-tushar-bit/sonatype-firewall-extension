@@ -54,6 +54,8 @@ public class CategoryEditorTest
 
   private Organization org;
 
+  private Tag category;
+
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(OrganizationManagementPage.URL);
@@ -63,6 +65,7 @@ public class CategoryEditorTest
   @Before
   public void init() {
     org = tempEntity.newOrganization();
+    category = tempEntity.newTag(org.getId(), "original name", "original description", light_green);
     refreshOrOpen(OwnerSummaryPage.url("organization", org.getId()));
   }
 
@@ -102,9 +105,6 @@ public class CategoryEditorTest
 
   @Test
   public void testEditCategory() {
-    // given
-    Tag category = tempEntity.newTag(org.getId(), "original name", "original description", light_green);
-    refreshOrOpen(OwnerSummaryPage.url("organization", org.getId()));
     SummaryTile.localCategory(category.getName()).click();
     CategoryEditorPage.title().shouldHave(text("Edit"));
     CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE)
@@ -136,7 +136,6 @@ public class CategoryEditorTest
   @Test
   public void testDeleteCategory() {
     // given
-    Tag category = tempEntity.newTag(org.getId());
     refreshOrOpen(CategoryEditorPage.urlToEdit(org.getId(), category.getId()));
     // when
     CategoryEditorPage.deleteButton().shouldBe(visible).click();
@@ -167,7 +166,6 @@ public class CategoryEditorTest
   @Test
   public void testDeleteCategoryAssociatedToAnApp() {
     // given
-    Tag category = tempEntity.newTag(org.getId());
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newApplicationTag(app.getId(), category.getId());
 

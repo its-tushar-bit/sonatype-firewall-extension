@@ -1,8 +1,19 @@
 describe('application.category.tile.controller.org.spec.js', function() {
+  var $state;
+
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });
+
+    $state = {
+      current: {
+        name: ''
+      },
+      params: {}
+    };
+    $provide.value('$state', $state)
+    $provide.value('$stateParams', $state.params)
   }));
 
   function createTests(type, storeName, owner) {
@@ -11,24 +22,23 @@ describe('application.category.tile.controller.org.spec.js', function() {
         $httpBackend,
         $rootScope,
         EventNameConstant,
-        isOrg = type === 'organization',
-        mockCLMAppLocations;
+        isOrg = type === 'organization';
 
-    beforeEach(inject(function(_$rootScope_, $controller, $injector, _$httpBackend_, CLMAppLocations) {
+    beforeEach(inject(function(_$rootScope_, $controller, $injector, _$httpBackend_) {
       $rootScope = _$rootScope_;
       scope = $rootScope.$new();
       $httpBackend = _$httpBackend_;
       EventNameConstant = $injector.get('event.name.constant');
 
-      mockCLMAppLocations = {
-        isOrganization: function() {
-          return isOrg;
-        },
-        getTagsUrl: CLMAppLocations.getTagsUrl
-      };
+      $state.current.name = type;
+      if (type === 'application') {
+        $state.params.applicationPublicId = owner.publicId;
+      }
+      else if (type === 'organization') {
+        $state.params.organizationId = owner.id;
+      }
 
       vm = $controller('ApplicationCategoryTileControllerOrg', {
-        CLMAppLocations: mockCLMAppLocations,
         $scope: scope
       });
     }));
@@ -39,40 +49,40 @@ describe('application.category.tile.controller.org.spec.js', function() {
     });
 
     if (isOrg) {
-      it('Properly Loading Applicable Categories and Org Name', function() {
+      it('Properly Loading Applicable Categories and Org Name', inject(function(CLMAppLocations) {
         var mockAppCategoryOwners = TagResourceMockData.getTagsUrl();
 
-        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(mockAppCategoryOwners);
+        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(mockAppCategoryOwners);
         $httpBackend.flush();
 
         expect(vm.ownerName).toEqual(mockAppCategoryOwners.tagsByOwner[0].ownerName);
         expect(vm.appCategoryOwners.length).toEqual(mockAppCategoryOwners.tagsByOwner.length);
         vm.appCategoryOwners.forEach(function(owner, index) {
-          expect(owner.tags).toEqual(mockAppCategoryOwners.tagsByOwner[index].tags);
+          expect(angular.equals(owner.tags, mockAppCategoryOwners.tagsByOwner[index].tags)).toBeTruthy();
         });
-      });
+      }));
 
-      it('Missing Categories', function() {
-        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(400, 'Bad Request');
+      it('Missing Categories', inject(function(CLMAppLocations) {
+        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(400, 'Bad Request');
         $httpBackend.flush();
 
         expect(vm.error).toBeDefined();
         expect(vm.ownerName).toBeUndefined();
         expect(vm.appCategoryOwners).toEqual([]);
-      });
+      }));
 
-      it('Reloads on broadcasted owner summary reload event', function() {
-        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+      it('Reloads on broadcasted owner summary reload event', inject(function(CLMAppLocations) {
+        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
         $httpBackend.flush();
 
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
         $httpBackend.flush();
-      });
+      }));
 
-      it('Updates Owner name on broadcasted updated owner event', function() {
-        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+      it('Updates Owner name on broadcasted updated owner event', inject(function(CLMAppLocations) {
+        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
         $httpBackend.flush();
 
         expect(vm.ownerName).not.toEqual('Bob');
@@ -80,7 +90,7 @@ describe('application.category.tile.controller.org.spec.js', function() {
         $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, {name: 'Bob'});
 
         expect(vm.ownerName).toEqual('Bob');
-      });
+      }));
     }
   }
 

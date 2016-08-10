@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryTileControllerOrg($scope, $http, CLMAppLocations, SameOwnerStateNavigationService,
+  function ApplicationCategoryTileControllerOrg($scope, CLMAppLocations, SameOwnerStateNavigationService, TagStore,
                                                 EventNameConstant)
   {
     var vm = this;
@@ -20,15 +20,19 @@
 
     vm.doLoad();
 
-    $scope.$on('policy.imported', doLoad);
-    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
+    $scope.$on('policy.imported', function() {
+      doLoad(true);
+    });
+    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function() {
+      doLoad(true);
+    });
     $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
-    function doLoad() {
+    function doLoad(reload) {
       if (vm.isOrg) {
-        $http.get(CLMAppLocations.getTagsUrl()).then(function(result) {
+        (reload ? TagStore.refresh() : TagStore.get()).then(function(tagsByOwner) {
           vm.appCategoryOwners = [];
-          result.data.tagsByOwner.forEach(function(owner, index) {
+          tagsByOwner.forEach(function(owner, index) {
             vm.appCategoryOwners.push(owner);
 
             if (index === 0) {
@@ -58,7 +62,7 @@
   }
 
   ApplicationCategoryTileControllerOrg.$inject = [
-    '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
+    '$scope', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'TagStore', 'event.name.constant'
   ];
 
   angular //

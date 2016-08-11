@@ -66,7 +66,7 @@ describe('UserModuleSpec.js', function() {
     "id": "ADMIN",
     "username": "admin",
     "usernameLowercase": "admin",
-    "password": "#~FAKE~CLM~PASSWORD~#",
+    "password": "#~FAKE~PASSWORD~#",
     "firstName": "Admin",
     "lastName": "BuiltIn",
     "email": "myemail@mail.com"
@@ -74,7 +74,7 @@ describe('UserModuleSpec.js', function() {
     "id": "16399c07447d48b9bd00b19522bb5a66",
     "username": "admin2",
     "usernameLowercase": "admin2",
-    "password": "#~FAKE~CLM~PASSWORD~#",
+    "password": "#~FAKE~PASSWORD~#",
     "firstName": "clm",
     "lastName": "clm22",
     "email": "test@test.net"

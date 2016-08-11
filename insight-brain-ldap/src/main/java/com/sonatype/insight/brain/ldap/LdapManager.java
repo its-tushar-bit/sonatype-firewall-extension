@@ -37,7 +37,7 @@ import org.codehaus.plexus.util.StringUtils;
 @Singleton
 public class LdapManager
 {
-  public static final String FAKE_PASSWORD = "#~FAKE~CLM~PASSWORD~#";
+  public static final String FAKE_PASSWORD = "#~FAKE~PASSWORD~#";
 
   private static final String ENC = "CMMDwoV";
 

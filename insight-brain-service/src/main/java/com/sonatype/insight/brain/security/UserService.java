@@ -40,7 +40,7 @@ public class UserService
 {
   private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
-  static final String FAKE_PASSWORD = "#~FAKE~CLM~PASSWORD~#";
+  static final String FAKE_PASSWORD = "#~FAKE~PASSWORD~#";
 
   private final InternalRealm clmRealm;
 

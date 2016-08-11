@@ -75,49 +75,49 @@ public class ProprietaryConfigServiceAuthzTest
   }
 
   @Test
-  public void testGetConfig_NoGoal_Authorized() throws Exception {
+  public void testGetProprietaryConfig_NoGoal_Authorized() throws Exception {
     login();
-    proprietaryConfigService.getConfig((Goal) null, null);
+    proprietaryConfigService.getProprietaryConfig((Goal) null, null);
   }
 
   @Test
-  public void testGetConfig_NoGoal_Unauthenticated() throws Exception {
-    proprietaryConfigService.getConfig((Goal) null, null);
+  public void testGetProprietaryConfig_NoGoal_Unauthenticated() throws Exception {
+    proprietaryConfigService.getProprietaryConfig((Goal) null, null);
   }
 
   @Test
-  public void testGetConfig_EvaluateApplication_Authorized() throws Exception {
+  public void testGetProprietaryConfig_EvaluateApplication_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    proprietaryConfigService.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
+    proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetConfig_EvaluateApplication_Unauthorized() throws Exception {
+  public void testGetProprietaryConfig_EvaluateApplication_Unauthorized() throws Exception {
     login();
-    proprietaryConfigService.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
+    proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   // Anonymous access is currently allowed
   @Test
-  public void testGetConfig_EvaluateApplication_Unauthenticated() throws Exception {
-    proprietaryConfigService.getConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
+  public void testGetProprietaryConfig_EvaluateApplication_Unauthenticated() throws Exception {
+    proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   @Test
-  public void testGetConfig_EvaluateComponent_Authorized() throws Exception {
+  public void testGetProprietaryConfig_EvaluateComponent_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
-    proprietaryConfigService.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
+    proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetConfig_EvaluateComponent_Unauthorized() throws Exception {
+  public void testGetProprietaryConfig_EvaluateComponent_Unauthorized() throws Exception {
     login();
-    proprietaryConfigService.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
+    proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 
   // Anonymous access is currently allowed
   @Test
-  public void testGetConfig_EvaluateComponent_Unauthenticated() throws Exception {
-    proprietaryConfigService.getConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
+  public void testGetProprietaryConfig_EvaluateComponent_Unauthenticated() throws Exception {
+    proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 }

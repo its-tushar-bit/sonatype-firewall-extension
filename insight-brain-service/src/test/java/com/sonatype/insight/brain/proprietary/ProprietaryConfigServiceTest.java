@@ -57,9 +57,9 @@ public class ProprietaryConfigServiceTest
   }
 
   @Test
-  public void testGetConfig_GoalEvaluateApplication() {
+  public void testGetProprietaryConfig_GoalEvaluateApplication() {
     com.sonatype.clm.dto.model.ProprietaryConfig config = proprietaryConfigService
-        .getConfig(Goal.EVALUATE_APPLICATION, application.getPublicId());
+        .getProprietaryConfig(Goal.EVALUATE_APPLICATION, application.getPublicId());
 
     assertThat(config.getRegexes(), contains("application.regex", "organization.regex", "root.organization.regex"));
     assertThat(config.getPackages(),
@@ -67,9 +67,9 @@ public class ProprietaryConfigServiceTest
   }
 
   @Test
-  public void testGetConfig_GoalEvaluateComponent() {
+  public void testGetProprietaryConfig_GoalEvaluateComponent() {
     com.sonatype.clm.dto.model.ProprietaryConfig config = proprietaryConfigService
-        .getConfig(Goal.EVALUATE_COMPONENT, application.getPublicId());
+        .getProprietaryConfig(Goal.EVALUATE_COMPONENT, application.getPublicId());
 
     assertThat(config.getRegexes(), contains("application.regex", "organization.regex", "root.organization.regex"));
     assertThat(config.getPackages(),
@@ -77,9 +77,9 @@ public class ProprietaryConfigServiceTest
   }
 
   @Test
-  public void testGet_InvalidGoal() throws Exception {
+  public void testGetProprietaryConfig_InvalidGoal() throws Exception {
     try {
-      proprietaryConfigService.getConfig(Goal.SUMMARIZE_EVALUATION, application.getPublicId());
+      proprietaryConfigService.getProprietaryConfig(Goal.SUMMARIZE_EVALUATION, application.getPublicId());
       fail("Expected exception was not thrown");
     }
     catch (BadRequestException e) {
@@ -89,27 +89,27 @@ public class ProprietaryConfigServiceTest
   }
 
   @Test
-  public void testGet_NoGoal() throws Exception {
-    com.sonatype.clm.dto.model.ProprietaryConfig config = proprietaryConfigService
-        .getConfig((Goal) null, application.getPublicId());
+  public void testGetProprietaryConfig_NoGoal() throws Exception {
+    com.sonatype.clm.dto.model.ProprietaryConfig config = proprietaryConfigService.getProprietaryConfig((Goal) null,
+        application.getPublicId());
 
     assertThat(config.getRegexes(), contains("root.organization.regex"));
     assertThat(config.getPackages(), contains("root.organization.package"));
   }
 
   @Test
-  public void testGet_NoAppId() throws Exception {
+  public void testGetProprietaryConfig_NoAppId() throws Exception {
     com.sonatype.clm.dto.model.ProprietaryConfig config = proprietaryConfigService
-        .getConfig(Goal.EVALUATE_APPLICATION, null);
+        .getProprietaryConfig(Goal.EVALUATE_APPLICATION, null);
 
     assertThat(config.getRegexes(), contains("root.organization.regex"));
     assertThat(config.getPackages(), contains("root.organization.package"));
   }
 
   @Test
-  public void testGetConfig_RootOrganization() {
+  public void testGetProprietaryConfig_RootOrganization() {
     com.sonatype.clm.dto.model.ProprietaryConfig config = proprietaryConfigService
-        .getConfig(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+        .getProprietaryConfig(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
 
     assertThat(config.getRegexes(), contains("root.organization.regex"));
     assertThat(config.getPackages(), contains("root.organization.package"));

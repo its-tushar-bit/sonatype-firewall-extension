@@ -40,6 +40,6 @@ public class ProprietaryConfigResource
   public ProprietaryConfig get(@QueryParam(GOAL_PARAM) Goal goal,
                                @QueryParam(APPLICATION_PARAM) String applicationPublicId)
   {
-    return proprietaryConfigService.getConfig(goal, applicationPublicId);
+    return proprietaryConfigService.getProprietaryConfig(goal, applicationPublicId);
   }
 }

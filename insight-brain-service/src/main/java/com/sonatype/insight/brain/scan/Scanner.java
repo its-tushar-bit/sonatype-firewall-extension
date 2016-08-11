@@ -116,7 +116,7 @@ class Scanner
     props.setProperty("ipAddresses", "false");
     props.setProperty("hashJavaTypes", "true");
 
-    ProprietaryConfig proprietaryConfig = proprietaryConfigService.getConfig(OwnerType.APPLICATION,
+    ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
         applicationPublicId);
     if (proprietaryConfig != null) {
       props.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), PACKAGE_DELIM));

@@ -125,23 +125,23 @@ public class ProprietaryConfigService
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
-  com.sonatype.clm.dto.model.ProprietaryConfig getConfigApplicationEvaluator(
+  com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfigForApplicationEvaluator(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
-    return getConfig(OwnerType.APPLICATION, applicationPublicId);
+    return getProprietaryConfig(OwnerType.APPLICATION, applicationPublicId);
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT, anonymousAllowed = true)
-  com.sonatype.clm.dto.model.ProprietaryConfig getConfigComponentEvaluator(
+  com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfigForComponentEvaluator(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
-    return getConfig(OwnerType.APPLICATION, applicationPublicId);
+    return getProprietaryConfig(OwnerType.APPLICATION, applicationPublicId);
   }
 
   /**
    * NOTE: Permissions are NOT checked for this call
    */
-  public com.sonatype.clm.dto.model.ProprietaryConfig getConfig(OwnerType ownerType, String publicOwnerId) {
+  public com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(OwnerType ownerType, String publicOwnerId) {
     String ownerId = IdUtils.getInternalOwnerId(ownerType, publicOwnerId);
 
     com.sonatype.clm.dto.model.ProprietaryConfig result = new com.sonatype.clm.dto.model.ProprietaryConfig();
@@ -159,7 +159,7 @@ public class ProprietaryConfigService
     return result;
   }
 
-  public com.sonatype.clm.dto.model.ProprietaryConfig getConfig(Goal goal, String applicationPublicId) {
+  public com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(Goal goal, String applicationPublicId) {
     if (goal == null || StringUtils.isBlank(applicationPublicId)) {
       // to support pre-1.22 clients, should be removed along w/ anonymous access
       // Last versions that use this path:
@@ -168,14 +168,14 @@ public class ProprietaryConfigService
       // - clm-bamboo-plugin 1.2.0 (maybe later versions too)
       // - insight-ide 2.10.1.20160404-1434 (maybe later versions too)
       // - clm-maven-plugin 2.5.0
-      return getConfig(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+      return getProprietaryConfig(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
     }
 
     switch (goal) {
       case EVALUATE_APPLICATION:
-        return getConfigApplicationEvaluator(applicationPublicId);
+        return getProprietaryConfigForApplicationEvaluator(applicationPublicId);
       case EVALUATE_COMPONENT:
-        return getConfigComponentEvaluator(applicationPublicId);
+        return getProprietaryConfigForComponentEvaluator(applicationPublicId);
       default:
         throw new BadRequestException("Proprietary Configuration requested for invalid goal: " + goal);
     }

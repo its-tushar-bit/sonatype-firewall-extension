@@ -6,34 +6,48 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ILdapForm;
 import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
 import com.sonatype.clm.testing.functional.elements.LdapNameEditor;
 import com.sonatype.clm.testing.functional.elements.LdapNameEditor.NameEditor;
+import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm;
+import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.CheckUserMappingModal;
+import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.TestLoginModal;
+import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
+import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
+import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.ldap.TestLdapServer;
 
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.disappear;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.open;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 public class LdapConfigurationTest
     extends AbstractFunctionalTest
 {
+  @Rule
+  public TestLdapServer testLdapServer = new TestLdapServer();
+
   private LdapServer server;
 
   @BeforeClass
@@ -58,8 +72,10 @@ public class LdapConfigurationTest
   }
 
   @Test
-  public void testCreateLdapServer() {
-    new LdapServerDAO().delete(server);
+  public void testCreateLdapServer() throws Exception {
+    LdapServerDAO ldapServerDAO = new LdapServerDAO();
+    ldapServerDAO.delete(server);
+
     refresh();
     LdapConfigurationPage.root().shouldBe(visible);
     LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
@@ -70,12 +86,19 @@ public class LdapConfigurationTest
 
     nameEditor.shouldBe(visible).setValue("CLM Ldap Server");
     ldapNameEditor.saveButton().shouldBe(visible, enabled).click();
+    ldapNameEditor.saveButton().shouldNotBe(visible);
+    ldapNameEditor.cancelButton().shouldNotBe(visible);
 
-    // On connection configuration page
-    LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
-    ldapConnectionForm.hostname().shouldBe(visible);
-    ldapConnectionForm.port().shouldHave(value("389"));
-    ldapConnectionForm.saveButton().shouldBe(disabled);
+    server = ldapServerDAO.getByName("CLM Ldap Server");
+    assertThat(server, is(notNullValue()));
+
+    testFormValidation();
+
+    startTestLdapServer();
+
+    testConnection();
+    testUserMapping();
+    testLdapFormDataMatchesPersistedData();
   }
 
   @Test
@@ -85,34 +108,19 @@ public class LdapConfigurationTest
     ldapConnectionForm.hostname().shouldBe(visible, empty).setValue("ldap.clm");
     ldapConnectionForm.searchBase().shouldBe(visible, empty).setValue("dc=win,dc=blackforest,dc=local");
 
-    for (SelenideElement field : ldapConnectionForm.getRequiredFields()) {
-      field.shouldNotHave(cssClass("ng-invalid-required"));
-    }
+    discardChangesAndReset(ldapConnectionForm);
 
-    ldapConnectionForm.saveButton().shouldBe(visible, enabled);
-    ldapConnectionForm.cancelButton().click();
+    // User And Group Form
+    LdapConfigurationPage.userAndGroupSettingsTab().click();
+    LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
 
-    // Continue and discard changes (reset)
-    LdapConfigurationPage.discardChangesModalButton().shouldBe(visible, enabled).click();
-    LdapConfigurationPage.discardChangesModalButton().shouldNotBe(visible);
+    // Fill out form
+    userAndGroupSettingsForm.userObjectClass().shouldBe(empty).setValue("user");
+    userAndGroupSettingsForm.userIDAttribute().shouldBe(empty).setValue("sAMAccountName");
+    userAndGroupSettingsForm.userRealNameAttribute().shouldBe(empty).setValue("displayName");
+    userAndGroupSettingsForm.userEmailAttribute().shouldBe(empty).setValue("mail");
 
-    ldapConnectionForm.saveButton().shouldBe(disabled);
-    ldapConnectionForm.cancelButton().shouldBe(disabled);
-  }
-
-  @Test
-  public void testErrorPopovers() {
-    LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
-    ldapConnectionForm.hostname().shouldBe(visible);
-
-    for (SelenideElement element : ldapConnectionForm.getRequiredFields()) {
-      element.sendKeys("a");
-      element.sendKeys(Keys.BACK_SPACE);
-      popoverViolations(element).shouldHave(text("Please enter a value"));
-    }
-
-    ldapConnectionForm.cancelButton().click();
-    LdapConfigurationPage.discardChangesModalButton().shouldBe(visible, enabled).click();
+    discardChangesAndReset(userAndGroupSettingsForm);
   }
 
   @Test
@@ -123,4 +131,227 @@ public class LdapConfigurationTest
     LdapConfigurationPage.root().should(disappear);
     waitUntilNotUrl(LdapConfigurationPage.URL);
   }
+
+
+  private void testFormValidation() {
+    LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
+    ldapConnectionForm.shouldBe(visible);
+
+    // Test port validation
+    ldapConnectionForm.port().setValue("0");
+    PopoverViolations.on(ldapConnectionForm.port()).shouldShowError("Minimum allowed value is 1");
+
+    ldapConnectionForm.port().setValue("999999");
+    PopoverViolations.on(ldapConnectionForm.port()).shouldShowError("Maximum allowed value is 65535");
+
+    testRequiredFormFields(ldapConnectionForm);
+
+    LdapConfigurationPage.userAndGroupSettingsTab().click();
+    LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
+    userAndGroupSettingsForm.shouldBe(visible);
+
+    testRequiredFormFields(userAndGroupSettingsForm);
+
+    LdapConfigurationPage.connectionTab().click();
+    ldapConnectionForm.shouldBe(visible);
+  }
+
+  private void testRequiredFormFields(ILdapForm ldapForm) {
+    for (SelenideElement element : ldapForm.requiredFields()) {
+      element.sendKeys("a");
+      element.sendKeys(Keys.BACK_SPACE);
+      popoverViolations(element).shouldHave(text("Please enter a value"));
+    }
+
+    resetForm(ldapForm);
+  }
+
+  private void discardChangesAndReset(ILdapForm ldapForm) {
+    for (SelenideElement field : ldapForm.requiredFields()) {
+      field.shouldNotHave(cssClass("ng-invalid-required"));
+    }
+
+    ldapForm.saveButton().shouldBe(visible, enabled);
+
+    resetForm(ldapForm);
+
+    ldapForm.saveButton().shouldBe(disabled);
+    ldapForm.cancelButton().shouldBe(disabled);
+  }
+
+  private void resetForm(ILdapForm ldapForm) {
+    ldapForm.cancelButton().shouldBe(visible, enabled).click();
+
+    // Continue and discard changes (reset)
+    LdapConfigurationPage.discardChangesModalButton().shouldBe(visible, enabled).click();
+    LdapConfigurationPage.discardChangesModalButton().shouldNotBe(visible);
+  }
+
+  private void startTestLdapServer() throws Exception {
+    testLdapServer.start();
+    testLdapServer.loadData("/ldapData/ldap_users.ldif");
+  }
+
+  private void testConnection() {
+    // On connection configuration page
+    LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();
+    connectionForm.should(visible);
+
+    connectionForm.protocol().shouldHave(value("LDAP"));
+    connectionForm.hostname().shouldBe(visible).setValue(testLdapServer.getHostname());
+    connectionForm.port().shouldBe(visible).shouldHave(value("389")).setValue("" + testLdapServer.getPort());
+    connectionForm.searchBase().shouldBe(visible).setValue("ou=users,dc=company,dc=com");
+
+    connectionForm.cancelButton().shouldBe(enabled);
+    connectionForm.saveButton().shouldBe(enabled);
+    connectionForm.testConnectionButton().shouldBe(enabled).click();
+
+    connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Success!"));
+
+    // fill all inputs to ensure persisted on save
+    connectionForm.authenticationMethod().shouldHave(value("NONE")).selectOption("SIMPLE");
+    connectionForm.saslRealm().shouldBe(visible, empty).setValue("just checking if persisted");
+    connectionForm.systemUsername().shouldBe(visible, empty).setValue("just checking if persisted");
+    connectionForm.systemPassword().shouldBe(visible, empty).setValue("just checking if persisted");
+    connectionForm.connectionTimeout().shouldBe(value("30")).setValue("31");
+    connectionForm.retryDelay().shouldBe(value("30")).setValue("31");
+
+    connectionForm.saveButton().shouldBe(enabled).click();
+
+    // Connection saved
+    connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
+    connectionForm.cancelButton().shouldBe(disabled);
+    connectionForm.saveButton().shouldBe(disabled);
+
+    // Ensure persisted Connection matches
+    LdapConnection persistedConnection = new LdapConnectionDAO().getByServerId(server.getId());
+
+    assertThat(persistedConnection, is(notNullValue()));
+    assertThat(persistedConnection.getProtocol(), is(LdapProtocol.LDAP));
+    assertThat(persistedConnection.getHostname(), is(testLdapServer.getHostname()));
+    assertThat(persistedConnection.getPort(), is(testLdapServer.getPort()));
+    assertThat(persistedConnection.getSearchBase(), is("ou=users,dc=company,dc=com"));
+    assertThat(persistedConnection.getAuthenticationMethod(), is(LdapAuthenticationMethod.SIMPLE));
+    assertThat(persistedConnection.getSaslRealm(), is("just checking if persisted"));
+    assertThat(persistedConnection.getSystemUsername(), is("just checking if persisted"));
+    assertThat(persistedConnection.getSystemPassword(), is(not("just checking if persisted")));
+    assertThat(persistedConnection.getConnectionTimeout(), is(31));
+    assertThat(persistedConnection.getRetryDelay(), is(31L));
+
+    // Revert back to no authentication
+    connectionForm.authenticationMethod().shouldHave(value("SIMPLE")).selectOption("NONE");
+    connectionForm.saveButton().shouldBe(enabled).click();
+    connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
+  }
+
+  private void testUserMapping() {
+    LdapConfigurationPage.userAndGroupSettingsTab().click();
+    LdapConfigurationPage.ldapConnectionForm().shouldNotBe(visible);
+
+    LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
+    userAndGroupSettingsForm.shouldBe(visible);
+
+    userAndGroupSettingsForm.checkUserLoginButton().shouldBe(visible, disabled);
+    userAndGroupSettingsForm.checkUserMappingButton().shouldBe(visible, disabled);
+    userAndGroupSettingsForm.saveButton().shouldBe(visible, disabled);
+    userAndGroupSettingsForm.cancelButton().shouldBe(visible, disabled);
+
+    // Fill out form
+    userAndGroupSettingsForm.userObjectClass().shouldBe(empty).setValue("person");
+    userAndGroupSettingsForm.userIDAttribute().shouldBe(empty).setValue("uid");
+    userAndGroupSettingsForm.userRealNameAttribute().shouldBe(empty).setValue("cn");
+    userAndGroupSettingsForm.userEmailAttribute().shouldBe(empty).setValue("mail");
+    userAndGroupSettingsForm.userSubtree().shouldNotBe(selected).click();
+
+    userAndGroupSettingsForm.groupMappingType().shouldBe(text("NONE")).selectOption("DYNAMIC");
+    userAndGroupSettingsForm.userMemberOfGroupAttribute().shouldBe(empty).setValue("departmentNumber");
+
+    // buttons now enabled
+    userAndGroupSettingsForm.checkUserLoginButton().shouldBe(visible, enabled);
+    userAndGroupSettingsForm.checkUserMappingButton().shouldBe(visible, enabled);
+    userAndGroupSettingsForm.saveButton().shouldBe(visible, enabled);
+    userAndGroupSettingsForm.cancelButton().shouldBe(visible, enabled);
+
+    // Test Login
+    userAndGroupSettingsForm.checkUserLoginButton().shouldBe(enabled).click();
+    TestLoginModal testLoginModal = userAndGroupSettingsForm.testLoginModal();
+    testLoginModal.shouldBe(visible);
+    testLoginModal.username().shouldBe(empty).setValue("test_user2");
+    testLoginModal.password().shouldBe(empty).setValue("test");
+    testLoginModal.testLoginButton().shouldBe(enabled).click();
+    testLoginModal.successAlertBox().shouldBe(visible).shouldHave(text("Success!"));
+    testLoginModal.cancelButton().shouldBe(enabled).click();
+    testLoginModal.shouldNotBe(visible);
+
+    // Test Check User Mapping
+    userAndGroupSettingsForm.checkUserMappingButton().shouldBe(enabled).click();
+    CheckUserMappingModal userMappingModal = userAndGroupSettingsForm.checkUserMappingModal();
+    userMappingModal.shouldBe(visible);
+    userMappingModal
+        .shouldHaveUserEntry(1, "test*user", "Test*User", "test.user3@company.com", "ab, bc, bx");
+    userMappingModal
+        .shouldHaveUserEntry(2, "test_user", "Test User", "test.user@company.com", "ab, abc, xb");
+    userMappingModal
+        .shouldHaveUserEntry(3, "test_user2", "Test User 2", "test.user2@company.com", "ab, bc, bx");
+    userMappingModal.cancelButton().shouldBe(enabled).click();
+
+    // Fill all remaining fields only to ensure persisted on save
+    userAndGroupSettingsForm.userBaseDN().shouldBe(empty).setValue("just checking if persisted");
+    userAndGroupSettingsForm.userFilter().shouldBe(empty).setValue("just checking if persisted");
+
+    // Save and ensure persistence of the user mapping
+    userAndGroupSettingsForm.saveButton().shouldBe(enabled).click();
+    userAndGroupSettingsForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
+
+    LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(server.getId());
+
+    assertThat(persistedUserMapping, is(notNullValue()));
+    assertThat(persistedUserMapping.getUserBaseDN(), is("just checking if persisted"));
+    assertThat(persistedUserMapping.getUserObjectClass(), is("person"));
+    assertThat(persistedUserMapping.getUserFilter(), is("just checking if persisted"));
+    assertThat(persistedUserMapping.getUserIDAttribute(), is("uid"));
+    assertThat(persistedUserMapping.getUserRealNameAttribute(), is("cn"));
+    assertThat(persistedUserMapping.getUserEmailAttribute(), is("mail"));
+    assertThat(persistedUserMapping.isUserSubtree(), is(true));
+    assertThat(persistedUserMapping.getGroupMappingType(), is(LdapGroupMappingType.DYNAMIC));
+    assertThat(persistedUserMapping.getUserMemberOfGroupAttribute(), is("departmentNumber"));
+  }
+
+  private void testLdapFormDataMatchesPersistedData() {
+    refresh();
+
+    LdapConnection persistedConnection = new LdapConnectionDAO().getByServerId(server.getId());
+    LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(server.getId());
+
+    // Test Connection
+    LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();
+    connectionForm.shouldBe(visible);
+    connectionForm.protocol().shouldHave(value(persistedConnection.getProtocol().getProtocol()));
+    connectionForm.hostname().shouldHave(value(persistedConnection.getHostname()));
+    connectionForm.port().shouldHave(value("" + persistedConnection.getPort()));
+    connectionForm.searchBase().shouldHave(value(persistedConnection.getSearchBase()));
+    connectionForm.authenticationMethod().shouldHave(value(persistedConnection.getAuthenticationMethod().getMethod()));
+    connectionForm.saslRealm().shouldHave(value(persistedConnection.getSaslRealm()));
+    connectionForm.systemUsername().shouldHave(value(persistedConnection.getSystemUsername()));
+    connectionForm.connectionTimeout().shouldHave(value("" + persistedConnection.getConnectionTimeout()));
+    connectionForm.retryDelay().shouldHave(value("" + persistedConnection.getRetryDelay()));
+
+    // Test User Mapping
+    LdapConfigurationPage.userAndGroupSettingsTab().click();
+    LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
+    userAndGroupSettingsForm.shouldBe(visible);
+    userAndGroupSettingsForm.userBaseDN().shouldHave(value(persistedUserMapping.getUserBaseDN()));
+    userAndGroupSettingsForm.userObjectClass().shouldHave(value(persistedUserMapping.getUserObjectClass()));
+    userAndGroupSettingsForm.userFilter().shouldHave(value(persistedUserMapping.getUserFilter()));
+    userAndGroupSettingsForm.userIDAttribute().shouldHave(value(persistedUserMapping.getUserIDAttribute()));
+    userAndGroupSettingsForm.userRealNameAttribute().shouldHave(value(persistedUserMapping.getUserRealNameAttribute()));
+    userAndGroupSettingsForm.userEmailAttribute().shouldHave(value(persistedUserMapping.getUserEmailAttribute()));
+    assertThat(userAndGroupSettingsForm.userSubtree().isSelected(), equalTo(persistedUserMapping.isUserSubtree()));
+
+    userAndGroupSettingsForm.groupMappingType()
+        .shouldHave(value(persistedUserMapping.getGroupMappingType().toString()));
+    userAndGroupSettingsForm.userMemberOfGroupAttribute()
+        .shouldHave(value(persistedUserMapping.getUserMemberOfGroupAttribute()));
+  }
+
 }

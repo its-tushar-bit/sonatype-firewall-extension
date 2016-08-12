@@ -5,14 +5,21 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.sonatype.clm.testing.functional.BasicElement;
+import java.util.Arrays;
+import java.util.List;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
+
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
 public class LdapUserAndGroupSettingsForm
     extends BasicElement<LdapUserAndGroupSettingsForm>
+    implements ILdapForm
 {
   public LdapUserAndGroupSettingsForm(String... selectors) {
     super(selectors);
@@ -54,6 +61,10 @@ public class LdapUserAndGroupSettingsForm
     return child("#userPasswordAttribute");
   }
 
+  public List<SelenideElement> requiredFields() {
+    return Arrays.asList(userObjectClass(), userIDAttribute(), userRealNameAttribute(), userEmailAttribute());
+  }
+
   public SelenideElement groupMappingType() {
     return child("#groupMappingType");
   }
@@ -86,28 +97,112 @@ public class LdapUserAndGroupSettingsForm
     return child("#userMemberOfGroupAttribute");
   }
 
-  public SelenideElement checkUserMapping() {
+  public TestLoginModal testLoginModal() {
+    return new TestLoginModal("#ldap-check-login-modal");
+  }
+
+  public CheckUserMappingModal checkUserMappingModal() {
+    return new CheckUserMappingModal("#ldap-checkusermapping-modal");
+  }
+
+  public SelenideElement successAlertBox() {
+    return child(".alert-success");
+  }
+
+  public SelenideElement checkUserMappingButton() {
     return $("#ldap-mapping-check");
   }
 
-  public SelenideElement checkUserLogin() {
+  public SelenideElement checkUserLoginButton() {
     return $("#ldap-mapping-checklogin");
   }
 
-  public SelenideElement cancel() {
+  public SelenideElement cancelButton() {
     return $("#ldap-mapping-cancel");
   }
 
-  public SelenideElement save() {
+  public SelenideElement saveButton() {
     return $("#ldap-mapping-save");
   }
 
-  public SelenideElement userMappingDialog() {
-    return $("div.modal-ldap");
+  public static class TestLoginModal
+      extends BasicElement<TestLoginModal>
+  {
+    public TestLoginModal(String... selectors) {
+      super(selectors);
+    }
+
+    public SelenideElement username() {
+      return child("#username");
+    }
+
+    public SelenideElement password() {
+      return child("input[type=password]");
+    }
+
+    public SelenideElement successAlertBox() {
+      return child(".alert-success");
+    }
+
+    public SelenideElement testLoginButton() {
+      return child(".clm-modal-footer", ".btn-primary");
+    }
+
+    public SelenideElement cancelButton() {
+      return child(".clm-modal-footer", ".btn-cancel");
+    }
   }
 
-  public SelenideElement userMappingDialogClose() {
-    return $("div.modal-ldap button");
-  }
+  public static class CheckUserMappingModal
+      extends BasicElement<CheckUserMappingModal>
+  {
+    public CheckUserMappingModal(String... selectors) {
+      super(selectors);
+    }
 
+    public ElementsCollection rows() {
+      return children("tr");
+    }
+
+    public SelenideElement cancelButton() {
+      return child(".btn-cancel");
+    }
+
+    public CheckUserMappingModal shouldHaveUserEntry(int row, String username, String name, String email, String groups)
+    {
+      UserRow userRow = new UserRow("tbody", "tr", SelectorUtils.nthChild(row));
+
+      userRow.username().shouldHave(text(username));
+      userRow.name().shouldHave(text(name));
+      userRow.email().shouldHave(text(email));
+      userRow.groups().shouldHave(text(groups));
+
+      return this;
+    }
+
+    private static class UserRow
+        extends BasicElement<UserRow>
+    {
+
+      public UserRow(String... selectors) {
+        super(selectors);
+      }
+
+      public SelenideElement username() {
+        return child("td", SelectorUtils.nthChild(1));
+      }
+
+      public SelenideElement name() {
+        return child("td", SelectorUtils.nthChild(2));
+      }
+
+      public SelenideElement email() {
+        return child("td", SelectorUtils.nthChild(3));
+      }
+
+      public SelenideElement groups() {
+        return child("td", SelectorUtils.nthChild(4));
+      }
+    }
+  }
 }

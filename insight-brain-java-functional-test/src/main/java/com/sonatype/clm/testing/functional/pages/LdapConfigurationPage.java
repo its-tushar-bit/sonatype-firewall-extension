@@ -33,11 +33,11 @@ public class LdapConfigurationPage
   }
 
   public static LdapConnectionForm ldapConnectionForm() {
-    return new LdapConnectionForm(ROOT_SELECTOR, "form[name=ldapConnectionEditor]");
+    return new LdapConnectionForm(ROOT_SELECTOR, "#ldap-connection-form");
   }
 
   public static LdapUserAndGroupSettingsForm ldapUserAndGroupSettingsForm() {
-    return new LdapUserAndGroupSettingsForm(ROOT_SELECTOR, "form[name=ldapUserMappingEditor]");
+    return new LdapUserAndGroupSettingsForm(ROOT_SELECTOR, "#user-group-mapping-form");
   }
 
   public static LdapNameEditor ldapNameEditor() {return new LdapNameEditor("#ldapName");}

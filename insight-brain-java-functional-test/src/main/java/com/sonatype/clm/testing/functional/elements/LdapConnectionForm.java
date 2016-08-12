@@ -16,6 +16,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class LdapConnectionForm
     extends BasicElement<LdapConnectionForm>
+    implements ILdapForm
 {
   public LdapConnectionForm(String... selectors) {
     super(selectors);
@@ -29,7 +30,7 @@ public class LdapConnectionForm
     return child("#connectionTimeout");
   }
 
-  public List<SelenideElement> getRequiredFields() {
+  public List<SelenideElement> requiredFields() {
     return Arrays.asList(hostname(), searchBase());
   }
 
@@ -63,6 +64,10 @@ public class LdapConnectionForm
 
   public SelenideElement systemUsername() {
     return child("#systemUsername");
+  }
+
+  public SelenideElement successAlertBox() {
+    return child(".alert-success");
   }
 
   public SelenideElement testConnectionButton() {

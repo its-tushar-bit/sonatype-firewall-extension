@@ -161,6 +161,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.directory.server</groupId>
+      <artifactId>apacheds-core-integ</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-ldap</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>hds-mock-server</artifactId>
       <scope>test</scope>

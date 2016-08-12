@@ -1,4 +1,4 @@
-<div>
+<div id="ldap-checkusermapping-modal">
   <div class="modal-header">
     <h3>Verify LDAP Field Mappings</h3>
     <span class="icon-question-sign" style="position: absolute;right: 15px;top: 15px;" data-popover="{{infoText}}" data-popover-placement="left"
@@ -15,7 +15,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr ng-repeat="user in users">
+      <tr ng-repeat="user in users | orderBy: 'username'">
         <td class="truncate-ellipsis" style="width: 20%; max-width: 1px;" title="{{user.username}}">{{user.username}}</td>
         <td style="width: 20%">{{user.realName}}</td>
         <td class="truncate-ellipsis" style="width: 30%; max-width: 1px;" title="{{user.email}}">{{user.email}}</td>

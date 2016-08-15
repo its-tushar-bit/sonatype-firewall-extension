@@ -69,7 +69,6 @@ public class Scanner
       scan.getSummary().setEndTime();
       writer.writeSummary(scan.getSummary());
       writer.closeScan();
-      writer.close();
     }
     finally {
       try {

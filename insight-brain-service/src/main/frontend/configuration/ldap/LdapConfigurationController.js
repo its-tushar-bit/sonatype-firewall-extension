@@ -174,9 +174,6 @@
         });
       };
 
-      $scope.isCurrentTab = function(tabName) {
-        return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
-      };
       $scope.setCurrentTab = setCurrentTab;
 
       $scope.doLoad = function () {

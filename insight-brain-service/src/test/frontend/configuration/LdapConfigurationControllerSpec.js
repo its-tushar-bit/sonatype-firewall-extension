@@ -21,16 +21,47 @@ describe('Tests for the LdapConfigurationController', function() {
         };
       }
     });
+
+    $provide.value('$state', {
+      go: angular.noop,
+      transitionTo: angular.noop,
+      params: {
+        ldapId: '123'
+      },
+      current: {
+        name: 'ldap'
+      }
+    });
     SpecUtil.mockPermissionService($provide);
   }));
 
   describe('LdapConfigurationController', function() {
-    var httpBackend, state;
+    function initializeController(available, ldapId) {
+      inject(function($state, $controller, $httpBackend, CLMLocations) {
+        $state.params.ldapId = ldapId;
+        if (!ldapId) {
+          $state.current.name = 'create-ldap';
+        }
+
+        $controller('LdapConfigurationController', {
+          $scope: scope,
+          $state: $state,
+          isAuthorized : true
+        });
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond([{
+          id: '123',
+          name: 'config1'
+        }]);
+        $httpBackend.flush();
+      });
+    }
+    var httpBackend;
 
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
 
-      $state.current.name = 'ldap';
+      spyOn($state, 'go').andReturn(false);
       spyOn($state, 'transitionTo').andReturn(false);
 
       scope = $rootScope.$new();
@@ -38,24 +69,13 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.$$childHead.ldapNameForm = {
         $save: angular.noop
       };
-      state = $state;
-
-      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond([]);
-
-      httpBackend.whenGET('owner.manager/state/owner.manager.view.html?').respond('<div></div>');
-      httpBackend.whenGET('configuration/components/ldap.html?').respond('<div></div>');
-      httpBackend.whenGET('configuration/components/ldap-connection.html?').respond('<div></div>');
-
-      $controller('LdapConfigurationController', {
-        $scope: scope,
-        $state: state,
-        isAuthorized : true
-      });
       scope.ldapNameForm = {
         $save: angular.noop
       };
 
-      httpBackend.flush();
+      httpBackend.whenGET('owner.manager/state/owner.manager.view.html?').respond('<div></div>');
+      httpBackend.whenGET('configuration/components/ldap.html?').respond('<div></div>');
+      httpBackend.whenGET('configuration/components/ldap-connection.html?').respond('<div></div>');
     }));
 
     afterEach(function() {
@@ -64,17 +84,16 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.$destroy();
     });
 
-    it('create/update/delete ldap server', inject(function(CLMLocations, $state) {
+    it('create ldap server', inject(function(CLMLocations, $state) {
+      initializeController([]);
 
       // retrieve (empty configuration)
-
       expect(scope.ldap).not.toBeUndefined();
       expect(scope.ldap.isDirty()).toBeFalsy();
       expect(scope.ldap.id).toBeNull();
       expect(scope.ldap.name).toEqual('');
 
       // create
-
       scope.ldap.name = 'config1';
 
       expect(scope.ldap.isDirty()).toBeTruthy();
@@ -90,11 +109,18 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.saving).toBeTruthy();
       httpBackend.flush();
       expect(scope.saving).toBeFalsy();
+      expect($state.go).toHaveBeenCalledWith('ldap.connection', { ldapId: 'id1' });
+    }));
 
-      expect(scope.ldap.id).toEqual('id1');
+    it('update ldap server', inject(function(CLMLocations, $state) {
+      initializeController([{
+        id: '123',
+        name: 'config1'
+      }],'123');
+
+      expect(scope.ldap.id).toEqual('123');
 
       // update
-
       scope.ldap.name = 'config1changed';
 
       expect(scope.ldap.isDirty()).toBeTruthy();
@@ -113,9 +139,15 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.saving).toBeFalsy();
 
       expect(scope.ldap.isDirty()).toBeFalsy();
-      expect(scope.ldap.id).toEqual('id1');
+      expect(scope.ldap.id).toEqual('123');
+      expect($state.go).not.toHaveBeenCalled();
+    }));
 
-      // delete
+    it('delete ldap server', inject(function(CLMLocations, $state) {
+      initializeController([{
+        id: '123',
+        name: 'config1'
+      }],'123');
 
       expect(angular.element('#deleteConfigurationModal').css('display')).toBeUndefined();
 
@@ -123,7 +155,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(angular.element('#deleteConfigurationModal').css('display')).not.toBe('none');
 
-      httpBackend.expectDELETE(SpecUtil.toRegExp(CLMLocations.getLdapConfig() + '/id1')).respond({});
+      httpBackend.expectDELETE(SpecUtil.toRegExp(CLMLocations.getLdapConfig() + '/123')).respond({});
       scope.deleteConfiguration();
       httpBackend.flush();
 
@@ -131,7 +163,6 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.ldap).toBeNull();
       expect($state.transitionTo).toHaveBeenCalledWith('management.view');
-
     }));
   });
 
@@ -141,19 +172,14 @@ describe('Tests for the LdapConfigurationController', function() {
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
 
-      getConfigLdapUrl = function(service) {
-        return CLMLocations.getLdapConfig() + '/123/' + service;
-      };
-
       $state.current.name = 'ldap.connection';
 
       scope = $rootScope.$new();
       state = $state;
 
       scope.ldap = {id: "123"};
-      scope.getConfigLdapUrl = getConfigLdapUrl;
 
-      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond({ serverId: scope.ldap.id });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapConnectionConfig())).respond({ serverId: scope.ldap.id });
 
       $controller('LdapConnectionController', {
         $scope: scope,
@@ -192,7 +218,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(function(method, url, data) {
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConnectionConfig())).respond(function(method, url, data) {
         return [200, angular.extend({
           id: 'id1'
         }, angular.copy(scope.ldapConn)), {}];
@@ -213,7 +239,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(function(method, url, data) {
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConnectionConfig())).respond(function(method, url, data) {
         return [200, angular.copy(scope.ldapConn), {}];
       });
       scope.save();
@@ -257,7 +283,7 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.ldapConn.password = 'anon';
 
       // configuration is good
-      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConnectionTest())).respond(
         function(method, url, data) {
           return [200, {status: 'OK'}, {}];
         });
@@ -267,7 +293,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].type).toBe('success');
 
       // configuration is bad
-      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConnectionTest())).respond(
         function(method, url, data) {
           return [200, {status: 'FAILURE', message: 'foo bar'}, {}];
         });
@@ -278,7 +304,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].msg).toBe('foo bar');
 
       // clm server misbehaves
-      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConnectionTest())).respond(
         function(method, url, data) {
           return [500, 'foo bar', {}];
         });
@@ -289,7 +315,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].msg).toBe('foo bar');
 
       // can't connect to clm server
-      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConnectionTest())).respond(
         function(method, url, data) {
           return [0, '', {}];
         });
@@ -340,19 +366,14 @@ describe('Tests for the LdapConfigurationController', function() {
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
 
-      getConfigLdapUrl = function() {
-        return CLMLocations.getLdapConfig() + '/123/userMapping';
-      };
-
       $state.current.name = 'ldap.usermapping';
 
       scope = $rootScope.$new();
       state = $state;
 
       scope.ldap = {id: "123"};
-      scope.getConfigLdapUrl = getConfigLdapUrl;
 
-      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl())).respond({
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapUserMappingConfig())).respond({
         serverId: scope.ldap.id,
         userPasswordAttribute: null
       });
@@ -401,7 +422,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl())).respond(function(method, url, data) {
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapUserMappingConfig())).respond(function(method, url, data) {
         return [200, angular.extend({
           id: 'id1'
         }, angular.copy(scope.ldapUserMapping)), {}];
@@ -420,7 +441,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl())).respond(function(method, url, data) {
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapUserMappingConfig())).respond(function(method, url, data) {
         return [200, angular.copy(scope.ldapUserMapping), {}];
       });
       scope.save();

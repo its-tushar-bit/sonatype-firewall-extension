@@ -18,7 +18,13 @@ public class LdapConfigurationPage
 {
   private static final String ROOT_SELECTOR = "*[ng-show=ldap]";
 
-  public static String URL = BaseUrl.uriBuilder().fragment("/ldap").build().toString();
+  public static String editLdapUrl(String ldapId) {
+    return BaseUrl.uriBuilder().fragment("/ldap/edit/{ldapId}").build(ldapId).toString();
+  }
+
+  public static String createLdapUrl() {
+    return BaseUrl.uriBuilder().fragment("/ldap/create").build().toString();
+  }
 
   public static SelenideElement root() {
     return $(ROOT_SELECTOR);

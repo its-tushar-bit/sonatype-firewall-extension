@@ -530,6 +530,7 @@
                 <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</include>
+                <include>frontend/lib/angular-ui-router-0.2.15.min.js</include>
                 <include>wro4j/cip/cip-loader.js</include>
               </preloadSources>
               <sourceIncludes>
@@ -584,6 +585,7 @@
                 <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</include>
+                <include>frontend/lib/angular-ui-router-0.2.15.min.js</include>
                 <include>wro4j/cip/cip-loader.js</include>
               </preloadSources>
               <sourceIncludes>

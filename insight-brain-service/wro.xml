@@ -107,6 +107,7 @@
     <css>/frontend/scss/_global.scss</css>
     <css>/frontend/scss/_clm-modal.scss</css>
     <css>/frontend/scss/_mask.scss</css>
+    <js>/frontend/lib/angular-ui-router-0.2.15.min.js</js>
     <js>/frontend/lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap-tooltip.js</js>
     <js>/frontend/utility/directives/utility.directives.module.js</js>
     <js>/frontend/utility/directives/load.wrapper.directive.js</js>
@@ -247,6 +248,7 @@
   </group>
 
   <group name='audit-report'>
+    <js>/frontend/lib/angular-ui-router-0.2.15.min.js</js>
     <js>/frontend/lib/protovis/protovis-tipsy.js</js>
     <js>/wro4j/lib/date.format.js</js>
     <js>/wro4j/lib/jquery/jquery.tipsy.js</js>

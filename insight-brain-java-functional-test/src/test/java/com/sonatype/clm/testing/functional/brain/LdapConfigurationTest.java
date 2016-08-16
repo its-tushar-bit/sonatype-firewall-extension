@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.TestLoginModal;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
@@ -52,15 +53,14 @@ public class LdapConfigurationTest
 
   @BeforeClass
   public static void startup() {
-    open(LdapConfigurationPage.URL);
+    open(LdapConfigurationPage.createLdapUrl());
     loginAsAdmin();
   }
 
   @Before
   public void before() {
     server = tempEntity.newLdapServer("CLM Ldap Server");
-    refreshOrOpen(LdapConfigurationPage.URL);
-    LdapConfigurationPage.root().should(appear);
+    refreshOrOpen(ReportListPage.URL);
   }
 
   @After
@@ -76,8 +76,7 @@ public class LdapConfigurationTest
     LdapServerDAO ldapServerDAO = new LdapServerDAO();
     ldapServerDAO.delete(server);
 
-    refresh();
-    LdapConfigurationPage.root().shouldBe(visible);
+    refreshOrOpen(LdapConfigurationPage.createLdapUrl());
     LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
     NameEditor nameEditor = ldapNameEditor.nameEditor();
 
@@ -103,6 +102,8 @@ public class LdapConfigurationTest
 
   @Test
   public void testResetForm() {
+    refreshOrOpen(LdapConfigurationPage.editLdapUrl(server.getId()));
+    LdapConfigurationPage.root().should(appear);
     LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
 
     ldapConnectionForm.hostname().shouldBe(visible, empty).setValue("ldap.clm");
@@ -125,11 +126,13 @@ public class LdapConfigurationTest
 
   @Test
   public void testDeleteServer() {
+    refreshOrOpen(LdapConfigurationPage.editLdapUrl(server.getId()));
+    LdapConfigurationPage.root().should(appear);
     LdapConfigurationPage.deleteButton().shouldBe(visible);
     LdapConfigurationPage.deleteButton().click();
     LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
     LdapConfigurationPage.root().should(disappear);
-    waitUntilNotUrl(LdapConfigurationPage.URL);
+    waitUntilNotUrl(LdapConfigurationPage.createLdapUrl());
   }
 
 

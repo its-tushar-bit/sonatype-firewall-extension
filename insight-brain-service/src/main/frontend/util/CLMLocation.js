@@ -7,8 +7,8 @@
 (function() {
   'use strict';
 
-  angular.module('CLMLocation', ['CommonServices']).factory('CLMLocations', [
-    'BaseUrl', '$window', function(baseUrl, $window) {
+  angular.module('CLMLocation', ['CommonServices', 'ui.router']).factory('CLMLocations', [
+    'BaseUrl', '$window', '$state', function(baseUrl, $window, $state) {
       return {
         getLicensesUrl: function() {
           return baseUrl.get() + '/rest/license';
@@ -70,8 +70,32 @@
           return baseUrl.get() + '/rest/config/proprietary';
         },
 
-        getLdapConfig: function() {
-          return baseUrl.get() + '/rest/config/ldap';
+        getLdapConfig: function(ldapId) {
+          var url = baseUrl.get() + '/rest/config/ldap';
+          if (ldapId) {
+            url += '/' + ldapId;
+          }
+          return url;
+        },
+
+        getLdapConnectionConfig: function() {
+          return this.getLdapConfig($state.params.ldapId) + '/connection';
+        },
+
+        getLdapConnectionTest: function() {
+          return this.getLdapConfig($state.params.ldapId) + '/testConnection';
+        },
+
+        getLdapLoginTest: function() {
+          return this.getLdapConfig($state.params.ldapId) + '/testLogin';
+        },
+
+        getLdapUserMappingConfig: function() {
+          return this.getLdapConfig($state.params.ldapId) + '/userMapping';
+        },
+
+        getLdapUserMappingTest: function() {
+          return this.getLdapConfig($state.params.ldapId) + '/testUserMapping';
         },
 
         getReportUrl: function(applicationPublicId, scanId) {

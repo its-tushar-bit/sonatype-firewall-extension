@@ -7,11 +7,23 @@
 
   function ldapModuleConfiguration($stateProvider) {
     $stateProvider.state('ldap', {
-      url: '/ldap',
+      url: '/ldap/edit/{ldapId}',
       controller: 'LdapConfigurationController',
       templateUrl: 'configuration/components/ldap.html?' + clmBuildTimestamp,
       data: {
-        title: 'LDAP Configuration'
+        title: 'Edit LDAP Configuration'
+      },
+      resolve: {
+        'isAuthorized': ['PermissionService', function(PermissionService) {
+          return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+        }]
+      }
+    }).state('create-ldap', {
+      url: '/ldap/create',
+      controller: 'LdapConfigurationController',
+      templateUrl: 'configuration/components/ldap.html?' + clmBuildTimestamp,
+      data: {
+        title: 'Create LDAP Configuration'
       },
       resolve: {
         'isAuthorized': ['PermissionService', function(PermissionService) {

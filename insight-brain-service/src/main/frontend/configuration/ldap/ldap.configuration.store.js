@@ -13,7 +13,8 @@
       template: {
         id: null,
         name: ''
-      }
+      },
+      type: 'LDAP server'
     });
   }
   LdapConfigurationStore.$inject = ['CLMLocations', 'StoreFactory'];

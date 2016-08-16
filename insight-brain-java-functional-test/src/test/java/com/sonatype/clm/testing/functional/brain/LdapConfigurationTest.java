@@ -77,6 +77,7 @@ public class LdapConfigurationTest
     ldapServerDAO.delete(server);
 
     refreshOrOpen(LdapConfigurationPage.createLdapUrl());
+    LdapConfigurationPage.breadCrumb().shouldHave(text("LDAP Servers / Create Configuration"));
     LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
     NameEditor nameEditor = ldapNameEditor.nameEditor();
 
@@ -87,6 +88,8 @@ public class LdapConfigurationTest
     ldapNameEditor.saveButton().shouldBe(visible, enabled).click();
     ldapNameEditor.saveButton().shouldNotBe(visible);
     ldapNameEditor.cancelButton().shouldNotBe(visible);
+
+    LdapConfigurationPage.breadCrumb().shouldHave(text("LDAP Servers / Edit Configuration"));
 
     server = ldapServerDAO.getByName("CLM Ldap Server");
     assertThat(server, is(notNullValue()));

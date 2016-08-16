@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
 import com.sonatype.clm.testing.functional.elements.LdapNameEditor;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -28,6 +29,10 @@ public class LdapConfigurationPage
 
   public static SelenideElement root() {
     return $(ROOT_SELECTOR);
+  }
+
+  public static SelenideElement breadCrumb() {
+    return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".nav-crumb"));
   }
 
   public static SelenideElement connectionTab() {

@@ -16,7 +16,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class LdapConfigurationPage
 {
-  private static final String ROOT_SELECTOR = "*[ng-show=ldap]";
+  private static final String ROOT_SELECTOR = ".container.config";
 
   public static String editLdapUrl(String ldapId) {
     return BaseUrl.uriBuilder().fragment("/ldap/edit/{ldapId}").build(ldapId).toString();

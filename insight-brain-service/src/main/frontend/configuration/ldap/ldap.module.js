@@ -6,7 +6,17 @@
   'use strict';
 
   function ldapModuleConfiguration($stateProvider) {
-    $stateProvider.state('ldap', {
+    $stateProvider.state('ldap-servers', {
+      url: '/ldap-servers',
+      controller: 'ldap.server.list.controller',
+      controllerAs: 'vm',
+      templateUrl: 'configuration/components/ldap.server.list.html?' + clmBuildTimestamp,
+      resolve: {
+        'isAuthorized': ['PermissionService', function(PermissionService) {
+          return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+        }]
+      }
+    }).state('ldap', {
       url: '/ldap/edit/{ldapId}',
       controller: 'LdapConfigurationController',
       templateUrl: 'configuration/components/ldap.html?' + clmBuildTimestamp,

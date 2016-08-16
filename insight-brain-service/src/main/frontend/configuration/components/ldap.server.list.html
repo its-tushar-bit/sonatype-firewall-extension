@@ -1,0 +1,27 @@
+<div class='scrollable-root-container' authorization-wrapper="vm.isAuthorized" maximize-container-height>
+    <div class="tile container config ldap-server-list">
+      <div load-wrapper='vm.error' loading='!vm.ldapList' reload='vm.doLoad()'>
+        <h2>LDAP Servers</h2>
+        <div class="sub-header">will be queried in the order listed</div>
+        <div class="simple-list">
+          <h4 class="subsection-header">
+            <button class="btn btn-tertiary" ui-sref="create-ldap">
+              <i class="fa fa-plus"></i>Add a Server
+            </button>
+          </h4>
+          <div class="empty-list" ng-if="vm.ldapList.length <= 0">
+            No LDAP servers are defined
+          </div>
+          <ul>
+            <li class="clickable" ng-repeat="ldap in vm.ldapList" ui-sref="ldap({ldapId: ldap.id})">
+              <div class="title single-row-text">
+                {{::ldap.name}}
+              </div>
+              <i class="fa fa-chevron-right"></i>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

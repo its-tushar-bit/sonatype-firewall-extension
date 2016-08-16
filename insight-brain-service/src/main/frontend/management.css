@@ -759,6 +759,12 @@ ul.tri-pane.left {
   min-width: 520px !important;
 }
 
+.container.config.ldap-server-list {
+  margin-top: 8px;
+  width: 800px !important;
+  min-width: 800px !important;
+}
+
 .container.proprietary {
   width: 550px !important;
   min-width: 550px !important;

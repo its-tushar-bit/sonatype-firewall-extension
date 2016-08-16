@@ -61,6 +61,7 @@ public class LdapUserAndGroupSettingsForm
     return child("#userPasswordAttribute");
   }
 
+  @Override
   public List<SelenideElement> requiredFields() {
     return Arrays.asList(userObjectClass(), userIDAttribute(), userRealNameAttribute(), userEmailAttribute());
   }
@@ -117,10 +118,12 @@ public class LdapUserAndGroupSettingsForm
     return $("#ldap-mapping-checklogin");
   }
 
+  @Override
   public SelenideElement cancelButton() {
     return $("#ldap-mapping-cancel");
   }
 
+  @Override
   public SelenideElement saveButton() {
     return $("#ldap-mapping-save");
   }

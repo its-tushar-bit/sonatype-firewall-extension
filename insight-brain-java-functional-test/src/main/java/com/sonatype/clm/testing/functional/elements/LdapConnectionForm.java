@@ -30,6 +30,7 @@ public class LdapConnectionForm
     return child("#connectionTimeout");
   }
 
+  @Override
   public List<SelenideElement> requiredFields() {
     return Arrays.asList(hostname(), searchBase());
   }
@@ -74,10 +75,12 @@ public class LdapConnectionForm
     return $("#ldap-connection-test");
   }
 
+  @Override
   public SelenideElement saveButton() {
     return $("#ldap-connection-save");
   }
 
+  @Override
   public SelenideElement cancelButton() {
     return $("#ldap-connection-cancel");
   }

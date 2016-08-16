@@ -315,6 +315,16 @@
             users: function() {
               var deferred = $q.defer();
               $http.put($scope.getConfigLdapUrl('testUserMapping'), $scope.ldapUserMapping).success(function (users) {
+                // Add property that holds the count of fields that are populated
+                users.forEach(function(user) {
+                  user.fieldCount = 0;
+                  ['username', 'realName', 'email', 'membership'].forEach(function(field) {
+                    if (user[field]) {
+                      user.fieldCount++;
+                    }
+                  });
+                });
+
                 deferred.resolve(users);
               }).error(function(data, status, headers, config) {
                 $scope.testInProgress = false;

@@ -288,11 +288,13 @@ public class LdapConfigurationTest
     CheckUserMappingModal userMappingModal = userAndGroupSettingsForm.checkUserMappingModal();
     userMappingModal.shouldBe(visible);
     userMappingModal
-        .shouldHaveUserEntry(1, "test*user", "Test*User", "test.user3@company.com", "ab, bc, bx");
+        .shouldHaveUserEntry(1, "test_user", "Test User", "test.user@company.com", "ab, abc, xb");
     userMappingModal
-        .shouldHaveUserEntry(2, "test_user", "Test User", "test.user@company.com", "ab, abc, xb");
+        .shouldHaveUserEntry(2, "test_user2", "Test User 2", "test.user2@company.com", "ab, bc, bx");
+
+    // since this user has no email data, it has less fields filled and should be ordered last
     userMappingModal
-        .shouldHaveUserEntry(3, "test_user2", "Test User 2", "test.user2@company.com", "ab, bc, bx");
+        .shouldHaveUserEntry(3, "test*user", "Test*User", "", "ab, bc, bx");
     userMappingModal.cancelButton().shouldBe(enabled).click();
 
     // Fill all remaining fields only to ensure persisted on save

@@ -50,7 +50,6 @@ objectClass: inetOrgPerson
 sn: User
 cn: Test*User
 userPassword: te*st
-mail: test.user3@company.com
 departmentNumber: ab
 departmentNumber: bc
 departmentNumber: bx

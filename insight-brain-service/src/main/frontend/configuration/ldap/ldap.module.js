@@ -11,6 +11,9 @@
       controller: 'ldap.server.list.controller',
       controllerAs: 'vm',
       templateUrl: 'configuration/components/ldap.server.list.html?' + clmBuildTimestamp,
+      data: {
+        title: 'LDAP Servers'
+      },
       resolve: {
         'isAuthorized': ['PermissionService', function(PermissionService) {
           return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);

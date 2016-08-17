@@ -42,6 +42,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class LdapConfigurationTest
@@ -54,14 +55,14 @@ public class LdapConfigurationTest
 
   @BeforeClass
   public static void startup() {
-    open(LdapConfigurationPage.createLdapUrl());
+    open(ReportListPage.URL);
     loginAsAdmin();
   }
 
   @Before
   public void before() {
-    server = tempEntity.newLdapServer("CLM Ldap Server");
-    refreshOrOpen(ReportListPage.URL);
+    server = tempEntity.newLdapServer("Test Ldap Server");
+    refresh();
   }
 
   @After
@@ -75,9 +76,14 @@ public class LdapConfigurationTest
   @Test
   public void testCreateLdapServer() throws Exception {
     LdapServerDAO ldapServerDAO = new LdapServerDAO();
-    ldapServerDAO.delete(server);
 
-    refreshOrOpen(LdapConfigurationPage.createLdapUrl());
+    refreshOrOpen(LdapServerListPage.URL);
+
+    LdapServerListPage serverListPage = new LdapServerListPage();
+    serverListPage.ldapServerList().elements().shouldHaveSize(1);
+    serverListPage.newServerButton().click();
+
+    waitUntilUrl(LdapConfigurationPage.createLdapUrl());
     LdapConfigurationPage.breadCrumb().shouldHave(text("LDAP Servers / Create Configuration"));
     LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
     NameEditor nameEditor = ldapNameEditor.nameEditor();
@@ -85,14 +91,14 @@ public class LdapConfigurationTest
     ldapNameEditor.saveButton().shouldBe(visible, disabled);
     ldapNameEditor.cancelButton().shouldBe(visible, enabled);
 
-    nameEditor.shouldBe(visible).setValue("CLM Ldap Server");
+    nameEditor.shouldBe(visible).setValue("Another Ldap Server");
     ldapNameEditor.saveButton().shouldBe(visible, enabled).click();
     ldapNameEditor.saveButton().shouldNotBe(visible);
     ldapNameEditor.cancelButton().shouldNotBe(visible);
 
     LdapConfigurationPage.breadCrumb().shouldHave(text("LDAP Servers / Edit Configuration"));
 
-    server = ldapServerDAO.getByName("CLM Ldap Server");
+    server = ldapServerDAO.getByName("Another Ldap Server");
     assertThat(server, is(notNullValue()));
 
     testFormValidation();
@@ -130,14 +136,20 @@ public class LdapConfigurationTest
 
   @Test
   public void testDeleteServer() {
-    refreshOrOpen(LdapConfigurationPage.editLdapUrl(server.getId()));
-    LdapConfigurationPage.root().should(appear);
-    LdapConfigurationPage.deleteButton().shouldBe(visible);
-    LdapConfigurationPage.deleteButton().click();
-    LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
-    waitUntilUrl(LdapServerListPage.URL);
-  }
+    refreshOrOpen(LdapServerListPage.URL);
 
+    LdapServerListPage serverListPage = new LdapServerListPage();
+    serverListPage.ldapServerList().elements().shouldHaveSize(1).get(0).shouldBe(visible).click();
+
+    waitUntilUrl(LdapConfigurationPage.editLdapUrl(server.getId()));
+    LdapConfigurationPage.root().should(appear);
+    LdapConfigurationPage.deleteButton().shouldBe(visible).click();
+    LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
+
+    waitUntilUrl(LdapServerListPage.URL);
+    serverListPage.ldapServerList().elements().shouldHaveSize(0);
+    assertThat(new LdapServerDAO().getById(server.getId()), is(nullValue()));
+  }
 
   private void testFormValidation() {
     LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();

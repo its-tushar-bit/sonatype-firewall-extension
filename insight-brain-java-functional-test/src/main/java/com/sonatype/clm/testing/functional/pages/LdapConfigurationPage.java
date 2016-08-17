@@ -17,7 +17,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class LdapConfigurationPage
 {
-  private static final String ROOT_SELECTOR = ".container.config";
+  private static final String ROOT_SELECTOR = ".ldap-configuration-editor";
 
   public static String editLdapUrl(String ldapId) {
     return BaseUrl.uriBuilder().fragment("/ldap/edit/{ldapId}").build(ldapId).toString();

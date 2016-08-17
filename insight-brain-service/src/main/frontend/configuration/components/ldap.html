@@ -1,5 +1,6 @@
-<div class="scrollable-root-container" authorization-wrapper="isAuthorized" maximize-container-height>
-  <div load-wrapper="loadError" reload="doLoad()" loading="!ldap" >
+<div class="ldap-configuration-editor scrollable-root-container" authorization-wrapper="isAuthorized"
+     maximize-container-height>
+  <div load-wrapper="loadError" reload="doLoad()" loading="!ldap">
     <div class="container config">
       <div class="fixed-width-small-form" id="ldapName">
         <div class="nav-crumb"><a ui-sref="ldap-servers">LDAP Servers</a> / {{:: ldap.id ? 'Edit' : 'Create'}} Configuration</div>

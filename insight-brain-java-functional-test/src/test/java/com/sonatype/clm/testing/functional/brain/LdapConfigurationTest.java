@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.TestLoginModal;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
+import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
@@ -134,8 +135,7 @@ public class LdapConfigurationTest
     LdapConfigurationPage.deleteButton().shouldBe(visible);
     LdapConfigurationPage.deleteButton().click();
     LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
-    LdapConfigurationPage.root().should(disappear);
-    waitUntilNotUrl(LdapConfigurationPage.createLdapUrl());
+    waitUntilUrl(LdapServerListPage.URL);
   }
 
 

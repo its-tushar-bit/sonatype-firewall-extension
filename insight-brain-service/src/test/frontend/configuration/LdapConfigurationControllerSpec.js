@@ -162,7 +162,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(angular.element('#deleteConfigurationModal').css('display')).toBeUndefined();
 
       expect(scope.ldap).toBeNull();
-      expect($state.transitionTo).toHaveBeenCalledWith('management.view');
+      expect($state.transitionTo).toHaveBeenCalledWith('ldap-servers');
     }));
   });
 

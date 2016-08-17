@@ -323,6 +323,7 @@
                 // Add property that holds the count of fields that are populated
                 users.forEach(function(user) {
                   user.fieldCount = 0;
+                  user.membership = user.membership.join(', ');
                   ['username', 'realName', 'email', 'membership'].forEach(function(field) {
                     if (user[field]) {
                       user.fieldCount++;

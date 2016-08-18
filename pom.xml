@@ -420,6 +420,13 @@
         <artifactId>hibernate-validator</artifactId>
         <version>4.3.2.Final</version>
       </dependency>
+
+      <dependency>
+        <!-- Avoid SV in 1.4.7 pulled in by insight-brain-data -->
+        <groupId>com.thoughtworks.xstream</groupId>
+        <artifactId>xstream</artifactId>
+        <version>1.4.9</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

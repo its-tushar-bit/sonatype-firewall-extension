@@ -140,6 +140,10 @@
               <rules>
                 <enforceBytecodeVersion>
                   <maxJdkVersion>${maven.compiler.target}</maxJdkVersion>
+                  <ignoreClasses>
+                    <ignoreClass>com.thoughtworks.xstream.mapper.LambdaMapper</ignoreClass>
+                    <ignoreClass>com.thoughtworks.xstream.converters.reflection.LambdaConverter</ignoreClass>
+                  </ignoreClasses>
                   <ignoredScopes>
                     <ignoredScope>system</ignoredScope>
                     <ignoredScope>provided</ignoredScope>

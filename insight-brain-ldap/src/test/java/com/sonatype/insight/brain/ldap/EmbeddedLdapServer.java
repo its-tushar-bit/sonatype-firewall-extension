@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 
@@ -88,18 +89,7 @@ public class EmbeddedLdapServer
    * Creates new EmbeddedLdapServer instance with conventional work directory target/apacheds
    */
   public EmbeddedLdapServer() {
-    this(initWorkingDirectory());
-  }
-
-  private static File initWorkingDirectory() {
-    File workingDirectory = new File("target/apacheds");
-    try {
-      new FileCleaner().delete(workingDirectory);
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return workingDirectory;
+    this(new File("target/apacheds", UUID.randomUUID().toString()));
   }
 
   /**
@@ -250,6 +240,13 @@ public class EmbeddedLdapServer
     port = 0;
     running = false;
 
+    try {
+      new FileCleaner().delete(workingDirectory);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
     log.debug("Stopped EmbeddedLdapServer in {} ms", System.currentTimeMillis() - start);
   }
 
@@ -276,6 +273,10 @@ public class EmbeddedLdapServer
    */
   public int getPort() {
     return port;
+  }
+
+  public void setPort(int port) {
+    this.port = port;
   }
 
   /**

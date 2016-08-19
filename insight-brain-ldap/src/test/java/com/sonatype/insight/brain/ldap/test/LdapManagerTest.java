@@ -22,8 +22,8 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 
 import org.eclipse.sisu.launch.InjectedTest;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -39,7 +38,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -53,7 +51,8 @@ import static org.junit.Assert.fail;
 public class LdapManagerTest
     extends InjectedTest
 {
-  private final LdapServerDAO serverDao = new LdapServerDAO();
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
   public TestLdapServer ldapServer = new TestLdapServer();
@@ -131,9 +130,7 @@ public class LdapManagerTest
     ServerSocket socket = new ServerSocket(0);
     try {
 
-      serverDetails = new LdapServer();
-      serverDetails.setName("Test Server");
-      serverDao.insert(serverDetails);
+      serverDetails = tempEntity.newLdapServer("Test Server");
 
       LdapConnection conn = createLdapConnection();
       conn.setHostname("localhost");
@@ -922,9 +919,7 @@ public class LdapManagerTest
   public void testIsLdapEnabled() throws Exception {
     assertThat(manager.isLdapEnabled(), is(false));
 
-    serverDetails = new LdapServer();
-    serverDetails.setName("Test Server");
-    serverDao.insert(serverDetails);
+    serverDetails = tempEntity.newLdapServer("Test Server");
     assertThat(manager.isLdapEnabled(), is(false));
 
     LdapConnection conn = createLdapConnection();
@@ -941,9 +936,7 @@ public class LdapManagerTest
 
   @Test
   public void testIsLdapGroupEnabled() throws Exception {
-    serverDetails = new LdapServer();
-    serverDetails.setName("Test Server");
-    serverDao.insert(serverDetails);
+    serverDetails = tempEntity.newLdapServer("Test Server");
     assertThat(manager.isLdapGroupEnabled(), is(false));
 
     LdapConnection conn = createLdapConnection();
@@ -969,9 +962,7 @@ public class LdapManagerTest
 
   @Test
   public void testIsGroupSearchEnabled() throws Exception {
-    serverDetails = new LdapServer();
-    serverDetails.setName("Test Server");
-    serverDao.insert(serverDetails);
+    serverDetails = tempEntity.newLdapServer("Test Server");
     assertThat(manager.isGroupSearchEnabled(), is(false));
 
     LdapConnection conn = createLdapConnection();
@@ -1022,22 +1013,12 @@ public class LdapManagerTest
   }
 
   private LdapManagerTest startLdapServer() throws Exception {
-    serverDetails = new LdapServer();
-    serverDetails.setName("Test Server");
-    serverDao.insert(serverDetails);
+    serverDetails = tempEntity.newLdapServer("Test Server");
 
     ldapServer.start();
     ldapServer.loadData("/ldap_users.ldif");
 
     return this;
-  }
-
-  @After
-  public void cleanup() throws Exception {
-    for (LdapServer s : serverDao.getAll()) {
-      serverDao.delete(s);
-    }
-    assertThat(serverDao.getAll(), is(empty()));
   }
 
   private LdapConnection createLdapConnection() {

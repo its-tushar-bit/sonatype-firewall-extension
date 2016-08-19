@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapRealm;
@@ -41,7 +41,6 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -57,8 +56,8 @@ public class LdapRealmTest
 {
   private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
 
-  private static final LdapServerDAO serverDao = new LdapServerDAO();
-  private static final LdapUserMappingDAO userDao = new LdapUserMappingDAO();
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -71,12 +70,6 @@ public class LdapRealmTest
 
   @Rule
   public TestLdapServer ldapServer = new TestLdapServer();
-
-  private LdapServer serverDetails;
-
-  private LdapConnection connectionDetails;
-
-  private LdapUserMapping userMappingDetails;
 
   private String oldTrustStore;
 
@@ -261,12 +254,9 @@ public class LdapRealmTest
   }
 
   private LdapRealmTest startLdapServer() throws Exception {
+    LdapServer serverDetails = tempEntity.newLdapServer("Test Server");
 
-    serverDetails = new LdapServer();
-    serverDetails.setName("Test Server");
-    serverDao.insert(serverDetails);
-
-    userMappingDetails = new LdapUserMapping();
+    LdapUserMapping userMappingDetails = new LdapUserMapping();
     userMappingDetails.setServerId(serverDetails.getId());
     userMappingDetails.setUserBaseDN("ou=users");
     userMappingDetails.setUserObjectClass("person");
@@ -287,7 +277,7 @@ public class LdapRealmTest
       userMappingDetails.setUserPasswordAttribute("userPassword");
     }
 
-    connectionDetails = new LdapConnection();
+    LdapConnection connectionDetails = new LdapConnection();
     connectionDetails.setServerId(serverDetails.getId());
     connectionDetails.setProtocol(protocol);
     connectionDetails.setHostname(ldapServer.getHostname());
@@ -321,7 +311,7 @@ public class LdapRealmTest
       ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
     }
 
-    userDao.insert(userMappingDetails);
+    new LdapUserMappingDAO().insert(userMappingDetails);
 
     ldapServer.start();
     ldapServer.loadData("/ldap_users.ldif");
@@ -350,14 +340,5 @@ public class LdapRealmTest
         System.clearProperty(SYSPROP_SSLTRUSTSTORE);
       }
     }
-
-    if (serverDetails != null) {
-      serverDao.delete(serverDetails);
-      serverDetails = null;
-      connectionDetails = null;
-      userMappingDetails = null;
-    }
-
-    assertThat(serverDao.getAll(), is(empty()));
   }
 }

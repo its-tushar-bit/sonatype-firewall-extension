@@ -64,14 +64,14 @@ public class LdapManagerTest
   private LdapManager manager;
 
   @Test
-  public void testConnection() throws Exception {
+  public void testTestConnection() throws Exception {
     startLdapServer();
 
     manager.testConnection(createLdapConnection());
   }
 
   @Test
-  public void testConnection_EscapedUrl() throws Exception {
+  public void testTestConnection_EscapedUrl() throws Exception {
     startLdapServer();
 
     LdapConnection connection = createLdapConnection();
@@ -82,7 +82,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testConnectionTimeout() throws Exception {
+  public void testTestConnection_Timeout() throws Exception {
     ServerSocket socket = new ServerSocket(0);
     try {
       long begin = 0, end = 0;
@@ -127,7 +127,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testRetryDelay() throws Exception {
+  public void testAuthenticateUser_RetryDelay() throws Exception {
     ServerSocket socket = new ServerSocket(0);
     try {
 
@@ -190,7 +190,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testBadSearchBase() throws Exception {
+  public void testTestConnection_BadSearchBase() throws Exception {
     startLdapServer();
 
     LdapConnection conn = createLdapConnection();
@@ -211,7 +211,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testUserMapping() throws Exception {
+  public void testTestUserMapping() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -248,7 +248,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testDynamicGroupMapping() throws Exception {
+  public void testTestUserMapping_DynamicGroupMapping() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -267,7 +267,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testStaticGroupMapping() throws Exception {
+  public void testTestUserMapping_StaticGroupMapping() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -302,7 +302,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testUserLogin() throws Exception {
+  public void testTestUserLogin() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -542,7 +542,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindUserByName_Exact() throws Exception {
+  public void testFindUsersByName_Exact() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -554,7 +554,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindUserByName_CaseInsensitive() throws Exception {
+  public void testFindUsersByName_CaseInsensitive() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -566,7 +566,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindUserByName_Null() throws Exception {
+  public void testFindUsersByName_Null() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -577,7 +577,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindUserByName_Wildcard() throws Exception {
+  public void testFindUsersByName_Wildcard() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -593,7 +593,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindUserByName_MaxResults() throws Exception {
+  public void testFindUsersByName_MaxResults() throws Exception {
     startLdapServer();
     setSearchBase();
 

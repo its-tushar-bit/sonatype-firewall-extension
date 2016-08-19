@@ -55,25 +55,25 @@ public class LdapManagerTest
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
-  public TestLdapServer ldapServer = new TestLdapServer();
-
-  private LdapServer serverDetails;
+  public TestLdapServer testLdapServer = new TestLdapServer();
 
   @Inject
   private LdapManager manager;
 
   @Test
   public void testTestConnection() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
 
-    manager.testConnection(createLdapConnection());
+    manager.testConnection(createLdapConnection(ldapServer));
   }
 
   @Test
   public void testTestConnection_EscapedUrl() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
 
-    LdapConnection connection = createLdapConnection();
+    LdapConnection connection = createLdapConnection(ldapServer);
     // Search base with space will be escaped with %20.
     connection.setSearchBase("dc=acme brick,dc=com");
 
@@ -129,17 +129,16 @@ public class LdapManagerTest
   public void testAuthenticateUser_RetryDelay() throws Exception {
     ServerSocket socket = new ServerSocket(0);
     try {
+      LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
 
-      serverDetails = tempEntity.newLdapServer("Test Server");
-
-      LdapConnection conn = createLdapConnection();
+      LdapConnection conn = createLdapConnection(ldapServer);
       conn.setHostname("localhost");
       conn.setPort(socket.getLocalPort());
       conn.setConnectionTimeout(1);
       conn.setRetryDelay(5);
       manager.saveConnection(conn);
 
-      new LdapUserMappingDAO().insert(createUserMapping());
+      new LdapUserMappingDAO().insert(createUserMapping(ldapServer));
 
       // force three failures by attempting auth against the dangling socket
 
@@ -188,9 +187,10 @@ public class LdapManagerTest
 
   @Test
   public void testTestConnection_BadSearchBase() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
 
-    LdapConnection conn = createLdapConnection();
+    LdapConnection conn = createLdapConnection(ldapServer);
     conn.setSearchBase("!@£$%^&*()");
 
     try {
@@ -201,18 +201,19 @@ public class LdapManagerTest
     }
   }
 
-  private void setSearchBase() {
-    LdapConnection conn = createLdapConnection();
+  private void setSearchBase(LdapServer ldapServerDetails) {
+    LdapConnection conn = createLdapConnection(ldapServerDetails);
     conn.setSearchBase("dc=company,dc=com");
     manager.saveConnection(conn);
   }
 
   @Test
   public void testTestUserMapping() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
 
     List<LdapUser> users = manager.testUserMapping(umap, -1);
     assertThat(users, hasSize(3));
@@ -246,10 +247,11 @@ public class LdapManagerTest
 
   @Test
   public void testTestUserMapping_DynamicGroupMapping() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
 
@@ -265,10 +267,11 @@ public class LdapManagerTest
 
   @Test
   public void testTestUserMapping_StaticGroupMapping() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfUniqueNames");
     umap.setGroupMemberAttribute("uniqueMember");
@@ -300,10 +303,11 @@ public class LdapManagerTest
 
   @Test
   public void testTestUserLogin() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
 
     umap.setUserPasswordAttribute(null); // AUTH-via-BIND
 
@@ -328,9 +332,10 @@ public class LdapManagerTest
 
   @Test
   public void testRejectEmptyPasswordAsPerRfc4513Section5_1_2() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
-    LdapUserMapping umap = createUserMapping();
+    setSearchBase(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
     new LdapUserMappingDAO().insert(umap);
 
     try {
@@ -352,9 +357,10 @@ public class LdapManagerTest
 
   @Test
   public void testAuthenticateUser_usernameLeakViaInjection() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
-    LdapUserMapping umap = createUserMapping();
+    setSearchBase(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
     new LdapUserMappingDAO().insert(umap);
 
     try {
@@ -370,9 +376,10 @@ public class LdapManagerTest
 
   @Test(expected = NameNotFoundException.class)
   public void testAuthenticateUser_wildcardMatchingNotExpected() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
-    LdapUserMapping umap = createUserMapping();
+    setSearchBase(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
     new LdapUserMappingDAO().insert(umap);
 
     // previous to escaping characters in the ldap query, this auth check would have succeeded
@@ -382,9 +389,10 @@ public class LdapManagerTest
 
   @Test
   public void testAuthenticateUser_wildcardMatchingEscapedValue() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
-    LdapUserMapping umap = createUserMapping();
+    setSearchBase(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
     new LdapUserMappingDAO().insert(umap);
 
     manager.authenticateUser("test*user", "te*st".toCharArray());
@@ -392,9 +400,10 @@ public class LdapManagerTest
 
   @Test
   public void testGetUser() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
-    LdapUserMapping umap = createUserMapping();
+    setSearchBase(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     new LdapUserMappingDAO().insert(umap);
@@ -408,9 +417,10 @@ public class LdapManagerTest
 
   @Test(expected = NameNotFoundException.class)
   public void testGetUser_NoWildcardMatching() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
-    LdapUserMapping umap = createUserMapping();
+    setSearchBase(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
     new LdapUserMappingDAO().insert(umap);
 
     manager.getUser("test_*");
@@ -418,9 +428,10 @@ public class LdapManagerTest
 
   @Test
   public void testGetUser_WildcardEscaped() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
-    LdapUserMapping umap = createUserMapping();
+    setSearchBase(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     new LdapUserMappingDAO().insert(umap);
@@ -434,10 +445,11 @@ public class LdapManagerTest
 
   @Test
   public void testGetUsers() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     userMappingDAO.insert(umap);
 
@@ -450,10 +462,11 @@ public class LdapManagerTest
 
   @Test
   public void testGetUsers_wildcardMatchingNotExpected() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     userMappingDAO.insert(umap);
 
@@ -463,10 +476,11 @@ public class LdapManagerTest
 
   @Test
   public void testGetGroups_Static() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -487,10 +501,11 @@ public class LdapManagerTest
 
   @Test
   public void testGetGroups_Static_wildcardMatchingNotExpected() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -504,11 +519,12 @@ public class LdapManagerTest
 
   @Test
   public void testGetGroups_Dynamic() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.insert(umap);
@@ -525,11 +541,12 @@ public class LdapManagerTest
 
   @Test
   public void testGetGroups_Dynamic_wildcardMatchingNotExpected() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.insert(umap);
@@ -540,10 +557,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByName_Exact() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
 
     List<LdapUser> users = manager.testFindUsersByName(umap, "Test User 2", 100);
     assertThat(users, hasSize(1));
@@ -552,10 +570,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByName_CaseInsensitive() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
 
     List<LdapUser> users = manager.testFindUsersByName(umap, "tEST user 2", 100);
     assertThat(users, hasSize(1));
@@ -564,10 +583,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByName_Null() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
 
     List<LdapUser> users = manager.testFindUsersByName(umap, null /* name */, 100);
     assertThat(users, hasSize(0));
@@ -575,10 +595,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByName_Wildcard() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
 
     List<LdapUser> users = manager.testFindUsersByName(umap, "*" /* name */, 100);
     assertThat(users, hasSize(3));
@@ -591,10 +612,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByName_MaxResults() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
 
     List<LdapUser> users = manager.testFindUsersByName(umap, "*" /* name */, 100);
     assertThat(users, hasSize(3));
@@ -605,10 +627,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Static_WrongObjectClass() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createStaticGroupMapping();
+    createStaticGroupMapping(ldapServer);
 
     // Wrong Objectclass, groupOfUniqueNames not groupOfNames
     List<LdapGroup> groups = manager.findGroupsByName("Alpha", 100);
@@ -617,10 +640,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Static_Exact() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createStaticGroupMapping();
+    createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("Omega", 100);
     assertThat(groups, hasSize(1));
@@ -632,10 +656,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Static_CaseInsensitive() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createStaticGroupMapping();
+    createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("oMEGA", 100);
     assertThat(groups, hasSize(1));
@@ -644,10 +669,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Static_MaxResults() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createStaticGroupMapping();
+    createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("*a*", 100);
     assertThat(groups, hasSize(5));
@@ -658,10 +684,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Static_Wildcard() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createStaticGroupMapping();
+    createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("*a", 100);
     assertThat(groups, hasSize(5));
@@ -674,10 +701,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Static_NotFound() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createStaticGroupMapping();
+    createStaticGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("Foo", 100);
     assertThat(groups, hasSize(0));
@@ -685,10 +713,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Static_OnlyDnExpression() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -702,10 +731,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Static_UsernameExpression() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -719,10 +749,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Static_DnExpression() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -736,10 +767,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Static_Dn_MaxResults() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -755,10 +787,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Static_Username_MaxResults() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createStaticGroupMapping();
+    createStaticGroupMapping(ldapServer);
 
     List<LdapUser> users = manager.findUsersByGroup("Theta", 1);
     assertThat(users, hasSize(1));
@@ -768,10 +801,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Static_wildcardMatchingNotExpected() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -785,10 +819,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Dynamic_wildcardMatchingNotExpected() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     new LdapUserMappingDAO().insert(umap);
@@ -797,8 +832,8 @@ public class LdapManagerTest
     assertThat(users, hasSize(0));
   }
 
-  private void createStaticGroupMapping() {
-    LdapUserMapping umap = createUserMapping();
+  private void createStaticGroupMapping(LdapServer ldapServer) {
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -807,8 +842,8 @@ public class LdapManagerTest
     userMappingDAO.insert(umap);
   }
 
-  private void createDynamicGroupMapping() {
-    LdapUserMapping umap = createUserMapping();
+  private void createDynamicGroupMapping(LdapServer ldapServer) {
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
@@ -817,10 +852,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Dynamic_MaxResults() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("*b*", 100);
     assertThat(groups, hasSize(5));
@@ -831,10 +867,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Dynamic_WildcardPrefix() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("*b", 100);
     assertThat(groups, hasSize(2));
@@ -847,10 +884,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Dynamic_WildcardSuffix() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("b*", 100);
     assertThat(groups, hasSize(2));
@@ -863,10 +901,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Dynamic_WildcardPrefixAndSuffix() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("*b*", 100);
     assertThat(groups.toString(), groups, hasSize(5));
@@ -879,10 +918,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Dynamic_Exact() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("ab", 100);
     assertThat(groups, hasSize(1));
@@ -894,10 +934,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Dynamic_CaseInsensitive() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("ABC", 100);
     assertThat(groups, hasSize(1));
@@ -906,10 +947,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindGroupsByName_Dynamic_NotFound() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     List<LdapGroup> groups = manager.findGroupsByName("Foo", 100);
     assertThat(groups, hasSize(0));
@@ -919,15 +961,15 @@ public class LdapManagerTest
   public void testIsLdapEnabled() throws Exception {
     assertThat(manager.isLdapEnabled(), is(false));
 
-    serverDetails = tempEntity.newLdapServer("Test Server");
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     assertThat(manager.isLdapEnabled(), is(false));
 
-    LdapConnection conn = createLdapConnection();
+    LdapConnection conn = createLdapConnection(ldapServer);
     conn.setHostname("localhost");
     new LdapConnectionDAO().insert(conn);
     assertThat(manager.isLdapEnabled(), is(false));
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     userMappingDAO.insert(umap);
 
@@ -936,17 +978,17 @@ public class LdapManagerTest
 
   @Test
   public void testIsLdapGroupEnabled() throws Exception {
-    serverDetails = tempEntity.newLdapServer("Test Server");
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     assertThat(manager.isLdapGroupEnabled(), is(false));
 
-    LdapConnection conn = createLdapConnection();
+    LdapConnection conn = createLdapConnection(ldapServer);
     conn.setHostname("localhost");
     conn.setSearchBase("dc=company,dc=com");
     new LdapConnectionDAO().insert(conn);
 
     assertThat(manager.isLdapGroupEnabled(), is(false));
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.NONE);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -962,17 +1004,17 @@ public class LdapManagerTest
 
   @Test
   public void testIsGroupSearchEnabled() throws Exception {
-    serverDetails = tempEntity.newLdapServer("Test Server");
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     assertThat(manager.isGroupSearchEnabled(), is(false));
 
-    LdapConnection conn = createLdapConnection();
+    LdapConnection conn = createLdapConnection(ldapServer);
     conn.setHostname("localhost");
     conn.setSearchBase("dc=company,dc=com");
     new LdapConnectionDAO().insert(conn);
 
     assertThat(manager.isGroupSearchEnabled(), is(false));
 
-    LdapUserMapping umap = createUserMapping();
+    LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.NONE);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -1007,34 +1049,33 @@ public class LdapManagerTest
       assertThat(expected.getMessage(), is("LDAP server is not configured"));
     }
 
+    tempEntity.newLdapServer("Test Server");
     startLdapServer();
     String name = manager.getLdapServerName();
     assertThat(name, is("Test Server"));
   }
 
   private LdapManagerTest startLdapServer() throws Exception {
-    serverDetails = tempEntity.newLdapServer("Test Server");
-
-    ldapServer.start();
-    ldapServer.loadData("/ldap_users.ldif");
+    testLdapServer.start();
+    testLdapServer.loadData("/ldap_users.ldif");
 
     return this;
   }
 
-  private LdapConnection createLdapConnection() {
-    LdapConnection conn = manager.loadConnection(serverDetails.getId());
-    conn.setServerId(serverDetails.getId());
+  private LdapConnection createLdapConnection(LdapServer ldapServer) {
+    LdapConnection conn = manager.loadConnection(ldapServer.getId());
+    conn.setServerId(ldapServer.getId());
     conn.setProtocol(LdapProtocol.LDAP);
-    if (ldapServer != null) {
-      conn.setHostname(ldapServer.getHostname());
-      conn.setPort(ldapServer.getPort());
+    if (testLdapServer != null) {
+      conn.setHostname(testLdapServer.getHostname());
+      conn.setPort(testLdapServer.getPort());
     }
     return conn;
   }
 
-  private LdapUserMapping createUserMapping() {
+  private LdapUserMapping createUserMapping(LdapServer ldapServer) {
     LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(serverDetails.getId());
+    umap.setServerId(ldapServer.getId());
     umap.setUserBaseDN("ou=users");
     umap.setUserObjectClass("person");
     umap.setUserIDAttribute("uid");
@@ -1049,10 +1090,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Dynamic() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     // Group with one user
     List<LdapUser> users = manager.findUsersByGroup("xb", 0 /* maxResults */);
@@ -1077,10 +1119,11 @@ public class LdapManagerTest
 
   @Test
   public void testFindUsersByGroup_Dynamic_MaxResults() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     startLdapServer();
-    setSearchBase();
+    setSearchBase(ldapServer);
 
-    createDynamicGroupMapping();
+    createDynamicGroupMapping(ldapServer);
 
     // Group with two users
     List<LdapUser> users = manager.findUsersByGroup("ab", 0 /* maxResults */);

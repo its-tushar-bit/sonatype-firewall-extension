@@ -1021,7 +1021,7 @@ public class LdapManagerTest
     assertThat(name, is("Test Server"));
   }
 
-  public LdapManagerTest startLdapServer() throws Exception {
+  private LdapManagerTest startLdapServer() throws Exception {
     serverDetails = new LdapServer();
     serverDetails.setName("Test Server");
     serverDao.insert(serverDetails);
@@ -1040,7 +1040,7 @@ public class LdapManagerTest
     assertThat(serverDao.getAll(), is(empty()));
   }
 
-  protected LdapConnection createLdapConnection() {
+  private LdapConnection createLdapConnection() {
     LdapConnection conn = manager.loadConnection(serverDetails.getId());
     conn.setServerId(serverDetails.getId());
     conn.setProtocol(LdapProtocol.LDAP);
@@ -1051,7 +1051,7 @@ public class LdapManagerTest
     return conn;
   }
 
-  protected LdapUserMapping createUserMapping() {
+  private LdapUserMapping createUserMapping() {
     LdapUserMapping umap = new LdapUserMapping();
     umap.setServerId(serverDetails.getId());
     umap.setUserBaseDN("ou=users");

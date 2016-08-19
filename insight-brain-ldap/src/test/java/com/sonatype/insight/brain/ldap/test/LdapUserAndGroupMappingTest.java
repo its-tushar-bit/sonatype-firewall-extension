@@ -237,17 +237,17 @@ public class LdapUserAndGroupMappingTest
     checkMapping(conn, umap);
   }
 
-  public LdapUserAndGroupMappingTest withDigestAuth() {
+  private LdapUserAndGroupMappingTest withDigestAuth() {
     authentication = LdapAuthenticationMethod.DIGESTMD5;
     return this;
   }
 
-  public LdapUserAndGroupMappingTest withCramAuth() {
+  private LdapUserAndGroupMappingTest withCramAuth() {
     authentication = LdapAuthenticationMethod.CRAMMD5;
     return this;
   }
 
-  public LdapUserAndGroupMappingTest checkMapping(LdapConnection conn, LdapUserMapping umap) throws Exception {
+  private LdapUserAndGroupMappingTest checkMapping(LdapConnection conn, LdapUserMapping umap) throws Exception {
     manager.saveConnection(conn);
     List<LdapUser> users = manager.testUserMapping(umap, -1);
     Collections.sort(users);
@@ -281,7 +281,7 @@ public class LdapUserAndGroupMappingTest
     return this;
   }
 
-  public LdapUserAndGroupMappingTest startLdapServer() throws Exception {
+  private LdapUserAndGroupMappingTest startLdapServer() throws Exception {
     serverDetails = new LdapServer();
     serverDetails.setName("Test Server");
     serverDao.insert(serverDetails);
@@ -300,7 +300,7 @@ public class LdapUserAndGroupMappingTest
     return this;
   }
 
-  public LdapUserAndGroupMappingTest loadData(String resource) throws Exception {
+  private LdapUserAndGroupMappingTest loadData(String resource) throws Exception {
     ldapServer.loadData(resource);
 
     return this;
@@ -314,7 +314,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(serverDao.getAll(), is(empty()));
   }
 
-  protected LdapConnection createLdapConnection() {
+  private LdapConnection createLdapConnection() {
     LdapConnection conn = manager.loadConnection(serverDetails.getId());
     conn.setServerId(serverDetails.getId());
 
@@ -330,7 +330,7 @@ public class LdapUserAndGroupMappingTest
     return conn;
   }
 
-  protected LdapUserMapping createUserMapping() {
+  private LdapUserMapping createUserMapping() {
     LdapUserMapping umap = new LdapUserMapping();
     umap.setServerId(serverDetails.getId());
 

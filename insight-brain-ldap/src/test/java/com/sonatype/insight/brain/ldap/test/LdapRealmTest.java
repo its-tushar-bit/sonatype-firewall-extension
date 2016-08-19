@@ -173,7 +173,7 @@ public class LdapRealmTest
     withCramAuth().withBind().withSsl().startLdapServer().runAuthTests();
   }
 
-  public void runAuthTests() {
+  private void runAuthTests() {
     if (authentication.getMethod().endsWith("MD5")) {
       assertEmptyPassword("anonymous", null);
       assertEmptyPassword("anonymous", "");
@@ -199,7 +199,7 @@ public class LdapRealmTest
     }
   }
 
-  public void assertGoodCredentials(String username, String displayName, String password, String... groups) {
+  private void assertGoodCredentials(String username, String displayName, String password, String... groups) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
     AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
@@ -214,7 +214,7 @@ public class LdapRealmTest
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
   }
 
-  public void assertBadCredentials(String username, String password) {
+  private void assertBadCredentials(String username, String password) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
     try {
       realm.getAuthenticationInfo(usernamePasswordToken);
@@ -224,7 +224,7 @@ public class LdapRealmTest
     }
   }
 
-  public void assertEmptyPassword(String username, String password) {
+  private void assertEmptyPassword(String username, String password) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
     try {
       realm.getAuthenticationInfo(usernamePasswordToken);
@@ -235,32 +235,32 @@ public class LdapRealmTest
     }
   }
 
-  public LdapRealmTest withSimpleAuth() {
+  private LdapRealmTest withSimpleAuth() {
     authentication = LdapAuthenticationMethod.SIMPLE;
     return this;
   }
 
-  public LdapRealmTest withDigestAuth() {
+  private LdapRealmTest withDigestAuth() {
     authentication = LdapAuthenticationMethod.DIGESTMD5;
     return this;
   }
 
-  public LdapRealmTest withCramAuth() {
+  private LdapRealmTest withCramAuth() {
     authentication = LdapAuthenticationMethod.CRAMMD5;
     return this;
   }
 
-  public LdapRealmTest withSsl() {
+  private LdapRealmTest withSsl() {
     protocol = LdapProtocol.LDAPS;
     return this;
   }
 
-  public LdapRealmTest withBind() {
+  private LdapRealmTest withBind() {
     authenticateWithBind = true;
     return this;
   }
 
-  public LdapRealmTest startLdapServer() throws Exception {
+  private LdapRealmTest startLdapServer() throws Exception {
 
     serverDetails = new LdapServer();
     serverDetails.setName("Test Server");
@@ -332,7 +332,7 @@ public class LdapRealmTest
     return this;
   }
 
-  public File getTestResourceFile(String path) throws IOException {
+  private File getTestResourceFile(String path) throws IOException {
     URL resource = getClass().getResource(path);
     assertNotNull(resource); // sanity check
     File tempFile = temporaryFolder.newFile();

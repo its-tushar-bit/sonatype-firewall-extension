@@ -19,7 +19,7 @@
           return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
         }]
       }
-    }).state('ldap', {
+    }).state('edit-ldap', {
       url: '/ldap/edit/{ldapId}',
       controller: 'LdapConfigurationController',
       templateUrl: 'configuration/components/ldap.html?' + clmBuildTimestamp,
@@ -43,12 +43,12 @@
           return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
         }]
       }
-    }).state('ldap.connection', {
-      parent: 'ldap',
+    }).state('edit-ldap.connection', {
+      parent: 'edit-ldap',
       controller: 'LdapConnectionController',
       templateUrl: 'configuration/components/ldap-connection.html?' + clmBuildTimestamp
-    }).state('ldap.usermapping', {
-      parent: 'ldap',
+    }).state('edit-ldap.usermapping', {
+      parent: 'edit-ldap',
       controller: 'LdapUsermappingController',
       templateUrl: 'configuration/components/ldap-usermapping.html?' + clmBuildTimestamp
     });

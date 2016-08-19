@@ -98,7 +98,7 @@
       }
 
       function setCurrentTab(tabname) {
-        var ldapState = 'ldap', targetState = ldapState + '.' + tabname;
+        var ldapState = 'edit-ldap', targetState = ldapState + '.' + tabname;
 
         if ($state.current.name !== targetState && $scope.ldap && $scope.ldap.id) {
           // if the current scope/state isDirty, ask the user if it's okay to discard the changes
@@ -137,11 +137,11 @@
         $scope.saving = true;
         $scope.ldap.$save().then(function(ldapServer) {
           $scope.saving = false;
-          if ($state.current.name === 'ldap') {
+          if ($state.current.name === 'edit-ldap') {
             setCurrentTab('connection');
           }
           else if ($state.current.name === 'create-ldap') {
-            $state.go('ldap.connection', { ldapId: ldapServer.id });
+            $state.go('edit-ldap.connection', { ldapId: ldapServer.id });
           }
         }, function() {
           $scope.saving = false;
@@ -191,7 +191,6 @@
           else {
             ldapStore.get().then(function() {
               $scope.ldap = ldapStore.create();
-              setCurrentTab('connection');
             }, function(error) {
               $scope.loadError = error;
             });

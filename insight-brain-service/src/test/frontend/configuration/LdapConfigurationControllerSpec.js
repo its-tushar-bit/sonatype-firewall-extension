@@ -109,7 +109,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.saving).toBeTruthy();
       httpBackend.flush();
       expect(scope.saving).toBeFalsy();
-      expect($state.go).toHaveBeenCalledWith('ldap.connection', { ldapId: 'id1' });
+      expect($state.go).toHaveBeenCalledWith('edit-ldap.connection', { ldapId: 'id1' });
     }));
 
     it('update ldap server', inject(function(CLMLocations, $state) {
@@ -172,7 +172,7 @@ describe('Tests for the LdapConfigurationController', function() {
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
 
-      $state.current.name = 'ldap.connection';
+      $state.current.name = 'edit-ldap.connection';
 
       scope = $rootScope.$new();
       state = $state;

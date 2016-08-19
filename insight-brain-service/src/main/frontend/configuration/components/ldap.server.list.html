@@ -13,7 +13,7 @@
           No LDAP servers are defined
         </div>
         <ul>
-          <li class="clickable" ng-repeat="ldap in vm.ldapList" ui-sref="ldap({ldapId: ldap.id})">
+          <li class="clickable" ng-repeat="ldap in vm.ldapList" ui-sref="edit-ldap({ldapId: ldap.id})">
             <div class="title single-row-text">
               {{::ldap.name}}
             </div>

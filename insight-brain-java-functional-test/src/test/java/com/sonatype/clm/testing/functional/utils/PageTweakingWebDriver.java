@@ -30,7 +30,11 @@ public class PageTweakingWebDriver
       executeScript("jQuery(document).ready(function() { jQuery('head').append('<style>"
           // Fully disabling transitions breaks bootstrap, so we're a little more selective
           + ".fade { transition: opacity 1ms } " + ".modal.fade { transition: top 0ms, opacity 0ms } "
-          + ".collapse { transition: height 1ms }" + "</style>'); });");
+          + ".collapse { transition: height 1ms } "
+          // increasing the condition dropdown by 1 pixel as a workaround to fix an issue where the 11th element
+          // (dropdown shows the first 10) isn't clickable by selenide.
+          + "dropdown-selector .dropdown-selector .dropdown-menu { max-height: 301px; } "
+          +  "</style>'); });");
     }
     catch (Exception e) {
       log.debug("Failed to inject tweaks", e);

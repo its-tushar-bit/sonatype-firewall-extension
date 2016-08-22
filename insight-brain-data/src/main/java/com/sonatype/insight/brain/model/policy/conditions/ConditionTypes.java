@@ -46,20 +46,20 @@ public class ConditionTypes
   public static final IdentificationSourceConditionType IdentificationSourceConditionType = new IdentificationSourceConditionType();
 
   static {
+    add(AgeInDaysConditionType);
+    add(CoordinatesConditionType);
+    add(IdentificationSourceConditionType);
     add(LabelConditionType);
     add(LicenseConditionType);
     add(LicenseStatusConditionType);
     add(LicenseThreatGroupConditionType);
     add(LicenseThreatGroupLevelConditionType);
+    add(MatchStateConditionType);
+    add(ProprietaryConditionType);
+    add(RelativePopularityConditionType);
     add(SecurityVulnerabilityConditionType);
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);
-    add(RelativePopularityConditionType);
-    add(AgeInDaysConditionType);
-    add(MatchStateConditionType);
-    add(CoordinatesConditionType);
-    add(ProprietaryConditionType);
-    add(IdentificationSourceConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

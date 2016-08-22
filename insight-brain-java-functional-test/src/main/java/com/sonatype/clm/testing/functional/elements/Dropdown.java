@@ -10,6 +10,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class Dropdown
@@ -31,5 +33,20 @@ public class Dropdown
 
   public SelenideElement listItem(int num) {
     return child(ITEM_SELECTOR, nthChild(num + 1));
+  }
+
+  public void chooseOption(Option option){
+    selectedItem().click();
+    listItem(option.row).shouldBe(visible).shouldHave(text(option.value)).click();
+  }
+
+  public static class Option {
+    private int row;
+    private String value;
+
+    public Option(final int row, final String value) {
+      this.row = row;
+      this.value = value;
+    }
   }
 }

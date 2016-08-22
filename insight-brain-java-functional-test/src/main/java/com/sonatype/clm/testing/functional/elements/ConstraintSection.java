@@ -197,13 +197,6 @@ public class ConstraintSection
         super(rootSelector);
       }
 
-      public void setType() {
-        // this isn't great perf
-        Dropdown typeDropdown = type();
-        typeDropdown.selectedItem().click();
-        typeDropdown.listItems().findBy(text("Coordinates")).click();
-      }
-
       public void setOperator(String op) {
         // this isn't great perf
         Dropdown typeDropdown = operator();

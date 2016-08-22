@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -116,7 +115,7 @@ public abstract class AbstractPolicyEditorTest
 
   private JiraProject jiraProject;
   
-  private HashMap<Class, Option> conditionTypesOptionMap = conditionsToOptionMap();
+  private HashMap<Class<? extends ConditionType>, Option> conditionTypesOptionMap = conditionsToOptionMap();
 
   @BeforeClass
   public static void boot() {
@@ -1123,13 +1122,13 @@ public abstract class AbstractPolicyEditorTest
   protected abstract void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2,
       boolean isReadOnly);
 
-  private HashMap<Class, Option> conditionsToOptionMap() {
-    ArrayList<ConditionType> conditionTypes = new ArrayList<>(ConditionTypes.getAll());
-    HashMap<Class, Option> map = new HashMap<>();
+  private HashMap<Class<? extends ConditionType>, Option> conditionsToOptionMap() {
+    HashMap<Class<? extends ConditionType>, Option> map = new HashMap<>();
 
-    for (int i = 0; i < conditionTypes.size(); i++) {
-      ConditionType type = conditionTypes.get(i);
+    int i = 0;
+    for (ConditionType type : ConditionTypes.getAll()) {
       map.put(type.getClass(), new Option(i, type.getName()));
+      i++;
     }
 
     return map;

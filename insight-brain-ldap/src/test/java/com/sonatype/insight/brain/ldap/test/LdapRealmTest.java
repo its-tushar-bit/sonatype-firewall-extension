@@ -173,10 +173,10 @@ public class LdapRealmTest
       assertBadCredentials("anonymous", "guest");
       assertBadCredentials("anonymous", "s3cr3t");
 
-      assertEmptyPassword("test_sasl_user", null);
-      assertEmptyPassword("test_sasl_user", "");
-      assertBadCredentials("test_sasl_user", "guest");
-      assertGoodCredentials("test_sasl_user", "Test", "s3cr3t", Group.AUTHENTICATED_USERS_GROUP_ID);
+      assertEmptyPassword("test_sasl_user1_1", null);
+      assertEmptyPassword("test_sasl_user1_1", "");
+      assertBadCredentials("test_sasl_user1_1", "guest");
+      assertGoodCredentials("test_sasl_user1_1", "Test", "s3cr3t", Group.AUTHENTICATED_USERS_GROUP_ID);
     }
     else {
       assertEmptyPassword("anonymous", null);
@@ -184,10 +184,10 @@ public class LdapRealmTest
       assertBadCredentials("anonymous", "guest");
       assertBadCredentials("anonymous", "far2simple");
 
-      assertEmptyPassword("test_user", null);
-      assertEmptyPassword("test_user", "");
-      assertBadCredentials("test_user", "guest");
-      assertGoodCredentials("test_user", "Test", "far2simple", "Gamma", "Theta", "Omega",
+      assertEmptyPassword("test_user1_1", null);
+      assertEmptyPassword("test_user1_1", "");
+      assertBadCredentials("test_user1_1", "guest");
+      assertGoodCredentials("test_user1_1", "Test", "far2simple", "Gamma", "Theta", "Omega",
           Group.AUTHENTICATED_USERS_GROUP_ID);
     }
   }
@@ -314,7 +314,7 @@ public class LdapRealmTest
     new LdapUserMappingDAO().insert(userMappingDetails);
 
     ldapServer.start();
-    ldapServer.loadData("/ldap_users.ldif");
+    ldapServer.loadData("/ldap_users1.ldif");
 
     connectionDetails.setPort(ldapServer.getPort());
     manager.saveConnection(connectionDetails);

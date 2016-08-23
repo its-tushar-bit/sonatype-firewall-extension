@@ -104,7 +104,8 @@ public class LdapManager
    * @throws NamingException if there is a problem with the mapping
    */
   public List<LdapUser> testUserMapping(LdapUserMapping umap, long maxResults) throws NamingException {
-    return new LdapQuery(getDecryptedConnection(), umap).getUsers(maxResults, true);
+    LdapServer ldapServer = serverDao.getById(umap.getServerId());
+    return new LdapQuery(getDecryptedConnection(ldapServer), umap).getUsers(maxResults, true);
   }
 
   /**
@@ -291,16 +292,26 @@ public class LdapManager
   // Password encryption
 
   /**
-   * Returns the current stored connection details with the password decrypted.
+   * @deprecated Use getDecryptedConnection(LdapServer ldapServer) instead. This method should be removed when we finish
+   *             with all the user stories for multiple LDAP servers.
    */
+  @Deprecated
   private LdapConnection getDecryptedConnection() {
     List<LdapServer> servers = serverDao.getAll();
     if (servers.isEmpty()) {
       throw new IllegalStateException("LDAP server is not configured");
     }
-    LdapConnection conn = connDao.getByServerId(servers.get(0).getId());
+    return getDecryptedConnection(servers.get(0));
+  }
+
+  /**
+   * Returns the current stored connection details with the password decrypted for the specified LDAP server.
+   */
+  private LdapConnection getDecryptedConnection(LdapServer ldapServer) {
+    LdapConnection conn = connDao.getByServerId(ldapServer.getId());
     if (conn == null) {
-      throw new IllegalStateException("LDAP connection is not configured");
+      throw new IllegalStateException(
+          "LDAP connection is not configured for LDAP server " + ldapServer.getName() + ".");
     }
     if (StringUtils.isNotBlank(conn.getSystemPassword())) {
       try {

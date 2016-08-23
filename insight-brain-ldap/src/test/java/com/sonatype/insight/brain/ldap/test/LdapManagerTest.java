@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ldap.test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -33,8 +34,10 @@ import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 
 import org.eclipse.sisu.launch.InjectedTest;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
@@ -58,10 +61,19 @@ public class LdapManagerTest
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Rule
-  public TestLdapServer testLdapServer1 = new TestLdapServer();
+  public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Rule
-  public TestLdapServer testLdapServer2 = new TestLdapServer();
+  public TestLdapServer testLdapServer1;
+
+  @Rule
+  public TestLdapServer testLdapServer2;
+
+  @Before
+  public void before() {
+    testLdapServer1 = new TestLdapServer(new File(tempDir.getRoot(), "server1"), "/ldap_users1.ldif");
+    testLdapServer2 = new TestLdapServer(new File(tempDir.getRoot(), "server2"), "/ldap_users2.ldif");
+  }
 
   @Inject
   private LdapManager manager;
@@ -241,38 +253,49 @@ public class LdapManagerTest
 
   @Test
   public void testTestUserMapping() throws Exception {
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
+    LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
+    LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
+    startLdapServer(testLdapServer1, ldapConnection1);
+    setSearchBase(ldapConnection1);
+    LdapUserMapping umap1 = createUserMapping(ldapServer1);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
+    LdapConnection ldapConnection2 = createLdapConnection(ldapServer2);
+    startLdapServer(testLdapServer2, ldapConnection2);
+    setSearchBase(ldapConnection2);
+    LdapUserMapping umap2 = createUserMapping(ldapServer2);
 
-    List<LdapUser> users = manager.testUserMapping(umap, -1);
+    List<LdapUser> users1 = manager.testUserMapping(umap1, -1);
+    assertUserMapping(users1, "1");
+    List<LdapUser> users2 = manager.testUserMapping(umap2, -1);
+    assertUserMapping(users2, "2");
+  }
+
+  private void assertUserMapping(List<LdapUser> users, String suffix) {
     assertThat(users, hasSize(3));
 
     Collections.sort(users); // sorts on username
 
     LdapUser user = users.get(0);
-    assertThat(user.getUsername(), is("test*user"));
-    assertThat(user.getDn(), is("uid=test*user,ou=users,dc=company,dc=com"));
-    assertThat(user.getRealName(), is("Test*User"));
+    assertThat(user.getUsername(), is("test*user1_" + suffix));
+    assertThat(user.getDn(), is("uid=test*user1_" + suffix + ",ou=users,dc=company,dc=com"));
+    assertThat(user.getRealName(), is("Test*User 1 " + suffix));
     assertThat(user.getEmail(), is("test.user3@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
     assertThat(user.getMembership(), nullValue());
 
     user = users.get(1);
-    assertThat(user.getUsername(), is("test_user"));
-    assertThat(user.getDn(), is("uid=test_user,ou=users,dc=company,dc=com"));
-    assertThat(user.getRealName(), is("Test User"));
+    assertThat(user.getUsername(), is("test_user1_" + suffix));
+    assertThat(user.getDn(), is("uid=test_user1_" + suffix + ",ou=users,dc=company,dc=com"));
+    assertThat(user.getRealName(), is("Test User 1 " + suffix));
     assertThat(user.getEmail(), is("test.user@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
     assertThat(user.getMembership(), nullValue());
 
     user = users.get(2);
-    assertThat(user.getUsername(), is("test_user2"));
-    assertThat(user.getDn(), is("uid=test_user2,ou=users,dc=company,dc=com"));
-    assertThat(user.getRealName(), is("Test User 2"));
+    assertThat(user.getUsername(), is("test_user2_" + suffix));
+    assertThat(user.getDn(), is("uid=test_user2_" + suffix + ",ou=users,dc=company,dc=com"));
+    assertThat(user.getRealName(), is("Test User 2 " + suffix));
     assertThat(user.getEmail(), is("test.user2@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
     assertThat(user.getMembership(), nullValue());
@@ -348,21 +371,21 @@ public class LdapManagerTest
     umap.setUserPasswordAttribute(null); // AUTH-via-BIND
 
     try {
-      manager.testUserLogin(umap, "test_user", "badGuess".toCharArray());
+      manager.testUserLogin(umap, "test_user1_1", "badGuess".toCharArray());
       fail("Expected NamingException");
     }
     catch (NamingException expected) {
-      manager.testUserLogin(umap, "test_user", "far2simple".toCharArray());
+      manager.testUserLogin(umap, "test_user1_1", "far2simple".toCharArray());
     }
 
     umap.setUserPasswordAttribute("userPassword"); // AUTH-via-ATTRIBUTE
 
     try {
-      manager.testUserLogin(umap, "test_user", "badGuess".toCharArray());
+      manager.testUserLogin(umap, "test_user1_1", "badGuess".toCharArray());
       fail("Expected NamingException");
     }
     catch (NamingException expected) {
-      manager.testUserLogin(umap, "test_user", "far2simple".toCharArray());
+      manager.testUserLogin(umap, "test_user1_1", "far2simple".toCharArray());
     }
   }
 
@@ -435,7 +458,7 @@ public class LdapManagerTest
     LdapUserMapping umap = createUserMapping(ldapServer);
     new LdapUserMappingDAO().insert(umap);
 
-    manager.authenticateUser("test*user", "te*st".toCharArray());
+    manager.authenticateUser("test*user1_1", "te*st".toCharArray());
   }
 
   @Test
@@ -449,10 +472,10 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     new LdapUserMappingDAO().insert(umap);
 
-    LdapUser user = manager.getUser("test_user");
+    LdapUser user = manager.getUser("test_user1_1");
     assertThat(user, is(notNullValue()));
-    assertThat(user.getUsername(), is("test_user"));
-    assertThat(user.getRealName(), is("Test User"));
+    assertThat(user.getUsername(), is("test_user1_1"));
+    assertThat(user.getRealName(), is("Test User 1 1"));
     assertThat(user.getMembership(), containsInAnyOrder("ab", "xb", "abc"));
   }
 
@@ -479,10 +502,10 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     new LdapUserMappingDAO().insert(umap);
 
-    LdapUser user = manager.getUser("test*user");
+    LdapUser user = manager.getUser("test*user1_1");
     assertThat(user, is(notNullValue()));
-    assertThat(user.getUsername(), is("test*user"));
-    assertThat(user.getRealName(), is("Test*User"));
+    assertThat(user.getUsername(), is("test*user1_1"));
+    assertThat(user.getRealName(), is("Test*User 1 1"));
     assertThat(user.getMembership(), containsInAnyOrder("ab", "bc", "bx"));
   }
 
@@ -497,7 +520,7 @@ public class LdapManagerTest
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     userMappingDAO.insert(umap);
 
-    List<LdapUser> users = manager.getUsers(new String[] { "test_user", "test_user2" }, 100);
+    List<LdapUser> users = manager.getUsers(new String[] { "test_user1_1", "test_user2_1" }, 100);
     assertThat(users.size(), is(2));
 
     users = manager.getUsers(new String[] { "foo" }, 100);
@@ -613,9 +636,9 @@ public class LdapManagerTest
 
     LdapUserMapping umap = createUserMapping(ldapServer);
 
-    List<LdapUser> users = manager.testFindUsersByName(umap, "Test User 2", 100);
+    List<LdapUser> users = manager.testFindUsersByName(umap, "Test User 2 1", 100);
     assertThat(users, hasSize(1));
-    assertThat(users.get(0).getRealName(), is("Test User 2"));
+    assertThat(users.get(0).getRealName(), is("Test User 2 1"));
   }
 
   @Test
@@ -627,9 +650,9 @@ public class LdapManagerTest
 
     LdapUserMapping umap = createUserMapping(ldapServer);
 
-    List<LdapUser> users = manager.testFindUsersByName(umap, "tEST user 2", 100);
+    List<LdapUser> users = manager.testFindUsersByName(umap, "tEST user 2 1", 100);
     assertThat(users, hasSize(1));
-    assertThat(users.get(0).getRealName(), is("Test User 2"));
+    assertThat(users.get(0).getRealName(), is("Test User 2 1"));
   }
 
   @Test
@@ -660,7 +683,7 @@ public class LdapManagerTest
     for (LdapUser user : users) {
       foundNames.add(user.getUsername());
     }
-    assertThat(foundNames, containsInAnyOrder("test_user", "test_user2", "test*user"));
+    assertThat(foundNames, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
   }
 
   @Test
@@ -1135,7 +1158,6 @@ public class LdapManagerTest
   {
     testLdapServer.setPort(ldapConnection.getPort());
     testLdapServer.start();
-    testLdapServer.loadData("/ldap_users.ldif");
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer) {
@@ -1175,8 +1197,8 @@ public class LdapManagerTest
     List<LdapUser> users = manager.findUsersByGroup("xb", 0 /* maxResults */);
     assertThat(users, hasSize(1));
     LdapUser user = users.get(0);
-    assertThat(user.getUsername(), is("test_user"));
-    assertThat(user.getRealName(), is("Test User"));
+    assertThat(user.getUsername(), is("test_user1_1"));
+    assertThat(user.getRealName(), is("Test User 1 1"));
     assertThat(user.getEmail(), is("test.user@company.com"));
 
     // Group with two users
@@ -1185,7 +1207,7 @@ public class LdapManagerTest
     for (LdapUser user1 : users) {
       usernames.add(user1.getUsername());
     }
-    assertThat(usernames, containsInAnyOrder("test_user", "test_user2", "test*user"));
+    assertThat(usernames, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
 
     // Group without users
     users = manager.findUsersByGroup("no such group", 0 /* maxResults */);

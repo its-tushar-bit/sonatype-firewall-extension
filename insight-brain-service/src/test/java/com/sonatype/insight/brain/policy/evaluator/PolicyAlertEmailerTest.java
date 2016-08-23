@@ -396,7 +396,7 @@ public class PolicyAlertEmailerTest
     serverDetails = tempEntity.newLdapServer("Test Server");
 
     ldapServer.start();
-    ldapServer.loadData("/ldap_users.ldif");
+    ldapServer.loadData("/ldap_users1.ldif");
   }
 
   protected LdapConnection createLdapConnection() {

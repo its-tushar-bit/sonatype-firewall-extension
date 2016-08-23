@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.ldap;
 
+import java.io.File;
+
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -19,6 +21,13 @@ public class TestLdapServer
     extends EmbeddedLdapServer
     implements TestRule
 {
+  public TestLdapServer() {
+  }
+
+  public TestLdapServer(File workingDirectory, String ldifResourceName) {
+    super(workingDirectory, ldifResourceName);
+  }
+
   @Override
   public Statement apply(final Statement base, Description description) {
     return new Statement()

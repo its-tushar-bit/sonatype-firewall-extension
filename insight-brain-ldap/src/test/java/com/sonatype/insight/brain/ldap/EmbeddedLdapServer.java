@@ -76,13 +76,20 @@ public class EmbeddedLdapServer
 
   private boolean running = false;
 
+  private String ldifResourceName;
+
   /**
    * @since 1.7
    */
   public EmbeddedLdapServer(File workingDirectory) {
-    log.debug("Creating EmbeddedLdapServer with workingDirectory={}", workingDirectory == null ? null
-        : workingDirectory.getAbsolutePath());
+    this(workingDirectory, null /* ldifResourceName */);
+  }
+
+  public EmbeddedLdapServer(File workingDirectory, String ldifResourceName) {
+    log.debug("Creating EmbeddedLdapServer with workingDirectory={} and ldifResourceName={}",
+        workingDirectory == null ? null : workingDirectory.getAbsolutePath(), ldifResourceName);
     this.workingDirectory = workingDirectory;
+    this.ldifResourceName = ldifResourceName;
   }
 
   /**
@@ -163,6 +170,10 @@ public class EmbeddedLdapServer
     running = true;
 
     log.debug("Started EmbeddedLdapServer in {} ms", System.currentTimeMillis() - start);
+
+    if (ldifResourceName != null) {
+      loadData(ldifResourceName);
+    }
   }
 
   public void loadData(String ldifResourceName) throws IOException {

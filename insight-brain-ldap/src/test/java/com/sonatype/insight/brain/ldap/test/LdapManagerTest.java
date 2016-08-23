@@ -22,11 +22,9 @@ import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
-import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
@@ -82,9 +80,11 @@ public class LdapManagerTest
   public void testTestConnection() throws Exception {
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
     LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
+    setSearchBase(ldapConnection1, null);
     startLdapServer(testLdapServer1, ldapConnection1);
     LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
     LdapConnection ldapConnection2 = createLdapConnection(ldapServer2);
+    setSearchBase(ldapConnection2, null);
     startLdapServer(testLdapServer2, ldapConnection2);
     assertCanConnect(ldapConnection1);
     assertCanConnect(ldapConnection2);
@@ -183,7 +183,7 @@ public class LdapManagerTest
       ldapConnection.setRetryDelay(5);
       manager.saveConnection(ldapConnection);
 
-      new LdapUserMappingDAO().insert(createUserMapping(ldapServer));
+      createUserMapping(ldapServer);
 
       // force three failures by attempting auth against the dangling socket
 
@@ -246,8 +246,8 @@ public class LdapManagerTest
     }
   }
 
-  private void setSearchBase(LdapConnection ldapConnection) {
-    ldapConnection.setSearchBase("dc=company,dc=com");
+  private void setSearchBase(LdapConnection ldapConnection, String searchBase) {
+    ldapConnection.setSearchBase(searchBase);
     manager.saveConnection(ldapConnection);
   }
 
@@ -256,13 +256,11 @@ public class LdapManagerTest
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
     LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
     startLdapServer(testLdapServer1, ldapConnection1);
-    setSearchBase(ldapConnection1);
     LdapUserMapping umap1 = createUserMapping(ldapServer1);
 
     LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
     LdapConnection ldapConnection2 = createLdapConnection(ldapServer2);
     startLdapServer(testLdapServer2, ldapConnection2);
-    setSearchBase(ldapConnection2);
     LdapUserMapping umap2 = createUserMapping(ldapServer2);
 
     List<LdapUser> users1 = manager.testUserMapping(umap1, -1);
@@ -306,7 +304,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
@@ -327,7 +324,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
@@ -364,7 +360,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
 
@@ -394,9 +389,7 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
     LdapUserMapping umap = createUserMapping(ldapServer);
-    new LdapUserMappingDAO().insert(umap);
 
     try {
       manager.authenticateUser("test_user", "".toCharArray());
@@ -420,9 +413,7 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    new LdapUserMappingDAO().insert(umap);
+    createUserMapping(ldapServer);
 
     try {
       // prior to the sanitization of query parameters, an AuthenticationException
@@ -440,9 +431,7 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    new LdapUserMappingDAO().insert(umap);
+    createUserMapping(ldapServer);
 
     // previous to escaping characters in the ldap query, this auth check would have succeeded
     // matching against the first test user in the system
@@ -454,9 +443,7 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    new LdapUserMappingDAO().insert(umap);
+    createUserMapping(ldapServer);
 
     manager.authenticateUser("test*user1_1", "te*st".toCharArray());
   }
@@ -466,11 +453,10 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
     LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().insert(umap);
+    new LdapUserMappingDAO().update(umap);
 
     LdapUser user = manager.getUser("test_user1_1");
     assertThat(user, is(notNullValue()));
@@ -484,9 +470,7 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    new LdapUserMappingDAO().insert(umap);
+    createUserMapping(ldapServer);
 
     manager.getUser("test_*");
   }
@@ -496,11 +480,10 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
     LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().insert(umap);
+    new LdapUserMappingDAO().update(umap);
 
     LdapUser user = manager.getUser("test*user1_1");
     assertThat(user, is(notNullValue()));
@@ -514,11 +497,8 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    userMappingDAO.insert(umap);
+    createUserMapping(ldapServer);
 
     List<LdapUser> users = manager.getUsers(new String[] { "test_user1_1", "test_user2_1" }, 100);
     assertThat(users.size(), is(2));
@@ -532,11 +512,8 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    userMappingDAO.insert(umap);
+    createUserMapping(ldapServer);
 
     List<LdapUser> users = manager.getUsers(new String[] { "test_user*" }, 100);
     assertThat(users.size(), is(0));
@@ -547,7 +524,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -555,7 +531,7 @@ public class LdapManagerTest
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("uid=${username}");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapGroup> groups = manager.getGroups(new String[] { "Gamma", "Theta" }, 100);
     assertThat(groups.size(), is(2));
@@ -573,7 +549,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -581,7 +556,7 @@ public class LdapManagerTest
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("uid=${username}");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapGroup> groups = manager.getGroups(new String[] { "*ta" }, 100);
     assertThat(groups.size(), is(0));
@@ -592,13 +567,12 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapGroup> groups = manager.getGroups(new String[] { "ab", "abc", "bc" }, 100);
     assertThat(groups.size(), is(3));
@@ -615,13 +589,12 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapGroup> groups = manager.getGroups(new String[] { "ab*" }, 100);
     assertThat(groups.size(), is(0));
@@ -632,7 +605,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
 
@@ -646,7 +618,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
 
@@ -660,7 +631,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
 
@@ -673,7 +643,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
 
@@ -691,7 +660,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
 
@@ -707,7 +675,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createStaticGroupMapping(ldapServer);
 
@@ -721,7 +688,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createStaticGroupMapping(ldapServer);
 
@@ -738,7 +704,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createStaticGroupMapping(ldapServer);
 
@@ -752,7 +717,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createStaticGroupMapping(ldapServer);
 
@@ -768,7 +732,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createStaticGroupMapping(ldapServer);
 
@@ -786,7 +749,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createStaticGroupMapping(ldapServer);
 
@@ -799,7 +761,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -807,7 +768,7 @@ public class LdapManagerTest
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("${dn}");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapUser> users = manager.findUsersByGroup("Epsilon", 100);
     assertThat(users, hasSize(2));
@@ -818,7 +779,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -826,7 +786,7 @@ public class LdapManagerTest
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapUser> users = manager.findUsersByGroup("Delta", 100);
     assertThat(users, hasSize(2));
@@ -837,7 +797,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -845,7 +804,7 @@ public class LdapManagerTest
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("dc=company,${dn},dc=com,${dn}");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapUser> users = manager.findUsersByGroup("Lambda", 100);
     assertThat(users, hasSize(2));
@@ -856,7 +815,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -864,7 +822,7 @@ public class LdapManagerTest
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("${dn}");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapUser> users = manager.findUsersByGroup("Epsilon", 1);
     assertThat(users, hasSize(1));
@@ -877,7 +835,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createStaticGroupMapping(ldapServer);
 
@@ -892,7 +849,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -900,7 +856,7 @@ public class LdapManagerTest
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     List<LdapUser> users = manager.findUsersByGroup("Delt*", 100);
     assertThat(users, hasSize(0));
@@ -911,12 +867,11 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().insert(umap);
+    new LdapUserMappingDAO().update(umap);
 
     List<LdapUser> users = manager.findUsersByGroup("a*", 100);
     assertThat(users, hasSize(0));
@@ -929,7 +884,7 @@ public class LdapManagerTest
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("uid=${username}");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
   }
 
   private void createDynamicGroupMapping(LdapServer ldapServer) {
@@ -937,7 +892,7 @@ public class LdapManagerTest
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
   }
 
   @Test
@@ -945,7 +900,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 
@@ -961,7 +915,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 
@@ -979,7 +932,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 
@@ -997,7 +949,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 
@@ -1015,7 +966,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 
@@ -1032,7 +982,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 
@@ -1046,7 +995,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 
@@ -1063,12 +1011,10 @@ public class LdapManagerTest
 
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     ldapConnection.setHostname("localhost");
-    new LdapConnectionDAO().insert(ldapConnection);
+    manager.saveConnection(ldapConnection);
     assertThat(manager.isLdapEnabled(), is(false));
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    userMappingDAO.insert(umap);
+    createUserMapping(ldapServer);
 
     assertThat(manager.isLdapEnabled(), is(true));
   }
@@ -1081,7 +1027,7 @@ public class LdapManagerTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     ldapConnection.setHostname("localhost");
     ldapConnection.setSearchBase("dc=company,dc=com");
-    new LdapConnectionDAO().insert(ldapConnection);
+    manager.saveConnection(ldapConnection);
 
     assertThat(manager.isLdapGroupEnabled(), is(false));
 
@@ -1089,7 +1035,7 @@ public class LdapManagerTest
     umap.setGroupMappingType(LdapGroupMappingType.NONE);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     assertThat(manager.isLdapGroupEnabled(), is(false));
 
@@ -1107,7 +1053,7 @@ public class LdapManagerTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     ldapConnection.setHostname("localhost");
     ldapConnection.setSearchBase("dc=company,dc=com");
-    new LdapConnectionDAO().insert(ldapConnection);
+    manager.saveConnection(ldapConnection);
 
     assertThat(manager.isGroupSearchEnabled(), is(false));
 
@@ -1115,7 +1061,7 @@ public class LdapManagerTest
     umap.setGroupMappingType(LdapGroupMappingType.NONE);
 
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    userMappingDAO.insert(umap);
+    userMappingDAO.update(umap);
 
     assertThat(manager.isGroupSearchEnabled(), is(false));
 
@@ -1161,12 +1107,7 @@ public class LdapManagerTest
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer) {
-    LdapConnection ldapConnection = manager.loadConnection(ldapServer.getId());
-    ldapConnection.setServerId(ldapServer.getId());
-    ldapConnection.setProtocol(LdapProtocol.LDAP);
-    ldapConnection.setHostname("localhost");
-    ldapConnection.setPort(getRandomPort());
-    return ldapConnection;
+    return tempEntity.newLdapConnection(ldapServer.getId(), getRandomPort());
   }
 
   private LdapUserMapping createUserMapping(LdapServer ldapServer) {
@@ -1181,6 +1122,7 @@ public class LdapManagerTest
     umap.setGroupBaseDN("ou=groups");
     umap.setGroupIDAttribute("cn");
     umap.setGroupSubtree(true);
+    tempEntity.newLdapUserMapping(umap);
     return umap;
   }
 
@@ -1189,7 +1131,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 
@@ -1219,7 +1160,6 @@ public class LdapManagerTest
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
-    setSearchBase(ldapConnection);
 
     createDynamicGroupMapping(ldapServer);
 

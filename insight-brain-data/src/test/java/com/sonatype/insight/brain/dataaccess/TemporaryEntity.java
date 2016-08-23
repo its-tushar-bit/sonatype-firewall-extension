@@ -747,8 +747,12 @@ public class TemporaryEntity
     umap.setGroupObjectClass("groupOfNames");
     umap.setGroupMemberAttribute("member");
     umap.setGroupMemberFormat("uid=${username}");
-    ldapUserMappingDAO.insert(umap);
-    return umap;
+    return newLdapUserMapping(umap);
+  }
+
+  public LdapUserMapping newLdapUserMapping(LdapUserMapping ldapUserMapping) {
+    ldapUserMappingDAO.insert(ldapUserMapping);
+    return ldapUserMapping;
   }
 
   public Tag newTag(String orgId) {

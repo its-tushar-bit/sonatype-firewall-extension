@@ -118,6 +118,10 @@ describe('Tests for the LdapConfigurationController', function() {
         name: 'config1'
       }],'123');
 
+      expect($state.go).toHaveBeenCalledWith('edit-ldap.connection', { ldapId: '123' });
+      $state.go.reset();
+      $state.current.name = 'edit-ldap.connection';
+
       expect(scope.ldap.id).toEqual('123');
 
       // update

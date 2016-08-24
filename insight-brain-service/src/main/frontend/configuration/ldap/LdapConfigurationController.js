@@ -38,17 +38,6 @@
     };
   }
 
-  function preventPageChange($scope) {
-    //make sure user is aware they are about to lose changes
-    function handler(event) {
-      if ($scope.isDirty()) {
-        event.preventDefault();
-      }
-    }
-    $scope.$on('pageChangeStarted', handler);
-    $scope.$on('ldapStateChangeStarted', handler);
-  }
-
   /**
    * Executes PUT request passing provided requestData object to the specified requestUrl.
    * Updates $scope.alerts according to response from the server.
@@ -98,28 +87,14 @@
       }
 
       function setCurrentTab(tabname) {
-        var ldapState = 'edit-ldap', targetState = ldapState + '.' + tabname;
-
-        if ($state.current.name !== targetState && $scope.ldap && $scope.ldap.id) {
-          // if the current scope/state isDirty, ask the user if it's okay to discard the changes
-          var event = $scope.$broadcast('ldapStateChangeStarted');
-          if (!event.defaultPrevented) {
-            $state.transitionTo(targetState, { ldapId: $state.params.ldapId }, false);
-          } else {
-            resetDialog($modal, function () {
-              $state.transitionTo(targetState, { ldapId: $state.params.ldapId }, false);
-            }, 'Continue')();
-          }
-        }
+        $state.go('edit-ldap.' + tabname, { ldapId: $state.params.ldapId });
       }
 
       $scope.isAuthorized = isAuthorized;
 
-      preventPageChange($scope);
-
-      $scope.$on('$stateChangeSuccess', function() {
-        if ($state.current.name === 'ldap') {
-          setCurrentTab('connection');
+      $scope.$on('pageChangeStarted', function(event) {
+        if ($scope.isDirty()) {
+          event.preventDefault();
         }
       });
 
@@ -137,11 +112,8 @@
         $scope.saving = true;
         $scope.ldap.$save().then(function(ldapServer) {
           $scope.saving = false;
-          if ($state.current.name === 'edit-ldap') {
-            setCurrentTab('connection');
-          }
-          else if ($state.current.name === 'create-ldap') {
-            $state.go('edit-ldap.connection', { ldapId: ldapServer.id });
+          if ($state.current.name === 'edit-ldap' || $state.current.name === 'create-ldap') {
+            $state.go('edit-ldap.connection', {ldapId: ldapServer.id});
           }
         }, function() {
           $scope.saving = false;
@@ -213,7 +185,11 @@
         serverId: $scope.ldap.id
       };
 
-      preventPageChange($scope);
+      $scope.$on('pageChangeStarted', function(event) {
+        if ($scope.isDirty()) {
+          event.preventDefault();
+        }
+      });
 
       $scope.isDirty = function() {
         return $scope.ldapConn && !angular.equals(origLdapConn, $scope.ldapConn);
@@ -290,7 +266,11 @@
         $scope.ldapUserMappingEditor.$setPristine();
       });
 
-      preventPageChange($scope);
+      $scope.$on('pageChangeStarted', function(event) {
+        if ($scope.isDirty()) {
+          event.preventDefault();
+        }
+      });
 
       $scope.save = function() {
         $scope.saving = true;

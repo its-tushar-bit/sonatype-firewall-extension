@@ -334,12 +334,24 @@ public class HdsClient
    */
   public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) throws IOException
   {
+    return post(null, clazz, path, jsonSerializableObject, uriParams);
+  }
+
+  /**
+   * @since 1.23
+   */
+  public <T> T post(final HttpServletRequest request,
+                    Class<T> clazz,
+                    String path,
+                    Object jsonSerializableObject,
+                    String... uriParams) throws IOException
+  {
     long start = System.currentTimeMillis();
     try {
       HttpPost cloudReq = new HttpPost(buildUri(path, uriParams));
       StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
       cloudReq.setEntity(entity);
-      populateRequest(null /* base request */, cloudReq, null);
+      populateRequest(request /* base request */, cloudReq, null);
       cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
       cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 

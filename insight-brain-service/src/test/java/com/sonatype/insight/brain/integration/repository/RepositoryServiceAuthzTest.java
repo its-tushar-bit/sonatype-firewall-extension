@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import java.util.Date;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -35,6 +36,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.isNull;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryServiceAuthzTest
@@ -73,7 +75,7 @@ public class RepositoryServiceAuthzTest
 
     grantWritePermission(repository.getId());
     try {
-      repositoryService.unquarantineComponent(repository.getId(), path);
+      repositoryService.unquarantineComponent(repository.getId(), path, null);
     }
     catch (NotFoundException e) {
       // We are testing access permissions and we don't care if the component exists
@@ -87,7 +89,7 @@ public class RepositoryServiceAuthzTest
   public void testUnquarantineComponent_Unauthenticated() {
     Repository repository = createRepository();
 
-    repositoryService.unquarantineComponent(repository.getId(), "path");
+    repositoryService.unquarantineComponent(repository.getId(), "path", null);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -95,7 +97,7 @@ public class RepositoryServiceAuthzTest
     Repository repository = createRepository();
 
     login();
-    repositoryService.unquarantineComponent(repository.getId(), "path");
+    repositoryService.unquarantineComponent(repository.getId(), "path", null);
   }
 
   @Test
@@ -206,20 +208,20 @@ public class RepositoryServiceAuthzTest
   public void testEvaluateComponents_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null /* componentEvaluationDataRequestList */, false);
+        null /* componentEvaluationDataRequestList */, false, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testEvaluateComponents_Unauthenticated() {
     repositoryService.evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null /* componentEvaluationDataRequestList */, false);
+        null /* componentEvaluationDataRequestList */, false, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateComponents_Unauthorized() {
     grantWritePermission();
     repositoryService.evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null /* componentEvaluationDataRequestList */, false);
+        null /* componentEvaluationDataRequestList */, false, null);
   }
 
   @Test
@@ -377,15 +379,16 @@ public class RepositoryServiceAuthzTest
 
     Mockito.when(
         repositoryPolicyEvaluator.evaluate(Mockito.eq(repo),
-            Mockito.isA(RepositoryComponentEvaluationDataRequestList.class), Mockito.eq(false))).thenReturn(null);
+            Mockito.isA(RepositoryComponentEvaluationDataRequestList.class), Mockito.eq(false),
+            isNull(HttpServletRequest.class))).thenReturn(null);
 
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService.reevaluateComponent(repo.getId(), component.getHash());
+    repositoryService.reevaluateComponent(repo.getId(), component.getHash(), null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testReevaluateComponent_Unauthenticated() {
-    repositoryService.reevaluateComponent("repository-id", "component-hash");
+    repositoryService.reevaluateComponent("repository-id", "component-hash", null);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -393,7 +396,7 @@ public class RepositoryServiceAuthzTest
     Repository repo = createRepository();
 
     login();
-    repositoryService.reevaluateComponent(repo.getId(), "some-hash");
+    repositoryService.reevaluateComponent(repo.getId(), "some-hash", null);
   }
 
   @Test

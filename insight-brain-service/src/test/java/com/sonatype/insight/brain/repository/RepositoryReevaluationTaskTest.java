@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -51,6 +52,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.isNull;
 
 public class RepositoryReevaluationTaskTest
     extends AbstractComponentTest
@@ -201,7 +203,7 @@ public class RepositoryReevaluationTaskTest
         MatchState.EXACT.getId(), 1));
 
     Mockito.when(
-        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+        auditHdsClient.post(isNull(HttpServletRequest.class), Mockito.eq(ComponentEvaluationDataList.class),
             Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
             Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
   }

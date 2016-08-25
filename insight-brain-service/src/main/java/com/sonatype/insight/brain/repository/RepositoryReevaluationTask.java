@@ -104,7 +104,9 @@ public class RepositoryReevaluationTask
     @Override
     public void run() {
       try {
-        repositoryPolicyEvaluator.evaluate(repository, request, false);
+        repositoryPolicyEvaluator.evaluate(repository, request, false,
+            // due to asynchronous handling, we can't use the original 'threadlocal' stored clientRequest
+            null);
       }
       catch (Exception e) {
         log.error("An error occured while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),

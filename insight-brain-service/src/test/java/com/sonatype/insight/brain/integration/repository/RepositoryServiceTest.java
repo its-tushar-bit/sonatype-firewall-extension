@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -95,6 +96,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.when;
 
 /**
@@ -161,7 +163,7 @@ public class RepositoryServiceTest
 
     mockHdsRequestForComponent(repositoryComponent, true);
 
-    repositoryService.unquarantineComponent(repository.getId(), pathname);
+    repositoryService.unquarantineComponent(repository.getId(), pathname, null);
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
     assertThat(repositoryComponent.isQuarantined(), is(false));
@@ -177,7 +179,7 @@ public class RepositoryServiceTest
     mockHdsRequestForComponent(repositoryComponent, true);
 
     try {
-      repositoryService.unquarantineComponent(repository.getId(), pathname);
+      repositoryService.unquarantineComponent(repository.getId(), pathname, null);
       fail("Expected BadRequestException");
     }
     catch (BadRequestException e) {
@@ -200,7 +202,7 @@ public class RepositoryServiceTest
     mockHdsRequestForComponent(repositoryComponent, true);
 
     try {
-      repositoryService.unquarantineComponent(repository.getId(), pathname);
+      repositoryService.unquarantineComponent(repository.getId(), pathname, null);
       fail("Expected BadRequestException");
     }
     catch (BadRequestException e) {
@@ -219,7 +221,7 @@ public class RepositoryServiceTest
     createQuarantiningPolicy(repository);
     mockHdsRequestForComponent(repositoryComponent, false);
 
-    repositoryService.unquarantineComponent(repository.getId(), pathname);
+    repositoryService.unquarantineComponent(repository.getId(), pathname, null);
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
     assertThat(repositoryComponent.isQuarantined(), is(false));
@@ -521,7 +523,7 @@ public class RepositoryServiceTest
   @Test
   public void testEvaluateComponentWithQuarantine_RepositoryDoesNotExist() throws Exception {
     try {
-      repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true);
+      repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null);
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
@@ -533,7 +535,7 @@ public class RepositoryServiceTest
   public void testEvaluateComponentWithQuarantine_NullRequest() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataList componentEvaluationResultList = repositoryService.evaluateComponents(
-        REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true);
+        REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null);
     assertThat(componentEvaluationResultList.componentEvalResults, hasSize(0));
   }
 
@@ -551,7 +553,7 @@ public class RepositoryServiceTest
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-          true);
+          true, null);
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
@@ -572,7 +574,7 @@ public class RepositoryServiceTest
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-          true);
+          true, null);
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
@@ -607,7 +609,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true);
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
@@ -662,7 +664,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true);
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
@@ -715,7 +717,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true);
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
@@ -763,7 +765,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true);
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
@@ -807,7 +809,7 @@ public class RepositoryServiceTest
 
     // initial evaluation of component, audit-only
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false);
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
 
@@ -825,7 +827,7 @@ public class RepositoryServiceTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
     Date before = new Date();
     repositoryComponentEvaluationResultList = repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID,
-        REPO_PUBLIC_ID, componentEvaluationDataRequestList, true);
+        REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     Date after = new Date();
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
@@ -865,7 +867,8 @@ public class RepositoryServiceTest
 
     // Initial evaluation of component, quarantine enabled
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true /* withQuarantine */);
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true /* withQuarantine */,
+            null);
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
 
@@ -884,7 +887,7 @@ public class RepositoryServiceTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
     Date before = new Date();
     repositoryComponentEvaluationResultList = repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID,
-        REPO_PUBLIC_ID, componentEvaluationDataRequestList, true);
+        REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     Date after = new Date();
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
@@ -907,7 +910,7 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_RepositoryDoesNotExist() throws Exception {
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          null /* componentEvaluationDataRequestList */, false);
+          null /* componentEvaluationDataRequestList */, false, null);
       fail("Expected exception");
     }
     catch (NotFoundException expected) {
@@ -921,7 +924,7 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, false);
 
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-        null /* componentEvaluationDataRequestList */, false);
+        null /* componentEvaluationDataRequestList */, false, null);
 
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled(), is(true));
@@ -934,7 +937,7 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, false);
 
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-        null /* componentEvaluationDataRequestList */, true);
+        null /* componentEvaluationDataRequestList */, true, null);
 
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled(), is(true));
@@ -947,7 +950,7 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, false);
 
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-        null /* componentEvaluationDataRequestList */, true);
+        null /* componentEvaluationDataRequestList */, true, null);
 
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled(), is(true));
@@ -982,7 +985,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
@@ -1048,7 +1051,7 @@ public class RepositoryServiceTest
 
     // Call the service
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
         .getByRepositoryId(repository.getId());
@@ -1097,7 +1100,7 @@ public class RepositoryServiceTest
 
     // Call the service
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
         .getByRepositoryId(repository.getId());
@@ -1137,7 +1140,7 @@ public class RepositoryServiceTest
     // Call the service first time
     Date before1 = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after1 = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1166,7 +1169,7 @@ public class RepositoryServiceTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
     Date before2 = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after2 = new Date();
 
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1220,7 +1223,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1271,7 +1274,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1320,7 +1323,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1368,7 +1371,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1413,7 +1416,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1452,7 +1455,7 @@ public class RepositoryServiceTest
     // Call the service
     Date before = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-        false);
+        false, null);
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1473,7 +1476,7 @@ public class RepositoryServiceTest
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-          false);
+          false, null);
       fail("Expected exception");
     }
     catch (BadRequestException expected) {
@@ -1491,7 +1494,7 @@ public class RepositoryServiceTest
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-          false);
+          false, null);
       fail("Expected exception");
     }
     catch (BadRequestException expected) {
@@ -1509,7 +1512,7 @@ public class RepositoryServiceTest
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-          false);
+          false, null);
       fail("Expected exception");
     }
     catch (BadRequestException expected) {
@@ -1527,7 +1530,7 @@ public class RepositoryServiceTest
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-          false);
+          false, null);
       fail("Expected exception");
     }
     catch (BadRequestException expected) {
@@ -1547,7 +1550,7 @@ public class RepositoryServiceTest
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-          false);
+          false, null);
       fail("Expected exception");
     }
     catch (BadRequestException expected) {
@@ -1565,7 +1568,7 @@ public class RepositoryServiceTest
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-          false);
+          false, null);
       fail("Expected exception");
     }
     catch (BadRequestException expected) {
@@ -1606,7 +1609,7 @@ public class RepositoryServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
     try {
-      repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, false);
+      repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, false, null);
       fail("Expected exception");
     }
     catch (InvalidLicenseException expected) {
@@ -1629,8 +1632,9 @@ public class RepositoryServiceTest
           pathname, hash));
     }
     when(
-        (quarantine ? quarantineHdsClient : auditHdsClient).post(eq(ComponentEvaluationDataList.class),
-            eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest))).thenReturn(hdsResult);
+        (quarantine ? quarantineHdsClient : auditHdsClient)
+            .post(isNull(HttpServletRequest.class), eq(ComponentEvaluationDataList.class),
+                eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
@@ -1960,7 +1964,7 @@ public class RepositoryServiceTest
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
     Mockito.when(
-        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+        auditHdsClient.post(isNull(HttpServletRequest.class), Mockito.eq(ComponentEvaluationDataList.class),
             Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
             Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
@@ -2021,11 +2025,11 @@ public class RepositoryServiceTest
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
     Mockito.when(
-        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+        auditHdsClient.post(isNull(HttpServletRequest.class), Mockito.eq(ComponentEvaluationDataList.class),
             Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
             Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
-    repositoryService.reevaluateComponent(repository.getId(), repositoryComponent.getHash());
+    repositoryService.reevaluateComponent(repository.getId(), repositoryComponent.getHash(), null);
 
     RepositoryComponent actualComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         repositoryComponent.getPathname());
@@ -2049,7 +2053,7 @@ public class RepositoryServiceTest
   public void testReevaluateComponent_unknownComponentPath() throws Exception {
     Repository repo = tempEntity.newRepository();
     try {
-      repositoryService.reevaluateComponent(repo.getId(), "missing-hash");
+      repositoryService.reevaluateComponent(repo.getId(), "missing-hash", null);
       fail("Did not throw exception");
     }
     catch (NotFoundException e) {

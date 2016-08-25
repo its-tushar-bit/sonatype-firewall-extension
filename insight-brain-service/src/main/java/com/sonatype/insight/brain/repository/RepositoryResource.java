@@ -7,12 +7,14 @@ package com.sonatype.insight.brain.repository;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
@@ -51,9 +53,10 @@ public class RepositoryResource
   @POST
   @Path(UNQUARANTINE_PATH)
   public void unquarantineComponent(@PathParam("repositoryId") final String repositoryId,
-                                    @PathParam("pathname") final String pathname)
+                                    @PathParam("pathname") final String pathname,
+                                    @Context final HttpServletRequest request)
   {
-    repositoryService.unquarantineComponent(repositoryId, pathname);
+    repositoryService.unquarantineComponent(repositoryId, pathname, request);
   }
 
   /**
@@ -88,8 +91,9 @@ public class RepositoryResource
   @POST
   @Path(EVALUATE_COMPONENT_PATH)
   public void reevaluateComponent(@PathParam("repositoryId") String repositoryId,
-                                  @PathParam("hash") String componentHash)
+                                  @PathParam("hash") String componentHash,
+                                  @Context final HttpServletRequest request)
   {
-    repositoryService.reevaluateComponent(repositoryId, componentHash);
+    repositoryService.reevaluateComponent(repositoryId, componentHash, request);
   }
 }

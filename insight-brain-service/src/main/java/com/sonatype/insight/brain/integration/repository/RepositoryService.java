@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
@@ -105,7 +106,8 @@ public class RepositoryService
    * @since 1.19.0
    */
   @Authorize(permission = Permission.WRITE)
-  public void unquarantineComponent(@AuthzContext(Key.REPOSITORY_ID) final String repositoryId, final String pathname) {
+  public void unquarantineComponent(@AuthzContext(Key.REPOSITORY_ID) final String repositoryId, final String pathname,
+                                    final HttpServletRequest request) {
     checkLicenseFeature();
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId,
@@ -119,7 +121,7 @@ public class RepositoryService
       throw new BadRequestException("Component " + pathname + " in repository " + repositoryId + " is not quarantined.");
     }
 
-    reevaluateComponent(repositoryComponent);
+    reevaluateComponentInternal(repositoryComponent, request);
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathnameAndWaived(repositoryId, repositoryComponent.getPathname(), false);
     if (policyViolationsHaveFailedAction(repositoryPolicyViolations)) {
@@ -141,7 +143,7 @@ public class RepositoryService
     return false;
   }
 
-  private void reevaluateComponent(final RepositoryComponent repositoryComponent) {
+  private void reevaluateComponentInternal(final RepositoryComponent repositoryComponent, final HttpServletRequest request) {
     Repository repository = repositoryDAO.getById(repositoryComponent.getRepositoryId());
     RepositoryComponentEvaluationDataRequestList componentRequestList = new RepositoryComponentEvaluationDataRequestList();
     RepositoryComponentEvaluationDataRequest componentRequest = new RepositoryComponentEvaluationDataRequest();
@@ -150,7 +152,7 @@ public class RepositoryService
     componentRequest.hash = repositoryComponent.getHash();
     componentRequestList.components.add(componentRequest);
 
-    repositoryPolicyEvaluator.evaluate(repository, componentRequestList, false);
+    repositoryPolicyEvaluator.evaluate(repository, componentRequestList, false, request);
   }
 
   public RepositoryPolicyThreatDTO getPolicyThreats(final String repositoryId, final String pathname) {
@@ -277,7 +279,8 @@ public class RepositoryService
   public RepositoryComponentEvaluationDataList evaluateComponents(String repositoryManagerInstanceId,
                                                                   String repositoryPublicId,
                                                                   RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
-                                                                  boolean withQuarantine)
+                                                                  boolean withQuarantine,
+                                                                  final HttpServletRequest request)
   {
     checkLicenseFeature();
 
@@ -287,7 +290,7 @@ public class RepositoryService
     log.debug("Evaluating components for repository {}:{} ({}) with quarantine {}", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId(), withQuarantine);
 
-    return evaluateComponents(repository, componentEvaluationDataRequestList, withQuarantine);
+    return evaluateComponents(repository, componentEvaluationDataRequestList, withQuarantine, request);
   }
 
   private void normalizeComponents(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) {
@@ -326,7 +329,8 @@ public class RepositoryService
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   RepositoryComponentEvaluationDataList evaluateComponents(@AuthzContext(Key.REPOSITORY) Repository repository,
                                                            RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
-                                                           final boolean withQuarantine)
+                                                           final boolean withQuarantine,
+                                                           final HttpServletRequest request)
   {
     long start = System.currentTimeMillis();
 
@@ -359,7 +363,7 @@ public class RepositoryService
     normalizeComponents(componentEvaluationDataRequestList);
 
     RepositoryComponentEvaluationDataList result = repositoryPolicyEvaluator.evaluate(repository,
-        componentEvaluationDataRequestList, withQuarantine);
+        componentEvaluationDataRequestList, withQuarantine, request);
 
     log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),
@@ -651,7 +655,7 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  public void reevaluateComponent(@AuthzContext(Key.REPOSITORY_ID) String repositoryId, String hash) {
+  public void reevaluateComponent(@AuthzContext(Key.REPOSITORY_ID) String repositoryId, String hash, final HttpServletRequest clientRequest) {
     checkLicenseFeature();
 
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
@@ -667,7 +671,7 @@ public class RepositoryService
           .getPathname(), component.getHash()));
     }
 
-    repositoryPolicyEvaluator.evaluate(repository, request, false);
+    repositoryPolicyEvaluator.evaluate(repository, request, false, clientRequest);
   }
 
   UnquarantinedComponentList getUnquarantinedComponents(String repositoryManagerInstanceId,

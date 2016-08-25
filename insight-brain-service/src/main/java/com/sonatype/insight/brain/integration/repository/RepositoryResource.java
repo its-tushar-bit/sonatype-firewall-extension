@@ -7,14 +7,18 @@ package com.sonatype.insight.brain.integration.repository;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
@@ -86,10 +90,11 @@ public class RepositoryResource
   @Timed
   public void evaluateComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                                  @PathParam("repositoryPublicId") String repositoryPublicId,
-                                 RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+                                 RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+                                 @Context final HttpServletRequest request)
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, false);
+        componentEvaluationDataRequestList, false, request);
   }
 
   @POST
@@ -99,10 +104,11 @@ public class RepositoryResource
   @Timed
   public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
                                                                                @PathParam("repositoryPublicId") final String repositoryPublicId,
-                                                                               final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+                                                                               final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+                                                                               @Context final HttpServletRequest request)
   {
     return repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, true);
+        componentEvaluationDataRequestList, true, request);
   }
 
   @Path(QUARANTINE_PATH)

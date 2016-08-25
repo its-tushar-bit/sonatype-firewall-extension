@@ -39,7 +39,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     });
 
     it('Properly Loading Data', function() {
-      resolveGet([owner], [SidebarResourceMockData.getOwnerDetailsUrl()]);
+      resolveGet(owner, [SidebarResourceMockData.getOwnerDetailsUrl()]);
 
       expect(vm.ownerName).toBe(owner.name);
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
@@ -51,7 +51,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     });
 
     it('Properly Detecting Details Loading Error', function() {
-      resolveGet([owner], [400, 'Bad Request']);
+      resolveGet(owner, [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
@@ -59,7 +59,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     });
 
     it('Properly Displaying Owner Name Loading Error', function() {
-      resolveGet([{}, {}], [SidebarResourceMockData.getOwnerDetailsUrl()]);
+      resolveGet(null, [SidebarResourceMockData.getOwnerDetailsUrl()]);
 
       if (!vm.isRepositories) {
         expect(vm.ownerName).toBeUndefined();
@@ -73,7 +73,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     });
 
     it('Properly Updating Data via broadcast', inject(function($rootScope) {
-      resolveGet([owner], [400, 'Bad Request']);
+      resolveGet(owner, [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
@@ -81,7 +81,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
 
       $rootScope.$broadcast('resource.data.modified');
       if (mockOwnerStore) {
-        mockOwnerStore.resolveRefresh([owner]);
+        mockOwnerStore.resolveGetById(owner);
       }
       $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond(SidebarResourceMockData.getOwnerDetailsUrl());
 
@@ -99,7 +99,12 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
 
     function resolveGet(ownerData, detailsDataArray) {
       if (mockOwnerStore) {
-        mockOwnerStore.resolveGet(ownerData);
+        if (ownerData) {
+          mockOwnerStore.resolveGetById(ownerData);
+        }
+        else {
+          mockOwnerStore.rejectGetById('Could not find an ' + type + ' with ID ' + CLMAppLocations.getEntityId() + '.');
+        }
       }
       $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
 

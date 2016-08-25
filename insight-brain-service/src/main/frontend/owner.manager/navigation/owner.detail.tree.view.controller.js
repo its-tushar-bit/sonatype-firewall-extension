@@ -34,11 +34,11 @@
       ];
 
       if (vm.isApp) {
-        promises.push(ApplicationStore[vm.error ? 'refresh' : 'get']());
+        promises.push(ApplicationStore.getById(CLMAppLocations.getEntityId()));
         promises.push($http.get(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())));
       }
       else if (!vm.isRepositories) {
-        promises.push(OrganizationStore[vm.error ? 'refresh' : 'get']());
+        promises.push(OrganizationStore.getById(CLMAppLocations.getEntityId()));
       }
 
       $q.all(promises).then(function(results) {
@@ -48,12 +48,7 @@
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
 
         if (!vm.isRepositories) {
-          results[1].some(function(candidate) {
-            if (candidate[vm.isApp ? 'publicId' : 'id'] === CLMAppLocations.getEntityId()) {
-              vm.ownerName = candidate.name;
-              return true;
-            }
-          });
+          vm.ownerName = results[1].name;
 
           if (vm.isApp) {
             vm.areAnyCategoriesDefined = results[2].data.length > 0;
@@ -61,11 +56,6 @@
         }
         else {
           vm.ownerName = 'Repositories';
-        }
-
-        if (!vm.ownerName) {
-          vm.error = 'Could not find an ' + (vm.isApp ? 'application' : 'organization') + ' with ID ' +
-              CLMAppLocations.getEntityId() + '.';
         }
       }, function(error) {
         vm.error = error;

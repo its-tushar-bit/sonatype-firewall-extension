@@ -334,15 +334,15 @@ public class HdsClient
    */
   public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) throws IOException
   {
-    return post(null, clazz, path, jsonSerializableObject, uriParams);
+    return post(clazz, path, null, jsonSerializableObject, uriParams);
   }
 
   /**
    * @since 1.23
    */
-  public <T> T post(final HttpServletRequest request,
-                    Class<T> clazz,
+  public <T> T post(Class<T> clazz,
                     String path,
+                    final String clientUserAgent,
                     Object jsonSerializableObject,
                     String... uriParams) throws IOException
   {
@@ -351,7 +351,10 @@ public class HdsClient
       HttpPost cloudReq = new HttpPost(buildUri(path, uriParams));
       StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
       cloudReq.setEntity(entity);
-      populateRequest(request /* base request */, cloudReq, null);
+      populateRequest(null /* base request */, cloudReq, null);
+      if (clientUserAgent != null) { // will be null when called from Repository View Re-evaluate
+        cloudReq.setHeader(CLM_CLIENT_USER_AGENT_HEADER, clientUserAgent);
+      }
       cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
       cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -442,7 +445,7 @@ public class HdsClient
     req.setHeader(HttpHeaders.USER_AGENT, config.getUserAgent());
   }
 
-  private String getClientUserAgent(HttpServletRequest request) {
+  public static String getClientUserAgent(HttpServletRequest request) {
     // some clients can't control the actual UA header and use an alternative header
     String clientUserAgent = request.getHeader(CLM_CLIENT_USER_AGENT_HEADER);
     if (clientUserAgent == null) {

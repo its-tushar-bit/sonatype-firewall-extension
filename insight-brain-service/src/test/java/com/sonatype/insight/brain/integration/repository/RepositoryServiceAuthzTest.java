@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.integration.repository;
 import java.util.Date;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -380,7 +379,7 @@ public class RepositoryServiceAuthzTest
     Mockito.when(
         repositoryPolicyEvaluator.evaluate(Mockito.eq(repo),
             Mockito.isA(RepositoryComponentEvaluationDataRequestList.class), Mockito.eq(false),
-            isNull(HttpServletRequest.class))).thenReturn(null);
+            isNull(String.class))).thenReturn(null);
 
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.reevaluateComponent(repo.getId(), component.getHash(), null);

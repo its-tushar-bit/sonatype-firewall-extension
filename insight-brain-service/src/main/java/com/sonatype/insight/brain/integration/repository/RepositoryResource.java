@@ -11,20 +11,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import com.yammer.metrics.annotation.Timed;
 
@@ -94,7 +93,7 @@ public class RepositoryResource
                                  @Context final HttpServletRequest request)
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, false, request);
+        componentEvaluationDataRequestList, false, HdsClient.getClientUserAgent(request));
   }
 
   @POST
@@ -108,7 +107,7 @@ public class RepositoryResource
                                                                                @Context final HttpServletRequest request)
   {
     return repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList, true, request);
+        componentEvaluationDataRequestList, true, HdsClient.getClientUserAgent(request));
   }
 
   @Path(QUARANTINE_PATH)

@@ -12,7 +12,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
@@ -97,14 +96,14 @@ public class RepositoryPolicyEvaluator
   public RepositoryComponentEvaluationDataList evaluate(Repository repository,
                                                         RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
                                                         final boolean withQuarantine,
-                                                        final HttpServletRequest request)
+                                                        final String clientUserAgent)
   {
     RepositoryComponentEvaluationDataList componentEvaluationResultList = new RepositoryComponentEvaluationDataList();
 
     Date now = new Date();
 
     ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(withQuarantine,
-        componentEvaluationDataRequestList, request);
+        componentEvaluationDataRequestList, clientUserAgent);
     List<Component> components = new ArrayList<>();
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest = componentEvaluationDataRequestList.components
@@ -294,14 +293,14 @@ public class RepositoryPolicyEvaluator
 
   private ComponentEvaluationDataList getComponentDetailsFromHds(boolean withQuarantine,
                                                                  final RepositoryComponentEvaluationDataRequestList hdsRequest,
-                                                                 final HttpServletRequest request)
+                                                                 final String clientUserAgent)
   {
     try {
       long start = System.currentTimeMillis();
 
       HdsClient hdsClient = withQuarantine ? quarantineHdsClient : auditHdsClient;
-      ComponentEvaluationDataList result = hdsClient.post(request, ComponentEvaluationDataList.class,
-          HDS_COMPONENT_DETAILS_PATH, hdsRequest);
+      ComponentEvaluationDataList result = hdsClient
+          .post(ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH, clientUserAgent, hdsRequest);
 
       log.debug("Got component details from HDS for {} components in {} ms.", hdsRequest.components.size(),
           System.currentTimeMillis() - start);

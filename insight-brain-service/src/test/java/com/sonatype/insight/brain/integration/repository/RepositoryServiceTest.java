@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -1631,10 +1630,9 @@ public class RepositoryServiceTest
       hdsRequest.components.add(new RepositoryComponentEvaluationDataRequest(componentEvaluationDataRequest.format,
           pathname, hash));
     }
-    when(
-        (quarantine ? quarantineHdsClient : auditHdsClient)
-            .post(isNull(HttpServletRequest.class), eq(ComponentEvaluationDataList.class),
-                eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest))).thenReturn(hdsResult);
+    when((quarantine ? quarantineHdsClient : auditHdsClient)
+        .post(eq(ComponentEvaluationDataList.class), eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+            isNull(String.class), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
@@ -1964,8 +1962,8 @@ public class RepositoryServiceTest
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
     Mockito.when(
-        auditHdsClient.post(isNull(HttpServletRequest.class), Mockito.eq(ComponentEvaluationDataList.class),
-            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
             Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
     Date beforeEvaluation = new Date();
@@ -2025,8 +2023,8 @@ public class RepositoryServiceTest
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
     Mockito.when(
-        auditHdsClient.post(isNull(HttpServletRequest.class), Mockito.eq(ComponentEvaluationDataList.class),
-            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
             Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
     repositoryService.reevaluateComponent(repository.getId(), repositoryComponent.getHash(), null);

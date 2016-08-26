@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -203,8 +202,8 @@ public class RepositoryReevaluationTaskTest
         MatchState.EXACT.getId(), 1));
 
     Mockito.when(
-        auditHdsClient.post(isNull(HttpServletRequest.class), Mockito.eq(ComponentEvaluationDataList.class),
-            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
             Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
   }
 

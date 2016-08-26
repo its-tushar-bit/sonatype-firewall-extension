@@ -18,6 +18,8 @@ public class RisksFilterDTO
 
   public Set<String> applicationIds;
 
+  public Set<String> organizationIds;
+
   public Set<String> stageIds;
 
   public Set<String> tagIds;

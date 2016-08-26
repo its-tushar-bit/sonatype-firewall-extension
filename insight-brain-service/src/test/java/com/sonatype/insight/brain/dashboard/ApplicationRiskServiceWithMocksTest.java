@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -172,12 +175,12 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   private List<ApplicationRiskScoreDTO> doTest(List<StageType> stages,
+                                               List<Organization> organizations,
                                                List<Application> returnApps,
                                                List<PolicyEvaluation> policyEvals,
                                                List<PolicyViolation> policyViolations,
                                                int limit)
   {
-
     Set<String> stageIds = Sets.newHashSet();
     for (StageType stage : stages) {
       stageIds.add(stage.getId());
@@ -188,23 +191,30 @@ public class ApplicationRiskServiceWithMocksTest
       returnAppIds.add(app.getId());
     }
 
+    Set<String> organizationIds = organizations.isEmpty() ? null : new HashSet<String>();
+    for (Organization org : organizations) {
+      organizationIds.add(org.getId());
+    }
+
     Set<String> policyEvaluationIds = Sets.newHashSet();
     for (PolicyEvaluation eval : policyEvals) {
       policyEvaluationIds.add(eval.getId());
     }
 
     when(stageTypeService.getLicensedStageTypes()).thenReturn(stages);
-    when(applicationService.getApplicationsByIdsAndTagIds(returnAppIds, null)).thenReturn(returnApps);
+    when(applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, returnAppIds, null))
+        .thenReturn(returnApps);
     when(policyEvaluationDAO.getLastByApplicationIdsAndStageIds(returnAppIds, stageIds)).thenReturn(policyEvals);
     when(policyViolationDAO.getActiveByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
 
-    return applicationRiskService.getApplicationRisks(returnAppIds, stageIds, null, null, null, limit);
+    return applicationRiskService.getApplicationRisks(null, returnAppIds, stageIds, null, null, null, limit);
   }
 
   @Test
   public void testGetAllApplicationRisksSimple() {
-    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage), Lists.newArrayList(application1),
-        Lists.newArrayList(policyEvaluation1), Lists.newArrayList(vio1), Integer.MAX_VALUE);
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
+        Collections.<Organization> emptyList(), Lists.newArrayList(application1), Lists.newArrayList(policyEvaluation1),
+        Lists.newArrayList(vio1), Integer.MAX_VALUE);
 
     assertThat(result, hasSize(1));
     ApplicationRiskScoreDTO result0 = result.get(0);
@@ -230,8 +240,8 @@ public class ApplicationRiskServiceWithMocksTest
         PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
-        Lists.newArrayList(application1), Lists.newArrayList(policyEvaluation1, policyEvaluation2),
-        Lists.newArrayList(vio1, vio2), Integer.MAX_VALUE);
+        Collections.<Organization> emptyList(), Lists.newArrayList(application1),
+        Lists.newArrayList(policyEvaluation1, policyEvaluation2), Lists.newArrayList(vio1, vio2), Integer.MAX_VALUE);
 
     assertThat(result, hasSize(1));
     assertRisk(result.get(0).totalApplicationRisk, 0, 12, 0, 0, 12);
@@ -259,7 +269,7 @@ public class ApplicationRiskServiceWithMocksTest
         PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
-        Lists.newArrayList(application1, application2),
+        Collections.<Organization> emptyList(), Lists.newArrayList(application1, application2),
         Lists.newArrayList(policyEvaluation1, policyEvaluation2, policyEvaluation4),
         Lists.newArrayList(vio1, vio2, vio4), Integer.MAX_VALUE);
 
@@ -307,7 +317,7 @@ public class ApplicationRiskServiceWithMocksTest
         PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
-        Lists.newArrayList(application1, application2, application3),
+        Collections.<Organization> emptyList(), Lists.newArrayList(application1, application2, application3),
         Lists.newArrayList(policyEvaluation1, policyEvaluation3, policyEvaluation4),
         Lists.newArrayList(vio1, vio3, vio4), Integer.MAX_VALUE);
 
@@ -329,8 +339,8 @@ public class ApplicationRiskServiceWithMocksTest
   @Test
   public void testGetAllApplicationsLimitResults() {
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
-        Lists.newArrayList(application1, application2), Lists.newArrayList(policyEvaluation1, policyEvaluation4),
-        Lists.newArrayList(vio1, vio4), 1);
+        Collections.<Organization> emptyList(), Lists.newArrayList(application1, application2),
+        Lists.newArrayList(policyEvaluation1, policyEvaluation4), Lists.newArrayList(vio1, vio4), 1);
 
     assertThat(result, hasSize(1));
 
@@ -353,8 +363,9 @@ public class ApplicationRiskServiceWithMocksTest
         PolicyThreatCategory.LICENSE, vioHash2,
         ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "1.2"), "[]", "");
 
-    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage), Lists.newArrayList(application1),
-        Lists.newArrayList(policyEvaluation5), Lists.newArrayList(vio5, vio51), Integer.MAX_VALUE);
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
+        Collections.<Organization> emptyList(), Lists.newArrayList(application1), Lists.newArrayList(policyEvaluation5),
+        Lists.newArrayList(vio5, vio51), Integer.MAX_VALUE);
 
     assertThat(result, hasSize(1));
     assertRisk(result.get(0).totalApplicationRisk, 9, 0, 3, 0, 12);
@@ -387,8 +398,8 @@ public class ApplicationRiskServiceWithMocksTest
         PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
-        Lists.newArrayList(application1), Lists.newArrayList(policyEvaluation7, policyEvaluation8),
-        Lists.newArrayList(vio7, vio8), Integer.MAX_VALUE);
+        Collections.<Organization> emptyList(), Lists.newArrayList(application1),
+        Lists.newArrayList(policyEvaluation7, policyEvaluation8), Lists.newArrayList(vio7, vio8), Integer.MAX_VALUE);
 
     assertThat(result, hasSize(1));
     assertRisk(result.get(0).totalApplicationRisk, 0, 5, 0, 0, 5);
@@ -413,8 +424,9 @@ public class ApplicationRiskServiceWithMocksTest
     PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, "policy5", policyName5, 0,
         PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
-    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage), Lists.newArrayList(application1),
-        Lists.newArrayList(policyEvaluation5), Lists.newArrayList(vio5), Integer.MAX_VALUE);
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
+        Collections.<Organization> emptyList(), Lists.newArrayList(application1), Lists.newArrayList(policyEvaluation5),
+        Lists.newArrayList(vio5), Integer.MAX_VALUE);
 
     assertThat(result, hasSize(0));
   }
@@ -428,8 +440,8 @@ public class ApplicationRiskServiceWithMocksTest
     application99.setContactInternalName(null);
 
     when(stageTypeService.getLicensedStageTypes()).thenReturn(Lists.newArrayList(buildStage));
-    when(applicationService.getApplicationsByIdsAndTagIds(Sets.newHashSet(application99.getId()), null)).thenReturn(
-        Lists.newArrayList(application99));
+    when(applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, Sets.newHashSet(application99.getId()),
+        null)).thenReturn(Lists.newArrayList(application99));
     when(
         policyEvaluationDAO.getLastByApplicationIdsAndStageIds(Sets.newHashSet(application99.getId()),
             Sets.newHashSet(buildStage.getId()))).thenReturn(Lists.newArrayList(policyEvaluation1));
@@ -437,7 +449,7 @@ public class ApplicationRiskServiceWithMocksTest
         Lists.newArrayList(vio1));
 
     List<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(
-        Sets.newHashSet(application99.getId()), null, null, null, null, Integer.MAX_VALUE);
+        null, Sets.newHashSet(application99.getId()), null, null, null, null, Integer.MAX_VALUE);
 
     assertThat(result, hasSize(1));
     ApplicationRiskScoreDTO result0 = result.get(0);

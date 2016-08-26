@@ -51,8 +51,8 @@ public class PolicySummaryServiceTest
   public void setup() {
     org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication("app1", "app1", org.getId());
-    app2 = tempEntity.newApplication("app2", "app2", org.getId());
-    orgPolicy = tempEntity.newPolicy(org.getId(), "org owned policy", 3);
+    app2 = tempEntity.newApplicationWithParent("app2", "app2");
+    orgPolicy = tempEntity.newPolicy(org.getParentOwnerId(), "org owned policy", 3);
   }
 
   @Test
@@ -71,8 +71,8 @@ public class PolicySummaryServiceTest
         .minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
     tempEntity.newPolicyViolation(pe1App2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(Collections.singleton(app1.getId()), null, null, null,
-        null);
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, Collections.singleton(app1.getId()), null, null,
+        null, null);
     assertCounters(dto, 2, 0, 1, 1);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
     DescriptiveStatistics ageWaivedStatistics = createStatistics(0);
@@ -81,11 +81,40 @@ public class PolicySummaryServiceTest
     DescriptiveStatistics ageUnresolvedStatistics = createStatistics(dto.timestamp - pe2App1.getTime().getTime());
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
 
-    dto = policySummaryService.getPolicySummary(Sets.newHashSet(app1.getId(), app2.getId()), null, null, null, null);
+    dto = policySummaryService.getPolicySummary(null, Sets.newHashSet(app1.getId(), app2.getId()), null, null, null,
+        null);
     assertCounters(dto, 3, 0, 1, 2);
     assertCountersWeek(dto, 0, 2, 0, 0, 2);
     ageUnresolvedStatistics = createStatistics(dto.timestamp - pe2App1.getTime().getTime(), dto.timestamp
         - pe1App2.getTime().getTime());
+    assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
+  }
+
+  @Test
+  public void testGetPolicySummary_FilterByOrganization() throws Exception {
+    DateTime now = new DateTime();
+    // One policy violation for app1, week 1
+    PolicyEvaluation pe1App1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1App1",
+        now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+    // One policy violation for app1, week 2. Fixes policy violation from week 1.
+    PolicyEvaluation pe2App1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2App1",
+        now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe2App1, orgPolicy, "g2", "a2", "v2", "h2", "r2");
+    // One policy violation for app2, week 1
+    PolicyEvaluation pe1App2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1App2",
+        now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1App2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
+
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(Collections.singleton(app1.getParentOwnerId()), null,
+        null, null,
+        null, null);
+    assertCounters(dto, 2, 0, 1, 1);
+    assertCountersWeek(dto, 0, 1, 0, 0, 1);
+    DescriptiveStatistics ageWaivedStatistics = createStatistics(0);
+    DescriptiveStatistics ageFixedStatistics = createStatistics(pe2App1.getTime().getTime()
+        - pe1App1.getTime().getTime());
+    DescriptiveStatistics ageUnresolvedStatistics = createStatistics(dto.timestamp - pe2App1.getTime().getTime());
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
   }
 
@@ -102,7 +131,8 @@ public class PolicySummaryServiceTest
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, Collections.singleton(BuildStageType.ID), null,
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, Collections.singleton(BuildStageType.ID),
+        null,
         null, null);
     assertCounters(dto, 1, 0, 0, 1);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
@@ -111,7 +141,8 @@ public class PolicySummaryServiceTest
     DescriptiveStatistics ageUnresolvedStatistics = createStatistics(dto.timestamp - pe1.getTime().getTime());
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
 
-    dto = policySummaryService.getPolicySummary(null, Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null,
+    dto = policySummaryService.getPolicySummary(null, null, Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID),
+        null,
         null, null);
     assertCounters(dto, 3, 0, 0, 3);
     assertCountersWeek(dto, 0, 3, 0, 0, 3);
@@ -130,12 +161,12 @@ public class PolicySummaryServiceTest
         now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null, null);
     assertCounters(dto, 1, 0, 0, 1);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
 
     try {
-      policySummaryService.getPolicySummary(null, Collections.singleton(DevelopStageType.ID), null, null, null);
+      policySummaryService.getPolicySummary(null, null, Collections.singleton(DevelopStageType.ID), null, null, null);
       fail("Expected BadRequestException");
     }
     catch (BadRequestException e) {
@@ -160,7 +191,8 @@ public class PolicySummaryServiceTest
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, Collections.singleton(app1Tag.getId()),
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null,
+        Collections.singleton(app1Tag.getId()),
         null, null);
     assertCounters(dto, 1, 0, 0, 1);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
@@ -169,7 +201,8 @@ public class PolicySummaryServiceTest
     DescriptiveStatistics ageUnresolvedStatistics = createStatistics(dto.timestamp - pe1.getTime().getTime());
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
 
-    dto = policySummaryService.getPolicySummary(null, null, Sets.newHashSet(app1Tag.getId(), app2Tag.getId()), null,
+    dto = policySummaryService.getPolicySummary(null, null, null, Sets.newHashSet(app1Tag.getId(), app2Tag.getId()),
+        null,
         null);
     assertCounters(dto, 3, 0, 0, 3);
     assertCountersWeek(dto, 0, 3, 0, 0, 3);
@@ -191,7 +224,7 @@ public class PolicySummaryServiceTest
     tempEntity.newPolicyViolation(pe2, orgPolicy, 5, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "h2");
     tempEntity.newPolicyViolation(pe2, orgPolicy, 5, PolicyThreatCategory.SECURITY, "g3", "a3", "v3", "h3");
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, new PolicyThreatCategoryFilter(
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, new PolicyThreatCategoryFilter(
         PolicyThreatCategory.LICENSE), null);
     assertCounters(dto, 1, 0, 0, 1);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
@@ -200,7 +233,7 @@ public class PolicySummaryServiceTest
     DescriptiveStatistics ageUnresolvedStatistics = createStatistics(dto.timestamp - pe1.getTime().getTime());
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
 
-    dto = policySummaryService.getPolicySummary(null, null, null, new PolicyThreatCategoryFilter(
+    dto = policySummaryService.getPolicySummary(null, null, null, null, new PolicyThreatCategoryFilter(
         PolicyThreatCategory.LICENSE, PolicyThreatCategory.SECURITY), null);
     assertCounters(dto, 3, 0, 0, 3);
     assertCountersWeek(dto, 0, 3, 0, 0, 3);
@@ -222,7 +255,8 @@ public class PolicySummaryServiceTest
     tempEntity.newPolicyViolation(pe2, orgPolicy, 8, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "h2");
     tempEntity.newPolicyViolation(pe2, orgPolicy, 8, PolicyThreatCategory.SECURITY, "g3", "a3", "v3", "h3");
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, new PolicyThreatLevelFilter(5,
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null,
+        new PolicyThreatLevelFilter(5,
         5));
     assertCounters(dto, 1, 0, 0, 1);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
@@ -231,7 +265,7 @@ public class PolicySummaryServiceTest
     DescriptiveStatistics ageUnresolvedStatistics = createStatistics(dto.timestamp - pe1.getTime().getTime());
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
 
-    dto = policySummaryService.getPolicySummary(null, null, null, null, new PolicyThreatLevelFilter(5, 8));
+    dto = policySummaryService.getPolicySummary(null, null, null, null, null, new PolicyThreatLevelFilter(5, 8));
     assertCounters(dto, 3, 0, 0, 3);
     assertCountersWeek(dto, 0, 3, 0, 0, 3);
     ageUnresolvedStatistics = createStatistics(dto.timestamp - pe1.getTime().getTime(), dto.timestamp
@@ -273,7 +307,7 @@ public class PolicySummaryServiceTest
     PolicyEvaluation pe6 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId6",
         now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS - 3).plusDays(1).toDate());
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null, null);
     assertCounters(dto, 3, 0, 2, 1);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
     assertCountersWeek(dto, 1, 1, 0, 1, 0);
@@ -304,7 +338,7 @@ public class PolicySummaryServiceTest
         now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
     tempEntity.newWaivedPolicyViolation(pe2, orgPolicy, "g1", "a1", "v1", "h1", waiver);
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null, null);
     assertCounters(dto, 1, 1, 0, 0);
     assertCountersWeek(dto, 0, 0, 1, 0, -1);
     DescriptiveStatistics ageWaivedStatistics = createStatistics(dto.timestamp - pe2.getTime().getTime());
@@ -333,7 +367,7 @@ public class PolicySummaryServiceTest
         now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1).plusDays(2).toDate());
     tempEntity.newPolicyViolation(pe3, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null, null);
     assertCounters(dto, 1, 0, 0, 1);
     assertCountersWeek(dto, 0, 0, 1, 0, -1);
     assertCountersWeek(dto, 1, 0, -1, 0, 1);
@@ -362,7 +396,7 @@ public class PolicySummaryServiceTest
     PolicyEvaluation pe3 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId3",
         now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS - 2).plusDays(2).toDate());
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null, null);
     assertCounters(dto, 1, 0, 1, 0);
     assertCountersWeek(dto, 0, 0, 0, 0, 0);
     assertCountersWeek(dto, 1, 0, 0, 0, 0);
@@ -392,7 +426,7 @@ public class PolicySummaryServiceTest
     PolicyEvaluation pe3 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId3",
         now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS - 3).plusDays(2).toDate());
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null, null);
     assertCounters(dto, 1, 0, 1, 0);
     assertCountersWeek(dto, 0, 0, 0, 0, 0);
     assertCountersWeek(dto, 1, 0, 0, 0, 0);
@@ -424,7 +458,7 @@ public class PolicySummaryServiceTest
     PolicyEvaluation pe4 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId4",
         now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS - 2).plusDays(1).toDate());
 
-    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null, null);
     assertCounters(dto, 1, 0, 1, 0);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
     assertCountersWeek(dto, 1, 0, 0, 0, 0);

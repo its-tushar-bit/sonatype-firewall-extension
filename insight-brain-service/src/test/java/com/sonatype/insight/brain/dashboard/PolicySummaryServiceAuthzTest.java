@@ -30,7 +30,7 @@ public class PolicySummaryServiceAuthzTest
   public void testGetPolicySummary_ExplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId());
     assertEmptyResults(
-        policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null));
+        policySummaryService.getPolicySummary(null, Collections.singleton(app.getId()), null, null, null, null));
   }
 
   @Test
@@ -38,34 +38,58 @@ public class PolicySummaryServiceAuthzTest
     createPolicyViolation(app.getId());
     login();
     assertEmptyResults(
-        policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null));
+        policySummaryService.getPolicySummary(null, Collections.singleton(app.getId()), null, null, null, null));
   }
 
   @Test
   public void testGetPolicySummary_ExplicitApplicationFilter_Authorized() {
     createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
-    assertResults(policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null));
+    assertResults(
+        policySummaryService.getPolicySummary(null, Collections.singleton(app.getId()), null, null, null, null));
+  }
+
+  @Test
+  public void testGetPolicySummary_ExplicitOrganizationFilter_Unauthenticated() {
+    createPolicyViolation(app.getId());
+    assertEmptyResults(
+        policySummaryService.getPolicySummary(Collections.singleton(org.getId()), null, null, null, null, null));
+  }
+
+  @Test
+  public void testGetPolicySummary_ExplicitOrganizationFilter_Unauthorized() {
+    createPolicyViolation(app.getId());
+    login();
+    assertEmptyResults(
+        policySummaryService.getPolicySummary(Collections.singleton(org.getId()), null, null, null, null, null));
+  }
+
+  @Test
+  public void testGetPolicySummary_ExplicitOrganizationFilter_Authorized() {
+    createPolicyViolation(app.getId());
+    grantReadPermission(org.getId());
+    assertResults(
+        policySummaryService.getPolicySummary(Collections.singleton(org.getId()), null, null, null, null, null));
   }
 
   @Test
   public void testGetPolicySummary_ImplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId());
-    assertEmptyResults(policySummaryService.getPolicySummary(null, null, null, null, null));
+    assertEmptyResults(policySummaryService.getPolicySummary(null, null, null, null, null, null));
   }
 
   @Test
   public void testGetPolicySummary_ImplicitApplicationFilter_Unauthorized() {
     createPolicyViolation(app.getId());
     login();
-    assertEmptyResults(policySummaryService.getPolicySummary(null, null, null, null, null));
+    assertEmptyResults(policySummaryService.getPolicySummary(null, null, null, null, null, null));
   }
 
   @Test
   public void testGetPolicySummary_ImplicitApplicationFilter_Authorized() {
     createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
-    assertResults(policySummaryService.getPolicySummary(null, null, null, null, null));
+    assertResults(policySummaryService.getPolicySummary(null, null, null, null, null, null));
 
   }
 

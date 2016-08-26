@@ -134,7 +134,8 @@ public class PolicySummaryService
    * Gets the policy summary matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
    */
-  public PolicySummaryDTO getPolicySummary(Set<String> applicationIds,
+  public PolicySummaryDTO getPolicySummary(Set<String> organizationIds,
+                                           Set<String> applicationIds,
                                            Set<String> stageIds,
                                            Set<String> tagIds,
                                            PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -144,7 +145,8 @@ public class PolicySummaryService
 
     long start = System.currentTimeMillis();
 
-    List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
+    List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
+        applicationIds, tagIds);
     log.debug("getPolicySummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
         applications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
 

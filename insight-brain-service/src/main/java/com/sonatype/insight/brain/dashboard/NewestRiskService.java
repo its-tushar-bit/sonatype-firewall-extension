@@ -85,7 +85,8 @@ public class NewestRiskService
    * Gets the "newest" risk matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
    */
-  public List<NewestRiskDTO> getNewestRisks(Set<String> applicationIds,
+  public List<NewestRiskDTO> getNewestRisks(Set<String> organizationIds,
+                                            Set<String> applicationIds,
                                             Set<String> stageIds,
                                             Set<String> tagIds,
                                             PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -96,7 +97,8 @@ public class NewestRiskService
 
     long start = System.currentTimeMillis();
 
-    List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
+    List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
+        applicationIds, tagIds);
     log.debug("getNewestRisks: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
         applications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
 

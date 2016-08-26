@@ -18,6 +18,6 @@ public class PolicySummaryServiceNotLicensedTest
 
   @Test(expected = InvalidLicenseException.class)
   public void testGetPolicySummary_Unlicensed() throws Exception {
-    policySummaryService.getPolicySummary(null, null, null, null, null);
+    policySummaryService.getPolicySummary(null, null, null, null, null, null);
   }
 }

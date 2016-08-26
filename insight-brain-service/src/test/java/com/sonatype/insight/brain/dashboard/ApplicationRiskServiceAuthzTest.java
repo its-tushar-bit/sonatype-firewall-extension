@@ -41,23 +41,46 @@ public class ApplicationRiskServiceAuthzTest
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthenticated() {
     List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService
-        .getApplicationRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
+        .getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null, 1);
     assertThat(applicationRiskScoreDTOs, hasSize(0));
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService
-        .getApplicationRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService.getApplicationRisks(null,
+        Collections.singleton(app.getId()), null, null, null, null, 1);
     assertThat(applicationRiskScoreDTOs, hasSize(0));
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService.getApplicationRisks(
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app.getId()), null, null, null, null, 1);
+    assertThat(applicationRiskScoreDTOs, hasSize(1));
+  }
+
+  @Test
+  public void testGetApplicationRisks_ExplicitOrganizationFilter_Unauthenticated() {
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService
+        .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, 1);
+    assertThat(applicationRiskScoreDTOs, hasSize(0));
+  }
+
+  @Test
+  public void testGetApplicationRisks_ExplicitOrganizationFilter_Unauthorized() {
+    login();
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService
+        .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, 1);
+    assertThat(applicationRiskScoreDTOs, hasSize(0));
+  }
+
+  @Test
+  public void testGetApplicationRisks_ExplicitOrganizationFilter_Authorized() {
+    grantReadPermission(app.getParentOwnerId());
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService.getApplicationRisks(
+        Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, 1);
     assertThat(applicationRiskScoreDTOs, hasSize(1));
   }
 }

@@ -68,7 +68,8 @@ public class ApplicationRiskService
   /**
    * @since 1.11.0
    */
-  public List<ApplicationRiskScoreDTO> getApplicationRisks(final Set<String> applicationIds,
+  public List<ApplicationRiskScoreDTO> getApplicationRisks(final Set<String> organizationIds,
+                                                           final Set<String> applicationIds,
                                                            final Set<String> stageIds,
                                                            final Set<String> tagIds,
                                                            final PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -79,7 +80,8 @@ public class ApplicationRiskService
 
     long start = System.currentTimeMillis();
 
-    List<Application> appsToSearch = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
+    List<Application> appsToSearch = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
+        applicationIds, tagIds);
     log.debug("Loaded {} applications", appsToSearch.size());
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,

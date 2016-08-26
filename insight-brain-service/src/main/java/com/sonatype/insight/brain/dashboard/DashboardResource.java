@@ -70,11 +70,10 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getNewestRisksExceptionMeter")
-  public List<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO)
-  {
-    return newestRiskService
-        .getNewestRisks(risksFilterDTO.applicationIds, risksFilterDTO.stageIds, risksFilterDTO.tagIds,
-            risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxResults);
+  public List<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO) {
+    return newestRiskService.getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
+        risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxResults);
   }
 
   @POST
@@ -83,11 +82,10 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getApplicationRisksExceptionMeter")
-  public List<ApplicationRiskScoreDTO> getApplicationRisks(RisksFilterDTO risksFilterDTO)
-  {
-    return applicationRiskService
-        .getApplicationRisks(risksFilterDTO.applicationIds, risksFilterDTO.stageIds, risksFilterDTO.tagIds,
-            risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxResults);
+  public List<ApplicationRiskScoreDTO> getApplicationRisks(RisksFilterDTO risksFilterDTO) {
+    return applicationRiskService.getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
+        risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxResults);
   }
 
   @POST
@@ -96,11 +94,10 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getComponentRisksExceptionMeter")
-  public List<ComponentRiskDTO> getComponentRisks(RisksFilterDTO risksFilterDTO)
-  {
-    return componentRiskService
-        .getComponentRisks(risksFilterDTO.applicationIds, risksFilterDTO.stageIds, risksFilterDTO.tagIds,
-            risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxResults);
+  public List<ComponentRiskDTO> getComponentRisks(RisksFilterDTO risksFilterDTO) {
+    return componentRiskService.getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
+        risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxResults);
   }
 
   /**
@@ -145,11 +142,10 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getFilterSummaryExceptionMeter")
-  public FilterSummaryDTO getFilterSummary(RisksFilterDTO risksFilterDTO)
-  {
-    return dashboardFilterService
-        .getFilterSummary(risksFilterDTO.applicationIds, risksFilterDTO.stageIds, risksFilterDTO.tagIds,
-            risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange);
+  public FilterSummaryDTO getFilterSummary(RisksFilterDTO risksFilterDTO) {
+    return dashboardFilterService.getFilterSummary(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
+        risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
+        risksFilterDTO.policyThreatLevelRange);
   }
 
   @POST
@@ -158,10 +154,9 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getPolicySummaryExceptionMeter")
-  public PolicySummaryDTO getPolicySummary(RisksFilterDTO risksFilterDTO)
-  {
-    return policySummaryService
-        .getPolicySummary(risksFilterDTO.applicationIds, risksFilterDTO.stageIds, risksFilterDTO.tagIds,
-            risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange);
+  public PolicySummaryDTO getPolicySummary(RisksFilterDTO risksFilterDTO) {
+    return policySummaryService.getPolicySummary(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
+        risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
+        risksFilterDTO.policyThreatLevelRange);
   }
 }

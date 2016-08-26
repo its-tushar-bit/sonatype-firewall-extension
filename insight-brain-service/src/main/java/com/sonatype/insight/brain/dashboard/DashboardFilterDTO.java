@@ -20,6 +20,8 @@ public class DashboardFilterDTO
 
   public List<String> applicationFilters;
 
+  public List<String> organizationFilters;
+
   public List<String> tagFilters;
 
   public List<PolicyThreatCategory> policyThreatCategoryFilters;

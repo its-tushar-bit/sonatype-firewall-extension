@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -24,8 +25,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.fail;
 
 public class ApplicationServiceTest
@@ -42,47 +45,66 @@ public class ApplicationServiceTest
   public void before() {
     org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication(org.getId());
-    app2 = tempEntity.newApplication(org.getId());
+    app2 = tempEntity.newApplicationWithParent("app2");
   }
 
   @Test
-  public void testGetApplicationsByIdsAndTagIds_NullParams() {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_NullParams() {
     List<Application> apps = applicationService
-        .getApplicationsByIdsAndTagIds(null /* applicationIds */, null /* tagIds */);
+        .getApplicationsByIdsAndOrganizationIdsAndTagIds(null /* organisationIds */, null /* applicationIds */,
+            null /* tagIds */);
     assertThat(apps, hasSize(2));
   }
 
   @Test
-  public void testGetApplicationsByIdsAndTagIds_EmptyParams() {
-    List<Application> apps = applicationService.getApplicationsByIdsAndTagIds(
-        Collections.<String> emptySet() /* applicationIds */, Collections.<String> emptySet() /* tagIds */);
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_EmptyParams() {
+    List<Application> apps = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
+        Collections.<String> emptySet() /* organisationIds */, Collections.<String> emptySet() /* applicationIds */,
+        Collections.<String> emptySet() /* tagIds */);
     assertThat(apps, hasSize(2));
   }
 
   @Test
-  public void testGetApplicationsByIdsAndTagIds_AppId() {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_AppId() {
     List<Application> apps = applicationService
-        .getApplicationsByIdsAndTagIds(Collections.singleton(app1.getId()), null /* tagIds */);
+        .getApplicationsByIdsAndOrganizationIdsAndTagIds(null, Collections.singleton(app1.getId()), null /* tagIds */);
     assertThat(apps, hasSize(1));
     assertThat(apps.get(0).getId(), is(app1.getId()));
   }
 
   @Test
-  public void testGetApplicationsByIdsAndTagIds_TagId() {
-    Tag tag = tempEntity.newTag(org.getId());
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_OrgId() {
+    List<Application> apps = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
+        Collections.singleton(app1.getParentOwnerId()), null, null /* tagIds */);
+    assertThat(apps, hasSize(1));
+    assertThat(apps.get(0).getId(), is(app1.getId()));
+  }
+
+  @Test
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_TagId() {
+    Tag tag = tempEntity.newTag(org.getParentOwnerId());
     tempEntity.newApplicationTag(app2.getId(), tag.getId());
-    List<Application> apps = applicationService.getApplicationsByIdsAndTagIds(null /* applicationIds */,
-        Collections.singleton(tag.getId()));
+    List<Application> apps = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
+        null /* organisationIds */, null /* applicationIds */, Collections.singleton(tag.getId()));
     assertThat(apps, hasSize(1));
     assertThat(apps.get(0).getId(), is(app2.getId()));
   }
 
   @Test
-  public void testGetApplicationsByIdsAndTagIds_AppIdAndTagId() {
-    Tag tag = tempEntity.newTag(org.getId());
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_AppIdAndTagId() {
+    Tag tag = tempEntity.newTag(org.getParentOwnerId());
     tempEntity.newApplicationTag(app2.getId(), tag.getId());
-    List<Application> apps = applicationService.getApplicationsByIdsAndTagIds(Collections.singleton(app1.getId()),
-        Collections.singleton(tag.getId()));
+    List<Application> apps = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null,
+        Collections.singleton(app1.getId()), Collections.singleton(tag.getId()));
+    assertThat(apps, hasSize(0));
+  }
+
+  @Test
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_OrgIdAndTagId() {
+    Tag tag = tempEntity.newTag(org.getParentOwnerId());
+    tempEntity.newApplicationTag(app2.getId(), tag.getId());
+    List<Application> apps = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
+        Collections.singleton(app1.getParentOwnerId()), null, Collections.singleton(tag.getId()));
     assertThat(apps, hasSize(0));
   }
 
@@ -109,5 +131,22 @@ public class ApplicationServiceTest
     assertThat(mappings.size(), is(1));
     assertThat(mappings.get(0).getMemberName(), is(USERNAME));
     assertThat(mappings.get(0).getMemberType(), is(MemberType.USER));
+  }
+
+  @Test
+  public void testGetApplicationIdsByOrganizationIds() {
+    String sameOrgAppId = tempEntity.newApplication(org.getId()).getId();
+
+    Set<String> applicationIds = applicationService
+        .getApplicationIdsByOrganizationIds(Collections.singleton(org.getId()));
+    assertThat(applicationIds, containsInAnyOrder(app1.getId(), sameOrgAppId));
+  }
+
+  @Test
+  public void testGetApplicationIdsByOrganizationIds_null() {
+    tempEntity.newApplication(org.getId()).getId();
+
+    Set<String> applicationIds = applicationService.getApplicationIdsByOrganizationIds(null);
+    assertThat(applicationIds, notNullValue());
   }
 }

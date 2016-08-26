@@ -33,6 +33,6 @@ public class DashboardFilterServiceNotLicensedTest
 
   @Test(expected = InvalidLicenseException.class)
   public void testGetFilterSummary_Unlicensed() throws Exception {
-    dashboardFilterService.getFilterSummary(null, null, null, null, null);
+    dashboardFilterService.getFilterSummary(null, null, null, null, null, null);
   }
 }

@@ -86,7 +86,8 @@ public class ComponentRiskService
    * null filter criteria generally mean "all available" violations for that aspect. The results are sorted by
    * descending component risk scores.
    */
-  public List<ComponentRiskDTO> getComponentRisks(Set<String> applicationIds,
+  public List<ComponentRiskDTO> getComponentRisks(Set<String> organizationIds,
+                                                  Set<String> applicationIds,
                                                   Set<String> stageIds,
                                                   Set<String> tagIds,
                                                   PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -97,7 +98,13 @@ public class ComponentRiskService
 
     long start = System.currentTimeMillis();
 
-    List<PolicyViolationDTO> violations = getPolicyViolations(applicationIds, stageIds, tagIds,
+    Set<String> internalApplicationIds = new HashSet<>();
+    if (applicationIds != null) {
+      internalApplicationIds.addAll(applicationIds);
+    }
+    internalApplicationIds.addAll(applicationService.getApplicationIdsByOrganizationIds(organizationIds));
+
+    List<PolicyViolationDTO> violations = getPolicyViolations(internalApplicationIds, stageIds, tagIds,
         policyThreatCategoryFilter, policyThreatLevelFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
     for (PolicyViolationDTO violation : violations) {

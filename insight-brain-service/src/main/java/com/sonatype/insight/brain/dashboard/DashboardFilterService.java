@@ -104,6 +104,7 @@ public class DashboardFilterService
   private DashboardFilterDTO createDefaultDashboardFilterForCurrentUser() {
     DashboardFilterDTO dashboardFilterDTO = new DashboardFilterDTO();
     dashboardFilterDTO.applicationFilters = new ArrayList<>();
+    dashboardFilterDTO.organizationFilters = new ArrayList<>();
     // Threat levels of 0 or 1 are intended to be informational only, and therefore are
     // not pertinent to assessing the "real" risk of a given Application or component
     dashboardFilterDTO.minPolicyThreatLevel = 2;
@@ -154,7 +155,8 @@ public class DashboardFilterService
    * Calculates how many of the entities accessible to the current user are matched by the specified dashboard filter
    * settings.
    */
-  public FilterSummaryDTO getFilterSummary(Set<String> applicationIds,
+  public FilterSummaryDTO getFilterSummary(Set<String> organizationIds,
+                                           Set<String> applicationIds,
                                            Set<String> stageIds,
                                            Set<String> tagIds,
                                            PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -166,7 +168,8 @@ public class DashboardFilterService
 
     FilterSummaryDTO summary = new FilterSummaryDTO();
 
-    Collection<Application> matchedApplications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
+    Collection<Application> matchedApplications = applicationService
+        .getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
     log.debug("getFilterSummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
         matchedApplications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
     summary.matchedApplications = matchedApplications.size();

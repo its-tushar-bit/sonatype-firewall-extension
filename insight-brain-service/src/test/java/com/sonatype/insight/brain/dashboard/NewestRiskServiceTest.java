@@ -63,8 +63,8 @@ public class NewestRiskServiceTest
   public void setup() {
     org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication("app1", "app1", org.getId());
-    app2 = tempEntity.newApplication("app2", "app2", org.getId());
-    orgPolicy = tempEntity.newPolicy(org.getId(), "org owned policy", 3);
+    app2 = tempEntity.newApplicationWithParent("app2", "app2");
+    orgPolicy = tempEntity.newPolicy(org.getParentOrganizationId(), "org owned policy", 3);
     app1Policy = tempEntity.newPolicy(app1.getId(), "app owned policy", 5);
     long time = System.currentTimeMillis() - 1000;
     app1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "test scan app1 id",
@@ -87,8 +87,18 @@ public class NewestRiskServiceTest
 
   @Test
   public void testGetNewestRisks_FilterByApplication() throws Exception {
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(Collections.singleton(app2.getId()), null, null,
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(app2.getId()), null,
+        null,
         null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    NewestRiskDTO riskDTO = riskDTOs.get(0);
+    assertNewestRiskDTO(riskDTO, app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
+  }
+
+  @Test
+  public void testGetNewestRisks_FilterByOrganization() throws Exception {
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(Collections.singleton(app2.getParentOwnerId()),
+        null, null, null, null, null, 1000);
     assertThat(riskDTOs, hasSize(1));
     NewestRiskDTO riskDTO = riskDTOs.get(0);
     assertNewestRiskDTO(riskDTO, app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -100,7 +110,8 @@ public class NewestRiskServiceTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy);
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(ReleaseStageType.ID),
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null,
+        Collections.singleton(ReleaseStageType.ID),
         null, null, null, 1000);
     assertThat(riskDTOs, hasSize(1));
     NewestRiskDTO riskDTO = riskDTOs.get(0);
@@ -113,8 +124,8 @@ public class NewestRiskServiceTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, orgPolicy);
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app2.getId(), DevelopStageType.ID);
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(Collections.singleton(app2.getId()), null, null,
-        null, null, 1000);
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(app2.getId()), null,
+        null, null, null, 1000);
     assertThat(riskDTOs, hasSize(1));
     NewestRiskDTO riskDTO = riskDTOs.get(0);
     assertNewestRiskDTO(riskDTO, app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -123,7 +134,7 @@ public class NewestRiskServiceTest
     }
 
     try {
-      newestRiskService.getNewestRisks(null, Collections.singleton(DevelopStageType.ID), null, null, null, 1000);
+      newestRiskService.getNewestRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null, null, 1000);
       fail("Expected BadRequestException");
     }
     catch (BadRequestException e) {
@@ -136,8 +147,8 @@ public class NewestRiskServiceTest
     Tag app2Tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, Collections.singleton(app2Tag.getId()),
-        null, null, 1000);
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null,
+        Collections.singleton(app2Tag.getId()), null, null, 1000);
     assertThat(riskDTOs, hasSize(1));
     NewestRiskDTO riskDTO = riskDTOs.get(0);
     assertNewestRiskDTO(riskDTO, app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
@@ -149,8 +160,8 @@ public class NewestRiskServiceTest
         PolicyThreatCategory.OTHER, "gid", "aid", "1", "hash1");
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), BuildStageType.ID);
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null, new PolicyThreatCategoryFilter(
-        PolicyThreatCategory.OTHER), null, 1000);
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null, null,
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER), null, 1000);
     assertThat(riskDTOs, hasSize(1));
     NewestRiskDTO riskDTO = riskDTOs.get(0);
     assertNewestRiskDTO(riskDTO, app1, policyViolation, app1PolicyEvaluation.getTime());
@@ -161,7 +172,7 @@ public class NewestRiskServiceTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, 7,
         PolicyThreatCategory.OTHER, "gid", "aid", "1", "hash1");
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), BuildStageType.ID);
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null, null,
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null, null, null,
         new PolicyThreatLevelFilter(7, 7), 1000);
     assertThat(riskDTOs, hasSize(1));
     NewestRiskDTO riskDTO = riskDTOs.get(0);
@@ -172,14 +183,14 @@ public class NewestRiskServiceTest
   @Test
   public void testGetNewestRisks_SortAndResultCapping() throws Exception {
     // Limit to high value
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null, null, null, 100);
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(3));
     assertNewestRiskDTO(riskDTOs.get(0), app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
     assertNewestRiskDTO(riskDTOs.get(1), app1, app1PolicyViolation, app1PolicyEvaluation.getTime());
     assertNewestRiskDTO(riskDTOs.get(2), app1, orgPolicyViolation, app1PolicyEvaluation.getTime());
 
     // Limit to 1
-    riskDTOs = newestRiskService.getNewestRisks(null, null, null, null, null, 1);
+    riskDTOs = newestRiskService.getNewestRisks(null, null, null, null, null, null, 1);
     assertThat(riskDTOs, hasSize(1));
     assertNewestRiskDTO(riskDTOs.get(0), app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
@@ -193,7 +204,7 @@ public class NewestRiskServiceTest
         app1PolicyViolation.getComponentIdentifier(), app1PolicyViolation.getHash());
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null, null, null, 100);
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null, null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(3));
 
     NewestRiskDTO riskDTO0 = riskDTOs.get(0);
@@ -236,7 +247,8 @@ public class NewestRiskServiceTest
     PolicyViolation oldPolicyViolation = tempEntity.newPolicyViolation(oldPolicyEvaluation, orgPolicy);
     tempEntity.newFirstOccurrencePolicyViolation(oldPolicyViolation.getId(), app.getId(), BuildStageType.ID);
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null,
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null,
+        null,
         null, null, 100);
     assertThat(riskDTOs, hasSize(0));
 
@@ -247,7 +259,7 @@ public class NewestRiskServiceTest
     PolicyViolation newPolicyViolation = tempEntity.newPolicyViolation(newPolicyEvaluation, orgPolicy);
     tempEntity.newFirstOccurrencePolicyViolation(newPolicyViolation.getId(), app.getId(), ReleaseStageType.ID);
 
-    riskDTOs = newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 100);
+    riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(1));
     assertNewestRiskDTO(riskDTOs.get(0), app, newPolicyViolation, newPolicyEvaluation.getTime());
     assertNewestRiskDTOContainsStageDetails(riskDTOs.get(0), BuildStageType.ID, oldScanId,
@@ -286,7 +298,8 @@ public class NewestRiskServiceTest
         time4.toDate());
     PolicyViolation policyViolation4 = tempEntity.newPolicyViolation(policyEval4, orgPolicy);
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null,
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null,
+        null,
         null, null, 100);
     assertThat(riskDTOs, hasSize(1));
     assertNewestRiskDTO(riskDTOs.get(0), app, policyViolation1, policyEval3.getTime());
@@ -303,8 +316,8 @@ public class NewestRiskServiceTest
         null /* hash */, "reason");
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(ReleaseStageType.ID),
-        null, null, null, 1000);
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null,
+        Collections.singleton(ReleaseStageType.ID), null, null, null, 1000);
     assertThat(riskDTOs, hasSize(1));
     NewestRiskDTO riskDTO = riskDTOs.get(0);
     assertNewestRiskDTO(riskDTO, app1, policyViolation, evaluation.getTime());
@@ -315,8 +328,8 @@ public class NewestRiskServiceTest
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy);
 
-    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(ReleaseStageType.ID),
-        null, null, null, 1000);
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, null,
+        Collections.singleton(ReleaseStageType.ID), null, null, null, 1000);
     assertThat(riskDTOs, hasSize(1));
     NewestRiskDTO riskDTO = riskDTOs.get(0);
     assertNewestRiskDTO(riskDTO, app1, policyViolation, evaluation.getTime());

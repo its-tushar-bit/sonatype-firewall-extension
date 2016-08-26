@@ -91,7 +91,7 @@ public class DashboardFilterServiceTest
 
   @Test
   public void testGetFilterSummary_NoFilter() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null, null);
+    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null, null, null);
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.matchedPolicies, is(3));
     assertThat(summary.matchedComponents, is(4));
@@ -99,11 +99,20 @@ public class DashboardFilterServiceTest
 
   @Test
   public void testGetFilterSummary_FilterByApp() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(Collections.singleton(app2.getId()), null, null,
-        null, null);
+    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, Collections.singleton(app2.getId()), null,
+        null, null, null);
     assertThat(summary.matchedApplications, is(1));
     assertThat(summary.matchedPolicies, is(2));
     assertThat(summary.matchedComponents, is(1));
+  }
+
+  @Test
+  public void testGetFilterSummary_FilterByOrg() throws Exception {
+    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(Collections.singleton(app2.getParentOwnerId()),
+        null, null, null, null, null);
+    assertThat(summary.matchedApplications, is(2));
+    assertThat(summary.matchedPolicies, is(3));
+    assertThat(summary.matchedComponents, is(4));
   }
 
   @Test
@@ -111,7 +120,7 @@ public class DashboardFilterServiceTest
     Tag app2Tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
 
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null,
+    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null,
         Collections.singleton(app2Tag.getId()), null, null);
     assertThat(summary.matchedApplications, is(1));
     assertThat(summary.matchedPolicies, is(2));
@@ -120,7 +129,7 @@ public class DashboardFilterServiceTest
 
   @Test
   public void testGetFilterSummary_FilterByPolicyThreatLevel() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null,
+    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null, null,
         new PolicyThreatLevelFilter(orgPolicy.getThreatLevel(), orgPolicy.getThreatLevel()));
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.matchedPolicies, is(1));
@@ -134,7 +143,7 @@ public class DashboardFilterServiceTest
     orgPolicy.setConstraints(Collections.singletonList(constraint));
     new PolicyDAO().update(orgPolicy);
 
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null,
+    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null,
         new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), null);
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.matchedPolicies, is(1));
@@ -143,7 +152,7 @@ public class DashboardFilterServiceTest
 
   @Test
   public void testGetFilterSummary_FilterByStage() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null,
+    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null,
         Collections.singleton(ReleaseStageType.ID), null, null, null);
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.matchedPolicies, is(3));

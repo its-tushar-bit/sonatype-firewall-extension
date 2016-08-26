@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,22 +110,32 @@ public class ApplicationService
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplicationsByIdsAndTagIds(@Nullable final Set<String> applicationIds,
-                                                         @Nullable final Set<String> tagIds)
+  public List<Application> getApplicationsByIdsAndOrganizationIdsAndTagIds(@Nullable final Set<String> organizationIds,
+                                                                           @Nullable final Set<String> applicationIds,
+                                                                           @Nullable final Set<String> tagIds)
   {
-    if (isEmpty(applicationIds) && isEmpty(tagIds)) {
-      // neither filled
+    if (isEmpty(applicationIds) && isEmpty(tagIds) && isEmpty(organizationIds)) {
+      // none filled
       return applicationDAO.getAll();
     }
-    else if (isEmpty(applicationIds)) {
+
+    // We don't want to modify the original
+    Set<String> internalApplicationIds = new HashSet<>();
+    if (applicationIds != null) {
+      internalApplicationIds.addAll(applicationIds);
+    }
+    // Add organizationIds
+    internalApplicationIds.addAll(getApplicationIdsByOrganizationIds(organizationIds));
+
+    if (isEmpty(internalApplicationIds)) {
       return applicationDAO.getByTagIds(tagIds);
     }
     else if (isEmpty(tagIds)) {
-      return applicationDAO.getByIds(applicationIds);
+      return applicationDAO.getByIds(internalApplicationIds);
     }
     else {
       // both filled
-      return applicationDAO.getByIdsAndTagIds(applicationIds, tagIds);
+      return applicationDAO.getByIdsAndTagIds(internalApplicationIds, tagIds);
     }
   }
 
@@ -155,5 +166,17 @@ public class ApplicationService
       applicationCleaner.delete(tx, application);
       tx.commit();
     }
+  }
+
+  public Set<String> getApplicationIdsByOrganizationIds(Set<String> organizationIds) {
+    Set<String> applicationIds = new HashSet<>();
+    if (organizationIds != null) {
+      for (String organizationId : organizationIds) {
+        for (Application application : applicationDAO.getByOrganizationId(organizationId)) {
+          applicationIds.add(application.getId());
+        }
+      }
+    }
+    return applicationIds;
   }
 }

@@ -87,14 +87,14 @@ public class ApplicationRiskServiceTest
         "g", "a", "v", "somehash");
 
     List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(null, null, null, null, null,
-        100);
+        null, 100);
     assertThat(riskDTOs, hasSize(2));
     assertThat(riskDTOs.get(0).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
     assertThat(riskDTOs.get(1).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
 
     try {
-      applicationRiskService.getApplicationRisks(null, Collections.singleton(DevelopStageType.ID), null, null, null,
-          100);
+      applicationRiskService.getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null,
+          null, 100);
       fail("Expected exception");
     }
     catch (BadRequestException e) {
@@ -111,7 +111,7 @@ public class ApplicationRiskServiceTest
     evaluation = tempEntity.newPolicyEvaluation(app1.getId(), StageReleaseStageType.ID, "scan app1 id");
     tempEntity.newPolicyViolation(evaluation, app1Policy);
 
-    List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(
+    List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app1.getId()),
         new LinkedHashSet<>(Arrays.asList(ReleaseStageType.ID, OperateStageType.ID, BuildStageType.ID,
             StageReleaseStageType.ID)), null, null, null, 100);
@@ -128,7 +128,7 @@ public class ApplicationRiskServiceTest
   public void testGetApplicationRisks_ViolationForComponentWithoutHash() throws Exception {
     tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, null, null, null, null, "unknown");
 
-    List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(
+    List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app1.getId()), null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(1));
     ApplicationRiskScoreDTO appDTO = riskDTOs.get(0);

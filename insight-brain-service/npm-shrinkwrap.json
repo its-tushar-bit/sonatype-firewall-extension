@@ -1,6 +1,6 @@
 {
   "//": "grunt-styleguide has a transitive dependency on node-sass 0.9.6 which has a bug forcing clients to build libsass",
-  "//": "node-sass updated to 3.2.0 which is fixed allowing prebuilt libs to be fetched",
+  "///": "node-sass updated to 3.2.0 which is fixed allowing prebuilt libs to be fetched",
   "name": "insight-brain-service",
   "version": "1.16.0-SNAPSHOT",
   "dependencies": {

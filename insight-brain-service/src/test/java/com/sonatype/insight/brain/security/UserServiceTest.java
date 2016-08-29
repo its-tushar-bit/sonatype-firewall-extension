@@ -269,7 +269,7 @@ public class UserServiceTest
 
     findMembersDTO = userService
         .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
-    assertMember(findMembersDTO, "LDAP error, displaying local users only.", MemberType.USER, User.ADMIN_USERNAME,
+    assertMember(findMembersDTO, "LDAP error, displaying partial results.", MemberType.USER, User.ADMIN_USERNAME,
         "Admin BuiltIn", "admin@localhost", "IQ Server");
   }
 

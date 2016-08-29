@@ -10,15 +10,15 @@ objectclass: organizationalUnit
 ou: groups
 description: Container for group entries
 
-dn: uid=testuser,ou=users,dc=company,dc=com
-uid: testuser
+dn: uid=testuser1,ou=users,dc=company,dc=com
+uid: testuser1
 givenName: John Doe
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
 sn: User
-cn: Test User
+cn: Test User1
 userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
 mail: test.user@company.com
 departmentNumber: testUsers
@@ -42,7 +42,7 @@ dn: cn=Alpha,ou=groups,dc=company,dc=com
 cn: Alpha
 objectClass: top
 objectClass: groupOfNames
-member: uid=testuser
+member: uid=testuser1
 
 dn: cn=Beta,ou=groups,dc=company,dc=com
 cn: Beta

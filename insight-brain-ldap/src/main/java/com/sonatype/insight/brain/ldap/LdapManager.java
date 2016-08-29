@@ -135,13 +135,14 @@ public class LdapManager
   /**
    * Find a list of users, searching the displayName attribute.
    * 
+   * @param ldapServer The LDAP server to query
    * @param name String to match against
    * @param maxResults Limit on the number of results to return
    * @return List of LdapUser objects that match the search criteria
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> findUsersByName(String name, long maxResults) throws NamingException {
-    LdapConnection conn = getDecryptedConnection();
+  public List<LdapUser> findUsersByName(LdapServer ldapServer, String name, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection(ldapServer);
     return new LdapQuery(conn, getUserMapping(conn)).queryUsersByName(name, maxResults);
   }
 
@@ -167,19 +168,6 @@ public class LdapManager
   public List<LdapGroup> findGroupsByName(String name, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
     return new LdapQuery(conn, getUserMapping(conn)).queryGroupsByName(name, maxResults);
-  }
-
-  /**
-   * Tests finding users by name
-   * 
-   * @param umap user mappings to find proper attributes for the ldap query
-   * @param name String to match against
-   * @param maxResults Limit on the number of results to return
-   * @return List of LdapUser objects that match the search criteria
-   * @throws NamingException if there is a problem with the mapping or the credentials
-   */
-  public List<LdapUser> testFindUsersByName(LdapUserMapping umap, String name, long maxResults) throws NamingException {
-    return new LdapQuery(getDecryptedConnection(), umap).queryUsersByName(name, maxResults);
   }
 
   // User authentication

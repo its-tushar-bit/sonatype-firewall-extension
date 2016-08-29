@@ -606,9 +606,9 @@ public class LdapManagerTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    createUserMapping(ldapServer);
 
-    List<LdapUser> users = manager.testFindUsersByName(umap, "Test User 2 1", 100);
+    List<LdapUser> users = manager.findUsersByName(ldapServer, "Test User 2 1", 100);
     assertThat(users, hasSize(1));
     assertThat(users.get(0).getRealName(), is("Test User 2 1"));
   }
@@ -619,9 +619,9 @@ public class LdapManagerTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    createUserMapping(ldapServer);
 
-    List<LdapUser> users = manager.testFindUsersByName(umap, "tEST user 2 1", 100);
+    List<LdapUser> users = manager.findUsersByName(ldapServer, "tEST user 2 1", 100);
     assertThat(users, hasSize(1));
     assertThat(users.get(0).getRealName(), is("Test User 2 1"));
   }
@@ -632,9 +632,9 @@ public class LdapManagerTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    createUserMapping(ldapServer);
 
-    List<LdapUser> users = manager.testFindUsersByName(umap, null /* name */, 100);
+    List<LdapUser> users = manager.findUsersByName(ldapServer, null /* name */, 100);
     assertThat(users, hasSize(0));
   }
 
@@ -644,9 +644,9 @@ public class LdapManagerTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    createUserMapping(ldapServer);
 
-    List<LdapUser> users = manager.testFindUsersByName(umap, "*" /* name */, 100);
+    List<LdapUser> users = manager.findUsersByName(ldapServer, "*" /* name */, 100);
     assertThat(users, hasSize(3));
     List<String> foundNames = new ArrayList<>();
     for (LdapUser user : users) {
@@ -656,17 +656,45 @@ public class LdapManagerTest
   }
 
   @Test
+  public void testFindUsersByName_TwoLdapServers() throws Exception {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
+    LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
+    createUserMapping(ldapServer1);
+    startLdapServer(testLdapServer1, ldapConnection1);
+    LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
+    LdapConnection ldapConnection2 = createLdapConnection(ldapServer2);
+    createUserMapping(ldapServer2);
+    startLdapServer(testLdapServer2, ldapConnection2);
+
+    List<LdapUser> users1 = manager.findUsersByName(ldapServer1, "test*" /* name */, 100);
+    assertThat(users1, hasSize(3));
+    List<String> foundNames1 = new ArrayList<>();
+    for (LdapUser user : users1) {
+      foundNames1.add(user.getUsername());
+    }
+    assertThat(foundNames1, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
+
+    List<LdapUser> users2 = manager.findUsersByName(ldapServer2, "test*" /* name */, 100);
+    assertThat(users2, hasSize(3));
+    List<String> foundNames2 = new ArrayList<>();
+    for (LdapUser user : users2) {
+      foundNames2.add(user.getUsername());
+    }
+    assertThat(foundNames2, containsInAnyOrder("test_user1_2", "test_user2_2", "test*user1_2"));
+  }
+
+  @Test
   public void testFindUsersByName_MaxResults() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    createUserMapping(ldapServer);
 
-    List<LdapUser> users = manager.testFindUsersByName(umap, "*" /* name */, 100);
+    List<LdapUser> users = manager.findUsersByName(ldapServer, "*" /* name */, 100);
     assertThat(users, hasSize(3));
 
-    users = manager.testFindUsersByName(umap, "*" /* name */, 1);
+    users = manager.findUsersByName(ldapServer, "*" /* name */, 1);
     assertThat(users, hasSize(1));
   }
 

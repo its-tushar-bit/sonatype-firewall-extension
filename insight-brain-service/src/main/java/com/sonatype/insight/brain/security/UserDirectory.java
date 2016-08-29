@@ -28,6 +28,8 @@ import javax.inject.Singleton;
 import javax.naming.NamingException;
 import javax.validation.constraints.NotNull;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
@@ -221,19 +223,31 @@ public class UserDirectory
       users.put(member.getInternalNameLowerCase(), member);
     }
 
-    Exception ldapException = null;
+    List<NamingException> namingExceptions = new ArrayList<>();
+    List<Exception> otherExceptions = new ArrayList<>();
     if (ldapManager.isLdapEnabled()) {
       try {
-        String ldapName = ldapManager.getLdapServerName();
-
-        for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-          Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
-          String key = member.getInternalNameLowerCase();
-          // Ignore any user that was already discovered in the CLM realm.
-          if (!users.containsKey(key)) {
-            users.put(key, member);
+        for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+          try {
+            for (LdapUser user : ldapManager.findUsersByName(ldapServer, query, 100)) {
+              Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
+                  ldapServer.getName());
+              String key = member.getInternalNameLowerCase();
+              // Ignore any user that was already discovered in the other realms.
+              if (!users.containsKey(key)) {
+                users.put(key, member);
+              }
+            }
+          }
+          catch (NamingException e) {
+            namingExceptions.add(e);
+          }
+          catch (Exception e) {
+            otherExceptions.add(e);
           }
         }
+
+        String ldapName = ldapManager.getLdapServerName();
         if (groupsEnabled && ldapManager.isGroupSearchEnabled()) {
           for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
             final String groupName = group.getGroupname();
@@ -243,7 +257,7 @@ public class UserDirectory
         }
       }
       catch (Exception e) {
-        ldapException = e;
+        otherExceptions.add(e);
       }
     }
 
@@ -257,7 +271,28 @@ public class UserDirectory
     members.addAll(users.values());
     members.addAll(groups.values());
 
-    return new QueryResult(members, ldapException);
+    return new QueryResult(members, mergeExceptions(namingExceptions, otherExceptions));
+  }
+
+  private Exception mergeExceptions(List<NamingException> namingExceptions, List<Exception> otherExceptions) {
+    Exception result;
+    if (!otherExceptions.isEmpty()) {
+      result = new Exception();
+    }
+    else if (!namingExceptions.isEmpty()) {
+      result = new NamingException();
+    }
+    else {
+      return null;
+    }
+
+    for (NamingException e : namingExceptions) {
+      result.addSuppressed(e);
+    }
+    for (Exception e : otherExceptions) {
+      result.addSuppressed(e);
+    }
+    return result;
   }
 
   private Member newAuthenticatedUsersGroup() {

@@ -94,11 +94,11 @@ public class UserService
     UserDirectory.QueryResult result = userDirectory.getMembersByQuery(query, groupsEnabled);
     if (result.getException() instanceof NamingException) {
       log.error("Unable to connect to LDAP server.", result.getException());
-      connectionError = "LDAP error, displaying local users only.";
+      connectionError = "LDAP error, displaying partial results.";
     }
     else if (result.hasException()) {
       log.error("An error occurred while attempting to access full user directories.", result.getException());
-      connectionError = "Unable to access full user directories, attempting to display local users only.";
+      connectionError = "Unable to access full user directories, displaying partial results.";
     }
 
     return new FindMembersDTO(result.get(), connectionError);

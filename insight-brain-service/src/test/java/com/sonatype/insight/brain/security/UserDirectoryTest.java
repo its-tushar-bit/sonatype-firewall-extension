@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,8 +34,10 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Sets;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,6 +45,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -49,6 +53,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -57,9 +62,11 @@ import static org.mockito.Mockito.when;
 public class UserDirectoryTest
     extends AbstractComponentTest
 {
+  @Rule
+  public TestLdapServer testLdapServer1;
 
   @Rule
-  public TestLdapServer embeddedLdapServer = new TestLdapServer();
+  public TestLdapServer testLdapServer2;
 
   @Inject
   private LdapManager manager;
@@ -67,29 +74,40 @@ public class UserDirectoryTest
   @Inject
   private UserDirectory userDirectory;
 
+  @Before
+  public void before() {
+    testLdapServer1 = new TestLdapServer(new File(tempDir.getRoot(), "server1"), "/UserDirectoryTest/ldap_users1.ldif");
+    testLdapServer2 = new TestLdapServer(new File(tempDir.getRoot(), "server2"), "/UserDirectoryTest/ldap_users2.ldif");
+  }
+
+  private void configureAndStartNewLdapServer(TestLdapServer testLdapServer, String ldapServerName)
+      throws Exception
+  {
+    testLdapServer.start();
+
+    LdapServer ldapServer = tempEntity.newLdapServer(ldapServerName);
+    tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+  }
+
   @Test
   public void testGetMembersByName() throws Exception {
     // Configure LDAP.
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
     // Add a new CLM user.
     tempEntity.newUser("clmbob");
 
     // Get users only, no groups.
-    Set<String> names = Sets.newHashSet("clmbob", "testuser", "Alpha");
+    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha");
     List<Member> members = userDirectory.getUsersByName(names).get();
 
     assertThat(members, hasSize(2));
     assertThat(names, hasItems(members.get(0).getInternalName(), members.get(1).getInternalName()));
 
     // Get both groups and users.
-    members = userDirectory.getMembersByName(
-        Sets.newHashSet(createUser("clmbob"), createUser("testuser"), createGroup("Alpha"))).get();
+    members = userDirectory
+        .getMembersByName(Sets.newHashSet(createUser("clmbob"), createUser("testuser1"), createGroup("Alpha"))).get();
 
     assertThat(members, hasSize(3));
     assertThat(
@@ -98,7 +116,7 @@ public class UserDirectoryTest
             .getInternalName()));
 
     // Get users only, case insensitive.
-    names = Sets.newHashSet("CLMBOB", "TESTUSER", "ALPHA");
+    names = Sets.newHashSet("CLMBOB", "TESTUSER1", "ALPHA");
     members = userDirectory.getUsersByName(names).get();
 
     assertThat(members, hasSize(2));
@@ -108,8 +126,8 @@ public class UserDirectoryTest
             .toUpperCase(Locale.ENGLISH)));
 
     // Get users and groups, case insensitive.
-    members = userDirectory.getMembersByName(
-        Sets.newHashSet(createUser("CLMBOB"), createUser("TESTUSER"), createGroup("ALPHA"))).get();
+    members = userDirectory
+        .getMembersByName(Sets.newHashSet(createUser("CLMBOB"), createUser("TESTUSER1"), createGroup("ALPHA"))).get();
 
     assertThat(members, hasSize(3));
     assertThat(
@@ -122,11 +140,10 @@ public class UserDirectoryTest
 
   @Test
   public void testGetDynamicGroupsDisabled() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
+    testLdapServer1.start();
 
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    LdapConnection conn = tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    LdapConnection conn = tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer1.getPort());
     LdapUserMapping umap = tempEntity.newLdapUserMapping(ldapServer.getId());
 
     conn.setSearchBase("dc=company,dc=com");
@@ -161,7 +178,7 @@ public class UserDirectoryTest
     // Add a new CLM user.
     tempEntity.newUser("clmbob");
 
-    Set<String> names = Sets.newHashSet("clmbob", "testuser", "Alpha");
+    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha");
     UserDirectory.QueryResult result = userDirectory.getUsersByName(names);
     List<Member> members = result.get();
 
@@ -188,12 +205,7 @@ public class UserDirectoryTest
 
   @Test
   public void testGetMembersByName_WithNullOrEmptyNames() throws Exception {
-    // Configure LDAP.
-    embeddedLdapServer.start();
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
     List<Member> members = userDirectory.getMembersByName(new HashSet<Member>()).get();
 
@@ -213,12 +225,8 @@ public class UserDirectoryTest
   @Test
   public void testGetMembersByQuery() throws Exception {
     // Configure LDAP.
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
     // Add a new CLM user.
     tempEntity.newUser("clmbob", "clm", "bob", "clmbob@bob");
@@ -238,25 +246,22 @@ public class UserDirectoryTest
     // Get both groups and users.
     members = userDirectory.getMembersByQuery("John Doe", true).get();
 
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("testuser"));
+    assertThat(members, hasSize(2));
+    assertThat(members.get(0).getInternalName(), is("testuser1"));
+    assertThat(members.get(1).getInternalName(), is("testuser2"));
 
     // Get both groups and users, case insensitive.
     members = userDirectory.getMembersByQuery("JOHN DOE", true).get();
 
-    assertThat(members, hasSize(1));
-    assertThat(members.get(0).getInternalName(), is("testuser"));
+    assertThat(members, hasSize(2));
+    assertThat(members.get(0).getInternalName(), is("testuser1"));
+    assertThat(members.get(1).getInternalName(), is("testuser2"));
   }
 
   @Test
   public void testGetMembersByQuery_WithWildcards() throws Exception {
     // Configure LDAP.
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
     // Add a new CLM user.
     tempEntity.newUser("clmbob", "clm", "bob", "clmbob@bob");
@@ -285,10 +290,12 @@ public class UserDirectoryTest
 
   @Test
   public void testGetMembersByQuery_WithLdapError() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    NamingException namingException = new NamingException("Naming Exception!");
-    when(mockLdapManager.findUsersByName(any(String.class), anyInt())).thenThrow(namingException);
+    Throwable namingException = new NamingException("Naming Exception!");
+    when(mockLdapManager.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
+        .thenThrow(namingException);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
@@ -301,7 +308,73 @@ public class UserDirectoryTest
     // Verify that the CLM user has been returned.
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
-    assertEquals(result.getException(), namingException);
+    assertThat(result.getException(), instanceOf(NamingException.class));
+    assertThat(result.getException().getSuppressed().length, is(1));
+    assertThat(result.getException().getSuppressed()[0], is(namingException));
+  }
+
+  @Test
+  public void testGetMembersByQuery_WithGenericError() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    Throwable exception = new RuntimeException("Exception!");
+    when(mockLdapManager.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
+        .thenThrow(exception);
+
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
+
+    // Add a new CLM user.
+    tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
+
+    UserDirectory.QueryResult result = userDirectory.getMembersByQuery("John *", false);
+    List<Member> members = result.get();
+
+    // Verify that the CLM user has been returned.
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getInternalName(), is("testclmuser"));
+    assertThat(result.getException(), instanceOf(Exception.class));
+    assertThat(result.getException().getSuppressed().length, is(1));
+    assertThat(result.getException().getSuppressed()[0], is(exception));
+  }
+
+  @Test
+  public void testGetMembersByQuery_WithMultipleErrors() throws Exception {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
+    LdapServer ldapServer3 = tempEntity.newLdapServer("Test Server3");
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    // First LDAP server throws a generic exception
+    Throwable exception = new RuntimeException("Exception!");
+    when(mockLdapManager.findUsersByName(argThat(new SameId(ldapServer1)), any(String.class), anyInt()))
+        .thenThrow(exception);
+    // Second LDAP server throws a NamingException
+    Throwable namingException = new NamingException("NamingException!");
+    when(mockLdapManager.findUsersByName(argThat(new SameId(ldapServer2)), any(String.class), anyInt()))
+        .thenThrow(namingException);
+    // Third LDAP server returns a user
+    LdapUser ldapUser = new LdapUser();
+    ldapUser.setUsername("testldapuser");
+    when(mockLdapManager.findUsersByName(argThat(new SameId(ldapServer3)), any(String.class), anyInt()))
+        .thenReturn(Collections.singletonList(ldapUser));
+
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
+
+    // Add a new CLM user.
+    tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
+
+    UserDirectory.QueryResult result = userDirectory.getMembersByQuery("John *", false);
+    List<Member> members = result.get();
+
+    // Verify that the CLM user and the LDAP user have been returned.
+    assertThat(members, hasSize(2));
+    assertThat(members.get(0).getInternalName(), is("testclmuser"));
+    assertThat(members.get(1).getInternalName(), is("testldapuser"));
+    assertThat(result.getException(), instanceOf(Exception.class));
+    assertThat(result.getException().getSuppressed().length, is(2));
+    assertThat(result.getException().getSuppressed()[0], is(namingException));
+    assertThat(result.getException().getSuppressed()[1], is(exception));
   }
 
   @Test
@@ -335,12 +408,7 @@ public class UserDirectoryTest
 
   @Test
   public void testGetMembersByQuery_WithNullOrEmptyQuery() throws Exception {
-    // Configure LDAP.
-    embeddedLdapServer.start();
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
     List<Member> members = userDirectory.getMembersByQuery(null, false).get();
 
@@ -393,15 +461,9 @@ public class UserDirectoryTest
 
   @Test
   public void testValidateUsers_LdapUserFound() throws Exception {
-    // Configure LDAP.
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    Set<String> users = Sets.newHashSet("testuser");
+    Set<String> users = Sets.newHashSet("testuser1");
     Set<String> invalidUsers = userDirectory.validateUsers(users);
     assertThat(invalidUsers, hasSize(0));
   }
@@ -416,13 +478,7 @@ public class UserDirectoryTest
 
   @Test
   public void testValidateUsers_ClmUserNotFound_LdapConfigured() throws Exception {
-    // Configure LDAP.
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
     Set<String> users = Sets.newHashSet("invaliduser");
     Set<String> invalidUsers = userDirectory.validateUsers(users);
@@ -446,15 +502,9 @@ public class UserDirectoryTest
 
   @Test
   public void testIsLdapUser() throws Exception {
-    // Configure LDAP.
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    assertTrue(userDirectory.isLdapUser(new User("testuser", null, null, null, null)));
+    assertTrue(userDirectory.isLdapUser(new User("testuser1", null, null, null, null)));
     assertFalse(userDirectory.isLdapUser(new User("not-a-real-user", null, null, null, null)));
   }
 
@@ -533,5 +583,49 @@ public class UserDirectoryTest
         Collections.singleton(createGroup(Group.AUTHENTICATED_USERS_GROUP_ID.toUpperCase(Locale.ENGLISH)))).get();
     assertThat(members, hasSize(1));
     assertIsAuthenticatedUsersGroup(members.get(0));
+  }
+
+  @Test
+  public void testGetMembersByQuery_SameUserInMultipleRealms() throws Exception {
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
+
+    // Should get back only the user from testLdapServer2, because testLdapServer1 was not started yet.
+    List<Member> members = userDirectory.getMembersByQuery("Beta User", false).get();
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getDisplayName(), is("Beta User"));
+    assertThat(members.get(0).getRealm(), is("LDAP2"));
+
+    // Start testLdapServer1. Should get back only the user from testLdapServer1.
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
+    members = userDirectory.getMembersByQuery("Beta User", false).get();
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getDisplayName(), is("Beta User"));
+    assertThat(members.get(0).getRealm(), is("LDAP1"));
+  
+    // Add a new IQ user. Should get back only the IQ user.
+    tempEntity.newUser("beta", "Beta", "User", "betauser@example.com");
+    members = userDirectory.getMembersByQuery("Beta User", false).get();
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getDisplayName(), is("Beta User"));
+    assertThat(members.get(0).getRealm(), is("IQ Server"));
+  }
+
+  private static class SameId
+      extends ArgumentMatcher<LdapServer>
+  {
+    private final String ldapServerId;
+
+    SameId(LdapServer ldapServer) {
+      ldapServerId = ldapServer.getId();
+    }
+
+    @Override
+    public boolean matches(Object obj) {
+      if (obj == null) {
+        return false;
+      }
+      LdapServer other = (LdapServer) obj;
+      return ldapServerId.equals(other.getId());
+    }
   }
 }

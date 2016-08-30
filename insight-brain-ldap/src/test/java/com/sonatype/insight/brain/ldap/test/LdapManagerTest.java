@@ -351,7 +351,8 @@ public class LdapManagerTest
       assertThat(e.getMessage(), is("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port + ";\n"
           + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
 
-      assertThat(e.getSuppressed()[0].getCause().getMessage(), is("Connection refused"));
+      // Use startsWith because the error message depends on the OS.
+      assertThat(e.getSuppressed()[0].getCause().getMessage(), startsWith("Connection refused"));
       assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
       assertThat(e.getSuppressed().length, is(2));
     }

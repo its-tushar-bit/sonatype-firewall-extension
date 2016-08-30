@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.ldap;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -49,10 +52,6 @@ public class LdapManager
 
   private final PlexusCipher cipher;
 
-  private long lastFailureMillis = 0;
-
-  private int connectionFailures = 0;
-
   @Inject
   public LdapManager(PlexusCipher cipher) {
     this.cipher = cipher;
@@ -83,7 +82,7 @@ public class LdapManager
     else {
       connDao.insert(encrypted);
     }
-    resetConnectionFailures();
+    resetConnectionFailures(conn);
     return fakeOutPassword(encrypted);
   }
 
@@ -249,23 +248,29 @@ public class LdapManager
    * @see LdapRealm#queryForAuthenticationInfo
    */
   public LdapUser authenticateUser(String username, char[] password) throws NamingException {
-    LdapConnection conn = getDecryptedConnection();
-    checkValidConnection(conn);
-    try {
-      LdapUser user = new LdapQuery(conn, getUserMapping(conn)).authenticateUser(username, password, true);
-      resetConnectionFailures();
-      return user;
+    final List<LdapServer> servers = serverDao.getAll();
+
+    final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers = new ArrayList<>();
+
+    for (final LdapServer server : servers) {
+      final LdapConnection conn = getDecryptedConnection(server);
+      checkValidConnection(conn);
+      try {
+        LdapUser user = new LdapQuery(conn, getUserMapping(conn)).authenticateUser(username, password, true);
+        resetConnectionFailures(conn);
+        return user;
+      }
+      //     unknown user            bad password
+      catch (NameNotFoundException | NamingSecurityException e) {
+        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+      }
+      catch (NamingException e) {
+        recordConnectionFailure(conn);
+        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+      }
     }
-    catch (NameNotFoundException e) {
-      throw e; // unknown user
-    }
-    catch (NamingSecurityException e) {
-      throw e; // bad password
-    }
-    catch (NamingException e) {
-      recordConnectionFailure();
-      throw e;
-    }
+
+    throw LdapServerExceptionWrapper.getSomethingToThrow(ldapServerExceptionWrappers);
   }
 
   /**
@@ -372,33 +377,44 @@ public class LdapManager
 
   // Retry delay support
 
+  private static class FailureInfo
+  {
+    private long lastFailureMillis = 0;
+
+    private int connectionFailures = 0;
+  }
+
+  private final ConcurrentMap<String, FailureInfo> failureInfoMap = new ConcurrentHashMap<>();
+
   /**
    * Checks failure rate of LDAP connection; throws exception while retry delay is in effect.
    */
   private void checkValidConnection(LdapConnection conn) throws NamingException {
-    if (lastFailureMillis > 0) {
-      if (lastFailureMillis + (conn.getRetryDelay() * 1000) < System.currentTimeMillis()) {
-        resetConnectionFailures(); // retry delay has elapsed
-      }
-      else if (connectionFailures >= 3) {
-        throw new CommunicationException("Delaying retry of failing LDAP connection.");
+    final FailureInfo failureInfo = failureInfoMap.get(conn.getId());
+    if (failureInfo != null) {
+      if (failureInfo.lastFailureMillis > 0) {
+        if (failureInfo.lastFailureMillis + (conn.getRetryDelay() * 1000) < System.currentTimeMillis()) {
+          resetConnectionFailures(conn); // retry delay has elapsed
+        }
+        else if (failureInfo.connectionFailures >= 3) {
+          throw new CommunicationException("Delaying retry of failing LDAP connection.");
+        }
       }
     }
   }
 
-  /**
-   * If we want absolute precision we should ideally use AtomicInteger or add synchronized to these methods.
-   * However we don't need such precision as this is more about stopping requests for a grace period when we
-   * detect a problem with the LDAP connection. Without AtomicInteger/synchronized we may miscount by one or
-   * two requests when dealing with heavily concurrent requests, but will eventually apply the grace period.
-   */
-  private void recordConnectionFailure() {
-    lastFailureMillis = System.currentTimeMillis();
-    connectionFailures++;
+  private synchronized void recordConnectionFailure(final LdapConnection conn) {
+    final String connId = conn.getId();
+    failureInfoMap.putIfAbsent(connId, new FailureInfo());
+    final FailureInfo failureInfo = failureInfoMap.get(connId);
+    failureInfo.lastFailureMillis = System.currentTimeMillis();
+    failureInfo.connectionFailures++;
   }
 
-  private void resetConnectionFailures() {
-    lastFailureMillis = 0;
-    connectionFailures = 0;
+  private void resetConnectionFailures(final LdapConnection conn) {
+    final String connId = conn.getId();
+    if (connId != null) {
+      failureInfoMap.remove(connId);
+    }
   }
 }

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
@@ -228,6 +229,174 @@ public class LdapManagerTest
     finally {
       socket.close();
     }
+  }
+
+  @Test
+  public void testAuthenticateUser_SingleExceptionThrownAsIs() throws Exception {
+    loadLdapServer(testLdapServer1, "Test Server1");
+
+    try {
+      manager.authenticateUser("test_user2_2", "test".toCharArray());
+      fail("wrong password for valid user in 'Test Server2' should fail");
+    }
+    catch (NameNotFoundException e) {
+      assertThat(e.getMessage(),
+          is("LDAP user with username 'test_user2_2' does not exist"));
+    }
+  }
+
+  @Test
+  public void testAuthenticateUser_MultiServer_BadPassword() throws Exception {
+    loadLdapServer(testLdapServer1, "Test Server1");
+    loadLdapServer(testLdapServer2, "Test Server2");
+
+    try {
+      manager.authenticateUser("test_user2_2", "badPWD".toCharArray());
+      fail("wrong password for valid user in 'Test Server2' should fail");
+    }
+    catch (AuthenticationException e) {
+      assertThat(e.getMessage(),
+          is("LDAP Server: Test Server2 -> [LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
+
+      assertThat(e.getSuppressed()[0].getMessage(), is("LDAP user with username 'test_user2_2' does not exist"));
+      assertThat(e.getSuppressed()[1].getMessage(),
+          is("[LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
+      assertThat(e.getSuppressed().length, is(2));
+    }
+  }
+
+  private void loadLdapServer(final TestLdapServer testLdapServer, final String serverName)
+      throws Exception
+  {
+    final LdapServer ldapServer = tempEntity.newLdapServer(serverName);
+    final LdapConnection ldapConnection = createLdapConnection(ldapServer);
+    startLdapServer(testLdapServer, ldapConnection);
+
+    createUserMapping(ldapServer);
+  }
+
+  @Test
+  public void testAuthenticateUser_MultiServer_Timeout_Single() throws Exception {
+    final LdapConnection ldapConnection1 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server1");
+    loadLdapServer(testLdapServer2, "Test Server2");
+
+    try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
+      try {
+        manager.authenticateUser("any-user", "anything".toCharArray());
+        fail("magic string 'timeout' in any error message should fail");
+      }
+      catch (NamingException e) {
+        assertThat(e.getMessage(),
+            is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"));
+
+        assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
+        assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'any-user' does not exist"));
+        assertThat(e.getSuppressed().length, is(2));
+      }
+    }
+  }
+
+  private LdapConnection createShortTimeoutLdapConnectionWithoutEmbeddedServer(final String ldapServerName) {
+    final LdapServer ldapServer1 = tempEntity.newLdapServer(ldapServerName);
+    final LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
+    ldapConnection1.setConnectionTimeout(1);
+    new LdapConnectionDAO().update(ldapConnection1);
+    createUserMapping(ldapServer1);
+    return ldapConnection1;
+  }
+
+  @Test
+  public void testAuthenticateUser_MultiServer_Timeout_MultipleAggregated() throws Exception {
+    final LdapConnection ldapConnection1 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server1");
+    final LdapConnection ldapConnection2 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server2");
+
+    final TestLdapServer testLdapServer3 = new TestLdapServer(new File(tempDir.getRoot(), "server3"),
+        "/ldap_users2.ldif");
+    loadLdapServer(testLdapServer3, "Test Server3");
+    try {
+      try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
+        try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
+
+          try {
+            manager.authenticateUser("any-user", "anything".toCharArray());
+            fail("magic string 'timeout' in any error message should fail");
+          }
+          catch (NamingException e) {
+            assertThat(e.getMessage(),
+                is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n" +
+                    "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
+
+            assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
+            assertThat(e.getSuppressed()[1].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
+            assertThat(e.getSuppressed()[2].getMessage(), is("LDAP user with username 'any-user' does not exist"));
+            assertThat(e.getSuppressed().length, is(3));
+          }
+        }
+      }
+    }
+    finally {
+      testLdapServer3.stop();
+    }
+  }
+
+  @Test
+  public void testAuthenticateUser_MultiServer_UnknownUser() throws Exception {
+    loadLdapServer(testLdapServer1, "Test Server1");
+    loadLdapServer(testLdapServer2, "Test Server2");
+
+    final int ldapServer1Port = testLdapServer1.getPort();
+    testLdapServer1.stop();
+    try {
+      manager.authenticateUser("test_user4", "anything".toCharArray());
+      fail("Unknown user in any server should fail");
+    }
+    catch (NamingException e) {
+      assertThat(e.getMessage(),
+          is("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port + ";\n" +
+              "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
+
+      assertThat(e.getSuppressed()[0].getCause().getMessage(), is("Connection refused"));
+      assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
+      assertThat(e.getSuppressed().length, is(2));
+    }
+  }
+
+  @Test
+  public void testAuthenticateUser_MultiServer_UnexpectedError() throws Exception {
+    loadLdapServer(testLdapServer1, "Test Server1");
+    loadLdapServer(testLdapServer2, "Test Server2");
+
+    try {
+      manager.authenticateUser("test_user4", "anything".toCharArray());
+      fail("Unknown user in any server should fail");
+    }
+    catch (NameNotFoundException e) {
+      assertThat(e.getMessage(),
+          is("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n" +
+              "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
+
+      assertThat(e.getSuppressed()[0].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
+      assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
+      assertThat(e.getSuppressed().length, is(2));
+    }
+  }
+
+  @Test
+  public void testAuthenticateUser_MultiServer_ValidLoginFirstServer() throws Exception {
+    loadLdapServer(testLdapServer1, "Test Server1");
+    loadLdapServer(testLdapServer2, "Test Server2");
+
+    final LdapUser ldapUser = manager.authenticateUser("test_user2_1", "test".toCharArray());
+    assertThat(ldapUser.getRealName(), is("Test User 2 1"));
+  }
+
+  @Test
+  public void testAuthenticateUser_MultiServer_ValidLoginSecondServer() throws Exception {
+    loadLdapServer(testLdapServer1, "Test Server1");
+    loadLdapServer(testLdapServer2, "Test Server2");
+
+    final LdapUser ldapUser = manager.authenticateUser("test_user2_2", "test".toCharArray());
+    assertThat(ldapUser.getRealName(), is("Test User 2 2"));
   }
 
   @Test

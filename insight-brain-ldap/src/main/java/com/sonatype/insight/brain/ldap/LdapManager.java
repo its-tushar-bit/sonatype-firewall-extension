@@ -260,7 +260,7 @@ public class LdapManager
         resetConnectionFailures(conn);
         return user;
       }
-      //     unknown user            bad password
+      // NameNotFoundException means unknown user, NamingSecurityException means bad password.
       catch (NameNotFoundException | NamingSecurityException e) {
         ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
       }

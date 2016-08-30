@@ -435,8 +435,7 @@ public class LdapResourceTest
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    assertThat(
-        status.getMessage(),
+    assertThat(status.getMessage(),
         allOf(anyOf(containsString("UnknownHostException"), containsString("CommunicationException")),
             containsString("garbage.localhost.litter")));
   }
@@ -469,8 +468,8 @@ public class LdapResourceTest
 
     String origTruststore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
     try {
-      System.setProperty(SYSPROP_SSLTRUSTSTORE, getTestResourceFile("/keystore/insight-testclient.ks")
-          .getCanonicalPath());
+      System.setProperty(SYSPROP_SSLTRUSTSTORE,
+          getTestResourceFile("/keystore/insight-testclient.ks").getCanonicalPath());
 
       LdapConnection conn = createLdapConnection("test");
       conn.setProtocol(LdapProtocol.LDAPS);

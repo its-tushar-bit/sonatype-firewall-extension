@@ -169,7 +169,8 @@ class LdapQuery
     byte[] storedCredentials = Strings.getBytesUtf8(user.getPassword());
 
     if (!PasswordUtil.compareCredentials(receivedCredentials, storedCredentials)) {
-      throw new AuthenticationException("LDAP user with username '" + user.getUsername() + "' cannot be authenticated.");
+      throw new AuthenticationException(
+          "LDAP user with username '" + user.getUsername() + "' cannot be authenticated.");
     }
   }
 
@@ -354,7 +355,8 @@ class LdapQuery
   /**
    * Returns group memberships for a given user or, for dynamic groupings, a given set of attributes.
    */
-  private Set<String> getGroupMemberships(LdapContext ctx, LdapUser user, Attributes attributes) throws NamingException
+  private Set<String> getGroupMemberships(LdapContext ctx, LdapUser user, Attributes attributes)
+      throws NamingException
   {
     Set<String> memberships;
     switch (umap.getGroupMappingType()) {
@@ -538,8 +540,8 @@ class LdapQuery
     Map<String, LdapGroup> ldapGroups = new LinkedHashMap<>();
     while (results.hasMoreElements()) {
       SearchResult result = results.nextElement();
-      Set<String> groupNames = getSimpleNames(getAttributeValues(result.getAttributes(),
-          umap.getUserMemberOfGroupAttribute()));
+      Set<String> groupNames = getSimpleNames(
+          getAttributeValues(result.getAttributes(), umap.getUserMemberOfGroupAttribute()));
       if (groupNames != null) {
         for (String groupName : groupNames) {
           if (groupNameMatches(groupName, queries, stringmatcher)

@@ -51,7 +51,8 @@ public class LdapResourceAuthzTest
     // The LdapConnection should not be persisted to the db at this point.
     LdapConnection ldapConnection = new LdapConnection();
     ldapConnection.setServerId(ldapServer.getId());
-    testAuthzPut(restRequest().path("{ldapServerId}/testConnection").parameter(ldapServer.getId()).body(ldapConnection));
+    testAuthzPut(
+        restRequest().path("{ldapServerId}/testConnection").parameter(ldapServer.getId()).body(ldapConnection));
   }
 
   @Test
@@ -66,8 +67,8 @@ public class LdapResourceAuthzTest
     ldapTestLoginRequest.setUserMapping(ldapUserMapping);
     ldapTestLoginRequest.setUsername("testTestLogin");
     ldapTestLoginRequest.setPassword("testTestLogin");
-    testAuthzPut(restRequest().path("{ldapServerId}/testLogin").parameter(ldapServer.getId())
-        .body(ldapTestLoginRequest));
+    testAuthzPut(
+        restRequest().path("{ldapServerId}/testLogin").parameter(ldapServer.getId()).body(ldapTestLoginRequest));
   }
 
   @Test

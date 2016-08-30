@@ -240,8 +240,7 @@ public class LdapManagerTest
       fail("wrong password for valid user in 'Test Server2' should fail");
     }
     catch (NameNotFoundException e) {
-      assertThat(e.getMessage(),
-          is("LDAP user with username 'test_user2_2' does not exist"));
+      assertThat(e.getMessage(), is("LDAP user with username 'test_user2_2' does not exist"));
     }
   }
 
@@ -255,19 +254,17 @@ public class LdapManagerTest
       fail("wrong password for valid user in 'Test Server2' should fail");
     }
     catch (AuthenticationException e) {
-      assertThat(e.getMessage(),
-          is("LDAP Server: Test Server2 -> [LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
+      assertThat(e.getMessage(), is(
+          "LDAP Server: Test Server2 -> [LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
 
       assertThat(e.getSuppressed()[0].getMessage(), is("LDAP user with username 'test_user2_2' does not exist"));
-      assertThat(e.getSuppressed()[1].getMessage(),
-          is("[LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
+      assertThat(e.getSuppressed()[1].getMessage(), is(
+          "[LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed: ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]"));
       assertThat(e.getSuppressed().length, is(2));
     }
   }
 
-  private void loadLdapServer(final TestLdapServer testLdapServer, final String serverName)
-      throws Exception
-  {
+  private void loadLdapServer(final TestLdapServer testLdapServer, final String serverName) throws Exception {
     final LdapServer ldapServer = tempEntity.newLdapServer(serverName);
     final LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer, ldapConnection);
@@ -323,8 +320,8 @@ public class LdapManagerTest
           }
           catch (NamingException e) {
             assertThat(e.getMessage(),
-                is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n" +
-                    "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
+                is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
+                    + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
 
             assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
             assertThat(e.getSuppressed()[1].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
@@ -351,9 +348,8 @@ public class LdapManagerTest
       fail("Unknown user in any server should fail");
     }
     catch (NamingException e) {
-      assertThat(e.getMessage(),
-          is("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port + ";\n" +
-              "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
+      assertThat(e.getMessage(), is("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port + ";\n"
+          + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
 
       assertThat(e.getSuppressed()[0].getCause().getMessage(), is("Connection refused"));
       assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
@@ -372,8 +368,8 @@ public class LdapManagerTest
     }
     catch (NameNotFoundException e) {
       assertThat(e.getMessage(),
-          is("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n" +
-              "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
+          is("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n"
+              + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n"));
 
       assertThat(e.getSuppressed()[0].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
       assertThat(e.getSuppressed()[1].getMessage(), is("LDAP user with username 'test_user4' does not exist"));
@@ -1296,9 +1292,7 @@ public class LdapManagerTest
     assertThat(name, is("Test Server"));
   }
 
-  private void startLdapServer(TestLdapServer testLdapServer, LdapConnection ldapConnection)
-      throws Exception
-  {
+  private void startLdapServer(TestLdapServer testLdapServer, LdapConnection ldapConnection) throws Exception {
     testLdapServer.setPort(ldapConnection.getPort());
     testLdapServer.start();
   }

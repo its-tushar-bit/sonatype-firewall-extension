@@ -306,8 +306,8 @@ public class LdapRealmTest
 
     if (protocol == LdapProtocol.LDAPS) {
       oldTrustStore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
-      System.setProperty(SYSPROP_SSLTRUSTSTORE, getTestResourceFile("/keystore/insight-testclient.ks")
-          .getAbsolutePath());
+      System.setProperty(SYSPROP_SSLTRUSTSTORE,
+          getTestResourceFile("/keystore/insight-testclient.ks").getAbsolutePath());
       ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
     }
 

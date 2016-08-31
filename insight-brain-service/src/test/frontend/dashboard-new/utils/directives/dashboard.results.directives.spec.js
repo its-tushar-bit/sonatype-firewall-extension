@@ -1,0 +1,123 @@
+describe('dashboard.results.directives.spec', function() {
+
+  var directives = [
+    {
+      prefix: 'violations',
+      serviceMethod: 'getNewestRisks'
+    }, {
+      prefix: 'applications',
+      serviceMethod: 'getApplicationRisks'
+    }, {
+      prefix: 'components',
+      serviceMethod: 'getComponentRisks'
+    }
+  ];
+
+  var dashboardDataServiceMock, $state;
+
+  beforeEach(module('dashboard.utils', function($provide) {
+    $provide.service('dashboard.data.service', function() {
+      return dashboardDataServiceMock;
+    });
+    $provide.service('$state', function() {
+      $state = jasmine.createSpyObj('state', ['go']);
+      return $state;
+    });
+  }));
+
+  angular.forEach(directives, function(directive) {
+    describe(directive.prefix + '-results directive', function() {
+      var $q,
+          scope,
+          directiveScope;
+
+      beforeEach(inject(function($controller, $compile, $httpBackend, $rootScope, _$q_) {
+        $q = _$q_;
+        scope = $rootScope.$new();
+        scope.maxResults = 123;
+        directiveScope = scope.$new();
+
+        dashboardDataServiceMock =  jasmine.createSpyObj('dashboardDataService', [directive.serviceMethod]);
+
+        $httpBackend.expectGET('dashboard-table').respond('<div></div>');
+        $compile(angular.element('<div ' + directive.prefix + '-results></div>'))(scope);
+        scope.$digest();
+        $httpBackend.flush();
+        $httpBackend.verifyNoOutstandingRequest();
+      }));
+
+      it('Filter Set', function() {
+        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.resolve('foo'));
+        scope.$apply(function() {
+          scope.filters = {
+            applicationIds: ['foo'],
+            policyThreatTypes: [],
+            stageTypeIds: [],
+            applicationTagIds: [],
+            policyThreatLevel: [0, 10]
+          };
+        });
+        expect(directiveScope.data).toEqual('foo');
+
+        // Filter is changed
+        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.resolve('bar'));
+        scope.$apply(function() {
+          scope.filters = angular.copy(scope.filters);
+          scope.filters.applicationIds = ['bar'];
+        });
+        expect(directiveScope.data).toEqual('bar');
+      });
+
+      it('Drops Requests That Don\'t Match', function() {
+        var deferred1 = $q.defer();
+        var deferred2 = $q.defer();
+        dashboardDataServiceMock[directive.serviceMethod].andReturn(deferred1.promise);
+        scope.$apply(function() {
+          scope.filters = {
+            applicationIds: ['foo'],
+            policyThreatTypes: [],
+            stageTypeIds: [],
+            applicationTagIds: [],
+            policyThreatLevel: [0, 10]
+          };
+        });
+
+        // Before the request completes the user alters the filter again
+        dashboardDataServiceMock[directive.serviceMethod].andReturn(deferred2.promise);
+        scope.$apply(function() {
+          scope.filters = angular.copy(scope.filters);
+          scope.filters.applicationIds = ['bar'];
+        });
+
+        deferred1.resolve('foo');
+        scope.$apply();
+        expect(directiveScope.data).toBeFalsy();
+
+        deferred2.resolve('bar');
+        scope.$apply();
+        expect(directiveScope.data).toEqual('bar');
+      });
+
+      it('Errors', function() {
+        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.reject('foo'));
+        scope.$apply(function() {
+          scope.filters = {
+            applicationIds: ['foo'],
+            policyThreatTypes: [],
+            stageTypeIds: [],
+            applicationTagIds: [],
+            policyThreatLevel: [0, 10]
+          };
+        });
+        expect(directiveScope.error).toBeTruthy();
+        expect(directiveScope.data).toBeFalsy();
+      });
+
+      it('goToComponentDetails() uses proper sate and hash', function() {
+        scope.goToComponentDetails({hash: 'test-hash'});
+        expect($state.go).toHaveBeenCalledWith('dashboard.component', {hash: 'test-hash'});
+      });
+    });
+  });
+
+});

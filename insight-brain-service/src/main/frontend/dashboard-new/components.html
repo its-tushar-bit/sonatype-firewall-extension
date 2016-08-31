@@ -1,0 +1,54 @@
+<div id="dashboard-components">
+  <div class="dashboard-headers">
+    <div class="tile summary-tile">
+      <div class="dashboard-header-container">
+        <div class="components-row" sort="name">
+          <div class="column greedy component-name" sort-column="name">
+            <span class="header-text">Name</span>
+          </div><!--
+     --><div class="column fixed affected-apps split-line" sort-column="-affectedApplications">
+          <span class="header-text">Affected Apps</span>
+        </div><!--
+     --><div class="column fixed total-risk split-line" sort-column="-score">
+          <span class="header-text">Total Risk</span>
+        </div><!--
+     --><div class="column fixed critical-risk" sort-column="-scoreCritical">
+          <span class="header-text">Critical</span>
+        </div><!--
+     --><div class="column fixed severe-risk" sort-column="-scoreSevere">
+          <span class="header-text">Severe</span>
+        </div><!--
+     --><div class="column fixed moderate-risk" sort-column="-scoreModerate">
+          <span class="header-text">Moderate</span>
+        </div><!--
+     --><div class="column fixed low-risk" sort-column="-scoreLow">
+          <span class="header-text">Low</span>
+        </div><!--
+     --><div class="column chevron">&nbsp;</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-results">
+    <div class="tile-container" fill-vertical>
+      <div class="tile-scroll-container">
+        <div components-results>
+          <div class="tile clickable" ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
+               ng-click="goToComponentDetails(component)">
+            <div class="components-row">
+              <div class="column greedy component-name semi-bold"><span class="result-cell">{{component.name}}</span></div><!--
+              --><div class="column fixed affected-apps"><span class="result-cell">{{::component.affectedApplications}}</span></div><!--
+              --><div class="column fixed total-risk"><span class="result-cell">{{::component.score}}</span></div><!--
+              --><div class="column fixed critical-risk"><span class="result-cell">{{::component.scoreCritical}}</span></div><!--
+              --><div class="column fixed severe-risk"><span class="result-cell">{{::component.scoreSevere}}</span></div><!--
+              --><div class="column fixed moderate-risk"><span class="result-cell">{{::component.scoreModerate}}</span></div><!--
+              --><div class="column fixed low-risk"><span class="result-cell">{{::component.scoreLow}}</span></div><!--
+              --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

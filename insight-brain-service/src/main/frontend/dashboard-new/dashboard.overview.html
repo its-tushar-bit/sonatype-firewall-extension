@@ -1,0 +1,119 @@
+<div>
+  <script type="text/ng-template" id="dashboard-table">
+    <div load-wrapper="error" reload="doLoad()">
+      <div ng-if="!data" class="dashboard-loading">
+        <h5>
+          <i class="icon-time"></i> Loading...
+        </h5>
+      </div>
+      <div ng-if="data !== undefined && data !== null">
+        <div ng-transclude></div>
+        <div ng-if="data.length === 0">
+          <span class="clm-bar-text-offset">
+            <em id="no-data">
+              <span ng-if="$state.is('dashboard.overview.violations')">No data available in the last 30 days given the applied filters and available permissions.</span>
+              <span ng-if="!$state.is('dashboard.overview.violations')">No data available given the applied filters and available permissions.</span>
+            </em>
+          </span>
+        </div>
+        <div id="max-results-shown" ng-if="data.length > maxResults">
+          <div class="tile" ng-if="$state.is('dashboard.overview.violations')">Newest {{maxResults}} results shown</div>
+          <div class="tile" ng-if="!$state.is('dashboard.overview.violations')">First {{maxResults}} results shown</div>
+        </div>
+      </div>
+    </div>
+  </script>
+  <script type="text/ng-template" id="policy-trends-dialog-template">
+    <div id="policy-trends-dialog">
+      <div class="clm-modal-header">
+        <h2>Policy Violation Trends</h2>
+      </div>
+      <div load-wrapper="error" reload="doLoad()" class="clm-modal-body">
+        <div ng-if="!policySummaryData && !error" class="policy-trends-loading">
+          <i class="fa fa-spin fa-circle-o-notch loading-spinner"></i> Calculating policy violation trends...
+        </div>
+        <div ng-if="policySummaryData" id="policySummaryData">
+          <table class="table policy-summary-table">
+            <thead>
+            <tr>
+              <th class="category-header">CATEGORY</th>
+              <th>COUNT</th>
+              <th tooltip="Average age of violations in the category" tooltip-placement="top"
+                  tooltip-append-to-body="true">
+                AVG
+              </th>
+              <th tooltip="90 percent of violations have been in the category less than this time" tooltip-placement="top"
+                  tooltip-append-to-body="true">
+                90%
+              </th>
+              <th colspan="3">DELTA</th>
+              <th>WEEKLY DELTAS</th>
+              <th>12 WEEK TREND</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="category in policySummaryData"
+                ng-class="{ 'natural' : category.naturalOrder, 'inverse' : category.naturalOrder === false, 'neutral' : category.naturalOrder === undefined }">
+              <td>{{category.name}}</td>
+              <td>{{category.counts}}</td>
+              <td>{{category.avg | terseTimeSpan}}</td>
+              <td>{{category.p90 | terseTimeSpan}}</td>
+              <td class="delta-column">
+                <i class="sonatype-icons pull-left" ng-class="{'up': category.delta > 0, 'down': category.delta < 0}"></i>
+              </td>
+              <td class="buffer-column"></td>
+              <td class="delta-column">{{category.delta}}</td>
+              <td>
+                <div value-bars data="category.barChartData"></div>
+              </td>
+              <td>
+                <div sparkline class="chart sparkline" data="category.sparklineData"></div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="clm-modal-footer">
+        <button id="policy-trends-dialog-close" class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
+      </div>
+    </div>
+  </script>
+  <script type="text/ng-template" id="dashboard-tabs">
+    <div class="tabs">
+      <ul>
+        <li class="tab" ui-sref-active="active">
+          <a id="tab-button-newest" ui-sref=".violations">
+            <i class="fa fa-exclamation size-12px-in-16px-square"></i>Violations
+          </a>
+        </li>
+        <li class="tab" ui-sref-active="active">
+          <a id="tab-button-component" ui-sref=".components">
+            <i class="fa fa-cube size-16px"></i>Components
+          </a>
+        </li>
+        <li class="tab" ui-sref-active="active">
+          <a id="tab-button-application" ui-sref=".applications">
+            <i class="fa fa-terminal size-16px inverse"></i>Applications
+          </a>
+        </li>
+      </ul>
+    </div>
+  </script>
+
+  <root-organization-migrate></root-organization-migrate>
+  <div class="dashboard-summary">
+    <!-- TODO load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()"-->
+    <div class="tile summary-tile">
+      <div class="pull-right">
+        <button id="show-trend-dialog" class="btn btn-tertiary" ng-click="showTrendDialog()">
+          <i class="fa fa-calculator"></i>Calculate Trends
+        </button>
+      </div>
+      <div class="tile-header dashboard-summary-header">Results</div>
+      <div dashboard-tabs filters="filters"></div>
+    </div>
+
+  </div>
+  <div ui-view="dashboard-results"></div>
+</div>

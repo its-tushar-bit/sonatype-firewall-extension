@@ -63,16 +63,27 @@
     };
   });
 
-  module.service('ComponentDisplayNameUtil', function() {
+  module.service('ComponentDisplayNameUtil', ['$filter', function($filter) {
     var renderToString = function(displayName) {
       return $.map(displayName.parts, function(part) {
         return part.value;
       }).join('');
     };
-    return {
-      renderToString: renderToString
+
+    var deriveComponentName = function(component) {
+      if (component.displayName) {
+        return renderToString(component.displayName);
+      }
+      else {
+        return component.pathnames ? $filter('fileName')(component.pathnames[0]) : 'Unknown';
+      }
     };
-  });
+
+    return {
+      renderToString: renderToString,
+      deriveComponentName: deriveComponentName
+    };
+  }]);
 
   module.filter('periodDelimiter', function() {
     return addWordBreakAfterPeriods;

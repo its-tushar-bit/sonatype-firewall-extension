@@ -1,0 +1,55 @@
+<div>
+  <div class="dashboard-headers">
+    <div class="tile summary-tile">
+      <div class="dashboard-header-container">
+        <div class="dashboard-header">
+          <div class="violations-row" sort="-time,-threatLevel">
+            <div class="width-third column threat-and-policy-column-container">
+              <div class="column fixed threat" sort-column="-threatLevel,-time">
+                <span class="header-text">Threat</span>
+              </div><!--
+           --><div class="column remaining policy" sort-column="policyName,-time">
+                <span class="header-text">Policy</span>
+              </div>
+            </div><!--
+         --><div class="column width-third application" sort-column="applicationName,-threatLevel">
+              <span class="header-text">Application</span>
+            </div><!--
+         --><div class="column width-third component" sort-column="gavName,-threatLevel">
+              <span class="header-text">Component</span>
+            </div><!--
+         --><div class="column fixed age" sort-column="-time,-threatLevel">
+              <span class="header-text">Age</span>
+            </div><!--
+         --><div class="column chevron">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-results">
+    <div class="tile-container" fill-vertical>
+      <div class="tile-scroll-container">
+        <div newest-risk-table>
+          <div id="dashboard-components" ng-controller="NewestRiskTableController">
+            <div class="tile clickable" ng-repeat="risk in data | limitTo: maxResults | orderBy:sortVm.sortFields | emptyToEnd:sortVm.sortFields"
+                 ng-click="angular.noop()">
+              <div class="violations-row">
+                <div class="width-third column threat-and-policy-column-container">
+                  <div class='clm-bar' threat-class="risk.threatLevel">&nbsp;</div><!--
+               --><div class="column fixed threat-number"><span class="result-cell">{{::risk.threatLevel}}</span></div><!--
+               --><div class="column remaining policy">{{::risk.policyName}}</div>
+                </div><!--
+               --><div class="column width-third application">{{::risk.applicationName}}</div><!--
+               --><div class="column width-third component"><span component-display component="risk"></span></div><!--
+               --><div class="column fixed age"><span class="result-cell">{{::risk.time | terseAgo}}</span></div><!--
+              --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

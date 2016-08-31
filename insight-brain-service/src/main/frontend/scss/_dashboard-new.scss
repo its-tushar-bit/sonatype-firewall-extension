@@ -1,0 +1,286 @@
+.dashboard-container {
+
+  .tile-scroll-container {
+    padding-top: 4px;
+    height: calc(100% - 16px);
+  }
+
+  .tile {
+    margin-bottom: 4px;
+    padding-right: 12px;
+
+    .fa-chevron-right {
+      font-size: 12px;
+      width: 7px;
+      color: $slate;
+    }
+
+    &.clickable {
+      &:hover, &:active {
+        cursor: pointer;
+        .fa-chevron-right {
+          color: $off-black;
+        }
+      }
+
+      &:active, &:focus {
+        outline: 0;
+      }
+
+      &:hover {
+        border-top-color: $grey-4;
+        border-bottom-color: $grey-4;
+      }
+
+      &:active {
+        background: $grey-1;
+        border-top-color: $slate;
+        border-bottom-color: $slate;
+      }
+    }
+  }
+
+  .column {
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: middle;
+
+    &:focus {
+      outline: none;
+    }
+    &.greedy {
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .result-cell {
+      margin-left: 16px;
+      span {
+        margin-left: 0;
+      }
+    }
+
+    &.fixed {
+      text-align: center;
+
+      &.total-risk {
+        width: 82px;
+      }
+
+      &.critical-risk {
+        width: 99px;
+      }
+
+      &.severe-risk {
+        width: 90px;
+      }
+
+      &.moderate-risk {
+        width: 114px;
+      }
+
+      &.low-risk {
+        width: 71px;
+      }
+    }
+
+
+    &.chevron {
+      width: 19px;
+      text-align: right;
+    }
+  }
+
+  .dashboard-summary, .dashboard-headers {
+    a {
+      @extend .semi-bold;
+      font-size: 14px;
+      height: 16px;
+      text-transform: uppercase;
+      color: $slate;
+    }
+  }
+
+  .dashboard-summary {
+    .summary-tile {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom-width: 0;
+    }
+
+    .tabs {
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      li {
+        display: inline-block;
+
+        &:not(last-child) {
+          margin-right: 8px;
+        }
+      }
+      a {
+        padding: 8px 12px;
+        display: inline-block;
+
+        &:hover {
+          color: $off-black;
+          text-decoration: none;
+        }
+      }
+      .fa {
+        margin-right: 8px;
+      }
+      .active {
+        a {
+          border-top: $dashboard-border;
+          border-right: $dashboard-border;
+          border-left: $dashboard-border;
+          border-top-left-radius: 4px;
+          border-top-right-radius: 4px;
+          background-color: $grey-1;
+        }
+      }
+      .dashboard-tab-counter {
+        background-color: $grey-1;
+        border-radius: 4px;
+        padding: 0 4px;
+        font-size: 12px;
+        margin-left: 8px;
+      }
+    }
+  }
+
+  .dashboard-headers {
+    .summary-tile {
+      margin-top: 0;
+      padding-top: 0;
+      border-top-width: 0;
+    }
+    .dashboard-header-container {
+      border-top: $dashboard-border;
+      height: 40px;
+
+      .column {
+        box-sizing: border-box;
+        height: 40px;
+        line-height: 40px;
+        padding: 0 12px;
+        text-align: left;
+        background-color: $grey-1;
+        color: $slate;
+        position: relative;
+
+        a {
+          text-decoration: none;
+          position: initial;
+        }
+        &.greedy a {
+          display: inline-block;
+          width: calc(100% - 28px);
+          text-align: left;
+          height: 40px;
+        }
+        .fa-caret-up {
+          top: calc(50% - 7px);
+        }
+        .fa-caret-down {
+          top: calc(50%);
+        }
+        &.selected-column {
+          background-color: $grey-2;
+        }
+        &.split-line {
+          padding-top: 4px;
+          line-height: 16px;
+        }
+        &.chevron {
+          width: 39px;
+        }
+      }
+
+      .violations-row {
+        .column.width-third {
+          width: calc((100% - 39px - 68px) / 3);
+        }
+      }
+
+      .components-row {
+        .column.component-name {
+          width: calc(100% - 604px);
+        }
+      }
+
+      .applications-row {
+        .column.application-name {
+          width: calc(100% - 495px);
+        }
+      }
+
+      .header-text {
+        display: inline-block;
+        text-align: center;
+      }
+    }
+  }
+
+  .violations-row {
+    .column.threat-and-policy-column-container {
+      padding: 0;
+      .threat {
+        float: left;
+        width: 92px;
+      }
+      .policy {
+        overflow: hidden;
+        display: block;
+      }
+      .clm-bar {
+        display: inline-block;
+        float: left;
+        width: 8px;
+      }
+      .threat-number {
+        float: left;
+        width: 20px;
+        .result-cell {
+          margin: 8px 0;
+        }
+      }
+    }
+    .column.width-third {
+      width: calc((100% - 39px - 68px + 15px) / 3);
+      &:not(:first-of-type) {
+        padding: 0 12px;
+      }
+    }
+    .column.fixed.age {
+      width: 68px;
+    }
+  }
+
+  .applications-row {
+    .column.application-name {
+      width: calc(100% - 495px);
+    }
+  }
+
+  .components-row {
+    .column.component-name {
+      width: calc(100% - 589px);
+    }
+
+    .column.affected-apps {
+      width: 109px;
+    }
+  }
+}
+
+#max-results-shown .tile {
+  background-color: transparent;
+  border: none;
+  text-align: center;
+}

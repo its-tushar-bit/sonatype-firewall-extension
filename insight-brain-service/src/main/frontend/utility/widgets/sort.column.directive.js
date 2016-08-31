@@ -42,15 +42,13 @@
         };
 
         scope.vm.updateHeader = function() {
-          if (element.is('th')) {
-            var isUp = scope.vm.isUp();
-            var isDown = scope.vm.isDown();
-            if (!isUp && !isDown) {
-              element.removeClass('selected-column');
-            }
-            else if (isUp || isDown) {
-              element.addClass('selected-column');
-            }
+          var isUp = scope.vm.isUp();
+          var isDown = scope.vm.isDown();
+          if (!isUp && !isDown) {
+            element.removeClass('selected-column');
+          }
+          else if (isUp || isDown) {
+            element.addClass('selected-column');
           }
         };
 

@@ -60,6 +60,11 @@ public abstract class BasicElement<T extends BasicElement<T>>
     return (T) this;
   }
 
+  public T hover() {
+    getElement().hover();
+    return (T) this;
+  }
+
   public void click() {
     getElement().click();
   }

@@ -26,12 +26,7 @@
             risk[propName] = stageDetail.time > 0 ? stageDetail.time : null;
           }
         }
-        if (risk.displayName) {
-          risk.gavName = ComponentDisplayNameUtil.renderToString(risk.displayName);
-        }
-        else {
-          risk.gavName = risk.pathnames ? $filter('fileName')(risk.pathnames[0]) : 'Unknown';
-        }
+        risk.gavName = ComponentDisplayNameUtil.deriveComponentName(risk);
       }
     }
   ]);

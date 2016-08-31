@@ -113,7 +113,8 @@ public class LdapManager
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
   public void testUserLogin(LdapUserMapping umap, String username, char[] password) throws NamingException {
-    new LdapQuery(getDecryptedConnection(), umap).authenticateUser(username, password, false);
+    LdapServer ldapServer = serverDao.getByIdNotNull(umap.getServerId());
+    new LdapQuery(getDecryptedConnection(ldapServer), umap).authenticateUser(username, password, false);
   }
 
   /**

@@ -527,26 +527,66 @@ public class LdapManagerTest
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
+    LdapUserMapping umap = newInMemoryUserMapping(ldapServer);
 
     umap.setUserPasswordAttribute(null); // AUTH-via-BIND
 
-    try {
-      manager.testUserLogin(umap, "test_user1_1", "badGuess".toCharArray());
-      fail("Expected NamingException");
-    }
-    catch (NamingException expected) {
-      manager.testUserLogin(umap, "test_user1_1", "far2simple".toCharArray());
-    }
+    assertCannotLogin(umap, "test_user1_1", "badGuess");
+    assertCanLogin(umap, "test_user1_1", "far2simple");
 
     umap.setUserPasswordAttribute("userPassword"); // AUTH-via-ATTRIBUTE
 
+    assertCannotLogin(umap, "test_user1_1", "badGuess");
+    assertCanLogin(umap, "test_user1_1", "far2simple");
+  }
+
+  @Test
+  public void testTestUserLogin_MultiServer() throws Exception {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
+    LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
+    startLdapServer(testLdapServer1, ldapConnection1);
+    LdapUserMapping umap1 = newInMemoryUserMapping(ldapServer1);
+
+    LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
+    LdapConnection ldapConnection2 = createLdapConnection(ldapServer2);
+    startLdapServer(testLdapServer2, ldapConnection2);
+    LdapUserMapping umap2 = newInMemoryUserMapping(ldapServer2);
+
+    assertCanLogin(umap1, "test_user1_1", "far2simple");
+    assertCanLogin(umap2, "test_user1_2", "far2simple");
+
+    testLdapServer1.stop();
+    assertCannotLoginWhenServerIsDown(umap1, "test_user1_1", "far2simple");
+    assertCanLogin(umap2, "test_user1_2", "far2simple");
+
+    testLdapServer2.stop();
+    assertCannotLoginWhenServerIsDown(umap1, "test_user1_1", "far2simple");
+    assertCannotLoginWhenServerIsDown(umap2, "test_user1_2", "far2simple");
+  }
+
+  private void assertCanLogin(LdapUserMapping umap, String username, String password) throws NamingException {
+    manager.testUserLogin(umap, username, password.toCharArray());
+  }
+
+  private void assertCannotLogin(LdapUserMapping umap, String username, String password) throws NamingException {
     try {
-      manager.testUserLogin(umap, "test_user1_1", "badGuess".toCharArray());
-      fail("Expected NamingException");
+      manager.testUserLogin(umap, username, password.toCharArray());
+      fail("Expected AuthenticationException");
     }
-    catch (NamingException expected) {
-      manager.testUserLogin(umap, "test_user1_1", "far2simple".toCharArray());
+    catch (AuthenticationException expected) {
+    }
+  }
+
+  private void assertCannotLoginWhenServerIsDown(LdapUserMapping umap, String username, String password)
+      throws NamingException
+  {
+    try {
+      manager.testUserLogin(umap, username, password.toCharArray());
+      fail("Expected AuthenticationException");
+    }
+    catch (CommunicationException expected) {
+      assertThat(expected.getCause(), is(notNullValue()));
+      assertThat(expected.getCause().getMessage(), startsWith("Connection refused"));
     }
   }
 
@@ -1302,7 +1342,7 @@ public class LdapManagerTest
     return tempEntity.newLdapConnection(ldapServer.getId(), getRandomPort());
   }
 
-  private LdapUserMapping createUserMapping(LdapServer ldapServer) {
+  private LdapUserMapping newInMemoryUserMapping(LdapServer ldapServer) {
     LdapUserMapping umap = new LdapUserMapping();
     umap.setServerId(ldapServer.getId());
     umap.setUserBaseDN("ou=users");
@@ -1314,6 +1354,11 @@ public class LdapManagerTest
     umap.setGroupBaseDN("ou=groups");
     umap.setGroupIDAttribute("cn");
     umap.setGroupSubtree(true);
+    return umap;
+  }
+
+  private LdapUserMapping createUserMapping(LdapServer ldapServer) {
+    LdapUserMapping umap = newInMemoryUserMapping(ldapServer);
     tempEntity.newLdapUserMapping(umap);
     return umap;
   }

@@ -11,22 +11,26 @@ class FilterModule
     extends Module
 {
   static content = {
-    applicationFilter(required: false) {
+    organizationFilter(required: false) {
       module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(1)')
     }
 
-    applicationCategoryFilter(required: false) {
+    applicationFilter(required: false) {
       module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(2)')
     }
-    stagesFilter(required: false) {
+
+    applicationCategoryFilter(required: false) {
       module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(3)')
+    }
+    stagesFilter(required: false) {
+      module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(4)')
     }
 
     policyTypesFilter(required: false) {
-      module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(4)')
+      module DashboardFilterDimensionModule, $('dashboard-filter-dimension:nth-child(5)')
     }
     policyThreatLevelFilter(required: false) {
-      module DashboardFilterDimensionModule, $('.tree-view-group:nth-child(5)')
+      module DashboardFilterDimensionModule, $('.tree-view-group:nth-child(6)')
     }
 
     policyThreatLevelSlider(required: false) { module SliderModule, $('.policy-threat-level-slider') }
@@ -37,6 +41,7 @@ class FilterModule
   }
 
   def toggleTwisties(){
+    organizationFilter.twisty.click()
     applicationFilter.twisty.click()
     applicationCategoryFilter.twisty.click()
     stagesFilter.twisty.click()

@@ -54,7 +54,7 @@
 
     vm.allSelected = allSelected;
     vm.toggleSelectAll = toggleSelectAll;
-    vm.updateSelectedCount = updateSelectedCount;
+    vm.notifySelectionChanged = notifySelectionChanged;
     vm.clearIfUnselected = clearIfUnselected;
 
     $scope.$watch('selected', function() {
@@ -64,6 +64,8 @@
     });
 
     function toggleSelectAll() {
+      // since $scope.selected is a map we need to copy so $watches are triggered
+      $scope.selected = angular.copy($scope.selected);
       if (vm.filter) {
         var filtered = fuzzyFilter($scope.available, vm.filter, $scope.nameField);
 
@@ -77,24 +79,15 @@
             $scope.selected[entity[$scope.idField]] = true;
           });
         }
-
-        vm.selectedCount = 0;
-        Object.keys($scope.selected).forEach(function(key) {
-          if ($scope.selected[key]) {
-            vm.selectedCount++;
-          }
-        });
       }
       else {
         if (vm.selectedCount !== $scope.available.length) {
           $scope.available.forEach(function(entity) {
             $scope.selected[entity[$scope.idField]] = true;
           });
-          vm.selectedCount = $scope.available.length;
         }
         else {
           $scope.selected = {};
-          vm.selectedCount = 0;
         }
       }
     }
@@ -114,13 +107,9 @@
       });
     }
 
-    function updateSelectedCount(id) {
-      if ($scope.selected[id]) {
-        vm.selectedCount++;
-      }
-      else {
-        vm.selectedCount--;
-      }
+    function notifySelectionChanged() {
+      // since $scope.selected is a map we need to copy so $watches are triggered
+      $scope.selected = angular.copy($scope.selected);
     }
 
     function clearIfUnselected(item) {

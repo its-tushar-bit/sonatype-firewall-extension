@@ -38,7 +38,7 @@
                ng-repeat="entity in available | fuzzy:vm.filter:nameField | orderBy: sortEntities ? [nameField] : []"
                ng-click="$event.stopPropagation()">
                 <input type="checkbox" name="{{::entity.id}}" ng-model="selected[entity[idField]]"
-                       ng-change="vm.clearIfUnselected(entity[idField]); vm.updateSelectedCount(entity[idField])"><!--
+                       ng-change="vm.clearIfUnselected(entity[idField]); vm.notifySelectionChanged()"><!--
                 --><span>{{::entity[nameField]}}</span>
             </label>
           </div>
@@ -51,6 +51,15 @@
     </div>
     <div load-wrapper="vm.loadError" reload="vm.doLoad()" error-message="Unable to load filter data."
          loading="!vm.applications">
+
+      <dashboard-filter-dimension available="vm.organizations"
+                                  selected="vm.selected.organizations"
+                                  long-name="organizations"
+                                  short-name="Organization"
+                                  sort-entities="true"
+                                  class="tree-view-group"><!--
+         --><div class="filter-label"><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i>Organizations</div>
+      </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.applications"
                                   selected="vm.selected.applications"

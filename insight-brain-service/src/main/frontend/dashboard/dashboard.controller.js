@@ -10,6 +10,7 @@
     $scope.maxResults = 100;
     $scope.showTrendDialog = showTrendDialog;
     $scope.filters = {
+      organizationIds: [],
       applicationIds: [],
       policyThreatTypes: [],
       stageTypeIds: [],
@@ -19,6 +20,7 @@
 
     $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS, function(e, newFilters) {
       $scope.filters = {
+        organizationIds: newFilters.organizationFilters,
         applicationIds: newFilters.applicationFilters,
         policyThreatTypes: newFilters.policyThreatCategoryFilters,
         stageTypeIds: newFilters.stageTypeFilters,

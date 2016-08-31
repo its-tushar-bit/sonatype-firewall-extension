@@ -172,7 +172,21 @@ extends BaseSpec {
     def newestRiskPage = at NewestRiskDashboardPage
 
     when: 'the dashboard filters are shown'
-    waitFor { newestRiskPage.filters.applicationFilter.displayed }
+    waitFor { newestRiskPage.filters.organizationFilter.displayed }
+
+    then: 'organization filters are loaded'
+    newestRiskPage.filters.organizationFilter.twisty.displayed
+    newestRiskPage.filters.organizationFilter.twisty.click()
+    newestRiskPage.filters.organizationFilter.counter.displayed
+    newestRiskPage.filters.organizationFilter.counter.text() == '1'
+    newestRiskPage.filters.organizationFilter.isCounterInactive()
+
+    newestRiskPage.filters.organizationFilter.multiSelectList.size() == 2
+    newestRiskPage.filters.organizationFilter.multiSelectList[0].checkbox.value() == false
+    newestRiskPage.filters.organizationFilter.multiSelectList[0].name.text() == 'all organizations'
+    newestRiskPage.filters.organizationFilter.multiSelectList[1].checkbox.value() == false
+    newestRiskPage.filters.organizationFilter.multiSelectList[1].name.text() == org.name
+    newestRiskPage.filters.organizationFilter.twisty.click()
 
     then: 'application filters are loaded'
     newestRiskPage.filters.applicationFilter.twisty.displayed
@@ -243,6 +257,7 @@ extends BaseSpec {
 
     then: 'filter counters have been updated'
     waitFor { newestRiskPage.filters.applicationFilter.displayed }
+    newestRiskPage.filters.organizationFilter.counter.text() == '1 of 1'
     newestRiskPage.filters.applicationFilter.counter.text() == '2 of 2'
     !newestRiskPage.filters.applicationFilter.isCounterInactive()
     newestRiskPage.filters.applicationCategoryFilter.counter.text() == '1 of 1'
@@ -254,10 +269,93 @@ extends BaseSpec {
     newestRiskPage.filters.policyThreatLevelFilter.counter.text() == '2 – 7'
   }
 
+  def 'Organization filter updates Application filter'() {
+    when: 'Set organization filter'
+    waitFor { filters.applicationFilter.displayed }
+    filters.toggleTwisties()
+    filters.organizationFilter.multiSelectList[1].checkbox.value(true)
+
+    then: 'organization filters are selected'
+    filters.organizationFilter.multiSelectList[0].checkbox.value()
+    filters.organizationFilter.multiSelectList[1].checkbox.value()
+
+    and: 'application filters are selected'
+    filters.applicationFilter.multiSelectList[0].checkbox.value()
+    filters.applicationFilter.multiSelectList[1].checkbox.value()
+    filters.applicationFilter.multiSelectList[2].checkbox.value()
+
+    and: 'filter counters have been updated'
+    !filters.organizationFilter.isCounterInactive()
+    filters.organizationFilter.counter.text() == '1 of 1'
+    !filters.applicationFilter.isCounterInactive()
+    filters.applicationFilter.counter.text() == '2 of 2' 
+
+    when: 'organization filter not selected'
+    filters.organizationFilter.multiSelectList[0].checkbox.value(false)
+
+    then: 'organization filters are not selected'
+    !filters.organizationFilter.multiSelectList[0].checkbox.value()
+    !filters.organizationFilter.multiSelectList[1].checkbox.value()
+
+    and: 'application filters are not selected'
+    !filters.applicationFilter.multiSelectList[0].checkbox.value()
+    !filters.applicationFilter.multiSelectList[1].checkbox.value()
+    !filters.applicationFilter.multiSelectList[2].checkbox.value()
+
+    and: 'filter counters have been updated'
+    filters.organizationFilter.isCounterInactive()
+    filters.organizationFilter.counter.text() == '1'
+    filters.applicationFilter.isCounterInactive()
+    filters.applicationFilter.counter.text() == '2' 
+  }
+
+  def 'Application filter updates Organization filter'() {
+    when: 'Set application filter'
+    waitFor { filters.applicationFilter.displayed }
+    filters.toggleTwisties()
+    filters.applicationFilter.multiSelectList[1].checkbox.value(true)
+    filters.applicationFilter.multiSelectList[2].checkbox.value(true)
+
+    then: 'organization filters are selected'
+    filters.organizationFilter.multiSelectList[0].checkbox.value()
+    filters.organizationFilter.multiSelectList[1].checkbox.value()
+ 
+    and: 'application filters are selected'
+    filters.applicationFilter.multiSelectList[0].checkbox.value()
+    filters.applicationFilter.multiSelectList[1].checkbox.value()
+    filters.applicationFilter.multiSelectList[2].checkbox.value()
+
+    and: 'filter counters have been updated'
+    !filters.organizationFilter.isCounterInactive()
+    filters.organizationFilter.counter.text() == '1 of 1'
+    !filters.applicationFilter.isCounterInactive()
+    filters.applicationFilter.counter.text() == '2 of 2'
+
+    when: 'single application filter not selected'
+    filters.applicationFilter.multiSelectList[2].checkbox.value(false)
+
+    then: 'organization filter is not selected'
+    !filters.organizationFilter.multiSelectList[0].checkbox.value()
+    !filters.organizationFilter.multiSelectList[1].checkbox.value()
+
+    then: 'application filters are updated'
+    !filters.applicationFilter.multiSelectList[0].checkbox.value()
+    filters.applicationFilter.multiSelectList[1].checkbox.value()
+    !filters.applicationFilter.multiSelectList[2].checkbox.value()
+
+    and: 'filter counters have been updated'
+    filters.organizationFilter.isCounterInactive()
+    filters.organizationFilter.counter.text() == '1'
+    !filters.applicationFilter.isCounterInactive()
+    filters.applicationFilter.counter.text() == '1 of 2'
+  }
+
+
   def 'Filter clear'() {
     when: 'Set some filters'
     waitFor { filters.applicationFilter.displayed }
     filters.toggleTwisties()
+    filters.organizationFilter.multiSelectList[1].checkbox.value(true)
     filters.applicationFilter.multiSelectList[1].checkbox.value(true)
     filters.applicationCategoryFilter.multiSelectList[1].checkbox.value(true)
     filters.stagesFilter.multiSelectList[3].checkbox.value(true)
@@ -268,6 +366,7 @@ extends BaseSpec {
     filters.clearButton.click()
 
     then: 'filters are empty'
+    filters.organizationFilter.multiSelectList[1].checkbox.value()== false
     filters.applicationFilter.multiSelectList[1].checkbox.value()== false
     filters.applicationCategoryFilter.multiSelectList[1].checkbox.value()== false
     filters.stagesFilter.multiSelectList[3].checkbox.value()== false
@@ -774,6 +873,7 @@ extends BaseSpec {
     def newestRiskPage = at NewestRiskDashboardPage
     newestRiskPage.filters.toggleTwisties()
     waitFor { newestRiskPage.filters.applicationFilter.displayed }
+    newestRiskPage.filters.organizationFilter.multiSelectList[1].checkbox.value(true)
     newestRiskPage.filters.applicationFilter.multiSelectList[1].checkbox.value(true)
     newestRiskPage.filters.applicationFilter.multiSelectList[2].checkbox.value(true)
     newestRiskPage.filters.applicationCategoryFilter.multiSelectList[1].checkbox.value(true)
@@ -785,6 +885,7 @@ extends BaseSpec {
     then: 'filters are stored to disk'
     DashboardFilterDTO dto = new ObjectMapper().
         readValue(new DashboardFilterDAO().getByUsername("admin").filter, DashboardFilterDTO.class);
+    dto.organizationFilters.contains(org.id)
     dto.applicationFilters.contains(firstApp.id)
     dto.applicationFilters.contains(secondApp.id)
     dto.tagFilters.contains(firstAppTag.id)
@@ -796,6 +897,7 @@ extends BaseSpec {
   def 'Stored filters loaded on view of dashboard'() {
     setup: 'Add filter for admin user'
     DashboardFilterDTO dto = new DashboardFilterDTO()
+    dto.organizationFilters = [org.id]
     dto.applicationFilters = [firstApp.id, secondApp.id]
     dto.maxPolicyThreatLevel = 6
     dto.minPolicyThreatLevel = 3
@@ -817,6 +919,8 @@ extends BaseSpec {
     newestRiskPage.filters.toggleTwisties()
 
     then: 'See proper values set in the filters'
+    newestRiskPage.filters.organizationFilter.multiSelectList[0].checkbox.value()
+    newestRiskPage.filters.organizationFilter.multiSelectList[1].checkbox.value()
     newestRiskPage.filters.applicationFilter.multiSelectList[1].checkbox.value()
     newestRiskPage.filters.applicationFilter.multiSelectList[2].checkbox.value()
     newestRiskPage.filters.applicationCategoryFilter.multiSelectList[1].checkbox.value()
@@ -827,6 +931,7 @@ extends BaseSpec {
     newestRiskPage.filters.policyThreatLevelSlider.maxValue.text() == '6'
 
     and: 'See proper counts set in the filters'
+    newestRiskPage.filters.organizationFilter.counter.text() == '1 of 1'
     newestRiskPage.filters.applicationFilter.counter.text() == '2 of 2'
     newestRiskPage.filters.applicationCategoryFilter.counter.text() == '1 of 1'
     newestRiskPage.filters.stagesFilter.counter.text() == '1 of 4'

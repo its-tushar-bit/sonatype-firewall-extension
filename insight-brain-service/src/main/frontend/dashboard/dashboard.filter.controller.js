@@ -12,6 +12,7 @@
         savedFilters;
 
     // Available
+    vm.organizations = undefined;
     vm.applications = undefined;
     vm.categories = undefined;
     vm.stages = undefined;
@@ -31,6 +32,7 @@
 
     // User selected
     vm.selected = {
+      organizations: {},
       applications: {},
       categories: {},
       policyThreatLevels: [2, 10],
@@ -60,39 +62,135 @@
                       $http.get(CLMLocations.getApplicationTagsUrl()), $http.get(CLMLocations.getDashboardFilters())];
 
       $q.all(promises).then(function(data) {
-        var organizations = data[2],
-            storedFilters = data[4].data;
+        var storedFilters = data[4].data;
+        vm.organizations = angular.copy(data[2]); // copied as we modify objects
         vm.applications = data[0];
         vm.stages = data[1];
         vm.categories = data[3].data;
 
         angular.forEach(vm.categories, function(category) {
-          for (var i = 0; i < organizations.length; i++) {
-            if (category.organizationId === organizations[i].id) {
-              category.owner = organizations[i].name;
+          for (var i = 0; i < vm.organizations.length; i++) {
+            if (category.organizationId === vm.organizations[i].id) {
+              category.owner = vm.organizations[i].name;
               break;
             }
           }
         });
 
+        vm.applications.forEach(function(application) {
+          var orgExists = vm.organizations.some(function(organization) {
+            return application.organizationId === organization.id;
+          });
+
+          if (!orgExists) {
+            vm.organizations.push({id: application.organizationId, name: application.organizationName});
+          }
+        });
+
+        vm.organizations = vm.organizations.filter(function(organization) {
+          return organization.id !== 'ROOT_ORGANIZATION_ID';
+        });
+
         if (storedFilters) {
-          storedFilters.applicationFilters.forEach(function(applicationId) {
+          (storedFilters.organizationFilters || []).forEach(function(organizationId) {
+
+            var orgExists = vm.organizations.some(function(organization) {
+              return organization.id === organizationId;
+            });
+
+            if(orgExists) {
+              vm.selected.organizations[organizationId] = true;
+              
+              vm.applications.forEach(function(application) {
+                if (application.organizationId === organizationId) {
+                  var appExistsInFilter = (storedFilters.applicationFilters || []).some(function(applicationId) {
+                    return application.id === applicationId;
+                  });
+
+                  if (!appExistsInFilter) {
+                    (storedFilters.applicationFilters || []).push(application.id);
+                  }
+                }
+              });
+            }
+          });
+
+          (storedFilters.applicationFilters || []).forEach(function(applicationId) {
             vm.selected.applications[applicationId] = true;
           });
 
-          storedFilters.tagFilters.forEach(function(categoryId) {
+          (storedFilters.tagFilters || []).forEach(function(categoryId) {
             vm.selected.categories[categoryId] = true;
           });
 
-          storedFilters.stageTypeFilters.forEach(function(stageId) {
+          (storedFilters.stageTypeFilters || []).forEach(function(stageId) {
             vm.selected.stages[stageId] = true;
           });
 
-          storedFilters.policyThreatCategoryFilters.forEach(function(policyTypeId) {
+          (storedFilters.policyThreatCategoryFilters || []).forEach(function(policyTypeId) {
             vm.selected.policyTypes[policyTypeId] = true;
           });
           vm.selected.policyThreatLevels = [storedFilters.minPolicyThreatLevel, storedFilters.maxPolicyThreatLevel];
         }
+
+        $scope.$watch('vm.selected.applications', function() {
+          var original = angular.copy(vm.selected.organizations);
+
+          vm.organizations.forEach(function(org) {
+            var hasApp = false;
+            var hasUnselectedApps = vm.applications.some(function(app) {
+              if (app.organizationId === org.id) {
+                hasApp = true;
+              }
+              return app.organizationId === org.id && !vm.selected.applications[app.id];
+            });
+            // remove checkbox if there aren't any selected apps and handle special cases where there are no apps 
+            // belonging to an org
+            if (hasUnselectedApps || (!hasApp && !vm.selected.organizations[org.id])) {
+              delete vm.selected.organizations[org.id];
+            }
+            else {
+              vm.selected.organizations[org.id] = true;
+            }
+          });
+
+          if(!angular.equals(vm.selected.organizations, original)) {
+            vm.selected.organizations = angular.copy(vm.selected.organizations);
+          }
+        });
+
+        $scope.$watch('vm.selected.organizations', function() {
+          var original = angular.copy(vm.selected.applications);
+
+          vm.organizations.forEach(function(org) {
+            if (vm.selected.organizations[org.id]) {
+              // set all applications w/ orgId
+              vm.applications.forEach(function(app) {
+                if (app.organizationId === org.id) {
+                  vm.selected.applications[app.id] = true;
+                }
+              });
+            }
+            else {
+              // set them to empty if and only if all applications are selected
+              var hasUnselectedApps = vm.applications.some(function(app) {
+                return app.organizationId === org.id && !vm.selected.applications[app.id];
+              });
+              if (!hasUnselectedApps) {
+                vm.applications.forEach(function(app) {
+                  if (app.organizationId === org.id) {
+                    delete vm.selected.applications[app.id];
+                  }
+                });
+              }
+            }
+          });
+
+          if(!angular.equals(vm.selected.applications, original)) {
+            vm.selected.applications = angular.copy(vm.selected.applications);
+          }
+        });
+
         savedFilters = angular.copy(vm.selected);
         $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, storedFilters);
       }, function(error) {
@@ -102,6 +200,7 @@
 
     function clear() {
       vm.selected = {
+        organizations: {},
         applications: {},
         categories: {},
         stages: {},
@@ -122,6 +221,7 @@
       }
 
       $http.put(CLMLocations.getDashboardFilters(), {
+        organizationFilters: createSelectedIdsArray(vm.selected.organizations),
         applicationFilters: createSelectedIdsArray(vm.selected.applications),
         policyThreatCategoryFilters: createSelectedIdsArray(vm.selected.policyTypes),
         stageTypeFilters: createSelectedIdsArray(vm.selected.stages),

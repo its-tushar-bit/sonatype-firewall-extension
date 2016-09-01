@@ -76,8 +76,7 @@ public class RelativePopularityConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", RelativePopularityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -107,8 +106,7 @@ public class RelativePopularityConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", RelativePopularityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -138,10 +136,8 @@ public class RelativePopularityConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 2, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", RelativePopularityConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", RelativePopularityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -171,8 +167,7 @@ public class RelativePopularityConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", RelativePopularityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -202,10 +197,8 @@ public class RelativePopularityConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 2, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", RelativePopularityConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", RelativePopularityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID, policyAlerts);
   }
 
   @Test

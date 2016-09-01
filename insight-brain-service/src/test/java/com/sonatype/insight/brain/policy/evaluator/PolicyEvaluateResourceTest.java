@@ -75,6 +75,7 @@ import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest.assertContainsPolicyAlert;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -173,18 +174,18 @@ public class PolicyEvaluateResourceTest
     Component expectedComponentSimilar2 = ComponentFactory
         .forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
     expectedComponentSimilar2.setHash("707df42012875442b9df");
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentSimilar1, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentSimilar1, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentSimilar2, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentSimilar2, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponentExact, policy1, constraintLicense, Action.ID_FAIL,
+        LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponentExact, policy1, constraintSV, Action.ID_FAIL,
+        SecurityVulnerabilityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponentSimilar1, policy1, constraintLicense, Action.ID_FAIL,
+        LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponentSimilar1, policy1, constraintSV, Action.ID_FAIL,
+        SecurityVulnerabilityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponentSimilar2, policy1, constraintLicense, Action.ID_FAIL,
+        LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponentSimilar2, policy1, constraintSV, Action.ID_FAIL,
+        SecurityVulnerabilityConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -235,8 +236,8 @@ public class PolicyEvaluateResourceTest
     AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
     Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
     expectedComponentExact.setHash(hash);
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraint1.getId(), "Constraint 1", MatchStateConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponentExact, policy1, constraint1, Action.ID_FAIL, MatchStateConditionType.ID,
+        policyAlerts);
   }
 
   @Test
@@ -291,8 +292,8 @@ public class PolicyEvaluateResourceTest
     AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
     Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
     expectedComponentExact.setHash(hash);
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraint1.getId(), "Constraint 1", LabelConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponentExact, policy1, constraint1, Action.ID_FAIL, LabelConditionType.ID,
+        policyAlerts);
   }
 
   private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation) {
@@ -568,8 +569,8 @@ public class PolicyEvaluateResourceTest
     AbstractPolicyEvaluationTest.assertFactCounts(1, 3, policyAlerts.get(0));
     Component expectedComponent = ComponentFactory.forGav("org.webjars", "select2", "3.2", MatchState.EXACT);
     expectedComponent.setHash("f2e35e4a21f07d25710f");
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponent, policy1, constraint1, Action.ID_FAIL, LicenseConditionType.ID,
+        policyAlerts);
   }
 
   @Test
@@ -617,10 +618,10 @@ public class PolicyEvaluateResourceTest
     AbstractPolicyEvaluationTest.assertFactCounts(2, 1, policyAlerts.get(0));
     Component expectedComponent = ComponentFactory.forGav("commons-pool", "commons-pool", "1.4", MatchState.EXACT);
     expectedComponent.setHash("1a667c9d419dc4f185c9");
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
-        Action.ID_FAIL, constraint2.getId(), "Constraint 2", LicenseStatusConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(expectedComponent, policy1, constraint1, Action.ID_FAIL, LicenseConditionType.ID,
+        policyAlerts);
+    assertContainsPolicyAlert(expectedComponent, policy1, constraint2, Action.ID_FAIL, LicenseStatusConditionType.ID,
+        policyAlerts);
 
     // Override the license at app level. This must supersede the override at org level, so the policy should not
     // trigger any alerts.
@@ -679,9 +680,8 @@ public class PolicyEvaluateResourceTest
     AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
     Component expectedComponent = ComponentFactory.forGav("org.mortbay.jetty", "jetty", "6.1.15", MatchState.EXACT);
     expectedComponent.setHash("494308fc2d433720c778");
-    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy.getId(), "Policy name",
-        Action.ID_FAIL, constraint.getId(), "Constraint name", SecurityVulnerabilityStatusConditionType.ID,
-        policyAlerts);
+    assertContainsPolicyAlert(expectedComponent, policy, constraint, Action.ID_FAIL,
+        SecurityVulnerabilityStatusConditionType.ID, policyAlerts);
   }
 
   @Test

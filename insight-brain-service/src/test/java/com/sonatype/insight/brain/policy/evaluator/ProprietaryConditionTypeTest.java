@@ -60,10 +60,8 @@ public class ProprietaryConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 2, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", ProprietaryConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component3, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", ProprietaryConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -99,9 +97,7 @@ public class ProprietaryConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 2, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", ProprietaryConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component4, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", ProprietaryConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component4, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
   }
 }

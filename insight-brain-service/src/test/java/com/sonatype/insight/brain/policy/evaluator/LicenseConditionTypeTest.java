@@ -73,8 +73,7 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -104,8 +103,7 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -135,8 +133,7 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -166,8 +163,7 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -201,15 +197,16 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
   }
 
   @Test
   public void testEvaluateIs_Overridden_Multiple_LicenseIds() {
     // Create policy constraints
     List<Constraint> constraints = new ArrayList<>();
-    constraints.add(createConstraint("constraintId1", "constraintName1", LicenseConditionType.ID, "is", "Apache-2.0"));
+    Constraint constraint1 = createConstraint("constraintId1", "constraintName1", LicenseConditionType.ID, "is",
+        "Apache-2.0");
+    constraints.add(constraint1);
 
     // Create policy
     Policy policy = new Policy("policyId1", "policyName1");
@@ -231,11 +228,11 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component, "policyId1", "policyName1", FailActionType.ID, "constraintId1",
-        "constraintName1", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component, policy, constraint1, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
 
     constraints = new ArrayList<>();
-    constraints.add(createConstraint("constraintId2", "constraintName2", LicenseConditionType.ID, "is", "AFL-1.2"));
+    Constraint constraint2 = createConstraint("constraintId2", "constraintName2", LicenseConditionType.ID, "is", "AFL-1.2");
+    constraints.add(constraint2);
 
     policy.setConstraints(constraints);
 
@@ -246,8 +243,7 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component, "policyId1", "policyName1", FailActionType.ID, "constraintId2",
-        "constraintName2", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component, policy, constraint2, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -281,8 +277,7 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
   }
 
   @Test

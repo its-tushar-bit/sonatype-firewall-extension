@@ -69,8 +69,7 @@ public class CoordinatesConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -94,8 +93,7 @@ public class CoordinatesConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -133,8 +131,7 @@ public class CoordinatesConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -172,8 +169,7 @@ public class CoordinatesConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -211,15 +207,15 @@ public class CoordinatesConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
 
   @Test
   public void testEvaluate_EscapeUnsafeCharacter() {
     String artifactId = "\\\"\r\n\t'";
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
-    policy.addConstraint(createConstraint("match", "maven:g1:" + artifactId));
+    Constraint constraint = createConstraint("match", "maven:g1:" + artifactId);
+    policy.addConstraint(constraint);
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
@@ -230,8 +226,7 @@ public class CoordinatesConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
   }
 
   @Test

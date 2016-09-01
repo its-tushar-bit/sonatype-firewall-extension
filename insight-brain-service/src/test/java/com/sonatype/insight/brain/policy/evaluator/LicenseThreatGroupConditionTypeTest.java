@@ -139,8 +139,7 @@ public class LicenseThreatGroupConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -175,8 +174,7 @@ public class LicenseThreatGroupConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -211,8 +209,7 @@ public class LicenseThreatGroupConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -247,8 +244,7 @@ public class LicenseThreatGroupConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -287,8 +283,7 @@ public class LicenseThreatGroupConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -327,8 +322,7 @@ public class LicenseThreatGroupConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -385,8 +379,7 @@ public class LicenseThreatGroupConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1", FailActionType.ID, "ConstraintId1",
-        "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -416,8 +409,8 @@ public class LicenseThreatGroupConditionTypeTest
     assertThat(policyAlerts, hasSize(1));
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    ConditionFact conditionFact = assertContainsPolicyAlert(component2, "PolicyId1", "Policy Name 1",
-        FailActionType.ID, "ConstraintId1", "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    ConditionFact conditionFact = assertContainsPolicyAlert(component2, policy, constraint,
+        FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
     assertThat(conditionFact.getReason(), is("Found a License that is not assigned to any License Threat Group"));
     assertThat(conditionFact.getSummary(), is("License Threat Group is '[unassigned]'"));
   }
@@ -449,8 +442,8 @@ public class LicenseThreatGroupConditionTypeTest
     assertThat(policyAlerts, hasSize(1));
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    ConditionFact conditionFact = assertContainsPolicyAlert(component1, "PolicyId1", "Policy Name 1",
-        FailActionType.ID, "ConstraintId1", "Constraint Name 1", LicenseThreatGroupConditionType.ID, policyAlerts);
+    ConditionFact conditionFact = assertContainsPolicyAlert(component1, policy, constraint,
+        FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
     assertThat(conditionFact.getReason(), is("Did not find a License that is not assigned to any License Threat Group"));
     assertThat(conditionFact.getSummary(), is("License Threat Group is not '[unassigned]'"));
   }

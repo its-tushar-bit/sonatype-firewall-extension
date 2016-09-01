@@ -86,24 +86,23 @@ public abstract class AbstractPolicyEvaluationTest
   }
 
   public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
-                                                        String expectedPolicyId,
-                                                        String expectedPolicyName,
+                                                        Policy expectedPolicy,
+                                                        Constraint expectedConstraint,
                                                         String expectedActionTypeId,
-                                                        String expectedConstraintId,
-                                                        String expectedConstraintName,
                                                         String expectedConditionTypeId,
                                                         List<PolicyAlert> actual)
   {
     for (PolicyAlert actualPolicyAlert : actual) {
       PolicyFact policyFact = actualPolicyAlert.getTrigger();
-      if (expectedPolicyId.equals(policyFact.getPolicyId()) && expectedPolicyName.equals(policyFact.getPolicyName())
+      if (expectedPolicy.getId().equals(policyFact.getPolicyId())
+          && expectedPolicy.getName().equals(policyFact.getPolicyName())
           && policyAlertContainsAction(actualPolicyAlert, expectedActionTypeId)) {
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
           if (Objects.equals(expectedComponent.getComponentIdentifier(), componentFact.getComponentIdentifier())
               && StringUtils.equals(expectedComponent.getHash(), componentFact.getHash())) {
             for (ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
-              if (expectedConstraintId.equals(constraintFact.getConstraintId())
-                  && expectedConstraintName.equals(constraintFact.getConstraintName())) {
+              if (expectedConstraint.getId().equals(constraintFact.getConstraintId())
+                  && expectedConstraint.getName().equals(constraintFact.getConstraintName())) {
                 for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
                   if (expectedConditionTypeId.equals(conditionFact.getConditionTypeId())) {
                     return conditionFact;

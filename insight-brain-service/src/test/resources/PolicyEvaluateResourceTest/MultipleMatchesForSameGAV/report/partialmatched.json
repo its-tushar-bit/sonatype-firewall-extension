@@ -1,0 +1,275 @@
+{
+  "aaData" : [ {
+    "hash" : "707df42012875442b9df",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "declaredLicenses" : null,
+    "observedLicenses" : null,
+    "effectiveLicenses" : null,
+    "securityCounters" : null,
+    "effectiveLicenseThreat" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "name" : "tomcat-util-5.0.28-Similar2.jar",
+    "path" : null,
+    "score" : 0.0,
+    "matchCount" : 1,
+    "totalLicenseCounters" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 0,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 1
+    },
+    "totalSecurityCounters" : {
+      "Moderate" : 0,
+      "Severe" : 6,
+      "Critical" : 0,
+      "None" : 0
+    },
+    "matchDetails" : [ {
+      "hash" : "707df42012875442b9df",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.0.28",
+      "declaredLicenses" : [ "Not Provided" ],
+      "observedLicenses" : [ "Not Provided" ],
+      "effectiveLicenses" : [ "Not Provided" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 6,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : "NOT-PROVIDED",
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : 5.0,
+      "catalogDate" : 1133961124000,
+      "name" : null,
+      "path" : null,
+      "score" : 9.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "707df42012875442b9df",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-3385",
+        "reference" : "CVE-2007-3385",
+        "source" : "cve",
+        "score" : 4.3,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "707df42012875442b9df",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-5333",
+        "reference" : "CVE-2007-5333",
+        "source" : "cve",
+        "score" : 5.0,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "707df42012875442b9df",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-0022",
+        "reference" : "CVE-2012-0022",
+        "source" : "cve",
+        "score" : 5.0,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "707df42012875442b9df",
+        "url" : "http://osvdb.org/37071",
+        "reference" : "37071",
+        "source" : "osvdb",
+        "score" : 4.3,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "707df42012875442b9df",
+        "url" : "http://osvdb.org/41435",
+        "reference" : "41435",
+        "source" : "osvdb",
+        "score" : 5.0,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "707df42012875442b9df",
+        "url" : "http://osvdb.org/78573",
+        "reference" : "78573",
+        "source" : "osvdb",
+        "score" : 5.0,
+        "matchState" : null,
+        "proprietary" : null
+      } ]
+    } ],
+    "securityIssues" : [ ]
+  }, {
+    "hash" : "d29a75f9056e0b040f09",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "declaredLicenses" : null,
+    "observedLicenses" : null,
+    "effectiveLicenses" : null,
+    "securityCounters" : null,
+    "effectiveLicenseThreat" : null,
+    "matchState" : null,
+    "proprietary" : null,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "name" : "tomcat-util-5.0.28-Similar1.jar",
+    "path" : null,
+    "score" : 0.0,
+    "matchCount" : 1,
+    "totalLicenseCounters" : {
+      "NON-STANDARD" : 0,
+      "LIBERAL" : 0,
+      "WEAKCOPYLEFT" : 0,
+      "COPYLEFT" : 0,
+      "NOT-PROVIDED" : 1
+    },
+    "totalSecurityCounters" : {
+      "Moderate" : 0,
+      "Severe" : 6,
+      "Critical" : 0,
+      "None" : 0
+    },
+    "matchDetails" : [ {
+      "hash" : "d29a75f9056e0b040f09",
+      "groupId" : "tomcat",
+      "artifactId" : "tomcat-util",
+      "version" : "5.0.28",
+      "declaredLicenses" : [ "Not Provided" ],
+      "observedLicenses" : [ "Not Provided" ],
+      "effectiveLicenses" : [ "Not Provided" ],
+      "securityCounters" : {
+        "Critical" : 0,
+        "Severe" : 6,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : "NOT-PROVIDED",
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : 5.0,
+      "catalogDate" : 1133961124000,
+      "name" : null,
+      "path" : null,
+      "score" : 9.0,
+      "matchCount" : 0,
+      "totalLicenseCounters" : {
+        "NON-STANDARD" : 0,
+        "LIBERAL" : 0,
+        "WEAKCOPYLEFT" : 0,
+        "COPYLEFT" : 0,
+        "NOT-PROVIDED" : 0
+      },
+      "totalSecurityCounters" : {
+        "Moderate" : 0,
+        "Severe" : 0,
+        "Critical" : 0,
+        "None" : 0
+      },
+      "matchDetails" : [ ],
+      "securityIssues" : [ {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "d29a75f9056e0b040f09",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-3385",
+        "reference" : "CVE-2007-3385",
+        "source" : "cve",
+        "score" : 4.3,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "d29a75f9056e0b040f09",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-5333",
+        "reference" : "CVE-2007-5333",
+        "source" : "cve",
+        "score" : 5.0,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "d29a75f9056e0b040f09",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-0022",
+        "reference" : "CVE-2012-0022",
+        "source" : "cve",
+        "score" : 5.0,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "d29a75f9056e0b040f09",
+        "url" : "http://osvdb.org/37071",
+        "reference" : "37071",
+        "source" : "osvdb",
+        "score" : 4.3,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "d29a75f9056e0b040f09",
+        "url" : "http://osvdb.org/41435",
+        "reference" : "41435",
+        "source" : "osvdb",
+        "score" : 5.0,
+        "matchState" : null,
+        "proprietary" : null
+      }, {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.0.28",
+        "hash" : "d29a75f9056e0b040f09",
+        "url" : "http://osvdb.org/78573",
+        "reference" : "78573",
+        "source" : "osvdb",
+        "score" : 5.0,
+        "matchState" : null,
+        "proprietary" : null
+      } ]
+    } ],
+    "securityIssues" : [ ]
+  } ]
+}

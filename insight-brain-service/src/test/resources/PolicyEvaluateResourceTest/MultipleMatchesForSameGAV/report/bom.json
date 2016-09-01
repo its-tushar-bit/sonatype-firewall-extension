@@ -1,0 +1,39 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "tomcat-util-5.0.28.jar" ],
+    "pathnames" : [ "tomcat-util-5.0.28.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3102cdd0edd5a05afe00",
+    "relativePopularity" : 0.0,
+    "createTime" : 1133961124000
+  }, {
+    "filenames" : [ "tomcat-util-5.0.28-Similar2.jar" ],
+    "pathnames" : [ "tomcat-util-5.0.28-Similar2.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "707df42012875442b9df",
+    "relativePopularity" : 0.0,
+    "createTime" : 1133961124000
+  }, {
+    "filenames" : [ "tomcat-util-5.0.28-Similar1.jar" ],
+    "pathnames" : [ "tomcat-util-5.0.28-Similar1.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d29a75f9056e0b040f09",
+    "relativePopularity" : 0.0,
+    "createTime" : 1133961124000
+  } ]
+}

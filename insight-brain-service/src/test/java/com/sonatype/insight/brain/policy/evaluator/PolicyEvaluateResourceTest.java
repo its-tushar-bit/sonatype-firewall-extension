@@ -152,7 +152,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
-    mockReport(scanId, "/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report.zip");
+    mockReport(scanId, "/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report");
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);

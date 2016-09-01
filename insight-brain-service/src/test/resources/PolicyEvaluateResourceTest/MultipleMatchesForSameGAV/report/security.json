@@ -1,0 +1,69 @@
+{
+  "aaData" : [ {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "hash" : "3102cdd0edd5a05afe00",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-3385",
+    "reference" : "CVE-2007-3385",
+    "source" : "cve",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "hash" : "3102cdd0edd5a05afe00",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-5333",
+    "reference" : "CVE-2007-5333",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "hash" : "3102cdd0edd5a05afe00",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-0022",
+    "reference" : "CVE-2012-0022",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "hash" : "3102cdd0edd5a05afe00",
+    "url" : "http://osvdb.org/37071",
+    "reference" : "37071",
+    "source" : "osvdb",
+    "score" : 4.3,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "hash" : "3102cdd0edd5a05afe00",
+    "url" : "http://osvdb.org/41435",
+    "reference" : "41435",
+    "source" : "osvdb",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.0.28",
+    "hash" : "3102cdd0edd5a05afe00",
+    "url" : "http://osvdb.org/78573",
+    "reference" : "78573",
+    "source" : "osvdb",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  } ]
+}

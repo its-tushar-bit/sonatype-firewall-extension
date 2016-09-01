@@ -88,7 +88,7 @@ public abstract class AbstractPolicyEvaluationTest
   public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
                                                         String expectedPolicyId,
                                                         String expectedPolicyName,
-                                                        String actionTypeId,
+                                                        String expectedActionTypeId,
                                                         String expectedConstraintId,
                                                         String expectedConstraintName,
                                                         String expectedConditionTypeId,
@@ -97,7 +97,7 @@ public abstract class AbstractPolicyEvaluationTest
     for (PolicyAlert actualPolicyAlert : actual) {
       PolicyFact policyFact = actualPolicyAlert.getTrigger();
       if (expectedPolicyId.equals(policyFact.getPolicyId()) && expectedPolicyName.equals(policyFact.getPolicyName())
-          && policyAlertContainsAction(actualPolicyAlert, actionTypeId)) {
+          && policyAlertContainsAction(actualPolicyAlert, expectedActionTypeId)) {
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
           if (Objects.equals(expectedComponent.getComponentIdentifier(), componentFact.getComponentIdentifier())
               && StringUtils.equals(expectedComponent.getHash(), componentFact.getHash())) {

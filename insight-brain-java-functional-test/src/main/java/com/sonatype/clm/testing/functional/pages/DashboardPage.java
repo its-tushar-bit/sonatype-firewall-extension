@@ -30,6 +30,7 @@ public class DashboardPage
   /**
    * @deprecated use dashboardContainer() once new dashboard is in place
    */
+  @Deprecated
   public static SelenideElement body() {
     return $(".dashboard-root-container");
   }

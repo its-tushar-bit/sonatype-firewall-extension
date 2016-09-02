@@ -25,23 +25,23 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
   public static DashboardFilter applicationFilter() {
-    return new DashboardFilter(".tree-view-group:nth-child(1)");
-  }
-
-  public static DashboardFilter applicationCategoryFilter() {
     return new DashboardFilter(".tree-view-group:nth-child(2)");
   }
 
-  public static DashboardFilter stageFilter() {
+  public static DashboardFilter applicationCategoryFilter() {
     return new DashboardFilter(".tree-view-group:nth-child(3)");
   }
 
+  public static DashboardFilter stageFilter() {
+    return new DashboardFilter(".tree-view-group:nth-child(4)");
+  }
+
   public static PolicyTypeFilter policyTypeFilter() {
-    return new PolicyTypeFilter(".tree-view-group:nth-child(4)");
+    return new PolicyTypeFilter(".tree-view-group:nth-child(5)");
   }
 
   public static PolicyThreatLevelFilter policyThreatLevelFilter() {
-    return new PolicyThreatLevelFilter(".tree-view-group:nth-child(5)");
+    return new PolicyThreatLevelFilter(".tree-view-group:nth-child(6)");
   }
 
   public static Button applyButton() {

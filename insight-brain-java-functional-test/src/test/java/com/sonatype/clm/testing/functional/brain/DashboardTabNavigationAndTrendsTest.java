@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
@@ -25,7 +24,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -62,19 +60,15 @@ public class DashboardTabNavigationAndTrendsTest
 
   private static Policy policy;
 
-  private static List<Map> COMPONENTS = new ArrayList<>();
+  private static List<ComponentData> COMPONENTS = new ArrayList<>();
 
   static final List<PolicyWaiver> existingWaivers = new ArrayList<>();
 
   static {
     for (int i = 0; i < 10; i++) {
-      COMPONENTS.add(ImmutableMap.of(
-          "componentIdentifier", new ComponentIdentifier("maven", ImmutableMap.of(
-              "groupId", "group-" + i,
-              "artifactId", "artifact-" + i,
-              "version", Integer.toString(i))),
-          "hash", Integer.toString(i),
-          "pathnames", "pathname-" + i));
+      COMPONENTS.add(new ComponentData(
+          ComponentIdentifier.createMavenCoordinates("group-" + i, "artifact-" + i, Integer.toString(i)),
+          Integer.toString(i)));
     }
   }
 
@@ -159,23 +153,21 @@ public class DashboardTabNavigationAndTrendsTest
     }
   }
 
-  private static void createViolations(PolicyEvaluation evaluation, List<Map> components) {
-    for (Map component : components) {
-      staticTempEntity.newPolicyViolation(evaluation, policy,
-          (ComponentIdentifier) component.get("componentIdentifier"), (String) component.get("hash"), "");
+  private static void createViolations(PolicyEvaluation evaluation, List<ComponentData> components) {
+    for (ComponentData component : components) {
+      staticTempEntity.newPolicyViolation(evaluation, policy, component.componentIdentifier, component.hash, "");
     }
   }
 
-  private static void createWaivedViolations(PolicyEvaluation evaluation, List<Map> components) {
-    for (Map component : components) {
-      PolicyWaiver waiver = findExistingWaiver((String) component.get("hash"));
+  private static void createWaivedViolations(PolicyEvaluation evaluation, List<ComponentData> components) {
+    for (ComponentData component : components) {
+      PolicyWaiver waiver = findExistingWaiver(component.hash);
       if (waiver == null) {
-        waiver = staticTempEntity.newWaiver((String) component.get("hash"), policy.getId(), app.getId());
+        waiver = staticTempEntity.newWaiver(component.hash, policy.getId(), app.getId());
         existingWaivers.add(waiver);
       }
-      staticTempEntity.newWaivedPolicyViolation(evaluation, policy,
-          (ComponentIdentifier) component.get("componentIdentifier"),
-          (String) component.get("hash"), waiver);
+      staticTempEntity.newWaivedPolicyViolation(evaluation, policy, component.componentIdentifier, component.hash,
+          waiver);
     }
   }
 
@@ -326,5 +318,17 @@ public class DashboardTabNavigationAndTrendsTest
 
     trendsModal.closeButton().click();
     trendsModal.shouldNotBe(visible);
+  }
+
+  private static class ComponentData
+  {
+    ComponentIdentifier componentIdentifier;
+
+    String hash;
+
+    public ComponentData(ComponentIdentifier componentIdentifier, String hash) {
+      this.componentIdentifier = componentIdentifier;
+      this.hash = hash;
+    }
   }
 }

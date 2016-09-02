@@ -37,14 +37,12 @@
             <div class="tile clickable" ng-repeat="application in applications | limitTo: maxResults | orderBy:sortVm.sortFields"
                  ng-click="angular.noop()">
               <div class="applications-row">
-                <div class="column greedy application-name semi-bold">
-                   <span class="result-cell">{{::application.applicationName}}</span>
-                </div><!--
-              --><div class="column fixed total-risk"><span class="result-cell">{{::application.totalApplicationRisk.totalRisk}}</span></div><!--
-              --><div ng-if="policyThreatLevelCategories.critical" class="column fixed critical-risk"><span class="result-cell">{{::application.totalApplicationRisk.criticalRisk}}</span></div><!--
-              --><div ng-if="policyThreatLevelCategories.severe" class="column fixed severe-risk"><span class="result-cell">{{::application.totalApplicationRisk.severeRisk}}</span></div><!--
-              --><div ng-if="policyThreatLevelCategories.moderate" class="column fixed moderate-risk"><span class="result-cell">{{::application.totalApplicationRisk.moderateRisk}}</span></div><!--
-              --><div ng-if="policyThreatLevelCategories.low" class="column fixed low-risk"><span class="result-cell">{{::application.totalApplicationRisk.lowRisk}}</span></div><!--
+                <div class="column greedy application-name semi-bold">{{::application.applicationName}}</div><!--
+              --><div class="column fixed padded-cell total-risk">{{::application.totalApplicationRisk.totalRisk}}</div><!--
+              --><div ng-if="policyThreatLevelCategories.critical" class="column fixed padded-cell critical-risk">{{::application.totalApplicationRisk.criticalRisk}}</div><!--
+              --><div ng-if="policyThreatLevelCategories.severe" class="column fixed padded-cell severe-risk">{{::application.totalApplicationRisk.severeRisk}}</div><!--
+              --><div ng-if="policyThreatLevelCategories.moderate" class="column fixed padded-cell moderate-risk">{{::application.totalApplicationRisk.moderateRisk}}</div><!--
+              --><div ng-if="policyThreatLevelCategories.low" class="column fixed padded-cell low-risk">{{::application.totalApplicationRisk.lowRisk}}</div><!--
               --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
               </div>
             </div>

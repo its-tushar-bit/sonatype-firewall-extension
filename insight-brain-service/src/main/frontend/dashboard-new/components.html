@@ -37,13 +37,13 @@
           <div class="tile clickable" ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
                ng-click="goToComponentDetails(component)">
             <div class="components-row">
-              <div class="column greedy component-name semi-bold"><span class="result-cell">{{component.name}}</span></div><!--
-              --><div class="column fixed affected-apps"><span class="result-cell">{{::component.affectedApplications}}</span></div><!--
-              --><div class="column fixed total-risk"><span class="result-cell">{{::component.score}}</span></div><!--
-              --><div class="column fixed critical-risk"><span class="result-cell">{{::component.scoreCritical}}</span></div><!--
-              --><div class="column fixed severe-risk"><span class="result-cell">{{::component.scoreSevere}}</span></div><!--
-              --><div class="column fixed moderate-risk"><span class="result-cell">{{::component.scoreModerate}}</span></div><!--
-              --><div class="column fixed low-risk"><span class="result-cell">{{::component.scoreLow}}</span></div><!--
+              <div class="column greedy component-name semi-bold">{{component.name}}</div><!--
+              --><div class="column fixed padded-cell affected-apps">{{::component.affectedApplications}}</div><!--
+              --><div class="column fixed padded-cell total-risk">{{::component.score}}</div><!--
+              --><div class="column fixed padded-cell critical-risk">{{::component.scoreCritical}}</div><!--
+              --><div class="column fixed padded-cell severe-risk">{{::component.scoreSevere}}</div><!--
+              --><div class="column fixed padded-cell moderate-risk">{{::component.scoreModerate}}</div><!--
+              --><div class="column fixed padded-cell low-risk">{{::component.scoreLow}}</div><!--
               --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
             </div>
           </div>

@@ -38,12 +38,12 @@
               <div class="violations-row">
                 <div class="width-third column threat-and-policy-column-container">
                   <div class='clm-bar' threat-class="risk.threatLevel">&nbsp;</div><!--
-               --><div class="column fixed threat-number"><span class="result-cell">{{::risk.threatLevel}}</span></div><!--
+               --><div class="column fixed threat-number">{{::risk.threatLevel}}</div><!--
                --><div class="column remaining policy">{{::risk.policyName}}</div>
                 </div><!--
                --><div class="column width-third application">{{::risk.applicationName}}</div><!--
                --><div class="column width-third component"><span component-display component="risk"></span></div><!--
-               --><div class="column fixed age"><span class="result-cell">{{::risk.time | terseAgo}}</span></div><!--
+               --><div class="column fixed age padded-cell">{{::risk.time | terseAgo}}</div><!--
               --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
               </div>
             </div>

@@ -122,7 +122,9 @@ public class PolicyEvaluateResourceTest
   public void before() throws Exception {
     Organization org = tempEntity.newOrganization();
     app = tempEntity.newApplication("appName", applicationPublicId, org.getId(), "admin");
-    setLicenseFingerprint(licenseFingerprint);
+    if (!isTestUsingManualServerInit()) {
+      setLicenseFingerprint(licenseFingerprint);
+    }
   }
 
   @Test
@@ -322,6 +324,7 @@ public class PolicyEvaluateResourceTest
         config.setJiraConfig(new JiraConfig());
       }
     });
+    setLicenseFingerprint(licenseFingerprint);
 
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 

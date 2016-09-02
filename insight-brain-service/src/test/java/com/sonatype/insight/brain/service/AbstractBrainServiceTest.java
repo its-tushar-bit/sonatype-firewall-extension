@@ -103,7 +103,7 @@ public abstract class AbstractBrainServiceTest
     licenseThreatGroupDAO.createDefaultLicenseThreatGroups();
   }
 
-  private boolean isTestUsingManualServerInit() throws Exception {
+  protected boolean isTestUsingManualServerInit() throws Exception {
     String testMethod = testName.getMethodName();
     int paramStart = testMethod.indexOf('[');
     if (paramStart >= 0) {

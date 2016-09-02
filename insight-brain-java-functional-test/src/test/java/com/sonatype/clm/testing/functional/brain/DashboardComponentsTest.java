@@ -142,7 +142,7 @@ public class DashboardComponentsTest
   }
 
   @Test
-  public void testShouldNotShowMaxResultsMessageWhen100Results() throws InterruptedException {
+  public void testShouldNotShowMaxResultsMessageWhen100Results() {
     addComponents(100, 5);
     refreshOrOpen(DashboardPage.COMPONENTS_URL);
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -150,7 +150,7 @@ public class DashboardComponentsTest
   }
 
   @Test
-  public void testShouldShowMaxResultsMessageWhen101Results() throws InterruptedException {
+  public void testShouldShowMaxResultsMessageWhen101Results() {
     addComponents(101, 5);
     refreshOrOpen(DashboardPage.COMPONENTS_URL);
     DashboardPage.dashboardContainer().shouldBe(visible);

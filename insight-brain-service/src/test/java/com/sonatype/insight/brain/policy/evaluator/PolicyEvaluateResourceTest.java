@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.jira.JiraConfig;
 import com.sonatype.insight.brain.jira.JiraField;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest;
+import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -89,6 +90,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
@@ -324,6 +326,9 @@ public class PolicyEvaluateResourceTest
         config.setJiraConfig(new JiraConfig());
       }
     });
+    JiraIssueCreateResponse createResponse = new JiraIssueCreateResponse();
+    when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class))).thenReturn(createResponse);
+
     setLicenseFingerprint(licenseFingerprint);
 
     final String scanId = "PolicyEvaluateResourceTest_ScanId";

@@ -10,12 +10,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.TrendRow;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.TrendsModal;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -25,6 +28,7 @@ import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
 import com.google.common.base.Predicate;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
@@ -45,15 +49,8 @@ import static com.sonatype.clm.testing.functional.pages.TrendsModal.NATURAL;
 import static com.sonatype.clm.testing.functional.pages.TrendsModal.NEUTRAL;
 
 public class DashboardTabNavigationAndTrendsTest
-    extends AbstractDashboardTest
+    extends AbstractFunctionalTest
 {
-
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    setupData();
-    AbstractDashboardTest.beforeClass();
-  }
-
   private static Organization org;
 
   private static Application app;
@@ -79,6 +76,19 @@ public class DashboardTabNavigationAndTrendsTest
   static final String[] UNRESOLVED_ROW_DELTAS = {"2", "0", "0", "1", "-3", "0", "0", "0", "-2", "0", "0", "0"};
 
   static final String[] WAIVED_ROW_DELTAS = {"0", "0", "0", "0", "3", "0", "-1", "0", "-1", "0", "0", "0"};
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    setupData();
+    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    loginAsAdmin();
+  }
+
+  @Before
+  public void before() {
+    clearFilters();
+    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+  }
 
   public static void setupData() {
     org = staticTempEntity.newOrganization("DashboardPolicySummarySpec");
@@ -318,6 +328,12 @@ public class DashboardTabNavigationAndTrendsTest
 
     trendsModal.closeButton().click();
     trendsModal.shouldNotBe(visible);
+  }
+
+  private void clearFilters() {
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    DashboardFilter filter = dashboardFilterDAO.getByUsername("admin");
+    dashboardFilterDAO.delete(filter);
   }
 
   private static class ComponentData

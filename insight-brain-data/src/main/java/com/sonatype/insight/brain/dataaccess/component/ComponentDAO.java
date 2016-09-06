@@ -143,15 +143,15 @@ public class ComponentDAO
     // Load bom data
     List<Component> bomComponents = getAll(bomData);
 
-    final Map<ComponentIdentifier, List<Component>> componentsByKey = new LinkedHashMap<>();
+    final Map<ComponentIdentifier, List<Component>> componentsByIdentifier = new LinkedHashMap<>();
     final Map<String, Component> componentsByHash = new LinkedHashMap<>();
     List<Component> unhashedComponents = new ArrayList<>();
     for (Component component : bomComponents) {
-      ComponentIdentifier key = component.getComponentIdentifier();
-      List<Component> components = componentsByKey.get(key);
+      ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
+      List<Component> components = componentsByIdentifier.get(componentIdentifier);
       if (components == null) {
         components = new ArrayList<>();
-        componentsByKey.put(key, components);
+        componentsByIdentifier.put(componentIdentifier, components);
       }
       components.add(component);
 
@@ -172,8 +172,8 @@ public class ComponentDAO
         final ArrayNode licenseJsonArray = (ArrayNode) licenseJson;
         for (int i = 0; i < licenseJsonArray.size(); i++) {
           final JsonNode jsonLicenseNode = licenseJsonArray.get(i);
-          ComponentIdentifier key = ComponentIdentifierAdapter.getComponentIdentifier(jsonLicenseNode);
-          List<Component> components = componentsByKey.get(key);
+          ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonLicenseNode);
+          List<Component> components = componentsByIdentifier.get(componentIdentifier);
           if (components != null) {
             for (Component component : components) {
               processJsonLicenseData(component, jsonLicenseNode);
@@ -192,7 +192,7 @@ public class ComponentDAO
         final ArrayNode securityJsonArray = (ArrayNode) securityJson;
         for (int i = 0; i < securityJsonArray.size(); i++) {
           final JsonNode securityVulnerabilityJson = securityJsonArray.get(i);
-          ComponentIdentifier key = ComponentIdentifierAdapter.getComponentIdentifier(securityVulnerabilityJson);
+          final String hash = securityVulnerabilityJson.get("hash").asText();
           final String source = securityVulnerabilityJson.get("source").asText();
           final String reference = securityVulnerabilityJson.get("reference").asText();
           final Float severity = JsonUtils.getNullableFloat(securityVulnerabilityJson.get("score"));
@@ -201,18 +201,16 @@ public class ComponentDAO
           final SecurityVulnerabilityOverrideStatus status = SecurityVulnerabilityOverrideStatus
               .getByName(statusString);
 
-          List<Component> components = componentsByKey.get(key);
-          if (components != null) {
-            for (Component component : components) {
-              SecurityVulnerability securityVulnerability = new SecurityVulnerability();
-              securityVulnerability.setSource(source);
-              securityVulnerability.setRefId(reference);
-              securityVulnerability.setSeverity(severity);
-              securityVulnerability.setStatus(status);
-              securityVulnerability.setUrl(urlString);
+          Component component = componentsByHash.get(hash);
+          if (component != null) {
+            SecurityVulnerability securityVulnerability = new SecurityVulnerability();
+            securityVulnerability.setSource(source);
+            securityVulnerability.setRefId(reference);
+            securityVulnerability.setSeverity(severity);
+            securityVulnerability.setStatus(status);
+            securityVulnerability.setUrl(urlString);
 
-              component.addSecurityVulnerability(securityVulnerability);
-            }
+            component.addSecurityVulnerability(securityVulnerability);
           }
         }
       }

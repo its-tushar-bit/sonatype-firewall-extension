@@ -32,6 +32,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
 
+import static org.junit.Assert.fail;
+
 public abstract class AbstractPolicyEvaluationTest
     extends AbstractComponentTest
 {
@@ -85,12 +87,12 @@ public abstract class AbstractPolicyEvaluationTest
     Assert.assertEquals("Incorrect number of constraint facts", expectedConstraintFactCount, actualConstraintFactCount);
   }
 
-  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
-                                                        Policy expectedPolicy,
-                                                        Constraint expectedConstraint,
-                                                        String expectedActionTypeId,
-                                                        String expectedConditionTypeId,
-                                                        List<PolicyAlert> actual)
+  private static ConditionFact findConditionFactInPolicyAlerts(Component expectedComponent,
+                                                               Policy expectedPolicy,
+                                                               Constraint expectedConstraint,
+                                                               String expectedActionTypeId,
+                                                               String expectedConditionTypeId,
+                                                               List<PolicyAlert> actual)
   {
     for (PolicyAlert actualPolicyAlert : actual) {
       PolicyFact policyFact = actualPolicyAlert.getTrigger();
@@ -115,8 +117,36 @@ public abstract class AbstractPolicyEvaluationTest
       }
     }
 
-    Assert.fail(toString(actual));
     return null;
+  }
+
+  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
+                                                        Policy expectedPolicy,
+                                                        Constraint expectedConstraint,
+                                                        String expectedActionTypeId,
+                                                        String expectedConditionTypeId,
+                                                        List<PolicyAlert> actual)
+  {
+    ConditionFact conditionFact = findConditionFactInPolicyAlerts(expectedComponent, expectedPolicy, expectedConstraint,
+        expectedActionTypeId, expectedConditionTypeId, actual);
+    if (conditionFact == null) {
+      fail("Cannot find expected policy alert in:" + toString(actual));
+    }
+    return conditionFact;
+  }
+
+  public static void assertNotContainsPolicyAlert(Component expectedComponent,
+                                                  Policy expectedPolicy,
+                                                  Constraint expectedConstraint,
+                                                  String expectedActionTypeId,
+                                                  String expectedConditionTypeId,
+                                                  List<PolicyAlert> actual)
+  {
+    ConditionFact conditionFact = findConditionFactInPolicyAlerts(expectedComponent, expectedPolicy, expectedConstraint,
+        expectedActionTypeId, expectedConditionTypeId, actual);
+    if (conditionFact != null) {
+      fail("Found unexpected policy alert in:" + toString(actual));
+    }
   }
 
   private static String toString(List<PolicyAlert> policyAlerts) {

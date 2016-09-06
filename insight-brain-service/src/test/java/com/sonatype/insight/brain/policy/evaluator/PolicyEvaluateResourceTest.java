@@ -77,6 +77,7 @@ import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest.assertContainsPolicyAlert;
+import static com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest.assertNotContainsPolicyAlert;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -184,11 +185,17 @@ public class PolicyEvaluateResourceTest
         SecurityVulnerabilityConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(expectedComponentSimilar1, policy1, constraintLicense, Action.ID_FAIL,
         LicenseConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(expectedComponentSimilar1, policy1, constraintSV, Action.ID_FAIL,
+    // Verify that the SVs are associated with components by hash, not by component identifier.
+    // If SVs were associated with components by component identifier, this component would have a policy violation for
+    // an SV because it has the same identifier as expectedComponentExact, which has a violation for an SV.
+    assertNotContainsPolicyAlert(expectedComponentSimilar1, policy1, constraintSV, Action.ID_FAIL,
         SecurityVulnerabilityConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(expectedComponentSimilar2, policy1, constraintLicense, Action.ID_FAIL,
         LicenseConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(expectedComponentSimilar2, policy1, constraintSV, Action.ID_FAIL,
+    // Verify that the SVs are associated with components by hash, not by component identifier.
+    // If SVs were associated with components by component identifier, this component would have a policy violation for
+    // an SV because it has the same identifier as expectedComponentExact, which has a violation for an SV.
+    assertNotContainsPolicyAlert(expectedComponentSimilar2, policy1, constraintSV, Action.ID_FAIL,
         SecurityVulnerabilityConditionType.ID, policyAlerts);
   }
 

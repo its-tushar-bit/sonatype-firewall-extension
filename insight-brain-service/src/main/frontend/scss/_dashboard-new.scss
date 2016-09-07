@@ -209,6 +209,7 @@
           position: static; /* static is the initial setting */
           height: 100%;
           width: 100%;
+          line-height: 40px;
         }
         .fa-caret-up {
           top: calc(50% - 7px);
@@ -221,7 +222,9 @@
         }
         &.split-line {
           padding-top: 4px;
-          line-height: 16px;
+          a {
+            line-height: 16px;
+          }
         }
         &.chevron {
           width: 39px;

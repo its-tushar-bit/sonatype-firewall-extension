@@ -205,13 +205,10 @@
 
         a {
           text-decoration: none;
-          position: initial;
-        }
-        &.greedy a {
           display: inline-block;
-          width: calc(100% - 28px);
-          text-align: left;
-          height: 40px;
+          position: static; /* static is the initial setting */
+          height: 100%;
+          width: 100%;
         }
         .fa-caret-up {
           top: calc(50% - 7px);

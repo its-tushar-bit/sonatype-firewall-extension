@@ -1,9 +1,9 @@
-<div>
+<div id="dashboard-applications">
   <div class="dashboard-headers">
     <div class="tile summary-tile">
       <div class="dashboard-header-container">
         <div class="dashboard-header">
-          <div class="applications-row" sort="-totalApplicationRisk.totalRisk">
+          <div class="applications-row" sort="applicationName">
             <div class="column greedy application-name" sort-column="applicationName">
               <span class="header-text">Name</span>
             </div><!--
@@ -32,19 +32,31 @@
   <div class="dashboard-results">
     <div class="tile-container" fill-vertical>
       <div class="tile-scroll-container">
-        <div application-risk-table>
-          <div id="dashboard-components" ng-controller="application.risk.table">
-            <div class="tile clickable" ng-repeat="application in applications | limitTo: maxResults | orderBy:sortVm.sortFields"
-                 ng-click="angular.noop()">
-              <div class="applications-row">
-                <div class="column greedy application-name semi-bold">{{::application.applicationName}}</div><!--
-              --><div class="column fixed padded-cell total-risk">{{::application.totalApplicationRisk.totalRisk}}</div><!--
-              --><div ng-if="policyThreatLevelCategories.critical" class="column fixed padded-cell critical-risk">{{::application.totalApplicationRisk.criticalRisk}}</div><!--
-              --><div ng-if="policyThreatLevelCategories.severe" class="column fixed padded-cell severe-risk">{{::application.totalApplicationRisk.severeRisk}}</div><!--
-              --><div ng-if="policyThreatLevelCategories.moderate" class="column fixed padded-cell moderate-risk">{{::application.totalApplicationRisk.moderateRisk}}</div><!--
-              --><div ng-if="policyThreatLevelCategories.low" class="column fixed padded-cell low-risk">{{::application.totalApplicationRisk.lowRisk}}</div><!--
-              --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
-              </div>
+        <div applications-results>
+          <div class="tile" ng-repeat="application in data | limitTo: maxResults | orderBy: sortVm.sortFields">
+            <div class="applications-row total-application-risks">
+              <div class="column greedy application-name semi-bold">{{::application.applicationName}}</div><!--
+            --><div class="column fixed padded-cell total-risk">{{::application.totalApplicationRisk.totalRisk}}</div><!--
+            --><div class="column fixed padded-cell critical-risk">{{::application.totalApplicationRisk.criticalRisk}}</div><!--
+            --><div class="column fixed padded-cell severe-risk">{{::application.totalApplicationRisk.severeRisk}}</div><!--
+            --><div class="column fixed padded-cell moderate-risk">{{::application.totalApplicationRisk.moderateRisk}}</div><!--
+            --><div class="column fixed padded-cell low-risk">{{::application.totalApplicationRisk.lowRisk}}</div><!--
+            --><div class="column fixed chevron">&nbsp;</div>
+            </div>
+            <div class="applications-row stage-application-risks" ng-repeat='stage in application.stageRisks'>
+              <div class="column greedy application-name semi-bold">
+                <a title="View application report"
+                   ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
+                   target="_blank"><i class="fa fa-external-link fa-fw"></i>{{::stage.stageTypeName}}</a>
+              </div><!--
+           --><div class="column stage-application-risks-container">
+                   <div class="column fixed padded-cell total-risk">{{::stage.risk.totalRisk}}</div><!--
+                --><div class="column fixed padded-cell critical-risk">{{::stage.risk.criticalRisk}}</div><!--
+                --><div class="column fixed padded-cell severe-risk">{{::stage.risk.severeRisk}}</div><!--
+                --><div class="column fixed padded-cell moderate-risk">{{::stage.risk.moderateRisk}}</div><!--
+                --><div class="column fixed padded-cell low-risk">{{::stage.risk.lowRisk}}</div>
+              </div><!--
+           --><div class="column fixed chevron">&nbsp;</div>
             </div>
           </div>
         </div>

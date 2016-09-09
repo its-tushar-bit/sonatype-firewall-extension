@@ -2,6 +2,15 @@
 
   $dashboard-border: 1px solid $grey-3;
 
+  // fixed column widths
+  $total-risk-width: 82px;
+  $critical-risk-width: 99px;
+  $severe-risk-width: 90px;
+  $moderate-risk-width: 114px;
+  $low-risk-width: 71px;
+
+  $total-risk-columns: $total-risk-width + $critical-risk-width + $severe-risk-width + $moderate-risk-width + $low-risk-width;
+
   .tile-scroll-container {
     padding-top: 4px;
     height: calc(100% - 16px);
@@ -60,26 +69,25 @@
       text-align: center;
 
       &.total-risk {
-        width: 82px;
+        width: $total-risk-width;
       }
 
       &.critical-risk {
-        width: 99px;
+        width: $critical-risk-width;
       }
 
       &.severe-risk {
-        width: 90px;
+        width: $severe-risk-width;
       }
 
       &.moderate-risk {
-        width: 114px;
+        width: $moderate-risk-width;
       }
 
       &.low-risk {
-        width: 71px;
+        width: $low-risk-width;
       }
     }
-
 
     &.chevron {
       width: 19px;
@@ -247,8 +255,13 @@
       }
 
       .applications-row {
+        $chevron-width: 24px;
+
+        .chevron {
+          width: $chevron-width;
+        }
         .column.application-name {
-          width: calc(100% - 495px);
+          width: calc(100% - #{$total-risk-columns + $chevron-width});
         }
       }
 
@@ -292,8 +305,46 @@
   }
 
   .applications-row {
+    $chevron-width: 9px;
+    line-height: 22px;
+
     .column.application-name {
-      width: calc(100% - 495px);
+      width: calc(100% - #{$total-risk-columns + $chevron-width});
+      font-family: Proxima Nova Semibold, sans-serif;
+    }
+
+    .column.chevron {
+      width: $chevron-width;
+    }
+
+    &.total-application-risks {
+      padding-top: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid $grey-3;
+    }
+
+    &.stage-application-risks {
+      .column.application-name {
+        text-align: right;
+        font-family: Proxima Nova, sans-serif;
+        padding-right: 12px;
+      }
+
+      .stage-application-risks-container {
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border-top: 1px solid $grey-1;
+      }
+      .fa {
+        margin-right: 8px;
+        width: 12px;
+      }
+    }
+
+    &:nth-child(2) {
+      .stage-application-risks-container {
+        border-top: 1px solid transparent;
+      }
     }
   }
 
@@ -319,4 +370,13 @@
   background-color: transparent;
   border: none;
   text-align: center;
+}
+
+#dashboard-applications {
+  .dashboard-results {
+    .tile {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
 }

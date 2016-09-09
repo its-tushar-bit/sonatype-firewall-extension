@@ -66,6 +66,7 @@
               $scope.goToComponentDetails = function(component) {
                 $state.go('dashboard.component', {hash: component.hash});
               };
+              $scope.encodeURIComponent = window.encodeURIComponent;
             }
           ]
         };

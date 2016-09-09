@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.DashboardApplications;
+import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsHeaders;
+import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents;
 import com.sonatype.clm.testing.functional.elements.DashboardTab;
 
@@ -61,5 +64,13 @@ public class DashboardPage
 
   public static DashboardComponents componentsView() {
     return new DashboardComponents();
+  }
+
+  public static ApplicationsHeaders applicationsHeaders() {
+    return DashboardApplications.headers();
+  }
+
+  public static ApplicationsResults applicationsResults() {
+    return DashboardApplications.results();
   }
 }

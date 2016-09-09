@@ -132,6 +132,9 @@
         &:hover {
           color: $off-black;
           text-decoration: none;
+          .fa.inverse {
+            background-color: $off-black;
+          }
         }
         // invisible border to avoid shifts upon activating
         border-top: 1px solid transparent;

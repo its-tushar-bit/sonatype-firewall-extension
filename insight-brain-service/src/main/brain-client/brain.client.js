@@ -51,7 +51,7 @@ var clmBuildTimestamp = '${build.timestamp}';
   }
 
   var features = ['policy', 'labels', 'release-graph', 'policy-violations', 'notification', 'reevaluate-policy',
-                  'component-identifier'],// Lowercase
+                  'component-identifier, multiple-ldap-servers-enabled'],// Lowercase
       param = window.$ ? $.param : function(obj) {
         var string = '',
             field;

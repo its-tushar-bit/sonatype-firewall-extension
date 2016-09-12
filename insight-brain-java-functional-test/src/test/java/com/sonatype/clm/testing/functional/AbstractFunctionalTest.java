@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.features.FeatureUtils;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -64,6 +65,8 @@ public abstract class AbstractFunctionalTest
   protected static RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   protected static JiraService jiraService;
+
+  protected static FeatureUtils featureUtils;
 
   protected static TestCLMServer testCLMServer;
 
@@ -137,6 +140,9 @@ public abstract class AbstractFunctionalTest
 
         jiraService = Mockito.mock(JiraService.class);
         bind(JiraService.class).toInstance(jiraService);
+
+        featureUtils = Mockito.mock(FeatureUtils.class);
+        bind(FeatureUtils.class).toInstance(featureUtils);
       }
     });
   }

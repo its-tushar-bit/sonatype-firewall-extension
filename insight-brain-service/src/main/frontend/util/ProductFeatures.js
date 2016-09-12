@@ -34,10 +34,15 @@
       return available('dashboard');
     }
 
+    function multipleLdapServersEnabled() {
+      return available('multiple-ldap-servers-enabled');
+    }
+
     return {
       load: load,
       isAvailable: available,
-      isDashboardLicensed: dashboardAvailable
+      isDashboardLicensed: dashboardAvailable,
+      isMultipleLdapServersEnabled: multipleLdapServersEnabled
     };
   }]);
 }());

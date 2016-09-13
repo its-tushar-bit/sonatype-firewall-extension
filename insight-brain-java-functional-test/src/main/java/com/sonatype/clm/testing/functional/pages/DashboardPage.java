@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardApplications.Applic
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents;
 import com.sonatype.clm.testing.functional.elements.DashboardTab;
+import com.sonatype.clm.testing.functional.elements.DashboardViolations;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -66,11 +67,19 @@ public class DashboardPage
     return new DashboardComponents();
   }
 
+  public static DashboardViolations violationsView() {
+    return new DashboardViolations();
+  }
+
   public static ApplicationsHeaders applicationsHeaders() {
     return DashboardApplications.headers();
   }
 
   public static ApplicationsResults applicationsResults() {
     return DashboardApplications.results();
+  }
+
+  public static SelenideElement tooltip() {
+    return $(".tooltip.dashboard-tooltip");
   }
 }

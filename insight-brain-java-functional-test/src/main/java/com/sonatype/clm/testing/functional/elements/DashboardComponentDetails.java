@@ -6,12 +6,17 @@
 package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
 public class DashboardComponentDetails
     extends BasicElement<DashboardComponentDetails>
 {
+  public static String url(String hash) {
+    return BaseUrl.uriBuilder().fragment("/dashboard/component/{hash}").build(hash).toString();
+  }
+
   public DashboardComponentDetails() {
     super(".component-container");
   }
@@ -19,5 +24,4 @@ public class DashboardComponentDetails
   public SelenideElement header() {
     return child("h2");
   }
-
 }

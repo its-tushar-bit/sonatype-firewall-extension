@@ -532,18 +532,8 @@ $tile-scroll-container-z-index: 0;
       .action {
         color: $slate;
 
-        .fa {
-          &.fail {
-            color: $red;
-          }
-
-          &.warn {
-            color: $orange;
-          }
-
-          + span {
-            color: $off-black;
-          }
+        .fa span {
+          color: $off-black;
         }
       }
     }

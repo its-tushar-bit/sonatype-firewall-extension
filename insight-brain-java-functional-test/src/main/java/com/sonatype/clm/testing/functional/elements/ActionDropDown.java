@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
-
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -62,10 +60,6 @@ public class ActionDropDown
   public static Condition reportLinkText(String stageName) {
     stageName = stageName.equals("Stage Release") ? "stage" : stageName;
     return text("View " + stageName + " report");
-  }
-
-  public static String reportLinkUrl(String publicId, String scanId) {
-    return BaseUrl.uriBuilder().fragment("/reports/{publicId}/{scanId}").build(publicId, scanId).toString();
   }
 
   public static ElementsCollection reportLinks() {

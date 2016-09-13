@@ -16,16 +16,44 @@ describe('dashboard.data.service.spec', function() {
 
   describe('getNewestRisks()', function() {
     it('returns data on success', function() {
-      var result, filter = {filterParam: 'filter value'};
-      $httpBackend.expectPOST(CLMLocations.getNewestRisksUrl(), filter)
-          .respond(['violation1', 'violation2']);
+      var result, filter = {filterParam: 'filter value'},
+          data = [
+        {
+          hash: 'f60e9504841ba867a692',
+          displayName: {
+            parts: [
+              {field: 'any', value: 'foo'},
+              {value: ' : '},
+              {field: 'any', value: 'bar'}
+            ]
+          },
+          stageDetails: [
+            {
+              stageTypeId: "stage-release",
+              time: 123456789
+            }, {
+              stageTypeId: "build",
+              time: 0
+            }
+          ]
+        },
+        {
+          hash: '1249e25aebb15358bedd'
+        }
+      ];
+      $httpBackend.expectPOST(CLMLocations.getNewestRisksUrl(), filter).respond(data);
 
       dashboardDataService.getNewestRisks(filter).then(function(data) {
         result = data;
       });
 
       $httpBackend.flush();
-      expect(result).toEqual(['violation1', 'violation2']);
+      expect(result[0].hash).toBe('f60e9504841ba867a692');
+      expect(result[0].gavName).toBe('foo : bar');
+      expect(result[0].stagereleaseTime).toBe(123456789);
+      expect(result[0].buildTime).toBe(null);
+      expect(result[1].hash).toBe('1249e25aebb15358bedd');
+      expect(result[1].gavName).toBe('Unknown');
     });
   });
 

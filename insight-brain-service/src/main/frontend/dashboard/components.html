@@ -26,7 +26,7 @@
       </thead>
       <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField()">
         <td>
-          <div component-display component="component"></div>
+          <div component-display pathname-tooltip="true" component="component"></div>
         </td>
         <td><a ui-sref="dashboard.component({ hash: component.hash })">{{component.affectedApplications}}</a></td>
         <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"

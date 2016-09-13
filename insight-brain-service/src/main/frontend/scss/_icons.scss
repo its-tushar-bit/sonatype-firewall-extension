@@ -209,6 +209,14 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
     // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
     text-shadow: $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px;
   }
+
+  &.fail {
+    color: $red;
+  }
+
+  &.warn {
+    color: $orange;
+  }
 }
 
 /*

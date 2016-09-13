@@ -1,4 +1,4 @@
-<div>
+<div id="dashboard-violations">
   <div class="dashboard-headers">
     <div class="tile summary-tile">
       <div class="dashboard-header-container">
@@ -31,20 +31,41 @@
   <div class="dashboard-results">
     <div class="tile-container" fill-vertical>
       <div class="tile-scroll-container">
-        <div newest-risk-table>
-          <div id="dashboard-components" ng-controller="NewestRiskTableController">
-            <div class="tile clickable" ng-repeat="risk in data | limitTo: maxResults | orderBy:sortVm.sortFields | emptyToEnd:sortVm.sortFields"
-                 ng-click="angular.noop()">
+        <div violations-results>
+          <div ng-controller="violations.table.controller as vm">
+            <div class="tile violations-card" ng-repeat="risk in data | limitTo: maxResults | orderBy:sortVm.sortFields | emptyToEnd:sortVm.sortFields">
+              <div class="clm-bar" threat-class="risk.threatLevel">&nbsp;</div>
               <div class="violations-row">
-                <div class="width-third column threat-and-policy-column-container">
-                  <div class='clm-bar' threat-class="risk.threatLevel">&nbsp;</div><!--
+                <div class="width-third column threat-and-policy-column-container semi-bold"><!--
                --><div class="column fixed threat-number">{{::risk.threatLevel}}</div><!--
-               --><div class="column remaining policy">{{::risk.policyName}}</div>
+               --><div class="column remaining policy truncate-ellipsis" data-tooltip="{{::risk.policyName}}"
+                       data-tooltip-placement="top-left" data-tooltip-popup-delay="500" data-tooltip-append-to-body="true"
+                       data-tooltip-class="dashboard-tooltip">
+                  {{::risk.policyName}}
+                </div>
                 </div><!--
-               --><div class="column width-third application">{{::risk.applicationName}}</div><!--
-               --><div class="column width-third component"><span component-display component="risk"></span></div><!--
-               --><div class="column fixed age padded-cell">{{::risk.time | terseAgo}}</div><!--
-              --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
+               --><div class="column width-third application truncate-ellipsis" data-tooltip="{{::risk.applicationName}}"
+                       data-tooltip-placement="top-left" data-tooltip-popup-delay="500" data-tooltip-append-to-body="true"
+                       data-tooltip-class="dashboard-tooltip">
+                    {{::risk.applicationName}}
+                  </div><!--
+               --><div class="column width-third component truncate-ellipsis"><!--
+                 --><span component-display component="risk" truncate="true" data-tooltip="{{::risk.gavName}}"
+                          data-tooltip-placement="top-left" data-tooltip-popup-delay="500" data-tooltip-append-to-body="true"
+                          data-tooltip-class="dashboard-tooltip {{::!risk.displayName && risk.pathnames ? 'pathname' : ''}}"></span><!--
+               --></div><!--
+               --><div class="column fixed age">{{::risk.time | terseAgo}}</div>
+              </div>
+              <div class="clm-bar" threat-class="risk.threatLevel">&nbsp;</div>
+              <div class="reports-row">
+                <a ng-repeat="stageDetails in risk.stageDetails | stageTypeSort | stageFilter:filters"
+                   ng-class="{'disabled': !stageDetails.scanId}" class="link"
+                   ng-click="vm.openReport(risk.applicationPublicId, stageDetails.scanId)"><!--
+               --><i class="fa fa-external-link fa-fw"/><!--
+               --><i ng-class="{'fa fa-exclamation-triangle warn' : stageDetails.actionTypeId === 'warn',
+                    'fa fa-exclamation-circle fail' : stageDetails.actionTypeId === 'fail'}"></i><!--
+               --><span>{{vm.stageTypes[stageDetails.stageTypeId].shortName}} report{{stageDetails.time | terseAgo | wrapWith : " (" : ")"}}</span><!--
+             --></a>
               </div>
             </div>
           </div>

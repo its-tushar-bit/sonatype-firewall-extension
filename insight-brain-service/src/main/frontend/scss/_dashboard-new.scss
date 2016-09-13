@@ -8,6 +8,11 @@
   $severe-risk-width: 90px;
   $moderate-risk-width: 114px;
   $low-risk-width: 71px;
+  $threat-width: 92px;
+  $threat-number-width: 30px;
+  $threat-bar-width: 8px;
+  $age-width: 68px;
+  $scroll-bar-width: 14px;
 
   $total-risk-columns: $total-risk-width + $critical-risk-width + $severe-risk-width + $moderate-risk-width + $low-risk-width;
 
@@ -48,6 +53,7 @@
         border-color: $slate;
       }
     }
+
   }
 
   .column {
@@ -203,6 +209,7 @@
     .dashboard-header-container {
       border-top: $dashboard-border;
       height: 40px;
+      $chevron-width: 39px;
 
       .column {
         box-sizing: border-box;
@@ -238,13 +245,19 @@
           }
         }
         &.chevron {
-          width: 39px;
+          width: $chevron-width;
+        }
+        &:nth-child(1) {
+          padding-left: 8px;
+        }
+        &.threat-and-policy-column-container {
+          padding: 0;
         }
       }
 
       .violations-row {
         .column.width-third {
-          width: calc((100% - 39px - 68px) / 3);
+          width: calc((100% - #{$age-width + $chevron-width}) / 3);
         }
       }
 
@@ -272,35 +285,107 @@
     }
   }
 
-  .violations-row {
-    .column.threat-and-policy-column-container {
+  #dashboard-violations {
+    .violations-card {
       padding: 0;
-      .threat {
+      overflow-x: auto;
+      overflow-y: hidden;
+
+      .violations-row {
+        padding-right: $scroll-bar-width;
+        width: calc(100% - #{$threat-bar-width + $scroll-bar-width});
+        .column.threat-and-policy-column-container {
+          padding: 0;
+          .threat {
+            float: left;
+            width: $threat-width;
+          }
+          .policy {
+            overflow: hidden;
+            display: block;
+          }
+          .threat-number {
+            float: left;
+            width: $threat-number-width;
+            padding: 0 8px;
+          }
+        }
+        .column.width-third {
+          width: calc((100% - #{$threat-bar-width + $scroll-bar-width + $age-width}) / 3);
+          &:not(:first-of-type) {
+            padding: 0 12px;
+          }
+        }
+        .column.fixed.age {
+          width: $age-width;
+        }
+      }
+
+      .reports-row {
+        box-sizing: border-box;
+        width: calc(100% - #{$threat-bar-width});
+        a {
+          position: relative; // ie 11 workaround, see note above
+          padding-right: 12px;
+          &:first-child {
+            padding-left: 8px;
+          }
+
+          @extend .semi-bold;
+
+          &.link {
+            @extend %link;
+
+            &.disabled {
+              text-decoration: none;
+            }
+
+            .fa-external-link {
+              margin-bottom: 2px;
+              vertical-align: middle;
+            }
+          }
+
+          &:hover, &:focus {
+            filter: none; // bootstrap override
+          }
+
+          .fa {
+            margin-right: 8px;
+          }
+        }
+
+        a:before {
+          // ie 11 workaround, see note above
+          content: "";
+          display: block;
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+        }
+
+        border-top: $dashboard-border;
+      }
+
+      .reports-row, .violations-row {
+        height: 40px;
+        line-height: 40px;
         float: left;
-        width: 92px;
       }
-      .policy {
-        overflow: hidden;
-        display: block;
-      }
+
       .clm-bar {
         display: inline-block;
         float: left;
-        width: 8px;
+        width: $threat-bar-width;
+        height: 40px;
+        border: none;
+
+        &:nth-child(3) {
+          clear: left;
+        }
       }
-      .threat-number {
-        float: left;
-        width: 20px;
-      }
-    }
-    .column.width-third {
-      width: calc((100% - 39px - 68px + 15px) / 3);
-      &:not(:first-of-type) {
-        padding: 0 12px;
-      }
-    }
-    .column.fixed.age {
-      width: 68px;
     }
   }
 
@@ -378,5 +463,25 @@
       padding-top: 0;
       padding-bottom: 0;
     }
+  }
+}
+
+.dashboard-tooltip.pathname  {
+
+}
+
+.dashboard-tooltip {
+  &.pathname .tooltip-inner::before {
+    content: "COMPONENT PATH\a";
+    font-weight: bold;
+    white-space: pre;
+    display: block;
+  }
+  .tooltip-inner {
+    text-align: left;
+    max-width:350px;
+  }
+  .tooltip-arrow {
+    left: 10%;
   }
 }

@@ -13,6 +13,8 @@
   $threat-bar-width: 8px;
   $age-width: 68px;
   $scroll-bar-width: 14px;
+  $chevron-width: 24px;
+  $affected-apps-width: 109px;
 
   $total-risk-columns: $total-risk-width + $critical-risk-width + $severe-risk-width + $moderate-risk-width + $low-risk-width;
 
@@ -96,7 +98,7 @@
     }
 
     &.chevron {
-      width: 19px;
+      width: $chevron-width;
       text-align: right;
     }
   }
@@ -209,7 +211,7 @@
     .dashboard-header-container {
       border-top: $dashboard-border;
       height: 40px;
-      $chevron-width: 39px;
+      $chevron-header-width: $chevron-width + $scroll-bar-width;
 
       .column {
         box-sizing: border-box;
@@ -245,7 +247,7 @@
           }
         }
         &.chevron {
-          width: $chevron-width;
+          width: $chevron-header-width;
         }
         &:nth-child(1) {
           padding-left: 8px;
@@ -257,24 +259,31 @@
 
       .violations-row {
         .column.width-third {
-          width: calc((100% - #{$age-width + $chevron-width}) / 3);
+          width: calc((100% - #{$age-width + $chevron-header-width}) / 3);
+        }
+        .column.age {
+          width: $age-width + $chevron-header-width;
         }
       }
 
       .components-row {
         .column.component-name {
-          width: calc(100% - 604px);
+          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-header-width});
+        }
+        .column.low-risk {
+          width: $low-risk-width + $chevron-header-width;
         }
       }
 
       .applications-row {
-        $chevron-width: 24px;
-
         .chevron {
-          width: $chevron-width;
+          width: $chevron-header-width;
         }
         .column.application-name {
-          width: calc(100% - #{$total-risk-columns + $chevron-width});
+          width: calc(100% - #{$total-risk-columns + $chevron-header-width});
+        }
+        .column.low-risk {
+          width: $low-risk-width + $chevron-header-width;
         }
       }
 
@@ -390,16 +399,11 @@
   }
 
   .applications-row {
-    $chevron-width: 9px;
     line-height: 22px;
 
     .column.application-name {
       width: calc(100% - #{$total-risk-columns + $chevron-width});
       font-family: Proxima Nova Semibold, sans-serif;
-    }
-
-    .column.chevron {
-      width: $chevron-width;
     }
 
     &.total-application-risks {
@@ -435,11 +439,11 @@
 
   .components-row {
     .column.component-name {
-      width: calc(100% - 589px);
+      width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width});
     }
 
     .column.affected-apps {
-      width: 109px;
+      width: $affected-apps-width;
     }
   }
 

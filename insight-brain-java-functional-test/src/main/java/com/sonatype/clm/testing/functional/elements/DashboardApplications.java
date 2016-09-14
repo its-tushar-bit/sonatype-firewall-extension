@@ -16,11 +16,11 @@ public class DashboardApplications
 {
   private static final String ROOT = "#dashboard-applications";
 
-  public static ApplicationsHeaders headers() {
+  public ApplicationsHeaders headers() {
     return new ApplicationsHeaders();
   }
 
-  public static ApplicationsResults results() {
+  public ApplicationsResults results() {
     return new ApplicationsResults();
   }
 

@@ -11,6 +11,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardComponents
 {
@@ -24,7 +25,7 @@ public class DashboardComponents
     return new ComponentsResults();
   }
 
-  public class ComponentsResults
+  public static class ComponentsResults
       extends BasicElement<ComponentsResults>
   {
     ComponentsResults() {
@@ -36,7 +37,7 @@ public class DashboardComponents
     }
 
     public SelenideElement component(int index) {
-      return child(".tile:nth-child(" + (index + 1) + ")");
+      return child(".tile", nthChild(index + 1));
     }
 
     public SelenideElement firstComponent() {
@@ -52,11 +53,11 @@ public class DashboardComponents
     }
 
     public SelenideElement noDataMessage() {
-      return $("#no-data");
+      return child("#no-data");
     }
   }
 
-  public class ComponentsHeaders
+  public static class ComponentsHeaders
       extends BasicElement<ComponentsHeaders>
   {
     ComponentsHeaders() {
@@ -64,23 +65,23 @@ public class DashboardComponents
     }
 
     public SelenideElement totalRiskHeader() {
-      return child(".total-risk a");
+      return child(".total-risk", "a");
     }
 
     public SelenideElement lowRiskHeader() {
-      return child(".low-risk a");
+      return child(".low-risk", "a");
     }
 
     public SelenideElement moderateRiskHeader() {
-      return child(".moderate-risk a");
+      return child(".moderate-risk", "a");
     }
 
     public SelenideElement severeRiskHeader() {
-      return child(".severe-risk a");
+      return child(".severe-risk", "a");
     }
 
     public SelenideElement criticalRiskHeader() {
-      return child(".critical-risk a");
+      return child(".critical-risk", "a");
     }
   }
 }

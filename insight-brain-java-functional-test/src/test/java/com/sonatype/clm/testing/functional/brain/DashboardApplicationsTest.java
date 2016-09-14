@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardApplications.Applic
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -27,7 +28,6 @@ import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 
-import com.codeborne.selenide.Configuration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -72,7 +72,7 @@ public class DashboardApplicationsTest
 
   @Test
   public void testResultsMessages() {
-    ApplicationsResults table = DashboardPage.applicationsResults();
+    ApplicationsResults table = DashboardPage.applicationsView().results();
 
     // no results
     refreshOrOpen(DashboardPage.APPLICATIONS_URL);
@@ -109,7 +109,7 @@ public class DashboardApplicationsTest
     refreshOrOpen(DashboardPage.APPLICATIONS_URL);
     showLowRiskViolations();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    ApplicationsResults table = DashboardPage.applicationsResults();
+    ApplicationsResults table = DashboardPage.applicationsView().results();
 
     // applications should be sorted by name
     table.applications().shouldHaveSize(5).shouldHave(texts(
@@ -140,15 +140,14 @@ public class DashboardApplicationsTest
         "Release",        //
         "Operate"         //
     ));
-    String urlPrefix = Configuration.baseUrl + "assets/index.html#/reports/5/";
-    app5.getStageLink(0).shouldHave(attribute("href", urlPrefix + "App5build"));
-    app5.getStageLink(1).shouldHave(attribute("href", urlPrefix + "App5stage-release"));
-    app5.getStageLink(2).shouldHave(attribute("href", urlPrefix + "App5release"));
-    app5.getStageLink(3).shouldHave(attribute("href", urlPrefix + "App5operate"));
+    app5.getStageLink(0).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5build")));
+    app5.getStageLink(1).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5stage-release")));
+    app5.getStageLink(2).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5release")));
+    app5.getStageLink(3).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5operate")));
 
 
     // sort by totalRisk
-    ApplicationsHeaders headers = DashboardPage.applicationsHeaders();
+    ApplicationsHeaders headers = DashboardPage.applicationsView().headers();
     headers.totalRiskHeader().click();
     table.applications().shouldHave(texts(
         "App5", //

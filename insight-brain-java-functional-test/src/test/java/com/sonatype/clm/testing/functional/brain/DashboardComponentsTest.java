@@ -14,7 +14,9 @@ import com.sonatype.clm.testing.functional.elements.DashboardComponents.Componen
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -22,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import com.codeborne.selenide.Selenide;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -50,6 +53,11 @@ public class DashboardComponentsTest
     loginAsAdmin();
   }
 
+  @After
+  public void cleanup() {
+    clearFilters();
+  }
+
   @Before
   public void init() {
     app = tempEntity.newApplicationWithParent(DashboardComponentsTest.class.getSimpleName());
@@ -59,9 +67,23 @@ public class DashboardComponentsTest
   }
 
   @Test
-  public void testNoData() {
+  public void testResultsMessages() {
+    // no results
     refreshOrOpen(DashboardPage.COMPONENTS_URL);
-    DashboardPage.componentsView().results().noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
+    ComponentsResults table = DashboardPage.componentsView().results();
+    table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
+
+    // 100 results
+    addComponents(100, 5);
+    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.maxResultsMessage().shouldNotBe(visible);
+
+    // 101 results
+    addComponentWithViolation(101, 5);
+    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
   }
 
   @Test
@@ -80,10 +102,10 @@ public class DashboardComponentsTest
 
     // components should be sorted by name
     table.components().shouldHaveSize(4).shouldHave(texts(
-        "Group1 : Artifact1 : Version1",
-        "Group2 : Artifact2 : Version2",
-        "Group3 : Artifact3 : Version3",
-        "Group4 : Artifact4 : Version4"
+        "Group1 : Artifact1 : Version1",  //
+        "Group2 : Artifact2 : Version2",  //
+        "Group3 : Artifact3 : Version3",  //
+        "Group4 : Artifact4 : Version4"   //
     ));
 
     // open component details and back
@@ -110,10 +132,10 @@ public class DashboardComponentsTest
     ComponentsHeaders headers = DashboardPage.componentsView().headers();
     headers.totalRiskHeader().click();
     table.components().shouldHave(texts(
-        "Group4 : Artifact4 : Version4",
-        "Group3 : Artifact3 : Version3",
-        "Group2 : Artifact2 : Version2",
-        "Group1 : Artifact1 : Version1"
+        "Group4 : Artifact4 : Version4",  //
+        "Group3 : Artifact3 : Version3",  //
+        "Group2 : Artifact2 : Version2",  //
+        "Group1 : Artifact1 : Version1"   //
     ));
 
     // sort by Low Risk
@@ -141,22 +163,6 @@ public class DashboardComponentsTest
     table.lastComponent().shouldHave(text("Group4 : Artifact4 : Version4"));
   }
 
-  @Test
-  public void testShouldNotShowMaxResultsMessageWhen100Results() {
-    addComponents(100, 5);
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
-    DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.componentsView().results().maxResultsMessage().shouldNotBe(visible);
-  }
-
-  @Test
-  public void testShouldShowMaxResultsMessageWhen101Results() {
-    addComponents(101, 5);
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
-    DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.componentsView().results().maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
-  }
-
   private void addComponents(int numberOfComponents, int riskScore) {
     for (int i = 1; i <= numberOfComponents; i++) {
       addComponentWithViolation(i, riskScore);
@@ -178,5 +184,11 @@ public class DashboardComponentsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.applyButton().click();
+  }
+
+  private void clearFilters() {
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    DashboardFilter filter = dashboardFilterDAO.getByUsername("admin");
+    dashboardFilterDAO.delete(filter);
   }
 }

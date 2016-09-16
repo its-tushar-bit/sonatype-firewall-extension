@@ -16,6 +16,7 @@
   $chevron-width: 24px;
   $affected-apps-width: 109px;
 
+  $chevron-header-width: $chevron-width + $scroll-bar-width;
   $total-risk-columns: $total-risk-width + $critical-risk-width + $severe-risk-width + $moderate-risk-width + $low-risk-width;
 
   .tile-scroll-container {
@@ -75,26 +76,6 @@
 
     &.fixed {
       text-align: center;
-
-      &.total-risk {
-        width: $total-risk-width;
-      }
-
-      &.critical-risk {
-        width: $critical-risk-width;
-      }
-
-      &.severe-risk {
-        width: $severe-risk-width;
-      }
-
-      &.moderate-risk {
-        width: $moderate-risk-width;
-      }
-
-      &.low-risk {
-        width: $low-risk-width;
-      }
     }
 
     &.chevron {
@@ -211,7 +192,6 @@
     .dashboard-header-container {
       border-top: $dashboard-border;
       height: 40px;
-      $chevron-header-width: $chevron-width + $scroll-bar-width;
 
       .column {
         box-sizing: border-box;
@@ -252,45 +232,19 @@
         &:nth-child(1) {
           padding-left: 8px;
         }
-        &.threat-and-policy-column-container {
-          padding: 0;
-        }
-      }
-
-      .violations-row {
-        .column.width-third {
-          width: calc((100% - #{$age-width + $chevron-header-width}) / 3);
-        }
-        .column.age {
-          width: $age-width + $chevron-header-width;
-        }
-      }
-
-      .components-row {
-        .column.component-name {
-          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-header-width});
-        }
-        .column.low-risk {
-          width: $low-risk-width + $chevron-header-width;
-        }
-      }
-
-      .applications-row {
-        .chevron {
-          width: $chevron-header-width;
-        }
-        .column.application-name {
-          width: calc(100% - #{$total-risk-columns + $chevron-header-width});
-        }
-        .column.low-risk {
-          width: $low-risk-width + $chevron-header-width;
-        }
       }
 
       .header-text {
         display: inline-block;
         text-align: center;
       }
+    }
+  }
+
+  .dashboard-results {
+    // provide extra padding to cells to compensate for sort indicators
+    .padded-cell {
+      padding-left: 16px;
     }
   }
 
@@ -396,61 +350,143 @@
         }
       }
     }
+
+    .dashboard-headers {
+      .violations-row {
+        .column.width-third {
+          width: calc((100% - #{$age-width + $chevron-header-width}) / 3);
+        }
+        .column {
+          &.age {
+            width: $age-width + $chevron-header-width;
+          }
+          &.threat-and-policy-column-container {
+            padding: 0;
+          }
+        }
+      }
+    }
   }
 
-  .applications-row {
-    line-height: 22px;
+  #dashboard-applications {
+    .applications-row {
+      line-height: 22px;
 
-    .column.application-name {
-      width: calc(100% - #{$total-risk-columns + $chevron-width});
-      font-family: Proxima Nova Semibold, sans-serif;
-    }
+      .column {
+        &.application-name {
+          width: calc(100% - #{$total-risk-columns + $chevron-width});
+          font-family: Proxima Nova Semibold, sans-serif;
+        }
 
-    &.total-application-risks {
-      padding-top: 8px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid $grey-3;
-    }
+        &.total-risk {
+          width: $total-risk-width;
+        }
 
-    &.stage-application-risks {
-      .column.application-name {
-        text-align: right;
-        font-family: Proxima Nova, sans-serif;
-        padding-right: 12px;
+        &.critical-risk {
+          width: $critical-risk-width;
+        }
+
+        &.severe-risk {
+          width: $severe-risk-width;
+        }
+
+        &.moderate-risk {
+          width: $moderate-risk-width;
+        }
+
+        &.low-risk {
+          width: $low-risk-width;
+        }
       }
 
-      .stage-application-risks-container {
+      &.total-application-risks {
         padding-top: 8px;
         padding-bottom: 8px;
-        border-top: 1px solid $grey-1;
+        border-bottom: 1px solid $grey-3;
       }
-      .fa {
-        margin-right: 8px;
-        width: 12px;
+
+      &.stage-application-risks {
+        .column.application-name {
+          text-align: right;
+          font-family: Proxima Nova, sans-serif;
+          padding-right: 12px;
+        }
+
+        .stage-application-risks-container {
+          padding-top: 8px;
+          padding-bottom: 8px;
+          border-top: 1px solid $grey-1;
+        }
+        .fa {
+          margin-right: 8px;
+          width: 12px;
+        }
+      }
+
+      &:nth-child(2) {
+        .stage-application-risks-container {
+          border-top: 1px solid transparent;
+        }
       }
     }
 
-    &:nth-child(2) {
-      .stage-application-risks-container {
-        border-top: 1px solid transparent;
+    .dashboard-headers {
+      .applications-row {
+        .chevron {
+          width: $chevron-header-width;
+        }
+        .column.application-name {
+          width: calc(100% - #{$total-risk-columns + $chevron-header-width});
+        }
+        .column.low-risk {
+          width: $low-risk-width + $chevron-header-width;
+        }
       }
     }
   }
 
-  .components-row {
-    .column.component-name {
-      width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width});
+  #dashboard-components {
+    .components-row {
+      .column {
+        &.component-name {
+          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width});
+        }
+
+        &.affected-apps {
+          width: $affected-apps-width;
+        }
+
+        &.total-risk {
+          width: $total-risk-width;
+        }
+
+        &.critical-risk {
+          width: $critical-risk-width;
+        }
+
+        &.severe-risk {
+          width: $severe-risk-width;
+        }
+
+        &.moderate-risk {
+          width: $moderate-risk-width;
+        }
+
+        &.low-risk {
+          width: $low-risk-width;
+        }
+      }
     }
 
-    .column.affected-apps {
-      width: $affected-apps-width;
-    }
-  }
-
-  // provide extra padding to cells to compensate for sort indicators
-  .dashboard-results {
-    .padded-cell {
-      padding-left: 16px;
+    .dashboard-headers {
+      .components-row {
+        .column.component-name {
+          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-header-width});
+        }
+        .column.low-risk {
+          width: $low-risk-width + $chevron-header-width;
+        }
+      }
     }
   }
 }
@@ -470,10 +506,6 @@
   }
 }
 
-.dashboard-tooltip.pathname  {
-
-}
-
 .dashboard-tooltip {
   &.pathname .tooltip-inner::before {
     content: "COMPONENT PATH\a";
@@ -483,7 +515,7 @@
   }
   .tooltip-inner {
     text-align: left;
-    max-width:350px;
+    max-width: 350px;
   }
   .tooltip-arrow {
     left: 10%;

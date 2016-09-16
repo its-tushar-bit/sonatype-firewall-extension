@@ -32,8 +32,8 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     return new DashboardFilter(".tree-view-group:nth-child(3)");
   }
 
-  public static DashboardFilter stageFilter() {
-    return new DashboardFilter(".tree-view-group:nth-child(4)");
+  public static StageFilter stageFilter() {
+    return new StageFilter(".tree-view-group:nth-child(4)");
   }
 
   public static PolicyTypeFilter policyTypeFilter() {
@@ -90,6 +90,14 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     public SelenideElement counter() {
       return child(".dashboard-filter-counter");
     }
+
+    public SelenideElement anchor() {
+      return child("a");
+    }
+
+    public SelenideElement tooltip() {
+      return $(".tooltip-inner");
+    }
   }
 
   public static class PolicyTypeFilter extends DashboardFilter {
@@ -124,6 +132,30 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     public ThreatLevelSlider slider() {
       return new ThreatLevelSlider(childSelector(".policy-threat-level-slider"));
     }
+  }
+
+  public static class StageFilter extends DashboardFilter {
+
+    public StageFilter(final String selector) {
+      super(selector);
+    }
+
+    public Checkbox build() {
+      return checkboxItem(2);
+    }
+
+    public Checkbox stageRelase() {
+      return checkboxItem(3);
+    }
+
+    public Checkbox release() {
+      return checkboxItem(4);
+    }
+
+    public Checkbox operate() {
+      return checkboxItem(5);
+    }
+
   }
 }
 

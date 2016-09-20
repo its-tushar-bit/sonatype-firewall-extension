@@ -43,7 +43,7 @@ describe('mainModuleSpec', function() {
       $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
       $httpBackend.expectGET('dashboard/dashboard.overview.html?').respond('<div></div>');
       $httpBackend.expectGET('dashboard/dashboard.filter.html?').respond('<div></div>');
-      $httpBackend.expectGET('dashboard/newest-risk.html?').respond('<div></div>');
+      $httpBackend.expectGET('dashboard/violations.html?').respond('<div></div>');
 
       initService.start();
       $httpBackend.flush();

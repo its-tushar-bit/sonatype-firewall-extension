@@ -1,1353 +1,523 @@
-/*
-  #Mixins, Inherited and Variable
-*/
+.dashboard-container {
 
-/*
-  Inline Middle
-```
-  <div class='inline-middle'>Text aligned on the same line with any image</div>
-  <img class='inline-middle' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gYbDyMwf5TyMQAAAEdJREFUSMdj/P//PwMtAQsDAwNNbWBiGAUEAON/GscyzeOAhYGBgXE0DoZ3HNDcB4xGGbNHy6IBzgdDPg4YaV1ljuaDgY8DABJfGLG/0aWxAAAAAElFTkSuQmCC'>
-```
-*/
-.inline-middle {
-  display: inline-block;
-  vertical-align: middle;
-}
+  $dashboard-border: 1px solid $grey-3;
 
-/*
-  No Margins
-```
-  <h4 class='no-margin'>Use typography</h4>
-  <h5 class='no-margin'>Without its pesky margins</h5>
-```
-*/
-.no-margin {
-  margin: 0;
-}
+  // fixed column widths
+  $total-risk-width: 82px;
+  $critical-risk-width: 99px;
+  $severe-risk-width: 90px;
+  $moderate-risk-width: 114px;
+  $low-risk-width: 71px;
+  $threat-width: 92px;
+  $threat-number-width: 30px;
+  $threat-bar-width: 8px;
+  $age-width: 68px;
+  $scroll-bar-width: 14px;
+  $chevron-width: 24px;
+  $affected-apps-width: 109px;
 
-/*
-  #Dashboard Viewing Summary
-*/
+  $chevron-header-width: $chevron-width + $scroll-bar-width;
+  $total-risk-columns: $total-risk-width + $critical-risk-width + $severe-risk-width + $moderate-risk-width + $low-risk-width;
 
-/*
-  Dashboard Viewing Item
-```
-  <div class="form-group dashboard-viewing-item">
-    <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-app-icon"></i></div><h2>50</h2>
-    <div class="dashboard-viewing-summary">
-      <h5>APPLICATIONS</h5>
-      <p>OF 100 (50%)</p>
-    </div>
-  </div>
-```
-*/
-.dashboard-viewing-item {
-  padding-top: 5px;
-  margin-left: 24px;
-  display: inline-block;
-
-  .fa {
-    vertical-align: middle;
-
-    &.size-18px {
-      text-align: center;
-      line-height: 20px;
-      width: 20px;
-    }
-  }
-}
-
-.dashboard-viewing-item h2 {
-  @extend .no-margin;
-  display: inline-block;
-  margin-left: 5px;
-  vertical-align: middle;
-}
-
-.dashboard-viewing-item h5 {
-  @extend .no-margin;
-}
-
-.dashboard-viewing-item p {
-  @extend .no-margin;
-  @extend .inline-middle;
-}
-
-.dashboard-viewing-icon-box {
-  width: 31px;
-  border-radius: 5px;
-  border-bottom-right-radius: 0;
-  background-color: black;
-  display: inline-block;
-}
-
-.dashboard-viewing-icon-box i::before {
-  color: white;
-  padding: 5px;
-  font-weight: normal;
-  font-size: 21px;
-  line-height: 29px !important;
-  vertical-align: text-bottom;
-}
-
-.dashboard-app-icon:before {
-  content: '\e008';
-}
-
-.dashboard-policy-icon:before {
-  content: '\e60d';
-}
-
-.dashboard-component-icon:before {
-  content: '\e0c9';
-}
-
-/*
-  Component Match Results Graph
-```
-  <div>
-    <span class='percentage-graph match-exact' style='width: 50%;'></span>
-    <span class='percentage-graph match-partial' style='width: 30%;'></span>
-    <span class='percentage-graph match-none' style='width: 20%;'></span>
-  </div>
-  <div class='percentage-graph-legend'>
-    <div class='percentage-graph-legend-item'>
-      <div class='percentage-graph-legend-color match-exact'></div>
-      <p>Exact</p>
-      <p>50%</p>
-    </div>
-    <div class='percentage-graph-legend-item'>
-      <div class='percentage-graph-legend-color match-partial'></div>
-      <p>Partial</p>
-      <p>30%</p>
-    </div>
-    <div class='percentage-graph-legend-item'>
-      <div class='percentage-graph-legend-color match-none'></div>
-      <p>None</p>
-      <p>20%</p>
-    </div>
-  </div>
-```
-*/
-.percentage-graph {
-  height: 20px;
-  float: left;
-}
-
-.percentage-graph-legend-item {
-  margin-right: 10px;
-}
-
-.percentage-graph-legend-item, .percentage-graph-legend-item p {
-  @extend .inline-middle;
-}
-
-.percentage-graph-legend-item p {
-  @extend .no-margin;
-}
-
-.percentage-graph-legend-color {
-  @extend .inline-middle;
-  height: 14px;
-  width: 14px;
-}
-
-.match-exact {
-  background-color: $dark-purple;
-}
-
-.match-partial {
-  background-color: $medium-purple;
-}
-
-.match-none {
-  background-color: $light-purple;
-}
-
-/*
-Policy Summary Violation Graphs
-Deltas
-```
-<div class='policy-summary-table'>
-  <div class='delta-column'>
-    <span class='natural'><i class='sonatype-icons up'></i> <i class='sonatype-icons down'></i></span>
-    <span class='inverse'><i class='sonatype-icons up'></i> <i class='sonatype-icons down'></i></span>
-    <span class='neutral'><i class='sonatype-icons up'></i></i></span>
-  </div>
-</div>
-```
-
-Sparklines
-```
-<div class='policy-summary-table'>
-  <div class='natural'>
-    <div class='sparkline'>
-      <svg class='chart'>
-        <g>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948L120.76923076923077,30L109.97202797202799,30L99.17482517482519,30L88.37762237762239,30L77.58041958041959,30L66.78321678321679,30L55.986013986013994,30L45.188811188811194,30L34.39160839160839,30L23.594405594405597,30L12.797202797202798,30L2,30Z" class="fill base"></path>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948" class="line base"></path><path d="M120.76923076923077,26.949494949494948L131,2L131,30L120.76923076923077,30Z" class="fill up"></path><path d="M120.76923076923077,26.949494949494948L131,2" class="line up"></path>
-          <line opacity="0" x1="0" y1="0" x2="0" y2="30" class="guideline" transform="translate(45.188811188811194,0)"></line>
-        </g>
-      </svg>
-    </div>
-  </div>
-  <div class='inverse'>
-    <div class='sparkline'>
-      <svg class='chart'>
-        <g>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948L120.76923076923077,30L109.97202797202799,30L99.17482517482519,30L88.37762237762239,30L77.58041958041959,30L66.78321678321679,30L55.986013986013994,30L45.188811188811194,30L34.39160839160839,30L23.594405594405597,30L12.797202797202798,30L2,30Z" class="fill base"></path>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948" class="line base"></path><path d="M120.76923076923077,26.949494949494948L131,2L131,30L120.76923076923077,30Z" class="fill up"></path><path d="M120.76923076923077,26.949494949494948L131,2" class="line up"></path>
-          <line opacity="0" x1="0" y1="0" x2="0" y2="30" class="guideline" transform="translate(45.188811188811194,0)"></line>
-        </g>
-      </svg>
-    </div>
-  </div>
-  <div class='neutral'>
-    <div class='sparkline'>
-      <svg class='chart'>
-        <g>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948L120.76923076923077,30L109.97202797202799,30L99.17482517482519,30L88.37762237762239,30L77.58041958041959,30L66.78321678321679,30L55.986013986013994,30L45.188811188811194,30L34.39160839160839,30L23.594405594405597,30L12.797202797202798,30L2,30Z" class="fill base"></path>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948" class="line base"></path><path d="M120.76923076923077,26.949494949494948L131,2L131,30L120.76923076923077,30Z" class="fill up"></path><path d="M120.76923076923077,26.949494949494948L131,2" class="line up"></path>
-          <line opacity="0" x1="0" y1="0" x2="0" y2="30" class="guideline" transform="translate(45.188811188811194,0)"></line>
-        </g>
-      </svg>
-    </div>
-  </div>
-</div>
-```
-
-Bar Graphs
-```
-<div class='policy-summary-table'>
-  <div class='natural'>
-    <svg class="chart">
-      <rect x="8" y="14.210526315789474" height="7.2180451127819545" width="8" class="bar up"></rect>
-      <rect x="18" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="28" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="38" y="20.526315789473685" height="0.9022556390977439" width="8" class="bar up"></rect>
-      <rect x="48" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="58" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="68" y="21.42857142857143" height="8.571428571428571" width="8" class="bar down"></rect>
-      <rect x="78" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="88" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="98" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="108" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="118" y="0" height="21.42857142857143" width="8" class="bar up"></rect>
-      <line x1="8" x2="126" y1="21.42857142857143" y2="21.42857142857143" stroke="#777777" stroke-width="0.5"></line>
-    </svg>
-  </div>
-  <div class='inverse'>
-    <svg class="chart">
-      <rect x="8" y="14.210526315789474" height="7.2180451127819545" width="8" class="bar up"></rect>
-      <rect x="18" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="28" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="38" y="20.526315789473685" height="0.9022556390977439" width="8" class="bar up"></rect>
-      <rect x="48" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="58" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="68" y="21.42857142857143" height="8.571428571428571" width="8" class="bar down"></rect>
-      <rect x="78" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="88" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="98" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="108" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="118" y="0" height="21.42857142857143" width="8" class="bar up"></rect>
-      <line x1="8" x2="126" y1="21.42857142857143" y2="21.42857142857143" stroke="#777777" stroke-width="0.5"></line>
-    </svg>
-  </div>
-  <div class='neutral'>
-    <svg class="chart">
-      <rect x="8" y="14.210526315789474" height="7.2180451127819545" width="8" class="bar up"></rect>
-      <rect x="18" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="28" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="38" y="20.526315789473685" height="0.9022556390977439" width="8" class="bar up"></rect>
-      <rect x="48" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="58" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="68" y="21.42857142857143" height="8.571428571428571" width="8" class="bar down"></rect>
-      <rect x="78" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="88" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="98" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="108" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="118" y="0" height="21.42857142857143" width="8" class="bar up"></rect>
-      <line x1="8" x2="126" y1="21.42857142857143" y2="21.42857142857143" stroke="#777777" stroke-width="0.5"></line>
-    </svg>
-  </div>
-</div>
-```
-*/
-$policy-summary-table-row-height: 25px;
-
-.policy-summary-table {
-  &.table {
-    max-width: 100%;
+  .tile-scroll-container {
+    padding-top: 4px;
+    height: calc(100% - 16px);
   }
 
-  &.table td {
-    @extend .bold;
-    padding: 5px 2px;
-    line-height: $policy-summary-table-row-height;
-    font-size: 1.1em;
-    min-width: 40px;
+  .tile {
+    margin-bottom: 4px;
+    padding-right: 12px;
+    line-height: 21px;
+
+    .fa-chevron-right {
+      font-size: 12px;
+      width: 7px;
+      color: $slate;
+    }
+
+    &.clickable {
+      &:hover, &:active {
+        cursor: pointer;
+        .fa-chevron-right {
+          color: $off-black;
+        }
+      }
+
+      &:active, &:focus {
+        outline: 0;
+      }
+
+      &:hover {
+        border-color: $grey-4;
+      }
+
+      &:active {
+        background: $grey-1;
+        border-color: $slate;
+      }
+    }
+
   }
 
-  &.table .buffer-column {
-    min-width: 0px;
-    padding: 0;
-  }
-
-  &.table .delta-column {
-    min-width: 0px;
-    text-align: right;
-  }
-
-  &.table td:not(:first-child),
-  &.table th {
-    text-align: center;
-  }
-
-  &.table td:nth-child(2) {
-    font-size: 1.3em;
-  }
-
-  &.table th {
-    padding: 5px 0;
-  }
-
-  &.table .category-header {
-    min-width: 95px;
-    text-align: left;
-  }
-
-  .delta-column .up:before, .delta-column .down:before {
-    font-size: 1.3em;
-    line-height: $policy-summary-table-row-height;
-    vertical-align: top;
-  }
-
-  .chart {
-    height: $policy-summary-table-row-height;
-    width: 115px;
-    margin: auto;
-  }
-
-  .sparkline {
-    .guideline {
-      stroke: #444444;
-    }
-    .guide-circle {
-      fill: #198FFA;
-    }
-    .guide-rect {
-      fill: white;
-    }
-    .guide-text {
-      @extend .bold;
-      fill: black;
-      cursor: default;
-    }
-    .line {
-      &.base {
-        stroke: #198FFA;
-      }
-      stroke-width: 2px;
-      fill: none;
-    }
-    .fill.base {
-      fill: #E8E8E8;
-    }
-  }
-
-  .natural {
-    .delta-column {
-      .up:before {
-        color: $dark-green;
-      }
-      .down:before {
-        color: $dark-red;
-      }
-    }
-    .sparkline {
-      .fill.up {
-        fill: $light-green;
-      }
-      .line.up {
-        stroke: $dark-green;
-      }
-      .fill.down {
-        fill: $light-red;
-      }
-      .line.down {
-        stroke: $dark-red;
-      }
-    }
-    .chart {
-      .bar.up {
-        fill: $dark-green;
-      }
-      .bar.down {
-        fill: $dark-red;
-      }
-    }
-  }
-
-  .inverse {
-    .delta-column {
-      .up:before {
-        color: $dark-red;
-      }
-      .down:before {
-        color: $dark-green;
-      }
-    }
-    .sparkline {
-      .fill.up {
-        fill: $light-red;
-      }
-      .line.up {
-        stroke: $dark-red;
-      }
-      .fill.down {
-        fill: $light-green;
-      }
-      .line.down {
-        stroke: $dark-green;
-      }
-    }
-    .chart {
-      .bar.up {
-        fill: $dark-red;
-      }
-      .bar.down {
-        fill: $dark-green;
-      }
-    }
-  }
-
-  .neutral {
-    .delta-column {
-      .up:before {
-        color: $dark-blue;
-      }
-    }
-    .sparkline {
-      .fill.up, .fill.down {
-        fill: $light-blue;
-      }
-      .line.up, .line.down {
-        stroke: $dark-blue;
-      }
-    }
-    .chart {
-      .bar {
-        fill: $dark-blue;
-      }
-    }
-  }
-}
-
-/*
-  Dashboard Summary Section
-  Secondary Button
-  ```
-  <div class="dashboard-section-header">
-    <div class="section-header-item">header part</div>
-    <div class="section-header-item">
-      <button class="btn pull-right secondary">
-        <i class="glyphicons-sonatype calculator"></i>&nbsp;Calculate Trends
-      </button>
-    </div>
-  </div>
-  ```
-*/
-
-$dashboard-border-width: 2px;
-$dashboard-border: $dashboard-border-width solid #CCC;
-
-.dashboard-section-header {
-  border-bottom: $dashboard-border;
-
-  .dashboard-section-header-item {
+  .column {
     display: inline-block;
-    min-height: 50px;
-
-    &:first-child {
-      float: left;
-    }
-
-    &:last-child {
-      float: right;
-    }
-  }
-
-  h1 {
-    margin-bottom: 0px;
-  }
-
-  .btn {
-    margin-top: 14px;
-  }
-}
-
-// Used on the dashboard to help the table with its initial size
-.dashboard-summary-section {
-  min-height: 125px;
-
-  & > div:nth-child(2) {
-    margin-left: 30px;
-
-    @media (max-width: 1249px) {
-      margin-left: 20px;
-    }
-  }
-}
-
-/*
-  #Dashboard Tables
-*/
-
-/*
- Tables with scrollable bodies
- ```
- <div class='scrollable-container-header'></div>
-  <div class='scrollable-container'>
-    <div class='scrollable-container-inner'>
-      <table style='height:30px'>
-        <thead>
-          <tr>
-            <th>
-              <div>
-                Count
-              </div>
-            </th>
-          </tr>
-         </thead>
-         <tbody>
-           <tr><td>9</td></tr>
-           <tr><td>8</td></tr>
-           <tr><td>7</td></tr>
-           <tr><td>6</td></tr>
-           <tr><td>5</td></tr>
-           <tr><td>4</td></tr>
-           <tr><td>3</td></tr>
-           <tr><td>2</td></tr>
-           <tr><td>1</td></tr>
-         </tbody>
-      </table>
-    </div>
-  </div>
- ```
-*/
-
-.scrollable-container-header {
-  border-bottom: $dashboard-border !important;
-  width: 100%;
-}
-
-.scrollable-container {
-  height: 500px;
-  position: relative;
-  padding-top: 30px;
-  border-bottom: $dashboard-border;
-  border-left: $dashboard-border;
-  border-right: $dashboard-border;
-
-  th {
-    padding: 0 5px;
-  }
-
-  th > div {
-    position: absolute;
-    top: 0;
-    line-height: 30px;
-    // c.f. insight-brain-service/src/main/frontend/scss/_content.scss:82
-    -webkit-transform: translate3d(0, 0, 0);
-  }
-
-  th:first-child > div {
-    padding-left: 5px;
-  }
-}
-
-.scrollable-container-inner {
-  overflow-x: hidden;
-  overflow-y: auto;
-  height: 100%;
-  height: calc(100% - #{$dashboard-border-width});
-  border-top: $dashboard-border;
-
-  table {
-    width: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    margin-bottom: 0px;
-  }
-}
-
-/*
-Dashboard tables
- ```
- <div>
-  <ul class="nav nav-tabs scrollable-container-header">
-    <li>
-      <h4>Descriptor</h4>
-    </li>
-    <li class="pull-right active">
-      <a>
-        <div>
-          Table Name
-        </div>
-      </a>
-    </li>
-  </ul>
-  <div class="scrollable-container">
-    <div class='scrollable-container-inner'>
-      <table style='height:30px'>
-        <thead>
-          <tr>
-            <th>
-              <div>
-                Count
-              </div>
-            </th>
-          </tr>
-         </thead>
-         <tbody>
-           <tr><td>2</td></tr>
-           <tr><td>1</td></tr>
-         </tbody>
-      </table>
-    </div>
-  </div>
-</div>
- ```
-*/
-
-.dashboard-root-container,
-.component-container {
-  white-space: normal;
-
-  /* Breadcrumb */
-  .nav-crumb {
-    margin-top: 0px;
-    padding-top: 16px;
+    box-sizing: border-box;
     vertical-align: middle;
 
-    i:before {
-      color: $deep-blue;
+    &:focus {
+      outline: none;
+    }
+    &.greedy {
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &.fixed {
+      text-align: center;
+    }
+
+    &.chevron {
+      width: $chevron-width;
+      text-align: right;
+    }
+  }
+
+  .dashboard-summary, .dashboard-headers {
+    a {
+      @extend .semi-bold;
       font-size: 14px;
       line-height: 16px;
-      margin-right: 8px;
-
-      &:hover {
-        color: $link-blue;
-      }
-    }
-
-    a {
-      color: $deep-blue;
-      margin-right: 5px;
-
-      &:hover {
-        color: $link-blue;
-        text-decoration: none;
-      }
-    }
-
-    .last-crumb {
-      color: #909090;
+      text-transform: uppercase;
+      color: $slate;
     }
   }
 
-  .nav.nav-tabs {
-    margin: 0px;
-  }
-  .nav.nav-tabs {
-    .active {
-      margin-bottom: 0px;
+  .dashboard-summary {
+    .summary-tile {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom-width: 0;
+      .tile-header {
+        padding-top: 0;
+      }
+    }
+
+    .tabs {
+      height: 32px;
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      li {
+        display: inline-block;
+        vertical-align: top;
+
+        &:not(last-child) {
+          margin-right: 8px;
+        }
+      }
       a {
-        border-top: $dashboard-border;
-        border-right: $dashboard-border;
-        border-left: $dashboard-border;
-        border-bottom: 2px solid white;
-        margin-bottom: -2px;
+        padding: 8px 12px;
+        display: inline-block;
+        box-sizing: border-box;
+        height: 32px;
+
+        &:hover {
+          color: $off-black;
+          text-decoration: none;
+          .fa.inverse {
+            background-color: $off-black;
+          }
+        }
+        // invisible border to avoid shifts upon activating
+        border-top: 1px solid transparent;
+        border-right: 1px solid transparent;
+        border-left: 1px solid transparent;
+      }
+      .fa {
+        margin-right: 8px;
+      }
+      .active {
+        a {
+          border-top: $dashboard-border;
+          border-right: $dashboard-border;
+          border-left: $dashboard-border;
+          border-top-left-radius: 4px;
+          border-top-right-radius: 4px;
+          background-color: $grey-1;
+        }
+      }
+      .dashboard-tab-counter {
+        background-color: $grey-1;
+        border-radius: 4px;
+        padding: 0 4px;
+        font-size: 12px;
+        margin-left: 8px;
+      }
+      .fa.fa-exclamation {
+        line-height: 16px;
+        width: 16px;
+        text-align: center;
+        vertical-align: 1px;
+        &::before {
+          font-size: 15px;
+          vertical-align: -2px;
+        }
+      }
+
+      .fa.fa-terminal {
+        line-height: 12px;
+        font-size: 12px;
+        width: 16px;
+        height: 16px;
+        text-align: center;
+        vertical-align: 3px;
+        &::before {
+          vertical-align: -2px;
+        }
       }
     }
-    h4 {
-      margin: 0px;
-      padding-top: 8px;
+  }
+
+  .dashboard-headers {
+    .summary-tile {
+      margin-top: 0;
+      padding-top: 0;
+      border-top-width: 0;
     }
-  }
-  h4 {
-    font-size: 19.5px
-  }
-  td {
-    border-top: 0px;
-  }
+    .dashboard-header-container {
+      border-top: $dashboard-border;
+      height: 40px;
 
-  .left-align-h1 {
-    margin-left: -2px;
-  }
+      .column {
+        box-sizing: border-box;
+        height: 40px;
+        line-height: 40px;
+        padding: 0 12px;
+        text-align: left;
+        background-color: $grey-1;
+        color: $slate;
+        position: relative;
 
-  .bottom-align-h1 {
-    margin-top: -30px;
-  }
+        a {
+          text-decoration: none;
+          display: inline-block;
+          position: static; /* static is the initial setting */
+          height: 100%;
+          width: 100%;
+          line-height: 40px;
+        }
+        .fa-caret-up {
+          top: calc(50% - 7px);
+        }
+        .fa-caret-down {
+          top: calc(50%);
+        }
+        &.selected-column {
+          background-color: $grey-2;
+        }
+        &.split-line {
+          padding-top: 4px;
+          a {
+            line-height: 16px;
+          }
+        }
+        &.chevron {
+          width: $chevron-header-width;
+        }
+        &:nth-child(1) {
+          padding-left: 8px;
+        }
+      }
 
-  .bottom-align-h1-with-header {
-    margin-top: -20px;
-    text-align: right;
-  }
-
-  .dashboard-tables {
-    margin-top: 10px;
-
-    .wrap-force-break {
-      word-spacing: -0.1em;
-    }
-
-    .word-break-all {
-      word-break: break-all;
-    }
-  }
-
-  table {
-    &.policy-violation-table tr td:nth-child(2) {
-      @extend .semi-bold;
-    }
-    &.table-risk {
-      thead th:nth-child(1n + 2) {
+      .header-text {
+        display: inline-block;
         text-align: center;
       }
-      tr.stage td:first-child {
-        @extend .semi-bold;
-        text-align: right;
-      }
-      tbody {
-        td:nth-child(1n + 2) {
-          text-align: center;
-          width: 115px;
+    }
+  }
+
+  .dashboard-results {
+    // provide extra padding to cells to compensate for sort indicators
+    .padded-cell {
+      padding-left: 16px;
+    }
+  }
+
+  #dashboard-violations {
+    .violations-card {
+      padding: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+
+      .violations-row {
+        padding-right: $scroll-bar-width;
+        width: calc(100% - #{$threat-bar-width + $scroll-bar-width});
+        .column.threat-and-policy-column-container {
+          padding: 0;
+          .threat {
+            float: left;
+            width: $threat-width;
+          }
+          .policy {
+            overflow: hidden;
+            display: block;
+          }
+          .threat-number {
+            float: left;
+            width: $threat-number-width;
+            padding: 0 8px;
+          }
         }
-        tr:first-child td {
-          border-top: 1px solid transparent;
+        .column.width-third {
+          width: calc((100% - #{$threat-bar-width + $scroll-bar-width + $age-width}) / 3);
+          &:not(:first-of-type) {
+            padding: 0 12px;
+          }
         }
-      }
-      thead tr th {
-        min-width: 110px;
-        div {
-          min-width: 110px;
-        }
-      }
-      .stage td {
-        &:first-child {
-          background-color: #FCFCFC;
-        }
-        &:not(:first-child) {
-          background-color: #FFF;
-        }
-      }
-      td.total-risk {
-        background-color: #444;
-        color: #FFF;
-        font-size: 14px;
-        border-bottom: 1px solid white;
-      }
-    }
-  }
-
-  span.total-risk {
-    background-color: #444;
-    color: #FFF;
-    font-size: 14px;
-    border-bottom: 1px solid white;
-  }
-
-  table.table-risk {
-    tr.stage td {
-      border-bottom: 1px solid #ddd;
-      border-right: 0px;
-      border-left: 0px;
-    }
-    .stage td.total-risk, td.total-risk.black-text {
-      color: #000;
-    }
-    th.total-risk {
-      font-size: 1.1em;
-    }
-    td {
-      &.muted-text {
-        color: #C6C6C6 !important;
-      }
-      &.critical-risk {
-        background-color: #E6A29F;
-        color: #880D10;
-        border-left: 1px solid white;
-        border-bottom: 1px solid white;
-      }
-    }
-  }
-
-  span.critical-risk {
-    background-color: #E6A29F;
-    color: #880D10;
-    border-left: 1px solid white;
-    border-bottom: 1px solid white;
-  }
-
-  table.table-risk td.severe-risk, span.severe-risk {
-    background-color: #E7C2A1;
-    color: #64460A;
-    border-left: 1px solid white;
-    border-bottom: 1px solid white;
-  }
-
-  table.table-risk td.moderate-risk, span.moderate-risk {
-    background-color: #E8D9A1;
-    color: #968900;
-    border-left: 1px solid white;
-    border-bottom: 1px solid white;
-  }
-
-  table.table-risk td.low-risk, span.low-risk {
-    background-color: #B8D7E8;
-    color: #233894;
-    border-left: 1px solid white;
-    border-bottom: 1px solid white;
-  }
-
-  table th#affected-apps {
-    min-width: 149px;
-  }
-
-  /* only stripe the first column of the heat-mapped tables, excepting those with the .stage class */
-
-  .table-risk tr.striped > td:nth-child(1) {
-    background-color: #E8E8E8;
-  }
-
-  .table-risk-component tr {
-    &:nth-child(odd):not(.stage) > td:nth-child(2) {
-      background-color: #E8E8E8;
-      background-color: #EDEDED;
-    }
-    &:nth-child(even):not(.stage) > td:nth-child(2) {
-      background-color: #F1F1F1;
-    }
-  }
-
-  /*
-   * Affected Applications background
-   */
-
-  .sort-column {
-    .up:before, .down:before {
-      line-height: 30px;
-      vertical-align: top;
-      font-size: 12px;
-    }
-    .emptyIconGlyph {
-      width: 12px;
-    }
-  }
-
-  .latest-risk {
-    font-family: Proxima Nova Bold, sans-serif;
-  }
-
-  .accordion-column {
-    padding: 0px !important;
-  }
-
-  .clm-bar-text-offset {
-    text-indent: -8px;
-  }
-
-  .clm-arc {
-    &.application circle, &.violation circle {
-      fill: #f4f4f4;
-      stroke: #C1C1C1;
-    }
-    &.application path {
-      fill: #bc012f !important;
-    }
-    &.violation path {
-      fill: #f4f4f4 !important;
-      stroke: #bc012f !important;
-    }
-  }
-
-  .dashboard-label-wrapper {
-    padding: 5px 0px 5px 0px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    width: 100%;
-    text-align: center;
-  }
-
-  .dashboard-label {
-    line-height: 20px !important;
-    font-size: 20px !important;
-    padding: 5px;
-    /* 4px to match other items we have */
-    webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
-    vertical-align: middle;
-  }
-
-  .dashboard-loading {
-    margin-left: 28px;
-    opacity: 0;
-    -webkit-animation-timing-function: linear;
-    -webkit-animation-name: visibility;
-    -webkit-animation-delay: 1s;
-    -webkit-animation-duration: 0.1s;
-    -webkit-animation-fill-mode: forwards;
-    animation-timing-function: linear;
-    animation-name: visibility;
-    animation-delay: 1s;
-    animation-duration: 0.1s;
-    animation-fill-mode: forwards;
-  }
-
-  @-webkit-keyframes visibility {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-
-  @keyframes visibility {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-  .component-match-content {
-    padding-top: 5px;
-    padding-bottom: 5px;
-  }
-
-  /**
-   * Component Details
-   */
-
-  .image-thumbnail {
-    height: 24px;
-    width: 24px;
-    margin-right: 5px;
-  }
-
-  /* Component table has hidden alternating rows to display details. Alternate background of every 4th row
-    as well to provide a striped look */
-
-  .component-application-table {
-    tbody > tr:nth-child(4n-1).expandable-row {
-      background-color: #f4f4f4 !important;
-    }
-    .accordion-column .in {
-      border-top: 2px solid #C1C1C1;
-    }
-    a {
-      vertical-align: middle;
-    }
-    i:before {
-      font-size: 12px;
-    }
-    tbody {
-      border-bottom: 1px solid #ddd;
-    }
-    .expandable-row {
-      border-top: 1px solid #ddd;
-    }
-  }
-
-  .component-violations-table {
-    margin-left: 60px;
-    .table {
-      background: #f4f4f4;
-      margin-bottom: 0px;
-    }
-    tbody {
-      border-bottom: 0px;
-    }
-    td:not(:first-child), a {
-      opacity: .75;
-    }
-    tr {
-      border-bottom: 1px solid #ddd;
-      background-color: #FCFCFC !important;
-    }
-  }
-
-  .expandable-header {
-    width: 10px;
-  }
-
-  .component-violations-table .threat-column {
-    width: 20px;
-    font-family: Proxima Nova Bold, sans-serif;
-  }
-
-  .share-risk-header {
-    min-width: 120px;
-    width: 120px;
-  }
-
-  .component-violations-table {
-    .share-risk-column {
-      min-width: 120px;
-      width: 120px;
-    }
-    table td {
-      vertical-align: middle;
-    }
-  }
-
-  table.component-application-table td {
-    vertical-align: middle;
-  }
-
-  .share-risk-column > span {
-    vertical-align: middle;
-    display: inline-block;
-  }
-
-  div.modal-help-icon {
-    cursor: pointer;
-    display: inline;
-    left: 8px;
-    position: relative;
-  }
-}
-
-.pathnames-popover {
-  max-width: 500px;
-  -webkit-border-bottom-left-radius: 0;
-  -moz-border-radius-bottomleft: 0;
-  border-bottom-left-radius: 0;
-
-  .pathnames-popover-content {
-    overflow-x: auto;
-    white-space: nowrap;
-    padding-left: 0px;
-    margin-right: 15px;
-    margin-left: 15px;
-    margin-bottom: 10px;
-    word-break: break-all;
-  }
-
-  .pathnames-popover-arrow {
-    left: 0%;
-    border-width: 14px 17px 0px 0px;
-    border-color: #ffffff transparent transparent transparent !important;
-    position: absolute;
-    display: block;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    bottom: -14px;
-    &:after {
-      bottom: -13px;
-      border-width: 15px 18px 0px 0px;
-      margin-left: -1px;
-      border-top-color: #999 !important;
-      border-top-color: rgba(0, 0, 0, 0.25) !important;
-    }
-  }
-}
-
-
-.modal-help {
-  width: 700px;
-  max-height: 700px;
-  margin-left: -350px;
-
-  .heat-map-help {
-    div {
-      vertical-align: top;
-    }
-    > div {
-      margin-bottom: 20px;
-    }
-    .left-column {
-      width: 275px;
-      margin-right: 15px;
-      display: inline-block;
-    }
-    .right-column {
-      width: 375px;
-      display: inline-block;
-      margin-top: 35px;
-    }
-    .risk-cell, .risk-operator, .stage-cell, .stage-risk-cell {
-      height: 25px;
-      display: inline-block;
-      line-height: 25px;
-      vertical-align: middle;
-      margin: 1px;
-      border-left: 0px none;
-      border-bottom: 1px solid white;
-    }
-    .risk-cell, .risk-operator, .stage-cell {
-      color: black;
-    }
-    .risk-cell, .risk-operator, .stage-risk-cell {
-      text-align: center;
-    }
-    .risk-cell {
-      width: 75px;
-      &.total-risk {
-        color: white;
-      }
-    }
-    .risk-operator {
-      width: 10px;
-    }
-    .stage-cell {
-      width: 135px;
-    }
-    .stage-risk-cell {
-      width: 35px;
-      background: white !important;
-      &.total-risk {
-        color: black;
-      }
-    }
-    .stage-row {
-      border-bottom: 1px solid #ddd;
-      &:nth-child(1) {
-        border-top: 1px solid #ddd;
-      }
-    }
-    span.total-risk {
-      background-color: #444;
-      color: #FFF;
-      font-size: 14px;
-      border-bottom: 1px solid white;
-    }
-    span.severe-risk {
-       background-color: #E7C2A1;
-       color: #64460A;
-       border-left: 1px solid white;
-       border-bottom: 1px solid white;
-     }
-    span.critical-risk {
-      background-color: #E6A29F;
-      color: #880D10;
-      border-left: 1px solid white;
-      border-bottom: 1px solid white;
-    }
-    span.moderate-risk {
-      background-color: #E8D9A1;
-      color: #968900;
-      border-left: 1px solid white;
-      border-bottom: 1px solid white;
-    }
-    span.low-risk {
-      background-color: #B8D7E8;
-      color: #233894;
-      border-left: 1px solid white;
-      border-bottom: 1px solid white;
-    }
-
-    .arrow, .inline-block {
-      display: inline-block;
-    }
-
-    .arrow {
-      &::before {
-        width: 0;
-        height: 0;
-        border-style: solid;
-        content: '';
-        font-size: 0px;
-        position: relative;
-      }
-      &.left {
-        width: 250px;
-        height: 7px;
-        border-bottom: solid 5px #ddd;
-        margin-left: 20px;
-        &.small {
-          width: 128px;
-        }
-        &::before {
-          border-width: 10px 20px 10px 0;
-          border-color: transparent #ddd transparent transparent;
-          left: -20px;
-          top: -5px;
+        .column.fixed.age {
+          width: $age-width;
         }
       }
-      &.up {
-        width: 20px;
-        height: 68px;
-        border-left: dotted 5px #ddd;
-        margin-top: 50px;
-        &::before {
-          border-width: 0 10px 20px 10px;
-          border-color: transparent transparent #ddd transparent;
-          top: -30px;
-          left: -12px;
+
+      .reports-row {
+        box-sizing: border-box;
+        width: calc(100% - #{$threat-bar-width});
+        a {
+          position: relative; // ie 11 workaround, see note above
+          padding-right: 12px;
+          &:first-child {
+            padding-left: 8px;
+          }
+
+          @extend .semi-bold;
+
+          &.link {
+            @extend %link;
+
+            &.disabled {
+              text-decoration: none;
+            }
+
+            .fa-external-link {
+              margin-bottom: 2px;
+              vertical-align: middle;
+            }
+          }
+
+          &:hover, &:focus {
+            filter: none; // bootstrap override
+          }
+
+          .fa {
+            margin-right: 8px;
+          }
         }
-      }
-    }
-  }
-}
 
-.component-container {
-  margin: 0 auto;
-  width: 850px;
-  @media (min-width: 1250px) {
-    width: 1110px;
-  }
-}
-
-@media (min-width: 1250px) {
-  /* Extend first table in two column layouts to prevent horizontal scrollbars */
-  .dashboard-charts .span6:first-child .scrollable-container {
-    margin-right: -20px;
-  }
-  .risk-header, .stage-column, .component-violations-table .risk-column {
-    min-width: 70px;
-    width: 70px;
-  }
-}
-
-@media (max-width: 1249px) {
-  table {
-    &.table-risk {
-      thead tr th {
-        min-width: 90px !important;
-        div {
-          min-width: 90px !important;
+        a:before {
+          // ie 11 workaround, see note above
+          content: "";
+          display: block;
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
         }
-      }
-      tbody td:nth-child(1n + 2) {
-        width: 90px !important;
-      }
-      th.total-risk {
-        font-size: 12px !important;
-        padding: 0 0px;
-        min-width: 110px !important;
-      }
-    }
-    th#affected-apps {
-      min-width: 120px !important;
-    }
-  }
-  .risk-header, .stage-column, .component-violations-table .risk-column {
-    min-width: 60px;
-    width: 60px;
-  }
-  .stage-column-release, .stage-column-operate {
-    min-width: 68px;
-    width: 68px;
-  }
-  .dashboard-charts .span6 {
-    width: 940px;
-  }
-  .table.policy-summary-table .category-header {
-    min-width: 85px !important;
-  }
-  .percentage-graph-legend-count {
-    font-size: 10px !important;
-    padding-right: 5px;
-  }
-  .dashboard-label {
-    font-size: 18px !important;
-  }
-}
 
-.dashboard-filter-container {
-  $tree-view-padding-top: 16px;
-  $tree-view-margin-bottom: 8px;
-  $filter-footer-height: #{32px + 12px + 12px + 1px};
-  height: 100%;
-  margin: 0;
-  position: relative;
+        border-top: $dashboard-border;
+      }
 
-  .tree-view {
-    overflow-y: auto;
-    height: calc(100% - #{$filter-footer-height} - #{$tree-view-padding-top} - #{$tree-view-margin-bottom});
-
-    .tree-view-item {
-      .twisty-container{
+      .reports-row, .violations-row {
+        height: 40px;
+        line-height: 40px;
         float: left;
       }
 
-      .filter-label, span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+      .clm-bar {
+        display: inline-block;
+        float: left;
+        width: $threat-bar-width;
+        height: 40px;
+        border: none;
 
-      .filter-label {
-        padding: 0 8px;
-
-        .tree-view-icon:first-of-type  {
-          margin-left: 0px;
-        }
-      }
-
-      .dashboard-filter-counter {
-        @extend .semi-bold;
-        float: right;
-        background-color: $grey-1;
-        height: 16px;
-        border: 1px $grey-3 solid;
-        border-radius: 8px;
-        padding: 0px 4px;
-        font-size: 11px;
-        color: $slate;
-        line-height: 18px; /* used for vertical alignment */
-        margin-right: 8px;
-
-        &.inactive {
-          background-color: $grey-3;
-          border-color: $grey-4;
-          min-width: 8px;
-          text-align: center;
+        &:nth-child(3) {
+          clear: left;
         }
       }
     }
 
-    .tree-view-group:last-child {
-      /* margin bottom added to last element as FF, and other browsers don't consider padding for overflow */
-      margin-bottom: $tree-view-margin-bottom;
+    .dashboard-headers {
+      .violations-row {
+        .column.width-third {
+          width: calc((100% - #{$age-width + $chevron-header-width}) / 3);
+        }
+        .column {
+          &.age {
+            width: $age-width + $chevron-header-width;
+          }
+          &.threat-and-policy-column-container {
+            padding: 0;
+          }
+        }
+      }
     }
   }
 
-  .dashboard-filter-footer {
-    $footer-side-margin: 8px;
-    width: calc(100% - #{2 * $footer-side-margin});
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    padding: 12px 0;
-    margin: 0 $footer-side-margin;
-    border-top: 1px solid $grey-4;
-    box-shadow: 0px 0px 12px 10px $grey-2;
+  #dashboard-applications {
+    .applications-row {
+      line-height: 22px;
 
-    .btn {
-      min-width: auto;
+      .column {
+        &.application-name {
+          width: calc(100% - #{$total-risk-columns + $chevron-width});
+          font-family: Proxima Nova Semibold, sans-serif;
+        }
 
-      &:not(:last-child) {
-        margin-right: 4px;
+        &.total-risk {
+          width: $total-risk-width;
+        }
+
+        &.critical-risk {
+          width: $critical-risk-width;
+        }
+
+        &.severe-risk {
+          width: $severe-risk-width;
+        }
+
+        &.moderate-risk {
+          width: $moderate-risk-width;
+        }
+
+        &.low-risk {
+          width: $low-risk-width;
+        }
+      }
+
+      &.total-application-risks {
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid $grey-3;
+      }
+
+      &.stage-application-risks {
+        .column.application-name {
+          text-align: right;
+          font-family: Proxima Nova, sans-serif;
+          padding-right: 12px;
+        }
+
+        .stage-application-risks-container {
+          padding-top: 8px;
+          padding-bottom: 8px;
+          border-top: 1px solid $grey-1;
+        }
+        .fa {
+          margin-right: 8px;
+          width: 12px;
+        }
+      }
+
+      &:nth-child(2) {
+        .stage-application-risks-container {
+          border-top: 1px solid transparent;
+        }
+      }
+    }
+
+    .dashboard-headers {
+      .applications-row {
+        .chevron {
+          width: $chevron-header-width;
+        }
+        .column.application-name {
+          width: calc(100% - #{$total-risk-columns + $chevron-header-width});
+        }
+        .column.low-risk {
+          width: $low-risk-width + $chevron-header-width;
+        }
+      }
+    }
+  }
+
+  #dashboard-components {
+    .components-row {
+      .column {
+        &.component-name {
+          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width});
+        }
+
+        &.affected-apps {
+          width: $affected-apps-width;
+        }
+
+        &.total-risk {
+          width: $total-risk-width;
+        }
+
+        &.critical-risk {
+          width: $critical-risk-width;
+        }
+
+        &.severe-risk {
+          width: $severe-risk-width;
+        }
+
+        &.moderate-risk {
+          width: $moderate-risk-width;
+        }
+
+        &.low-risk {
+          width: $low-risk-width;
+        }
+      }
+    }
+
+    .dashboard-headers {
+      .components-row {
+        .column.component-name {
+          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-header-width});
+        }
+        .column.low-risk {
+          width: $low-risk-width + $chevron-header-width;
+        }
       }
     }
   }
 }
 
-.tooltip.top-left {
-  &.filter-item-tooltip .tooltip-arrow {
-    margin-left: 23px;
+#max-results-shown .tile {
+  background-color: transparent;
+  border: none;
+  text-align: center;
+}
+
+#dashboard-applications {
+  .dashboard-results {
+    .tile {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
   }
-  &.filter-label-tooltip .tooltip-arrow {
-    margin-left: 53px;
+}
+
+.dashboard-tooltip {
+  &.pathname .tooltip-inner::before {
+    content: "COMPONENT PATH\a";
+    font-weight: bold;
+    white-space: pre;
+    display: block;
+  }
+  .tooltip-inner {
+    text-align: left;
+    max-width: 350px;
+  }
+  .tooltip-arrow {
+    left: 10%;
   }
 }

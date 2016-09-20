@@ -1,46 +1,53 @@
-<div component-risk-table>
-  <div ng-controller="componentRiskTable">
-    <table class="table table-risk table-risk-component" id="component-risk" sortable="-score">
-      <thead>
-      <tr>
-        <th><div>COMPONENT</div></th>
-        <th id='affected-apps'>
-          <div sort-columns="-affectedApplications" centered="true">AFFECTED APPS</div>
-        </th>
-        <th class="total-risk">
-          <div sort-columns="-score" centered="true">TOTAL RISK</div>
-        </th>
-        <th id="threat-header-critical" ng-if="policyThreatLevelCategories.critical">
-          <div sort-columns="-scoreCritical" centered="true" title="Policy Threat Levels 8 - 10">CRITICAL</div>
-        </th>
-        <th id="threat-header-severe" ng-if="policyThreatLevelCategories.severe">
-          <div sort-columns="-scoreSevere" centered="true" title="Policy Threat Levels 4 - 7">SEVERE</div>
-        </th>
-        <th id="threat-header-moderate" ng-if="policyThreatLevelCategories.moderate">
-          <div sort-columns="-scoreModerate" centered="true" title="Policy Threat Levels 2 - 3">MODERATE</div>
-        </th>
-        <th id="threat-header-low" ng-if="policyThreatLevelCategories.low">
-          <div sort-columns="-scoreLow" centered="true" title="Policy Threat Levels 0 - 1">LOW</div>
-        </th>
-      </tr>
-      </thead>
-      <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField()">
-        <td>
-          <div component-display pathname-tooltip="true" component="component"></div>
-        </td>
-        <td><a ui-sref="dashboard.component({ hash: component.hash })">{{component.affectedApplications}}</a></td>
-        <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"
-            ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">
-          {{component.score}}</td>
-        <td ng-if="policyThreatLevelCategories.critical" class="critical-risk" alpha-background="{{component.scoreCritical | safeDivide:criticalRisk}}"
-            ng-class="{ 'muted-text': component.scoreCritical === 0 }">{{component.scoreCritical}}</td>
-        <td ng-if="policyThreatLevelCategories.severe" class="severe-risk" alpha-background="{{component.scoreSevere | safeDivide:severeRisk}}"
-            ng-class="{ 'muted-text': component.scoreSevere === 0 }">{{component.scoreSevere}}</td>
-        <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk" alpha-background="{{component.scoreModerate | safeDivide:moderateRisk}}"
-            ng-class="{ 'muted-text': component.scoreModerate === 0 }">{{component.scoreModerate}}</td>
-        <td ng-if="policyThreatLevelCategories.low" class="low-risk" alpha-background="{{component.scoreLow | safeDivide:lowRisk}}"
-            ng-class="{ 'muted-text': component.scoreLow === 0 }">{{component.scoreLow}}</td>
-      </tr>
-    </table>
+<div id="dashboard-components">
+  <div class="dashboard-headers">
+    <div class="tile summary-tile">
+      <div class="dashboard-header-container">
+        <div class="components-row" sort="name">
+          <div class="column greedy component-name" sort-column="name">
+            <span class="header-text">Name</span>
+          </div><!--
+     --><div class="column fixed affected-apps split-line" sort-column="-affectedApplications">
+          <span class="header-text">Affected Apps</span>
+        </div><!--
+     --><div class="column fixed total-risk split-line" sort-column="-score">
+          <span class="header-text">Total Risk</span>
+        </div><!--
+     --><div class="column fixed critical-risk" sort-column="-scoreCritical">
+          <span class="header-text">Critical</span>
+        </div><!--
+     --><div class="column fixed severe-risk" sort-column="-scoreSevere">
+          <span class="header-text">Severe</span>
+        </div><!--
+     --><div class="column fixed moderate-risk" sort-column="-scoreModerate">
+          <span class="header-text">Moderate</span>
+        </div><!--
+     --><div class="column fixed low-risk" sort-column="-scoreLow">
+          <span class="header-text">Low</span>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-results">
+    <div class="tile-container" fill-vertical>
+      <div class="tile-scroll-container">
+        <div components-results>
+          <div class="tile clickable" ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
+               ng-click="goToComponentDetails(component)">
+            <div class="components-row">
+              <div class="column greedy component-name semi-bold">{{component.name}}</div><!--
+              --><div class="column fixed padded-cell affected-apps">{{::component.affectedApplications}}</div><!--
+              --><div class="column fixed padded-cell total-risk">{{::component.score}}</div><!--
+              --><div class="column fixed padded-cell critical-risk">{{::component.scoreCritical}}</div><!--
+              --><div class="column fixed padded-cell severe-risk">{{::component.scoreSevere}}</div><!--
+              --><div class="column fixed padded-cell moderate-risk">{{::component.scoreModerate}}</div><!--
+              --><div class="column fixed padded-cell low-risk">{{::component.scoreLow}}</div><!--
+              --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

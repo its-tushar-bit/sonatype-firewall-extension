@@ -6,13 +6,13 @@
 (function() {
   'use strict';
 
-  var dashboardUtilsModule = angular.module('dashboard.utils');
+  var module = angular.module('ReportViolations');
 
-  dashboardUtilsModule.directive('sortable', function() {
+  module.directive('sortable', function() {
     return {
       require: 'sortable',
       controller: [
-        '$scope', 'extractColumn', function($scope, extractColumn) {
+        '$scope', function($scope) {
           var me = this;
           me.sortFields = [];
 
@@ -40,5 +40,14 @@
       }
     };
   });
+
+  function extractColumn(orderedColumn) {
+    if (orderedColumn.indexOf('-') === 0) {
+      return orderedColumn.substring(1);
+    }
+    else {
+      return orderedColumn;
+    }
+  }
 
 }());

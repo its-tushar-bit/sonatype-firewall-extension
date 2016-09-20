@@ -435,7 +435,7 @@ var AngularStateUtils = {
   }]);
 
   angularCommon.directive('breadcrumb', ['$state', 'state.history.service', function($state, StateHistoryService) {
-    var defaultState = 'dashboard.overview.newest-risk';
+    var defaultState = 'dashboard.overview.violations';
     var parentStates = [defaultState, 'dashboard.overview.components'];
     return {
       scope: {

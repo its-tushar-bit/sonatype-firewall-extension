@@ -34,8 +34,8 @@ class NotificationSpec
         '"detailHtml" : "<a href=\'http://www.google.com/ncr\' target=\'_blank\'>detail2</a>",' +
         '"dateCreated" : ' + tenHoursAgo +
         '}]}', 200)
-    DashboardPage dashboardPage = loginAsAdminVia(DashboardPage)
-    notificationMenu = dashboardPage.notificationMenu
+    ReportViolationsPage reportViolationsPage = loginAsAdminVia(ReportViolationsPage)
+    notificationMenu = reportViolationsPage.notificationMenu
   }
 
   def "Notification count is shown"() {

@@ -257,3 +257,26 @@ body {
 .sub-section {
   margin-bottom: 12px;
 }
+
+/*
+  Inline Middle
+```
+  <div class='inline-middle'>Text aligned on the same line with any image</div>
+  <img class='inline-middle' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gYbDyMwf5TyMQAAAEdJREFUSMdj/P//PwMtAQsDAwNNbWBiGAUEAON/GscyzeOAhYGBgXE0DoZ3HNDcB4xGGbNHy6IBzgdDPg4YaV1ljuaDgY8DABJfGLG/0aWxAAAAAElFTkSuQmCC'>
+```
+*/
+.inline-middle {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/*
+  No Margins
+```
+  <h4 class='no-margin'>Use typography</h4>
+  <h5 class='no-margin'>Without its pesky margins</h5>
+```
+*/
+.no-margin {
+  margin: 0;
+}

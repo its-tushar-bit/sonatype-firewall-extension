@@ -1,0 +1,505 @@
+// these are leftovers from old dashboard, still used by report-list.html and component.html
+
+$dashboard-border-width: 2px;
+$dashboard-border: $dashboard-border-width solid #CCC;
+
+// used by report-list.html
+.scrollable-container-header {
+  border-bottom: $dashboard-border !important;
+  width: 100%;
+}
+
+// used by report-list.html
+.scrollable-container {
+  height: 500px;
+  position: relative;
+  padding-top: 30px;
+  border-bottom: $dashboard-border;
+  border-left: $dashboard-border;
+  border-right: $dashboard-border;
+
+  th {
+    padding: 0 5px;
+  }
+
+  th > div {
+    position: absolute;
+    top: 0;
+    line-height: 30px;
+    // c.f. insight-brain-service/src/main/frontend/scss/_content.scss:82
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+
+  th:first-child > div {
+    padding-left: 5px;
+  }
+}
+
+// used by report-list.html
+.scrollable-container-inner {
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100%;
+  height: calc(100% - #{$dashboard-border-width});
+  border-top: $dashboard-border;
+
+  table {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin-bottom: 0px;
+  }
+}
+
+// used by report-list.html and by component details
+.dashboard-root-container, .component-container {
+    white-space: normal;
+
+  /* Breadcrumb */
+  .nav-crumb {
+    margin-top: 0px;
+    padding-top: 16px;
+    vertical-align: middle;
+
+    i:before {
+      color: $deep-blue;
+      font-size: 14px;
+      line-height: 16px;
+      margin-right: 8px;
+
+      &:hover {
+        color: $link-blue;
+      }
+    }
+
+    a {
+      color: $deep-blue;
+      margin-right: 5px;
+
+      &:hover {
+        color: $link-blue;
+        text-decoration: none;
+      }
+    }
+
+    .last-crumb {
+      color: #909090;
+    }
+  }
+
+  .nav.nav-tabs {
+    margin: 0px;
+  }
+  .nav.nav-tabs {
+    .active {
+      margin-bottom: 0px;
+      a {
+        border-top: $dashboard-border;
+        border-right: $dashboard-border;
+        border-left: $dashboard-border;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+      }
+    }
+    h4 {
+      margin: 0px;
+      padding-top: 8px;
+    }
+  }
+  h4 {
+    font-size: 19.5px
+  }
+  td {
+    border-top: 0px;
+  }
+
+  .left-align-h1 {
+    margin-left: -2px;
+  }
+
+  .bottom-align-h1 {
+    margin-top: -30px;
+  }
+
+  .bottom-align-h1-with-header {
+    margin-top: -20px;
+    text-align: right;
+  }
+
+  .dashboard-tables {
+    margin-top: 10px;
+
+    .wrap-force-break {
+      word-spacing: -0.1em;
+    }
+
+    .word-break-all {
+      word-break: break-all;
+    }
+  }
+
+  table {
+    &.policy-violation-table tr td:nth-child(2) {
+      @extend .semi-bold;
+    }
+    &.table-risk {
+      thead th:nth-child(1n + 2) {
+        text-align: center;
+      }
+      tr.stage td:first-child {
+        @extend .semi-bold;
+        text-align: right;
+      }
+      tbody {
+        td:nth-child(1n + 2) {
+          text-align: center;
+          width: 115px;
+        }
+        tr:first-child td {
+          border-top: 1px solid transparent;
+        }
+      }
+      thead tr th {
+        min-width: 110px;
+        div {
+          min-width: 110px;
+        }
+      }
+      .stage td {
+        &:first-child {
+          background-color: #FCFCFC;
+        }
+        &:not(:first-child) {
+          background-color: #FFF;
+        }
+      }
+      td.total-risk {
+        background-color: #444;
+        color: #FFF;
+        font-size: 14px;
+        border-bottom: 1px solid white;
+      }
+    }
+  }
+
+  span.total-risk {
+    background-color: #444;
+    color: #FFF;
+    font-size: 14px;
+    border-bottom: 1px solid white;
+  }
+
+  table.table-risk {
+    tr.stage td {
+      border-bottom: 1px solid #ddd;
+      border-right: 0px;
+      border-left: 0px;
+    }
+    .stage td.total-risk, td.total-risk.black-text {
+      color: #000;
+    }
+    th.total-risk {
+      font-size: 1.1em;
+    }
+    td {
+      &.muted-text {
+        color: #C6C6C6 !important;
+      }
+      &.critical-risk {
+        background-color: #E6A29F;
+        color: #880D10;
+        border-left: 1px solid white;
+        border-bottom: 1px solid white;
+      }
+    }
+  }
+
+  span.critical-risk {
+    background-color: #E6A29F;
+    color: #880D10;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  table.table-risk td.severe-risk, span.severe-risk {
+    background-color: #E7C2A1;
+    color: #64460A;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  table.table-risk td.moderate-risk, span.moderate-risk {
+    background-color: #E8D9A1;
+    color: #968900;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  table.table-risk td.low-risk, span.low-risk {
+    background-color: #B8D7E8;
+    color: #233894;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  table th#affected-apps {
+    min-width: 149px;
+  }
+
+  /* only stripe the first column of the heat-mapped tables, excepting those with the .stage class */
+
+  .table-risk tr.striped > td:nth-child(1) {
+    background-color: #E8E8E8;
+  }
+
+  .table-risk-component tr {
+    &:nth-child(odd):not(.stage) > td:nth-child(2) {
+      background-color: #E8E8E8;
+      background-color: #EDEDED;
+    }
+    &:nth-child(even):not(.stage) > td:nth-child(2) {
+      background-color: #F1F1F1;
+    }
+  }
+
+  /*
+   * Affected Applications background
+   */
+
+  .sort-column {
+    .up:before, .down:before {
+      line-height: 30px;
+      vertical-align: top;
+      font-size: 12px;
+    }
+    .emptyIconGlyph {
+      width: 12px;
+    }
+  }
+
+  .latest-risk {
+    font-family: Proxima Nova Bold, sans-serif;
+  }
+
+  .accordion-column {
+    padding: 0px !important;
+  }
+
+  .clm-bar-text-offset {
+    text-indent: -8px;
+  }
+
+  .clm-arc {
+    &.application circle, &.violation circle {
+      fill: #f4f4f4;
+      stroke: #C1C1C1;
+    }
+    &.application path {
+      fill: #bc012f !important;
+    }
+    &.violation path {
+      fill: #f4f4f4 !important;
+      stroke: #bc012f !important;
+    }
+  }
+
+  .dashboard-label-wrapper {
+    padding: 5px 0px 5px 0px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .dashboard-label {
+    line-height: 20px !important;
+    font-size: 20px !important;
+    padding: 5px;
+    /* 4px to match other items we have */
+    webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+
+  .dashboard-loading {
+    margin-left: 28px;
+    opacity: 0;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-name: visibility;
+    -webkit-animation-delay: 1s;
+    -webkit-animation-duration: 0.1s;
+    -webkit-animation-fill-mode: forwards;
+    animation-timing-function: linear;
+    animation-name: visibility;
+    animation-delay: 1s;
+    animation-duration: 0.1s;
+    animation-fill-mode: forwards;
+  }
+
+  @-webkit-keyframes visibility {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+
+  @keyframes visibility {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  .component-match-content {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  /**
+   * Component Details
+   */
+
+  .image-thumbnail {
+    height: 24px;
+    width: 24px;
+    margin-right: 5px;
+  }
+
+  /* Component table has hidden alternating rows to display details. Alternate background of every 4th row
+    as well to provide a striped look */
+
+  .component-application-table {
+    tbody > tr:nth-child(4n-1).expandable-row {
+      background-color: #f4f4f4 !important;
+    }
+    .accordion-column .in {
+      border-top: 2px solid #C1C1C1;
+    }
+    a {
+      vertical-align: middle;
+    }
+    i:before {
+      font-size: 12px;
+    }
+    tbody {
+      border-bottom: 1px solid #ddd;
+    }
+    .expandable-row {
+      border-top: 1px solid #ddd;
+    }
+  }
+
+  .component-violations-table {
+    margin-left: 60px;
+    .table {
+      background: #f4f4f4;
+      margin-bottom: 0px;
+    }
+    tbody {
+      border-bottom: 0px;
+    }
+    td:not(:first-child), a {
+      opacity: .75;
+    }
+    tr {
+      border-bottom: 1px solid #ddd;
+      background-color: #FCFCFC !important;
+    }
+  }
+
+  .expandable-header {
+    width: 10px;
+  }
+
+  .component-violations-table .threat-column {
+    width: 20px;
+    font-family: Proxima Nova Bold, sans-serif;
+  }
+
+  .share-risk-header {
+    min-width: 120px;
+    width: 120px;
+  }
+
+  .component-violations-table {
+    .share-risk-column {
+      min-width: 120px;
+      width: 120px;
+    }
+    table td {
+      vertical-align: middle;
+    }
+  }
+
+  table.component-application-table td {
+    vertical-align: middle;
+  }
+
+  .share-risk-column > span {
+    vertical-align: middle;
+    display: inline-block;
+  }
+
+  div.modal-help-icon {
+    cursor: pointer;
+    display: inline;
+    left: 8px;
+    position: relative;
+  }
+}
+
+// used by by component details
+.component-container {
+  margin: 0 auto;
+  width: 850px;
+  @media (min-width: 1250px) {
+    width: 1110px;
+  }
+}
+
+@media (min-width: 1250px) {
+  // used by report-list.html
+  .stage-column {
+    min-width: 70px;
+    width: 70px;
+  }
+}
+
+// used by component details
+@media (max-width: 1249px) {
+  table {
+    &.table-risk {
+      thead tr th {
+        min-width: 90px !important;
+        div {
+          min-width: 90px !important;
+        }
+      }
+      tbody td:nth-child(1n + 2) {
+        width: 90px !important;
+      }
+    }
+  }
+  .risk-header, .stage-column, .component-violations-table .risk-column {
+    min-width: 60px;
+    width: 60px;
+  }
+  .stage-column-release, .stage-column-operate {
+    min-width: 68px;
+    width: 68px;
+  }
+  .dashboard-charts .span6 {
+    width: 940px;
+  }
+  .table.policy-summary-table .category-header {
+    min-width: 85px !important;
+  }
+}

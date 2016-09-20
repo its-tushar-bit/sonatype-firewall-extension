@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.report;
 
 import java.io.File;
+import java.util.UUID;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -37,7 +38,7 @@ public class UnknownJsTest
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
-  private static final String scanId = "306e0a923df34c64b836358182b1b902";
+  private static final String scanId = UUID.randomUUID().toString().replace("-", "");
 
   private static final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 

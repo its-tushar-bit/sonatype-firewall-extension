@@ -567,7 +567,7 @@ describe('AngularCommon', function() {
       $rootScope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: '' });
 
       expect(scope.states.length).toBe(2);
-      expect(scope.states[0].state).toBe('dashboard.overview.newest-risk');
+      expect(scope.states[0].state).toBe('dashboard.overview.violations');
       expect(scope.states[1].state).toBe('dashboard.component');
     });
 

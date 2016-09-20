@@ -1,0 +1,88 @@
+.dashboard-filter-container {
+  $tree-view-padding-top: 16px;
+  $tree-view-margin-bottom: 8px;
+  $filter-footer-height: #{32px + 12px + 12px + 1px};
+  height: 100%;
+  margin: 0;
+  position: relative;
+
+  .tree-view {
+    overflow-y: auto;
+    height: calc(100% - #{$filter-footer-height} - #{$tree-view-padding-top} - #{$tree-view-margin-bottom});
+
+    .tree-view-item {
+      .twisty-container{
+        float: left;
+      }
+
+      .filter-label, span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .filter-label {
+        padding: 0 8px;
+
+        .tree-view-icon:first-of-type  {
+          margin-left: 0px;
+        }
+      }
+
+      .dashboard-filter-counter {
+        @extend .semi-bold;
+        float: right;
+        background-color: $grey-1;
+        height: 16px;
+        border: 1px $grey-3 solid;
+        border-radius: 8px;
+        padding: 0px 4px;
+        font-size: 11px;
+        color: $slate;
+        line-height: 18px; /* used for vertical alignment */
+        margin-right: 8px;
+
+        &.inactive {
+          background-color: $grey-3;
+          border-color: $grey-4;
+          min-width: 8px;
+          text-align: center;
+        }
+      }
+    }
+
+    .tree-view-group:last-child {
+      /* margin bottom added to last element as FF, and other browsers don't consider padding for overflow */
+      margin-bottom: $tree-view-margin-bottom;
+    }
+  }
+
+  .dashboard-filter-footer {
+    $footer-side-margin: 8px;
+    width: calc(100% - #{2 * $footer-side-margin});
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 12px 0;
+    margin: 0 $footer-side-margin;
+    border-top: 1px solid $grey-4;
+    box-shadow: 0px 0px 12px 10px $grey-2;
+
+    .btn {
+      min-width: auto;
+
+      &:not(:last-child) {
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+.tooltip.top-left {
+  &.filter-item-tooltip .tooltip-arrow {
+    margin-left: 23px;
+  }
+  &.filter-label-tooltip .tooltip-arrow {
+    margin-left: 53px;
+  }
+}

@@ -358,7 +358,7 @@ public abstract class AbstractPolicyEditorTest
     MainHeader.dashboardNavigationButton().shouldBe(visible, enabled).click();
     unsavedModal.shouldNotBe(visible);
     waitUntilUrl(DashboardPage.URL);
-    DashboardPage.body().shouldBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(visible);
 
     back();
     waitUntilUrl(editorUrl);
@@ -370,11 +370,11 @@ public abstract class AbstractPolicyEditorTest
     MainHeader.dashboardNavigationButton().click();
     unsavedModal.continueButton().shouldBe(visible).click();
     waitUntilUrl(DashboardPage.URL);
-    DashboardPage.body().shouldBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(visible);
 
     back();
     waitUntilUrl(editorUrl);
-    DashboardPage.body().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
   }
 
   private void handleUnsavedChangesDialog(UnsavedModal unsavedModal, String url) {
@@ -382,7 +382,7 @@ public abstract class AbstractPolicyEditorTest
     MainHeader.dashboardNavigationButton().click();
     unsavedModal.cancelButton().shouldBe(visible).click();
     waitUntilUrl(url);
-    DashboardPage.body().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
   }
 
   private Tag[] createCategories(String ownerId) {

@@ -27,7 +27,7 @@
 
   var module = angular.module('ComponentDisplay', ['AngularCommon', 'ComponentName']).run(['$templateCache', function($templateCache) {
         $templateCache.put('pathnames-display',
-                '<div ng-attr-pathnames-popover="{{::pathnameTooltip ? component.pathnames : undefined}}" class="pathname">' +
+                '<div class="pathname">' +
                 '<em>{{component.pathnames[0] | fileName}}</em>' +
                 '</div>'
         );
@@ -38,7 +38,7 @@
         );
         $templateCache.put('component-display',
                 '<div>' +
-                '<div ng-if="component.displayName" ng-attr-pathnames-popover="{{::pathnameTooltip ? component.pathnames : undefined}}" ng-class="{\'truncate-ellipsis\': truncate}"><span component-name="component.displayName"></span></div>' +
+                '<div ng-if="component.displayName" ng-class="{\'truncate-ellipsis\': truncate}"><span component-name="component.displayName"></span></div>' +
                 '<div ng-if="!component.displayName && component.pathnames" ng-include="\'pathnames-display\'" ng-class="{\'truncate-ellipsis\': truncate}"></div>' +
                 '<div ng-if="!component.displayName && !component.pathnames" ng-include="\'unknown-display\'" ng-class="{\'truncate-ellipsis\': truncate}"></div>' +
                 '</div>'
@@ -58,8 +58,7 @@
       replace: true,
       scope: {
         component: '=',
-        truncate: '@',
-        pathnameTooltip: '@'
+        truncate: '@'
       },
       templateUrl: 'linked-component-display'
     };

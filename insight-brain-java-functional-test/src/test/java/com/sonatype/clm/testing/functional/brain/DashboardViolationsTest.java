@@ -41,6 +41,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
+import static com.sonatype.clm.testing.functional.utils.BaseUrl.uriBuilder;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
@@ -49,9 +50,11 @@ import static org.joda.time.DateTime.now;
 public class DashboardViolationsTest
     extends AbstractFunctionalTest
 {
-  private static final String NO_DATA_MSG = "No data available given the applied filters and available permissions.";
+  private static final String NO_DATA_MSG = "No data available in the last 30 days given the applied filters and available permissions.";
 
-  private static final String MAX_RESULTS_MSG = "First 100 results shown";
+  private static final String MAX_RESULTS_MSG = "Newest 100 results shown";
+
+  private static final String NEWEST_RISK_URL = uriBuilder().fragment("/dashboard/newest-risk").build().toString();
 
   private Application app1, app2;
 
@@ -196,7 +199,7 @@ public class DashboardViolationsTest
 
   @Test
   public void testNewestRiskRedirectsToViolations() {
-    refreshOrOpen(DashboardPage.NEWEST_RISK_URL);
+    refreshOrOpen(NEWEST_RISK_URL);
     waitUntilUrl(DashboardPage.VIOLATIONS_URL);
   }
 

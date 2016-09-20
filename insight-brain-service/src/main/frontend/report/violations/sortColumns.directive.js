@@ -6,9 +6,9 @@
 (function() {
   'use strict';
 
-  var dashboardUtilsModule = angular.module('dashboard.utils');
+  var module = angular.module('ReportViolations');
 
-  function sortColumnsDirective(extractColumn) {
+  function sortColumnsDirective() {
     return {
       require: '^sortable',
       scope: {
@@ -45,8 +45,15 @@
     };
   }
 
-  sortColumnsDirective.$inject = ['extractColumn'];
+  function extractColumn(orderedColumn) {
+    if (orderedColumn.indexOf('-') === 0) {
+      return orderedColumn.substring(1);
+    }
+    else {
+      return orderedColumn;
+    }
+  }
 
-  dashboardUtilsModule.directive('sortColumns', sortColumnsDirective);
+  module.directive('sortColumns', sortColumnsDirective);
 
 }());

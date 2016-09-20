@@ -236,7 +236,7 @@ public class DashboardFilterTest
     DashboardPage.violationsView().results().violations().shouldHaveSize(0);
     // verify no data message
     DashboardPage.violationsView().results().noDataMessage().shouldBe(visible)
-        .shouldHave(text("No data available given the applied filters and available permissions."));
+        .shouldHave(text("No data available in the last 30 days given the applied filters and available permissions."));
   }
 
   private void setSomeFilterValues() {

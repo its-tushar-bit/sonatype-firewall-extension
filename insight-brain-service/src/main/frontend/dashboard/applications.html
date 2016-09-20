@@ -1,72 +1,65 @@
-<div application-risk-table>
-    <div ng-controller="applicationRiskTable">
-      <table class="table table-risk" id="application-risk" sortable="-totalApplicationRisk.totalRisk">
-        <thead>
-        <tr>
-          <th><div sort-columns="applicationName">APPLICATION</div></th>
-          <th class="total-risk">
-            <div sort-columns="-totalApplicationRisk.totalRisk" centered="true">TOTAL RISK</div>
-          </th>
-          <th id="threat-header-critical" ng-if="policyThreatLevelCategories.critical">
-            <div sort-columns="-totalApplicationRisk.criticalRisk" centered="true" title="Policy Threat Levels 8 - 10">CRITICAL</div>
-          </th>
-          <th id="threat-header-severe" ng-if="policyThreatLevelCategories.severe">
-            <div sort-columns="-totalApplicationRisk.severeRisk" centered="true" title="Policy Threat Levels 4 - 8">SEVERE</div>
-          </th>
-          <th id="threat-header-moderate" ng-if="policyThreatLevelCategories.moderate">
-            <div sort-columns="-totalApplicationRisk.moderateRisk" centered="true" title="Policy Threat Levels 2 - 3">MODERATE</div>
-          </th>
-          <th id="threat-header-low" ng-if="policyThreatLevelCategories.low">
-            <div sort-columns="-totalApplicationRisk.lowRisk" centered="true" title="Policy Threat Levels 0 - 1">LOW</div>
-          </th>
-        </tr>
-        </thead>
-        <tr ng-repeat-start="application in applications"
-            ng-class="{ striped : striped[$index] }">
-          <td>
-            <div class="twisty-container" ng-click="expand(application)">
-              <span class="twisty"
-                    ng-class="{ expand: canExpand(application) && !isExpanded(application),
-                              collapse: isExpanded(application),
-                                 empty: !canExpand(application)}"></span>
-            </div> {{application.applicationName}}</td>
-          <td class="total-risk"
-              alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
-              ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
-            {{application.totalApplicationRisk.totalRisk}}</td>
-          <td ng-if="policyThreatLevelCategories.critical" class="critical-risk"
-              alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}"
-              ng-class="{ 'muted-text': application.totalApplicationRisk.criticalRisk === 0 }">
-            {{application.totalApplicationRisk.criticalRisk}}</td>
-          <td ng-if="policyThreatLevelCategories.severe" class="severe-risk"
-              alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}"
-              ng-class="{ 'muted-text': application.totalApplicationRisk.severeRisk === 0 }">
-            {{application.totalApplicationRisk.severeRisk}}</td>
-          <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk"
-              alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}"
-              ng-class="{ 'muted-text': application.totalApplicationRisk.moderateRisk === 0 }">
-            {{application.totalApplicationRisk.moderateRisk}}</td>
-          <td ng-if="policyThreatLevelCategories.low" class="low-risk"
-              alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}"
-              ng-class="{ 'muted-text': application.totalApplicationRisk.lowRisk === 0 }">
-            {{application.totalApplicationRisk.lowRisk}}</td>
-        </tr>
-        <tr class='stage' ng-repeat-end ng-repeat='stage in application.stageRisks'
-            ng-if='expanded[application.applicationId]'>
-          <td><a title="View application report" class="glyphicons-sonatype link"
-                 ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
-                 target="_blank">{{stage.stageTypeName | uppercase}}</a></td>
-          <td class="total-risk" ng-class="{ 'muted-text': stage.risk.totalRisk === 0 }">
-            {{stage.risk.totalRisk}}</td>
-          <td ng-if="policyThreatLevelCategories.critical" class="critical-risk" ng-class="{ 'muted-text': stage.risk.criticalRisk === 0 }">
-            {{stage.risk.criticalRisk}}</td>
-          <td ng-if="policyThreatLevelCategories.severe" class="severe-risk" ng-class="{ 'muted-text': stage.risk.severeRisk === 0 }">
-            {{stage.risk.severeRisk}}</td>
-          <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk" ng-class="{ 'muted-text': stage.risk.moderateRisk === 0 }">
-            {{stage.risk.moderateRisk}}</td>
-          <td ng-if="policyThreatLevelCategories.low" class="low-risk" ng-class="{ 'muted-text': stage.risk.lowRisk === 0 }">
-            {{stage.risk.lowRisk}}</td>
-        </tr>
-      </table>
+<div id="dashboard-applications">
+  <div class="dashboard-headers">
+    <div class="tile summary-tile">
+      <div class="dashboard-header-container">
+        <div class="dashboard-header">
+          <div class="applications-row" sort="applicationName">
+            <div class="column greedy application-name" sort-column="applicationName">
+              <span class="header-text">Name</span>
+            </div><!--
+         --><div class="column fixed total-risk split-line" sort-column="-totalApplicationRisk.totalRisk">
+              <span class="header-text">Total Risk</span>
+            </div><!--
+         --><div class="column fixed critical-risk" sort-column="-totalApplicationRisk.criticalRisk">
+              <span class="header-text">Critical</span>
+            </div><!--
+         --><div class="column fixed severe-risk" sort-column="-totalApplicationRisk.severeRisk">
+              <span class="header-text">Severe</span>
+            </div><!--
+         --><div class="column fixed moderate-risk" sort-column="-totalApplicationRisk.moderateRisk">
+              <span class="header-text">Moderate</span>
+            </div><!--
+         --><div class="column fixed low-risk" sort-column="-totalApplicationRisk.lowRisk">
+              <span class="header-text">Low</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div class="dashboard-results">
+    <div class="tile-container" fill-vertical>
+      <div class="tile-scroll-container">
+        <div applications-results>
+          <div class="tile" ng-repeat="application in data | limitTo: maxResults | orderBy: sortVm.sortFields">
+            <div class="applications-row total-application-risks">
+              <div class="column greedy application-name semi-bold">{{::application.applicationName}}</div><!--
+            --><div class="column fixed padded-cell total-risk">{{::application.totalApplicationRisk.totalRisk}}</div><!--
+            --><div class="column fixed padded-cell critical-risk">{{::application.totalApplicationRisk.criticalRisk}}</div><!--
+            --><div class="column fixed padded-cell severe-risk">{{::application.totalApplicationRisk.severeRisk}}</div><!--
+            --><div class="column fixed padded-cell moderate-risk">{{::application.totalApplicationRisk.moderateRisk}}</div><!--
+            --><div class="column fixed padded-cell low-risk">{{::application.totalApplicationRisk.lowRisk}}</div><!--
+            --><div class="column fixed chevron">&nbsp;</div>
+            </div>
+            <div class="applications-row stage-application-risks" ng-repeat='stage in application.stageRisks'>
+              <div class="column greedy application-name semi-bold">
+                <a title="View application report"
+                   ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
+                   target="_blank"><i class="fa fa-external-link fa-fw"></i>{{::stage.stageTypeName}}</a>
+              </div><!--
+           --><div class="column stage-application-risks-container">
+                   <div class="column fixed padded-cell total-risk">{{::stage.risk.totalRisk}}</div><!--
+                --><div class="column fixed padded-cell critical-risk">{{::stage.risk.criticalRisk}}</div><!--
+                --><div class="column fixed padded-cell severe-risk">{{::stage.risk.severeRisk}}</div><!--
+                --><div class="column fixed padded-cell moderate-risk">{{::stage.risk.moderateRisk}}</div><!--
+                --><div class="column fixed padded-cell low-risk">{{::stage.risk.lowRisk}}</div>
+              </div><!--
+           --><div class="column fixed chevron">&nbsp;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

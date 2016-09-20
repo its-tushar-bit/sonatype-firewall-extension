@@ -107,7 +107,7 @@
           $state.transitionTo(savedState.toState, savedState.toParams);
         }
         else if (ProductFeatures.isDashboardLicensed()) {
-          $state.go('dashboard.overview.newest-risk');
+          $state.go('dashboard.overview.violations');
         }
         else {
           $state.go('violations');

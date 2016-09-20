@@ -21,21 +21,12 @@ public class DashboardPage
 {
   public static final Condition ACTIVE = cssClass("active");
 
-  public static final String URL = uriBuilder().fragment("/dashboard/newest-risk").build().toString();
-  public static final String COMPONENTS_URL = uriBuilder().fragment("/dashboard-new/components").build().toString();
-  public static final String VIOLATIONS_URL = uriBuilder().fragment("/dashboard-new/violations").build().toString();
-  public static final String NEWEST_RISK_URL = uriBuilder().fragment("/dashboard-new/newest-risk").build().toString();
-  public static final String APPLICATIONS_URL = uriBuilder().fragment("/dashboard-new/applications").build().toString();
+  public static final String URL = uriBuilder().fragment("/dashboard/violations").build().toString();
+  public static final String COMPONENTS_URL = uriBuilder().fragment("/dashboard/components").build().toString();
+  public static final String VIOLATIONS_URL = uriBuilder().fragment("/dashboard/violations").build().toString();
+  public static final String APPLICATIONS_URL = uriBuilder().fragment("/dashboard/applications").build().toString();
 
   public static final String ROOT =  ".dashboard-container";
-
-  /**
-   * @deprecated use dashboardContainer() once new dashboard is in place
-   */
-  @Deprecated
-  public static SelenideElement body() {
-    return $(".dashboard-root-container");
-  }
 
   public static SelenideElement dashboardContainer() {
     return $(ROOT);

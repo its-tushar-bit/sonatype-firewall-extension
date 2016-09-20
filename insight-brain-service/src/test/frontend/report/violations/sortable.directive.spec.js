@@ -1,6 +1,6 @@
 describe('sortable.directive.spec', function() {
 
-  beforeEach(module('dashboard.utils'));
+  beforeEach(module('ReportViolations'));
 
   describe('sortable', function() {
     var barScope, fooScope, invertedScope;

@@ -7,11 +7,12 @@
 (function() {
   'use strict';
 
-  angular.module('dashboard.module', ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay',
-                                      'dashboard.utils', 'utility'],
+  var dashboardModule = angular.module('dashboard.module', ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay',
+                                      'dashboard.utils', 'utility']);
+
   // To avoid hacking dependency order, states must be declared with their parent.
   // Fixed https://github.com/angular-ui/ui-router/pull/492
-  ['$stateProvider', function($stateProvider) {
+  dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateProvider,  $urlRouterProvider) {
 
     $stateProvider.state('dashboard', {
       url: '/dashboard',
@@ -35,26 +36,29 @@
           controller: 'dashboard.filter.controller as vm'
         }
       }
-    }).state('dashboard.overview.newest-risk', {
+    }).state('dashboard.overview.violations', {
       parent: 'dashboard.overview',
-      url: '/newest-risk',
-      templateUrl: 'dashboard/newest-risk.html?' + clmBuildTimestamp,
-      data: {
-        crumb: 'Newest Risk'
+      url: '/violations',
+      views: {
+        'dashboard-results': {
+          templateUrl: 'dashboard/violations.html?' + clmBuildTimestamp
+        }
       }
     }).state('dashboard.overview.components', {
       parent: 'dashboard.overview',
       url: '/components',
-      templateUrl: 'dashboard/components.html?' + clmBuildTimestamp,
-      data: {
-        crumb: 'By Component'
+      views: {
+        'dashboard-results': {
+          templateUrl: 'dashboard/components.html?' + clmBuildTimestamp
+        }
       }
     }).state('dashboard.overview.applications', {
       parent: 'dashboard.overview',
       url: '/applications',
-      templateUrl: 'dashboard/applications.html?' + clmBuildTimestamp,
-      data: {
-        crumb: 'By Application'
+      views: {
+        'dashboard-results': {
+          templateUrl: 'dashboard/applications.html?' + clmBuildTimestamp
+        }
       }
     }).state('dashboard.component', {
       parent: 'dashboard',
@@ -65,5 +69,7 @@
         crumb: 'Component Details'
       }
     });
+
+    $urlRouterProvider.when('/dashboard/newest-risk', '/dashboard/violations');
   }]);
 }());

@@ -106,11 +106,11 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       super(selector);
     }
 
-    public Checkbox license() {
+    public Checkbox security() {
       return super.checkboxItem(2);
     }
 
-    public Checkbox other() {
+    public Checkbox license() {
       return super.checkboxItem(3);
     }
 
@@ -118,7 +118,7 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       return super.checkboxItem(4);
     }
 
-    public Checkbox security() {
+    public Checkbox other() {
       return super.checkboxItem(5);
     }
   }

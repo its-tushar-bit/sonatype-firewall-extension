@@ -408,10 +408,16 @@
     </div>
   ```
 */
-.tooltip.top {
+.tooltip.top-left { // missing in our version of bootstrap
+  margin-top:  -3px;
+  padding: 5px 0;
+}
+
+.tooltip.top, .tooltip.top-left {
   padding-top: 0px;
   padding-bottom: 2px;
 }
+
 .tooltip-arrow {
   .tooltip.top &, .tooltip.top-left & {
     border-top-color: $off-black;
@@ -419,7 +425,6 @@
 
   .tooltip.top-left & { // missing in our version of bootstrap
     bottom: 0;
-    margin-bottom: -5px;
     border-width: 5px 5px 0;
   }
 
@@ -494,6 +499,10 @@
   border: 1px solid $off-black;
   background-color: $slate;
   border-radius: 0;
+}
+
+.tooltip.top-left.entity-item-tooltip .tooltip-arrow {
+  margin-left: 23px;
 }
 
 /*

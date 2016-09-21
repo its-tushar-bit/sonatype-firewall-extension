@@ -84,8 +84,22 @@ public class OwnerTreeView
       return $(".tooltip-inner");
     }
 
-    public SelenideElement application(int num) {
-      return child(".tree-view-item", nthChild(num + 1 + 1 /* The org is the first entry */));
+    public static ApplicationNode application(int num) {
+      return new ApplicationNode(".tree-view-item", nthChild(num + 1 + 1 /* The org is the first entry */));
     }
+    
+    public static class ApplicationNode
+        extends BasicElement<ApplicationNode>
+    {
+
+      public ApplicationNode(String... selectors) {
+        super(selectors);
+      }
+
+      public SelenideElement applicationName() {
+        return child("> span");
+      }
+    }
+
   }
 }

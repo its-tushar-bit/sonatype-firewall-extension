@@ -507,6 +507,8 @@
 }
 
 .dashboard-tooltip {
+  margin-top: 2px!important;
+
   &.pathname .tooltip-inner::before {
     content: "COMPONENT PATH\a";
     font-weight: bold;

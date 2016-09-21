@@ -79,6 +79,10 @@
 }
 
 .tooltip.top-left {
+  &.filter-item-tooltip, &.filter-label-tooltip {  
+    margin-top: 2px;
+  }
+
   &.filter-item-tooltip .tooltip-arrow {
     margin-left: 23px;
   }

@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode.ApplicationNode;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -27,6 +28,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
@@ -117,7 +119,7 @@ public class OwnerTreeViewTest
     organizationTreeViewElement.click();
     organizationTreeViewElement.shouldBe(CLM.SELECTED);
 
-    SelenideElement applicationNode = organizationNode.application(0);
+    ApplicationNode applicationNode = organizationNode.application(0);
     applicationNode.click();
     applicationNode.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
@@ -203,7 +205,7 @@ public class OwnerTreeViewTest
     organizationTreeViewElement.shouldNotHave(OrganizationNode.CHILD_SELECTED);
     organizationNode.twisty().shouldBe(CLM.COLLAPSED);
 
-    SelenideElement applicationNode = organizationNode.application(0);
+    ApplicationNode applicationNode = organizationNode.application(0);
     applicationNode.click();
     applicationNode.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
@@ -220,7 +222,7 @@ public class OwnerTreeViewTest
     SelenideElement treeViewElement = organizationNode.treeViewElement();
 
     treeViewElement.shouldNotBe(CLM.SELECTED);
-    treeViewElement.shouldNotHave(OrganizationNode.DISABLED_TOOLTIP_ATTRIBUTE);
+    organizationNode.organizationName().shouldHave(attribute("data-tooltip", organizationName));
     organizationNode.organizationName().shouldHave(text(organizationName));
     organizationNode.applicationElements().shouldHaveSize(applicationCount);
   }
@@ -234,6 +236,8 @@ public class OwnerTreeViewTest
     treeViewElement.shouldHave(text(organizationName));
     organizationNode.applicationElements().shouldHaveSize(1);
 
-    organizationNode.application(0).shouldHave(text(applicationName));
+    ApplicationNode applicationNode =  organizationNode.application(0);
+    applicationNode.applicationName().shouldHave(attribute("data-tooltip", applicationName));
+    applicationNode.applicationName().shouldHave(text(applicationName));
   }
 }

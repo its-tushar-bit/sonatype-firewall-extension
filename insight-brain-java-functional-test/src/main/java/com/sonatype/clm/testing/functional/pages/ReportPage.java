@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
 import com.codeborne.selenide.SelenideElement;
@@ -26,7 +27,8 @@ public class ReportPage
   }
 
   public static String url(Application app, String scanId) {
-    return "rest/report/" + app.getPublicId() + "/" + scanId + "/browseReport/index.html";
+    return BaseUrl.rootUriBuilder().path("rest/report/{applicationPublicId}/{scanId}/browseReport/index.html")
+        .fragment("/reports/violations").build(app.getPublicId(), scanId).toString();
   }
 
 }

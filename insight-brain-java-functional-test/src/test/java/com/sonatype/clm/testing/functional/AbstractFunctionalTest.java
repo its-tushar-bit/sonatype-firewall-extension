@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.LoginDialog;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
+import com.sonatype.clm.testing.functional.utils.proxy.ReverseProxyServer;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -22,7 +23,9 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -70,6 +73,8 @@ public abstract class AbstractFunctionalTest
 
   protected static TestCLMServer testCLMServer;
 
+  protected static ReverseProxyServer reverseProxyServer;
+
   private static Predicate<WebDriver> urlEqualsPredicate(final String url) {
     return new Predicate<WebDriver>()
     {
@@ -84,10 +89,21 @@ public abstract class AbstractFunctionalTest
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
     clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter);
-    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), null);
+
+    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), new Configurator()
+    {
+      @Override
+      public void configure(InsightConfig config) {
+        config.setBaseUrl(reverseProxyServer.getUrl());
+      }
+    });
+    reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
+
     try {
       testCLMServer.start();
-      Configuration.baseUrl = "http://localhost:" + testCLMServer.getCLMServer().getPort() + "/";
+      reverseProxyServer.start();
+
+      Configuration.baseUrl = reverseProxyServer.getUrl();
       Configuration.reportsFolder = "target/selenide-reports";
     }
     catch (Throwable e) {

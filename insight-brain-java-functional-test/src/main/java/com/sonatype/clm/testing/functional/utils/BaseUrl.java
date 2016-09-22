@@ -12,6 +12,10 @@ import com.codeborne.selenide.Configuration;
 public class BaseUrl
 {
   public static UriBuilder uriBuilder() {
-    return UriBuilder.fromUri(Configuration.baseUrl).path("assets/index.html");
+    return rootUriBuilder().path("assets/index.html");
+  }
+
+  public static UriBuilder rootUriBuilder() {
+    return UriBuilder.fromUri(Configuration.baseUrl);
   }
 }

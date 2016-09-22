@@ -69,7 +69,7 @@ public class NotificationsSection
     }
 
     public Checkbox continuousMonitoring() {
-      return new Checkbox($(createSelector(ROOT_SELECTOR, "td", nthChild(8))));
+      return new Checkbox($(createSelector(ROOT_SELECTOR, "td:nth-last-child(2) label.checkbox")));
     }
 
     public SelenideElement deleteButton() {

@@ -7,11 +7,12 @@
   'use strict';
 
   function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, CLMAppLocations, ApplicationStore,
-                                         OrganizationStore, LocalRoleService)
+                                         OrganizationStore, LocalRoleService, ProductFeatures)
   {
     var vm = this;
 
     vm.areAnyCategoriesDefined = undefined;
+    vm.isMonitoringSupported = undefined;
     vm.isApp = CLMAppLocations.isApplication();
     vm.isRepositories = CLMAppLocations.isRepositories();
     vm.state = $state;
@@ -41,6 +42,8 @@
         promises.push(OrganizationStore.getById(CLMAppLocations.getEntityId()));
       }
 
+      promises.push(ProductFeatures.load());
+
       $q.all(promises).then(function(results) {
         vm.details = results[0].data;
         var allMembersByRoles = vm.details.roles.membersByRole;
@@ -57,6 +60,7 @@
         else {
           vm.ownerName = 'Repositories';
         }
+        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
       }, function(error) {
         vm.error = error;
       });
@@ -69,7 +73,7 @@
 
   OwnerDetailTreeViewController.$inject = [
     '$scope', '$q', '$http', '$state', 'CLMLocations', 'CLMAppLocations', 'ApplicationStore', 'OrganizationStore',
-    'local.role.service'
+    'local.role.service', 'ProductFeatures'
   ];
 
   angular //

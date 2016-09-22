@@ -7,7 +7,7 @@
   'use strict';
 
   function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonitoringStore, Messages,
-                                          MonitoredStageService)
+                                          MonitoredStageService, ProductFeatures)
   {
     var originalStage,
         vm = this;
@@ -19,7 +19,7 @@
     vm.doLoad = doLoad;
     vm.save = save;
     vm.isDirty = isDirty;
-    vm.continuousMonitoringEditor = undefined;
+    vm.isMonitoringSupported = undefined;
     vm.continuousMonitoringEditorMask = undefined;
 
     vm.doLoad();
@@ -32,7 +32,7 @@
 
     function doLoad() {
       delete vm.loadError;
-      $q.all([StageTypeStore.get(), PolicyMonitoringStore.getApplicable()]).then(function(results) {
+      $q.all([StageTypeStore.get(), PolicyMonitoringStore.getApplicable(), ProductFeatures.load()]).then(function(results) {
         vm.stages = angular.copy(results[0]);
         var policyMonitoringByOwner = results[1].data.policyMonitoringByOwner;
 
@@ -41,6 +41,7 @@
             vm.stages);
 
         originalStage = angular.copy(vm.monitoredStage);
+        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
       }, function(error) {
         vm.loadError = Messages.getHttpErrorMessage(error);
       });
@@ -63,7 +64,7 @@
   }
 
   MonitoredStageEditorController.$inject = [
-    '$scope', '$q', 'StageTypeStore', 'PolicyMonitoringStore', 'Messages', 'monitored.stage.service'
+    '$scope', '$q', 'StageTypeStore', 'PolicyMonitoringStore', 'Messages', 'monitored.stage.service', 'ProductFeatures'
   ];
 
   angular //

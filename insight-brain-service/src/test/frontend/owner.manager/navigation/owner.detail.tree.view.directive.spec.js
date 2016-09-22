@@ -1,4 +1,7 @@
 describe('owner.detail.tree.view.directive.spec.js', function() {
+
+  beforeEach(module('ProductFeaturesModule'));
+
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
@@ -12,14 +15,16 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
         $httpBackend,
         CLMLocations,
         CLMAppLocations,
-        mockOwnerStore = storeName ? StoreUtils().createMockStore(storeName) : null;
+        mockOwnerStore = storeName ? StoreUtils().createMockStore(storeName) : null,
+        ProductFeatures;
 
-    beforeEach(inject(function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_) {
+    beforeEach(inject(function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_, _ProductFeatures_) {
       $scope = $rootScope.$new();
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
       CLMLocations = _CLMLocations_;
       CLMAppLocations = _CLMAppLocations_;
+      ProductFeatures = _ProductFeatures_;
 
       spyOn(CLMAppLocations, 'isApplication').andReturn(type === 'application');
       spyOn(CLMAppLocations, 'isRepositories').andReturn(type === 'repositories');
@@ -48,6 +53,8 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       if (vm.isApp) {
         expect(vm.areAnyCategoriesDefined).toBeFalsy();
       }
+
+      expect(vm.isMonitoringSupported).toBe(true);
     });
 
     it('Properly Detecting Details Loading Error', function() {
@@ -111,6 +118,8 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       if (vm.isApp) {
         $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())).respond([]);
       }
+
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
 
       $httpBackend.flush();
       $timeout.flush();

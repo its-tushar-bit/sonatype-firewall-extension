@@ -71,7 +71,12 @@
       <a class="tree-view-item"
          ng-if="vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy')"
          ui-sref=".monitor-policy"
-         ui-sref-active="selected">
+         ui-sref-active="selected"
+         ng-class="{disabled: !vm.isMonitoringSupported}"
+         data-tooltip="{{:: vm.isMonitoringSupported ? '' : 'Policy Monitoring is not supported by your license'}}"
+         data-tooltip-placement="top"
+         data-tooltip-append-to-body="true"
+         ng-click="vm.isMonitoringSupported || $event.preventDefault()">
         <i class="fa fa-repeat size-16px size-fw tree-view-icon"></i>Continuous Monitoring
       </a>
       <a class="tree-view-item"

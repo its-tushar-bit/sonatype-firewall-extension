@@ -6,7 +6,8 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorNotificationsController($scope, $q, RoleMappingService, StageTypeStore, JiraService)
+  function PolicyEditorNotificationsController($scope, $q, RoleMappingService, StageTypeStore, JiraService,
+                                               ProductFeatures)
   {
     var vm = this,
         availableRoles,
@@ -38,6 +39,7 @@
     vm.getEmails = getEmails;
     vm.doLoad = doLoad;
     vm.isAddButtonDisabled = isAddButtonDisabled;
+    vm.isMonitoringSupported = undefined;
     vm.resetNotifications = resetNotifications;
 
     vm.doLoad();
@@ -67,7 +69,8 @@
             });
             return getJiraDeferred.promise;
           }
-        })
+        }),
+        ProductFeatures.load()
       ];
 
       $q.all(promises).then(function(results) {
@@ -96,6 +99,7 @@
         updateAvailableJiraProjects();
         loadRecipients();
 
+        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
       }, function(error) {
         vm.loadError = error;
       });
@@ -301,7 +305,7 @@
   }
 
   PolicyEditorNotificationsController.$inject = [
-    '$scope', '$q', 'role.mapping.service', 'StageTypeStore', 'jira.service'
+    '$scope', '$q', 'role.mapping.service', 'StageTypeStore', 'jira.service', 'ProductFeatures'
   ];
 
   angular //

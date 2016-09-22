@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
@@ -29,6 +30,10 @@ public class MonitoredStageEditorPage
     return "Inherit from " + parentsName + " (Do not monitor)";
   }
 
+  public static Condition unsupportedLicenseText() {
+    return text("Policy monitoring is not supported by your license");
+  }
+
   public static SelenideElement title() {
     return $(ROOT + " h2");
   }
@@ -38,10 +43,14 @@ public class MonitoredStageEditorPage
   }
 
   public static Radio getStageByName(final String stageName) {
-    return new Radio($$(ROOT + " label.radio span p").findBy(Condition.text(stageName)).parent().parent());
+    return new Radio($$(ROOT + " label.radio span p").findBy(text(stageName)).parent().parent());
   }
 
   public static SelenideElement updateButton() {
     return $(ROOT + " button[type^=submit]");
+  }
+
+  public static SelenideElement unsupportedLicenseWarning() {
+    return $(ROOT + " .alert");
   }
 }

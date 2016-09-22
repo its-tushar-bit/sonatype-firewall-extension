@@ -2,6 +2,8 @@ describe('policy.tile.controller.spec.js', function() {
 
   beforeEach(module('Policy'));
 
+  beforeEach(module('ProductFeaturesModule'));
+
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
@@ -21,6 +23,8 @@ describe('policy.tile.controller.spec.js', function() {
       EventNameConstant,
       MonitoredStageService,
       mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
+      CLMLocations,
+      ProductFeatures,
       mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore('ProprietaryConfigHierarchyStore'),
       mockProprietaryConfigurationHierarchyStoreData = StoreUtils().createMockHierarchyStoreData(ProprietaryMockData
           .getProprietaryConfigurationStoreMockData(), 'proprietaryConfigByOwners');
@@ -31,17 +35,20 @@ describe('policy.tile.controller.spec.js', function() {
   ));
 
   beforeEach(inject(function(_$rootScope_, $injector, $q, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_,
-                             StageTypeStore)
+                             StageTypeStore, _ProductFeatures_, _CLMLocations_)
       {
         $rootScope = _$rootScope_;
         scope = $rootScope.$new();
         $httpBackend = _$httpBackend_;
         $timeout = _$timeout_;
         CLMAppLocations = _CLMAppLocations_;
+        CLMLocations = _CLMLocations_;
+        ProductFeatures = _ProductFeatures_;
         EventNameConstant = $injector.get('event.name.constant');
         stageTypeStoreDefer = $q.defer();
         spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
         spyOn(StageTypeStore, 'getActionStages').andReturn(stageTypeStoreDefer.promise);
+        $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
         vm = $controller('policy.tile.controller', {
           $scope: scope
         });
@@ -60,6 +67,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
+    $httpBackend.flush();
 
     expect(vm.ownerName).toEqual(mockPolicyStoreData[0].ownerName);
     expect(vm.policiesByOwner.length).toEqual(mockPolicyStoreData.length);
@@ -74,6 +82,7 @@ describe('policy.tile.controller.spec.js', function() {
       });
     });
     expect(vm.monitoredStage.stageName).toBe('Develop');
+    expect(vm.isMonitoringSupported).toBe(true);
   });
 
   it('Uses the placeholder value for monitored stage if one is not inherited', function() {
@@ -84,6 +93,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
+    $httpBackend.flush();
 
     expect(vm.monitoredStage.stageName).toBe('Do not monitor');
   });
@@ -95,6 +105,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
 
     $timeout.flush();
+    $httpBackend.flush();
 
     expect(vm.error).toBe("dagnabbit");
 
@@ -112,6 +123,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     $timeout.flush();
+    $httpBackend.flush();
 
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
@@ -124,6 +136,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     $timeout.flush();
+    $httpBackend.flush();
 
     expect(vm.ownerName).not.toEqual('Bob');
 
@@ -138,6 +151,7 @@ describe('policy.tile.controller.spec.js', function() {
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
+    $httpBackend.flush();
 
     expect(vm.localProprietaryCount).toEqual(3);
     expect(vm.inheritedProprietaryCount).toEqual(1);

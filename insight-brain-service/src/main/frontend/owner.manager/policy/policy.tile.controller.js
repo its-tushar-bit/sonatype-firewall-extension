@@ -8,7 +8,7 @@
 
   function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
                                 PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
-                                ProprietaryConfigHierarchyStore, CLMAppLocations)
+                                ProprietaryConfigHierarchyStore, CLMAppLocations, ProductFeatures)
   {
     var vm = this;
     vm.ownerName = undefined;
@@ -19,6 +19,7 @@
     vm.localProprietaryCount = 0;
     vm.inheritedProprietaryCount = 0;
     vm.isRootOrg = CLMAppLocations.isRootOrg();
+    vm.isMonitoringSupported = undefined;
     vm.editPolicy = editPolicy;
     vm.doLoad = doLoad;
 
@@ -33,7 +34,8 @@
         PolicyHierarchyStore.get(),
         StageTypeStore.getActionStages(),
         PolicyMonitoringStore.getApplicable(),
-        ProprietaryConfigHierarchyStore.get()
+        ProprietaryConfigHierarchyStore.get(),
+        ProductFeatures.load()
       ]).then(function(results) {
         vm.policiesByOwner = results[0];
         vm.actionStages = results[1];
@@ -71,6 +73,8 @@
             vm.inheritedProprietaryCount += matcherTotal;
           }
         });
+
+        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
       }, function(error) {
         vm.error = error;
       });
@@ -90,7 +94,7 @@
   PolicyTileController.$inject = [
     '$scope', '$q', 'StageTypeStore', 'SameOwnerStateNavigationService',
     'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore',
-    'ProprietaryConfigHierarchyStore', 'CLMAppLocations'
+    'ProprietaryConfigHierarchyStore', 'CLMAppLocations', 'ProductFeatures'
   ];
 
   angular //

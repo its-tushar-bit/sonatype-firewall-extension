@@ -92,7 +92,7 @@ public class OwnerSummaryPage
     }
 
     public static SelenideElement monitoredStage() {
-      return $("#continuous-monitoring div.title");
+      return $("#continuous-monitoring div");
     }
 
     public static SelenideElement proprietaryComponentMatchers() {

@@ -6,21 +6,32 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Checkbox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NotificationsSection;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
+import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.codeborne.selenide.Condition;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement.CLICKABLE;
 
 public abstract class AbstractPolicyMonitoringEditorTest
     extends AbstractFunctionalTest
@@ -32,6 +43,8 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   private OrganizationDAO orgDao = new OrganizationDAO();
 
+  private StageTypeService stageTypeService = new StageTypeService(clmLicenseManager);
+
   @BeforeClass
   public static void boot() {
     refreshOrOpen(OrganizationManagementPage.URL);
@@ -42,6 +55,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     this.currentOwner = currentOwner;
     this.parentOrg = orgDao.getById(currentOwner.getParentOwnerId());
     open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
 
   @Test
@@ -54,6 +68,42 @@ public abstract class AbstractPolicyMonitoringEditorTest
     MonitoredStageEditorPage.updateButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     assertEditMonitoredStageStateIsCorrect("Develop");
+  }
+
+  @Test
+  public void testNotLicensed() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    clmLicenseManager.installLicense(null);
+    refresh();
+
+    Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
+    SummaryTile.monitoredStage().shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
+
+    // if the user gets there manually, show a warning
+    open(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    MonitoredStageEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
+
+    // disable the owner detail tree view item
+    open(PolicyEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
+    OwnerDetailTreeView.policyGroup().item(2).shouldBe(DISABLED).hover();
+    int cmIndex = OwnerDetailTreeView.policyGroup().items().size() - 2;
+    OwnerDetailTreeView.policyGroup().item(cmIndex).shouldBe(DISABLED).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
+    // disable continuous monitoring checkboxes in notification area
+    PolicyEditorPage.notificationsPill().click();
+    NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
+    cmIndex = stageTypeService.getLicensedStageTypes().size();
+    notificationsSection.headers().get(cmIndex).shouldBe(DISABLED);
+    notificationsSection.addNotification().email().val("a@b");
+    notificationsSection.addNotification().addButton().shouldNotBe(DISABLED).click();
+    Checkbox monitoringCheckbox = notificationsSection.notificationFor("a@b").continuousMonitoring();
+    monitoringCheckbox.input().shouldBe(disabled);
+    monitoringCheckbox.hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
+    notificationsSection.notificationFor("a@b").deleteButton().click();
+
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+    clmLicenseManager.installLicense(null);
   }
 
   private void assertEditMonitoredStageStateIsCorrect(String selectedStageText) {

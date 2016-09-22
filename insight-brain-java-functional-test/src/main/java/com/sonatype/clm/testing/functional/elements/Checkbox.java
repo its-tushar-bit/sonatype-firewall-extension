@@ -32,6 +32,11 @@ public class Checkbox
     label().click();
   }
 
+  public Checkbox hover() {
+    label().hover();
+    return this;
+  }
+
   /**
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element

@@ -6,7 +6,7 @@
         <th ng-repeat="stage in vm.actionStages">
           <span class="header-text">{{::stage.shortName | uppercase}}</span>
         </th>
-        <th class="continuous-monitoring">
+        <th class="continuous-monitoring" ng-class="{disabled: !vm.isMonitoringSupported}">
           <span class="header-text">CONTINUOUS MONITORING</span>
         </th>
         <th class="delete"></th>
@@ -43,8 +43,10 @@
         </label>
       </td>
       <td>
-        <label class="checkbox no-text" ng-class="{disabled: vm.disabled}">
-          <input type="checkbox" ng-checked="vm.hasStage(recipient, 'continuous-monitoring')" ng-disabled="vm.disabled"
+        <label class="checkbox no-text" ng-class="{disabled: vm.disabled || !vm.isMonitoringSupported}"
+               data-tooltip="{{:: vm.isMonitoringSupported ? '' : 'Policy Monitoring is not supported by your license'}}"
+               data-tooltip-placement="top" data-tooltip-append-to-body="true">
+          <input type="checkbox" ng-checked="vm.hasStage(recipient, 'continuous-monitoring')" ng-disabled="vm.disabled || !vm.isMonitoringSupported"
                  ng-click="vm.toggleStage(recipient, 'continuous-monitoring')">
           <span></span>
         </label>

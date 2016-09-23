@@ -196,7 +196,8 @@
 
         for (var i=0; i<result.length; i++) {
           for (var x=0; x<mappings[0].members.length; x++) {
-            if (result[i].internalName === mappings[0].members[x].internalName) {
+            if (result[i].internalName === mappings[0].members[x].internalName &&
+                result[i].type === mappings[0].members[x].type) {
               result.splice(i, 1);
               i--;
               modified = true;

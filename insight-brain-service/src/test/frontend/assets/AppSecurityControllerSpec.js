@@ -372,12 +372,15 @@ describe('AppSecurityControllerSpec', function() {
 
     it('Test', function () {
       var users = [{
+            type: 'USER',
             internalName: 'fred',
             displayName: 'Fred Flintstone'
           }, {
+            type: 'USER',
             internalName: 'barn',
             displayName: 'Barney Rubble'
           }, {
+            type: 'USER',
             internalName: 'wilma',
             displayName: 'Wilma Flintstone'
           }],
@@ -399,13 +402,16 @@ describe('AppSecurityControllerSpec', function() {
 
       expect(filter(users, [{
         members: [{
+          type: 'USER',
           internalName: 'fred',
           displayName: 'Fred Flintstone'
         }]
       }])).toEqual([{
+        type: 'USER',
         internalName: 'barn',
         displayName: 'Barney Rubble'
       }, {
+        type: 'USER',
         internalName: 'wilma',
         displayName: 'Wilma Flintstone'
       }]);

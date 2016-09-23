@@ -60,7 +60,7 @@
           </div><!--
              --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
              --><span
-                  data-tooltip="{{::organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
+                  data-tooltip="{{organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
                   data-tooltip-placement="top-left" data-tooltip-append-to-body="true" data-tooltip-popup-delay="500"
                   tooltip-class="entity-item-tooltip">
                     {{organization.name}}
@@ -83,7 +83,7 @@
            ng-class="{ selected : vm.$state.includes('management.view.application', {applicationPublicId: application.publicId}) }">
           <i class="fa fa-terminal tree-view-icon icon-12px inverse"></i><!--
            --><span
-                data-tooltip="{{::application.name}}"
+                data-tooltip="{{application.name}}"
                 data-tooltip-placement="top-left" data-tooltip-append-to-body="true" data-tooltip-popup-delay="500"
                 tooltip-class="entity-item-tooltip">
                   {{application.name}}

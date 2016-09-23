@@ -11,12 +11,19 @@ import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateRes
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
+import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Minimal JIRA REST client needed to support notification integration.
@@ -26,6 +33,8 @@ import org.apache.http.entity.StringEntity;
 public class JiraClient
     extends AbstractClient
 {
+  private static final Logger log = LoggerFactory.getLogger(JiraClient.class);
+
   public JiraClient(final Configuration configuration) {
     super(configuration);
   }
@@ -40,8 +49,9 @@ public class JiraClient
   public JiraIssueCreateMeta getIssueCreateMeta() throws IOException {
     Result result = path("/rest/api/2/issue/createmeta").query("expand", "projects.issuetypes.fields").get();
     if (result.status() >= 300) {
-      throw new HttpResponseException(result.status(), result.message());
+      handleError(result, "fetch issue metadata.");
     }
+
     return JsonUtils.parse(result.text(), JiraIssueCreateMeta.class);
   }
 
@@ -54,8 +64,22 @@ public class JiraClient
     HttpEntity entity = new StringEntity(JsonUtils.format(request), ContentType.APPLICATION_JSON);
     Result result = path("/rest/api/2/issue").post(entity);
     if (result.status() >= 300) {
-      throw new HttpResponseException(result.status(), result.message());
+      return handleError(result, "create issue.");
     }
+
     return JsonUtils.parse(result.text(), JiraIssueCreateResponse.class);
+  }
+
+  private JiraIssueCreateResponse handleError(final Result result, final String context) throws IOException {
+    String contentType = result.header(HttpHeaders.CONTENT_TYPE);
+
+    if (result.status() == HttpStatus.SC_BAD_REQUEST && contentType != null
+        && contentType.contains(ContentType.APPLICATION_JSON.getMimeType())) {
+      log.error("Unexpected response from Jira when trying to {} Status Code: {} Message: {}", context, result.status(), result.text());
+    } else {
+      log.error("Unexpected response from Jira when trying to {} Status Code: {} Message: {}", context, result.status(), result.message());
+    }
+
+    throw new BadGatewayException("Unexpected error from Jira when trying to " + context);
   }
 }

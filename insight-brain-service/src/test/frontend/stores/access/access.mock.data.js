@@ -53,6 +53,32 @@ var AccessMockData = {
     };
   },
 
+  getQueryResults: function() {
+    // intentionally includes a user and group with the same internalName
+    return {
+      'members':[{
+        'type':'USER',
+        'internalName':'Administrators',
+        'displayName':'Administrators a',
+        'email':'a@a.com',
+        'realm':'IQ Server'
+      }, {
+        'type':'USER',
+        'internalName':'admin',
+        'displayName':'Admin BuiltIn',
+        'email':'admin@localhost',
+        'realm':'IQ Server'
+      }, {
+        'type':'GROUP',
+        'internalName':'Administrators',
+        'displayName':'Administrators',
+        'email':null,
+        'realm':'asdf'
+      }],
+      'error':null
+    };
+  },
+
   getMoreRoleMappings: function() {
     var base = AccessMockData.getRoleMappings();
     base.membersByRole[1] = {

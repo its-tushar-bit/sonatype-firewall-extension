@@ -149,13 +149,15 @@ describe('access.editor.controller.spec.js', function() {
     vm.query = 'arbitrary';
     vm.accessEditorSearchMask = {wrap: SpecUtil.promiseWrapper($q)};
     $httpBackend.expectGET(CLMAppLocations.getFindUsersUrl() +
-        '?q=arbitrary').respond(AccessMockData.getMoreRoleMappings());
+        '?q=arbitrary').respond(AccessMockData.getQueryResults());
 
     expect(vm.searchInProgress).toBeFalsy();
     vm.search();
     expect(vm.searchInProgress).toBeTruthy();
     $httpBackend.flush();
     expect(vm.searchInProgress).toBeFalsy();
+
+    expect(vm.members.length).toEqual(3);
   });
 
   it('Creates correct tooltip message', function() {

@@ -231,7 +231,7 @@
     function updatePickedUsers(pickedUsers) {
       pickedUsers.forEach(function(pickedUser) {
         var replaced = vm.members.some(function(user, index) {
-          if (user.internalName === pickedUser.internalName) {
+          if (user.internalName === pickedUser.internalName && user.type === pickedUser.type) {
             vm.members[index] = pickedUser;
             return true;
           }

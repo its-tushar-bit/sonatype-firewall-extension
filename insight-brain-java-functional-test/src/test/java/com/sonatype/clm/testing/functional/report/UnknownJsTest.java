@@ -9,8 +9,7 @@ import java.io.File;
 import java.util.UUID;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.LoginRule;
-import com.sonatype.clm.testing.functional.LoginRule.Login;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportPolicyPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -25,20 +24,19 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Configuration;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Selenide.open;
 
 public class UnknownJsTest
     extends AbstractFunctionalTest
 {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
-
-  @Rule
-  public LoginRule rule = new LoginRule();
 
   private static final String scanId = UUID.randomUUID().toString().replace("-", "");
 
@@ -48,6 +46,12 @@ public class UnknownJsTest
 
   private TestReportEvaluator evaluator;
 
+  @BeforeClass
+  public static void startup() {
+    open(ReportListPage.URL);
+    loginAsAdmin();
+  }
+
   @Before
   public void start() {
     app = tempEntity.newApplicationWithParent(WaiverTest.class.getSimpleName());
@@ -55,7 +59,6 @@ public class UnknownJsTest
   }
 
   @Test
-  @Login
   public void testViewWaivedPolicyViolations() throws Exception {
     File report = TestReportUtil.setupReport("/UnknownJsTest", tempFolder.newFile());
 

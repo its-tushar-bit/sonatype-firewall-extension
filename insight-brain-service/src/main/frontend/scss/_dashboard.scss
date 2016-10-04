@@ -357,6 +357,9 @@
           width: calc((100% - #{$age-width + $chevron-header-width}) / 3);
         }
         .column {
+          &.policy {
+            width: calc(100% - #{$threat-width});
+          }
           &.age {
             width: $age-width + $chevron-header-width;
           }

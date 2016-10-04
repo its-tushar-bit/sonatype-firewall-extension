@@ -295,8 +295,7 @@ public abstract class AbstractPolicyEditorTest
     addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
         .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
 
-    // test "All projects are being notified." message
-    addNotification.project().shouldHave(text("All projects are being notified."));
+    addNotification.project().shouldHave(text("No applicable projects available."));
 
     NotificationsSection.notifications().shouldHave(texts("Project One (Bug)"));
 

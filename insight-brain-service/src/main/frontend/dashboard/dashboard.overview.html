@@ -102,11 +102,6 @@
   </script>
 
   <root-organization-migrate></root-organization-migrate>
-
-  <form name="export-results" action="{{getExportUrl()}}"  method="post" enctype="multipart/form-data">
-    <input type="hidden" name="filter" value="{{getFilterJson()}}">
-  </form>
-  
   <div class="dashboard-summary">
     <!-- TODO load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()"-->
     <div class="tile summary-tile">
@@ -119,12 +114,13 @@
           <li><a id="show-trend-dialog" ng-click="showTrendDialog()"><i class="fa fa-calculator"></i>Calculate Trends</a></li>
           <li><a onclick="document.forms['export-results'].submit();" ><i class="fa fa-file-o"></i>Export {{getViewTitle()}} Data</a></li>
         </ul>
-
       </div>
       <div class="tile-header dashboard-summary-header">Results</div>
       <div dashboard-tabs filters="filters"></div>
     </div>
-
   </div>
   <div ui-view="dashboard-results"></div>
+  <form name="export-results" action="{{getExportUrl()}}"  method="post" enctype="multipart/form-data">
+    <input type="hidden" name="filter" value="{{getFilterJson()}}">
+  </form>
 </div>

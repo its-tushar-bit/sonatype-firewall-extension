@@ -23,6 +23,7 @@ import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.RemoveModal;
 import com.sonatype.clm.testing.functional.elements.SelectContactModal;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
@@ -345,7 +346,7 @@ public class ApplicationSummaryViewTest
     // check that sidebar app link is updated
     OwnerTreeView.organization(0).treeViewElement().click();
     waitUntilNotUrl(OwnerSummaryPage.url("application", "newAppId"));
-    OwnerTreeView.organization(0).application(0).click();
+    OrganizationNode.application(0).click();
     waitUntilUrl(OwnerSummaryPage.url("application", "newAppId"));
   }
 

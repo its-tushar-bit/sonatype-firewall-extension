@@ -94,13 +94,13 @@ public abstract class AbstractPolicyMonitoringEditorTest
     NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
     cmIndex = stageTypeService.getLicensedStageTypes().size();
     notificationsSection.headers().get(cmIndex).shouldBe(DISABLED);
-    notificationsSection.addNotification().email().val("a@b");
-    notificationsSection.addNotification().addButton().shouldNotBe(DISABLED).click();
-    Checkbox monitoringCheckbox = notificationsSection.notificationFor("a@b").continuousMonitoring();
+    NotificationsSection.addNotification().email().val("a@b");
+    NotificationsSection.addNotification().addButton().shouldNotBe(DISABLED).click();
+    Checkbox monitoringCheckbox = NotificationsSection.notificationFor("a@b").continuousMonitoring();
     monitoringCheckbox.input().shouldBe(disabled);
     monitoringCheckbox.hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
-    notificationsSection.notificationFor("a@b").deleteButton().click();
+    NotificationsSection.notificationFor("a@b").deleteButton().click();
 
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);

@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.elements.AssociationEditor.Associatio
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
@@ -62,7 +63,7 @@ public class ApplicationPolicyEditorTest
     PolicyEditorPage.saveButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
     OwnerDetailTreeView.backLink().shouldBe(visible).click();
-    OwnerTreeView.organization(0).application(0).shouldBe(visible).click();
+    OrganizationNode.application(0).shouldBe(visible).click();
     OwnerSummaryPage.SummaryTile.localPolicy("policyName2").shouldBe(visible);
   }
 

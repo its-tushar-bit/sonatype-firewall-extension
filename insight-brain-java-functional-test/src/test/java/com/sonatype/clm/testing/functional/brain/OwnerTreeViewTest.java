@@ -94,7 +94,7 @@ public class OwnerTreeViewTest
     organizationNode.applicationElements().shouldHaveSize(applicationNames.length);
 
     for (int i = 0; i < applicationNames.length; i++) {
-      organizationNode.application(i).shouldNotBe(CLM.SELECTED).shouldHave(text(applicationNames[i]));
+      OrganizationNode.application(i).shouldNotBe(CLM.SELECTED).shouldHave(text(applicationNames[i]));
     }
 
     twisty.click();
@@ -119,7 +119,7 @@ public class OwnerTreeViewTest
     organizationTreeViewElement.click();
     organizationTreeViewElement.shouldBe(CLM.SELECTED);
 
-    ApplicationNode applicationNode = organizationNode.application(0);
+    ApplicationNode applicationNode = OrganizationNode.application(0);
     applicationNode.click();
     applicationNode.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
@@ -189,7 +189,7 @@ public class OwnerTreeViewTest
     parentNode.twisty().shouldBe(CLM.COLLAPSED);
 
     parentNode.applicationElements().shouldHaveSize(1);
-    parentNode.application(0).shouldHave(text("No Parent Permissions"));
+    OrganizationNode.application(0).shouldHave(text("No Parent Permissions"));
 
     logout();
     loginAsAdmin();
@@ -205,7 +205,7 @@ public class OwnerTreeViewTest
     organizationTreeViewElement.shouldNotHave(OrganizationNode.CHILD_SELECTED);
     organizationNode.twisty().shouldBe(CLM.COLLAPSED);
 
-    ApplicationNode applicationNode = organizationNode.application(0);
+    ApplicationNode applicationNode = OrganizationNode.application(0);
     applicationNode.click();
     applicationNode.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
@@ -236,7 +236,7 @@ public class OwnerTreeViewTest
     treeViewElement.shouldHave(text(organizationName));
     organizationNode.applicationElements().shouldHaveSize(1);
 
-    ApplicationNode applicationNode =  organizationNode.application(0);
+    ApplicationNode applicationNode = OrganizationNode.application(0);
     applicationNode.applicationName().shouldHave(attribute("data-tooltip", applicationName));
     applicationNode.applicationName().shouldHave(text(applicationName));
   }

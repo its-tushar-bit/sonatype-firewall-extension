@@ -84,7 +84,7 @@
     }
   }
 
-  .dashboard-summary, .dashboard-headers {
+  [dashboard-tabs], .dashboard-headers {
     a {
       @extend .semi-bold;
       font-size: 14px;

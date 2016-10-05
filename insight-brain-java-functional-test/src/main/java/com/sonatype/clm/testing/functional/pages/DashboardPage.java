@@ -44,7 +44,11 @@ public class DashboardPage
     return new DashboardTab("#tab-button-application");
   }
 
-  public static SelenideElement calculateTrendsButton() {
+  public static SelenideElement viewDropdown() {
+    return $("#view-dropdown");
+  }
+
+  public static SelenideElement calculateTrendsLink() {
     return $("#show-trend-dialog");
   }
 

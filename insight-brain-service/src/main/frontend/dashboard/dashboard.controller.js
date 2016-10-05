@@ -6,9 +6,13 @@
 (function(angular) {
   'use strict';
 
-  function DashboardController($scope, $modal, EventNameConstant) {
+  function DashboardController($scope, $modal, EventNameConstant, $state, filterToParams, CLMLocations) {
     $scope.maxResults = 100;
     $scope.showTrendDialog = showTrendDialog;
+    $scope.getViewTitle = getViewTitle;
+    $scope.getExportUrl = getExportUrl;
+    $scope.getFilterJson = getFilterJson;
+
     $scope.filters = {
       organizationIds: [],
       applicationIds: [],
@@ -43,9 +47,36 @@
         }
       });
     }
+
+    function getViewTitle() {
+      return $state.current.data.title;
+    }
+
+    function getExportUrl() {
+      switch ($state.current.name) {
+        case 'dashboard.overview.violations':
+          return CLMLocations.getNewestRisksExportUrl();
+
+        case 'dashboard.overview.components':
+          return CLMLocations.getComponentRisksExportUrl();
+
+        case 'dashboard.overview.applications':
+          return CLMLocations.getApplicationRisksExportUrl();
+
+        default:
+          throw new Error('Export is not supported for state ' + $state.current.name);
+      }
+    }
+
+    function getFilterJson() {
+      var filterJson = filterToParams($scope.filters);
+      return JSON.stringify(filterJson);
+    }
   }
 
-  DashboardController.$inject = ['$scope', '$modal', 'event.name.constant'];
+  DashboardController.$inject = [
+    '$scope', '$modal', 'event.name.constant', '$state', 'filterToParams', 'CLMLocations'
+  ];
 
   angular.module('dashboard.module').controller('dashboard.controller', DashboardController);
 

@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.component;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -19,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPathnames;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.injectDisplayName;
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
@@ -126,5 +129,26 @@ public class ComponentDisplayNameUtilTest
     ComponentDisplayName componentDisplayName = componentFact.getDisplayName();
 
     assertDisplayFieldValuesForGAV(componentDisplayName.parts, "g", "a", "v");
+  }
+
+  @Test
+  public void testFromPathnames() throws IOException {
+    List<String> pathnames = Arrays.asList("a/b/c.jar", "c/d/foo.bar/");
+    List<ComponentDisplayNamePart> displayFieldValues = fromPathnames(pathnames, "hash").parts;
+    assertThat(displayFieldValues, is(notNullValue()));
+    assertThat(displayFieldValues.size(), is(3));
+    assertThat(displayFieldValues.get(0).field, is("Filename"));
+    assertThat(displayFieldValues.get(0).value, is("c.jar"));
+    assertThat(displayFieldValues.get(1).field, is(nullValue()));
+    assertThat(displayFieldValues.get(1).value, is(", "));
+    assertThat(displayFieldValues.get(2).field, is("Filename"));
+    assertThat(displayFieldValues.get(2).value, is("foo.bar"));
+
+    displayFieldValues = fromPathnames(Collections.<String>emptyList(), "hash").parts;
+    assertThat(displayFieldValues.size(), is(2));
+    assertThat(displayFieldValues.get(0).field, is(nullValue()));
+    assertThat(displayFieldValues.get(0).value, is("(Anonymized Path) SHA1: "));
+    assertThat(displayFieldValues.get(1).field, is("Hash"));
+    assertThat(displayFieldValues.get(1).value, is("hash"));
   }
 }

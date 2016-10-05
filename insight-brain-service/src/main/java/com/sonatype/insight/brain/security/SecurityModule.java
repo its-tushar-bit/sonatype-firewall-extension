@@ -123,6 +123,9 @@ public class SecurityModule
     manager.createChain("/rest/policy/*/*/import/ie", filters);
     manager.createChain("/rest/product/license", filters);
     manager.createChain("/rest/scan/*", filters);
+    manager.createChain("/rest/dashboard/export/newestRisks", filters);
+    manager.createChain("/rest/dashboard/export/componentRisks", filters);
+    manager.createChain("/rest/dashboard/export/applicationRisks", filters);
   }
 
   private void configureFilterChainsForIntegrations(DefaultFilterChainManager manager) {

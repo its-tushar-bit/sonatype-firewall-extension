@@ -222,7 +222,8 @@ public class DashboardTabNavigationAndTrendsTest
 
   @Test
   public void testCalculateTrendsModal() {
-    DashboardPage.calculateTrendsButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.calculateTrendsLink().click();
 
     final TrendsModal trendsModal = DashboardPage.trendsModal();
     trendsModal.shouldBe(visible);
@@ -286,7 +287,8 @@ public class DashboardTabNavigationAndTrendsTest
     DashboardFilters.policyTypeFilter().license().click();
     DashboardFilters.applyButton().click();
 
-    DashboardPage.calculateTrendsButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.calculateTrendsLink().click();
 
     final TrendsModal trendsModal = DashboardPage.trendsModal();
     trendsModal.shouldBe(visible);

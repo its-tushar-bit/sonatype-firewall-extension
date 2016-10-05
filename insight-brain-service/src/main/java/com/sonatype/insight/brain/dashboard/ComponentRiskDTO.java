@@ -9,12 +9,17 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+
+import com.google.common.base.Joiner;
 
 /**
  * Carries the data backing the "Highest Risk Component View", i.e. roll-up of violations by component.
  */
-public class ComponentRiskDTO
+public class ComponentRiskDTO implements CSVWritable
 {
+
+  private static final Joiner joiner = Joiner.on(",");
 
   public String hash;
 
@@ -35,4 +40,18 @@ public class ComponentRiskDTO
   // Insertion order matters, as the first path will be used as the display name throughout the UI for unknown
   // components.
   public Set<String> pathnames = new LinkedHashSet<>();
+
+  public static String getCsvHeader() {
+    return "Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low";
+  }
+
+  public String toCsvLine() {
+    String componentName = displayName != null
+        ? displayName.toString()
+        : ComponentDisplayNameUtil.fromPathnames(pathnames, hash).toString();
+    if (componentName.contains(",")) {
+      componentName = "\"" + componentName + "\"";
+    }
+    return joiner.join(componentName, affectedApplications, score, scoreCritical, scoreSevere, scoreModerate, scoreLow);
+  }
 }

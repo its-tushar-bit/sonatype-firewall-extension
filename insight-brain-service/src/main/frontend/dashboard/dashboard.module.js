@@ -43,6 +43,9 @@
         'dashboard-results': {
           templateUrl: 'dashboard/violations.html?' + clmBuildTimestamp
         }
+      },
+      data: {
+        title: 'Violations'
       }
     }).state('dashboard.overview.components', {
       parent: 'dashboard.overview',
@@ -51,6 +54,9 @@
         'dashboard-results': {
           templateUrl: 'dashboard/components.html?' + clmBuildTimestamp
         }
+      },
+      data: {
+        title: 'Components'
       }
     }).state('dashboard.overview.applications', {
       parent: 'dashboard.overview',
@@ -59,6 +65,9 @@
         'dashboard-results': {
           templateUrl: 'dashboard/applications.html?' + clmBuildTimestamp
         }
+      },
+      data: {
+        title: 'Applications'
       }
     }).state('dashboard.component', {
       parent: 'dashboard',

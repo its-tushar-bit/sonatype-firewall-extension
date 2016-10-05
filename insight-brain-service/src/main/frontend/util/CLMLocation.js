@@ -183,6 +183,10 @@
           return baseUrl.get() + '/rest/dashboard/policy/componentRisks';
         },
 
+        getComponentRisksExportUrl : function () {
+          return baseUrl.get() + '/rest/dashboard/export/componentRisks';
+        },
+
         /**
          * Retrieve the list of application risk in the most recent stage.  Supports filters
          * @since 1.11
@@ -191,8 +195,16 @@
           return baseUrl.get() + '/rest/dashboard/policy/applicationRisks';
         },
 
+        getApplicationRisksExportUrl : function () {
+          return baseUrl.get() + '/rest/dashboard/export/applicationRisks';
+        },
+
         getNewestRisksUrl: function() {
           return baseUrl.get() + '/rest/dashboard/policy/newestRisks';
+        },
+
+        getNewestRisksExportUrl: function() {
+          return baseUrl.get() + '/rest/dashboard/export/newestRisks';
         },
 
         getPolicySummaryUrl: function() {

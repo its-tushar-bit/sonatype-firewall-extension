@@ -18,7 +18,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.jersey.multipart.FormDataMultiPart;
 import com.yammer.metrics.annotation.ExceptionMetered;
 import com.yammer.metrics.annotation.Timed;
 
@@ -30,9 +33,15 @@ public class DashboardResource
 
   public static final String GET_NEWEST_RISKS_PATH = "policy/newestRisks";
 
+  public static final String GET_NEWEST_RISKS_EXPORT_PATH = "export/newestRisks";
+
   public static final String GET_COMPONENT_RISKS_PATH = "policy/componentRisks";
 
+  public static final String GET_COMPONENT_RISKS_EXPORT_PATH = "export/componentRisks";
+
   public static final String GET_APPLICATION_RISKS_PATH = "policy/applicationRisks";
+
+  public static final String GET_APPLICATION_RISKS_EXPORT_PATH = "export/applicationRisks";
 
   public static final String GET_POLICY_SUMMARY_PATH = "policy/summary";
 
@@ -158,5 +167,59 @@ public class DashboardResource
     return policySummaryService.getPolicySummary(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
         risksFilterDTO.policyThreatLevelRange);
+  }
+
+  @POST
+  @Path(GET_NEWEST_RISKS_EXPORT_PATH)
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces("text/csv")
+  @Timed
+  @ExceptionMetered(name = "getNewestRisksExportExceptionMeter")
+  public Response getNewestRisksExport(FormDataMultiPart multiPart) throws IOException
+  {
+    String filterJson = multiPart.getField("filter").getValue();
+    ObjectMapper mapper = new ObjectMapper();
+    RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);
+    final List<NewestRiskDTO> results = newestRiskService
+        .getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
+            risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
+            Integer.MAX_VALUE);
+    return Csv.generate(Response.ok(), "results-violations", NewestRiskDTO.getCsvHeader(), results).build();
+  }
+
+  @POST
+  @Path(GET_COMPONENT_RISKS_EXPORT_PATH)
+  @Produces("text/csv")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Timed
+  @ExceptionMetered(name = "getComponentRisksExportExceptionMeter")
+  public Response getComponentRisksExport(FormDataMultiPart multiPart) throws IOException
+  {
+    String filterJson = multiPart.getField("filter").getValue();
+    ObjectMapper mapper = new ObjectMapper();
+    RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);
+    final List<ComponentRiskDTO> results = componentRiskService
+        .getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
+            risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
+            Integer.MAX_VALUE);
+    return Csv.generate(Response.ok(), "results-components", ComponentRiskDTO.getCsvHeader(), results).build();
+  }
+
+  @POST
+  @Path(GET_APPLICATION_RISKS_EXPORT_PATH)
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces("text/csv")
+  @Timed
+  @ExceptionMetered(name = "getApplicationRisksExportExceptionMeter")
+  public Response getApplicationRisksExport(FormDataMultiPart multiPart) throws IOException
+  {
+    String filterJson = multiPart.getField("filter").getValue();
+    ObjectMapper mapper = new ObjectMapper();
+    RisksFilterDTO risksFilterDTO = mapper.readValue(filterJson, RisksFilterDTO.class);
+    final List<ApplicationRiskScoreDTO> results = applicationRiskService
+        .getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
+            risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
+            risksFilterDTO.policyThreatLevelRange, Integer.MAX_VALUE);
+    return Csv.generate(Response.ok(), "results-applications", ApplicationRiskScoreDTO.getCsvHeader(), results).build();
   }
 }

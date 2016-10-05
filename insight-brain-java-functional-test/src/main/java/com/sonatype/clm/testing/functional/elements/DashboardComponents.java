@@ -10,7 +10,6 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardComponents

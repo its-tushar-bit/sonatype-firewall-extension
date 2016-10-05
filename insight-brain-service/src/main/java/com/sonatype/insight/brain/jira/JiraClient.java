@@ -14,14 +14,11 @@ import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

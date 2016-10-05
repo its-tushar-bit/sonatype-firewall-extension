@@ -48,6 +48,7 @@ public class NewestRiskDTO implements CSVWritable
     return "Threat Level,Policy Name,Application Name,Component Name,Date First Seen";
   }
 
+  @Override
   public String toCsvLine() {
     String componentName = displayName != null
         ? displayName.toString()

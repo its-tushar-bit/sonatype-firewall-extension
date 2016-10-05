@@ -88,6 +88,7 @@ public class DoubleColumnPicker
       return $("div.tooltip.top");
     }
 
+    @Override
     public Item hover() {
       label().hover();
       return this;

@@ -43,6 +43,7 @@ public class ReverseProxyHandler
     client = HttpClientBuilder.create().disableCookieManagement().disableRedirectHandling().build();
   }
 
+  @Override
   public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
     RequestBuilder builder;

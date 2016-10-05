@@ -45,6 +45,7 @@ public class ComponentRiskDTO implements CSVWritable
     return "Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low";
   }
 
+  @Override
   public String toCsvLine() {
     String componentName = displayName != null
         ? displayName.toString()

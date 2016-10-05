@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
@@ -84,7 +82,7 @@ public class DashboardFilterTest
     dashboardFilterDAO.delete(filter);
   }
 
-  private static void setupData() throws IOException {
+  private static void setupData() {
     Organization org = staticTempEntity.newOrganization("DashboardTest");
     firstApp = staticTempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
     firstAppCategory = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory", Color.dark_blue);

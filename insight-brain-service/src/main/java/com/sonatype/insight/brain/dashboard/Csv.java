@@ -21,7 +21,7 @@ import javax.ws.rs.core.StreamingOutput;
 final class Csv
 {
   public static ResponseBuilder generate(final ResponseBuilder response, String fileNamePrefix, final String headerLine,
-                                         final Collection<? extends CSVWritable> results) throws IOException
+                                         final Collection<? extends CSVWritable> results)
   {
     final Date now = new Date();
 

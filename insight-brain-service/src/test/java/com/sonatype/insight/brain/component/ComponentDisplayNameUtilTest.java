@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
+
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPathnames;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
@@ -132,7 +133,7 @@ public class ComponentDisplayNameUtilTest
   }
 
   @Test
-  public void testFromPathnames() throws IOException {
+  public void testFromPathnames() {
     List<String> pathnames = Arrays.asList("a/b/c.jar", "c/d/foo.bar/");
     List<ComponentDisplayNamePart> displayFieldValues = fromPathnames(pathnames, "hash").parts;
     assertThat(displayFieldValues, is(notNullValue()));

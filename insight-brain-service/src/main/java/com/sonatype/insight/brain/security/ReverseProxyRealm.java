@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
-import org.apache.shiro.realm.ldap.JndiLdapRealm;
+import org.apache.shiro.realm.ldap.DefaultLdapRealm;
 import org.apache.shiro.realm.ldap.LdapContextFactory;
 
 /**
@@ -28,7 +28,7 @@ import org.apache.shiro.realm.ldap.LdapContextFactory;
 @Named
 @Singleton
 public class ReverseProxyRealm
-    extends JndiLdapRealm
+    extends DefaultLdapRealm
 {
   private final LdapManager ldapManager;
 

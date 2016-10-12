@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -14,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardApplications.Applic
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -38,6 +40,8 @@ import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class DashboardApplicationsTest
     extends AbstractFunctionalTest
@@ -54,7 +58,7 @@ public class DashboardApplicationsTest
 
   @BeforeClass
   public static void beforeClass() {
-    open(DashboardPage.URL);
+    open(DashboardPage.APPLICATIONS_URL);
     loginAsAdmin();
   }
 
@@ -63,11 +67,13 @@ public class DashboardApplicationsTest
     componentCounter = 0;
     org = tempEntity.newOrganization("DashboardApplicationsTest");
     policy = tempEntity.newPolicy(org.getId(), "DashboardApplicationsTestPolicy");
+    open(DashboardPage.APPLICATIONS_URL);
   }
 
   @After
   public void cleanup() {
     clearFilters();
+    reverseProxyServer.reset();
   }
 
   @Test
@@ -75,24 +81,25 @@ public class DashboardApplicationsTest
     ApplicationsResults table = DashboardPage.applicationsView().results();
 
     // no results
-    refreshOrOpen(DashboardPage.APPLICATIONS_URL);
+    refresh();
     table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
 
     // 100 results
     createApplicationsWithViolation(100);
-    refreshOrOpen(DashboardPage.APPLICATIONS_URL);
+    refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.maxResultsMessage().shouldNotBe(visible);
     table.applications().shouldHaveSize(100);
 
     // 101 results
     createViolation(createApp(101), BuildStageType.ID, 5);
-    refreshOrOpen(DashboardPage.APPLICATIONS_URL);
+    refresh();
     table.maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
   }
 
   @Test
   public void testApplicationsTable() {
+
     // create an app per Threat level and build stage
     createViolation(createApp(1), BuildStageType.ID, 1);
     createViolation(createApp(2), ReleaseStageType.ID, 3);
@@ -106,7 +113,7 @@ public class DashboardApplicationsTest
     createViolation(app, OperateStageType.ID, 2);
     createViolation(app, StageReleaseStageType.ID, 0);
 
-    refreshOrOpen(DashboardPage.APPLICATIONS_URL);
+    refresh();
     showLowRiskViolations();
     DashboardPage.dashboardContainer().shouldBe(visible);
     ApplicationsResults table = DashboardPage.applicationsView().results();
@@ -180,6 +187,76 @@ public class DashboardApplicationsTest
     table.firstApplication().shouldHave(text("App4"));
     headers.criticalRiskHeader().click();
     table.lastApplication().shouldHave(text("App4"));
+
+    // CSV export with no filters
+    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
+        testCLMServer.getCLMServer().getPort(), "/rest/dashboard/export/applicationRisks");
+    reverseProxyServer.addHandler(responseCopyHandler);
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Applications Data")).click();
+    DashboardPage.exportResultsLink().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+    String exportCsv = new String(responseCopyHandler.getResponseCopy());
+    String[] expectedResults = {
+        "App1,1,0,0,0,1",   //
+        "App2,3,0,0,3,0",   //
+        "App3,7,0,7,0,0",   //
+        "App4,10,10,0,0,0", //
+        "App5,14,8,4,2,0"   //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out threat level 1
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    expectedResults = new String[]{
+        "App2,3,0,0,3,0",   //
+        "App3,7,0,7,0,0",   //
+        "App4,10,10,0,0,0", //
+        "App5,14,8,4,2,0"   //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out Release violations
+    DashboardFilters.stageFilter().twisty().click();
+    DashboardFilters.stageFilter().allItems().click();
+    DashboardFilters.stageFilter().release().click();
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    expectedResults = new String[]{
+        "App3,7,0,7,0,0",   //
+        "App4,10,10,0,0,0", //
+        "App5,10,8,0,2,0"   //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out app4
+    DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationFilter().allItems().click();
+    DashboardFilters.applicationFilter().checkboxItem(5).click();
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    expectedResults = new String[]{
+        "App3,7,0,7,0,0",   //
+        "App5,10,8,0,2,0"   //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
+  }
+
+  private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {
+    String[] lines = csv.split("\r\n");
+    assertEquals("Application Name,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
+    String[] results = Arrays.copyOfRange(lines, 1, lines.length);
+    Arrays.sort(results);
+    assertArrayEquals(expectedSortedResults, results);
   }
 
   private Application createApp(int index) {
@@ -190,7 +267,8 @@ public class DashboardApplicationsTest
     return tempEntity.newPolicyEvaluation(app.getId(), stageType, app.getName() + stageType, new Date());
   }
 
-  private PolicyViolation createViolation(PolicyEvaluation evaluation, int threatLevel) {
+  private PolicyViolation createViolation(Application app, String stageType, int threatLevel) {
+    PolicyEvaluation evaluation = createEvaluation(app, stageType);
     int componentIndex = componentCounter++;
     String group = "Group" + componentIndex;
     String artifact = "Artifact" + componentIndex;
@@ -199,10 +277,6 @@ public class DashboardApplicationsTest
 
     return tempEntity.newPolicyViolation(evaluation, policy, threatLevel,
         PolicyThreatCategory.LICENSE, group, artifact, version, hash, FailActionType.ID);
-  }
-
-  private PolicyViolation createViolation(Application app, String stageType, int threatLevel) {
-    return createViolation(createEvaluation(app, stageType), threatLevel);
   }
 
   private void createApplicationsWithViolation(int numberOfApps) {
@@ -215,6 +289,7 @@ public class DashboardApplicationsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.applyButton().click();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
   }
 
   private void clearFilters() {

@@ -52,6 +52,10 @@ public class DashboardPage
     return $("#show-trend-dialog");
   }
 
+  public static SelenideElement exportResultsLink() {
+    return $("#export-results");
+  }
+
   public static TrendsModal trendsModal() {
     return new TrendsModal();
   }

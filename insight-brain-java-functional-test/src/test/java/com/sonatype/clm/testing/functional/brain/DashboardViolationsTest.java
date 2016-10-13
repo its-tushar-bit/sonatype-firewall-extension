@@ -7,6 +7,10 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -18,8 +22,11 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations.Violatio
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -31,6 +38,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,6 +54,8 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICEN
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 import static org.joda.time.DateTime.now;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class DashboardViolationsTest
     extends AbstractFunctionalTest
@@ -54,7 +64,11 @@ public class DashboardViolationsTest
 
   private static final String MAX_RESULTS_MSG = "Newest 100 results shown";
 
+  private static final String CSV_HEADERS = "Threat Level,Policy Name,Application Name,Component Name,Date First Seen";
+
   private static final String NEWEST_RISK_URL = uriBuilder().fragment("/dashboard/newest-risk").build().toString();
+
+  private static final String CSV_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
 
   private Application app1, app2;
 
@@ -68,6 +82,12 @@ public class DashboardViolationsTest
   public static void beforeClass() {
     open(DashboardPage.URL);
     loginAsAdmin();
+  }
+
+  @After
+  public void cleanup() {
+    clearFilters();
+    reverseProxyServer.reset();
   }
 
   @Before
@@ -95,6 +115,7 @@ public class DashboardViolationsTest
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportZip = work.getReportFile(buildEvalNow.getApplicationId(), buildEvalNow.getScanId());
     FileUtils.copyURLToFile(getClass().getResource("/canned-reports/small-report.zip"), reportZip);
+    open(DashboardPage.VIOLATIONS_URL);
   }
 
   @Test
@@ -102,7 +123,7 @@ public class DashboardViolationsTest
     ViolationsResults table = DashboardPage.violationsView().results();
 
     // no results
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refresh();
     table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
 
     // add a few violations
@@ -115,7 +136,7 @@ public class DashboardViolationsTest
     tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 7,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
 
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refresh();
     showLowRiskViolations();
 
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -142,7 +163,8 @@ public class DashboardViolationsTest
     firstViolation.buildReport().shouldNotBe(DISABLED).shouldHave(text("Build report (1min)")).click();
     switchToWindow(1);
     waitUntilUrl(ApplicationReportContainerPage.url(app1.getPublicId(), buildEvalNow.getScanId()));
-    ApplicationReportContainerPage.getReportTitle().shouldHave(text(app1.getName() + now().toString(" - YYYY-MM-dd -") + " Build Report"));
+    ApplicationReportContainerPage.getReportTitle()
+        .shouldHave(text(app1.getName() + now().toString(" - YYYY-MM-dd -") + " Build Report"));
     WebDriverRunner.getWebDriver().close();
     switchToWindow(0);
     waitUntilUrl(DashboardPage.VIOLATIONS_URL);
@@ -194,8 +216,75 @@ public class DashboardViolationsTest
     headers.componentHeader().click();
     firstViolation.shouldHave(text("g3 : a3 : v3"));
     table.lastViolation().shouldHave(text("g1 : a1 : v1"));
-  }
 
+    // CSV export with no filters
+    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
+        testCLMServer.getCLMServer().getPort(), "/rest/dashboard/export/newestRisks");
+    reverseProxyServer.addHandler(responseCopyHandler);
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Violations Data")).click();
+    DashboardPage.exportResultsLink().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+    String exportCsv = new String(responseCopyHandler.getResponseCopy());
+    String[] expectedResults = {
+        "1,DashboardViolationsTestLicensePolicy,Violations Test App2,g2 : a2 : v2",   //
+        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", //
+        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3",   //
+        "7,DashboardViolationsTestLicensePolicy,Violations Test App1,g1 : a1 : v1"    //
+    };
+    assertViolationsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out threat level 1
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    expectedResults = new String[]{
+        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", //
+        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3",   //
+        "7,DashboardViolationsTestLicensePolicy,Violations Test App1,g1 : a1 : v1"    //
+    };
+    assertViolationsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out Build violations
+    DashboardFilters.stageFilter().twisty().click();
+    DashboardFilters.stageFilter().allItems().click();
+    DashboardFilters.stageFilter().build().click();
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    expectedResults = new String[]{
+        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", //
+        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3"    //
+    };
+    assertViolationsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out Security policy type violations
+    DashboardFilters.policyTypeFilter().twisty().click();
+    DashboardFilters.policyTypeFilter().allItems().click();
+    DashboardFilters.policyTypeFilter().security().click();
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    expectedResults = new String[]{
+        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3"
+    };
+    assertViolationsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out App1
+    DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationFilter().allItems().click();
+    DashboardFilters.applicationFilter().checkboxItem(2).click();
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    assertEquals("Expected empty export", CSV_HEADERS, exportCsv);
+  }
 
   @Test
   public void testNewestRiskRedirectsToViolations() {
@@ -206,7 +295,7 @@ public class DashboardViolationsTest
   @Test
   public void testShouldNotShowMaxResultsMessageWhen100Results() {
     createViolations(100, 5, buildEvalNow);
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
     DashboardPage.violationsView().results().maxResultsMessage().shouldNotBe(visible);
   }
@@ -214,9 +303,41 @@ public class DashboardViolationsTest
   @Test
   public void testShouldShowMaxResultsMessageWhen101Results() {
     createViolations(101, 5, buildEvalNow);
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
     DashboardPage.violationsView().results().maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
+  }
+
+  private void assertViolationsCsv(String csv, String[] expectedSortedResults) {
+    String[] lines = csv.split("\r\n");
+
+    // assert CSV header
+    assertEquals(CSV_HEADERS, lines[0]);
+
+    // assert CSV results
+    String[] results = Arrays.copyOfRange(lines, 1, lines.length);
+    Arrays.sort(results);
+    for (int i = 0; i < results.length; i++) {
+      String result = results[i];
+
+      // asserts results without 'Date First Seen'
+      int lastComaIndex = result.lastIndexOf(",");
+      String dataWithoutDate = result.substring(0, lastComaIndex);
+      String dateFirstSeen = result.substring(lastComaIndex + 1);
+
+      assertEquals(expectedSortedResults[i], dataWithoutDate);
+      assertDateFormat(dateFirstSeen);
+    }
+  }
+
+  private void assertDateFormat(String date) {
+    DateFormat expectedFormat = new SimpleDateFormat(CSV_DATE_PATTERN);
+    try {
+      expectedFormat.parse(date);
+    }
+    catch (ParseException e) {
+      fail("date " + date + " is not of pattern: " + CSV_DATE_PATTERN);
+    }
   }
 
   private void createViolations(int numViolations, int threatLevel, PolicyEvaluation policyEvaluation) {
@@ -235,5 +356,12 @@ public class DashboardViolationsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.applyButton().click();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
+  }
+
+  private void clearFilters() {
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    DashboardFilter filter = dashboardFilterDAO.getByUsername("admin");
+    dashboardFilterDAO.delete(filter);
   }
 }

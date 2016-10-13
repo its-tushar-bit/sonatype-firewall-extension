@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -14,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardComponents.Componen
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
@@ -33,6 +35,8 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class DashboardComponentsTest
     extends AbstractFunctionalTest
@@ -56,6 +60,7 @@ public class DashboardComponentsTest
   @After
   public void cleanup() {
     clearFilters();
+    reverseProxyServer.reset();
   }
 
   @Before
@@ -64,18 +69,19 @@ public class DashboardComponentsTest
     policy = tempEntity.newPolicy(app.getParentOwnerId(), "DashboardComponentsTestPolicy");
     policyEvaluation = tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "DashboardComponentsTestFirstEval", new Date());
+    open(DashboardPage.COMPONENTS_URL);
   }
 
   @Test
   public void testResultsMessages() {
     // no results
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refresh();
     ComponentsResults table = DashboardPage.componentsView().results();
     table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
 
     // 100 results
     addComponents(100, 5);
-    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.maxResultsMessage().shouldNotBe(visible);
 
@@ -161,6 +167,57 @@ public class DashboardComponentsTest
     table.firstComponent().shouldHave(text("Group4 : Artifact4 : Version4"));
     headers.criticalRiskHeader().click();
     table.lastComponent().shouldHave(text("Group4 : Artifact4 : Version4"));
+
+    // CSV export with no filters
+    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
+        testCLMServer.getCLMServer().getPort(), "/rest/dashboard/export/componentRisks");
+    reverseProxyServer.addHandler(responseCopyHandler);
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Components Data")).click();
+    DashboardPage.exportResultsLink().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+    String exportCsv = new String(responseCopyHandler.getResponseCopy());
+    String[] expectedResults = {
+        "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
+    };
+    assertComponentsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out threat level 1
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    expectedResults = new String[]{
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
+    };
+    assertComponentsCsv(exportCsv, expectedResults);
+
+    // CSV export - filter out threat level 3
+    DashboardFilters.policyThreatLevelFilter().slider().setValues(7, 10);
+    DashboardFilters.applyButton().click();
+    DashboardPage.viewDropdown().click();
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    expectedResults = new String[]{
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
+    };
+    assertComponentsCsv(exportCsv, expectedResults);
+  }
+
+  private void assertComponentsCsv(String csv, String[] expectedSortedResults) {
+    String[] lines = csv.split("\r\n");
+    assertEquals("Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
+    String[] results = Arrays.copyOfRange(lines, 1, lines.length);
+    Arrays.sort(results);
+    assertArrayEquals(expectedSortedResults, results);
   }
 
   private void addComponents(int numberOfComponents, int riskScore) {
@@ -184,6 +241,7 @@ public class DashboardComponentsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.applyButton().click();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
   }
 
   private void clearFilters() {

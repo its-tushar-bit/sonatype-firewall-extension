@@ -104,4 +104,10 @@ class ServletOutputStreamCopier
   byte[] getCopy() {
     return copy.toByteArray();
   }
+
+  @Override
+  public void flush() throws IOException {
+    outputStream.flush();
+    copy.flush();
+  }
 }

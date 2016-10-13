@@ -53,7 +53,7 @@ class HttpServletResponseCopier
 
   private ServletOutputStreamCopier copier;
 
-  HttpServletResponseCopier(HttpServletResponse response) throws IOException {
+  HttpServletResponseCopier(HttpServletResponse response) {
     super(response);
   }
 

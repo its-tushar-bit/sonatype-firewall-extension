@@ -18,10 +18,26 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
+/**
+ * Dashboard-specific CSV utility class
+ *
+ * @since 1.24.0
+ */
 final class Csv
 {
-  public static ResponseBuilder generate(final ResponseBuilder response, String fileNamePrefix, final String headerLine,
-                                         final Collection<? extends CSVWritable> results)
+  /**
+   * Fill out the supplied response with required headers and data for
+   * downloading the supplied results as a CSV file.
+   *
+   * @param response       The response to fill in
+   * @param fileNamePrefix The file name prefix to use before timestamp
+   * @param headerLine     The CSV header line
+   * @param results        The CSV content
+   */
+  public static ResponseBuilder generate(ResponseBuilder response,
+                                         String fileNamePrefix,
+                                         final String headerLine,
+                                         final Collection<? extends CsvWritable> results)
   {
     final Date now = new Date();
 
@@ -37,13 +53,13 @@ final class Csv
     {
       @Override
       public void write(final OutputStream os) throws IOException, WebApplicationException {
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(os))) {
-          writer.write(headerLine);
-          for (CSVWritable csvWritable : results) {
-            writer.write("\r\n");
-            writer.write(csvWritable.toCsvLine());
-          }
+        Writer writer = new BufferedWriter(new OutputStreamWriter(os));
+        writer.write(headerLine);
+        for (CsvWritable csvWritable : results) {
+          writer.write("\r\n");
+          writer.write(csvWritable.toCsvLine());
         }
+        writer.flush();
       }
     });
   }

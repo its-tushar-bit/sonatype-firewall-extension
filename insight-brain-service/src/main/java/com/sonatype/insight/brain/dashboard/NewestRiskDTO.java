@@ -5,22 +5,22 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 
 import com.google.common.base.Joiner;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 /**
  * Carries the data backing the Newest Risk view.
  *
  * @since 1.11.0
  */
-public class NewestRiskDTO implements CSVWritable
+public class NewestRiskDTO implements CsvWritable
 {
   private static final Joiner joiner = Joiner.on(",");
 
@@ -45,7 +45,7 @@ public class NewestRiskDTO implements CSVWritable
   public List<StageDetailDTO> stageDetails = new ArrayList<>();
 
   public static String getCsvHeader() {
-    return "Threat Level,Policy Name,Application Name,Component Name,Date First Seen";
+    return "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Milliseconds Since First Seen";
   }
 
   @Override
@@ -56,8 +56,8 @@ public class NewestRiskDTO implements CSVWritable
     if (componentName.contains(",")) {
       componentName = "\"" + componentName + "\"";
     }
-    return joiner.join(threatLevel, policyName, applicationName, componentName, new DateTime(time).withZone(
-        DateTimeZone.UTC).toString());
-
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    return joiner.join(threatLevel, policyName, applicationName, componentName, formatter.format(time), time);
   }
 }

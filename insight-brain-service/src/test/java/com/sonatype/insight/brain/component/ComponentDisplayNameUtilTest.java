@@ -29,6 +29,7 @@ import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUti
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertThat;
 
 public class ComponentDisplayNameUtilTest
@@ -137,7 +138,7 @@ public class ComponentDisplayNameUtilTest
     List<String> pathnames = Arrays.asList("a/b/c.jar", "c/d/foo.bar/");
     List<ComponentDisplayNamePart> displayFieldValues = fromPathnames(pathnames, "hash").parts;
     assertThat(displayFieldValues, is(notNullValue()));
-    assertThat(displayFieldValues.size(), is(3));
+    assertThat(displayFieldValues, hasSize(3));
     assertThat(displayFieldValues.get(0).field, is("Filename"));
     assertThat(displayFieldValues.get(0).value, is("c.jar"));
     assertThat(displayFieldValues.get(1).field, is(nullValue()));

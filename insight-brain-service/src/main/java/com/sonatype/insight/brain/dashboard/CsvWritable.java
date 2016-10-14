@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-public interface CSVWritable
+/**
+ * @since 1.24.0
+ */
+public interface CsvWritable
 {
   String toCsvLine();
 }

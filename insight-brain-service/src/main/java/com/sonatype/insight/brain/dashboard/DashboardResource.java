@@ -169,6 +169,11 @@ public class DashboardResource
         risksFilterDTO.policyThreatLevelRange);
   }
 
+  /**
+   * Export the violations as CSV.
+   * Use of FormDataMultiPart facilitates downloading results as file.
+   * @since 1.24.0
+   */
   @POST
   @Path(GET_NEWEST_RISKS_EXPORT_PATH)
   @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -187,6 +192,11 @@ public class DashboardResource
     return Csv.generate(Response.ok(), "results-violations", NewestRiskDTO.getCsvHeader(), results).build();
   }
 
+  /**
+   * Export the components as CSV.
+   * Use of FormDataMultiPart facilitates downloading results as file.
+   * @since 1.24.0
+   */
   @POST
   @Path(GET_COMPONENT_RISKS_EXPORT_PATH)
   @Produces("text/csv")
@@ -205,6 +215,11 @@ public class DashboardResource
     return Csv.generate(Response.ok(), "results-components", ComponentRiskDTO.getCsvHeader(), results).build();
   }
 
+  /**
+   * Export the applications as CSV.
+   * Use of FormDataMultiPart facilitates downloading results as file.
+   * @since 1.24.0
+   */
   @POST
   @Path(GET_APPLICATION_RISKS_EXPORT_PATH)
   @Consumes(MediaType.MULTIPART_FORM_DATA)

@@ -11,7 +11,7 @@ import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class NewestRiskDTOTest
@@ -30,19 +30,19 @@ public class NewestRiskDTOTest
   @Test
   public void testToCsvLine_notQuotedIfNotNecessary() {
     risk.pathnames = Arrays.asList("a/b/c.jar");
-    assertThat(risk.toCsvLine(), is("7,p,a,c.jar,1970-01-01T00:00:00.000Z"));
+    assertThat(risk.toCsvLine(), is("7,p,a,c.jar,1970-01-01T00:00:00Z,0"));
   }
 
   @Test
   public void testToCsvLine_quotedIfNecessary() {
-    risk.pathnames = Arrays.asList("a/b/c.jar", "d/e.zip/");
-    assertThat(risk.toCsvLine(), is("7,p,a,\"c.jar, e.zip\",1970-01-01T00:00:00.000Z"));
+    risk.pathnames = Arrays.asList("a/b/c.jar", "d/e/");
+    assertThat(risk.toCsvLine(), is("7,p,a,\"c.jar, e\",1970-01-01T00:00:00Z,0"));
   }
 
   @Test
   public void testToCsvLine_printsHashForUnknownWithNoPath() {
     risk.pathnames = Collections.emptyList();
     risk.hash = "theHash";
-    assertThat(risk.toCsvLine(), is("7,p,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00.000Z"));
+    assertThat(risk.toCsvLine(), is("7,p,a,(Anonymized Path) SHA1: theHash,1970-01-01T00:00:00Z,0"));
   }
 }

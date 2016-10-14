@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
@@ -27,23 +30,32 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH;
+import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH;
+import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.fail;
 
 public class DashboardResourceTest
     extends AbstractResourceTest
 {
+  private final SimpleDateFormat csvTimestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+  private final SimpleDateFormat filenameTimestampFormatter = new SimpleDateFormat("yyyyMMdd-HHmmss");
+
+  {
+    csvTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+  }
   private DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
   @Override
@@ -179,28 +191,30 @@ public class DashboardResourceTest
   public void testGetNewestRisksExport() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
-    createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
+    PolicyViolation v1 = createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
     Policy stagePolicy = tempEntity.newPolicy(app.getId(), "stage policy");
-    createFirstOccurrencePolicyViolation(app, stagePolicy, StageReleaseStageType.ID);
+    PolicyViolation v2 = createFirstOccurrencePolicyViolation(app, stagePolicy, StageReleaseStageType.ID);
 
     RisksFilterDTO filter = new RisksFilterDTO();
-    HttpResponse response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH)
-        .part("filter", new String(JsonUtils.generate(filter))).post();
+    String filterJson = new String(JsonUtils.generate(filter));
+    HttpResponse response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
 
-    assertResponseStatus(200, response);
-    String timestamp = new SimpleDateFormat("yyyyMMdd-HH").format(new Date());
-    assertThat(response.getHeader("Content-Disposition"), startsWith("attachment; filename=\"results-violations-" + timestamp));
-    assertThat(response.getContentType(), is(equalTo("text/csv")));
-    List<String> lines = Splitter.on("\r\n").splitToList(response.getBodyText());
-    assertThat(lines.get(0), is(equalTo("Threat Level,Policy Name,Application Name,Component Name,Date First Seen")));
-    assertThat(lines.get(1), startsWith("5,stage policy,test application,Group1 : Artifact1 : Version1,"));
-    assertThat(lines.get(2), startsWith("5,build policy,test application,Group1 : Artifact1 : Version1,"));
+    assertResponseOkAndCsvHeadersSet(response, "results-violations");
+    String[] lines = response.getBodyText().split("\r\n");
+    assertThat(lines.length, is(3));
+    assertThat(lines[0], is(NewestRiskDTO.getCsvHeader()));
+    assertThat(lines[1], is("5,stage policy,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2)));
+    assertThat(lines[2], is("5,build policy,test application,Group1 : Artifact1 : Version1," + getTimestamps(v1)));
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
-    response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH)
-        .part("filter", new String(JsonUtils.generate(filter))).post();
-    lines = Splitter.on("\r\n").splitToList(response.getBodyText());
-    assertThat(lines.get(1), startsWith("5,stage policy,test application,Group1 : Artifact1 : Version1,"));
+    filterJson = new String(JsonUtils.generate(filter));
+    response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+
+    assertResponseOkAndCsvHeadersSet(response, "results-violations");
+    lines = response.getBodyText().split("\r\n");
+    assertThat(lines.length, is(2));
+    assertThat(lines[0], is(NewestRiskDTO.getCsvHeader()));
+    assertThat(lines[1], is("5,stage policy,test application,Group1 : Artifact1 : Version1," + getTimestamps(v2)));
   }
 
   @Test
@@ -208,26 +222,65 @@ public class DashboardResourceTest
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
+    // same app, different stage
     Policy stagePolicy = tempEntity.newPolicy(app.getId(), "stage policy");
     createFirstOccurrencePolicyViolation(app, stagePolicy, StageReleaseStageType.ID);
+    // different app, same stage
+    Application app2 = tempEntity.newApplicationWithParent("app2", "test application 2");
+    Policy buildPolicy2 = tempEntity.newPolicy(app2.getId(), "build policy");
+    createFirstOccurrencePolicyViolation(app2, buildPolicy2, BuildStageType.ID);
 
     RisksFilterDTO filter = new RisksFilterDTO();
-    HttpResponse response = restRequest().path(DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH)
-        .part("filter", new String(JsonUtils.generate(filter))).post();
+    String filterJson = new String(JsonUtils.generate(filter));
+    HttpResponse response = restRequest().path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filterJson).post();
 
-    assertResponseStatus(200, response);
-    String timestamp = new SimpleDateFormat("yyyyMMdd-HH").format(new Date());
-    assertThat(response.getHeader("Content-Disposition"), startsWith("attachment; filename=\"results-applications-" + timestamp));
-    assertThat(response.getContentType(), is(equalTo("text/csv")));
-    List<String> lines = Splitter.on("\r\n").splitToList(response.getBodyText());
-    assertThat(lines.get(0), is(equalTo("Application Name,Total Risk,Critical,Severe,Moderate,Low")));
-    assertThat(lines.get(1), is(equalTo("test application,10,0,10,0,0")));
+    assertResponseOkAndCsvHeadersSet(response, "results-applications");
+    String[] lines = response.getBodyText().split("\r\n");
+    assertThat(lines.length, is(3));
+    assertThat(lines[0], is(ApplicationRiskScoreDTO.getCsvHeader()));
+    assertThat(lines[1], is("test application,10,0,10,0,0"));
+    assertThat(lines[2], is("test application 2,5,0,5,0,0"));
 
     filter.stageIds = Sets.newHashSet(StageReleaseStageType.ID);
-    response = restRequest().path(DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH)
-        .part("filter", new String(JsonUtils.generate(filter))).post();
-    lines = Splitter.on("\r\n").splitToList(response.getBodyText());
-    assertThat(lines.get(1), is(equalTo("test application,5,0,5,0,0")));
+    filterJson = new String(JsonUtils.generate(filter));
+    response = restRequest().path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+
+    assertResponseOkAndCsvHeadersSet(response, "results-applications");
+    lines = response.getBodyText().split("\r\n");
+    assertThat(lines.length, is(2));
+    assertThat(lines[0], is(ApplicationRiskScoreDTO.getCsvHeader()));
+    assertThat(lines[1], is("test application,5,0,5,0,0"));
+  }
+
+  @Test
+  public void testGetComponentRisksExport_returnValidCsvHeadersWithoutAppSetup() throws Exception {
+    String filterJson = new String(JsonUtils.generate(new RisksFilterDTO()));
+    HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+
+    assertResponseOkAndCsvHeadersSet(response, "results-components");
+    String[] lines = response.getBodyText().split("\r\n");
+    assertThat(lines.length, is(1));
+    assertThat(lines[0], is(ComponentRiskDTO.getCsvHeader()));
+  }
+
+  @Test
+  public void testGetComponentRisksExport_returnValidCsvContent() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test_app_1", "test app 1");
+    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan id");
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, buildPolicy);
+    tempEntity.newFirstOccurrencePolicyViolation(violation.getId(), app.getId(), BuildStageType.ID);
+    tempEntity.newPolicyViolation(evaluation, buildPolicy, "Group1", "Artifact2", "Version1", "Hash1", "reason");
+
+    String filterJson = new String(JsonUtils.generate(new RisksFilterDTO()));
+    HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+
+    assertResponseOkAndCsvHeadersSet(response, "results-components");
+    String[] lines = response.getBodyText().split("\r\n");
+    assertThat(lines.length, is(3));
+    assertThat(lines[0], is(ComponentRiskDTO.getCsvHeader()));
+    assertThat(lines[1], is("Group1 : Artifact2 : Version1,1,5,0,5,0,0"));
+    assertThat(lines[2], is("Group1 : Artifact1 : Version1,1,5,0,5,0,0"));
   }
 
   private PolicyViolation createFirstOccurrencePolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
@@ -237,41 +290,24 @@ public class DashboardResourceTest
     return violation;
   }
 
-  @Test
-  public void testGetComponentRisksExport_returnValidCsvFileName() throws Exception {
-    RisksFilterDTO filter = new RisksFilterDTO();
-    HttpResponse response = restRequest().path(DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH)
-        .part("filter", new String(JsonUtils.generate(filter))).post();
+  private void assertResponseOkAndCsvHeadersSet(HttpResponse response, String fileNamePrefix) throws ParseException {
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is(equalTo("text/csv")));
-    assertThat(response.getHeader("Content-Disposition"), startsWith("attachment; filename=\"results-components-"));
+    assertThat(response.getContentType(), is("text/csv"));
+    String dispositionHeader = response.getHeader("Content-Disposition");
+    String headerStart = "attachment; filename=\"" + fileNamePrefix + "-";
+    assertThat(dispositionHeader, startsWith(headerStart));
+    Matcher matcher = Pattern.compile(headerStart + "([0-9]{8}-[0-9]{6})" + "\\.csv").matcher(dispositionHeader);
+    if (matcher.find()) {
+      Date fileNameTimestamp = filenameTimestampFormatter.parse(matcher.group(1));
+      assertThat(new Date().getTime() - fileNameTimestamp.getTime(), lessThan(5*1000L));
+    } else {
+      fail("Could not find a timestamp in filename attribute: " + dispositionHeader);
+    }
   }
 
-  @Test
-  public void testGetComponentRisksExport_returnValidCsvHeadersWithoutAppSetup() throws Exception {
-    RisksFilterDTO filter = new RisksFilterDTO();
-    HttpResponse response = restRequest().path(DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH)
-        .part("filter", new String(JsonUtils.generate(filter))).post();
-    assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is(equalTo("text/csv")));
-
-    List<String> lines = Splitter.on("\r\n").splitToList(response.getBodyText());
-    assertThat(lines.get(0), is(equalTo(ComponentRiskDTO.getCsvHeader())));
-    assertThat(lines.size(), is(equalTo(1)));
-  }
-
-  @Test
-  public void testGetComponentRisksExport_returnValidCsvContent() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("app1", "test application");
-    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
-    createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
-
-    RisksFilterDTO filter = new RisksFilterDTO();
-    HttpResponse response = restRequest().path(DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH)
-        .part("filter", new String(JsonUtils.generate(filter))).post();
-    assertResponseStatus(200, response);
-
-    List<String> lines = Splitter.on("\r\n").splitToList(response.getBodyText());
-    assertThat(lines.get(1), equalTo("Group1 : Artifact1 : Version1,1,5,0,5,0,0"));
+  private String getTimestamps(PolicyViolation policyViolation) {
+    String dateFirstSeen = csvTimestampFormatter.format(policyViolation.getTime());
+    long millisSinceFirstSeen = policyViolation.getTime().getTime();
+    return dateFirstSeen + "," + millisSinceFirstSeen;
   }
 }

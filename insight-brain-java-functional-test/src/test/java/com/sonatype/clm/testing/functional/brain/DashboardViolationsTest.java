@@ -12,6 +12,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -37,6 +42,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
+import com.google.common.collect.ImmutableMap;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -64,11 +70,15 @@ public class DashboardViolationsTest
 
   private static final String MAX_RESULTS_MSG = "Newest 100 results shown";
 
-  private static final String CSV_HEADERS = "Threat Level,Policy Name,Application Name,Component Name,Date First Seen";
+  private static final String CSV_HEADERS = "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Milliseconds Since First Seen";
 
   private static final String NEWEST_RISK_URL = uriBuilder().fragment("/dashboard/newest-risk").build().toString();
 
-  private static final String CSV_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
+  private final Date now = new Date();
+
+  private final Date twoDaysAgo = now().minusDays(2).toDate();
+
+  private final Date oneWeekAgo = now().minusWeeks(1).toDate();
 
   private Application app1, app2;
 
@@ -97,11 +107,11 @@ public class DashboardViolationsTest
     licensePolicy = tempEntity.newPolicy(app1.getParentOwnerId(), "DashboardViolationsTestLicensePolicy");
     securityPolicy = tempEntity.newPolicy(app2.getParentOwnerId(), "DashboardViolationsTestSecurityPolicy");
     buildEvalNow = tempEntity
-        .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "now", new Date());
+        .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "now", now);
     releaseEval2DaysAgo = tempEntity
-        .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "2dAgo", now().minusDays(2).toDate());
+        .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "2dAgo", twoDaysAgo);
     operateEval1WeekAgo = tempEntity
-        .newPolicyEvaluation(app1.getId(), OperateStageType.ID, "1yAgo", now().minusWeeks(1).toDate());
+        .newPolicyEvaluation(app1.getId(), OperateStageType.ID, "1yAgo", oneWeekAgo);
     buildComponent = tempEntity
         .newApplicationComponent(app1.getId(), BuildStageType.ID, "g1a1v1",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
@@ -119,7 +129,7 @@ public class DashboardViolationsTest
   }
 
   @Test
-  public void testViolationsTable() {
+  public void testViolationsTable() throws ParseException {
     ViolationsResults table = DashboardPage.violationsView().results();
 
     // no results
@@ -226,12 +236,12 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().shouldNotBe(visible);
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.getResponseCopy());
-    String[] expectedResults = {
-        "1,DashboardViolationsTestLicensePolicy,Violations Test App2,g2 : a2 : v2",   //
-        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", //
-        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3",   //
-        "7,DashboardViolationsTestLicensePolicy,Violations Test App1,g1 : a1 : v1"    //
-    };
+    Map<String, Date> expectedResults = ImmutableMap.of(
+        "1,DashboardViolationsTestLicensePolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo,   //
+        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
+        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo,   //
+        "7,DashboardViolationsTestLicensePolicy,Violations Test App1,g1 : a1 : v1", now           //
+    );
     assertViolationsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out threat level 1
@@ -241,11 +251,11 @@ public class DashboardViolationsTest
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.getResponseCopy());
-    expectedResults = new String[]{
-        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", //
-        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3",   //
-        "7,DashboardViolationsTestLicensePolicy,Violations Test App1,g1 : a1 : v1"    //
-    };
+    expectedResults = ImmutableMap.of(
+        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
+        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo,   //
+        "7,DashboardViolationsTestLicensePolicy,Violations Test App1,g1 : a1 : v1", now           //
+    );
     assertViolationsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out Build violations
@@ -256,10 +266,10 @@ public class DashboardViolationsTest
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.getResponseCopy());
-    expectedResults = new String[]{
-        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", //
-        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3"    //
-    };
+    expectedResults = ImmutableMap.of(
+        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
+        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo    //
+    );
     assertViolationsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out Security policy type violations
@@ -270,9 +280,9 @@ public class DashboardViolationsTest
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.getResponseCopy());
-    expectedResults = new String[]{
-        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3"
-    };
+    expectedResults = ImmutableMap.of(
+        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo
+    );
     assertViolationsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out App1
@@ -308,7 +318,7 @@ public class DashboardViolationsTest
     DashboardPage.violationsView().results().maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
   }
 
-  private void assertViolationsCsv(String csv, String[] expectedSortedResults) {
+  private void assertViolationsCsv(String csv, Map<String, Date> expectedSortedResults) throws ParseException {
     String[] lines = csv.split("\r\n");
 
     // assert CSV header
@@ -317,26 +327,27 @@ public class DashboardViolationsTest
     // assert CSV results
     String[] results = Arrays.copyOfRange(lines, 1, lines.length);
     Arrays.sort(results);
-    for (int i = 0; i < results.length; i++) {
+    Iterator<Map.Entry<String, Date>> it = expectedSortedResults.entrySet().iterator();
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    for (int i = 0; i < results.length && it.hasNext(); i++) {
       String result = results[i];
+      Map.Entry<String, Date> expectedResult = it.next();
+      String expectedResultWithoutTimestamps = expectedResult.getKey();
+      Date expectedDate = expectedResult.getValue();
 
-      // asserts results without 'Date First Seen'
-      int lastComaIndex = result.lastIndexOf(",");
-      String dataWithoutDate = result.substring(0, lastComaIndex);
-      String dateFirstSeen = result.substring(lastComaIndex + 1);
+      Matcher matcher = Pattern.compile("^(.*),([-T:0-9]+Z),(\\d+)$").matcher(result);
+      if (matcher.find()) {
+        String actualResultWithoutTimestamps = matcher.group(1);
+        String dateFirstSeen = matcher.group(2);
+        String dateFirstSeenMillis = matcher.group(3);
 
-      assertEquals(expectedSortedResults[i], dataWithoutDate);
-      assertDateFormat(dateFirstSeen);
-    }
-  }
-
-  private void assertDateFormat(String date) {
-    DateFormat expectedFormat = new SimpleDateFormat(CSV_DATE_PATTERN);
-    try {
-      expectedFormat.parse(date);
-    }
-    catch (ParseException e) {
-      fail("date " + date + " is not of pattern: " + CSV_DATE_PATTERN);
+        assertEquals(expectedResultWithoutTimestamps, actualResultWithoutTimestamps);
+        assertEquals(dateFormat.format(expectedDate), dateFirstSeen);
+        assertEquals(expectedDate.getTime(), Long.parseLong(dateFirstSeenMillis));
+      } else {
+        fail("The CSV line was not in expected format: " + result);
+      }
     }
   }
 

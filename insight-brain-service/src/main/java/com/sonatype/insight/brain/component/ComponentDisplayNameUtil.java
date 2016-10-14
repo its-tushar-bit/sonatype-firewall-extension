@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.component;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -21,8 +22,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 
 /**
  * Utility to build CLM Server specific component display names from coordinates.
@@ -34,7 +33,6 @@ public class ComponentDisplayNameUtil
 {
   private static final String FILENAMES = "filenames";
   private static final String HASH = "hash";
-  public static final Splitter SPLITTER = Splitter.on("/").omitEmptyStrings();
 
   public static ComponentDisplayName fromPolicyViolation(PolicyViolation policyViolation) {
     return fromIdentifier(policyViolation.getComponentIdentifier());
@@ -69,12 +67,17 @@ public class ComponentDisplayNameUtil
     }
   }
 
-  public static ComponentDisplayName fromPathnames(Collection<String> pathnames, String hash) {
-    Set<String> filenames = new LinkedHashSet<>();
-    for (String pathname : pathnames) {
-      filenames.add(Iterables.getLast(SPLITTER.split(pathname)));
+  /**
+   * @since 1.24.0
+   */
+  public static ComponentDisplayName fromPathnames(Collection<String> pathNames, String hash) {
+    Set<String> fileNames = new LinkedHashSet<>();
+    if (pathNames != null) {
+      for (String pathName : pathNames) {
+        fileNames.add(new File(pathName).getName());
+      }
     }
-    return fromFilenames(new ArrayList<>(filenames), hash);
+    return fromFilenames(new ArrayList<>(fileNames), hash);
   }
 
   private static ComponentDisplayName fromFilenames(List<String> fileNames, String hash) {

@@ -13,7 +13,7 @@ import com.google.common.base.Joiner;
 /**
  * @since 1.11.0
  */
-public class ApplicationRiskScoreDTO implements CSVWritable
+public class ApplicationRiskScoreDTO implements CsvWritable
 {
   private static final Joiner joiner = Joiner.on(",");
 

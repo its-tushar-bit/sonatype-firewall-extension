@@ -118,24 +118,24 @@ public class DashboardApplicationsTest
     DashboardPage.dashboardContainer().shouldBe(visible);
     ApplicationsResults table = DashboardPage.applicationsView().results();
 
-    // applications should be sorted by name
+    // applications should be sorted by total risk
     table.applications().shouldHaveSize(5).shouldHave(texts(
-        "App1", //
-        "App2", //
-        "App3", //
+        "App5", //
         "App4", //
-        "App5"  //
+        "App3", //
+        "App2", //
+        "App1"  //
     ));
 
     // check rows per application
-    table.application(0).getRows().shouldHaveSize(2);
+    table.application(0).getRows().shouldHaveSize(5);
     table.application(1).getRows().shouldHaveSize(2);
     table.application(2).getRows().shouldHaveSize(2);
     table.application(3).getRows().shouldHaveSize(2);
-    table.application(4).getRows().shouldHaveSize(5);
+    table.application(4).getRows().shouldHaveSize(2);
 
     // check app totals and report links
-    ApplicationTile app5 = table.application(4);
+    ApplicationTile app5 = table.application(0);
     app5.getTotalsInRow(0).shouldHave(texts("14", "8", "4", "2", "0", ""));
     app5.getTotalsInRow(1).shouldHave(texts("8", "8", "0", "0", "0", ""));
     app5.getTotalsInRow(2).shouldHave(texts("0", "0", "0", "0", "0", ""));
@@ -152,16 +152,15 @@ public class DashboardApplicationsTest
     app5.getStageLink(2).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5release")));
     app5.getStageLink(3).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5operate")));
 
-
-    // sort by totalRisk
+    // sort by name
     ApplicationsHeaders headers = DashboardPage.applicationsView().headers();
-    headers.totalRiskHeader().click();
+    headers.applicationNameHeader().click();
     table.applications().shouldHave(texts(
-        "App5", //
-        "App4", //
-        "App3", //
+        "App1", //
         "App2", //
-        "App1"  //
+        "App3", //
+        "App4", //
+        "App5"  //
     ));
 
     // sort by Low Risk

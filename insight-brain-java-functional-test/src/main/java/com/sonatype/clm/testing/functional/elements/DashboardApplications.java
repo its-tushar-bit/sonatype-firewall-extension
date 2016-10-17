@@ -50,6 +50,10 @@ public class DashboardApplications
     public SelenideElement criticalRiskHeader() {
       return child(".critical-risk a");
     }
+
+    public SelenideElement applicationNameHeader() {
+      return child(".application-name a");
+    }
   }
 
   public static class ApplicationsResults

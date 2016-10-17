@@ -63,6 +63,10 @@ public class DashboardComponents
       super(ROOT, ".dashboard-headers");
     }
 
+    public SelenideElement componentNameHeader() {
+      return child(".component-name", "a");
+  }
+
     public SelenideElement totalRiskHeader() {
       return child(".total-risk", "a");
     }

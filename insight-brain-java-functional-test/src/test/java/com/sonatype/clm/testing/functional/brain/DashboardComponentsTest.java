@@ -106,42 +106,42 @@ public class DashboardComponentsTest
     ComponentsResults table = DashboardPage.componentsView().results();
     table.maxResultsMessage().shouldNotBe(visible);
 
-    // components should be sorted by name
+    // components should be sorted by risk
     table.components().shouldHaveSize(4).shouldHave(texts(
-        "Group1 : Artifact1 : Version1",  //
-        "Group2 : Artifact2 : Version2",  //
+        "Group4 : Artifact4 : Version4",   //
         "Group3 : Artifact3 : Version3",  //
-        "Group4 : Artifact4 : Version4"   //
+        "Group2 : Artifact2 : Version2",  //
+        "Group1 : Artifact1 : Version1"  //
     ));
 
     // open component details and back
     DashboardComponentDetails dashboardComponentDetails = new DashboardComponentDetails();
     table.firstComponent().click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
-    dashboardComponentDetails.header().shouldHave(text("Group1 : Artifact1 : Version1"));
+    dashboardComponentDetails.header().shouldHave(text("Group4 : Artifact4 : Version4"));
     Selenide.navigator.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     table.component(1).click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
-    dashboardComponentDetails.header().shouldHave(text("Group2 : Artifact2 : Version2"));
+    dashboardComponentDetails.header().shouldHave(text("Group3 : Artifact3 : Version3"));
     Selenide.navigator.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     table.lastComponent().click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
-    dashboardComponentDetails.header().shouldHave(text("Group4 : Artifact4 : Version4"));
+    dashboardComponentDetails.header().shouldHave(text("Group1 : Artifact1 : Version1"));
     Selenide.navigator.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
-    // sort by totalRisk
+    // sort by name
     ComponentsHeaders headers = DashboardPage.componentsView().headers();
-    headers.totalRiskHeader().click();
+    headers.componentNameHeader().click();
     table.components().shouldHave(texts(
-        "Group4 : Artifact4 : Version4",  //
-        "Group3 : Artifact3 : Version3",  //
+        "Group1 : Artifact1 : Version1",  //
         "Group2 : Artifact2 : Version2",  //
-        "Group1 : Artifact1 : Version1"   //
+        "Group3 : Artifact3 : Version3",  //
+        "Group4 : Artifact4 : Version4"   //
     ));
 
     // sort by Low Risk

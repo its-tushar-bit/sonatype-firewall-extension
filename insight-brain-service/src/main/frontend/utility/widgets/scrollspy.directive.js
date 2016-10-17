@@ -51,17 +51,14 @@
         });
 
         function initScrollspy() {
-          if ($http.pendingRequests.length === 0 && $($scope.scrollspy + ' .nav li').length) {
-            scrollspyObject = new $.fn.scrollspy.Constructor(element, {
-              target: $scope.scrollspy,
-              offset: 10
-            });
-          }
-          else {
-            $timeout(function(){
-              initScrollspy();
-            }, 100);
-          }
+          angular.getTestability(angular.element('body')).whenStable(function() {
+            $timeout(function() {
+              scrollspyObject = new $.fn.scrollspy.Constructor(element, {
+                target: $scope.scrollspy,
+                offset: 10
+              });
+            }, 250);
+          })
         }
 
         function pauseScrollspy() {

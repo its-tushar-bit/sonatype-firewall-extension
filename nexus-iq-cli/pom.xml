@@ -19,6 +19,7 @@
   <artifactId>nexus-iq-cli</artifactId>
 
   <properties>
+    <jetty.version>8.1.10.v20130312</jetty.version>
     <!-- PO has requested the clients still support 1.6 -->
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
@@ -57,6 +58,18 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>${jetty.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-security</artifactId>
+      <version>${jetty.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

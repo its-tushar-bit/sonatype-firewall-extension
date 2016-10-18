@@ -5,13 +5,16 @@
  */
 package com.sonatype.insight.scan.cli;
 
-public class PolicyEvaluatorCli
+/**
+ * @since 1.24
+ */
+public class TwistlockPolicyEvaluatorCli
     extends AbstractPolicyEvaluatorCli
 {
   public static void main(String[] args) {
-    Parameters params = new Parameters(args);
+    TwistlockParameters params = new TwistlockParameters(args);
 
-    PolicyEvaluatorCli policyEvaluatorCli = new PolicyEvaluatorCli();
-    policyEvaluatorCli.run(PolicyEvaluator.class, params);
+    TwistlockPolicyEvaluatorCli policyEvaluatorCli = new TwistlockPolicyEvaluatorCli();
+    policyEvaluatorCli.run(TwistlockPolicyEvaluator.class, params);
   }
 }

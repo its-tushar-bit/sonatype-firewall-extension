@@ -7,6 +7,7 @@ package com.sonatype.insight.scan.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -50,9 +51,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     validateServerAccess(params, restClient);
 
-    validateInputPaths(params.getFiles());
+    validateScanTargets(params.getScanTargets());
 
-    File scanFile = doScan(params, getProprietaryConfiguration(params, restClient));
+    File scanFile = scan(params, getProprietaryConfiguration(params, restClient));
 
     evaluatePolicy(params, restClient, scanFile);
   }
@@ -66,7 +67,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     return config;
   }
 
-  private void validateServerAccess(P params, RestClient restClient) throws ExitException {
+  protected void validateServerAccess(P params, RestClient restClient) throws ExitException {
     log.info("Validating application ID {} with the IQ Server {}...", params.getApplicationId(), params.getServerUrl());
     Collection<String> appIds = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
     try {
@@ -107,7 +108,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient) throws ExitException {
+  protected ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient) throws ExitException {
     log.debug("Retrieving configuration for proprietary components from the IQ Server...");
     try {
       return restClient.getProprietaryConfigForApplicationEvaluation(params.getApplicationId());
@@ -122,12 +123,13 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private void validateInputPaths(List<File> files) throws ExitException {
-    if (files.isEmpty()) {
+  protected void validateScanTargets(List<String> scanTargets) throws ExitException {
+    if (scanTargets.isEmpty()) {
       log.error("The archives or directories to scan were not specified.");
       throw new ExitException(1, "The archives or directories to scan were not specified.");
     }
-    for (File file : files) {
+    for (String scanTarget : scanTargets) {
+      File file = new File(scanTarget);
       if (!file.exists()) {
         log.error("The input path '{}' does not exist.", file.getAbsolutePath());
         throw new ExitException(1, String.format("The input path '%s' does not exist.", file.getAbsolutePath()));
@@ -135,11 +137,15 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private File doScan(P params, ProprietaryConfig proprietaryConfig) throws ExitException {
+  protected File scan(P params, ProprietaryConfig proprietaryConfig) throws ExitException {
     try {
       params.getOutputDirectory().mkdirs();
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
-      scanner.scan(scanFile, params.getFiles(), getScanConfiguration(params, proprietaryConfig));
+      List<File> files = new ArrayList<File>();
+      for (String scanTarget : params.getScanTargets()) {
+        files.add(new File(scanTarget));
+      }
+      scanner.scan(scanFile, files, getScanConfiguration(params, proprietaryConfig));
       return scanFile;
     }
     catch (IOException e) {

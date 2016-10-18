@@ -5,22 +5,15 @@
  */
 package com.sonatype.insight.scan.cli;
 
-import java.io.File;
+import java.util.List;
 
 import com.beust.jcommander.Parameter;
 
 public class Parameters
-    extends AbstractParameters
+    extends AbstractCliParameters
 {
-  @Parameter(names = { "-w", "--fail-on-policy-warnings" }, description = "Fail on policy evaluation warnings")
-  private boolean failOnPolicyWarning;
-
-  @Parameter(names = { "-r", "--result-file" }, description = "Path to a JSON file where the results "
-      + "of the policy evaluation will be stored in a machine-readable format")
-  private File resultFile;
-
-  @Parameter(names = { "-a", "--authentication" }, description = "Authentication credentials to use for the IQ Server, format <username:password> ")
-  private String serverUser;
+  @Parameter(description = "Archives or directories to scan", required = true)
+  private List<String> scanTargets;
 
   public Parameters() {
   }
@@ -30,20 +23,7 @@ public class Parameters
   }
 
   @Override
-  protected String getProgramName() {
-    return "java -jar nexus-iq-cli.jar";
-  }
-
-  public File getResultFile() {
-    return resultFile;
-  }
-
-  public boolean isFailOnPolicyWarning() {
-    return failOnPolicyWarning;
-  }
-
-  @Override
-  public String getServerUser() {
-    return serverUser;
+  public List<String> getScanTargets() {
+    return scanTargets;
   }
 }

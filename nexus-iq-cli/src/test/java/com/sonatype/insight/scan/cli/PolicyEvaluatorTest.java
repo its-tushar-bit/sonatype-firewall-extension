@@ -74,7 +74,7 @@ public class PolicyEvaluatorTest
   private ByteArrayOutputStream log;
 
   @Inject
-  private PolicyEvaluator evaluator;
+  private PolicyEvaluator<Parameters> evaluator;
 
   @Inject
   private ScanReader scanReader;
@@ -90,8 +90,8 @@ public class PolicyEvaluatorTest
     try {
       String outDir = tmpDir.newFolder("scan").getAbsolutePath();
       String timestamp = "20130610-171959";
-      System.setProperty(PolicyEvaluatorCli.PROP_OUTPUT_DIRECTORY, outDir);
-      System.setProperty(PolicyEvaluatorCli.PROP_START_TIME, timestamp);
+      System.setProperty(AbstractPolicyEvaluatorCli.PROP_OUTPUT_DIRECTORY, outDir);
+      System.setProperty(AbstractPolicyEvaluatorCli.PROP_START_TIME, timestamp);
       log = new ByteArrayOutputStream(1024 * 4);
       resetLogback();
     }

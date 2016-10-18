@@ -20,8 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-public class PolicyEvaluator
-    extends AbstractPolicyEvaluator<Parameters>
+public class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
+    extends AbstractPolicyEvaluator<PARAMETERS>
 {
 
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
@@ -32,7 +32,7 @@ public class PolicyEvaluator
   }
 
   @Override
-  protected void processResults(Parameters params,
+  protected void processResults(PARAMETERS params,
                                 ScanReceipt receipt,
                                 PolicyEvaluationResult eval,
                                 PolicyAction outcome,
@@ -62,7 +62,7 @@ public class PolicyEvaluator
     }
   }
 
-  private void saveResultFile(Parameters params, RestClient restClient, ScanReceipt receipt) throws ExitException {
+  private void saveResultFile(PARAMETERS params, RestClient restClient, ScanReceipt receipt) throws ExitException {
     if (params.getResultFile() != null) {
       try {
         restClient.saveResults(params.getApplicationId(), params.getResultFile(), receipt);

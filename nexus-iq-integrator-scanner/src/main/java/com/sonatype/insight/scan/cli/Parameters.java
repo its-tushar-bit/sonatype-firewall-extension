@@ -6,6 +6,8 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.beust.jcommander.Parameter;
 
@@ -15,6 +17,9 @@ import com.beust.jcommander.Parameter;
 public class Parameters
     extends AbstractParameters
 {
+  @Parameter(description = "<Archives or directories to scan>", required = true)
+  private List<String> scanTargets = new ArrayList<String>();
+
   @Parameter(names = { "-b", "--bundle-file" }, description = "Path to file where the report bundle ZIP file will be downloaded")
   private File reportBundleFile = new File("report.zip");
 
@@ -40,5 +45,10 @@ public class Parameters
   @Override
   public String getServerUser() {
     return serverUser;
+  }
+
+  @Override
+  public List<String> getScanTargets() {
+    return scanTargets;
   }
 }

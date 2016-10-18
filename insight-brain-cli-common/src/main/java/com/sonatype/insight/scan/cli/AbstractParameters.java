@@ -48,9 +48,6 @@ public abstract class AbstractParameters
 
   private Exception error;
 
-  @Parameter(description = "<Archives or directories to scan>", required = true)
-  private List<File> files = new ArrayList<File>();
-
   @Parameter(names = "-D", description = "Configuration properties, e.g. -D key=value", hidden = true)
   private List<String> properties = new ArrayList<String>();
 
@@ -132,9 +129,7 @@ public abstract class AbstractParameters
     return error;
   }
 
-  public List<File> getFiles() {
-    return files;
-  }
+  public abstract List<String> getScanTargets();
 
   public List<String> getProperties() {
     return properties;

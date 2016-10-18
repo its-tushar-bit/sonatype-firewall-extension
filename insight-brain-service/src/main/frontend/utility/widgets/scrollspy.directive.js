@@ -58,7 +58,7 @@
                 offset: 10
               });
             }, 250);
-          })
+          });
         }
 
         function pauseScrollspy() {

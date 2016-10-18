@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ScrollSpy($timeout, $http, EventNameConstant) {
+  function ScrollSpy($timeout, EventNameConstant, StableBodyService) {
     return {
       scope: {
         scrollspy: '@'
@@ -51,7 +51,7 @@
         });
 
         function initScrollspy() {
-          angular.getTestability(angular.element('body')).whenStable(function() {
+          StableBodyService.whenStable(function() {
             $timeout(function() {
               scrollspyObject = new $.fn.scrollspy.Constructor(element, {
                 target: $scope.scrollspy,
@@ -72,7 +72,7 @@
     };
   }
 
-  ScrollSpy.$inject = ['$timeout', '$http', 'event.name.constant'];
+  ScrollSpy.$inject = ['$timeout', 'event.name.constant', 'stable.body.service'];
 
   angular
       .module('utility')

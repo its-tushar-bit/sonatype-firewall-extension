@@ -1,6 +1,12 @@
-describe('scrollspy.directive.spec.js', function(){
+describe('scrollspy.directive.spec.js', function() {
   var spy;
   beforeEach(module('utility'));
+
+  beforeEach(module('utility.services', function($provide) {
+    $provide.service('stable.body.service', function() {
+      return { whenStable: function(f) { f(); }};
+    });
+  }));
 
   function getFullElement() {
     var el = angular.element('<div id="toRemove"><div id="pills"><ul class="nav nav-pills">' +
@@ -25,16 +31,18 @@ describe('scrollspy.directive.spec.js', function(){
     angular.element('#toRemove').remove();
   });
 
-  it('Validate scrollspy is initialized prpoerly', inject(function($compile) {
+  it('Validate scrollspy is initialized properly', inject(function($compile, $timeout) {
     spy = spyOn($.fn.scrollspy, 'Constructor');
     expect(spy).not.toHaveBeenCalled();
     $compile(getFullElement())(controllerScope);
+    $timeout.flush();
     expect(spy).toHaveBeenCalled();
   }));
 
   it('Validate pill click causes scroll', inject(function($compile, $timeout) {
     var element = getFullElement();
     $compile(element)(controllerScope);
+    $timeout.flush();
     var spy = spyOn($.fn, 'animate');
     expect(spy).not.toHaveBeenCalled();
     element.find('#pills .nav li > a').click();
@@ -56,23 +64,8 @@ describe('scrollspy.directive.spec.js', function(){
     expect(spy).toHaveBeenCalled();
   }));
 
-  it('Validate scrollspy applied when http queue empties, after initialization', inject(function($compile, $timeout, $http){
-    spy = spyOn($.fn.scrollspy, 'Constructor');
-    //just need content in array, all we are checking in src is the array length
-    $http.pendingRequests.push('something');
-    var element = getFullElement();
-    expect(spy).not.toHaveBeenCalled();
-    $compile(element)(controllerScope);
-    expect(spy).not.toHaveBeenCalled();
-    $timeout.flush();
-    expect(spy).not.toHaveBeenCalled();
-    $http.pendingRequests.splice(0,1);
-    $timeout.flush();
-    expect(spy).toHaveBeenCalled();
-  }));
-
   it('Validate events are handled as expected',
-      inject(['$compile', '$rootScope', 'event.name.constant', function($compile, $rootScope, EventNameConstant) {
+      inject(['$compile', '$rootScope', 'event.name.constant', '$timeout', function($compile, $rootScope, EventNameConstant, $timeout) {
         var scrollspyObj = {
           refresh: jasmine.createSpy()
         };
@@ -81,6 +74,7 @@ describe('scrollspy.directive.spec.js', function(){
         spyOn($.fn, 'animate');
 
         $compile(getFullElement())(controllerScope);
+        $timeout.flush();
 
         expect(scrollspyObj.refresh).not.toHaveBeenCalled();
         $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY);

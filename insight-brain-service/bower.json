@@ -8,7 +8,7 @@
   "license": "Commercial",
   "private": true,
   "dependencies": {
-    "angular": "=1.4.8",
+    "angular": "=1.5.8",
     "angular-vs-repeat": "~1.1.4",
     "bootstrap-sass-official": "https://github.com/twbs/bootstrap-sass.git#v2.3.2.0",
     "components-font-awesome": "=4.3.0",
@@ -18,7 +18,7 @@
     "jquery-ui": "=1.11.4"
   },
   "resolutions": {
-    "angular": "=1.4.8",
+    "angular": "=1.5.8",
     "jquery": "=1.8.3"
   }
 }

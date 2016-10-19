@@ -116,19 +116,9 @@ public class UserDAO
   private void validate(User user) {
     validateUsername(user.getUsername());
 
-    if (user.getFirstName() == null || user.getFirstName().trim().isEmpty()) {
-      throw new InvalidUserException("The first name is required.");
-    }
-    if (user.getFirstName().length() > MAX_FIRST_NAME_SIZE) {
-      throw new InvalidUserException("The first name must be " + MAX_FIRST_NAME_SIZE + " characters or less.");
-    }
+    NameHelper.validate("The first name", user.getFirstName(), MAX_FIRST_NAME_SIZE);
 
-    if (user.getLastName() == null || user.getLastName().trim().isEmpty()) {
-      throw new InvalidUserException("The last name is required.");
-    }
-    if (user.getLastName().length() > MAX_LAST_NAME_SIZE) {
-      throw new InvalidUserException("The last name must be " + MAX_LAST_NAME_SIZE + " characters or less.");
-    }
+    NameHelper.validate("The last name", user.getLastName(), MAX_LAST_NAME_SIZE);
 
     if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
       throw new InvalidUserException("The email is required.");

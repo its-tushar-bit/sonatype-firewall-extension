@@ -20,7 +20,7 @@ public class NameHelperTest
   /**
    * A sample of characters not allowed.
    */
-  public static final String[] INVALID_CHARACTERS = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "+" };
+  public static final String[] INVALID_CHARACTERS = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "+", "<" };
 
   public static final String[] INVALID_SPACING_NAMES = { " leading space", "trailing space ",
       " leading and trailing space ", "double  space", "  starts with double space", "ends with double space  " };

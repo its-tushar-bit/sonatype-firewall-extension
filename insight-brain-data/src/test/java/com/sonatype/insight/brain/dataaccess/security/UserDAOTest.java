@@ -323,9 +323,9 @@ public class UserDAOTest
   public void testValidateNullFirstName_Insert() {
     try {
       createUser("username", "password", null /* firstName */, "lastName", "email@localhost");
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The first name is required."));
     }
   }
@@ -337,10 +337,88 @@ public class UserDAOTest
     user.setFirstName(null);
     try {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The first name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateFirstName_Insert() {
+    int i = 0;
+    for (String name : NameHelperTest.VALID_NAMES) {
+      createUser("username" + (i++), "password", name, "lastName", "email@localhost");
+    }
+  }
+
+  @Test
+  public void testValidateFirstNameSpaces_Insert() {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
+      try {
+        createUser("username", "password", name, "lastName", "email@localhost");
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals("The first name must not have leading or trailing spaces, or have two spaces in a row.",
+            expected.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testValidateFirstName_Update() {
+    User user = createUser("username", "password", "firstName", "lastName", "email@localhost");
+    for (String name : NameHelperTest.VALID_NAMES) {
+      user.setFirstName(name);
+      new UserDAO().update(user);
+    }
+  }
+
+  @Test
+  public void testValidateFirstNameSpaces_Update() {
+    User user = createUser("username", "password", "firstName", "lastName", "email@localhost");
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
+      user.setFirstName(name);
+      try {
+        new UserDAO().update(user);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals("The first name must not have leading or trailing spaces, or have two spaces in a row.",
+            expected.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testValidateInvalidFirstName_Insert() {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
+      try {
+        createUser("username", "password", name, "lastName", "email@localhost");
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertThat(expected.getMessage(),
+            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The first name", name.charAt(0))));
+      }
+    }
+  }
+
+  @Test
+  public void testValidateInvalidFirstName_Update() {
+    User user = createUser("testValidateInvalidFirstName");
+
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
+      try {
+        user.setFirstName(name);
+        new UserDAO().update(user);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertThat(expected.getMessage(),
+            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The first name", name.charAt(0))));
+      }
     }
   }
 
@@ -348,9 +426,9 @@ public class UserDAOTest
   public void testValidateEmptyFirstName_Insert() {
     try {
       createUser("username", "password", "", "lastName", "email@localhost");
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The first name is required."));
     }
   }
@@ -361,9 +439,9 @@ public class UserDAOTest
     user.setFirstName("");
     try {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The first name is required."));
     }
   }
@@ -373,9 +451,9 @@ public class UserDAOTest
     String firstName = StringUtils.repeat("a", UserDAO.MAX_FIRST_NAME_SIZE);
     try {
       createUser("username", "password", firstName + "a", "lastName", "email@localhost");
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE
           + " characters or less."));
     }
@@ -391,9 +469,9 @@ public class UserDAOTest
     user.setFirstName(firstName + "a");
     try {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE
           + " characters or less."));
     }
@@ -403,12 +481,59 @@ public class UserDAOTest
   }
 
   @Test
+  public void testValidateLastName_Insert() {
+    int i = 0;
+    for (String name : NameHelperTest.VALID_NAMES) {
+      createUser("username" + (i++), "password", "firstName", name, "email@localhost");
+    }
+  }
+
+  @Test
+  public void testValidateLastNameSpaces_Insert() {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
+      try {
+        createUser("username", "password", "firstName", name, "email@localhost");
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals("The last name must not have leading or trailing spaces, or have two spaces in a row.",
+            expected.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testValidateLastName_Update() {
+    User user = createUser("username", "password", "firstName", "lastName", "email@localhost");
+    for (String name : NameHelperTest.VALID_NAMES) {
+      user.setLastName(name);
+      new UserDAO().update(user);
+    }
+  }
+
+  @Test
+  public void testValidateLastNameSpaces_Update() {
+    User user = createUser("username", "password", "firstName", "lastName", "email@localhost");
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
+      user.setLastName(name);
+      try {
+        new UserDAO().update(user);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals("The last name must not have leading or trailing spaces, or have two spaces in a row.",
+            expected.getMessage());
+      }
+    }
+  }
+
+  @Test
   public void testValidateNullLastName_Insert() {
     try {
       createUser("username", "password", "firstName", null, "email@localhost");
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The last name is required."));
     }
   }
@@ -420,10 +545,41 @@ public class UserDAOTest
     user.setLastName(null);
     try {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The last name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateInvalidLastName_Insert() {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
+      try {
+        createUser("username", "password", "firstName", name, "email@localhost");
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertThat(expected.getMessage(),
+            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The last name", name.charAt(0))));
+      }
+    }
+  }
+
+  @Test
+  public void testValidateInvalidLastName_Update() {
+    User user = createUser("testValidateInvalidLastName");
+
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
+      try {
+        user.setLastName(name);
+        new UserDAO().update(user);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertThat(expected.getMessage(),
+            is(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The last name", name.charAt(0))));
+      }
     }
   }
 
@@ -431,9 +587,9 @@ public class UserDAOTest
   public void testValidateEmptyLastName_Insert() {
     try {
       createUser("username", "password", "firstName", "", "email@localhost");
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The last name is required."));
     }
   }
@@ -444,9 +600,9 @@ public class UserDAOTest
     user.setLastName("");
     try {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The last name is required."));
     }
   }
@@ -456,9 +612,9 @@ public class UserDAOTest
     String lastName = StringUtils.repeat("a", UserDAO.MAX_LAST_NAME_SIZE);
     try {
       createUser("username", "password", "firstName", lastName + "a", "email@localhost");
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The last name must be " + UserDAO.MAX_LAST_NAME_SIZE
           + " characters or less."));
     }
@@ -474,9 +630,9 @@ public class UserDAOTest
     user.setLastName(lastName + "a");
     try {
       new UserDAO().update(user);
-      fail("Expected InvalidUserException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidUserException expected) {
+    catch (InvalidNameException expected) {
       assertThat(expected.getMessage(), is("The last name must be " + UserDAO.MAX_LAST_NAME_SIZE
           + " characters or less."));
     }

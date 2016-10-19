@@ -41,11 +41,11 @@
     function doReevaluate() {
       delete vm.error;
 
-      $http.post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash)).success(function () {
+      $http.post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash)).then(function () {
         vm.reevaluated = true;
         updateComponent();
-      }).error(function () {
-        vm.error = Messages.getHttpErrorMessage(arguments);
+      }, function (error) {
+        vm.error = Messages.getHttpErrorMessage(error);
       });
     }
   }

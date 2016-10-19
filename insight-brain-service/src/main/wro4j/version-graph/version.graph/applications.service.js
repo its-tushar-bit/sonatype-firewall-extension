@@ -13,10 +13,10 @@
       get : function () {
         if (deferred === null) {
           deferred = $q.defer();
-          $http.get(Brain.getIntegratorApplicationListUrl()).success(function (data) {
-            deferred.resolve(data.applicationSummaries);
-          }).error(function () {
-            deferred.reject(arguments);
+          $http.get(Brain.getIntegratorApplicationListUrl()).then(function (response) {
+            deferred.resolve(response.data.applicationSummaries);
+          }, function (error) {
+            deferred.reject(error);
             deferred = null; // all future requests to retrigger
           });
         }

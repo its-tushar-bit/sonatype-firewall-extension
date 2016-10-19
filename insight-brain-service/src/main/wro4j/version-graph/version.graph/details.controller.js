@@ -17,7 +17,8 @@
         last = coordinates;
 
         if (coordinates && coordinates.appId && !Properties.isUnknown()) {
-          $http.get(Brain[clmEndpoint.type].getComponentUrl(OwnerContext.ownerType, OwnerContext.ownerId, Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(), coordinates.coordinates, Properties.getPathname())).success(function (data) {
+          $http.get(Brain[clmEndpoint.type].getComponentUrl(OwnerContext.ownerType, OwnerContext.ownerId, Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(), coordinates.coordinates, Properties.getPathname())).then(function (response) {
+            var data = response.data;
             if (data.matchState === 'unknown') {
               Properties.setMatchState('unknown');
             }
@@ -57,8 +58,8 @@
                 violatedPolicies: $scope.componentDetails.policyAlerts.length
               };
             }
-          }).error(function () {
-            $scope.setError(arguments);
+          }, function (error) {
+            $scope.setError(error);
           });
         }
       }

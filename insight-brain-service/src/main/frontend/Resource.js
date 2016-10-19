@@ -71,12 +71,12 @@
         }
 
         function getErrorFn(deferred) {
-          return function(data, status, headers, config) {
+          return function(errorResponse) {
             deferred.reject({
-              data: data,
-              status: status,
-              headers: headers,
-              config: config
+              data: errorResponse.data,
+              status: errorResponse.status,
+              headers: errorResponse.headers,
+              config: errorResponse.config
             });
           };
         }
@@ -86,7 +86,9 @@
 
           storeDeferred = localDeferred = $q.defer();
 
-          $http.get(config.url, {params: config.params}).success(function(data) {
+          $http.get(config.url, {params: config.params}).then(function(response) {
+            var data = response.data;
+
             if (localDeferred === storeDeferred) {
               var resources = [];
 
@@ -98,14 +100,15 @@
               var relationsToLoad = data.length * Object.keys(config.relationalConfigs).length;
               var loadChildResource = function(parentResource, childResource, property) {
                 $http.get(childResource.config.url,
-                    {params: childResource.config.params}).success(function(data) {
-                      childResource.$updateOriginal(data);
+                    {params: childResource.config.params}).then(function(response) {
+                      childResource.$updateOriginal(response.data);
                       $parse(property).assign(parentResource, childResource);
                       relationsToLoad--;
                       checkDeferredResolve(storeDeferred, store, relationsToLoad);
-                    }).error(function() {
+                    }, function(errorResponse) {
                       error = true;
-                    }).error(getErrorFn(storeDeferred));
+                      getErrorFn(storeDeferred)(errorResponse);
+                    });
               };
 
               angular.forEach(data, function(obj) {
@@ -134,9 +137,10 @@
               checkDeferredResolve(storeDeferred, store, relationsToLoad);
               storeDeferred.isResolved = true;
             }
-          }).error(function() {
+          }, function(errorResponse) {
             error = true;
-          }).error(getErrorFn(storeDeferred));
+            getErrorFn(storeDeferred)(errorResponse);
+          });
         }
 
         function doRefreshLoad() {
@@ -368,14 +372,16 @@
 
           if (me.$new) {
             // Newly created object
-            $http.post(config.url, this, {params: config.params}).success(function(data) {
-              var saveRelationalResource = function() {
-                relationsToSave--;
-                checkDeferredResolve(deferred, me, relationsToSave);
-              };
-              var errorRelationalResource = function(rejection) {
-                deferred.reject(rejection);
-              };
+            $http.post(config.url, this, {params: config.params}).then(function(response) {
+              var data = response.data,
+                  saveRelationalResource = function() {
+                    relationsToSave--;
+                    checkDeferredResolve(deferred, me, relationsToSave);
+                  },
+                  errorRelationalResource = function(rejection) {
+                    deferred.reject(rejection);
+                  };
+
               for (var relationalProperty in config.relationalConfigs) {
                 if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
                   var relationalResource = $parse(relationalProperty)(me);
@@ -392,14 +398,15 @@
               me.$updateOriginal(data);
               store.push(me);
               checkDeferredResolve(deferred, me, relationsToSave);
-            }).error(getErrorFn(deferred));
+            }, getErrorFn(deferred));
           }
           else {
             // Update to existing object
-            $http.put(config.url, this, {params: config.params}).success(function(data) {
+            $http.put(config.url, this, {params: config.params}).then(function(response) {
               var properties = [],
                   promises = [],
-                  resourcesToUpdate = [me];
+                  resourcesToUpdate = [me],
+                  data = response.data;
 
               angular.forEach(config.relationalConfigs, function(descriptor, relationalProperty) {
                 properties.push(relationalProperty);
@@ -432,7 +439,7 @@
                 deferred.resolve(me);
               }
 
-            }).error(getErrorFn(deferred));
+            }, getErrorFn(deferred));
           }
           return deferred.promise.then(function(result) {
             notifyObservers(StoreObserveTypeConstant.UPDATE, [result]);
@@ -452,7 +459,7 @@
           url = queryStringIndex > -1 ? url + config.url.substring(queryStringIndex) : url;
 
           if (id !== null && angular.isDefined(id)) {
-            $http['delete'](url, me, {params: config.params}).success(function() {
+            $http['delete'](url, me, {params: config.params}).then(function() {
               // remove from store
               angular.forEach(store, function(candidate, candidateIndex) {
                 if (candidate[config.id] === id) {
@@ -461,7 +468,7 @@
               });
 
               deferred.resolve(true);
-            }).error(getErrorFn(deferred));
+            }, getErrorFn(deferred));
           }
           else {
             // new resources shouldn't be part of the store
@@ -531,10 +538,10 @@
             var relationalIDValue = $parse(me.config.id)(me[i]);
             relationalIDs.push(relationalIDValue);
           }
-          $http.put(me.config.url, relationalIDs, {params: me.config.params}).success(function(data) {
-            me.$updateOriginal(data);
+          $http.put(me.config.url, relationalIDs, {params: me.config.params}).then(function(response) {
+            me.$updateOriginal(response.data);
             deferred.resolve(me);
-          }).error(getErrorFn(deferred));
+          }, getErrorFn(deferred));
 
           return deferred.promise;
         };
@@ -555,12 +562,12 @@
   module.service('HierarchyStoreFactory', [
     '$http', '$q', 'StoreFactory', 'CLMAppLocations', function($http, $q, StoreFactory, CLMAppLocations) {
       function getErrorFn(deferred) {
-        return function(data, status, headers, config) {
+        return function(errorResponse) {
           deferred.reject({
-            data: data,
-            status: status,
-            headers: headers,
-            config: config
+            data: errorResponse.data,
+            status: errorResponse.status,
+            headers: errorResponse.headers,
+            config: errorResponse.config
           });
         };
       }
@@ -623,7 +630,8 @@
 
           myDeferred = storeDeferred = $q.defer();
 
-          $http.get(config.url, {params: config.params}).success(function(data) {
+          $http.get(config.url, {params: config.params}).then(function(response) {
+            var data = response.data;
             if (storeDeferred === myDeferred) {
               angular.forEach(data[config.field], function(owner) {
                 if (config.crudUrl) {
@@ -643,7 +651,9 @@
               myDeferred.resolve(store);
               myDeferred.isResolved = true;
             }
-          }).error(getErrorFn(myDeferred)).error(function() {
+
+          }, function(errorResponse) {
+            getErrorFn(myDeferred)(errorResponse);
             error = true;
           });
 

@@ -23,14 +23,14 @@
         if (coordinates && coordinates.appId && !Properties.isUnknown()) {
           $http.get(Brain[clmEndpoint.type].getComponentListUrl(OwnerContext.ownerType, OwnerContext.ownerId,
               Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(),
-              Coordinates.get(), Properties.getPathname())).success(function(data) {
-            $scope.componentDetailsList = data.list ? data.list : data;
+              Coordinates.get(), Properties.getPathname())).then(function(response) {
+            $scope.componentDetailsList = response.data.list || response.data;
             for (var i = 0; i < $scope.componentDetailsList.length; i++) {
               $scope.componentDetailsList[i].proprietary = Coordinates.get().proprietary;
             }
             $scope.loaded = true;
-          }).error(function() {
-            $scope.setError(arguments);
+          }, function(error) {
+            $scope.setError(error);
           });
         }
       }

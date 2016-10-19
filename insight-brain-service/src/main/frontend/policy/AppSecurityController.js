@@ -50,14 +50,15 @@
       if (isAuthorized) {
         $scope.error = null;
 
-        $http.get(clmAppLocations.getRoleMappingUrl()).success(function(data) {
+        $http.get(clmAppLocations.getRoleMappingUrl()).then(function(response) {
+          var data = response.data;
           $scope.context = {
             roles: data.membersByRole,
             ldapRealm: data.ldapRealm,
             groupSearchEnabled: data.groupSearchEnabled
           };
-        }).error(function() {
-          $scope.error = arguments;
+        }, function(error) {
+          $scope.error = error;
         });
       }
     };
@@ -104,13 +105,13 @@
 
     $scope.save = function () {
       if ($scope.isDirty()) {
-        return $http.put(clmAppLocations.getRoleMappingUrl($scope.roleId), $scope.mappings[0].members).success(function () {
+        return $http.put(clmAppLocations.getRoleMappingUrl($scope.roleId), $scope.mappings[0].members).then(function () {
           $scope.$emit('roleSaveComplete', $scope.roleId, $scope.mappings[0]);
           $scope.hide();
-        }).error(function () {
+        }, function (error) {
           $scope.alerts.push({
             type: 'error',
-            msg: Messages.getHttpErrorMessage(arguments)
+            msg: Messages.getHttpErrorMessage(error)
           });
         });
       } else {
@@ -339,20 +340,20 @@
                 q : newVal,
                 groups : $scope.groups
               }
-            }).success(function (data) {
+            }).then(function (response) {
               $scope.requestActive--;
               if ($scope.queryString === newVal) {
                 $scope.setResults({
-                  $members : data.members,
-                  $error : data.error
+                  $members : response.data.members,
+                  $error : response.data.error
                 });
               }
-            }).error(function () {
+            }, function (error) {
               $scope.requestActive--;
 
               $scope.setResults({
                 $members : null,
-                $error : Messages.getHttpErrorMessage(arguments)
+                $error : Messages.getHttpErrorMessage(error)
               });
             });
           }, 500);

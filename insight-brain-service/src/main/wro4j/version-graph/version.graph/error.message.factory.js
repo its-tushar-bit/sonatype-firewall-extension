@@ -7,9 +7,9 @@
 (function() {
   'use strict';
   function ErrorMessage(error) {
-    var responseText = error[0],
-        status = error[1],
-        headers = error[2];
+    var responseText = error[0] || error.data,
+        status = error[1] || error.status,
+        headers = error[2] || error.headers;
 
     if (status === 0 || status >= 1000) {
       return 'Network error while contacting server';

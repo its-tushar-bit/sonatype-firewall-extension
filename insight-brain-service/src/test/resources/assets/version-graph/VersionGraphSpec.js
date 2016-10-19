@@ -355,7 +355,10 @@ var clmEndpointTemplate = {
             $httpBackend.expectGET().respond(404, 'fail');
             $httpBackend.flush();
             $rootScope.$apply();
-            expect(error).toEqual(['fail', 404, jasmine.any(Function), jasmine.any(Object)]);
+            expect(error).toBeDefined();
+            expect(error.data).toEqual('fail');
+            expect(error.status).toEqual(404);
+            expect(error.headers).toEqual(jasmine.any(Function));
           }));
         });
       };

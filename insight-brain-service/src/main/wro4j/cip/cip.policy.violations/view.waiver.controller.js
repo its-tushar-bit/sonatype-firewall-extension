@@ -8,25 +8,25 @@
   'use strict';
   
   function ViewWaiverController($scope, $http, OwnerContext, SelectedComponent, messages) {
-    function handleHttpError() {
-      $scope.appError = messages.getHttpErrorMessage(arguments);
+    function handleHttpError(error) {
+      $scope.appError = messages.getHttpErrorMessage(error);
     }
 
     function doLoad() {
       $scope.waiversLoading = true;
       // get the waivers from the server
       $http.get(CLM.path + 'rest/policyWaiver/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/component/' +
-            SelectedComponent.get().hash).success(function(data) {
+            SelectedComponent.get().hash).then(function(response) {
         $scope.waiversLoading = false;
         $scope.waivers = [];
-        angular.forEach(data.waiversByOwner, function(waiversByOwner) {
+        angular.forEach(response.data.waiversByOwner, function(waiversByOwner) {
           angular.forEach(waiversByOwner.waivers, function(waiver) {
             waiver.type = waiversByOwner.ownerType;
             waiver.ownerName = waiversByOwner.ownerName;
             $scope.waivers.push(waiver);
           });
         });
-      }).error(handleHttpError);
+      }, handleHttpError);
     }
 
     doLoad();
@@ -41,10 +41,10 @@
       $scope.confirmDelete = null;
       $scope.appError = null;
       $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' +
-              waiver.id).success(function() {
+              waiver.id).then(function() {
         $scope.$emit('reevaluate.component', waiver.hash ? { hash: waiver.hash } : null);
         $scope.waivers.splice($scope.waivers.indexOf(waiver), 1);
-      }).error(handleHttpError);
+      }, handleHttpError);
     };
   }
   ViewWaiverController.$inject = ['$scope', '$http', 'OwnerContext', 'SelectedComponent', 'Messages'];

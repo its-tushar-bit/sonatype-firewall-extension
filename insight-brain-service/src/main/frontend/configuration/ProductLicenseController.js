@@ -39,13 +39,13 @@
       $scope.doLoad = function() {
         if (isAuthorized) {
           $scope.error = null;
-          $http.get($scope.summaryUrl).success(function(data) {
-            $scope.license = data;
-          }).error(function(data, status) {
-            if (status !== 402) {
+          $http.get($scope.summaryUrl).then(function(response) {
+            $scope.license = response.data;
+          }, function(errorResponse) {
+            if (errorResponse.status !== 402) {
               $scope.error = {
-                status: status,
-                data: data
+                status: errorResponse.status,
+                data: errorResponse.data
               };
             } else {
               $scope.license = false;
@@ -109,10 +109,10 @@
           if ($window.FormData) {
             var form = new FormData();
             form.append('file', $('#license-input')[0].files[0]);
-            $http.post($scope.uploadUrl, form).success(function() {
+            $http.post($scope.uploadUrl, form).then(function() {
               showLicense();
-            }).error(function () {
-              showError(Messages.getHttpErrorMessage(arguments));
+            }, function (error) {
+              showError(Messages.getHttpErrorMessage(error));
             });
           }
           else {

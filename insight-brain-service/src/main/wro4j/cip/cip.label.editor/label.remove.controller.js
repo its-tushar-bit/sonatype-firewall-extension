@@ -16,12 +16,12 @@
         $scope.labelDeleting = true;
         $scope.labelRemoveError = null;
         $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
-                SelectedComponent.get().hash + '/' + label.id).success(function() {
+                SelectedComponent.get().hash + '/' + label.id).then(function() {
           $scope.$emit('reevaluate.component', {hash: SelectedComponent.get().hash});
           $scope.$close();
-        }).error(function() {
+        }, function(error) {
           $scope.labelDeleting = false;
-          $scope.labelRemoveError = messages.getHttpErrorMessage(arguments);
+          $scope.labelRemoveError = messages.getHttpErrorMessage(error);
         });
       };
       $scope.labelRemoveError = null;

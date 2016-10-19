@@ -86,8 +86,8 @@
 
       var servicePath = CLM.path + 'rest/component/identified';
 
-      var errorHandler = function(data, status, headersFn) {
-        var header = headersFn();
+      var errorHandler = function(errorResponse) {
+        var header = errorResponse.headers();
         if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
           $scope.createError = 'Server Error';
         }
@@ -95,7 +95,7 @@
           $scope.createError = 'Unable to connect to IQ Server';
         }
         else {
-          $scope.createError = data;
+          $scope.createError = errorResponse.data;
         }
         $scope.disableSubmit = false;
       };
@@ -201,9 +201,9 @@
         updateStateForSubmit();
         if ($scope.claimForm.$valid) {
           prepareForSubmit();
-          $http.post(servicePath, $scope.claimData).success(function(data) {
-            updateView(data);
-          }).error(errorHandler);
+          $http.post(servicePath, $scope.claimData).then(function(response) {
+            updateView(response.data);
+          }, errorHandler);
         }
       };
 
@@ -214,9 +214,9 @@
         updateStateForSubmit();
         if ($scope.claimForm.$valid) {
           prepareForSubmit();
-          $http.put(servicePath, $scope.claimData).success(function(data) {
-            updateView(data);
-          }).error(errorHandler);
+          $http.put(servicePath, $scope.claimData).then(function(response) {
+            updateView(response.data);
+          }, errorHandler);
         }
       };
 
@@ -227,7 +227,7 @@
 
         function deleteClaim() {
           updateStateForSubmit();
-          $http.delete(servicePath + '/' + CurrentData.hash).success(function() {
+          $http.delete(servicePath + '/' + CurrentData.hash).then(function() {
             // fall back on the display name
             ComponentUtil.setDisplayNameAndCoordinates(CurrentData);
             updateDataView({
@@ -245,7 +245,7 @@
               displayName: CurrentData.displayName,
               componentIdentifier: null
             }, CurrentData.hash);
-          }).error(errorHandler);
+          }, errorHandler);
         }
 
         Dialog.open({

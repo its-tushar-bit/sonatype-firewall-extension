@@ -200,14 +200,14 @@
         function doLoad() {
           delete vm.error;
 
-          $http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId)).success(function (data) {
+          $http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId)).then(function (response) {
             vm.loaded = true;
             $scope.$applyAsync(function () {
-              vm.grid = createTable(data, $scope);
+              vm.grid = createTable(response.data, $scope);
               setFilter();
             });
-          }).error(function () {
-            vm.error = arguments;
+          }, function (error) {
+            vm.error = error;
           });
         }
 

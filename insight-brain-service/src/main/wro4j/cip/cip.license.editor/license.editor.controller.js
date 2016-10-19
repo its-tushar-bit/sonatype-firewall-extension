@@ -197,7 +197,7 @@
 
       if (licenseOverride.status === 'DELETE') {
         $http['delete'](CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + licenseOverride.ownerId + '/' +
-                owner.licenseOverride.id).success(function() {
+                owner.licenseOverride.id).then(function() {
 
           owner.licenseOverride = null;
           $scope.reset();
@@ -209,16 +209,16 @@
             $scope.saving = false;
             $scope.alert = Messages.getHttpErrorMessage(error);
           });
-        }).error(function() {
-          $scope.alert = Messages.getHttpErrorMessage(arguments);
+        }, function(error) {
+          $scope.alert = Messages.getHttpErrorMessage(error);
           $scope.saving = false;
         });
       }
       else {
         $http.post(CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + owner.ownerId,
-                licenseOverride).success(function(data) {
+                licenseOverride).then(function(response) {
 
-          owner.licenseOverride = data;
+          owner.licenseOverride = response.data;
           $scope.reset();
 
           return createComponentRequest().then(function (updatedComponent) {
@@ -228,8 +228,8 @@
             $scope.saving = false;
             $scope.alert = Messages.getHttpErrorMessage(error);
           });
-        }).error(function() {
-          $scope.alert = Messages.getHttpErrorMessage(arguments);
+        }, function(error) {
+          $scope.alert = Messages.getHttpErrorMessage(error);
           $scope.saving = false;
         });
       }

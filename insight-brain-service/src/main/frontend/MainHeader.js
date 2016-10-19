@@ -14,7 +14,7 @@
       $scope.logout = function () {
         // TODO This ought to perform a dirty check before it simply logs the user out
         // https://issues.sonatype.org/browse/CLM-1251
-        $http['delete'](CLMLocations.getSessionLogoutUrl()).success(function(){
+        $http['delete'](CLMLocations.getSessionLogoutUrl()).then(function() {
           $scope.$emit('logout');
         });
       };
@@ -49,11 +49,11 @@
               $http.put(clmLocations.getChangeMyPasswordUrl(), {
                 oldPassword : scope.result.originalPassword,
                 newPassword : scope.result.newPassword
-              }).success(function () {
+              }).then(function () {
                 scope.$close();
-              }).error(function () {
+              }, function (error) {
                 scope.submitActive = false;
-                scope.error = messages.getHttpErrorMessage(arguments);
+                scope.error = messages.getHttpErrorMessage(error);
               });
             }
           };
@@ -88,7 +88,7 @@
         if (!notification.viewed) {
           $http.post(CLMLocations.getNotificationViewedUrl(), {
             id: notification.id
-          }).success(function() {
+          }).then(function() {
             notification.viewed = true;
             $scope.unreadNotificationCount--;
           });
@@ -105,13 +105,13 @@
     $scope.getNotifications = function() {
       $scope.loading = true;
 
-      $http.get(CLMLocations.getNotificationUrl()).success(function (data) {
+      $http.get(CLMLocations.getNotificationUrl()).then(function (response) {
         $scope.loading = false;
-        $scope.notifications = data.notifications;
+        $scope.notifications = response.data.notifications;
         processNotifications($scope.notifications);
-      }).error(function () {
+      }, function (error) {
         $scope.loading = false;
-        $scope.errorText = 'An error occurred while loading notifications. (' + Messages.getHttpErrorMessage(arguments) + ')';
+        $scope.errorText = 'An error occurred while loading notifications. (' + Messages.getHttpErrorMessage(error) + ')';
         $scope.unreadNotificationCount = '!';
       });
     };
@@ -122,11 +122,11 @@
 
   module.controller('mainHeaderController', ['$scope', '$state', 'CurrentUser', 'ProductFeatures', 'PermissionService', function($scope, $state, currentUser, ProductFeatures, PermissionService) {
     $scope.$state = $state;
-    
+
     currentUser.then(function(status) {
       $scope.displayName = status.displayName;
     });
-    
+
     $scope.getServerVersion = function() {
       return clmServerVersion;
     };
@@ -160,10 +160,10 @@
 
   module.factory('CurrentUser', ['$http', '$q', 'CLMLocations', function ($http, $q, clmLocations) {
     var deferred = $q.defer();
-    $http.get(clmLocations.getSessionUrl()).success(function (authenticationStatus) {
-      deferred.resolve(authenticationStatus);
-    }).error(function () {
-      deferred.reject(arguments);
+    $http.get(clmLocations.getSessionUrl()).then(function (response) {
+      deferred.resolve(response.data);
+    }, function (errorResponse) {
+      deferred.reject(errorResponse.data);
     });
     return deferred.promise;
   }]);

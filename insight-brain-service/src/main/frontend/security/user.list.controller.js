@@ -59,12 +59,12 @@
 
           scope.resetClick = function() {
             scope.state = 'pending';
-            $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').success(function(data) {
-              scope.newPassword = data.newPassword;
+            $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').then(function(response) {
+              scope.newPassword = response.data.newPassword;
               scope.state = 'complete';
-            }).error(function() {
+            }, function(error) {
               scope.state = 'failed';
-              scope.error = messages.getHttpErrorMessage(arguments);
+              scope.error = messages.getHttpErrorMessage(error);
             });
           };
 

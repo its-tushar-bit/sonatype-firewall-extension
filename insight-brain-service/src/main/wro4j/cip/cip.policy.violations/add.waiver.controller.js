@@ -23,7 +23,7 @@
 
       //get the tree of contexts, and flatten down into a list we can display properly
       $http.get(CLM.path + 'rest/policyWaiver/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId +
-              '/applicable/context/' + $scope.policy.id).success(function(data) {
+              '/applicable/context/' + $scope.policy.id).then(function(response) {
         function processContext(context) {
           if (context.children) {
             angular.forEach(context.children, function (child) {
@@ -40,6 +40,7 @@
             label : type === 'repository_container' ? '' : type.charAt(0).toUpperCase() + type.slice(1)
           });
         }
+        var data = response.data;
 
         //if only application present, no need to show the app/org radio buttons
         $scope.waiverSelectOwner = (data.children && data.children.length);
@@ -56,9 +57,9 @@
         $scope.owner = {
           type : $scope.waiverTargets[0].type
         };
-      }).error(function() {
+      }, function(error) {
         $scope.waiverLoading = false;
-        $scope.waiveAssignError = messages.getHttpErrorMessage(arguments);
+        $scope.waiveAssignError = messages.getHttpErrorMessage(error);
       });
     }
     doLoad();
@@ -69,13 +70,13 @@
       $scope.waiveAssignError = null;
 
       $http.post(CLM.path + 'rest/policyWaiver/' + $scope.owner.type + '/' + $scope.waiver.ownerId,
-              $scope.waiver).success(function() {
+              $scope.waiver).then(function() {
         $scope.waiverSaving = false;
         $scope.$emit('reevaluate.component', $scope.waiver.hash ? { hash: $scope.waiver.hash } : null);
         $scope.$close();
-      }).error(function() {
+      }, function(error) {
         $scope.waiverSaving = false;
-        $scope.waiveAssignError = messages.getHttpErrorMessage(arguments);
+        $scope.waiveAssignError = messages.getHttpErrorMessage(error);
       });
     };
   }

@@ -9,11 +9,11 @@
 
   //main label controller handling the main view, and launching the other modals when necessary
   function LabelsController($q, $http, $scope, LabelModification, SelectedComponent, OwnerContext, messages) {
-    function errorFn() {
+    function errorFn(error) {
       $scope.alerts.length = 0;
       $scope.alerts.push({
         type: 'error',
-        msg: messages.getHttpErrorMessage(arguments)
+        msg: messages.getHttpErrorMessage(error)
       });
     }
 
@@ -60,9 +60,9 @@
     $scope.addLabel = function(label) {
       if (label.ownerType === 'application') {
         $http.post(CLM.path + 'rest/label/component/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/' +
-                SelectedComponent.get().hash, label).success(function() {
+                SelectedComponent.get().hash, label).then(function() {
           $scope.doLoad();
-        }).error(errorFn);
+        }, errorFn);
       }
       else {
         LabelModification.add(label).then(function () {

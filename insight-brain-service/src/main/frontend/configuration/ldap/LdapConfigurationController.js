@@ -44,7 +44,8 @@
    */
   function testRequest($scope, $http, resourceUrl, requestData) {
     $scope.testInProgress = true;
-    $http.put(resourceUrl, requestData).success(function(result) {
+    $http.put(resourceUrl, requestData).then(function(response) {
+      var result = response.data;
       $scope.testInProgress = false;
       $scope.alerts.length = 0; // clear old alerts
       if (result.status === 'OK') {
@@ -58,11 +59,11 @@
           msg: result.message
         });
       }
-    }).error(function(data, status) {
-      var msg = data;
+    }, function(errorResponse) {
+      var msg = errorResponse.data;
       $scope.testInProgress = false;
       $scope.alerts.length = 0; // clear old alerts
-      if (status === 0) {
+      if (errorResponse.status === 0) {
         msg = 'Unable to reach IQ Server';
       }
       showAlert($scope.alerts,{
@@ -213,14 +214,14 @@
 
       $scope.save = function() {
         $scope.saving = true;
-        $http.put(CLMLocations.getLdapConnectionConfig(), $scope.ldapConn).success(function(data) {
+        $http.put(CLMLocations.getLdapConnectionConfig(), $scope.ldapConn).then(function(response) {
           $scope.saving = false;
-          origLdapConn = data;
+          origLdapConn = response.data;
           $scope.ldapConn = angular.copy(origLdapConn);
           showAlert($scope.alerts, {type:'success', msg: 'Configuration saved.'});
-        }).error(function() {
+        }, function(error) {
           $scope.saving = false;
-          ErrorDialog.open(arguments);
+          ErrorDialog.open(error);
         });
       };
 
@@ -232,11 +233,11 @@
         }
       });
 
-      $http.get(CLMLocations.getLdapConnectionConfig()).success(function(data) {
-        origLdapConn = data;
+      $http.get(CLMLocations.getLdapConnectionConfig()).then(function(response) {
+        origLdapConn = response.data;
         $scope.ldapConn = angular.copy(origLdapConn);
-      }).error(function() {
-        ErrorDialog.open(arguments);
+      }, function(error) {
+        ErrorDialog.open(error);
       });
     }
   ]);
@@ -274,14 +275,14 @@
 
       $scope.save = function() {
         $scope.saving = true;
-        $http.put(CLMLocations.getLdapUserMappingConfig(), $scope.ldapUserMapping).success(function(data) {
+        $http.put(CLMLocations.getLdapUserMappingConfig(), $scope.ldapUserMapping).then(function(response) {
           $scope.saving = false;
-          origLdapUserMapping = data;
+          origLdapUserMapping = response.data;
           $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
           showAlert($scope.alerts,{type:'success', msg: 'Configuration saved.'});
-        }).error(function() {
+        }, function(error) {
           $scope.saving = false;
-          ErrorDialog.open(arguments);
+          ErrorDialog.open(error);
         });
       };
 
@@ -298,7 +299,8 @@
           resolve: {
             users: function() {
               var deferred = $q.defer();
-              $http.put(CLMLocations.getLdapUserMappingTest(), $scope.ldapUserMapping).success(function (users) {
+              $http.put(CLMLocations.getLdapUserMappingTest(), $scope.ldapUserMapping).then(function (response) {
+                var users = response.data;
                 // Add property that holds the count of fields that are populated
                 users.forEach(function(user) {
                   user.fieldCount = 0;
@@ -310,10 +312,10 @@
                   });
                 });
                 deferred.resolve(users);
-              }).error(function(data, status, headers, config) {
+              }, function(errorResponse) {
                 $scope.testInProgress = false;
-                showAlert($scope.alerts, {type: 'error', msg: data});
-                deferred.reject({ data: data, status: status, headers: headers, config: config });
+                showAlert($scope.alerts, {type: 'error', msg: errorResponse.data});
+                deferred.reject(errorResponse);
               });
               return deferred.promise;
             }
@@ -343,11 +345,11 @@
         return $scope.ldapUserMapping && $scope.ldapUserMapping.groupMappingType === groupMappingType;
       };
 
-      $http.get(CLMLocations.getLdapUserMappingConfig()).success(function(data) {
-        origLdapUserMapping = data;
+      $http.get(CLMLocations.getLdapUserMappingConfig()).then(function(response) {
+        origLdapUserMapping = response.data;
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
-      }).error(function() {
-        ErrorDialog.open(arguments);
+      }, function(error) {
+        ErrorDialog.open(error);
       });
     }
   ]);

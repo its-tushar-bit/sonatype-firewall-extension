@@ -101,11 +101,11 @@
       if ($window.FormData) {
         var form = new FormData();
         form.append('file', fileElement.files[0]);
-        $http.post(vm.uploadBundleUrl(), form).success(function(data) {
-          vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, data.ticketId);
+        $http.post(vm.uploadBundleUrl(), form).then(function(response) {
+          vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, response.data.ticketId);
           doPoll();
-        }).error(function() {
-          vm.evaluationStatus.error = Messages.getHttpErrorMessage(arguments);
+        }, function(errorResponse) {
+          vm.evaluationStatus.error = Messages.getHttpErrorMessage(errorResponse);
           vm.evaluationStatus.currentStepName = 'Done';
           setError(vm.evaluationStatus.error, doSubmit);
         });

@@ -20,11 +20,11 @@
 
     function doLoad() {
       delete vm.error;
-      $http.get(CLMLocations.getRepositoryInfoUrl($stateParams.repositoryId)).success(function (data) {
-        vm.repository = data.repository;
-        vm.repository.oldestEvalTimestamp = data.oldestEvalTimestamp;
-      }).error(function () {
-        vm.error = arguments;
+      $http.get(CLMLocations.getRepositoryInfoUrl($stateParams.repositoryId)).then(function (response) {
+        vm.repository = response.data.repository;
+        vm.repository.oldestEvalTimestamp = response.data.oldestEvalTimestamp;
+      }, function (error) {
+        vm.error = error;
       });
     }
 

@@ -330,25 +330,25 @@ var AngularStateUtils = {
             if (val) {
               var changeCounter = ++counter;
               val = scope.$eval(val) + '?' + clmBuildTimestamp;
-              $http.get(val, { cache: $templateCache }).success(function(response) {
+              $http.get(val, { cache: $templateCache }).then(function(response) {
                 if (changeCounter === counter) {
                   if (childScope) {
                     childScope.$destroy();
                   }
                   childScope = scope.$new();
-                  element.html(response);
+                  element.html(response.data);
                   $compile(element.contents())(childScope);
                   childScope.$emit('$includeContentLoaded');
                 }
-              }).error(function() {
-                    if (changeCounter === counter) {
-                      if (childScope) {
-                        childScope.$destroy();
-                      }
-                      childScope = null;
-                      element.html('');
-                    }
-                  });
+              }, function() {
+                if (changeCounter === counter) {
+                  if (childScope) {
+                    childScope.$destroy();
+                  }
+                  childScope = null;
+                  element.html('');
+                }
+              });
             }
           });
         }

@@ -107,12 +107,13 @@
             request = $http.get(CLMLocations.getRoleByIdUrl($stateParams.roleId));
           }
 
-          request.success(function (role) {
+          request.then(function (response) {
+            var role = response.data;
             $scope.readOnly = !rolePermissions.editRoles || role.builtIn;
             $scope.role = role;
             $scope.dirtyRole = angular.copy(role);
-          }).error(function () {
-            $scope.error = arguments;
+          }, function (error) {
+            $scope.error = error;
           });
         }
         else {
@@ -123,11 +124,13 @@
       $scope.save = function () {
         $scope.submitActive = true;
 
-        $http[$scope.role.id ? 'put' : 'post'](CLMLocations.getRoleListUrl(), $scope.dirtyRole).success(function () {
+        $http[$scope.role.id ? 'put' : 'post'](CLMLocations.getRoleListUrl(), $scope.dirtyRole).then(function () {
           RoleStore.refresh();
           delete $scope.dirtyRole;
           $state.go('roles');
-        }).error($scope.errorFn);
+        }, function(error) {
+          $scope.errorFn(error);
+        });
       };
 
       $scope.cancel = function () {

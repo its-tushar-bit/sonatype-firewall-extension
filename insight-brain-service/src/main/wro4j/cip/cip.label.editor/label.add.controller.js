@@ -18,12 +18,12 @@
       $scope.labelAddError = null;
       var parts = $scope.label.selectedOwner.split('$$');
       $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
-              component.hash, label).success(function() {
+              component.hash, label).then(function() {
         $scope.$emit('reevaluate.component', {hash: component.hash});
         $scope.$close(label);
-      }).error(function() {
+      }, function(error) {
         $scope.labelSaving = false;
-        $scope.error = messages.getHttpErrorMessage(arguments);
+        $scope.error = messages.getHttpErrorMessage(error);
       });
     };
 
@@ -36,7 +36,7 @@
       $scope.labelOwners = [];
 
       $http.get(CLM.path + 'rest/label/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/applicable/context/' +
-              label.id).success(function(data) {
+              label.id).then(function(response) {
         $scope.labelLoading = false;
         function processItem(item) {
           $scope.labelOwners.push(item);
@@ -45,11 +45,11 @@
           });
         }
 
-        processItem(data);
+        processItem(response.data);
         $scope.labelOwners.reverse();
-      }).error(function() {
+      }, function(error) {
         $scope.labelLoading = false;
-        $scope.error = messages.getHttpErrorMessage(arguments);
+        $scope.error = messages.getHttpErrorMessage(error);
       });
     };
 

@@ -13,7 +13,8 @@
       $scope.error = null;
       $scope.loadActive = true;
 
-      return $http.get(CLMLocations.getAuditReportSummary(OwnerContext.ownerId)).success(function(data) {
+      return $http.get(CLMLocations.getAuditReportSummary(OwnerContext.ownerId)).then(function(response) {
+        var data = response.data;
         $scope.loadActive = false;
 
         $scope.knownComponentCount = data.knownComponentCount;
@@ -26,9 +27,9 @@
         $scope.quarantinedComponentCount = data.quarantinedComponentCount;
 
         $scope.policyViolationCount = data.criticalComponentCount + data.severeComponentCount + data.moderateComponentCount;
-      }).error(function () {
+      }, function (error) {
         $scope.loadActive = false;
-        $scope.error = arguments;
+        $scope.error = error;
       });
     };
 

@@ -82,11 +82,10 @@
       $scope.doLoad = function() {
         $scope.data = null;
         $scope.error = null;
-        $http.post(CLMLocations.getPolicySummaryUrl(), filterToParams($scope.filters)
-        ).success(function(data) {
-          $scope.policySummaryData = generateModel(data);
-        }).error(function() {
-          $scope.error = arguments;
+        $http.post(CLMLocations.getPolicySummaryUrl(), filterToParams($scope.filters)).then(function(response) {
+          $scope.policySummaryData = generateModel(response.data);
+        }, function(error) {
+          $scope.error = error;
         });
       };
 

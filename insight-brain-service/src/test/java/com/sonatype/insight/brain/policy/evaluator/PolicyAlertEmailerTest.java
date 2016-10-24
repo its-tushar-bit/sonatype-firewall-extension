@@ -9,10 +9,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
@@ -58,7 +63,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -429,5 +436,46 @@ public class PolicyAlertEmailerTest
     umap.setGroupIDAttribute("cn");
     umap.setGroupSubtree(true);
     return umap;
+  }
+
+  @Test
+  public void testNotificationEmailBody() throws Exception {
+    String serverBaseUrl = "http://localhost/";
+    Application app = tempEntity.newApplicationWithParent("testapp");
+    String scanId = "some scan id";
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Policy policy = tempEntity.newPolicy(app.getId(), "TestPolicy");
+
+    List<PolicyFact> policyFacts = new ArrayList<>();
+    ComponentIdentifier componentIdentifierMaven = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1",
+        "e1");
+    String hashMaven = "hashmaven";
+    policyFacts.add(newPolicyFact(policy, componentIdentifierMaven, hashMaven));
+    ComponentIdentifier componentIdentifierAname = ComponentIdentifier.createAnameCoordinates("n1", "q1", "v1");
+    String hashAname = "hashAname";
+    policyFacts.add(newPolicyFact(policy, componentIdentifierAname, hashAname));
+    String hashUnknown = "hashUnknown123";
+    policyFacts.add(newPolicyFact(policy, null, hashUnknown));
+
+    Map<String, Object> model = policyAlertEmailer.createPolicyMailModel(serverBaseUrl, app, scanId, stage,
+        policyFacts);
+
+    String emailBody = policyAlertEmailer.createPolicyMailBody(model);
+    assertThat(emailBody, containsString(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString()));
+    assertThat(emailBody, not(containsString(hashMaven)));
+    assertThat(emailBody, containsString(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString()));
+    assertThat(emailBody, not(containsString(hashAname)));
+    assertThat(emailBody, containsString(hashUnknown));
+  }
+
+  private PolicyFact newPolicyFact(Policy policy, ComponentIdentifier componentIdentifier, String hash) {
+    ComponentFact componentFact = new ComponentFact(componentIdentifier, hash);
+    if (componentIdentifier != null) {
+      componentFact.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier));
+    }
+    PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
+    policyFact.addComponentFact(componentFact);
+
+    return policyFact;
   }
 }

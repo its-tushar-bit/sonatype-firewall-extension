@@ -180,7 +180,7 @@ public abstract class AbstractPolicyAlertEmailer
     return mail;
   }
 
-  protected String processTemplate(Map<String, Object> model) throws IOException {
+  protected String createPolicyMailBody(Map<String, Object> model) throws IOException {
     return TemplateUtils.render(getPolicyThreatsTemplate(), model);
   }
 

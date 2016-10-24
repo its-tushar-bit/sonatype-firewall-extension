@@ -158,7 +158,7 @@ div,p,a,li,td {
 						</td> </#if>
 						<td valign="top" align="left" style="padding-left: 10px;">
 							<div style="background-color: #FFFFFF;">
-								<#if component.groupId??>
+								<#if component.displayName??>
 								<div style="border-bottom: 1px dotted #E6E6E6;">
 									${component.displayName}
 								</div>

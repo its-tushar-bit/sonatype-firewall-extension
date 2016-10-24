@@ -66,7 +66,7 @@ public class RepositoryPolicyAlertEmailer
         final List<Address> addresses = Collections.singletonList(new Address(details.getKey()));
         final String subject = createPolicyMailSubject(new PolicyAlertCounts(details.getValue()),
             repository.getName());
-        final String body = processTemplate(createPolicyMailModel(repository, details.getValue()));
+        final String body = createPolicyMailBody(createPolicyMailModel(repository, details.getValue()));
         getMail().sendHtml(mailId, addresses, subject, body);
       }
       catch (final Exception e) {

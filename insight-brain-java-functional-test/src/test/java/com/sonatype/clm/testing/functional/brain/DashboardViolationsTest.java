@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.brain;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -129,7 +128,7 @@ public class DashboardViolationsTest
   }
 
   @Test
-  public void testViolationsTable() throws ParseException {
+  public void testViolationsTable() {
     ViolationsResults table = DashboardPage.violationsView().results();
 
     // no results
@@ -318,7 +317,7 @@ public class DashboardViolationsTest
     DashboardPage.violationsView().results().maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
   }
 
-  private void assertViolationsCsv(String csv, Map<String, Date> expectedSortedResults) throws ParseException {
+  private void assertViolationsCsv(String csv, Map<String, Date> expectedSortedResults) {
     String[] lines = csv.split("\r\n");
 
     // assert CSV header

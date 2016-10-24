@@ -258,7 +258,7 @@
           '</div>' +
           '<div class="large-select-list-item-content">' +
             '<div class="flexbox-container">\n' +
-              '<span ng-bind-html="user.displayName"></span>\n' +
+              '<span>{{user.displayName}}</span>\n' +
               '<span class="large-select-list-item-detail">{{user.internalName}}</span>\n' +
             '</div>\n' +
             '<div class="flexbox-container">\n' +

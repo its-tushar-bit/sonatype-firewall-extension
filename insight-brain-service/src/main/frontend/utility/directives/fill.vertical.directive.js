@@ -22,9 +22,7 @@
       }
 
       $timeout(updateDimensions, 100);
-      if (!$.browser.msie || $.browser.version > 8) {
-        $($window).resize(dedupe);
-      }
+      $($window).resize(dedupe);
 
       scope.$on('$destroy', function () {
         $($window).unbind('resize', dedupe);

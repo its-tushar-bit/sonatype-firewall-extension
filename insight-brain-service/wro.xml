@@ -78,7 +78,8 @@
   </group>
 
   <group name='external'>
-    <js>/frontend/lib/jquery/jquery.js</js>
+    <js>/frontend/lib/jquery/dist/jquery.js</js>
+    <js>/wro4j/lib/jquery/jquery.browser.js</js>
     <js>/frontend/lib/bootstrap/bootstrap-2.3.1.min.js</js>
     <js>/frontend/lib/angular/angular.js</js>
     <js>/frontend/lib/angular-1.5.8/angular-aria.js</js>
@@ -160,7 +161,7 @@
 
   <group name='version.graph.app'>
     <group-ref>bootstrap-css</group-ref>
-    <js>/frontend/lib/jquery/jquery.js</js>
+    <js>/frontend/lib/jquery/dist/jquery.js</js>
     <js>/frontend/lib/angular/angular.js</js>
     <js>/wro4j/version-graph/app/version.graph.app.js</js>
     <js>/wro4j/version-graph/app/owner.context.service.js</js>
@@ -174,7 +175,7 @@
     <css>/frontend/scss/_global.scss</css>
     <css>/frontend/scss/_threatBars.scss</css>
     <css>/wro4j/version-graph/viewdetails.css</css>
-    <js>/frontend/lib/jquery/jquery.js</js>
+    <js>/frontend/lib/jquery/dist/jquery.js</js>
     <js>/frontend/lib/angular/angular.js</js>
     <js>/wro4j/version-graph/viewdetails.js</js>
   </group>

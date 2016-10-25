@@ -13,12 +13,12 @@
     "bootstrap-sass-official": "https://github.com/twbs/bootstrap-sass.git#v2.3.2.0",
     "components-font-awesome": "=4.3.0",
     "fuse.js": "=1.2.2",
-    "jquery": "=1.8.3",
+    "jquery": "=2.2.4",
     "ngUpload": "=0.5.18",
     "jquery-ui": "=1.11.4"
   },
   "resolutions": {
     "angular": "=1.5.8",
-    "jquery": "=1.8.3"
+    "jquery": "=2.2.4"
   }
 }

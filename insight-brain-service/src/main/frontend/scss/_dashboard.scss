@@ -217,6 +217,13 @@
         .fa-caret-down {
           top: calc(50%);
         }
+        .clm-bar {
+          top: 41px;
+          height: 6px;
+          position: absolute;
+          width: calc(100% - 2px);
+          left: 1px;
+        }
         &.selected-column {
           background-color: $grey-2;
         }
@@ -408,6 +415,9 @@
 
         &.low-risk {
           width: $low-risk-width;
+          .clm-bar {
+            width: calc(100% - 1px);
+          }
         }
       }
 
@@ -486,6 +496,9 @@
 
         &.low-risk {
           width: $low-risk-width;
+          .clm-bar {
+            width: calc(100% - 1px);
+          }
         }
 
         &.chevron {

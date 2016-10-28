@@ -11,10 +11,14 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DashboardFilter;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyTypeFilter;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.SaveFilterDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.StageFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
+import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -81,7 +85,7 @@ public class DashboardFilterTest
   public void clearFilters() {
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
-    for(com.sonatype.insight.brain.model.filter.DashboardFilter filter : filters) {
+    for (com.sonatype.insight.brain.model.filter.DashboardFilter filter : filters) {
       dashboardFilterDAO.delete(filter);
     }
   }
@@ -201,7 +205,8 @@ public class DashboardFilterTest
     assertNewCounterState();
 
     // assert stored filter
-    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO().getByUsername("admin");
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO()
+        .getByUsername("admin");
     assertThat(filter.get(0).getFilter(), is("{\n" +
         "  \"minPolicyThreatLevel\" : 2,\n" +
         "  \"maxPolicyThreatLevel\" : 7,\n" +
@@ -239,6 +244,59 @@ public class DashboardFilterTest
     // verify no data message
     DashboardPage.violationsView().results().noDataMessage().shouldBe(visible)
         .shouldHave(text("No data available in the last 30 days given the applied filters and available permissions."));
+  }
+
+  @Test
+  public void testSaveLoadFilter() {
+    ManageFilters manage = DashboardFilters.manage();
+
+    // no saved filters
+    manage.openMenuButton().click();
+    manage.dropdownMenu().shouldBe(visible);
+    manage.emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters."));
+    manage.openMenuButton().click();
+
+    // save initial filter
+    saveFilter("Initial");
+    manage.openMenuButton().click();
+    manage.filters().shouldHaveSize(1);
+    manage.filter(0).shouldHave(text("Initial"));
+    manage.openMenuButton().click();
+
+    // "save filter" should be disabled if filter changes are not applied
+    setSomeFilterValues();
+    manage.openMenuButton().click();
+    manage.saveFilter().shouldHave(DISABLED).click();
+    manage.saveFilterDialog().shouldNotBe(visible);
+    manage.saveFilter().hover();
+    manage.tooltip().shouldHave(text("Please apply filter before saving"));
+
+    // apply and save new filter
+    DashboardFilters.applyButton().click();
+    saveFilter("New Filter");
+    manage.openMenuButton().click();
+    manage.filters().shouldHaveSize(2);
+    manage.filter(1).shouldHave(text("New Filter"));
+
+    // load other filter
+    ViolationsResults table = DashboardPage.violationsView().results();
+    table.violations().shouldHaveSize(1);
+    manage.filter(0).click();
+    assertInitialFilterState();
+    table.violations().shouldHaveSize(3);
+  }
+
+  private void saveFilter(String filterName) {
+    ManageFilters manage = DashboardFilters.manage();
+    manage.openMenuButton().click();
+    manage.saveFilter().shouldNotHave(DISABLED).click();
+    SaveFilterDialog saveDialog = manage.saveFilterDialog();
+    saveDialog.shouldBe(visible);
+    saveDialog.saveButton().shouldHave(DISABLED);
+    saveDialog.nameInput().val(filterName);
+    saveDialog.saveButton().shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
+    saveDialog.shouldNotBe(visible);
   }
 
   private void setSomeFilterValues() {

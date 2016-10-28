@@ -66,12 +66,13 @@ body {
 }
 
 .sidebar-container {
+  position: relative;
+  z-index: $zindexSidebar;
   width: 22%;
   min-width: 215px;
   max-width: 300px;
   height: 100%;
   display: inline-block;
-  overflow: auto;
   background-color: $grey-2;
   border-right: 1px solid $grey-3;
   white-space: normal;

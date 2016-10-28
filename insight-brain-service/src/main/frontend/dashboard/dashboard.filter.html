@@ -1,4 +1,4 @@
-<form class="dashboard-filter-container" ng-submit="vm.save()">
+<form class="dashboard-filter-container" ng-submit="vm.applyCurrentFilter()">
   <div class="tree-view">
     <script type="text/ng-template" id="entity-filter-template">
       <div>
@@ -46,8 +46,38 @@
       </div>
     </script>
 
+    <div  id="manage-filters-dropdown" class="clm-dropdown pull-right">
+      <button id="manage-filters-button" class="btn btn-default dropdown-toggle btn-tertiary" type="button" data-toggle="dropdown">
+        Manage
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li><a id="show-save-filter-dialog" ng-click="vm.openSaveFilterModal($event)" ng-class="{disabled: vm.isDirty()}"
+               data-tooltip="{{vm.isDirty() ? 'Please apply filter before saving': ''}}"
+               data-tooltip-placement="top-left"
+               data-tooltip-append-to-body="true"
+               tooltip-class="filter-label-tooltip">
+          <i class="fa fa-floppy-o"></i>Save...</a>
+        </li>
+        <li><h4 class="menu-sub-header"><i class="fa fa-folder-open"></i>LOAD</h4></li>
+        <li class="empty-list" ng-hide="vm.savedNamedFilters.length">No saved filters.</li>
+        <li>
+          <ul class="dropdown-contents">
+            <li class="filter-item clickable" ng-repeat="savedFilter in vm.savedNamedFilters" ng-click="vm.applySavedFilter(savedFilter)" >
+              {{savedFilter.name}}
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
     <div class="tree-view-header">
       Filter
+    </div>
+    <div ng-show="vm.loadErrorFilterName" class="clm-alert alert alert-error">
+      <div><i class="fa fa-warning"></i>
+        <span>Failed to load {{vm.loadErrorFilterName}}</span>
+      </div>
     </div>
     <div load-wrapper="vm.loadError" reload="vm.doLoad()" error-message="Unable to load filter data."
          loading="!vm.applications">
@@ -119,7 +149,7 @@
       </div>
     </div>
   </div>
-  <div class="dashboard-filter-footer" submit-wrapper="vm.saveError" retry="vm.save()">
+  <div class="dashboard-filter-footer" submit-wrapper="vm.saveError" retry="vm.applyCurrentFilter()">
     <button id="dashboard-filter-apply" class="btn" type="submit" submit-validation submit-dirty="vm.isDirty()"
             submit-type="update" submit-tooltip-target='body'>Apply
     </button>

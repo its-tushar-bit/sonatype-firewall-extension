@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.elements;
 
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
@@ -62,6 +63,66 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     stageFilter().twisty().click();
     policyTypeFilter().twisty().click();
     policyThreatLevelFilter().twisty().click();
+  }
+
+  public static ManageFilters manage() {
+    return new ManageFilters();
+  }
+
+  public static class ManageFilters
+      extends BasicElement<ManageFilters>
+  {
+    public ManageFilters() {
+      super("#manage-filters-dropdown");
+    }
+
+    public SelenideElement openMenuButton() {
+      return $("#manage-filters-button");
+    }
+
+    public SelenideElement dropdownMenu() {
+      return child(".dropdown-menu");
+    }
+
+    public SelenideElement saveFilter() {
+      return $("#show-save-filter-dialog");
+    }
+
+    public SelenideElement tooltip() {
+      return $(".filter-label-tooltip");
+    }
+
+    public SelenideElement emptyListMessage() {
+      return child(".empty-list");
+    }
+
+    public SaveFilterDialog saveFilterDialog() {
+      return new SaveFilterDialog();
+    }
+
+    public ElementsCollection filters() {
+      return children(".dropdown-contents", ".filter-item");
+    }
+
+    public SelenideElement filter(int i) {
+      return child(".dropdown-contents", ".filter-item", SelectorUtils.nthChild(i + 1));
+    }
+  }
+
+  public static class SaveFilterDialog
+      extends BasicElement<SaveFilterDialog>
+  {
+    public SaveFilterDialog() {
+      super("#save-filter-modal");
+    }
+
+    public SelenideElement saveButton() {
+      return child(".clm-modal-footer", ".btn-primary");
+    }
+
+    public SelenideElement nameInput() {
+      return $("#filter-name-input");
+    }
   }
 
   public static class DashboardFilter extends BasicElement<DashboardFilter>

@@ -496,6 +496,7 @@ $form-mask-zindex: $zindexModal + 10;
 // need the login panel above the form save mask
 // ui-bootstrap modal window template sets z-index via ng-style, hence important
 $zindex-login-modal: $zindexModal + 20 !important;
+$zindexSidebar: 1;
 
 /*
   #Other

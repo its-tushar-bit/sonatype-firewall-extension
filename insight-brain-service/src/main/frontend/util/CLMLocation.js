@@ -218,6 +218,11 @@
         getDashboardFilters : function() {
           return baseUrl.get() + '/rest/dashboard/filters/active';
         },
+
+        getDashboardSavedFilters : function() {
+          return baseUrl.get() + '/rest/dashboard/filters/named';
+        },
+
         getDashboardViewingSummaryUrl : function() {
           return baseUrl.get() + '/rest/dashboard/filters/summary';
         },

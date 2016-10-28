@@ -22,20 +22,28 @@
             });
           }
         });
-        return risks;
+        return [risks];
       });
     }
 
     function getApplicationRisks(filter) {
-      return getData(CLMLocations.getApplicationRisksUrl(), filter);
+      return getData(CLMLocations.getApplicationRisksUrl(), filter).then(function(data) {
+        return [data];
+      });
     }
 
     function getComponentRisks(filter) {
+      var series = [];
       return getData(CLMLocations.getComponentRisksUrl(), filter).then(function(components) {
         components.forEach(function(component) {
           component.name = ComponentDisplayNameUtil.deriveComponentName(component);
+          ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'].forEach(function(scoreField) {
+            if (component[scoreField] && series.lastIndexOf(component[scoreField]) === -1) {
+              series.push(component[scoreField]);
+            }
+          });
         });
-        return components;
+        return [components, series];
       });
     }
 

@@ -34,16 +34,22 @@
       <div class="tile-scroll-container">
         <div components-results>
           <div class="tile clickable" ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
-               ng-click="goToComponentDetails(component)">
-            <div class="components-row">
-              <div class="column greedy component-name semi-bold">{{component.name}}</div><!--
-              --><div class="column fixed padded-cell affected-apps">{{::component.affectedApplications}}</div><!--
-              --><div class="column fixed padded-cell total-risk">{{::component.score}}</div><!--
-              --><div class="column fixed padded-cell critical-risk">{{::component.scoreCritical}}</div><!--
-              --><div class="column fixed padded-cell severe-risk">{{::component.scoreSevere}}</div><!--
-              --><div class="column fixed padded-cell moderate-risk">{{::component.scoreModerate}}</div><!--
-              --><div class="column fixed padded-cell low-risk">{{::component.scoreLow}}</div><!--
-              --><div class="column chevron"><i class="fa fa-chevron-right"></i></div>
+               ng-click="goToComponentDetails(component)"><!--
+         --><div class="components-row"><!--
+           --><div class="column greedy component-name semi-bold">{{component.name}}</div><!--
+           --><div class="column fixed affected-apps">{{::component.affectedApplications}}</div><!--
+           --><div class="column fixed heatmap-cell total-risk {{::getTextColorClass(component.score)}}"
+                   ng-attr-style="background-color: {{::getColor(component.score)}}">{{::component.score}}</div><!--
+           --><div class="column fixed heatmap-cell critical-risk {{::getTextColorClass(component.scoreCritical)}}"
+                   ng-attr-style="background-color: {{::getColor(component.scoreCritical)}}">{{::component.scoreCritical}}</div><!--
+           --><div class="column fixed heatmap-cell severe-risk {{::getTextColorClass(component.scoreSevere)}}"
+                   ng-attr-style="background-color: {{::getColor(component.scoreSevere)}}">{{::component.scoreSevere}}</div><!--
+           --><div class="column fixed heatmap-cell moderate-risk {{::getTextColorClass(component.scoreModerate)}}"
+                   ng-attr-style="background-color: {{::getColor(component.scoreModerate)}}">{{::component.scoreModerate}}</div><!--
+           --><div class="column fixed heatmap-cell low-risk {{::getTextColorClass(component.scoreLow)}}"
+                   ng-attr-style="background-color: {{::getColor(component.scoreLow)}}">{{::component.scoreLow}}</div><!--
+           --><div class="column chevron {{::getTextColorClass(component.scoreLow)}}"
+                   ng-attr-style="background-color: {{::getColor(component.scoreLow)}}"><i class="fa fa-chevron-right"></i></div>
             </div>
           </div>
         </div>

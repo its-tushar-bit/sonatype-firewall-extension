@@ -32,9 +32,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
+import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -113,6 +115,27 @@ public class DashboardComponentsTest
         "Group2 : Artifact2 : Version2",  //
         "Group1 : Artifact1 : Version1"  //
     ));
+
+    // test heat map
+    table.componentRisks(0).shouldHave(
+        cssValues("background-color", "rgba(54, 93, 123, 1)", "rgba(54, 93, 123, 1)", "rgba(247, 251, 255, 1)",
+            "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)"));
+    // check the text colors
+    table.componentRisks(0).get(0).shouldHave(cssClass("white-text"));
+    table.componentRisks(0).get(1).shouldHave(cssClass("white-text"));
+    table.componentRisks(0).get(2).shouldHave(cssClass("grey-text"));
+    table.componentRisks(0).get(3).shouldHave(cssClass("grey-text"));
+    table.componentRisks(0).get(4).shouldHave(cssClass("grey-text"));
+
+    table.componentRisks(1).shouldHave(
+        cssValues("background-color", "rgba(91, 145, 187, 1)", "rgba(247, 251, 255, 1)", "rgba(91, 145, 187, 1)",
+            "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)"));
+    table.componentRisks(2).shouldHave(
+        cssValues("background-color", "rgba(150, 185, 212, 1)", "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)",
+            "rgba(150, 185, 212, 1)", "rgba(247, 251, 255, 1)"));
+    table.componentRisks(3).shouldHave(
+        cssValues("background-color", "rgba(203, 220, 234, 1)", "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)",
+            "rgba(247, 251, 255, 1)", "rgba(203, 220, 234, 1)"));
 
     // open component details and back
     DashboardComponentDetails dashboardComponentDetails = new DashboardComponentDetails();

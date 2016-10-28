@@ -20,7 +20,7 @@ describe('dashboard.results.directives.spec', function() {
       return dashboardDataServiceMock;
     });
     $provide.service('$state', function() {
-      $state = jasmine.createSpyObj('state', ['go']);
+      $state = jasmine.createSpyObj('state', ['go', 'is']);
       return $state;
     });
   }));
@@ -47,7 +47,7 @@ describe('dashboard.results.directives.spec', function() {
       }));
 
       it('Filter Set', function() {
-        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.resolve('foo'));
+        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.resolve(['foo']));
         scope.$apply(function() {
           scope.filters = {
             applicationIds: ['foo'],
@@ -60,7 +60,7 @@ describe('dashboard.results.directives.spec', function() {
         expect(directiveScope.data).toEqual('foo');
 
         // Filter is changed
-        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.resolve('bar'));
+        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.resolve(['bar']));
         scope.$apply(function() {
           scope.filters = angular.copy(scope.filters);
           scope.filters.applicationIds = ['bar'];
@@ -69,8 +69,8 @@ describe('dashboard.results.directives.spec', function() {
       });
 
       it('Drops Requests That Don\'t Match', function() {
-        var deferred1 = $q.defer();
-        var deferred2 = $q.defer();
+        var deferred1 = $q.defer([]);
+        var deferred2 = $q.defer([]);
         dashboardDataServiceMock[directive.serviceMethod].andReturn(deferred1.promise);
         scope.$apply(function() {
           scope.filters = {
@@ -89,11 +89,11 @@ describe('dashboard.results.directives.spec', function() {
           scope.filters.applicationIds = ['bar'];
         });
 
-        deferred1.resolve('foo');
+        deferred1.resolve(['foo']);
         scope.$apply();
         expect(directiveScope.data).toBeFalsy();
 
-        deferred2.resolve('bar');
+        deferred2.resolve(['bar']);
         scope.$apply();
         expect(directiveScope.data).toEqual('bar');
       });

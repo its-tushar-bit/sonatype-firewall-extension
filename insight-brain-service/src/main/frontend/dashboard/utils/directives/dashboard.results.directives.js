@@ -24,9 +24,14 @@
               $scope.error = $scope.data = null;
               var params = filterToParams($scope.filters, $scope.maxResults);
 
-              dashboardDataService[serviceMethod](params).then(function(data) {
+              dashboardDataService[serviceMethod](params).then(function(results) {
                 if (angular.equals(newFilter, $scope.filters)) {
-                  $scope.data = data;
+                  $scope.data = results[0];
+                  if ($scope.brew) {
+                    $scope.brew.setSeriesInclusive(results[1]);
+                    $scope.brew.setNumClasses(Math.min(7, results[1].length));
+                    $scope.brew.classify('quantile');
+                  }
                 }
               }, function() {
                 if (angular.equals(newFilter, $scope.filters)) {
@@ -59,12 +64,21 @@
           transclude: true,
           templateUrl: 'dashboard-table',
           controller: [
-            '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore',
-            function($scope, $rootScope, $state, Dialog, ApplicationStore) {
+            '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore', 'ClassyBrew',
+            function($scope, $rootScope, $state, Dialog, ApplicationStore, ClassyBrew) {
               var filterChangedFn = createFilterWatch($scope, $rootScope, Dialog, ApplicationStore);
+              if ($state.is('dashboard.overview.components') || $state.is('dashboard.overview.components')) {
+                $scope.brew = ClassyBrew.create();
+              }
               $scope.$watch('filters', filterChangedFn);
               $scope.goToComponentDetails = function(component) {
                 $state.go('dashboard.component', {hash: component.hash});
+              };
+              $scope.getColor = function(score) {
+                return $scope.brew.getColor(score);
+              };
+              $scope.getTextColorClass = function(score) {
+                return score === 0 ? 'grey-text' : $scope.brew.isWhiteText(score) ? 'white-text' : undefined;
               };
               $scope.encodeURIComponent = window.encodeURIComponent;
             }

@@ -44,7 +44,7 @@ describe('dashboard.data.service.spec', function() {
       $httpBackend.expectPOST(CLMLocations.getNewestRisksUrl(), filter).respond(data);
 
       dashboardDataService.getNewestRisks(filter).then(function(data) {
-        result = data;
+        result = data[0];
       });
 
       $httpBackend.flush();
@@ -59,23 +59,23 @@ describe('dashboard.data.service.spec', function() {
 
   describe('getApplicationRisks()', function() {
     it('returns data on success', function() {
-      var result, filter = {filterParam: 'filter value'};
+      var risks, filter = {filterParam: 'filter value'};
       $httpBackend.expectPOST(CLMLocations.getApplicationRisksUrl(), filter)
           .respond(['application1', 'application2']);
 
       dashboardDataService.getApplicationRisks(filter).then(function(data) {
-        result = data;
+        risks = data[0];
       });
 
       $httpBackend.flush();
-      expect(result).toEqual(['application1', 'application2']);
+      expect(risks).toEqual(['application1', 'application2']);
     });
   });
 
   describe('getComponentRisks()', function() {
-    var result, filter = {filterParam: 'filter value'};
+    var components, filter = {filterParam: 'filter value'};
     it('populates component name', function() {
-      var data = [
+      var series, data = [
         {
           hash: 'f60e9504841ba867a692',
           displayName: {
@@ -84,24 +84,29 @@ describe('dashboard.data.service.spec', function() {
               {value: ' : '},
               {field: 'any', value: 'bar'}
             ]
-          }
+          },
+          score: 12
         },
         {
-          hash: '1249e25aebb15358bedd'
+          hash: '1249e25aebb15358bedd',
+          scoreSevere: 8
         }
       ];
 
       $httpBackend.expectPOST(CLMLocations.getComponentRisksUrl(), filter).respond(data);
 
-      dashboardDataService.getComponentRisks(filter).then(function(components) {
-        result = components;
+      dashboardDataService.getComponentRisks(filter).then(function(data) {
+        components = data[0];
+        series = data[1];
       });
 
       $httpBackend.flush();
-      expect(result[0].hash).toBe('f60e9504841ba867a692');
-      expect(result[0].name).toBe('foo : bar');
-      expect(result[1].hash).toBe('1249e25aebb15358bedd');
-      expect(result[1].name).toBe('Unknown');
+      expect(components[0].hash).toBe('f60e9504841ba867a692');
+      expect(components[0].name).toBe('foo : bar');
+      expect(components[1].hash).toBe('1249e25aebb15358bedd');
+      expect(components[1].name).toBe('Unknown');
+
+      expect(series).toEqual([12, 8]);
     });
   });
 });

@@ -13,10 +13,10 @@
   $threat-bar-width: 8px;
   $age-width: 67px;
   $scroll-bar-width: 14px;
-  $chevron-width: 24px;
+  $chevron-width: 21px;
   $affected-apps-width: 109px;
 
-  $chevron-header-width: $chevron-width + $scroll-bar-width;
+  $chevron-header-width: 23px;
   $total-risk-columns: $total-risk-width + $critical-risk-width + $severe-risk-width + $moderate-risk-width + $low-risk-width;
 
   .tile-scroll-container {
@@ -62,7 +62,7 @@
   .column {
     display: inline-block;
     box-sizing: border-box;
-    vertical-align: middle;
+    vertical-align: top;
 
     &:focus {
       outline: none;
@@ -245,6 +245,15 @@
     // provide extra padding to cells to compensate for sort indicators
     .padded-cell {
       padding-left: 16px;
+    }
+    .heatmap-cell {
+      @extend .semi-bold;
+    }
+    .white-text {
+      color: $off-white;
+    }
+    .grey-text {
+      color: $grey-4;
     }
   }
 
@@ -452,7 +461,7 @@
     .components-row {
       .column {
         &.component-name {
-          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width});
+          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width -1px});
         }
 
         &.affected-apps {
@@ -478,6 +487,10 @@
         &.low-risk {
           width: $low-risk-width;
         }
+
+        &.chevron {
+          width: #{$chevron-width - 1px};
+        }
       }
     }
 
@@ -491,6 +504,17 @@
         }
       }
     }
+
+    .dashboard-results {
+      .tile {
+        height: 40px;
+        line-height: 40px;
+        padding-right: 0;
+        .chevron {
+          padding-right: 12px;
+        }
+      }
+    }
   }
 }
 
@@ -500,7 +524,7 @@
   text-align: center;
 }
 
-#dashboard-applications {
+#dashboard-applications, #dashboard-components {
   .dashboard-results {
     .tile {
       padding-top: 0;

@@ -39,6 +39,10 @@ public class DashboardComponents
       return child(".tile", nthChild(index + 1));
     }
 
+    public ElementsCollection componentRisks(int index) {
+      return children(".tile", nthChild(index + 1), ".column:nth-child(n+3):nth-child(-n+7)");
+    }
+
     public SelenideElement firstComponent() {
       return child(".tile:first-child");
     }

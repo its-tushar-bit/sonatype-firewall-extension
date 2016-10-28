@@ -19,6 +19,8 @@
   $chevron-header-width: 23px;
   $total-risk-columns: $total-risk-width + $critical-risk-width + $severe-risk-width + $moderate-risk-width + $low-risk-width;
 
+  $tile-right-padding: 12px;
+
   .tile-scroll-container {
     padding-top: 4px;
     height: calc(100% - 16px);
@@ -26,7 +28,7 @@
 
   .tile {
     margin-bottom: 4px;
-    padding-right: 12px;
+    padding-right: $tile-right-padding;
     line-height: 21px;
 
     .fa-chevron-right {
@@ -393,7 +395,7 @@
 
       .column {
         &.application-name {
-          width: calc(100% - #{$total-risk-columns + $chevron-width});
+          width: calc(100% - #{$total-risk-columns + $chevron-width + $tile-right-padding});
           font-family: Proxima Nova Semibold, sans-serif;
         }
 
@@ -414,7 +416,7 @@
         }
 
         &.low-risk {
-          width: $low-risk-width;
+          width: $low-risk-width + $chevron-width;
           .clm-bar {
             width: calc(100% - 1px);
           }
@@ -422,46 +424,55 @@
       }
 
       &.total-application-risks {
-        padding-top: 8px;
-        padding-bottom: 8px;
         border-bottom: 1px solid $grey-3;
-      }
-
-      &.stage-application-risks {
-        .column.application-name {
-          text-align: right;
-          font-family: Proxima Nova, sans-serif;
-          padding-right: 12px;
-        }
-
-        .stage-application-risks-container {
-          padding-top: 8px;
-          padding-bottom: 8px;
-          border-top: 1px solid $grey-1;
-        }
-        .fa {
-          margin-right: 8px;
-          width: 12px;
-        }
-      }
-
-      &:nth-child(2) {
-        .stage-application-risks-container {
-          border-top: 1px solid transparent;
-        }
       }
     }
 
     .dashboard-headers {
       .applications-row {
-        .chevron {
-          width: $chevron-header-width;
-        }
         .column.application-name {
           width: calc(100% - #{$total-risk-columns + $chevron-header-width});
         }
+      }
+    }
+
+    .dashboard-results {
+      .tile {
+        /* remove padding so we can extend the color in low risk to the tile edge */
+        padding-right: 0px;
+      }
+
+      .applications-row.stage-application-risks {
+        .application-name {
+          text-align: right;
+          font-family: Proxima Nova, sans-serif;
+          padding-right: 12px;
+        }
+
+        &:nth-child(n+3) .column:nth-child(n+2) {
+          border-top: 1px solid $grey-1;
+        }
+
         .column.low-risk {
-          width: $low-risk-width + $chevron-header-width;
+          /* ensures the border doesn't extend the full width that would be occupied by chevrons on non-stage lines */
+          margin-right: $chevron-width;
+          padding-left: $chevron-width;
+          width: $low-risk-width + $tile-right-padding;
+        }
+      }
+
+      .column {
+        padding-top: 8px;
+        padding-bottom: 8px;
+
+        &.low-risk {
+          /* No chevron on the table + extend color to the edge */
+          width: $low-risk-width + $chevron-width + $tile-right-padding;
+        }
+
+        .fa {
+          margin-right: 8px;
+          width: 12px;
         }
       }
     }

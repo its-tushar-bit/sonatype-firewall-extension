@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 
+import com.codeborne.selenide.ElementsCollection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -37,9 +38,12 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
+import static com.sonatype.clm.testing.functional.utils.IqConditions.allHaveClass;
+import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -136,11 +140,21 @@ public class DashboardApplicationsTest
 
     // check app totals and report links
     ApplicationTile app5 = table.application(0);
-    app5.getTotalsInRow(0).shouldHave(texts("14", "8", "4", "2", "0", ""));
-    app5.getTotalsInRow(1).shouldHave(texts("8", "8", "0", "0", "0", ""));
-    app5.getTotalsInRow(2).shouldHave(texts("0", "0", "0", "0", "0", ""));
-    app5.getTotalsInRow(3).shouldHave(texts("4", "0", "4", "0", "0", ""));
-    app5.getTotalsInRow(4).shouldHave(texts("2", "0", "0", "2", "0", ""));
+    ElementsCollection app5Totals = app5.getTotalsInRow(0);
+    app5Totals.shouldHave(texts("14", "8", "4", "2", "0"), allHaveClass("heatmap-cell"))
+        .shouldHave(cssValues("background-color", "rgba(40, 69, 91, 1)", "rgba(83, 139, 183, 1)", // heatmap
+            "rgba(121, 165, 198, 1)", "rgba(190, 212, 228, 1)", "rgba(247, 251, 255, 1)"));
+    app5Totals.get(0).shouldHave(cssClass("white-text"));
+    app5Totals.get(1).shouldHave(cssClass("white-text"));
+    app5Totals.get(2).shouldNotHave(cssClass("white-text"));
+    app5Totals.get(3).shouldNotHave(cssClass("white-text"));
+    app5Totals.get(4).shouldNotHave(cssClass("white-text"));
+    app5.getTotalsInRow(1).shouldHave(texts("8", "8", "0", "0", "0"))
+        .shouldHave(cssValues("background-color", "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", // no heatmap
+            "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)"));
+    app5.getTotalsInRow(2).shouldHave(texts("0", "0", "0", "0", "0"));
+    app5.getTotalsInRow(3).shouldHave(texts("4", "0", "4", "0", "0"));
+    app5.getTotalsInRow(4).shouldHave(texts("2", "0", "0", "2", "0"));
     app5.getStageLinks().shouldHaveSize(4).shouldHave(texts(
         "Build",          //
         "Stage Release",  //

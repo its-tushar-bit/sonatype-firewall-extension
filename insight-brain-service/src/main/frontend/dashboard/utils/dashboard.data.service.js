@@ -27,8 +27,22 @@
     }
 
     function getApplicationRisks(filter) {
+      var scoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
+
       return getData(CLMLocations.getApplicationRisksUrl(), filter).then(function(data) {
-        return [data];
+        var series = {};
+
+        data.forEach(function(application) {
+          scoreFields.forEach(function(scoreField) {
+            if (application.totalApplicationRisk[scoreField]) {
+              series[application.totalApplicationRisk[scoreField]] = true;
+            }
+          });
+        });
+
+        return [data, Object.keys(series).map(function(x) {
+          return parseInt(x, 10);
+        })];
       });
     }
 

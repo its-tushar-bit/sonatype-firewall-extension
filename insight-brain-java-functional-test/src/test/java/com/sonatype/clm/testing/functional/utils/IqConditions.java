@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ex.UIAssertionError;
 import com.codeborne.selenide.impl.WebElementsCollection;
 import org.openqa.selenium.WebElement;
@@ -20,6 +21,40 @@ public class IqConditions
 
   public static CollectionCondition cssValues(String propertyName, String... values) {
     return new Css(propertyName, values);
+  }
+
+  public static CollectionCondition allHaveClass(String className) {
+    return new AllHaveClass(className);
+  }
+
+  private static class AllHaveClass
+      extends CollectionCondition
+  {
+    private String className;
+
+    public AllHaveClass(String className) {
+      this.className = className;
+    }
+
+    @Override
+    public boolean apply(List<WebElement> input) {
+      for (WebElement element : input) {
+        if (!Condition.hasClass(element, className)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    @Override
+    public void fail(WebElementsCollection collection,
+                     List<WebElement> actualElements,
+                     Exception lastError,
+                     long timeoutMs)
+    {
+      throw new IqAssertionError(": expected: " + className + ", \ncollection: " + collection.description()
+          + "\nElements: " + elementsToString(actualElements), lastError, timeoutMs);
+    }
   }
 
   private static class Css
@@ -55,18 +90,24 @@ public class IqConditions
                      Exception lastError,
                      long timeoutMs)
     {
-      @SuppressWarnings("serial")
-      UIAssertionError error = new UIAssertionError(": expected: " + Arrays.toString(values) + ", \ncollection: "
-          + collection.description() + "\nElements: " + elementsToString(actualElements), lastError)
-      {
-      };
-      error.timeoutMs = timeoutMs;
-      throw error;
+      throw new IqAssertionError(": expected: " + Arrays.toString(values) + ", \ncollection: "
+          + collection.description() + "\nElements: " + elementsToString(actualElements), lastError, timeoutMs);
     }
 
     @Override
     public String toString() {
       return String.format("Elements have CSS property %s with values %s", values, Arrays.toString(values));
+    }
+  }
+
+  @SuppressWarnings("serial")
+  private static class IqAssertionError
+      extends UIAssertionError
+  {
+
+    protected IqAssertionError(String message, Throwable cause, long timeoutMs) {
+      super(message, cause);
+      this.timeoutMs = timeoutMs;
     }
   }
 }

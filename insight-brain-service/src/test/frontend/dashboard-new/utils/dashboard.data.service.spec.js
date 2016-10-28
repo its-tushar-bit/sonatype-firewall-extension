@@ -58,17 +58,49 @@ describe('dashboard.data.service.spec', function() {
   });
 
   describe('getApplicationRisks()', function() {
-    it('returns data on success', function() {
-      var risks, filter = {filterParam: 'filter value'};
-      $httpBackend.expectPOST(CLMLocations.getApplicationRisksUrl(), filter)
-          .respond(['application1', 'application2']);
+    function createRisk(total, critical, severe, moderate, low) {
+      return {
+        totalRisk: total,
+        criticalRisk: critical,
+        severeRisk: severe,
+        moderateRisk: moderate,
+        lowRisk: low
+      };
+    }
 
-      dashboardDataService.getApplicationRisks(filter).then(function(data) {
-        risks = data[0];
-      });
+    it('returns data on success', function() {
+      var originalRisks = [{
+            applicationName: 'application1',
+            applicationId: 'app1',
+            totalApplicationRisk: createRisk(5, 4, 3, 2, 1),
+            stages: []
+          }, {
+            applicationName: 'application2',
+            applicationId: 'app2',
+            totalApplicationRisk: createRisk(6, 0),
+            stages: []
+          }],
+          filter = {
+            filterParam: 'filter value'
+          },
+          spy = jasmine.createSpy("response");
+
+      $httpBackend.expectPOST(CLMLocations.getApplicationRisksUrl(), filter).respond([{
+        applicationName: 'application1',
+        applicationId: 'app1',
+        totalApplicationRisk: createRisk(5,4,3,2,1),
+        stages: []
+      }, {
+        applicationName: 'application2',
+        applicationId: 'app2',
+        totalApplicationRisk: createRisk(6, 0),
+        stages: []
+      }]);
+
+      dashboardDataService.getApplicationRisks(filter).then(spy);
 
       $httpBackend.flush();
-      expect(risks).toEqual(['application1', 'application2']);
+      expect(spy).toHaveBeenCalledWith([originalRisks, [1, 2, 3, 4, 5, 6]]);
     });
   });
 

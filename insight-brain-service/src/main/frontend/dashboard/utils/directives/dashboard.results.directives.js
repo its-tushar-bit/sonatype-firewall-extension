@@ -67,7 +67,7 @@
             '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore', 'ClassyBrew',
             function($scope, $rootScope, $state, Dialog, ApplicationStore, ClassyBrew) {
               var filterChangedFn = createFilterWatch($scope, $rootScope, Dialog, ApplicationStore);
-              if ($state.is('dashboard.overview.components') || $state.is('dashboard.overview.components')) {
+              if ($state.is('dashboard.overview.components') || $state.is('dashboard.overview.applications')) {
                 $scope.brew = ClassyBrew.create();
               }
               $scope.$watch('filters', filterChangedFn);

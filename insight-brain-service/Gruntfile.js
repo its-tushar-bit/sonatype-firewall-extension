@@ -17,7 +17,6 @@
 
     var angularVersion = extractFromPom('angularjs.version');
     var path = require('path');
-    var styleguideAssets = require('./Gruntfile.styleguide.js');
     require('load-grunt-tasks')(grunt);
     require('time-grunt')(grunt);
 
@@ -30,9 +29,7 @@
         angularDebug: false,
         buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
-        styleguideSrc: 'src/main/styleguide',
         generated: 'target/classes/assets',
-        styleguide: 'target/styleguide',
         temp: '.tmp',
         templates: '**/*.tpl.html'
       },
@@ -61,9 +58,6 @@
         ],
         temp: [
           '<%= config.temp %>'
-        ],
-        styleguide: [
-          '<%= config.styleguide %>'
         ]
       },
       copy: {
@@ -97,19 +91,6 @@
             '**/*.css'
           ],
           dest: '<%= config.generated %>'
-        }
-      },
-      "file-creator": {
-        styleguide: {
-          files: [
-            {
-              file: '<%= config.temp %>/styleguide.css',
-              method: function(fs, fd, done) {
-                fs.writeSync(fd, styleguideAssets.sonatypeIconsFont + styleguideAssets.fontAwesomeFont);
-                done();
-              }
-            }
-          ]
         }
       },
       filerev: {
@@ -202,37 +183,6 @@
           }
         }
       },
-      styleguide: {
-        build: {
-          options: {
-            name: 'CLM Living Style Guide',
-            framework: {
-              name: 'styledocco',
-              options: {
-                preprocessor: process.execPath + ' ' + path.join(path.dirname(require.resolve('node-sass')), '/../bin/node-sass')
-              }
-            },
-            template: {
-              include: [
-                '<%= config.temp %>/scss/bootstrap.css',
-                '<%= config.frontend %>/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
-                '<%= config.frontend %>/lib/bootstrap/bootstrap-slider-2.0.0.css',
-                '<%= config.frontend %>/lib/components-font-awesome/css/font-awesome.css',
-                '<%= config.frontend %>/management.css',
-                '<%= config.temp %>/styleguide.css',
-                '<%= config.frontend %>/lib/jquery/jquery.min.js',
-                '<%= config.frontend %>/lib/angular/angular.min.js',
-                '<%= config.frontend %>/util/AngularCommon.js',
-                '<%= config.frontend %>/FormsModule.js',
-                '<%= config.styleguideSrc %>/styleguide.js'
-              ]
-            }
-          },
-          files: {
-            '<%= config.styleguide %>': '<%= config.frontend %>/scss/*.scss'
-          }
-        }
-      },
       watch: {
         develop: {
           files: [
@@ -291,7 +241,6 @@
 
     grunt.registerTask('deploy', [
       'build',
-      'livingstyle',
 
       'clean:temp'
     ]);
@@ -318,15 +267,6 @@
       'copy:develop_sass',
       'template:dev',
       'watch',
-      'clean:temp'
-    ]);
-
-    grunt.registerTask('livingstyle', [
-      'clean:styleguide',
-      'bower:install',
-      'sass:build',
-      'file-creator:styleguide',
-      'styleguide:build',
       'clean:temp'
     ]);
   };

@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.List;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
@@ -78,8 +80,10 @@ public class DashboardFilterTest
   @After
   public void clearFilters() {
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    com.sonatype.insight.brain.model.filter.DashboardFilter filter = dashboardFilterDAO.getByUsername("admin");
-    dashboardFilterDAO.delete(filter);
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
+    for(com.sonatype.insight.brain.model.filter.DashboardFilter filter : filters) {
+      dashboardFilterDAO.delete(filter);
+    }
   }
 
   private static void setupData() {
@@ -197,8 +201,8 @@ public class DashboardFilterTest
     assertNewCounterState();
 
     // assert stored filter
-    com.sonatype.insight.brain.model.filter.DashboardFilter filter = new DashboardFilterDAO().getByUsername("admin");
-    assertThat(filter.getFilter(), is("{\n" +
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO().getByUsername("admin");
+    assertThat(filter.get(0).getFilter(), is("{\n" +
         "  \"minPolicyThreatLevel\" : 2,\n" +
         "  \"maxPolicyThreatLevel\" : 7,\n" +
         "  \"applicationFilters\" : [ \"" + firstApp.getId() + "\" ],\n" +

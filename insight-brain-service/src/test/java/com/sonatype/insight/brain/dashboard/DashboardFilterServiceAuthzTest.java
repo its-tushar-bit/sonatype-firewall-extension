@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -28,25 +29,52 @@ public class DashboardFilterServiceAuthzTest
   private DashboardFilterService dashboardFilterService;
 
   @Test
-  public void testGetFilters_UnauthorizedApps() throws Exception {
+  public void testGetNamedDashboardFiltersForCurrentUser_UnauthorizedApps() throws Exception {
     Application app2 = tempEntity.newApplication(org.getId());
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO("Abcd", app2.getId(), app.getId());
+    login();
 
-    DashboardFilterDTO dto = new DashboardFilterDTO();
-    dto.applicationFilters = new ArrayList<>();
-    dto.applicationFilters.add(app.getId());
-    dto.applicationFilters.add(app2.getId());
+    dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO);
+
+    grantReadPermission(app.getId());
+    List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+    assertThat(actual.get(0).filter.applicationFilters, not(contains(app2.getId())));
+    assertThat(actual.get(0).filter.applicationFilters, contains(app.getId()));
+
+    grantReadPermission(app2.getId());
+    actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+    assertThat(actual.get(0).filter.applicationFilters, containsInAnyOrder(app.getId(), app2.getId()));
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_UnauthorizedApps() throws Exception {
+    Application app2 = tempEntity.newApplication(org.getId());
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO("", app2.getId(), app.getId());
 
     login();
 
-    dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto);
+    dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO);
 
     grantReadPermission(app.getId());
-    dto = dashboardFilterService.getDashboardFilterForCurrentUser();
-    assertThat(dto.applicationFilters, not(contains(app2.getId())));
+    DashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertThat(actual.applicationFilters, contains(app.getId()));
+    assertThat(actual.applicationFilters, not(contains(app2.getId())));
 
     grantReadPermission(app2.getId());
-    dto = dashboardFilterService.getDashboardFilterForCurrentUser();
-    assertThat(dto.applicationFilters, containsInAnyOrder(app.getId(), app2.getId()));
+    actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertThat(actual.applicationFilters, containsInAnyOrder(app.getId(), app2.getId()));
+  }
+
+  private NamedDashboardFilterDTO createNamedDashboardFilterDTO(final String filterName, String... applicationIDs) {
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+    DashboardFilterDTO dto = new DashboardFilterDTO();
+    dto.applicationFilters = new ArrayList<>();
+    for (String applicationId : applicationIDs) {
+      dto.applicationFilters.add(applicationId);
+    }
+    namedDashboardFilterDTO.filter = dto;
+    namedDashboardFilterDTO.name = filterName;
+    return namedDashboardFilterDTO;
   }
 
   @Test

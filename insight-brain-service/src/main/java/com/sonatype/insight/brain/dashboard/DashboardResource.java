@@ -45,8 +45,10 @@ public class DashboardResource
 
   public static final String GET_POLICY_SUMMARY_PATH = "policy/summary";
 
-  public static final String FILTERS_PATH = "filters";
+  public static final String FILTERS_PATH = "filters/active";
 
+  public static final String NAMED_FILTERS_PATH = "filters/named";
+  
   public static final String FILTERS_SUMMARY_PATH = "filters/summary";
 
   private final ApplicationRiskService applicationRiskService;
@@ -116,9 +118,21 @@ public class DashboardResource
   @Path(FILTERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  @ExceptionMetered(name = "getDashboardFilterForCurrentUserExceptionMeter")
-  public DashboardFilterDTO getDashboardFilterForCurrentUser() throws IOException {
-    return dashboardFilterService.getDashboardFilterForCurrentUser();
+  @ExceptionMetered(name = "getActiveDashboardFilterForCurrentUserExceptionMeter")
+  public DashboardFilterDTO getActiveDashboardFilterForCurrentUser() throws IOException {
+    return dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+  }
+
+  /**
+   * @since 1.24.0
+   */
+  @GET
+  @Path(NAMED_FILTERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @ExceptionMetered(name = "getNamedDashboardFiltersForCurrentUserExceptionMeter")
+  public List<NamedDashboardFilterDTO> getNamedDashboardFiltersForCurrentUser() throws IOException {
+    return dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
   }
 
   /**
@@ -131,18 +145,34 @@ public class DashboardResource
   @Timed
   @ExceptionMetered(name = "updateUserDashboardFilterForCurrentUserExceptionMeter")
   public DashboardFilterDTO updateUserDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
-    return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+    namedDashboardFilterDTO.name = "";
+    namedDashboardFilterDTO.filter = dashboardFilterDTO;
+    return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO).filter;
   }
 
   /**
-   * @since 1.11.0
+   * @since 1.24.0
+   */
+  @PUT
+  @Path(NAMED_FILTERS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @ExceptionMetered(name = "createOrUpdateDashboardFilterForCurrentUserExceptionMeter")
+  public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO dashboardFilterDTO) {
+    return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
+  }
+  
+  /**
+   * @since 1.24.0
    */
   @DELETE
   @Path(FILTERS_PATH)
   @Timed
-  @ExceptionMetered(name = "deleteDashboardFilterForCurrentUserExceptionMeter")
-  public void deleteDashboardFilterForCurrentUser() {
-    dashboardFilterService.deleteDashboardFilterForCurrentUser();
+  @ExceptionMetered(name = "deleteAllDashboardFiltersForCurrentUserExceptionMeter")
+  public void deleteAllDashboardFiltersForCurrentUser() {
+    dashboardFilterService.deleteAllDashboardFiltersForCurrentUser();
   }
 
   @POST

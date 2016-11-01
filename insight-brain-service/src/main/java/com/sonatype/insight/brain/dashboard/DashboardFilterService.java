@@ -47,6 +47,8 @@ public class DashboardFilterService
 {
   private static final Logger log = LoggerFactory.getLogger(DashboardFilterService.class);
 
+  public static final String DEFAULT_FILTER_NAME = "";
+
   private final OwnerDAO ownerDAO;
 
   private final ApplicationDAO applicationDAO;
@@ -84,24 +86,48 @@ public class DashboardFilterService
   }
 
   /**
-   * @since 1.11.0
+   * @since 1.24.0
    */
-  public DashboardFilterDTO getDashboardFilterForCurrentUser() throws IOException {
+  public DashboardFilterDTO getActiveDashboardFilterForCurrentUser() throws IOException {
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
+    //TODO: this will change in the sub-sequent story CLM-7040 for tracking the current/active filter
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, "");
     if (dashboardFilter == null) {
-      return createDefaultDashboardFilterForCurrentUser();
+      return createDefaultDashboardFilterForCurrentUser().filter;
     }
     DashboardFilterDTO dto = JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
 
-    // prune out any unauthorized applications
     pruneUnauthorizedApplicationIds(dto);
     return dto;
   }
 
-  private DashboardFilterDTO createDefaultDashboardFilterForCurrentUser() {
+  /**
+   * @since 1.24.0
+   */
+  public List<NamedDashboardFilterDTO> getNamedDashboardFiltersForCurrentUser() throws IOException {
+    dashboardUtils.validateDashboardLicensed();
+
+    String username = currentUser.getUsername();
+    List<DashboardFilter> dashboardFilters = dashboardFilterDAO.getNamedFiltersByUsername(username);
+    
+    List<NamedDashboardFilterDTO> namedDashboardFilterDTOs = new ArrayList<>();
+    for (DashboardFilter dashboardFilter : dashboardFilters) {
+      DashboardFilterDTO dto = JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
+
+      NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+      namedDashboardFilterDTO.name = dashboardFilter.getName();
+      namedDashboardFilterDTO.filter = dto;
+
+      pruneUnauthorizedApplicationIds(dto);
+      namedDashboardFilterDTOs.add(namedDashboardFilterDTO);
+    }
+    return namedDashboardFilterDTOs;
+  }
+
+  private NamedDashboardFilterDTO createDefaultDashboardFilterForCurrentUser() {
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     DashboardFilterDTO dashboardFilterDTO = new DashboardFilterDTO();
     dashboardFilterDTO.applicationFilters = new ArrayList<>();
     dashboardFilterDTO.organizationFilters = new ArrayList<>();
@@ -112,21 +138,27 @@ public class DashboardFilterService
     dashboardFilterDTO.stageTypeFilters = new ArrayList<>();
     dashboardFilterDTO.policyThreatCategoryFilters = new ArrayList<>();
     dashboardFilterDTO.tagFilters = new ArrayList<>();
-    return createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
+
+    namedDashboardFilterDTO.name = DEFAULT_FILTER_NAME;
+    namedDashboardFilterDTO.filter = dashboardFilterDTO;
+
+    return createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO);
   }
 
   /**
-   * @since 1.11.0
+   * @since 1.24.0
    */
-  public DashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
+  public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO namedDashboardFilterDTO) {
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = new DashboardFilter();
     dashboardFilter.setUsername(username);
-    dashboardFilter.setFilter(JsonUtils.format(dashboardFilterDTO));
+    dashboardFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
+    dashboardFilter.setName(namedDashboardFilterDTO.name);
 
-    DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsername(username);
+    DashboardFilter existingDashboardFilter = dashboardFilterDAO
+        .getByUsernameAndName(username, namedDashboardFilterDTO.name);
     if (existingDashboardFilter == null) {
       dashboardFilterDAO.insert(dashboardFilter);
     }
@@ -135,22 +167,22 @@ public class DashboardFilterService
       dashboardFilterDAO.update(dashboardFilter);
     }
 
-    return dashboardFilterDTO;
+    return namedDashboardFilterDTO;
   }
 
   /**
-   * @since 1.11.0
+   * @since 1.24.0
    */
-  public void deleteDashboardFilterForCurrentUser() {
+  public void deleteAllDashboardFiltersForCurrentUser() {
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
-    if (dashboardFilter != null) {
+    List<DashboardFilter> dashboardFilters = dashboardFilterDAO.getByUsername(username);
+    for (DashboardFilter dashboardFilter : dashboardFilters) {
       dashboardFilterDAO.delete(dashboardFilter);
     }
   }
-
+  
   /**
    * Calculates how many of the entities accessible to the current user are matched by the specified dashboard filter
    * settings.

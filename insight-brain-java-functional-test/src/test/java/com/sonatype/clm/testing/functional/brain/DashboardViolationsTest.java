@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -371,7 +372,9 @@ public class DashboardViolationsTest
 
   private void clearFilters() {
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    DashboardFilter filter = dashboardFilterDAO.getByUsername("admin");
-    dashboardFilterDAO.delete(filter);
+    List<DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
+    for (DashboardFilter filter : filters) {
+      dashboardFilterDAO.delete(filter);
+    }
   }
 }

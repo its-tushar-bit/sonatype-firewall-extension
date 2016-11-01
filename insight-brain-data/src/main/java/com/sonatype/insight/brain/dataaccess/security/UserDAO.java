@@ -165,8 +165,8 @@ public class UserDAO
 
     // Cascade to dashboard filter
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(tx, entity.getUsername());
-    if (dashboardFilter != null) {
+    List<DashboardFilter> dashboardFilters = dashboardFilterDAO.getByUsername(tx, entity.getUsername());
+    for (DashboardFilter dashboardFilter : dashboardFilters) {
       dashboardFilterDAO.delete(tx, dashboardFilter);
     }
 

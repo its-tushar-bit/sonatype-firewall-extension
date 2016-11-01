@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.dashboard.DashboardFilterDTO;
+import com.sonatype.insight.brain.dashboard.NamedDashboardFilterDTO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
-import com.sonatype.insight.brain.migration.DashboardFilterAppIdMigrator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -24,12 +25,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.core.IsNot.not;
 
 public class DashboardFilterAppIdMigratorTest
 {
@@ -61,34 +63,38 @@ public class DashboardFilterAppIdMigratorTest
 
   @Test
   public void testMissingApplication() throws Exception {
-    tempEntity.newDashboardFilter("foo",
+    String filterName = "";
+    tempEntity.newDashboardFilter("foo", filterName,
         JsonUtils.format(createFilter(Collections.singletonList("testMissingApplication"))));
     dashboardFilterAppIdMigrator.migrate();
 
-    DashboardFilterDTO filter = getByUser("foo");
-    assertThat(filter, notNullValue());
-    assertThat(filter.applicationFilters, is(empty()));
+    List<NamedDashboardFilterDTO> filter = getByUser("foo");
+    assertThat(filter, is(not(empty())));
+    assertThat(filter.get(0).filter.applicationFilters, is(empty()));
   }
 
   @Test
   public void testNullApplications() throws Exception {
-    tempEntity.newDashboardFilter("foo", JsonUtils.format(createFilter(null)));
+    String filterName = "";
+    tempEntity.newDashboardFilter("foo", filterName, JsonUtils.format(createFilter(null)));
     dashboardFilterAppIdMigrator.migrate();
 
-    DashboardFilterDTO filter = getByUser("foo");
-    assertThat(filter, notNullValue());
-    assertThat(filter.applicationFilters, is(nullValue()));
+    List<NamedDashboardFilterDTO> filter = getByUser("foo");
+    assertThat(filter, is(not(empty())));
+    assertThat(filter.get(0).filter.applicationFilters, is(nullValue()));
   }
 
   @Test
   public void testMigration() throws Exception {
     Application app = tempEntity.newApplicationWithParent("testMigration");
-    tempEntity.newDashboardFilter("foo", JsonUtils.format(createFilter(Collections.singletonList("testMigration"))));
+    String filterName = "";
+    tempEntity.newDashboardFilter("foo", filterName,
+        JsonUtils.format(createFilter(Collections.singletonList("testMigration"))));
     dashboardFilterAppIdMigrator.migrate();
 
-    DashboardFilterDTO filter = getByUser("foo");
-    assertThat(filter, notNullValue());
-    assertThat(filter.applicationFilters, contains(app.getId()));
+    List<NamedDashboardFilterDTO> filter = getByUser("foo");
+    assertThat(filter, is(not(empty())));
+    assertThat(filter.get(0).filter.applicationFilters, contains(app.getId()));
   }
 
   private DashboardFilterDTO createFilter(List<String> appIds) {
@@ -97,11 +103,21 @@ public class DashboardFilterAppIdMigratorTest
     return filterDTO;
   }
 
-  private DashboardFilterDTO getByUser(String user) throws IOException {
-    DashboardFilter filter = dao.getByUsername(user);
-    if (filter == null) {
+  private List<NamedDashboardFilterDTO> getByUser(String user) throws IOException {
+    List<DashboardFilter> filters = dao.getByUsername(user);
+    if (filters.isEmpty()) {
       return null;
     }
-    return JsonUtils.parse(filter.getFilter(), DashboardFilterDTO.class);
+
+    List<NamedDashboardFilterDTO> filterDTOs = new ArrayList<>();
+    for (DashboardFilter filter : filters) {
+      NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+      namedDashboardFilterDTO.filter = JsonUtils.parse(filter.getFilter(), DashboardFilterDTO.class);
+      namedDashboardFilterDTO.name = filter.getName();
+
+      filterDTOs.add(namedDashboardFilterDTO);
+    }
+
+    return filterDTOs;
   }
 }

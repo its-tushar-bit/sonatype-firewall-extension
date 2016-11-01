@@ -249,7 +249,7 @@ public class TemporaryEntity
       }
     }
     for (DashboardFilter dashboardFilter : dashboardFilters) {
-      if ((dashboardFilter = dashboardFilterDAO.getByUsername(dashboardFilter.getUsername())) != null) {
+      if ((dashboardFilter = dashboardFilterDAO.getById(dashboardFilter.getId())) != null) {
         dashboardFilterDAO.delete(dashboardFilter);
       }
     }
@@ -350,28 +350,12 @@ public class TemporaryEntity
     return UUID.randomUUID().toString().replace("-", "");
   }
 
-  public DashboardFilter newDashboardFilter(String username, String filter) {
+  public DashboardFilter newDashboardFilter(String username, String filterName, String filter) {
     DashboardFilter dashboardFilter = new DashboardFilter();
     dashboardFilter.setUsername(username);
     dashboardFilter.setFilter(filter);
+    dashboardFilter.setName(filterName);
     dashboardFilterDAO.insert(dashboardFilter);
-    dashboardFilters.add(dashboardFilter);
-    return dashboardFilter;
-  }
-
-  public DashboardFilter updateDashboardFilter(String username, String filter) {
-    DashboardFilter dashboardFilter = new DashboardFilter();
-    dashboardFilter.setUsername(username);
-    dashboardFilter.setFilter(filter);
-
-    DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsername(username);
-    if (existingDashboardFilter == null) {
-      dashboardFilterDAO.insert(dashboardFilter);
-    }
-    else {
-      dashboardFilter.setId(existingDashboardFilter.getId());
-      dashboardFilterDAO.update(dashboardFilter);
-    }
     dashboardFilters.add(dashboardFilter);
     return dashboardFilter;
   }

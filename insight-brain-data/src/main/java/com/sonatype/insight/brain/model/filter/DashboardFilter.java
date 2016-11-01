@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -28,10 +29,20 @@ public class DashboardFilter
   @Column(name = "username")
   private String username;
 
+  @Column(name = "name")
+  private String name;
+
+  @Column(name = "name_lowercase_no_whitespace")
+  private String nameLowercaseNoWhitespace;
+
   @Column(name = "filter_json")
   private String filter;
 
   public DashboardFilter() {
+  }
+
+  public DashboardFilter(final String name) {
+    setName(name);
   }
 
   @Override
@@ -50,6 +61,31 @@ public class DashboardFilter
 
   public void setUsername(final String username) {
     this.username = username;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    nameLowercaseNoWhitespace = NameHelper.normalize(name);
+    this.name = name;
+  }
+
+  public String getNameLowercaseNoWhitespace() {
+    return nameLowercaseNoWhitespace;
+  }
+
+  /**
+   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
+   * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
+   * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
+   *
+   * @deprecated This method should not be used explicitly.
+   */
+  @Deprecated
+  @SuppressWarnings("unused")
+  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }
 
   public String getFilter() {

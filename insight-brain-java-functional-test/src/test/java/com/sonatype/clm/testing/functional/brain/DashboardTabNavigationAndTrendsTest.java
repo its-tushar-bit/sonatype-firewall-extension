@@ -334,8 +334,10 @@ public class DashboardTabNavigationAndTrendsTest
 
   private void clearFilters() {
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    DashboardFilter filter = dashboardFilterDAO.getByUsername("admin");
-    dashboardFilterDAO.delete(filter);
+    List<DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
+    for (DashboardFilter filter : filters) {
+      dashboardFilterDAO.delete(filter);
+    }
   }
 
   private static class ComponentData

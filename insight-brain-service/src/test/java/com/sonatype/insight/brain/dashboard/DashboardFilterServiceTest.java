@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -18,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -30,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +42,7 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertThat;
 
 public class DashboardFilterServiceTest
@@ -87,8 +93,9 @@ public class DashboardFilterServiceTest
     tag2 = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app1.getId(), tag1.getId());
     tempEntity.newApplicationTag(app1.getId(), tag2.getId());
+    tempEntity.newUser(USERNAME);
   }
-
+  
   @Test
   public void testGetFilterSummary_NoFilter() throws Exception {
     FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null, null, null);
@@ -161,16 +168,131 @@ public class DashboardFilterServiceTest
 
   @Test
   public void testDashboardFilterDefaultFilter() throws Exception {
-    DashboardFilterDTO actual = dashboardFilterService.getDashboardFilterForCurrentUser();
-    // Register to make sure the the filter is deleted after the test
-    tempEntity.register(new DashboardFilterDAO().getByUsername(USERNAME));
+    DashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
     assertThat(actual, notNullValue());
-
     assertThat(actual.minPolicyThreatLevel, is(2));
     assertThat(actual.maxPolicyThreatLevel, is(10));
     assertThat(actual.applicationFilters, hasSize(0));
     assertThat(actual.tagFilters, hasSize(0));
     assertThat(actual.policyThreatCategoryFilters, hasSize(0));
     assertThat(actual.stageTypeFilters, hasSize(0));
+  }
+
+  @Test
+  public void testGetNamedDashboardFiltersForCurrentUser() throws IOException {
+    String filterName1 = "Filter1";
+    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 2, 10);
+    tempEntity.newDashboardFilter(USERNAME, filterName1, JsonUtils.format(dto1.filter));
+
+    String filterName2 = "Filter2";
+    NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 3, 9);
+    tempEntity.newDashboardFilter(USERNAME, filterName2, JsonUtils.format(dto2.filter));
+
+    String filterName3 = "";
+    NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO(filterName3, 5, 9);
+    tempEntity.newDashboardFilter(USERNAME, filterName3, JsonUtils.format(dto3.filter));
+
+    List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+    assertThat(actual, hasSize(2));
+    assertThat(actual.get(0).name, is(filterName1));
+    assertThat(actual.get(0).filter.minPolicyThreatLevel, is(2));
+    assertThat(actual.get(0).filter.maxPolicyThreatLevel, is(10));
+    assertThat(actual.get(0).filter.applicationFilters, empty());
+    assertThat(actual.get(0).filter.organizationFilters, empty());
+    assertThat(actual.get(0).filter.tagFilters, empty());
+    assertThat(actual.get(0).filter.policyThreatCategoryFilters, empty());
+    assertThat(actual.get(0).filter.stageTypeFilters, empty());
+
+    assertThat(actual.get(1).name, is(filterName2));
+    assertThat(actual.get(1).filter.minPolicyThreatLevel, is(3));
+    assertThat(actual.get(1).filter.maxPolicyThreatLevel, is(9));
+    assertThat(actual.get(1).filter.applicationFilters, empty());
+    assertThat(actual.get(1).filter.organizationFilters, empty());
+    assertThat(actual.get(1).filter.tagFilters, empty());
+    assertThat(actual.get(1).filter.policyThreatCategoryFilters, empty());
+    assertThat(actual.get(1).filter.stageTypeFilters, empty());
+  }
+
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Update() throws IOException {
+
+    String filterName1 = "Filter1";
+    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 2, 10);
+    DashboardFilter filter1 = tempEntity.newDashboardFilter(USERNAME, filterName1, JsonUtils.format(dto1.filter));
+
+    NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName1, 3, 9);
+    //this should update the above filter
+    dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto2);
+
+    //verify that the filter above was updated successfully
+    DashboardFilter actual = new DashboardFilterDAO().getById(filter1.getId());
+    DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
+
+    assertThat(actual, notNullValue());
+    assertThat(actual.getUsername(), is(filter1.getUsername()));
+    assertThat(actual.getNameLowercaseNoWhitespace(), is(filter1.getNameLowercaseNoWhitespace()));
+    assertThat(actual.getName(), is(filterName1));
+    assertThat(actualDto.minPolicyThreatLevel, is(3));
+    assertThat(actualDto.maxPolicyThreatLevel, is(9));
+    assertThat(actualDto.applicationFilters, empty());
+    assertThat(actualDto.organizationFilters, empty());
+    assertThat(actualDto.tagFilters, empty());
+    assertThat(actualDto.policyThreatCategoryFilters, empty());
+    assertThat(actualDto.stageTypeFilters, empty());
+  }
+
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Insert() throws IOException {
+    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO("Filter1", 2, 10);
+    dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto1);
+
+    List<DashboardFilter> actual = new DashboardFilterDAO().getNamedFiltersByUsername(USERNAME);
+    assertThat(actual, hasSize(1));
+    DashboardFilterDTO actualDto = JsonUtils.parse(actual.get(0).getFilter(), DashboardFilterDTO.class);
+    assertThat(actual.get(0).getId(), notNullValue());
+    assertThat(actual.get(0).getUsername(), is(USERNAME));
+    assertThat(actual.get(0).getName(), is("Filter1"));
+    assertThat(actual.get(0).getNameLowercaseNoWhitespace(), is("filter1"));
+    assertThat(actualDto.minPolicyThreatLevel, is(2));
+    assertThat(actualDto.maxPolicyThreatLevel, is(10));
+    assertThat(actualDto.applicationFilters, empty());
+    assertThat(actualDto.organizationFilters, empty());
+    assertThat(actualDto.tagFilters, empty());
+    assertThat(actualDto.policyThreatCategoryFilters, empty());
+    assertThat(actualDto.stageTypeFilters, empty());
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser() throws IOException {
+    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO("", 5, 7);
+    tempEntity.newDashboardFilter(USERNAME, "", JsonUtils.format(dto1.filter));
+
+    DashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertThat(actual, notNullValue());
+    assertThat(actual.minPolicyThreatLevel, is(5));
+    assertThat(actual.maxPolicyThreatLevel, is(7));
+    assertThat(actual.applicationFilters, empty());
+    assertThat(actual.organizationFilters, empty());
+    assertThat(actual.tagFilters, empty());
+    assertThat(actual.policyThreatCategoryFilters, empty());
+    assertThat(actual.stageTypeFilters, empty());
+  }
+
+  private NamedDashboardFilterDTO createNamedDashboardFilterDTO(String filterName,
+                                                                int minPolicyThreatLevel,
+                                                                int maxPolicyThreatLevel)
+  {
+    NamedDashboardFilterDTO dto = new NamedDashboardFilterDTO();
+    DashboardFilterDTO filter = new DashboardFilterDTO();
+    filter.applicationFilters = new ArrayList<>();
+    filter.organizationFilters = new ArrayList<>();
+    filter.minPolicyThreatLevel = minPolicyThreatLevel;
+    filter.maxPolicyThreatLevel = maxPolicyThreatLevel;
+    filter.stageTypeFilters = new ArrayList<>();
+    filter.policyThreatCategoryFilters = new ArrayList<>();
+    filter.tagFilters = new ArrayList<>();
+    dto.name = filterName;
+    dto.filter = filter;
+    return dto;
   }
 }

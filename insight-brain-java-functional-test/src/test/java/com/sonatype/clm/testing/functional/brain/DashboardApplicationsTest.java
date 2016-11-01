@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationTile;
@@ -307,7 +308,9 @@ public class DashboardApplicationsTest
 
   private void clearFilters() {
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    DashboardFilter filter = dashboardFilterDAO.getByUsername("admin");
-    dashboardFilterDAO.delete(filter);
+    List<DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
+    for (DashboardFilter filter : filters) {
+      dashboardFilterDAO.delete(filter);
+    }
   }
 }

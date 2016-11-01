@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -38,12 +40,14 @@ import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_COMPONE
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.fail;
 
 public class DashboardResourceTest
@@ -112,7 +116,7 @@ public class DashboardResourceTest
     response = request.body(dashboardFilterDTO).put();
     assertResponseStatus(200, response);
 
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername("admin");
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername("admin").get(0);
     assertThat(dashboardFilter, notNullValue());
     // Register to make sure the the filter is deleted after the test
     tempEntity.register(dashboardFilter);
@@ -142,7 +146,7 @@ public class DashboardResourceTest
     // Finally test the delete
     response = request.body(null).delete();
     assertResponseStatus(204, response);
-    assertThat(dashboardFilterDAO.getByUsername("admin"), nullValue());
+    assertThat(dashboardFilterDAO.getByUsername("admin"), empty());
   }
 
   private void assertDashboardFilterDTO(DashboardFilterDTO actual, DashboardFilterDTO expected) {
@@ -309,5 +313,106 @@ public class DashboardResourceTest
     String dateFirstSeen = csvTimestampFormatter.format(policyViolation.getTime());
     long millisSinceFirstSeen = policyViolation.getTime().getTime();
     return dateFirstSeen + "," + millisSinceFirstSeen;
+  }
+  
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Insert() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+    String filterName = "Filter112233";
+    namedDashboardFilterDTO.name = filterName;
+    namedDashboardFilterDTO.filter = createDashboardFilter(app, tag);
+
+    //creating a new filter
+    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(DashboardResource.NAMED_FILTERS_PATH);
+    HttpResponse response = request.body(namedDashboardFilterDTO).put();
+    assertResponseStatus(200, response);
+
+    NamedDashboardFilterDTO result = response.getBody(NamedDashboardFilterDTO.class);
+    assertThat(result, notNullValue());
+    assertThat(result.name, is(namedDashboardFilterDTO.name));
+    assertDashboardFilterDTO(result.filter, namedDashboardFilterDTO.filter);
+
+    // verify what was saved in the db is what's expected
+    verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
+  }
+
+  @Test
+  public void testGetNamedDashboardFiltersForCurrentUser() throws Exception {
+    User tempUser = tempEntity.newUser();
+    String filterName = "Filter778899";
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+    namedDashboardFilterDTO.name = filterName;
+    namedDashboardFilterDTO.filter = createDashboardFilter(app, tag);
+    // creating a new named filter
+    tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(namedDashboardFilterDTO.filter));
+
+    NamedDashboardFilterDTO namedDashboardFilterDTO2 = new NamedDashboardFilterDTO();
+    namedDashboardFilterDTO2.name = "";
+    namedDashboardFilterDTO2.filter = createDashboardFilter(app, tag);
+    // creating a new unnamed filter i.e. ""
+    tempEntity.newDashboardFilter(tempUser.getUsername(), "", JsonUtils.format(namedDashboardFilterDTO.filter));
+    
+    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(DashboardResource.NAMED_FILTERS_PATH);
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+
+    NamedDashboardFilterDTO[] result = response.getBody(NamedDashboardFilterDTO[].class);
+    assertThat(result, not(emptyArray()));
+    assertThat(result.length, is(1));
+    assertThat(result[0].name, is(filterName));
+    
+    // verify what was saved in the db is what's expected
+    verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
+  }
+
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Update() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+    String filterName = "Filter112233";
+    namedDashboardFilterDTO.name = filterName;
+    namedDashboardFilterDTO.filter = createDashboardFilter(app, tag);
+
+    // creating a new filter
+    tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(namedDashboardFilterDTO.filter));
+
+    // updating the new filter
+    namedDashboardFilterDTO.filter.minPolicyThreatLevel = 3;
+    namedDashboardFilterDTO.filter.maxPolicyThreatLevel = 7;
+    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(DashboardResource.NAMED_FILTERS_PATH);
+    HttpResponse response = request.body(namedDashboardFilterDTO).put();
+    assertResponseStatus(200, response);
+
+    NamedDashboardFilterDTO result = response.getBody(NamedDashboardFilterDTO.class);
+    assertThat(result, notNullValue());
+    assertThat(result.name, is(namedDashboardFilterDTO.name));
+    assertThat(result.filter.minPolicyThreatLevel, is(3));
+    assertThat(result.filter.maxPolicyThreatLevel, is(7));
+    
+    // verify what was saved in the db is what's expected
+    verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
+  }
+
+  private void verifyDbState(final User tempUser, final String filterName, final NamedDashboardFilterDTO expected)
+      throws IOException
+  {
+    DashboardFilter actual = dashboardFilterDAO.getByUsernameAndName(tempUser.getUsername(), filterName);
+    assertThat(actual, notNullValue());
+    DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
+    assertThat(actual.getName(), is(expected.name));
+    assertDashboardFilterDTO(actualDto, expected.filter);
   }
 }

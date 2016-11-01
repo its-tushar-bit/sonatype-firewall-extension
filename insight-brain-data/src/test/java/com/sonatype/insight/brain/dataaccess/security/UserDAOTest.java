@@ -796,10 +796,11 @@ public class UserDAOTest
     dashboardFilter.setId(tempEntity.uuid());
     dashboardFilter.setUsername(user.getUsername());
     dashboardFilter.setFilter("filter");
+    dashboardFilter.setName("TestFilter");
     dashboardFilterDAO.insert(dashboardFilter);
 
     new UserDAO().delete(user);
-    Assert.assertThat(dashboardFilterDAO.getByUsername(user.getUsername()), nullValue());
+    Assert.assertThat(dashboardFilterDAO.getByUsername(user.getUsername()), empty());
   }
 
   @Test

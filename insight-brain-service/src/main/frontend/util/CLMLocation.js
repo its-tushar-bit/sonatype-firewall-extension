@@ -216,7 +216,7 @@
         },
 
         getDashboardFilters : function() {
-          return baseUrl.get() + '/rest/dashboard/filters';
+          return baseUrl.get() + '/rest/dashboard/filters/active';
         },
         getDashboardViewingSummaryUrl : function() {
           return baseUrl.get() + '/rest/dashboard/filters/summary';

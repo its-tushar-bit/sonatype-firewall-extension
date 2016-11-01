@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.io.IOException;
+
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 
 import org.junit.Test;
@@ -15,24 +17,29 @@ public class DashboardFilterServiceNotLicensedTest
 {
   @InjectMocks
   private DashboardFilterService dashboardFilterService;
-
-  @Test(expected = InvalidLicenseException.class)
-  public void testGetDashboardFilterForCurrentUser_Unlicensed() throws Exception {
-    dashboardFilterService.getDashboardFilterForCurrentUser();
-  }
-
+  
   @Test(expected = InvalidLicenseException.class)
   public void testCreateOrUpdateDashboardFilterForCurrentUser_Unlicensed() throws Exception {
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(null);
   }
 
   @Test(expected = InvalidLicenseException.class)
-  public void testDeleteDashboardFilterForCurrentUser_Unlicensed() throws Exception {
-    dashboardFilterService.deleteDashboardFilterForCurrentUser();
+  public void testDeleteAllDashboardFilterForCurrentUser_Unlicensed() throws Exception {
+    dashboardFilterService.deleteAllDashboardFiltersForCurrentUser();
   }
 
   @Test(expected = InvalidLicenseException.class)
   public void testGetFilterSummary_Unlicensed() throws Exception {
     dashboardFilterService.getFilterSummary(null, null, null, null, null, null);
+  }
+  
+  @Test(expected = InvalidLicenseException.class)
+  public void testGetNamedDashboardFiltersForCurrentUser_Unlicensed() throws IOException {
+    dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testGetActiveDashboardFilterForCurrentUser_Unlicensed() throws IOException {
+    dashboardFilterService.getActiveDashboardFilterForCurrentUser();
   }
 }

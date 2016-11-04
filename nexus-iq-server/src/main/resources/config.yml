@@ -13,8 +13,8 @@ sonatypeWork: ./sonatype-work/clm-server
 
 # If true, allows anonymous policy evaluation from client tooling (e.g. CLI, CI, Maven).
 # If false, forces authentication and disallows anonymous access.
-# Defaults to true for backward compatibility.
-#anonymousClientAccessAllowed: true
+# Defaults to false for security.
+#anonymousClientAccessAllowed: false
 
 # Enables/disables cross-site request forgery protection. Defaults to true for increased security.
 #csrfProtection: true

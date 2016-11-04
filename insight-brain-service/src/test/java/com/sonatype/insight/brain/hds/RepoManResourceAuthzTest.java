@@ -7,9 +7,10 @@ package com.sonatype.insight.brain.hds;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.hds.RepoManResource;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
 
@@ -23,7 +24,20 @@ public class RepoManResourceAuthzTest
   }
 
   @Test
-  public void testUploadScan_UnauthorizedAnonymousAllowed() throws Exception {
+  public void testUploadScan_UnauthorizedAnonymousNotAllowed() throws Exception {
+    HttpResponse response = scanRequest().anon().put();
+    assertResponseStatus(401, response);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testUploadScan_UnauthorizedAnonymousAllowed_AnonymousClientAccessAllowed() throws Exception {
+    initServer(new Configurator() {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setAnonymousClientAccessAllowed(true);
+      }
+    });
     HttpResponse response = scanRequest().anon().put();
     assertResponseStatus(200, response);
   }

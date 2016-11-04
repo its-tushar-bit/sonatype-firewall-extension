@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -107,6 +108,7 @@ public class TestInsightBrainService
 
   public Configuration getClientConfiguration() {
     final Configuration configuration = new Configuration();
+    configuration.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     String protocol = "http";
     if (testKeystore != null) {
       protocol = "https";

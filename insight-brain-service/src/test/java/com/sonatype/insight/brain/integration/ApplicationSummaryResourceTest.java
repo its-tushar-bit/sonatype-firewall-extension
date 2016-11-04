@@ -12,6 +12,8 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
 
@@ -71,8 +73,20 @@ public class ApplicationSummaryResourceTest
   // Need to test anonymous access in the resource tests
   @Test
   public void testGetApplications_EvaluateApplication_Anonymous() throws Exception {
-    Application application = tempEntity.newApplicationWithParent("testPublicId");
+    HttpResponse response = summaryRequest(Goal.EVALUATE_APPLICATION).anon().get();
+    assertResponseStatus(401, response);
+  }
 
+  @Test
+  @ManualServerInit
+  public void testGetApplications_EvaluateApplication_Anonymous_AnonymousClientAccessAllowed() throws Exception {
+    initServer(new Configurator() {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setAnonymousClientAccessAllowed(true);
+      }
+    });
+    Application application = tempEntity.newApplicationWithParent("testPublicId");
     HttpResponse response = summaryRequest(Goal.EVALUATE_APPLICATION).anon().get();
     assertResponseStatus(200, response);
 
@@ -82,8 +96,20 @@ public class ApplicationSummaryResourceTest
 
   @Test
   public void testGetApplications_EvaluateComponent_Anonymous() throws Exception {
-    tempEntity.newApplicationWithParent("testPublicId");
+    HttpResponse response = summaryRequest(Goal.EVALUATE_COMPONENT).anon().get();
+    assertResponseStatus(401, response);
+  }
 
+  @Test
+  @ManualServerInit
+  public void testGetApplications_EvaluateComponent_Anonymous_AnonymousClientAccessAllowed() throws Exception {
+    initServer(new Configurator() {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setAnonymousClientAccessAllowed(true);
+      }
+    });
+    tempEntity.newApplicationWithParent("testPublicId");
     HttpResponse response = summaryRequest(Goal.EVALUATE_COMPONENT).anon().get();
     assertResponseStatus(200, response);
 
@@ -93,8 +119,19 @@ public class ApplicationSummaryResourceTest
 
   @Test
   public void testGetApplications_NoGoal_Anonymous() throws Exception {
-    Application application = tempEntity.newApplicationWithParent("testPublicId");
+    HttpResponse response = restRequest().anon().get();
+    assertResponseStatus(401, response);
+  }
 
+  @Test
+  public void testGetApplications_NoGoal_Anonymous_AnonymousClientAccessAllowed() throws Exception {
+    initServer(new Configurator() {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setAnonymousClientAccessAllowed(true);
+      }
+    });
+    Application application = tempEntity.newApplicationWithParent("testPublicId");
     HttpResponse response = restRequest().anon().get();
     assertResponseStatus(200, response);
 

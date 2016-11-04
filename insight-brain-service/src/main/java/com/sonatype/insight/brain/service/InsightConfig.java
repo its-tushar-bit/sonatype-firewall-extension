@@ -99,7 +99,7 @@ public class InsightConfig
    */
   @NotNull
   @JsonProperty
-  private boolean anonymousClientAccessAllowed = true;
+  private boolean anonymousClientAccessAllowed = false;
 
   /**
    * @since 1.16.0

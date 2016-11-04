@@ -100,6 +100,7 @@ public class ReportClientTest
     File retrievedFile = temporaryFolder.newFile();
 
     Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(null);
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     try {
       client.downloadBundle(retrievedFile);

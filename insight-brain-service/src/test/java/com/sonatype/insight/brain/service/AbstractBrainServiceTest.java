@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.client.utils.Authentication;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -176,7 +177,12 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected HttpRequest restRequest() {
-    return HttpRequest.to(getRestBaseUrl());
+    HttpRequest request = HttpRequest.to(getRestBaseUrl());
+    Authentication serverAuth = getCLMServer().getClientConfiguration().getServerAuth();
+    if (serverAuth != null) {
+      return request.auth(serverAuth.getUsername(), new String(serverAuth.getPassword()));
+    }
+    return request;
   }
 
   protected String getRestBaseUrl() {

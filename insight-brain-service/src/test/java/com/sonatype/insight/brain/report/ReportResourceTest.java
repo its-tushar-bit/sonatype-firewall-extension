@@ -64,6 +64,8 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityOverrideResource;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -526,6 +528,38 @@ public class ReportResourceTest
   public void testEmbedReport() throws Exception {
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
+    tempEntity.newApplicationWithParent(appPublicId);
+
+    HttpResponse response = restRequest(appPublicId, scanId).path("embedReport/index.html").get();
+    assertResponseStatus(200, response);
+
+    String content = response.getBodyText();
+    assertTrue(content.contains(restRequest()
+        .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
+        .parameter(appPublicId, scanId).getUrl()));
+    assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
+  }
+
+  @Test
+  public void testEmbedReport_AnonymousNotAllowed() throws Exception {
+    String scanId = "abcdefg12345";
+    String appPublicId = "bom1-12345678";
+
+    HttpResponse response = restRequest(appPublicId, scanId).path("embedReport/index.html").anon().get();
+    assertResponseStatus(401, response);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testEmbedReport_AnonymousAllowed() throws Exception {
+    initServer(new Configurator() {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setAnonymousClientAccessAllowed(true);
+      }
+    });
+    String scanId = "abcdefg12345";
+    String appPublicId = "bom1-12345678";
 
     HttpResponse response = restRequest(appPublicId, scanId).path("embedReport/index.html").anon().get();
     assertResponseStatus(200, response);
@@ -539,6 +573,35 @@ public class ReportResourceTest
 
   @Test
   public void testEmbedReport_Json() throws Exception {
+    String scanId = "abcdefg12345";
+    String appPublicId = "bom1-12345678";
+    tempEntity.newApplicationWithParent(appPublicId);
+
+    HttpResponse response = restRequest(appPublicId, scanId)
+        .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).get();
+    assertResponseStatus(404, response);
+    assertEquals("Reports have been moved.  Clear cache and reload.", response.getBodyText());
+  }
+
+  @Test
+  public void testEmbedReport_Json_AnonymousNotAllowed() throws Exception {
+    String scanId = "abcdefg12345";
+    String appPublicId = "bom1-12345678";
+
+    HttpResponse response = restRequest(appPublicId, scanId)
+        .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).anon().get();
+    assertResponseStatus(401, response);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testEmbedReport_Json_AnonymousAllowed() throws Exception {
+    initServer(new Configurator() {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setAnonymousClientAccessAllowed(true);
+      }
+    });
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
 

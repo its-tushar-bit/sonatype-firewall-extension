@@ -75,8 +75,9 @@ public class FirewallClientTest
 
   @Test
   public void testSetEnabled_TrueError() throws Exception {
-    FirewallClient client = new FirewallClient(getCLMServer().getClientConfiguration(), rmInstanceId,
-        REPOSITORY_PUBLIC_ID);
+    Configuration configuration = getCLMServer().getClientConfiguration();
+    configuration.setServerAuth(null);
+    FirewallClient client = new FirewallClient(configuration, rmInstanceId, REPOSITORY_PUBLIC_ID);
 
     try {
       client.setEnabled(true);

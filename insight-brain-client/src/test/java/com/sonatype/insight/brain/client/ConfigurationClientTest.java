@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -68,9 +70,37 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad context root");
     }
     catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
+      assertThat(e.getMessage(), is("Resource not found, please check your request URL."));
+    }
+  }
+
+  @Test
+  public void testValidateConfiguration_AnonymousNotAllowed() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(null);
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Validation should have failed due to anonymous not being allowed");
+    }
+    catch (HttpResponseException e) {
       assertEquals(401, e.getStatusCode());
       assertThat(e.getMessage(), is("Unauthorized"));
     }
+  }
+
+  @Test
+  @ManualServerInit
+  public void testValidateConfiguration_AnonymousAllowed_AnonymousClientAccessAllowed() throws Exception {
+    initServer(new Configurator() {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setAnonymousClientAccessAllowed(true);
+      }
+    });
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(null);
+    new ConfigurationClient(config).validateConfiguration();
   }
 
   @Test
@@ -417,6 +447,7 @@ public class ConfigurationClientTest
   @Test
   public void testValidateAuthentication_NoAuthProvided() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(null);
     ConfigurationClient client = new ConfigurationClient(config);
     try {
       client.validateAuthentication();

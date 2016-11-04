@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -545,14 +546,20 @@ public class ApplicationResourceTest
   }
 
   @Test
-  public void testGetApplicationNamesForEvaluateComponent_Anonymous() throws Exception {
+  @ManualServerInit
+  public void testGetApplicationNamesForEvaluateComponent_Anonymous_AnonymousClientAccessAllowed() throws Exception {
+    initServer(new Configurator() {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.setAnonymousClientAccessAllowed(true);
+      }
+    });
     final String applicationPublicId = "ApplicationResourceTest-getApplicationNamesTest-AppId";
     final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
     tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
 
     HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_NAMES).anon().get();
     assertResponseStatus(200, response);
-
     @SuppressWarnings("unchecked")
     Map<String, String> applicationNames = response.getBody(Map.class);
     Assert.assertNotNull(applicationNames);

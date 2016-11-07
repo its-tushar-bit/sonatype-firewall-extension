@@ -57,6 +57,10 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     return $("#dashboard-filter-clear");
   }
 
+  public static SelenideElement saveFilterNameLabel() {
+    return $(".dashboard-filter-name");
+  }
+
   public static void toggleTwisties() {
     applicationFilter().twisty().click();
     applicationCategoryFilter().twisty().click();

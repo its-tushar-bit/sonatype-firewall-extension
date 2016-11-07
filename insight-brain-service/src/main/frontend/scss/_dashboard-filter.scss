@@ -56,6 +56,19 @@
       /* margin bottom added to last element as FF, and other browsers don't consider padding for overflow */
       margin-bottom: $tree-view-margin-bottom;
     }
+
+    .dashboard-filter-name {
+      color: $slate;
+      margin-bottom: 17px; /* assumes tree-view-item has padding of 7px */
+      padding-bottom: 8px;
+      border-bottom: 1px $grey-4 solid;
+
+      &:empty{
+        border: none;
+        padding-bottom: 0px;
+        margin-bottom: 0px;
+      }
+    }
   }
 
   .dashboard-filter-footer {

@@ -43,6 +43,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.codeborne.selenide.Condition;
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -255,6 +256,7 @@ public class DashboardFilterTest
     manage.dropdownMenu().shouldBe(visible);
     manage.emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters."));
     manage.openMenuButton().click();
+    DashboardFilters.saveFilterNameLabel().shouldBe(Condition.empty);
 
     // save initial filter
     saveFilter("Initial");
@@ -274,6 +276,7 @@ public class DashboardFilterTest
     // apply and save new filter
     DashboardFilters.applyButton().click();
     saveFilter("New Filter");
+    DashboardFilters.saveFilterNameLabel().shouldHave(text("New Filter"));
     manage.openMenuButton().click();
     manage.filters().shouldHaveSize(2);
     manage.filter(1).shouldHave(text("New Filter"));
@@ -282,7 +285,7 @@ public class DashboardFilterTest
     ViolationsResults table = DashboardPage.violationsView().results();
     table.violations().shouldHaveSize(1);
     manage.filter(0).click();
-    assertInitialFilterState();
+    assertInitialFilterState("Initial");
     table.violations().shouldHaveSize(3);
   }
 
@@ -310,6 +313,10 @@ public class DashboardFilterTest
   }
 
   private void assertInitialFilterState() {
+    assertInitialFilterState("");
+  }
+
+  private void assertInitialFilterState(final String savedFilterName) {
     DashboardFilter appFilter = DashboardFilters.applicationFilter();
 
     appFilter.counter().shouldBe(visible, INACTIVE).shouldHave(text("2"));
@@ -329,6 +336,13 @@ public class DashboardFilterTest
     categoryFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all application categories"));
     categoryFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstAppCategory.getName()));
     categoryFilter.twisty().click();
+
+    if (savedFilterName.isEmpty()) {
+      DashboardFilters.saveFilterNameLabel().shouldBe(Condition.empty);
+    }
+    else {
+      DashboardFilters.saveFilterNameLabel().shouldBe(text(savedFilterName));
+    }
 
     assertStageFilterInitialState();
     assertPolicyTypeFilterInitialState();

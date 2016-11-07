@@ -10,7 +10,8 @@
                                      OrganizationStore, EventNameConstant, SaveFilterModal)
   {
     var vm = this,
-        appliedFilter;
+        appliedFilter,
+        appliedFilterName;
 
     // Available
     vm.organizations = undefined;
@@ -45,6 +46,7 @@
     vm.isDirty = isDirty;
     vm.clear = clear;
     vm.revert = revert;
+    vm.activeFilterName = undefined;
     vm.applyCurrentFilter = applyCurrentFilter;
     vm.applySavedFilter = applySavedFilter;
     vm.loadFilterFromJson = loadFilterFromJson;
@@ -168,11 +170,13 @@
     function clear() {
       resetFilter();
       delete vm.loadErrorFilterName;
+      delete vm.activeFilterName;
     }
 
     function revert() {
       vm.selected = angular.copy(appliedFilter);
       delete vm.loadErrorFilterName;
+      vm.activeFilterName = appliedFilterName;
     }
 
     function resetFilter() {
@@ -250,6 +254,7 @@
       applyFilter(savedFilter.filter).then(function(activeFilter) {
         vm.loadFilterFromJson(activeFilter);
         appliedFilter = angular.copy(vm.selected);
+        appliedFilterName = vm.activeFilterName = savedFilter.name;
       }, function() {
         vm.loadErrorFilterName = savedFilter.name;
       });
@@ -262,6 +267,7 @@
      */
     function applyFilter(filterJson) {
       return $http.put(CLMLocations.getDashboardFilters(), filterJson).then(function(activeFilter) {
+        appliedFilterName = vm.activeFilterName;
         $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter.data);
         return activeFilter.data;
       });
@@ -276,7 +282,10 @@
         $event.stopPropagation();
         return;
       }
-      SaveFilterModal.open(filterToJson(vm.selected)).then(refreshSavedFilters);
+      SaveFilterModal.open(filterToJson(vm.selected)).then(function(name) {
+        refreshSavedFilters();
+        appliedFilterName = vm.activeFilterName = name;
+      });
     }
 
     function refreshSavedFilters() {

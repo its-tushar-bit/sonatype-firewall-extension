@@ -324,6 +324,12 @@ describe('dashboard.filter.controller', function() {
         vm.clear();
         expect(vm.loadErrorFilterName).toBeUndefined();
       });
+
+      it('clears saved filter', function() {
+        vm.activeFilterName = 'test saved filter';
+        vm.clear();
+        expect(vm.activeFilterName).toBeUndefined();
+      });
     });
 
     describe('revert()', function() {
@@ -376,6 +382,23 @@ describe('dashboard.filter.controller', function() {
         vm.revert();
         expect(vm.loadErrorFilterName).toBeUndefined();
       });
+
+      it('after first saving filter then clear()', function() {
+        var savedFilter = {
+          filter: {
+            minPolicyThreatLevel: 9,
+            maxPolicyThreatLevel: 10
+          },
+          name: 'test filter'
+        };
+        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(savedFilter.filter);
+        vm.applySavedFilter(savedFilter);
+        $httpBackend.flush();
+        expect(vm.activeFilterName).toEqual('test filter');
+        vm.clear();
+        vm.revert();
+        expect(vm.activeFilterName).toEqual('test filter');
+      });
     });
 
     describe('applySavedFilter()', function() {
@@ -394,6 +417,7 @@ describe('dashboard.filter.controller', function() {
           $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(savedFilter.filter);
           vm.applySavedFilter(savedFilter);
           $httpBackend.flush();
+          expect(vm.activeFilterName).toEqual('test filter');
           expect(vm.loadFilterFromJson).toHaveBeenCalledWith(savedFilter.filter);
           expect(vm.isDirty()).toBe(false);
           expect($rootScope.$broadcast).toHaveBeenCalledWith(EventNameConstant.UPDATE_DASHBOARD_FILTERS,
@@ -460,6 +484,17 @@ describe('dashboard.filter.controller', function() {
         vm.openSaveFilterModal($event);
         expect($event.stopPropagation).toHaveBeenCalled();
         expect(saveFilterModal.open).not.toHaveBeenCalled();
+      });
+
+      it('save modal filter name matches the saved filter name', function() {
+        var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
+        $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond('saved filters');
+        spyOn(vm, 'isDirty').andReturn(false);
+        spyOn(saveFilterModal, 'open').andReturn($q.resolve("TestFilterName"));
+        vm.openSaveFilterModal($event);
+        $httpBackend.flush();
+        expect(vm.savedNamedFilters).toBe('saved filters');
+        expect(vm.activeFilterName).toEqual('TestFilterName');
       });
     });
   });

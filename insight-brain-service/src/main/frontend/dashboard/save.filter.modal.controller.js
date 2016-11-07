@@ -20,7 +20,7 @@
         filter: filterJson
       };
       vm.formMask.wrap($http.put(CLMLocations.getDashboardSavedFilters(), namedFilter)).then(function() {
-        $scope.$close();
+        $scope.$close(namedFilter.name);
       }, function(error) {
         vm.saveError = Messages.getHttpErrorMessage(error);
       });

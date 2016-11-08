@@ -6,12 +6,12 @@
 (function(angular) {
   'use strict';
 
-  function SaveFilterModalController($scope, $http, CLMLocations, filterJson, Messages)
+  function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filterName, Messages)
   {
     var vm = this;
     vm.formMask = undefined;
     vm.saveError = undefined;
-    vm.filterName = undefined;
+    vm.filterName = filterName;
     vm.saveFilter = saveFilter;
 
     function saveFilter() {
@@ -27,7 +27,7 @@
     }
   }
 
-  SaveFilterModalController.$inject = ['$scope', '$http', 'CLMLocations', 'filterJson', 'Messages'];
+  SaveFilterModalController.$inject = ['$scope', '$http', 'CLMLocations', 'filterJson', 'filterName', 'Messages'];
 
   angular.module('dashboard.module').controller('save.filter.modal.controller', SaveFilterModalController);
 

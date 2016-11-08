@@ -11,7 +11,7 @@
       open: openModal
     };
 
-    function openModal(filterJson) {
+    function openModal(filterJson, name) {
       return $modal.open({
         animation: false,
         backdrop: 'static',
@@ -22,6 +22,9 @@
         resolve: {
           filterJson: function() {
             return filterJson;
+          },
+          filterName: function() {
+            return name || '';
           }
         }
       }).result;

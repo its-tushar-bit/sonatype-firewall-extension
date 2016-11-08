@@ -37,18 +37,19 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codeborne.selenide.Condition;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.codeborne.selenide.Condition;
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
@@ -259,7 +260,7 @@ public class DashboardFilterTest
     DashboardFilters.saveFilterNameLabel().shouldBe(Condition.empty);
 
     // save initial filter
-    saveFilter("Initial");
+    saveFilter("Initial", null);
     manage.openMenuButton().click();
     manage.filters().shouldHaveSize(1);
     manage.filter(0).shouldHave(text("Initial"));
@@ -275,7 +276,7 @@ public class DashboardFilterTest
 
     // apply and save new filter
     DashboardFilters.applyButton().click();
-    saveFilter("New Filter");
+    saveFilter("New Filter", "Initial");
     DashboardFilters.saveFilterNameLabel().shouldHave(text("New Filter"));
     manage.openMenuButton().click();
     manage.filters().shouldHaveSize(2);
@@ -289,13 +290,20 @@ public class DashboardFilterTest
     table.violations().shouldHaveSize(3);
   }
 
-  private void saveFilter(String filterName) {
+  private void saveFilter(String filterName, String existingFilterName) {
     ManageFilters manage = DashboardFilters.manage();
     manage.openMenuButton().click();
     manage.saveFilter().shouldNotHave(DISABLED).click();
     SaveFilterDialog saveDialog = manage.saveFilterDialog();
     saveDialog.shouldBe(visible);
-    saveDialog.saveButton().shouldHave(DISABLED);
+    if (existingFilterName != null) {
+      saveDialog.saveButton().shouldNotHave(DISABLED);
+      saveDialog.nameInput().shouldHave(value(existingFilterName));
+    }
+    else {
+      saveDialog.saveButton().shouldHave(DISABLED);
+      saveDialog.nameInput().shouldBe(Condition.empty);
+    }
     saveDialog.nameInput().val(filterName);
     saveDialog.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();

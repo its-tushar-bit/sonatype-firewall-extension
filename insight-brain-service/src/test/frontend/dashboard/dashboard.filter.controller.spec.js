@@ -470,10 +470,27 @@ describe('dashboard.filter.controller', function() {
 
         vm.openSaveFilterModal($event);
         expect($event.stopPropagation).not.toHaveBeenCalled();
-        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson);
+        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, undefined);
 
         $httpBackend.flush();
         expect(vm.savedNamedFilters).toBe('saved filters');
+      });
+
+      it('passes name for filter', function() {
+        var expectedFilterJson = angular.copy(filterData);
+        delete vm.selected.applications.applicationIdR;
+        vm.activeFilterName = 'My First Filter';
+
+        var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
+        spyOn(saveFilterModal, 'open').andReturn($q.resolve());
+        $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond('saved filters');
+        spyOn(vm, 'isDirty').andReturn(false);
+
+        vm.openSaveFilterModal($event);
+        expect($event.stopPropagation).not.toHaveBeenCalled();
+        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, 'My First Filter');
+
+        $httpBackend.flush();
       });
 
       it('does nothing if filter changes were not applied', function() {

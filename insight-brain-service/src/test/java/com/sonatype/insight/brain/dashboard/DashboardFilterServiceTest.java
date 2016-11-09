@@ -286,7 +286,7 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName() throws IOException {
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName() {
     String filterName1 = "Filter 1";
     String filterName2 = "Filter 2";
 
@@ -305,9 +305,7 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DeletesFilterWhenOneMissing()
-      throws IOException
-  {
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DeletesFilterWhenOneMissing() {
     String filterName1 = "Filter X";
     String filterName2 = "Filter Y";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName2, 5, 7);
@@ -330,9 +328,7 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DeletesFilterWhenOneFails()
-      throws IOException
-  {
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DeletesFilterWhenOneFails() {
     // creating filters
     String filterName1 = "Filter 1";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 5, 7);

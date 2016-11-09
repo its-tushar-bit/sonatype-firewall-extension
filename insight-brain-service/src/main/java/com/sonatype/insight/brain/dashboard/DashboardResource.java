@@ -177,7 +177,7 @@ public class DashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "deleteDashboardFiltersForCurrentUserByFilterNameExceptionMeter")
-  public Response deleteDashboardFiltersForCurrentUserByFilterName(final List<String> names) throws IOException {
+  public Response deleteDashboardFiltersForCurrentUserByFilterName(final List<String> names) {
     List<DashboardFilterErrorResponseDTO> errorResponseDTOs = dashboardFilterService
         .deleteDashboardFiltersForCurrentUserByFilterName(names);
 

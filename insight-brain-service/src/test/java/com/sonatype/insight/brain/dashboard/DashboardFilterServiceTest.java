@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -33,17 +34,23 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 public class DashboardFilterServiceTest
     extends AbstractComponentTest
@@ -276,6 +283,122 @@ public class DashboardFilterServiceTest
     assertThat(actual.tagFilters, empty());
     assertThat(actual.policyThreatCategoryFilters, empty());
     assertThat(actual.stageTypeFilters, empty());
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName() throws IOException {
+    String filterName1 = "Filter 1";
+    String filterName2 = "Filter 2";
+
+    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 5, 7);
+    tempEntity.newDashboardFilter(USERNAME, dto1.name, JsonUtils.format(dto1.filter));
+
+    NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 4, 8);
+    tempEntity.newDashboardFilter(USERNAME, dto2.name, JsonUtils.format(dto2.filter));
+
+    List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
+
+    dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
+
+    List<DashboardFilter> actual = new DashboardFilterDAO().getNamedFiltersByUsername(USERNAME);
+    assertThat(actual, hasSize(0));
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DeletesFilterWhenOneMissing()
+      throws IOException
+  {
+    String filterName1 = "Filter X";
+    String filterName2 = "Filter Y";
+    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName2, 5, 7);
+    tempEntity.newDashboardFilter(USERNAME, dto1.name, JsonUtils.format(dto1.filter));
+
+    List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
+
+    List<DashboardFilterErrorResponseDTO> actualErrors = dashboardFilterService
+        .deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
+    // verify that Filter X failed
+    assertThat(actualErrors, hasSize(1));
+    assertThat(actualErrors.get(0).name, is(filterName1));
+    assertThat(actualErrors.get(0).errorMessage,
+        is("Cannot find a filter with name " + filterName1 + " for user " + USERNAME + "."));
+    assertThat(actualErrors.get(0).status, is(404));
+
+    // verify that Filter Y got deleted
+    List<DashboardFilter> actualFilters = new DashboardFilterDAO().getNamedFiltersByUsername(USERNAME);
+    assertThat(actualFilters, hasSize(0));
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_DeletesFilterWhenOneFails()
+      throws IOException
+  {
+    // creating filters
+    String filterName1 = "Filter 1";
+    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 5, 7);
+    DashboardFilter dashboardFilter1 = tempEntity
+        .newDashboardFilter(USERNAME, dto1.name, JsonUtils.format(dto1.filter));
+
+    String filterName2 = "Filter 2";
+    NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 5, 9);
+    tempEntity.newDashboardFilter(USERNAME, dto2.name, JsonUtils.format(dto2.filter));
+
+    // spy
+    DashboardFilterDAO dashboardFilterDao = new DashboardFilterDAO();
+    DashboardFilterDAO dashboardFilterDaoSpy = Mockito.spy(dashboardFilterDao);
+    // mock
+    CurrentUser currentUserMock = Mockito.mock(CurrentUser.class);
+    DashboardUtils dashboardUtilsMock = Mockito.mock(DashboardUtils.class);
+
+    DashboardFilterService dashboardFilterService = new DashboardFilterService(null, null, null, null,
+        dashboardFilterDaoSpy, currentUserMock, dashboardUtilsMock, null);
+
+    when(currentUserMock.getUsername()).thenReturn(USERNAME);
+    when(dashboardFilterDaoSpy.getByUsernameAndName(USERNAME, filterName1)).thenReturn(dashboardFilter1);
+    doThrow(new RuntimeException("Something went wrong.")).when(dashboardFilterDaoSpy).delete(dashboardFilter1);
+
+    List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
+
+    List<DashboardFilterErrorResponseDTO> actualErrors = dashboardFilterService
+        .deleteDashboardFiltersForCurrentUserByFilterName(filtersToDelete);
+    // verify that Filter 1 failed
+    assertThat(actualErrors, hasSize(1));
+    assertThat(actualErrors.get(0).name, is(filterName1));
+    assertThat(actualErrors.get(0).errorMessage,
+        is("An exception occurred while trying to find or delete filter name " + filterName1 + " for user " + USERNAME + "."));
+    assertThat(actualErrors.get(0).status, is(500));
+
+    // verify that Filter 1 is present and Filter 2 got deleted
+    List<DashboardFilter> actualFilters = dashboardFilterDao.getNamedFiltersByUsername(USERNAME);
+    assertThat(actualFilters, hasSize(1));
+    assertThat(actualFilters.get(0), notNullValue());
+    assertThat(actualFilters.get(0).getUsername(), is(USERNAME));
+    assertThat(actualFilters.get(0).getNameLowercaseNoWhitespace(), is("filter1"));
+    assertThat(actualFilters.get(0).getName(), is("Filter 1"));
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnNullInput()
+  {
+    try {
+      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
+      fail("Expected exception to be thrown.");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("Filter names cannot be null or empty."));
+    }
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_ThrowsExceptionOnEmptyInput()
+  {
+    try {
+      dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(new ArrayList<String>());
+      fail("Expected exception to be thrown.");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("Filter names cannot be null or empty."));
+    }
   }
 
   private NamedDashboardFilterDTO createNamedDashboardFilterDTO(String filterName,

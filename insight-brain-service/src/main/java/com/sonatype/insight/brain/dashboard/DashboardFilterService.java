@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.base.Predicate;
@@ -173,14 +174,34 @@ public class DashboardFilterService
   /**
    * @since 1.24.0
    */
-  public void deleteAllDashboardFiltersForCurrentUser() {
+  public List<DashboardFilterErrorResponseDTO> deleteDashboardFiltersForCurrentUserByFilterName(List<String> filterNames) {
     dashboardUtils.validateDashboardLicensed();
 
-    String username = currentUser.getUsername();
-    List<DashboardFilter> dashboardFilters = dashboardFilterDAO.getByUsername(username);
-    for (DashboardFilter dashboardFilter : dashboardFilters) {
-      dashboardFilterDAO.delete(dashboardFilter);
+    if (isEmpty(filterNames)) {
+      throw new BadRequestException("Filter names cannot be null or empty.");
     }
+    List<DashboardFilterErrorResponseDTO> errorMessages = new ArrayList<>();
+    String username = currentUser.getUsername();
+    for (String filterName : filterNames) {
+      try {
+        DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, filterName);
+        if (dashboardFilter != null) {
+          dashboardFilterDAO.delete(dashboardFilter);
+        }
+        else {
+          String errorMessage = "Cannot find a filter with name " + filterName + " for user " + username + ".";
+          errorMessages.add(new DashboardFilterErrorResponseDTO(filterName, errorMessage, 404));
+        }
+      }
+      catch (Exception exception) {
+        String errorMessage =
+            "An exception occurred while trying to find or delete filter name " + filterName + " for user " + username +
+                ".";
+        errorMessages.add(new DashboardFilterErrorResponseDTO(filterName, errorMessage, 500));
+        log.error(errorMessage, exception);
+      }
+    }
+    return errorMessages;
   }
   
   /**

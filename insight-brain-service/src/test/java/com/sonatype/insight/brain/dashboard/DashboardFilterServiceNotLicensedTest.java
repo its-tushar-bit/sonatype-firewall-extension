@@ -22,15 +22,15 @@ public class DashboardFilterServiceNotLicensedTest
   public void testCreateOrUpdateDashboardFilterForCurrentUser_Unlicensed() throws Exception {
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(null);
   }
-
-  @Test(expected = InvalidLicenseException.class)
-  public void testDeleteAllDashboardFilterForCurrentUser_Unlicensed() throws Exception {
-    dashboardFilterService.deleteAllDashboardFiltersForCurrentUser();
-  }
-
+  
   @Test(expected = InvalidLicenseException.class)
   public void testGetFilterSummary_Unlicensed() throws Exception {
     dashboardFilterService.getFilterSummary(null, null, null, null, null, null);
+  }
+  
+  @Test(expected = InvalidLicenseException.class)
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_Unlicensed() {
+    dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
   }
   
   @Test(expected = InvalidLicenseException.class)

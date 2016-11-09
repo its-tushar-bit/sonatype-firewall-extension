@@ -9,10 +9,14 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
@@ -27,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -34,6 +39,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH;
@@ -46,9 +52,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 public class DashboardResourceTest
     extends AbstractResourceTest
@@ -99,54 +105,71 @@ public class DashboardResourceTest
     assertThat(dto, notNullValue());
     assertThat(dto.weeklyDeltaNew, hasSize(12));
   }
-
+  
   @Test
-  public void testDashboardUserFilterCRUD() throws Exception {
-    // start with the default filter
-    HttpRequest request = restRequest().path(DashboardResource.FILTERS_PATH);
-    HttpResponse response = request.get();
-    assertResponseStatus(200, response);
-
+  public void testGetActiveDashboardFilterForCurrentUser_UnnamedFilter() throws Exception {
+    User tempUser = tempEntity.newUser();
+    String filterName = "";
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Tag tag = tempEntity.newTag(org.getId());
+    tempEntity.newMembershipMapping(app.getId(), Role.OWNER_ROLE_ID, tempUser.getUsername());
+    // creating a new filter
     DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
-
-    // Test the create
-    response = request.body(dashboardFilterDTO).put();
+    tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(dashboardFilterDTO));
+    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(DashboardResource.FILTERS_PATH);
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername("admin").get(0);
+    DashboardFilterDTO result = response.getBody(DashboardFilterDTO.class);
+    assertThat(result, notNullValue());
+    assertDashboardFilterDTO(result, dashboardFilterDTO);
+  }
+
+  @Test
+  public void testUpdateUserDashboardFilterForCurrentUser_Create() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+    // creating a new filter
+    DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
+    // Test the create
+    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(DashboardResource.FILTERS_PATH);
+    HttpResponse response = request.body(dashboardFilterDTO).put();
+    assertResponseStatus(200, response);
+
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(tempUser.getUsername()).get(0);
     assertThat(dashboardFilter, notNullValue());
-    // Register to make sure the the filter is deleted after the test
-    tempEntity.register(dashboardFilter);
 
     DashboardFilterDTO returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
+  }
 
-    // Now test the update
-    dashboardFilterDTO = returnedDashboardFilterDTO;
+  @Test
+  public void testUpdateUserDashboardFilterForCurrentUser_Update() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+    String filterName = "";
+    DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
+    // creating a new filter
+    tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(dashboardFilterDTO));
+    // updating the new filter
     dashboardFilterDTO.minPolicyThreatLevel = 8;
     dashboardFilterDTO.maxPolicyThreatLevel = 20;
-    response = request.body(dashboardFilterDTO).put();
-
+    HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(DashboardResource.FILTERS_PATH);
+    HttpResponse response = request.body(dashboardFilterDTO).put();
     assertResponseStatus(200, response);
-    returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
-    assertThat(returnedDashboardFilterDTO, notNullValue());
-    assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 
-    // Now test get
-    response = request.get();
-    assertResponseStatus(200, response);
-    returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
-    assertThat(returnedDashboardFilterDTO, notNullValue());
-    assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
-
-    // Finally test the delete
-    response = request.body(null).delete();
-    assertResponseStatus(204, response);
-    assertThat(dashboardFilterDAO.getByUsername("admin"), empty());
+    DashboardFilterDTO result = response.getBody(DashboardFilterDTO.class);
+    assertThat(result, notNullValue());
+    assertDashboardFilterDTO(result, dashboardFilterDTO);
   }
 
   private void assertDashboardFilterDTO(DashboardFilterDTO actual, DashboardFilterDTO expected) {
@@ -404,6 +427,88 @@ public class DashboardResourceTest
     
     // verify what was saved in the db is what's expected
     verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+
+    String username = tempUser.getUsername();
+    String filterName1 = "Filter XYZ";
+    tempEntity.newDashboardFilter(username, filterName1, JsonUtils.format(createDashboardFilter(app, tag)));
+
+    String filterName2 = "Filter YYY";
+    tempEntity.newDashboardFilter(username, filterName2, JsonUtils.format(createDashboardFilter(app, tag)));
+
+    List<String> filterNames = Arrays.asList(filterName1, filterName2);
+
+    HttpRequest request = restRequest().auth(username, tempUser.getPassword())
+        .path(DashboardResource.DELETE_NAMED_FILTERS_PATH).body(filterNames);
+    HttpResponse response = request.parameter(filterName1).post();
+    assertResponseStatus(204, response);
+    // verify that both filters above got deleted
+    assertThat(dashboardFilterDAO.getByUsername(username), hasSize(0));
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_returnErrorResponseWhenFilterIsNotFound() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+
+    String username = tempUser.getUsername();
+    String filterName = "Filter 1";
+    tempEntity.newDashboardFilter(username, filterName, JsonUtils.format(createDashboardFilter(app, tag)));
+
+    List<String> filterNames = Arrays.asList(filterName, "NotFoundFilter");
+
+    HttpRequest request = restRequest().auth(username, tempUser.getPassword())
+        .path(DashboardResource.DELETE_NAMED_FILTERS_PATH).body(filterNames);
+    HttpResponse response = request.parameter(filterName).post();
+    assertResponseStatus(404, response);
+    DashboardFilterErrorResponseDTO[] errorResponseDTOs = response.getBody(DashboardFilterErrorResponseDTO[].class);
+    assertThat(errorResponseDTOs, arrayWithSize(1));
+    assertThat(errorResponseDTOs[0].status, is(404));
+    assertThat(errorResponseDTOs[0].name, is("NotFoundFilter"));
+    assertThat(errorResponseDTOs[0].errorMessage,
+        is("Cannot find a filter with name NotFoundFilter for user " + username + "."));
+    // verify that Filter 1 got deleted
+    assertThat(dashboardFilterDAO.getByUsername(username), hasSize(0));
+  }
+
+  @Test
+  public void testDeleteDashboardFiltersForCurrentUserByFilterName_returnMaxStatusCodeWhenDifferentFailuresOccur()
+      throws Exception
+  {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+
+    String username = tempUser.getUsername();
+    String filterName1 = "Filter 1";
+    tempEntity.newDashboardFilter(username, filterName1, JsonUtils.format(createDashboardFilter(app, tag)));
+
+    String filterName2 = "Filter 2";
+    tempEntity.newDashboardFilter(username, filterName2, JsonUtils.format(createDashboardFilter(app, tag)));
+
+    List<String> filterNames = Arrays.asList(filterName1, filterName2, "NotFoundFilter");
+    
+    List<DashboardFilterErrorResponseDTO> expectedResult = new ArrayList<>();
+    expectedResult.add(new DashboardFilterErrorResponseDTO(filterName1, "internal server error", 500));
+    expectedResult.add(new DashboardFilterErrorResponseDTO("NotFoundFilter", "not found error", 404));
+
+    DashboardFilterService dashboardFilterServiceMock = Mockito.mock(DashboardFilterService.class);
+    when(dashboardFilterServiceMock.deleteDashboardFiltersForCurrentUserByFilterName(filterNames)).thenReturn(expectedResult);
+    
+    DashboardResource underTest = new DashboardResource(null, dashboardFilterServiceMock, null, null, null);
+    Response actual = underTest.deleteDashboardFiltersForCurrentUserByFilterName(filterNames);
+    assertThat(actual.getStatus(), is(500));
+    assertThat((ArrayList<DashboardFilterErrorResponseDTO>) actual.getEntity(), hasSize(2));
   }
 
   private void verifyDbState(final User tempUser, final String filterName, final NamedDashboardFilterDTO expected)

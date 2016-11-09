@@ -6,12 +6,13 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -19,6 +20,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.multipart.FormDataMultiPart;
@@ -49,6 +51,8 @@ public class DashboardResource
 
   public static final String NAMED_FILTERS_PATH = "filters/named";
   
+  public static final String DELETE_NAMED_FILTERS_PATH = NAMED_FILTERS_PATH + "/delete";
+
   public static final String FILTERS_SUMMARY_PATH = "filters/summary";
 
   private final ApplicationRiskService applicationRiskService;
@@ -163,16 +167,40 @@ public class DashboardResource
   public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO dashboardFilterDTO) {
     return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
   }
-  
+
   /**
    * @since 1.24.0
    */
-  @DELETE
-  @Path(FILTERS_PATH)
+  @POST
+  @Path(DELETE_NAMED_FILTERS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  @ExceptionMetered(name = "deleteAllDashboardFiltersForCurrentUserExceptionMeter")
-  public void deleteAllDashboardFiltersForCurrentUser() {
-    dashboardFilterService.deleteAllDashboardFiltersForCurrentUser();
+  @ExceptionMetered(name = "deleteDashboardFiltersForCurrentUserByFilterNameExceptionMeter")
+  public Response deleteDashboardFiltersForCurrentUserByFilterName(final List<String> names) throws IOException {
+    List<DashboardFilterErrorResponseDTO> errorResponseDTOs = dashboardFilterService
+        .deleteDashboardFiltersForCurrentUserByFilterName(names);
+
+    ResponseBuilder builder;
+    if (errorResponseDTOs.isEmpty()) {
+      builder = Response.noContent();
+    }
+    else {
+      builder = Response.status(getMaxStatus(errorResponseDTOs)).entity(errorResponseDTOs);
+    }
+    return builder.build();
+  }
+
+  private int getMaxStatus(final List<DashboardFilterErrorResponseDTO> errorResponseDTOs)
+  {
+    return Collections.max(errorResponseDTOs, new Comparator<DashboardFilterErrorResponseDTO>()
+    {
+      @Override
+      public int compare(DashboardFilterErrorResponseDTO dto1, DashboardFilterErrorResponseDTO dto2)
+      {
+        return Integer.compare(dto1.status, dto2.status);
+      }
+    }).status;
   }
 
   @POST

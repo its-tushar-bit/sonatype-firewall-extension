@@ -127,6 +127,14 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     public SelenideElement nameInput() {
       return $("#filter-name-input");
     }
+
+    public SelenideElement confirmation() {
+      return $("#save-filter-confirmation");
+    }
+
+    public SelenideElement confirmContinue() {
+      return $("#save-filter-confirmation .btn-primary");
+    }
   }
 
   public static class DashboardFilter extends BasicElement<DashboardFilter>

@@ -282,7 +282,7 @@
         $event.stopPropagation();
         return;
       }
-      SaveFilterModal.open(filterToJson(vm.selected), vm.activeFilterName).then(function(name) {
+      SaveFilterModal.open(filterToJson(vm.selected), vm.activeFilterName, vm.savedNamedFilters).then(function(name) {
         refreshSavedFilters();
         appliedFilterName = vm.activeFilterName = name;
       });

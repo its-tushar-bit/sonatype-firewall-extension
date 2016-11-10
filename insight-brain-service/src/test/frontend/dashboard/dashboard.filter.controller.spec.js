@@ -470,7 +470,7 @@ describe('dashboard.filter.controller', function() {
 
         vm.openSaveFilterModal($event);
         expect($event.stopPropagation).not.toHaveBeenCalled();
-        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, undefined);
+        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, undefined, vm.savedNamedFilters);
 
         $httpBackend.flush();
         expect(vm.savedNamedFilters).toBe('saved filters');
@@ -488,7 +488,7 @@ describe('dashboard.filter.controller', function() {
 
         vm.openSaveFilterModal($event);
         expect($event.stopPropagation).not.toHaveBeenCalled();
-        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, 'My First Filter');
+        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, 'My First Filter', vm.savedNamedFilters);
 
         $httpBackend.flush();
       });

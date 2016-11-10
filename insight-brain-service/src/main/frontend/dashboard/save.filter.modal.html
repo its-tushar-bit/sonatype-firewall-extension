@@ -4,27 +4,42 @@
       <i class="fa size-20px fa-floppy-o"></i>Save Filter
     </h2>
   </div>
-  <form class="clm-form" role="form" name="saveFilterForm" ng-submit="vm.saveFilter()"
-        form-mask="vm.formMask" mask-message="Saving">
-    <div class="clm-modal-body">
-      <div class="section">
-        <div class="field">
-          <label for="filter-name-input">Filter Name</label>
-          <input id="filter-name-input" name="filter-name" type="text" ng-model="vm.filterName" ng-maxlength="60"
-                 focus-input="true" clm-input autofocus ng-required="true" valid-name-characters>
-        </div>
+  <div ng-if="vm.confirm" id="save-filter-confirmation">
+    <div class="clm-modal-body warn">
+      <div class="clm-alert alert">
+       <i class="fa fa-warning"></i>A filter already exists with this name.
       </div>
     </div>
-    <div class="clm-modal-footer" ng-class="{ error : vm.saveError }">
-      <div ng-if="vm.saveError" class="section with-icon"><i class="fa fa-warning"></i>{{::vm.saveError}}</div>
-      <button ng-if="!vm.saveError" class="btn btn-primary" type="submit"
-              submit-validation submit-type="Save" submit-dirty="vm.filterName">
-        Save
+    <div class="clm-modal-footer">
+      <button class="btn btn-primary" ng-click="vm.saveFilter(true);">
+        Continue
       </button>
-      <button ng-if="vm.saveError" class="btn btn-error" type="submit">
-        <i class="fa fa-refresh"></i>Retry
-      </button>
-      <button id="dismissBtn" class="btn" type="button" ng-click="$dismiss()">Cancel</button>
+      <button id="dismissBtn" class="btn" type="button" ng-click="vm.confirm = false">Cancel</button>
     </div>
-  </form>
+  </div>
+  <div ng-hide="vm.confirm">
+    <form class="clm-form" role="form" name="saveFilterForm" ng-submit="vm.saveFilter()"
+          form-mask="vm.formMask" mask-message="Saving">
+      <div class="clm-modal-body">
+        <div class="section">
+          <div class="field">
+            <label for="filter-name-input">Filter Name</label>
+            <input id="filter-name-input" name="filter-name" type="text" ng-model="vm.filterName" ng-maxlength="60"
+                   focus-input="true" clm-input autofocus ng-required="true" valid-name-characters>
+          </div>
+        </div>
+      </div>
+      <div class="clm-modal-footer" ng-class="{ error : vm.saveError }">
+        <div ng-if="vm.saveError" class="section with-icon"><i class="fa fa-warning"></i>{{::vm.saveError}}</div>
+        <button ng-if="!vm.saveError" class="btn btn-primary" type="submit"
+                submit-validation submit-type="Save" submit-dirty="vm.filterName">
+          Save
+        </button>
+        <button ng-if="vm.saveError" class="btn btn-error" type="submit">
+          <i class="fa fa-refresh"></i>Retry
+        </button>
+        <button id="dismissBtn" class="btn" type="button" ng-click="$dismiss()">Cancel</button>
+      </div>
+    </form>
+  </div>
 </div>

@@ -266,6 +266,9 @@ public class DashboardFilterTest
     manage.filter(0).shouldHave(text("Initial"));
     manage.openMenuButton().click();
 
+    // Overwrite the filter, verifies the confirmation path
+    saveFilter("Initial", "Initial");
+
     // "save filter" should be disabled if filter changes are not applied
     setSomeFilterValues();
     manage.openMenuButton().click();
@@ -306,6 +309,11 @@ public class DashboardFilterTest
     }
     saveDialog.nameInput().val(filterName);
     saveDialog.saveButton().shouldNotHave(DISABLED).click();
+
+    if (filterName.equals(existingFilterName)) {
+      saveDialog.confirmation().shouldBe(visible);
+      saveDialog.confirmContinue().click();
+    }
     FormMask.seeAndWaitForDismissal();
     saveDialog.shouldNotBe(visible);
   }

@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.http.client.HttpResponseException;
 import org.codehaus.plexus.util.StringUtils;
@@ -55,8 +56,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     File scanFile = scan(params, getProprietaryConfiguration(params, restClient));
 
-    evaluatePolicy(params, restClient, scanFile);
+    evaluatePolicy(params, restClient, scanFile, getClientScanType());
   }
+
+  protected abstract ClientScanType getClientScanType();
 
   private Configuration newHttpClientConfig(P params) {
     Configuration config = new Configuration();
@@ -154,7 +157,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private Properties getScanConfiguration(P params, ProprietaryConfig proprietaryConfig) {
+  protected Properties getScanConfiguration(P params, ProprietaryConfig proprietaryConfig) {
     Properties props = new Properties();
     if (proprietaryConfig != null) {
       props.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), ","));
@@ -174,10 +177,12 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     return props;
   }
 
-  private ScanReceipt uploadScan(P params, RestClient restClient, File scanFile) throws ExitException {
+  private ScanReceipt uploadScan(P params, RestClient restClient, File scanFile, ClientScanType clientScanType)
+      throws ExitException
+  {
     log.info("Submitting scan to the IQ Server...");
     try {
-      return restClient.uploadScan(params.getApplicationId(), scanFile);
+      return restClient.uploadScan(params.getApplicationId(), scanFile, clientScanType);
     }
     catch (HttpResponseException e) {
       log.error("The scan could not be submitted to the IQ Server: {} ({})", e.getMessage(), e.getStatusCode());
@@ -189,8 +194,12 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private PolicyEvaluationResult evaluatePolicy(P params, RestClient restClient, File scanFile) throws ExitException {
-    ScanReceipt receipt = uploadScan(params, restClient, scanFile);
+  private PolicyEvaluationResult evaluatePolicy(P params,
+                                                RestClient restClient,
+                                                File scanFile,
+                                                ClientScanType clientScanType) throws ExitException
+  {
+    ScanReceipt receipt = uploadScan(params, restClient, scanFile, clientScanType);
     log.info("Fetching results of policy evaluation (ETA {}s)...", receipt.getTimeToReport());
     PolicyEvaluationResult eval;
     try {

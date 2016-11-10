@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 /**
  * @since 1.12.1
@@ -44,8 +45,8 @@ public class RestClientFactory
     }
 
     @Override
-    public ScanReceipt uploadScan(String appId, File scanFile) throws IOException {
-      return new ScanClient(config, appId).uploadCLIScan(scanFile);
+    public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) throws IOException {
+      return new ScanClient(config, appId).uploadCLIScan(scanFile, clientScanType);
     }
   }
 
@@ -60,7 +61,7 @@ public class RestClientFactory
     }
 
     @Override
-    public ScanReceipt uploadScan(String appId, File scanFile) throws IOException {
+    public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) throws IOException {
       return new ScanClient(config, appId).uploadCIScan(scanFile);
     }
   }
@@ -74,7 +75,8 @@ public class RestClientFactory
       this.config = config;
     }
 
-    public abstract ScanReceipt uploadScan(String appId, File scanFile) throws IOException;
+    public abstract ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType)
+        throws IOException;
 
     public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
       return new ConfigurationClient(config).getApplicationsForApplicationEvaluation();

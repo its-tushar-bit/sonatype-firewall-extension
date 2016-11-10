@@ -11,6 +11,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
@@ -96,5 +97,28 @@ public class ScanClientTest
     assertThat(data.reportHtmlUrl, is(receipt.resolveReportUrl(config.getServerUrl())));
     assertThat(data.reportPdfUrl, is(receipt.resolvePdfUrl(config.getServerUrl())));
     assertThat(data.reportDataUrl, is(receipt.resolveDataUrl(config.getServerUrl())));
+  }
+
+  @Test
+  public void testUploadCLIScan() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    ScanReceipt receipt = new ScanClient(config, APP_ID).uploadCLIScan(tmpDir.newFile("scan.xml.gz"),
+        ClientScanType.SONATYPE);
+    assertEquals("SCAN-ID", receipt.getScanId());
+    assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID", receipt.getReportUrl());
+    assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID/pdf", receipt.getPdfUrl());
+  }
+
+  @Test
+  public void testUploadCLIScan_InvalidAppId() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    try {
+      new ScanClient(config, "invalid-id").uploadCLIScan(tmpDir.newFile("scan.xml.gz"), ClientScanType.SONATYPE);
+      fail("Upload should have failed due to invalid app ID");
+    }
+    catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
+      assertEquals("Could not find an application with public ID invalid-id.", e.getMessage());
+    }
   }
 }

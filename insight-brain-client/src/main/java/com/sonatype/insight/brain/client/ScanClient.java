@@ -14,6 +14,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.entity.ContentType;
@@ -36,19 +37,20 @@ public class ScanClient
   }
 
   public ScanReceipt uploadCIScan(final File scanFile) throws IOException {
-    return handleUpload("rest/ci/scan", scanFile);
+    return handleUpload("rest/ci/scan", scanFile, ClientScanType.SONATYPE);
   }
 
-  public ScanReceipt uploadCLIScan(final File scanFile) throws IOException {
-    return handleUpload("rest/cli/scan", scanFile);
+  public ScanReceipt uploadCLIScan(final File scanFile, ClientScanType clientScanType) throws IOException {
+    return handleUpload("rest/cli/scan", scanFile, clientScanType);
   }
 
   public ScanReceipt uploadRepoManScan(final File scanFile) throws IOException {
-    return handleUpload("rest/rm/scan", scanFile);
+    return handleUpload("rest/rm/scan", scanFile, ClientScanType.SONATYPE);
   }
 
-  private ScanReceipt handleUpload(String url, File scanFile) throws IOException {
-    final Result result = path(url, appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
+  private ScanReceipt handleUpload(String url, File scanFile, ClientScanType clientScanType) throws IOException {
+    final Result result = path(url, appId).query("scanType", clientScanType.name())
+        .put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
     final int status = result.status();
     if (status >= 300) {
       throw new HttpResponseException(status, result.message());

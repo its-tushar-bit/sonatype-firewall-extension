@@ -6,14 +6,19 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.mock.PortAllocator;
 import com.sonatype.insight.mock.TwistlockMockServerRule;
+import com.sonatype.insight.scan.model.Scan;
+import com.sonatype.insight.scan.model.io.DefaultScanReader;
+import com.sonatype.insight.scan.model.io.ScanReader;
 
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.IOUtil;
@@ -24,7 +29,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
@@ -69,20 +76,30 @@ public class TwistlockPolicyEvaluatorTest
         DEFAULT_TWISTLOCK_RESULTS_URL.replace("${twistlockServerPort}", String.valueOf(twistlockServerPort)),
         getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz"), 200);
 
-    File twistlockScanFile = evaluator.scan(params, new ProprietaryConfig());
-    InputStream expected = getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz").openStream();
+    File scanFile = evaluator.scan(params, new ProprietaryConfig());
+    ZipFile scanFileZip = new ZipFile(scanFile);
     try {
-      InputStream actual = new FileInputStream(twistlockScanFile);
+      // Verify the Twistlock scan in the scan zip file
+      ZipEntry entry = scanFileZip.getEntry("twistlockScanFile.tar.gz");
+      InputStream expected = getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz").openStream();
       try {
-        assertThat(IOUtil.contentEquals(expected, actual), is(true));
+        assertThat(IOUtil.contentEquals(expected, scanFileZip.getInputStream(entry)), is(true));
       }
       finally {
-        actual.close();
+        expected.close();
       }
+
+      // Verify the Sonatype scan in the scan zip file
+      entry = scanFileZip.getEntry("scan.xml.gz");
+      ScanReader scanReader = new DefaultScanReader();
+      Scan scan = scanReader.read(new GZIPInputStream(scanFileZip.getInputStream(entry)));
+      assertThat(scan.getSummary().getStartTime(), notNullValue());
+      assertThat(scan.getSummary().getEndTime(), notNullValue());
+      assertThat(scan.getSummary().getClientInfo().size(), greaterThan(0));
     }
     finally {
-      expected.close();
-      twistlockScanFile.delete();
+      scanFileZip.close(); // closes all InputStreams retrieved from this archive
+      scanFile.delete();
     }
   }
 

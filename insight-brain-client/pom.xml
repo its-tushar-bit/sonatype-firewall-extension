@@ -38,6 +38,10 @@
       <artifactId>insight-client-utils</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-model</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-json-store</artifactId>
     </dependency>

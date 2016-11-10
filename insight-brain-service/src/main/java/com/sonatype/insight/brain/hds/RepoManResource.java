@@ -33,11 +33,11 @@ public class RepoManResource
 
   public static final String SCAN_PATH = "scan/{applicationPublicId}";
 
-  private final ScanUploader uploader;
+  private final ScanHandler scanHandler;
 
   @Inject
-  public RepoManResource(final ScanUploader uploader) {
-    this.uploader = uploader;
+  public RepoManResource(final ScanHandler scanHandler) {
+    this.scanHandler = scanHandler;
   }
 
   @PUT
@@ -47,6 +47,6 @@ public class RepoManResource
   public ScanReceipt uploadScan(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
                                 @Context HttpServletRequest req) throws IOException
   {
-    return uploader.upload(req, applicationPublicId);
+    return scanHandler.handle(req, applicationPublicId);
   }
 }

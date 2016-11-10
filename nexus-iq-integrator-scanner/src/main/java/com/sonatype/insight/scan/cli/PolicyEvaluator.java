@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,5 +70,10 @@ public class PolicyEvaluator
       log.error("The report bundle could not be downloaded to {}", params.getReportBundleFile(), e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
+  }
+
+  @Override
+  protected ClientScanType getClientScanType() {
+    return ClientScanType.SONATYPE;
   }
 }

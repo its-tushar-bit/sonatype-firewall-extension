@@ -6,11 +6,8 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.File;
-import java.util.Map;
 
 import javax.inject.Inject;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
@@ -30,7 +27,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ScanUploaderTest
@@ -76,20 +72,6 @@ public class ScanUploaderTest
 
     scanUploader.upload(tempDir.newFile(), app);
     HdsClientAnalytics analytics = analyticsArg.getValue();
-    assertThat(analytics, is(equalTo(expectedAnalyticsData)));
-
-    ServletInputStream stream = mock(ServletInputStream.class);
-    when(stream.read(any(byte[].class))).thenReturn(-1);
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
-    when(servletRequest.getInputStream()).thenReturn(stream);
-
-    analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
-    when(
-        hdsClient.get(eq(servletRequest), analyticsArg.capture(), eq(ScanReceipt.class), any(String.class),
-            eq((Map<String, String>) null), (String[]) anyVararg())).thenReturn(receipt);
-
-    scanUploader.upload(servletRequest, app.getPublicId());
-    analytics = analyticsArg.getValue();
     assertThat(analytics, is(equalTo(expectedAnalyticsData)));
   }
 }

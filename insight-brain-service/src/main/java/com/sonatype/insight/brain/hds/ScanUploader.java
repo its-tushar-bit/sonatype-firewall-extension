@@ -6,25 +6,18 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.InsightWork;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,41 +31,21 @@ public class ScanUploader
 
   private final HdsClient client;
 
-  private final InsightWork work;
-
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
-
   @Inject
-  public ScanUploader(final HdsClient client, final InsightWork work) {
+  public ScanUploader(final HdsClient client) {
     this.client = client;
-    this.work = work;
   }
 
-  protected ScanReceipt upload(HttpServletRequest request, String applicationPublicId)
+  protected ScanReceipt upload(HttpServletRequest request, File scanFile, Application application)
       throws IOException
   {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    String appId = application.getId();
-
-    final File scanDir = work.getScanDir(appId);
-    scanDir.mkdirs();
-
-    final File scanFile = FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
-
-    try (ServletInputStream is = request.getInputStream(); FileOutputStream os = new FileOutputStream(scanFile)) {
-      IOUtil.copy(is, os);
-    }
-
     request.setAttribute(HdsClient.UPLOAD_FILE_ATTRIBUTE, scanFile);
 
+    String appId = application.getId();
     HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
     final ScanReceipt receipt = client.get(request, analytics, ScanReceipt.class, HDS_PATH, null);
 
-    if (StringUtils.isNotBlank(receipt.getScanId())) {
-      FileUtils.rename(scanFile, work.getScanFile(appId, receipt.getScanId()));
-    }
-
-    augmentScanReceipt(applicationPublicId, receipt);
+    augmentScanReceipt(application.getPublicId(), receipt);
 
     return receipt;
   }

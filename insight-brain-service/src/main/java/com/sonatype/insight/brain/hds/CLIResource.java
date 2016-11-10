@@ -14,6 +14,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 /**
  * @since 1.19.0
@@ -35,26 +37,32 @@ public class CLIResource
 
   public static final String SCAN_PATH = "scan/{applicationPublicId}";
 
-  private final ScanUploader uploader;
+  private final ScanHandler scanHandler;
 
   private CLMLicenseManager clmLicenseManager;
 
   @Inject
-  public CLIResource(final ScanUploader uploader, CLMLicenseManager clmLicenseManager) {
-    this.uploader = uploader;
+  public CLIResource(ScanHandler scanHandler, CLMLicenseManager clmLicenseManager) {
+    this.scanHandler = scanHandler;
     this.clmLicenseManager = clmLicenseManager;
   }
 
+  /**
+   * Used to upload a scan from the CLI scanner.
+   * 
+   * @param clientScanType null if the CLI scanner that uploads the scan is 1.23 or earlier.
+   */
   @PUT
   @Path(SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
   public ScanReceipt putScan(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+                             @QueryParam("scanType") ClientScanType clientScanType,
                              @Context HttpServletRequest req) throws IOException
   {
     if (!clmLicenseManager.hasCLIScanning()) {
       throw new InvalidLicenseException();
     }
-    return uploader.upload(req, applicationPublicId);
+    return scanHandler.handle(req, applicationPublicId, clientScanType);
   }
 }

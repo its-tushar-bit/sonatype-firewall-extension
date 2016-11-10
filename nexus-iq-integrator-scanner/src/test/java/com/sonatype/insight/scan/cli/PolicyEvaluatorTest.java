@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
@@ -198,7 +199,8 @@ public class PolicyEvaluatorTest
   public void testNoViolations() throws Exception {
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
@@ -218,7 +220,8 @@ public class PolicyEvaluatorTest
     eval.setAlerts(Arrays.asList(alert));
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
@@ -243,7 +246,8 @@ public class PolicyEvaluatorTest
     eval.setAlerts(Arrays.asList(alert1, alert2, alert3));
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
 
@@ -300,7 +304,8 @@ public class PolicyEvaluatorTest
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
-    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture())).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture(), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
@@ -338,7 +343,8 @@ public class PolicyEvaluatorTest
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
-    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture())).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture(), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
@@ -370,7 +376,8 @@ public class PolicyEvaluatorTest
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
-    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture())).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture(), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
@@ -401,7 +408,8 @@ public class PolicyEvaluatorTest
         newApplicationSummaryList("the-app-id", "My App"));
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id"))
         .thenThrow(new HttpResponseException(404, "outdated"));
-    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture())).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture(), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
@@ -432,7 +440,8 @@ public class PolicyEvaluatorTest
   public void testSetScanStage() throws Exception {
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString())).thenReturn(
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
@@ -445,7 +454,8 @@ public class PolicyEvaluatorTest
   public void testDefaultScanStage() throws Exception {
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString())).thenReturn(
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
@@ -465,7 +475,7 @@ public class PolicyEvaluatorTest
     ScanReceipt receipt = newReceipt();
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(receipt);
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE))).thenReturn(receipt);
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
         new PolicyEvaluationResult());
     File reportBundleFile = new File(tmpDir.getRoot(), "not-yet-existent/reportBundle.zip");

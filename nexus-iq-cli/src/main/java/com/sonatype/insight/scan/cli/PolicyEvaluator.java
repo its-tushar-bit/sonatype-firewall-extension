@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,5 +78,10 @@ public class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
   @Override
   protected RestClient createClient(Configuration configuration) {
     return restClientFactory.newRestCLIClient(configuration);
+  }
+
+  @Override
+  protected ClientScanType getClientScanType() {
+    return ClientScanType.SONATYPE;
   }
 }

@@ -226,6 +226,11 @@
         getDashboardViewingSummaryUrl : function() {
           return baseUrl.get() + '/rest/dashboard/filters/summary';
         },
+
+        getDashboardDeleteFiltersUrl : function() {
+          return baseUrl.get() + '/rest/dashboard/filters/named/delete';
+        },
+        
         getDashboardComponentMatchSummaryUrl : function() {
           return baseUrl.get() + '/rest/dashboard/components/summary';
         },

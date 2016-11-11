@@ -7,7 +7,7 @@
   'use strict';
 
   function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
-                                     OrganizationStore, EventNameConstant, SaveFilterModal)
+                                     OrganizationStore, EventNameConstant, SaveFilterModal, DeleteFiltersModal)
   {
     var vm = this,
         appliedFilter,
@@ -51,6 +51,7 @@
     vm.applySavedFilter = applySavedFilter;
     vm.loadFilterFromJson = loadFilterFromJson;
     vm.openSaveFilterModal = openSaveFilterModal;
+    vm.openDeleteFiltersModal = openDeleteFiltersModal;
 
     vm.doLoad();
 
@@ -288,6 +289,24 @@
       });
     }
 
+    function openDeleteFiltersModal($event) {
+      if(!vm.savedNamedFilters.length) {
+        $event.stopPropagation();
+        return;
+      }
+      DeleteFiltersModal.open(vm.savedNamedFilters).finally(function() {
+        refreshSavedFilters();
+        // see if the active filter was deleted
+        var activeFilterNameExists = vm.savedNamedFilters.some(function(filter) {
+          return filter.name === vm.activeFilterName;
+        });
+        
+        if (activeFilterNameExists) {
+          appliedFilterName = vm.activeFilterName = undefined;
+        }
+      });
+    }
+
     function refreshSavedFilters() {
       $http.get(CLMLocations.getDashboardSavedFilters()).then(function(response) {
         vm.savedNamedFilters = response.data;
@@ -309,7 +328,7 @@
 
   DashboardFilterController.$inject = [
     '$rootScope', '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore',
-    'StageTypeStore', 'OrganizationStore', 'event.name.constant', 'save.filter.modal'
+    'StageTypeStore', 'OrganizationStore', 'event.name.constant', 'save.filter.modal', 'delete.filters.modal'
   ];
 
   angular.module('dashboard.module').controller('dashboard.filter.controller', DashboardFilterController);

@@ -7,7 +7,7 @@
   'use strict';
 
   function DeleteModalController($scope, Messages, resourceType, resourceName, resource, headerText, bodyText, maskText,
-                                 continueAction)
+                                 continueAction, dismissOnError)
   {
     var vm = this;
 
@@ -28,14 +28,19 @@
       vm.deleteResourceMask.wrap(continueAction ? continueAction() : resource.$delete()).then(function() {
         $scope.$close();
       }, function(error) {
-        vm.error = Messages.getHttpErrorMessage(error);
+        if (dismissOnError === true) {
+          $scope.$dismiss(error);
+        }
+        else {
+          vm.error = Messages.getHttpErrorMessage(error);
+        }
       });
     }
   }
 
   DeleteModalController.$inject = [
     '$scope', 'Messages', 'resourceType', 'resourceName', 'resource', 'headerText', 'bodyText', 'maskText',
-    'continueAction'
+    'continueAction', 'dismissOnError'
   ];
 
   angular //

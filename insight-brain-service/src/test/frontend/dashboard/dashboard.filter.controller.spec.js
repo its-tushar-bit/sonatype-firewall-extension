@@ -87,7 +87,13 @@ describe('dashboard.filter.controller', function() {
         applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
         minPolicyThreatLevel: 3,
         maxPolicyThreatLevel: 6
-      };
+      },
+      savedFilterData = [
+        {
+          "name": "Test1",
+          "filter": filterData
+        }
+      ];
 
   describe('successful load', function() {
 
@@ -97,7 +103,7 @@ describe('dashboard.filter.controller', function() {
       $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
       $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData);
       $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterData);
-      $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond([]);
+      $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
       $httpBackend.flush();
     });
 
@@ -512,6 +518,44 @@ describe('dashboard.filter.controller', function() {
         $httpBackend.flush();
         expect(vm.savedNamedFilters).toBe('saved filters');
         expect(vm.activeFilterName).toEqual('TestFilterName');
+      });
+    });
+
+    describe('openDeleteFiltersModal()', function() {
+      var deleteFiltersModal, $q;
+      beforeEach(inject(['delete.filters.modal', '$q', function(DeleteFiltersModal, _$q_) {
+        deleteFiltersModal = DeleteFiltersModal;
+        $q = _$q_;
+      }]));
+
+      it('passes filter names and refreshes delete filter on success', function() {
+        vm.activeFilterName = 'Test1';
+        var originalSavedFilterJson = angular.copy(savedFilterData);
+        var afterDeleteSavedFilterJson = originalSavedFilterJson;
+        afterDeleteSavedFilterJson.slice(1); //remove first named filter simulating a delete
+        vm.savedNamedFilters = originalSavedFilterJson;
+
+        var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
+        spyOn(deleteFiltersModal, 'open').andReturn($q.resolve());
+        $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(afterDeleteSavedFilterJson);
+        expect(vm.savedNamedFilters).toBeDefined();
+
+        vm.openDeleteFiltersModal($event);
+        expect($event.stopPropagation).not.toHaveBeenCalled();
+        expect(deleteFiltersModal.open).toHaveBeenCalledWith(originalSavedFilterJson);
+
+        $httpBackend.flush();
+        expect(vm.savedNamedFilters).toEqual(afterDeleteSavedFilterJson);
+        expect(vm.activeFilterName).toBeUndefined();
+      });
+
+      it('does nothing when there are no filters', function() {
+        var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
+        expect(vm.savedNamedFilters.length).toBeFalsy();
+        spyOn(deleteFiltersModal, 'open').andReturn($q.resolve());
+        vm.openDeleteFiltersModal($event);
+        expect($event.stopPropagation).toHaveBeenCalled();
+        expect(deleteFiltersModal.open).not.toHaveBeenCalled();
       });
     });
   });

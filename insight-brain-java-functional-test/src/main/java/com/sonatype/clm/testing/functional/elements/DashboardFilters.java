@@ -92,6 +92,10 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       return $("#show-save-filter-dialog");
     }
 
+    public SelenideElement deleteFilters() {
+      return $("#show-delete-filters-dialog");
+    }
+
     public SelenideElement tooltip() {
       return $(".filter-label-tooltip");
     }
@@ -102,6 +106,14 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
 
     public SaveFilterDialog saveFilterDialog() {
       return new SaveFilterDialog();
+    }
+
+    public DeleteFiltersDialog deleteFiltersDialog() {
+      return new DeleteFiltersDialog();
+    }
+
+    public DeleteDialog deleteDialog() {
+      return new DeleteDialog();
     }
 
     public ElementsCollection filters() {
@@ -134,6 +146,46 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
 
     public SelenideElement confirmContinue() {
       return $("#save-filter-confirmation .btn-primary");
+    }
+  }
+
+  public static class DeleteFiltersDialog
+      extends BasicElement<DeleteFiltersDialog>
+  {
+    public DeleteFiltersDialog() {
+      super("#delete-filters-modal");
+    }
+
+    public SelenideElement deleteButton() {
+      return child(".clm-modal-footer", ".btn-primary");
+    }
+
+    public ElementsCollection filters() {
+      return children(".clm-form .checkbox");
+    }
+
+    public Checkbox checkboxItem(int index) {
+      return new Checkbox(child(".clm-form .checkbox", nthChild(index)));
+    }
+  }
+
+  public static class DeleteDialog
+      extends BasicElement<DeleteDialog>
+  {
+    public DeleteDialog() {
+      super("#delete-modal");
+    }
+
+    public SelenideElement body() {
+      return child(".clm-modal-body");
+    }
+
+    public SelenideElement continueButton() {
+      return child(".clm-modal-footer", ".btn-primary");
+    }
+    
+    public SelenideElement cancelButton() {
+      return child(".btn:not(.btn-primary)[type='button']");
     }
   }
 

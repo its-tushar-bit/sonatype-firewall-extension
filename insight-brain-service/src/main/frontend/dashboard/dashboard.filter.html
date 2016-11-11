@@ -59,6 +59,9 @@
                tooltip-class="filter-label-tooltip">
           <i class="fa fa-floppy-o"></i>Save...</a>
         </li>
+        <li><a id="show-delete-filters-dialog" ng-click="vm.openDeleteFiltersModal($event)" ng-class="{disabled: !vm.savedNamedFilters.length}">
+          <i class="fa fa-trash"></i>Delete...</a>
+        </li>
         <li><h4 class="menu-sub-header"><i class="fa fa-folder-open"></i>LOAD</h4></li>
         <li class="empty-list" ng-hide="vm.savedNamedFilters.length">No saved filters.</li>
         <li>

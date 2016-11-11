@@ -22,7 +22,8 @@ describe('delete.modal.controller.spec.js', function() {
       headerText: null,
       bodyText: null,
       maskText: null,
-      continueAction: null
+      continueAction: null,
+      dismissOnError: null
     });
 
     scope.$dismiss = jasmine.createSpy('$dismiss');
@@ -65,7 +66,8 @@ describe('delete.modal.controller.spec.js', function() {
         headerText: 'header',
         bodyText: 'body',
         maskText: 'mask',
-        continueAction: continueAction});
+        continueAction: continueAction,
+        dismissOnError: null});
 
       vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
     });
@@ -90,9 +92,11 @@ describe('delete.modal.controller.spec.js', function() {
         headerText: 'header',
         bodyText: 'body',
         maskText: 'mask',
-        continueAction: continueAction});
+        continueAction: continueAction,
+        dismissOnError: null});
       
       vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
+      scope.$dismiss = jasmine.createSpy();
     });
     vm.deleteResource();
     expect(continueAction).toHaveBeenCalled();
@@ -101,6 +105,32 @@ describe('delete.modal.controller.spec.js', function() {
     $timeout.flush();
 
     expect(vm.error).toBe('qux');
+    expect(scope.$dismiss).not.toHaveBeenCalled();
+  });
+
+  it('handles a delete error width dismiss on error from custom action', function() {
+    inject(function($controller, $q) {
+      vm = $controller('DeleteModalController', {$scope: scope,
+        resourceType: null,
+        resourceName: null,
+        resource: null,
+        headerText: 'header',
+        bodyText: 'body',
+        maskText: 'mask',
+        continueAction: continueAction,
+        dismissOnError: true});
+
+      vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
+      scope.$dismiss = jasmine.createSpy();
+    });
+    vm.deleteResource();
+    expect(continueAction).toHaveBeenCalled();
+
+    continueActionDeferred.reject('qux');
+    $timeout.flush();
+
+    expect(vm.error).toBeUndefined();
+    expect(scope.$dismiss).toHaveBeenCalled();
   });
 
   it('dismisses on navigating away', inject(function ($rootScope) {

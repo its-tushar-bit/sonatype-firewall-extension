@@ -33,12 +33,13 @@
           headerText: angular.noop,
           bodyText: angular.noop,
           maskText: angular.noop,
-          continueAction: angular.noop
+          continueAction: angular.noop,
+          dismissOnError: angular.noop
         }
       }).result;
     }
 
-    function DeleteCustom(headerText, bodyText, maskText, continueAction) {
+    function DeleteCustom(headerText, bodyText, maskText, continueAction, dismissOnError) {
       return $modal.open({
         animation: false,
         backdrop: 'static',
@@ -61,6 +62,9 @@
           },
           continueAction: function() {
             return continueAction;
+          },
+          dismissOnError: function() {
+            return dismissOnError;
           }
         }
       }).result;

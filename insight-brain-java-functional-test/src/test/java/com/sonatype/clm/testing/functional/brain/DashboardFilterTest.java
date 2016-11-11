@@ -11,6 +11,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DashboardFilter;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteDialog;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFiltersDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyTypeFilter;
@@ -57,7 +59,7 @@ import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.INACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.hamcrest.Matchers.is;
 
 public class DashboardFilterTest
     extends AbstractFunctionalTest
@@ -291,6 +293,72 @@ public class DashboardFilterTest
     manage.filter(0).click();
     assertInitialFilterState("Initial");
     table.violations().shouldHaveSize(3);
+  }
+
+  @Test
+  public void testDeleteFilter() {
+    ManageFilters manage = DashboardFilters.manage();
+    String filter1 = "Delete";
+    String filter2 = "Do not delete";
+
+    // no filters to delete
+    manage.openMenuButton().click();
+    manage.deleteFilters().shouldHave(DISABLED).click();
+    manage.deleteFiltersDialog().shouldNotBe(visible);
+    manage.openMenuButton().click();
+
+    // create filters
+    saveFilter(filter1, null);
+    saveFilter(filter2, filter1);
+    manage.openMenuButton().click();
+
+    // delete filter button disabled if nothing selected
+    manage.deleteFilters().shouldNotHave(DISABLED).click();
+    DeleteFiltersDialog deleteFiltersDialog = manage.deleteFiltersDialog();
+    deleteFiltersDialog.shouldBe(visible);
+    deleteFiltersDialog.filters().shouldHaveSize(2);
+    deleteFiltersDialog.checkboxItem(1).input().shouldNotBe(selected);
+    deleteFiltersDialog.checkboxItem(2).input().shouldNotBe(selected);
+    deleteFiltersDialog.checkboxItem(1).label().shouldHave(text(filter1));
+    deleteFiltersDialog.checkboxItem(2).label().shouldHave(text(filter2));
+    deleteFiltersDialog.deleteButton().shouldHave(DISABLED);
+    
+    // delete filter
+    deleteFiltersDialog.checkboxItem(1).click();
+    deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
+
+    // delete confirmation cancel
+    deleteFiltersDialog.shouldNotBe(visible);
+    DeleteDialog deleteDialog = manage.deleteDialog();
+    deleteDialog.shouldBe(visible);
+    deleteDialog.body().shouldHave(
+        text("You are about to remove 1 filter(s). This action cannot be undone."));
+    deleteDialog.cancelButton().click();
+
+    //delete confirmation continue
+    deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
+
+    deleteDialog.shouldBe(visible);
+    deleteDialog.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    deleteDialog.shouldNotBe(visible);
+    deleteFiltersDialog.shouldNotBe(visible);
+
+    // verify delete
+    manage.openMenuButton().click();
+    manage.deleteFilters().shouldNotHave(DISABLED).click();
+    deleteFiltersDialog.filters().shouldHaveSize(1);
+    deleteFiltersDialog.checkboxItem(1).input().shouldNotBe(selected);
+    deleteFiltersDialog.checkboxItem(1).label().shouldHave(text(filter2));
+
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
+    assertThat(filters.size(), is(2));
+    assertThat(filters.get(0).getName(), is("")); // default filter
+    assertThat(filters.get(1).getName(), is(filter2));
   }
 
   private void saveFilter(String filterName, String existingFilterName) {

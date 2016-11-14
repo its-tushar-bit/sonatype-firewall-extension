@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -13,7 +15,6 @@ import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.session.mgt.eis.SessionDAO;

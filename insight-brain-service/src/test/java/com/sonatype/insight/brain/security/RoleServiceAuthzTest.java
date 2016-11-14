@@ -7,11 +7,12 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
-import com.google.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;

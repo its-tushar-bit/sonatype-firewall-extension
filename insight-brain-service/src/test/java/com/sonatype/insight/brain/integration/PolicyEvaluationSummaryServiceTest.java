@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.integration;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
@@ -16,7 +18,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

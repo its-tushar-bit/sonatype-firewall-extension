@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
@@ -27,7 +29,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 

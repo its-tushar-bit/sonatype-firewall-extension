@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.security;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.google.inject.Inject;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;

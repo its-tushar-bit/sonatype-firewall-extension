@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tag;
 
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,8 +21,6 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
-
-import com.google.inject.Inject;
 
 /**
  * Resource for managing tags associated with policies

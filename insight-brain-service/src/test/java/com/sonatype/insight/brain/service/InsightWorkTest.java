@@ -7,9 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.google.inject.Inject;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

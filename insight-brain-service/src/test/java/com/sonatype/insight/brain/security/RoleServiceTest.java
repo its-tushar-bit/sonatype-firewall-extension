@@ -10,12 +10,13 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import com.google.inject.Inject;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

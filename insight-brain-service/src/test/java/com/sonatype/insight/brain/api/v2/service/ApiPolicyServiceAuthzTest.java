@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyListDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiPolicyService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 

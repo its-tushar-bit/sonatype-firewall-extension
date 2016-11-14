@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
@@ -21,7 +23,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
-import com.google.inject.Inject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.junit.Rule;

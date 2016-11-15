@@ -16,7 +16,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
     var stageTypeStoreDefer = $q.defer();
 
     scope = $rootScope.$new();
-    scope.$dismiss = jasmine.createSpy('$dismiss');
+    scope.$dismiss = jasmine.createSpy('$dismiss').andReturn(undefined);
 
     $timeout = _$timeout_;
     $httpBackend = _$httpBackend_;
@@ -94,6 +94,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
         }
         return original(selector);
       });
+      angular.element.cleanData = original.cleanData;
 
       vm.bundle.file = 'testfile';
       vm.bundle.stage = vm.stages[2];

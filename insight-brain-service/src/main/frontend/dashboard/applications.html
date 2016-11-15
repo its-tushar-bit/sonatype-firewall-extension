@@ -34,7 +34,7 @@
 
   <div class="dashboard-results">
     <div class="tile-container" fill-vertical>
-      <div class="tile-scroll-container">
+      <div class="tile-scroll-container" detect-scrollbar>
         <div applications-results>
           <div class="tile" ng-repeat="application in data | limitTo: maxResults | orderBy: sortVm.sortFields">
             <div class="applications-row total-application-risks">

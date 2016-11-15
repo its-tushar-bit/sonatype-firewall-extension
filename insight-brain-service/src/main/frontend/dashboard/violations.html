@@ -29,7 +29,7 @@
 
   <div class="dashboard-results">
     <div class="tile-container" fill-vertical>
-      <div class="tile-scroll-container">
+      <div class="tile-scroll-container" detect-scrollbar>
         <div violations-results>
           <div ng-controller="violations.table.controller as vm">
             <div class="tile violations-card" ng-repeat="risk in data | limitTo: maxResults | orderBy:sortVm.sortFields | emptyToEnd:sortVm.sortFields">

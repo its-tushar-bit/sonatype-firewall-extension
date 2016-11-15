@@ -267,14 +267,23 @@
   }
 
   #dashboard-violations {
+    .tile-scroll-container.scrollbar-present .violations-card .violations-row .column {
+      &.width-third {
+        width: calc((100% - #{$threat-bar-width + $age-width + $scroll-bar-width / 3}) / 3 - 2px);
+      }
+      &.age {
+        padding-left: 5px;
+        width: $age-width + $scroll-bar-width;
+      }
+    }
+
     .violations-card {
       padding: 0;
       overflow-x: auto;
       overflow-y: hidden;
 
       .violations-row {
-        padding-right: $scroll-bar-width;
-        width: calc(100% - #{$threat-bar-width + $scroll-bar-width});
+        width: calc(100% - #{$threat-bar-width});
         .column.threat-and-policy-column-container {
           padding: 0;
           .threat {
@@ -292,13 +301,13 @@
           }
         }
         .column.width-third {
-          width: calc((100% - #{$threat-bar-width + $scroll-bar-width + $age-width}) / 3);
+          width: calc((100% - #{$threat-bar-width + $chevron-width + $age-width}) / 3 - 2px);
           &:not(:first-of-type) {
             padding: 0 12px;
           }
         }
         .column.fixed.age {
-          width: $age-width;
+          width: $age-width + $chevron-header-width;
         }
       }
 
@@ -395,7 +404,7 @@
 
       .column {
         &.application-name {
-          width: calc(100% - #{$total-risk-columns + $chevron-width + $tile-right-padding});
+          width: calc(100% - #{$total-risk-columns + $chevron-width + $scroll-bar-width});
           font-family: Proxima Nova Semibold, sans-serif;
         }
 
@@ -437,6 +446,21 @@
     }
 
     .dashboard-results {
+      .tile-scroll-container.scrollbar-present {
+        .column {
+          &.application-name {
+            width: calc(100% - #{$total-risk-columns + $chevron-width - 1px});
+          }
+          &.low-risk {
+            width: $low-risk-width + $chevron-width - 1px;
+            padding-right: 0;
+          }
+        }
+        .applications-row.stage-application-risks .column.low-risk {
+          margin-right: $chevron-width - $scroll-bar-width - 1px;
+          padding-left: 6px;
+        }
+      }
       .tile {
         /* remove padding so we can extend the color in low risk to the tile edge */
         padding-right: 0px;
@@ -457,7 +481,7 @@
           /* ensures the border doesn't extend the full width that would be occupied by chevrons on non-stage lines */
           margin-right: $chevron-width;
           padding-left: $chevron-width;
-          width: $low-risk-width + $tile-right-padding;
+          width: $low-risk-width + $scroll-bar-width;
         }
       }
 
@@ -467,7 +491,8 @@
 
         &.low-risk {
           /* No chevron on the table + extend color to the edge */
-          width: $low-risk-width + $chevron-width + $tile-right-padding;
+          width: $low-risk-width + $chevron-width + $scroll-bar-width;
+          padding-right: $scroll-bar-width;
         }
 
         .fa {
@@ -479,10 +504,21 @@
   }
 
   #dashboard-components {
+    .tile-scroll-container.scrollbar-present {
+      .column {
+        &.component-name {
+          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width - 1px});
+        }
+        &.chevron {
+          width: #{$chevron-width - 1px};
+        }
+      }
+    }
+
     .components-row {
       .column {
         &.component-name {
-          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width -1px});
+          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width + $scroll-bar-width});
         }
 
         &.affected-apps {
@@ -513,7 +549,7 @@
         }
 
         &.chevron {
-          width: #{$chevron-width - 1px};
+          width: #{$chevron-width + $scroll-bar-width};
         }
       }
     }

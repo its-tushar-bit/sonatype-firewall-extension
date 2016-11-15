@@ -35,7 +35,7 @@
 
   <div class="dashboard-results">
     <div class="tile-container" fill-vertical>
-      <div class="tile-scroll-container">
+      <div class="tile-scroll-container" detect-scrollbar>
         <div components-results>
           <div class="tile clickable" ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
                ng-click="goToComponentDetails(component)"><!--

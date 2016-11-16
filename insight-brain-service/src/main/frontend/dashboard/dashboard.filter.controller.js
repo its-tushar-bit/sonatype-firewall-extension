@@ -44,6 +44,7 @@
 
     vm.doLoad = doLoad;
     vm.isDirty = isDirty;
+    vm.showDirtyAsterisk = false;
     vm.clear = clear;
     vm.revert = revert;
     vm.activeFilterName = undefined;
@@ -200,6 +201,7 @@
       }
 
       applyFilter(filterToJson(vm.selected)).then(function() {
+        vm.showDirtyAsterisk = true;
         appliedFilter = angular.copy(vm.selected);
       }, function(error) {
         vm.saveError = error;
@@ -256,6 +258,7 @@
         vm.loadFilterFromJson(activeFilter);
         appliedFilter = angular.copy(vm.selected);
         appliedFilterName = vm.activeFilterName = savedFilter.name;
+        vm.showDirtyAsterisk = false;
       }, function() {
         vm.loadErrorFilterName = savedFilter.name;
       });
@@ -286,6 +289,7 @@
       SaveFilterModal.open(filterToJson(vm.selected), vm.activeFilterName, vm.savedNamedFilters).then(function(name) {
         refreshSavedFilters();
         appliedFilterName = vm.activeFilterName = name;
+        vm.showDirtyAsterisk = false;
       });
     }
 

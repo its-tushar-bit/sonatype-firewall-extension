@@ -61,6 +61,10 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     return $(".dashboard-filter-name");
   }
 
+  public static SelenideElement saveFilterDirtyAsterisk() {
+    return $(".dashboard-filter-name .dashboard-filter-dirty-asterisk");
+  }
+
   public static void toggleTwisties() {
     applicationFilter().twisty().click();
     applicationCategoryFilter().twisty().click();

@@ -259,7 +259,8 @@ public class DashboardFilterTest
     manage.dropdownMenu().shouldBe(visible);
     manage.emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters."));
     manage.openMenuButton().click();
-    DashboardFilters.saveFilterNameLabel().shouldBe(Condition.empty);
+    DashboardFilters.saveFilterNameLabel().shouldNotBe(visible);
+    DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
 
     // save initial filter
     saveFilter("Initial", null);
@@ -281,7 +282,9 @@ public class DashboardFilterTest
 
     // apply and save new filter
     DashboardFilters.applyButton().click();
+    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
     saveFilter("New Filter", "Initial");
+    DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
     DashboardFilters.saveFilterNameLabel().shouldHave(text("New Filter"));
     manage.openMenuButton().click();
     manage.filters().shouldHaveSize(2);
@@ -422,10 +425,12 @@ public class DashboardFilterTest
     categoryFilter.twisty().click();
 
     if (savedFilterName.isEmpty()) {
-      DashboardFilters.saveFilterNameLabel().shouldBe(Condition.empty);
+      DashboardFilters.saveFilterNameLabel().shouldNotBe(visible);
+      DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
     }
     else {
       DashboardFilters.saveFilterNameLabel().shouldBe(text(savedFilterName));
+      DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
     }
 
     assertStageFilterInitialState();

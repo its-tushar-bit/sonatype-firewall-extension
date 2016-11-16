@@ -77,7 +77,7 @@
     <div class="tree-view-header">
       Filter
     </div>
-    <div class="dashboard-filter-name">{{vm.activeFilterName}}</div>
+    <div class="dashboard-filter-name" ng-if="vm.activeFilterName">{{vm.activeFilterName}}<span class="dashboard-filter-dirty-asterisk" ng-if="vm.showDirtyAsterisk">*</span></div>
     <div ng-show="vm.loadErrorFilterName" class="clm-alert alert alert-error">
       <div><i class="fa fa-warning"></i>
         <span>Failed to load {{vm.loadErrorFilterName}}</span>

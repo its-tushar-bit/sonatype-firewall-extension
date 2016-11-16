@@ -332,9 +332,19 @@ describe('dashboard.filter.controller', function() {
       });
 
       it('clears saved filter', function() {
-        vm.activeFilterName = 'test saved filter';
+        var savedFilter = {
+          filter: {
+            minPolicyThreatLevel: 9,
+            maxPolicyThreatLevel: 10
+          },
+          name: 'test saved filter'
+        };
+        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(savedFilter.filter);
+        vm.applySavedFilter(savedFilter);
+        $httpBackend.flush();
         vm.clear();
         expect(vm.activeFilterName).toBeUndefined();
+        expect(vm.showDirtyAsterisk).toBe(false);
       });
     });
 
@@ -370,8 +380,10 @@ describe('dashboard.filter.controller', function() {
           delete vm.selected.policyTypes.QUALITY;
           vm.selected.policyThreatLevels[0] = 0;
 
+          expect(vm.showDirtyAsterisk).toBe(false);
           vm.applyCurrentFilter();
           $httpBackend.flush();
+          expect(vm.showDirtyAsterisk).toBe(true);
           expect($rootScope.$broadcast).toHaveBeenCalledWith(EventNameConstant.UPDATE_DASHBOARD_FILTERS, expected);
 
           expected = angular.copy(vm.selected);
@@ -379,6 +391,7 @@ describe('dashboard.filter.controller', function() {
 
           vm.revert();
 
+          expect(vm.showDirtyAsterisk).toBe(true);
           expect(vm.selected).toEqual(expected);
         }
       ]));
@@ -397,12 +410,15 @@ describe('dashboard.filter.controller', function() {
           },
           name: 'test filter'
         };
+        spyOn(vm, 'isDirty').andReturn(true);
+        vm.showDirtyAsterisk = true;
         $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(savedFilter.filter);
         vm.applySavedFilter(savedFilter);
         $httpBackend.flush();
         expect(vm.activeFilterName).toEqual('test filter');
         vm.clear();
         vm.revert();
+        expect(vm.showDirtyAsterisk).toBe(false);
         expect(vm.activeFilterName).toEqual('test filter');
       });
     });
@@ -426,6 +442,7 @@ describe('dashboard.filter.controller', function() {
           expect(vm.activeFilterName).toEqual('test filter');
           expect(vm.loadFilterFromJson).toHaveBeenCalledWith(savedFilter.filter);
           expect(vm.isDirty()).toBe(false);
+          expect(vm.showDirtyAsterisk).toBe(false);
           expect($rootScope.$broadcast).toHaveBeenCalledWith(EventNameConstant.UPDATE_DASHBOARD_FILTERS,
               savedFilter.filter);
         }
@@ -495,6 +512,7 @@ describe('dashboard.filter.controller', function() {
         vm.openSaveFilterModal($event);
         expect($event.stopPropagation).not.toHaveBeenCalled();
         expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, 'My First Filter', vm.savedNamedFilters);
+        expect(vm.showDirtyAsterisk).toBe(false);
 
         $httpBackend.flush();
       });
@@ -516,6 +534,7 @@ describe('dashboard.filter.controller', function() {
         spyOn(saveFilterModal, 'open').andReturn($q.resolve("TestFilterName"));
         vm.openSaveFilterModal($event);
         $httpBackend.flush();
+        expect(vm.showDirtyAsterisk).toBe(false);
         expect(vm.savedNamedFilters).toBe('saved filters');
         expect(vm.activeFilterName).toEqual('TestFilterName');
       });

@@ -64,11 +64,9 @@
       padding-bottom: 3px;
       border-bottom: 1px $grey-4 solid;
 
-      &:empty{
-        border: none;
-        margin-top: 0px;
-        margin-bottom: 0px;
-        padding-bottom: 0px;
+      & .dashboard-filter-dirty-asterisk {
+        font-size: 16px;
+        color: $off-black;
       }
     }
   }

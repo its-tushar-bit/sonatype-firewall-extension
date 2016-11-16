@@ -6,7 +6,7 @@
 (function() {
   'use strict';
 
-  function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayNameUtil) {
+  function dashboardDataService($http, $filter, $q, CLMLocations, ComponentDisplayNameUtil, Messages) {
 
     function getNewestRisks(filter) {
       return getData(CLMLocations.getNewestRisksUrl(), filter).then(function(risks) {
@@ -67,14 +67,29 @@
       });
     }
 
+    function deleteSavedFilters(filters) {
+      return $http.post(CLMLocations.getDashboardDeleteFiltersUrl(), filters).catch(function(error) {
+        error = Messages.getHttpErrorMessage(error);
+        if (angular.isArray(error)) {
+          return $q.reject(error.map(function(err) {
+            return 'Filter ' + err.name + ', ' + err.errorMessage;
+          }));
+        }
+        else {
+          return $q.reject([error]);
+        }
+      });
+    }
+
     return {
       getNewestRisks: getNewestRisks,
       getApplicationRisks: getApplicationRisks,
-      getComponentRisks: getComponentRisks
+      getComponentRisks: getComponentRisks,
+      deleteSavedFilters: deleteSavedFilters
     };
   }
 
-  dashboardDataService.$inject = ['$http', '$filter', 'CLMLocations', 'ComponentDisplayNameUtil'];
+  dashboardDataService.$inject = ['$http', '$filter', '$q', 'CLMLocations', 'ComponentDisplayNameUtil', 'Messages'];
 
   angular //
       .module('dashboard.utils') //

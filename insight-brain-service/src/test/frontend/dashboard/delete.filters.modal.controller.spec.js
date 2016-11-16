@@ -46,33 +46,6 @@ describe('delete.filters.modal.controller.spec.js', function() {
     expect(scope.$close).toHaveBeenCalled();
   });
 
-  it('Properly parses errors', function() {
-    inject(function($controller) {
-      vm = $controller('delete.filters.modal.controller',
-          {$scope: scope, savedNamedFilters: savedFilterData, DeleteModalService: mockDeleteService});
-    });
-    vm.filters = {Test1: true};
-    $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
-
-    vm.deleteFilters();
-    deleteServiceResourceDefer.reject({
-      data: [
-        {
-          "name": "Test1",
-          "errorMessage": "foo",
-          "status": 404
-        },
-        {
-          "name": "Test2",
-          "errorMessage": "bar",
-          "status": 500
-        }
-      ]
-    });
-    $timeout.flush();
-    expect(vm.deleteError).toEqual(['Filter Test1, foo', 'Filter Test2, bar']);
-  });
-
   it('Delete service error returns control', function() {
     inject(function($controller) {
       vm = $controller('delete.filters.modal.controller',
@@ -83,7 +56,7 @@ describe('delete.filters.modal.controller.spec.js', function() {
 
     vm.deleteFilters();
     expect(vm.deleteMode).toBe(true);
-    deleteServiceResourceDefer.reject('error');
+    deleteServiceResourceDefer.reject(['error']);
     $timeout.flush();
     expect(vm.deleteError).toEqual(['error']);
     expect(vm.deleteMode).toBe(false);

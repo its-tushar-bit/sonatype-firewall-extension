@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function DeleteFiltersModalController($scope, $http, CLMLocations, savedNamedFilters, Messages, DeleteModalService)
+  function DeleteFiltersModalController($scope, $http, CLMLocations, savedNamedFilters, DeleteModalService, DashboardDataService)
   {
     var vm = this,
         originalFilters;
@@ -57,20 +57,12 @@
         DeleteModalService.deleteCustom('Delete Filters',
             'You are about to remove ' + filtersToDelete.length + ' filter(s). This action cannot be undone.', 'Removing',
             function() {
-              return $http.post(CLMLocations.getDashboardDeleteFiltersUrl(), filtersToDelete);
+              return DashboardDataService.deleteSavedFilters(filtersToDelete);
             }, true).then(function() {
           $scope.$close();
         }, function(error) {
-          error = Messages.getHttpErrorMessage(error);
           if (error) {
-            if (angular.isArray(error)) {
-              vm.deleteError =  error.map(function(err) {
-                return 'Filter ' + err.name + ', ' + err.errorMessage;
-              });
-            }
-            else {
-              vm.deleteError = [error];
-            }
+            vm.deleteError = error;
           }
           vm.deleteMode = false;
           refreshSavedFilters();
@@ -93,7 +85,7 @@
   }
 
   DeleteFiltersModalController.$inject = [
-    '$scope', '$http', 'CLMLocations', 'savedNamedFilters', 'Messages', 'DeleteModalService'
+    '$scope', '$http', 'CLMLocations', 'savedNamedFilters', 'DeleteModalService', 'dashboard.data.service'
   ];
 
   angular //

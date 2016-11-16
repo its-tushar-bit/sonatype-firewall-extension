@@ -13,6 +13,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -36,7 +38,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -113,6 +117,39 @@ public class JiraPolicyAlertNotifierTest
     assertThat(issueMeta.get("id"), is(issueTypeId));
     String summary = jiraIssueCreateRequest.getField(JiraField.SUMMARY);
     assertThat(summary, is("Nexus IQ: Application " + application.getName() + "; BUILD stage; 1 Policy alerts"));
+  }
+
+  @Test
+  public void test_sendNotifications_NonMaven() throws IOException {
+    Application application = tempEntity.newApplicationWithParent("app");
+
+    final String projectKey = "projectKey";
+    final Long issueTypeId = 1L;
+
+    Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
+    String scanId = "scan-id";
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(application.getId(), "testPolicy");
+    policy.getNotifications().add(new JiraNotification(projectKey, issueTypeId, evaluation.getStageTypeId()));
+    new PolicyDAO().update(policy);
+
+    ComponentIdentifier identifier = ComponentIdentifier.createAnameCoordinates("jquery", "", "3.0.0");
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy, policy.getThreatLevel(),
+        policy.getThreatCategory(), identifier, "abcd"));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil.createPolicyNotifications(policyViolations,
+        evaluation.getStageTypeId(), evaluation.isForMonitoring());
+
+    jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
+
+    ArgumentCaptor<JiraIssueCreateRequest> createRequestArgumentCaptor = ArgumentCaptor
+        .forClass(JiraIssueCreateRequest.class);
+    verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT)).createIssue(createRequestArgumentCaptor.capture());
+
+    JiraIssueCreateRequest jiraIssueCreateRequest = createRequestArgumentCaptor.getValue();
+    assertThat(jiraIssueCreateRequest.getField("description"), notNullValue());
+    assertThat((String) jiraIssueCreateRequest.getField("description"),
+        containsString(ComponentDisplayNameUtil.fromIdentifier(identifier).toString()));
   }
 
   @Test

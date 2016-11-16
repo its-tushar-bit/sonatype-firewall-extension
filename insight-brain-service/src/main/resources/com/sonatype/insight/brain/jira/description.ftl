@@ -39,7 +39,7 @@ h1. Nexus IQ Notification
 
 <#-- Returns the display text for a component -->
 <#macro component_display component>
-  <#if component.groupId??>
+  <#if component.displayName??>
   ${component.displayName}<#t>
   <#else>
   Hash: ${component.hash}<#t>

@@ -550,8 +550,7 @@ describe('dashboard.filter.controller', function() {
       it('passes filter names and refreshes delete filter on success', function() {
         vm.activeFilterName = 'Test1';
         var originalSavedFilterJson = angular.copy(savedFilterData);
-        var afterDeleteSavedFilterJson = originalSavedFilterJson;
-        afterDeleteSavedFilterJson.slice(1); //remove first named filter simulating a delete
+        var afterDeleteSavedFilterJson = originalSavedFilterJson.slice(1); //remove first named filter simulating a delete
         vm.savedNamedFilters = originalSavedFilterJson;
 
         var $event = jasmine.createSpyObj('$event', ['stopPropagation']);

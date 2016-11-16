@@ -299,20 +299,21 @@
         return;
       }
       DeleteFiltersModal.open(vm.savedNamedFilters).finally(function() {
-        refreshSavedFilters();
-        // see if the active filter was deleted
-        var activeFilterNameExists = vm.savedNamedFilters.some(function(filter) {
-          return filter.name === vm.activeFilterName;
+        refreshSavedFilters().then(function() {
+          // see if the active filter was deleted
+          var activeFilterNameExists = vm.savedNamedFilters.some(function(filter) {
+            return filter.name === vm.activeFilterName;
+          });
+
+          if (!activeFilterNameExists) {
+            appliedFilterName = vm.activeFilterName = undefined;
+          }
         });
-        
-        if (activeFilterNameExists) {
-          appliedFilterName = vm.activeFilterName = undefined;
-        }
       });
     }
 
     function refreshSavedFilters() {
-      $http.get(CLMLocations.getDashboardSavedFilters()).then(function(response) {
+      return $http.get(CLMLocations.getDashboardSavedFilters()).then(function(response) {
         vm.savedNamedFilters = response.data;
       });
     }

@@ -15,7 +15,9 @@
     function ScrollbarDetectorLink(scope, element) {
       var timerId;
       function update() {
-        if (element[0].scrollWidth < element.width()) {
+        // floating scrollbar setting in macOs sometimes bloats the container by a pixel.
+        // scrollbar would take up more than a few px, so we're letting small differences slide.
+        if ((element.width() - element[0].scrollWidth) > 3) {
           element.addClass('scrollbar-present');
         }
         else {

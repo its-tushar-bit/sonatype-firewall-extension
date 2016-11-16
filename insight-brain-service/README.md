@@ -43,14 +43,6 @@ In addition to the standard maven test abilities, jasmine tests can be executed 
      
 Each profile represents a logical unit of javascript in a particular execution environment, where different scripts are expected to be delivered to a client. 
 Failure to specify a profile will result in fairly ambiguous error messages about missing objects.          
-     
-## Style Guide
-
-The grunt tooling also provides a style guide that showcases the expected styling for common constructs in the UI. Execute the following command to launch a server hosting the styleguide:
-
-    grunt livingstyle
-
-As new common constructs are added to the UI, they should be codified in the style guide for reference.
 
 ## Additional tools
 

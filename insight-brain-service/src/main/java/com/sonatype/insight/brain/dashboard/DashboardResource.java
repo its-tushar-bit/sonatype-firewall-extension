@@ -147,8 +147,8 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  @ExceptionMetered(name = "updateUserDashboardFilterForCurrentUserExceptionMeter")
-  public DashboardFilterDTO updateUserDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
+  @ExceptionMetered(name = "updateDashboardFilterForCurrentUserExceptionMeter")
+  public DashboardFilterDTO updateDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
     NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO.name = "";
     namedDashboardFilterDTO.filter = dashboardFilterDTO;

@@ -128,7 +128,7 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testUpdateUserDashboardFilterForCurrentUser_Create() throws Exception {
+  public void testUpdateDashboardFilterForCurrentUser_Create() throws Exception {
     User tempUser = tempEntity.newUser();
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
@@ -150,7 +150,7 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testUpdateUserDashboardFilterForCurrentUser_Update() throws Exception {
+  public void testUpdateDashboardFilterForCurrentUser_Update() throws Exception {
     User tempUser = tempEntity.newUser();
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());

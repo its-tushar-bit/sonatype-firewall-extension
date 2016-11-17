@@ -96,7 +96,7 @@ public class ReportResourceAuthzTest
   }
 
   @Test
-  public void testEmbedReport_UnauthenticatedAnonymousNotAllowed() throws Exception {
+  public void testEmbedReport_AnonymousNotAllowed() throws Exception {
     HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
     HttpResponse response = request.anon().get();
     assertResponseStatus(401, response);
@@ -104,7 +104,7 @@ public class ReportResourceAuthzTest
 
   @Test
   @ManualServerInit
-  public void testEmbedReport_UnauthenticatedAnonymousAllowed_AnonymousClientAccessAllowed() throws Exception {
+  public void testEmbedReport_AnonymousAllowed() throws Exception {
     initServer(new Configurator() {
       @Override
       public void configure(final InsightConfig config) {

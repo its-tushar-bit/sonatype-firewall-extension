@@ -22,14 +22,14 @@ public class LicensedStagesResourceAuthzTest
   }
 
   @Test
-  public void testGet_UnauthenticatedAnonymousNotAllowed() throws Exception {
+  public void testGet_AnonymousNotAllowed() throws Exception {
     HttpResponse response = restRequest().anon().get();
     assertResponseStatus(401, response);
   }
 
   @Test
   @ManualServerInit
-  public void testGet_UnauthenticatedAnonymousAllowed_AnonymousClientAccessAllowed() throws Exception {
+  public void testGet_AnonymousAllowed() throws Exception {
     initServer(new Configurator() {
       @Override
       public void configure(final InsightConfig config) {

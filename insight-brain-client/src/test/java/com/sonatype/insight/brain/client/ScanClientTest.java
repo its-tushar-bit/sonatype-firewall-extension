@@ -38,7 +38,7 @@ public class ScanClientTest
   }
 
   @Test
-  public void testUploadCIScan_AllGood() throws Exception {
+  public void testUploadCIScan() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     ScanReceipt receipt = new ScanClient(config, APP_ID).uploadCIScan(tmpDir.newFile("scan.xml.gz"));
     assertEquals("SCAN-ID", receipt.getScanId());
@@ -47,7 +47,7 @@ public class ScanClientTest
   }
 
   @Test
-  public void testUploaCIScan_InvalidAppId() throws Exception {
+  public void testUploadCIScan_InvalidAppId() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     try {
       new ScanClient(config, "invalid-id").uploadCIScan(tmpDir.newFile("scan.xml.gz"));
@@ -60,7 +60,7 @@ public class ScanClientTest
   }
 
   @Test
-  public void testUploadRepoManScan_AllGood() throws Exception {
+  public void testUploadRepoManScan() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     ScanReceipt receipt = new ScanClient(config, APP_ID).uploadRepoManScan(tmpDir.newFile("scan.xml.gz"));
     assertEquals("SCAN-ID", receipt.getScanId());

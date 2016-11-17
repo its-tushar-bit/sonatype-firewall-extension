@@ -9,11 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.codeborne.selenide.CollectionCondition;
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ex.UIAssertionError;
 import com.codeborne.selenide.impl.WebElementsCollection;
 import org.openqa.selenium.WebElement;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.ElementsCollection.elementsToString;
 
 public class IqConditions
@@ -39,7 +39,7 @@ public class IqConditions
     @Override
     public boolean apply(List<WebElement> input) {
       for (WebElement element : input) {
-        if (!Condition.hasClass(element, className)) {
+        if (!cssClass(className).apply(element)) {
           return false;
         }
       }

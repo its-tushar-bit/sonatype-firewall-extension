@@ -731,17 +731,17 @@ public class RepositoryReportTest
     actualRow.component().shouldHave(text(expectedRow.componentName));
 
     if (expectedRow.waived) {
-      actualRow.waived().shouldBe(present);
+      actualRow.waived().shouldBe(exist);
     }
     else {
-      actualRow.waived().shouldNotBe(present);
+      actualRow.waived().shouldNotBe(exist);
     }
 
     if (expectedRow.quarantined) {
-      actualRow.quarantined().shouldBe(present);
+      actualRow.quarantined().shouldBe(exist);
     }
     else {
-      actualRow.quarantined().shouldNotBe(present);
+      actualRow.quarantined().shouldNotBe(exist);
     }
   }
 

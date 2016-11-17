@@ -80,7 +80,7 @@ public class LicenseCIP
 
         for (int i = 0; i < expectedThreats.length; i++) {
           WebElement element = elements.get(i);
-          if (!Condition.hasClass(element, convertToCssClass(expectedThreats[i]))) {
+          if (!Condition.cssClass(convertToCssClass(expectedThreats[i])).apply(element)) {
             missingClassIndex = i;
             return false;
           }

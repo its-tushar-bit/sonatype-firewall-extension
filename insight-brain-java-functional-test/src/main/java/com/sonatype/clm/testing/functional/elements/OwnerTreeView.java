@@ -11,11 +11,10 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.hasAttribute;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class OwnerTreeView
@@ -54,7 +53,7 @@ public class OwnerTreeView
 
     public static final String DISABLED_TOOLTIP_CONTENT = "You do not have permission to view this organization.";
 
-    public static final Condition DISABLED_TOOLTIP_ATTRIBUTE = hasAttribute("data-tooltip", DISABLED_TOOLTIP_CONTENT);
+    public static final Condition DISABLED_TOOLTIP_ATTRIBUTE = attribute("data-tooltip", DISABLED_TOOLTIP_CONTENT);
 
     public OrganizationNode(String... selectors) {
       super(selectors);

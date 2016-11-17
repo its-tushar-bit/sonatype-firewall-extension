@@ -12,7 +12,7 @@ import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.hasClass;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -153,7 +153,7 @@ public class WaiverCip
       policyName().shouldHave(text(policyName));
       constraints().shouldHave(CollectionCondition.texts(expectedConstraints));
       conditions().shouldHave(CollectionCondition.texts(expectedConditions));
-      policyName().shouldHave(hasClass(cssClass));
+      policyName().shouldHave(cssClass(cssClass));
     }
   }
 

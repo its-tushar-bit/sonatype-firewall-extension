@@ -54,7 +54,7 @@ public class TwistlockScanner
             "The Twistlock scanner returned exit code = " + exitCode + ". Output: " + scannerOutput);
       }
 
-      log.info("Scanned image with ID '{}' in {} ms.", System.currentTimeMillis() - start);
+      log.info("Scanned image with ID '{}' in {} ms.", imageId, System.currentTimeMillis() - start);
 
       return scannerOutput;
     }

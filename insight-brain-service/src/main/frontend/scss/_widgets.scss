@@ -228,6 +228,11 @@
 .tree-view {
   padding: 16px 8px 0 8px;
 
+  overflow-x: visible;
+  overflow-y: auto;
+  height: 100%;
+  box-sizing: border-box;
+
   .tree-view-header {
     @extend h3;
     @extend .semi-bold;

@@ -1,5 +1,4 @@
 .dashboard-filter-container {
-  $tree-view-padding-top: 16px;
   $tree-view-margin-bottom: 8px;
   $filter-footer-height: #{32px + 12px + 12px + 1px};
   height: 100%;
@@ -7,9 +6,7 @@
   position: relative;
 
   .tree-view {
-    overflow-x: visible;
-    overflow-y: auto;
-    height: calc(100% - #{$filter-footer-height} - #{$tree-view-padding-top} - #{$tree-view-margin-bottom});
+    height: calc(100% - #{$filter-footer-height} - #{$tree-view-margin-bottom});
 
     .tree-view-item {
       .twisty-container{

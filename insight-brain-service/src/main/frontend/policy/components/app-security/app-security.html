@@ -87,7 +87,7 @@
 
     <div class="accordion roles">
       <div class="accordion-group" ng-repeat='role in context.roles'>
-        <div class="accordion-heading role" ng-class="{'clm-well': expanded}">
+        <div class="accordion-heading role">
           <div class='row' ng-if="!editMode" ng-click="$parent.expanded = !$parent.expanded;">
             <div class='role-content'>
               <div class='expandable'>{{role.roleName}}</div>

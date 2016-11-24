@@ -11,6 +11,8 @@
     return {
       add: function (label) {
         return $modal.open({
+          backdrop: 'static',
+          keyboard: false,
           templateUrl: 'add-modal-service',
           controller: 'LabelAddController',
           windowClass: 'clm-modal',
@@ -24,6 +26,8 @@
 
       remove: function (label) {
         return $modal.open({
+          backdrop: 'static',
+          keyboard: false,
           templateUrl: 'delete-modal-service',
           controller: 'LabelRemoveController',
           windowClass: 'clm-modal',

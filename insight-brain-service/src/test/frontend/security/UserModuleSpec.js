@@ -218,4 +218,31 @@ describe('UserModuleSpec.js', function() {
     expect(userScope.saving).toBeFalsy();
     expect(listScope.context.users.length).toEqual(userCount);
   }));
+
+  describe('cancelClick', function() {
+    beforeEach(inject(function($httpBackend, CLMLocations, Dialog) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getUserUrl())).respond(data);
+      setupControllers();
+      $httpBackend.flush();
+
+      userScope.newUserClick();
+      userScope.context.userEditMap = {};
+      spyOn(Dialog, 'open');
+    }));
+
+    it('when dirty', inject(function(Dialog) {
+      userScope.user.firstName = 'foo';
+      userScope.cancelClick(userScope.user);
+      expect(Dialog.open).toHaveBeenCalled();
+      expect(userScope.user).toBeTruthy();
+      Dialog.open.calls[0].args[0].buttons[0].click();
+      expect(userScope.user).toBeFalsy();
+    }));
+
+    it('when clean', inject(function(Dialog) {
+      userScope.cancelClick(userScope.user);
+      expect(userScope.user).toBeFalsy();
+      expect(Dialog.open).not.toHaveBeenCalled();
+    }));
+  });
 });

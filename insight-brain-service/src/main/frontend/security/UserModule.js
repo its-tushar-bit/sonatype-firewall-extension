@@ -68,7 +68,7 @@
     return store;
   }]);
 
-  module.controller('UserController', ['$scope', 'UserStore', function($scope, UserStore) {
+  module.controller('UserController', ['$scope', 'UserStore', 'Dialog', function($scope, UserStore, Dialog) {
     function isDirty() {
       return $scope.user && $scope.user.isDirty();
     }
@@ -99,10 +99,31 @@
       }
     };
     $scope.cancelClick = function(user) {
-      if ($scope.context.userEditMap[user.id]) {
-        $scope.context.userEditMap[user.id] = null;
-      } else {
-        $scope.user = null;
+      function doCancel(){
+        if ($scope.context.userEditMap[user.id]) {
+          $scope.context.userEditMap[user.id] = null;
+        }
+        else {
+          $scope.user = null;
+        }
+      }
+      if (isDirty()) {
+        Dialog.open({
+          title : 'Unsaved Changes',
+          body : 'The current user has unsaved changes, continuing will lose them.',
+          id : 'dirty-user-confirmation',
+          buttons : [{
+            name : 'Continue',
+            type : 'primary',
+            click : doCancel
+          }, {
+            name : 'Cancel',
+            type: 'cancel'
+          }]
+        });
+      }
+      else {
+        doCancel();
       }
     };
     $scope.newUserClick = function() {

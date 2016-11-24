@@ -457,11 +457,16 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 }
 
 // used by by component details
+
 .component-container {
-  margin: 0 auto;
-  width: 850px;
-  @media (min-width: 1250px) {
-    width: 1110px;
+  height: 100%;
+  overflow-y: auto;
+  & > div {
+    margin: 0 auto;
+    width: 850px;
+    @media (min-width: 1250px) {
+      width: 1110px;
+    }
   }
 }
 

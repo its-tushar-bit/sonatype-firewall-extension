@@ -37,6 +37,7 @@
     <logback.version>1.1.4</logback.version>
     <jackson.version>2.1.2</jackson.version>
     <openjpa.version>2.4.1</openjpa.version>
+    <!-- When upgrading Shiro remove the dependency management of beanutils -->
     <shiro.version>1.3.2</shiro.version>
     <sisu-inject.version>0.3.1</sisu-inject.version>
     <sisu-guice.version>3.2.6</sisu-guice.version>
@@ -200,7 +201,13 @@
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>2.5</version>
-      </dependency>    
+      </dependency>
+      <dependency>
+        <!-- Related to Shiro 1.3.2 see CLM-7308 -->
+        <groupId>commons-beanutils</groupId>
+        <artifactId>commons-beanutils</artifactId>
+        <version>1.9.3</version>
+      </dependency>
 
       <dependency>
         <groupId>org.slf4j</groupId>

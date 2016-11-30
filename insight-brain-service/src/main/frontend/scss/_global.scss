@@ -5,7 +5,6 @@
   ##Fonts
   Font weight should be applied extending the ```.bold```, ```.semi-bold```, and ```.regular``` classes, using the
   appropriate font face rather than forcing the browser to render a weight.
-
   ```
     <table>
       <tbody>
@@ -119,7 +118,6 @@ form label {
 
 /*
   ##Spacing
-
   ```
     <h1>Continuous Governance - Reducing risk throughout your software supply chain</h1>
     <p>Leverage the best component-based application development standards across the software lifecycle to reduce risk and speed delivery.</p>
@@ -171,7 +169,6 @@ h1 + div > *:first-child, h2 + div > *:first-child, h3 + div > *:first-child, h4
 */
 /*
   ##UI Palette
-
   <table>
     <thead>
       <tr>
@@ -417,7 +414,6 @@ $pickable-colors: ('light-red', $light-red),
 /*
   ##Threat Colors
   Threat colors are accessible in an array to iterate over as such ```@each $threatdef in $threat-levels```
-
   <table>
     <thead>
       <tr>
@@ -511,3 +507,15 @@ $minimum-content-width: 1024px;
 $maximum-content-width: 1366px;
 
 $maximum-paragraph-width: 562px;
+
+/* Helper Classes
+-------------------------------------------*/
+
+.iq-pull-left {
+  float: left;
+}
+
+.iq-pull-right {
+  float: right;
+}
+

@@ -94,7 +94,7 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
   font-style: normal;
 }
 
-.sonatype-icons:before {
+.sonatype-icons:before, .iq-sonatype-icons:before {
   font-family: $sonatype-icon-font-name;
   @include icon-font();
 }
@@ -104,7 +104,7 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
 */
 $sonatype-glyphicon-font-name: 'Glyphicons';
 
-.sonatype-glyphicons:before {
+.sonatype-glyphicons:before, .iq-sonatype-glyphicons:before {
   font-family: $sonatype-glyphicon-font-name;
   @include icon-font();
 }

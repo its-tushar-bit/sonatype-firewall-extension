@@ -2,422 +2,436 @@
   #Main Header
 */
 
-$main-header-color: #CCCCCC;
-$main-header-highlight: #2476FC;
+$dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87, 87, 87, 1);
 $header-dropdown-panel-border: 1px solid $grey-4;
 $header-dropdown-panel-background-color-rgba: rgba(0, 0, 0, 0.2);
+$iq-sonatype-blue: #336699;
+$iq-sonatype-orange: #f89100;
+$main-header-color: #CCCCCC;
+$main-header-highlight: #2476FC;
 $notification-item-border: 1px solid $grey-1;
-$dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87, 87, 87, 1);
 
 /*
   First Row
 */
 
-.header {
-  width: 100%;
+.iq-header {
   background-color: $off-black;
-  i {
-    vertical-align: middle;
+  min-height: 40px;
+  margin: 0;
+  overflow: visible;
+  width: 100%;
+}
+
+.iq-header__inner {
+  background-color: $off-black;
+  min-height: inherit;
+  margin: 0 auto;
+  width: 100%;
+  max-width: $maximum-content-width;
+  min-width: $minimum-content-width;
+
+  &::before {
+    display: table;
+    content: "";
+    line-height: 0;
   }
+}
+
+i.sonatype-icons, i.glyphicons-sonatype {
+  vertical-align: middle;
+
+  &::before {
+    color: $main-header-color;
+  }
+
+  .active &::before {
+    color: #fff;
+  }
+}
+
+.iq-title {
+  color: #fff;
+  display: inline-block;
+  float: left;
+  line-height: 24px;
+  margin: 0 10px 0 0;
+  white-space: nowrap;
 
   img {
-    margin-left: 1px;
-    margin-top: 1px;
+    display: inline-block;
+    margin: 2px 2px 0 1px;
   }
+}
 
-  .dropdown-toggle, .dropdown-contents > li > a {
-    color: $main-header-color;
+.iq-title__brand {
+  @include semi-bold();
+  display: block;
+  font-size: 18px;
+  line-height: 18px;
+  padding: 5px 19px 0 2px;
+}
+
+.iq-title__version {
+  display: block;
+  font-size: 12px;
+  line-height: 12px;
+  padding: 0 19px 4px 2px;
+}
+
+.iq-navbar {
+  float: left;
+  margin-left: 90px;
+  overflow: hidden;
+}
+
+.iq-navigation-menu {
+  margin: 0 0 0 25px;
+}
+
+.iq-navigation-menu__icon {
+  display: inline-block;
+  list-style: none;
+
+  span {
+    display: inline-block;
+    height: 38px;
+    margin-top: 2px;
+    position: relative;
+    text-align: center;
+    width: 40px;
 
     &:hover {
-      text-decoration: none;
-    }
-  }
+      color: $off-white;
 
-  .brand {
-    color: #FFFFFF;
-    font-weight: normal;
-    line-height: 24px;
-    margin-left: 0px;
-    padding: 7px 19px 5px 2px;
-    text-shadow: none;
-    white-space: nowrap;
-
-    & img {
-      margin-right: 8px;
-    }
-
-    & > div {
-      margin-right: 10px;
-      margin-top: -3px;
-    }
-
-    & > div > div:first-child {
-      font-family: Proxima Nova Semibold;
-      font-size: 18px;
-      line-height: normal;
-    }
-
-    & > div > div:last-child {
-      font-size: 11px;
-      margin-top: -3px;
-    }
-  }
-
-  .navbar-inner {
-    @include main-content();
-    background-color: $off-black;
-    background-image: none;
-    min-height: inherit;
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    box-shadow: none;
-    border: 0;
-    filter: none;
-    border-radius: 0px;
-    padding-left: 0px;
-    padding-right: 0px;
-  }
-
-  .navbar-version {
-    font-size: 10px;
-    line-height: 10px;
-    text-shadow: none;
-  }
-
-  &.navbar {
-    margin-bottom: 0px;
-  }
-}
-
-.header-content {
-  > ul {
-    display: inline-block;
-    margin-bottom: 0;
-  }
-}
-
-.header-navigation-menu {
-  &.inline > li {
-    padding: 0;
-  }
-
-  li {
-    span {
-      padding-top: 5px;
-      padding-right: 10px !important;
-      padding-left: 10px !important;
-      display: inline-block;
-      border-bottom: 3px solid transparent;
-
-      &:hover {
-        background-color: #f4f4f4;
-
-        i:before {
-          color: $main-header-highlight !important;
-        }
+      i::before {
+        color: $off-white;
       }
     }
-
-    &:first-child {
-      margin-left: 9px;
-    }
   }
 
-  i:before {
-    color: $main-header-color;
-  }
+  &.active {
 
-  .active {
     span {
-      background-color: $main-header-highlight;
-    }
+      background-color: $iq-sonatype-blue;
 
-    i:before {
-      color: #FFFFFF !important;
+      &::after {
+        @include iq-arrow-up();
+      }
     }
+  }
+
+  &:first-child {
+    margin-left: 9px;
+  }
+
+  i.sonatype-icons {
+    display: inline-block;
+    padding-top: 3px;
   }
 }
 
-/*
-  Header Dropdown Menu
-```
-  <div class="header navbar">
-    <div class="navbar-inner">
-      <div class="header-dropdown-menu">
-        <div class="dropdown open">
-          <a class="dropdown-toggle">
-            <i class="glyphicons-sonatype medium user"></i><span>Dropdown Label</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-arrow">
-            <li class="disabled">Header</li>
-            <li>
-              <ul class="dropdown-contents">
-                <li>
-                  <a>Item</a>
-                </li>
-                <li>
-                  <a>Item</a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-```
-*/
+/* DROPDOWNS 
+--------------------------------------------------------*/
 
-.header-dropdown-menu {
-  font-family: Proxima Nova Semibold;
+.iq-dropdown-menu {
+  @include semi-bold();
   float: left;
-  padding-right: 20px;
 
   .alert {
-    padding: 8px;
-    margin-bottom: 0px;
     border-radius: 0px;
+    margin-bottom: 0px;
+    padding: 8px;
   }
+}
 
-  .dropdown > a > span {
-    @extend .bold;
-    vertical-align: 3px;
-    padding-left: 10px;
+// Modifications to Bootstrap styles below
+
+.dropdown-toggle {
+  color: $main-header-color;
+  display: inline-block;
+  height: 35px;
+  padding-top: 5px;
+  text-align: center;
+  width: 40px;
+
+  &:hover {
+    color: $main-header-color;
+    text-decoration: none;
   }
+}
 
-  .count-circle {
-    font-size: 10px;
-    right: 20px;
-    background-color: #2476FC;
-    color: white;
-    text-align: center;
-    @extend .bold;
-    @include border-radius(50%);
-    left: 8px;
-    top: 18px;
-    width: 16px;
-    height: 16px;
-    position: absolute;
-  }
+.dropdown-menu {
+  border: $header-dropdown-panel-border;
+  border-radius: 0px;
+  -webkit-box-shadow: $dropdown-menu-box-shadow;
+  -moz-box-shadow: $dropdown-menu-box-shadow;
+  box-shadow: $dropdown-menu-box-shadow;
 
-  .count-circle.exclamation {
-    @extend .bold;
-    color: #B94A48;
-    background-color: #F2DEDE;
-    font-size: 16px;
-    border: solid thin #B94A48;
-  }
-
-  //This is simply for the icon that shows in the header
-  i::before {
-    color: $main-header-color !important;
-  }
-
-  ul:first-child {
+  &:first-child {
     padding-bottom: 12px;
   }
 
-  li.disabled {
-    background-color: $off-white !important;
-    border-bottom: $header-dropdown-panel-border;
-    font-size: 14px;
-    padding: 12px 8px !important;
-    color: $slate !important;
-  }
-
-  .dropdown {
-    padding-top: 5px;
-    padding-bottom: 5px;
-  }
-
-  .dropdown-menu {
-    -webkit-box-shadow: $dropdown-menu-box-shadow;
-    -moz-box-shadow: $dropdown-menu-box-shadow;
-    box-shadow: $dropdown-menu-box-shadow;
-    border: $header-dropdown-panel-border;
-    -webkit-border-radius: 0px;
-    -moz-border-radius: 0px;
-    border-radius: 0px;
-  }
-
-  .dropdown-contents {
-    height: auto;
-    max-height: 318px;
-    overflow-x: hidden;
-    margin-left: 0;
+  li {
     list-style: none;
+  }
+}
 
-    li {
-      font-family: Proxima Nova Regular;
-      font-size: 14px;
-      line-height: 18px;
-      background-color: $off-white !important;
-      border-bottom: $notification-item-border;
-      white-space: nowrap;
-      word-wrap: break-word;
+.iq-dropdown-menu__title {
+  background-color: $off-white;
+  border-bottom: $header-dropdown-panel-border;
+  color: $slate;
+  font-size: 14px;
+  padding: 12px 8px;
+}
 
-      & > a {
-        color: $off-black;
-        padding: 8px; // here to avoid dead zones on click targets
-        display: block; // for top & bottom padding
-      }
+.dropdown-contents {
+  height: auto;
+  max-height: 318px;
+  list-style: none;
+  margin-left: 0;
+  overflow-x: hidden;
 
-      * {
-        vertical-align: top;
-      }
+  li {
+    background-color: $off-white;
+    border-bottom: $notification-item-border;
+    font-family: Proxima Nova Regular;
+    font-size: 14px;
+    line-height: 18px;
+    white-space: nowrap;
+    word-wrap: break-word;
 
-      &:hover {
-        background-color: $grey-1 !important;
-        cursor: pointer;
-      }
+    * {
+      vertical-align: top;
+    }
+
+    &:hover {
+      background-color: $grey-1;
+      cursor: pointer;
     }
   }
+}
 
-  /*
-   * Arrow to the top of a twitter dropdown menu
-   */
-  .dropdown-menu-arrow::before {
+// Arrow to the top of a twitter dropdown menu
+.dropdown-menu-arrow {
+
+  &::before {
     border-bottom: 8px solid $header-dropdown-panel-background-color-rgba;
     border-left: 9px solid transparent;
     border-right: 9px solid transparent;
     content: "";
     display: inline-block;
-    left: 1px;
     position: absolute;
+    left: 1px;
     top: -8px;
   }
-  .dropdown-menu-arrow::after {
+
+  &::after {
     border-bottom: 8px solid $off-white;
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
     content: "";
     display: inline-block;
-    left: 2px;
     position: absolute;
+    left: 2px;
     top: -8px;
-  }
-  .dropdown.pull-right > .dropdown-menu-arrow::before {
-    left: inherit;
-    right: 1px;
-  }
-  .dropdown.pull-right > .dropdown-menu-arrow::after {
-    left: inherit;
-    right: 2px;
   }
 }
 
-.notification-menu {
-  margin-right: 20px;
-  padding-right: 20px;
-  border-right: 1px solid $main-header-color;
+// Modifications to Bootstrap styles above
 
-  .dropdown.pull-right > .dropdown-menu-arrow::before {
-    right: 98px;
+a.iq-dropdown__link {
+  color: $off-black;
+  display: block; // for top & bottom padding
+  padding: 8px; // here to avoid dead zones on click targets
+
+  &:hover {
+    color: $off-black;
+    text-decoration: none;
+  }
+}
+
+.iq-count-circle {
+  @include bold();
+  @include border-radius(50%);
+  background-color: #2476FC;
+  color: white;
+  font-size: 10px;
+  height: 16px;
+  position: absolute;
+  left: 20px;
+  top: 18px;
+  text-align: center;
+  width: 16px;
+
+  &.exclamation {
+    background-color: #F2DEDE;
+    border: solid thin #B94A48;
+    color: #B94A48;
+  }
+}
+
+// This chunk contains customizations to support the notification menu 
+.iq-dropdown-menu--notification-menu {
+  float: right;
+
+  .dropdown-menu-arrow::before {
+    left: inherit;
+    right: 107px;
   }
 
-  .dropdown.pull-right > .dropdown-menu-arrow::after {
-    right: 100px;
+  .dropdown-menu-arrow::after {
+    left: inherit;
+    right: 109px;
   }
 
   .dropdown-menu {
-    right: -100px;
     padding-bottom: 12px;
+    left: auto;
+    right: -100px;
   }
 
   .dropdown-contents {
     width: 360px;
   }
 
-  li.notification-link {
-    color: $off-black;
-    min-height: 36px;
-    padding: 8px;
-
-    &.selected {
-      background-color: $grey-1 !important;
-    }
-
-    &:hover {
-      cursor: pointer;
-    }
-
-    &.viewed {
-      color: $slate;
-    }
-  }
-
-  .notification-age {
-    float: left;
-    font-size: 20px;
-    padding-right: 8px;
-    line-height: 20px;
-    width: 35px;
-    text-align: right;
-  }
-
-  .notification-age-label {
-    float: left;
-    width: 50px;
-    padding-right: 16px;
-    text-align: left;
-    white-space: normal;
-  }
-
-  .notification-text {
-    display: inline;
-    white-space: normal;
-  }
-
   .dropdown-sub-menu {
-    right: 360px;
-    position: absolute;
-    top: 0px;
-    margin-right: 12px;
-    list-style: none;
+    background-color: $off-white;
+    border: $header-dropdown-panel-border;
+    border-radius: 0px;
     -webkit-box-shadow: $dropdown-menu-box-shadow;
     -moz-box-shadow: $dropdown-menu-box-shadow;
     box-shadow: $dropdown-menu-box-shadow;
-    border: $header-dropdown-panel-border;
-    -webkit-border-radius: 0px;
-    -moz-border-radius: 0px;
-    border-radius: 0px;
+    list-style: none;
+    margin-right: 12px;
     padding-bottom: 12px;
-    background-color: $off-white;
-  }
-
-  .dropdown-sub-menu::before {
-    border-left: 8px solid $off-white;
-    border-bottom: 10px solid transparent;
-    border-top: 10px solid transparent;
-    right: -8px;
-    content: "";
-    display: inline-block;
-    top: 16px;
     position: absolute;
-  }
+    right: 360px;
+    top: 0px;
 
-  .dropdown-sub-menu::after {
-    border-left: 8px solid rgba(254, 254, 254, 0.2);;
-    border-bottom: 8px solid transparent;
-    border-top: 8px solid transparent;
-    right: -8px;
-    top: 16px;
-    content: "";
-    display: inline-block;
-    position: absolute;
-  }
+    &::before {
+      border-left: 8px solid $off-white;
+      border-bottom: 10px solid transparent;
+      border-top: 10px solid transparent;
+      content: "";
+      display: inline-block;
+      position: absolute;
+      right: -8px;
+      top: 16px;
+    }
 
-  .dropdown-sub-menu li, .dropdown-sub-menu li:hover {
-    background-color: $off-white !important;
-    cursor: auto !important;
-  }
+    &::after {
+      border-left: 8px solid rgba(254, 254, 254, 0.2);;
+      border-bottom: 8px solid transparent;
+      border-top: 8px solid transparent;
+      content: "";
+      display: inline-block;
+      position: absolute;
+      right: -8px;
+      top: 16px;
+    }    
 
-  #detail-html-container {
-    width: 500px;
-    height: 318px;
-    overflow: auto;
-    white-space: normal !important;
-    padding: 8px;
+    li {
+      white-space: normal;
+
+      &:hover {
+        background-color: $off-white;
+        cursor: default;
+      }
+    }
   }
 }
 
+.iq-notification__link {
+  background-color: $off-white;
+  color: $off-black;
+  cursor: auto;
+  min-height: 36px;
+  padding: 8px;
+
+  &.selected {
+    background-color: $grey-1;
+  }
+
+  &:hover {
+    color: $off-black;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  &.viewed {
+    color: $slate;
+  }
+}
+
+.iq-notification__age {
+  float: left;
+  font-size: 20px;
+  line-height: 20px;
+  padding-right: 8px;
+  text-align: right;
+  width: 35px;
+}
+
+.iq-notification__age-qualifier {
+  float: left;
+  padding-right: 16px;
+  text-align: left;
+  white-space: normal;
+  width: 50px;
+}
+
+.iq-notification__text {
+  display: inline;
+  white-space: normal;
+}
+
+.iq-notification__container {
+  height: 318px;
+  overflow: auto;
+  padding: 8px;
+  white-space: normal;
+  width: 500px;
+}
+
+.iq-dropdown-menu--help-menu, .iq-dropdown-menu--system-configuration-menu {
+  float: right;
+
+  .dropdown-menu {
+    left: auto;
+    right: 0;
+  }
+
+  .dropdown-menu-arrow::before {
+    left: inherit;
+    right: 9px;
+  }
+
+  .dropdown-menu-arrow::after {
+    left: inherit;
+    right: 10px;
+  }
+}
+
+.iq-dropdown-menu--user-menu {
+  float: right;
+  margin-right: 12px;
+  width: auto;
+
+  .dropdown {
+
+    a {
+      width: auto;
+    }
+  }
+
+  .dropdown-toggle span {
+    @include bold();
+    padding-left: 10px;
+    vertical-align: 3px;
+  }
+}
+
+.iq-dropdown-menu--help-menu {
+  margin-right: 6px;
+}

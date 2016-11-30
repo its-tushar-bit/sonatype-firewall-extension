@@ -1,10 +1,31 @@
 @mixin main-content($top: '') {
+  margin: 0 auto;
+  width: 100%;
   max-width: $maximum-content-width;
   min-width: $minimum-content-width;
-  width: 100%;
-  margin: 0 auto;
 
   @if $top != '' {
     height: calc(100vh - #{$top});
   }
+}
+
+@mixin iq-arrow-up() {
+  border-color: transparent transparent #fff transparent;
+  border-style: solid;
+  border-width: 0 5px 5px 5px;
+  content: "";
+  height: 0;
+  margin-left: -5px;
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  width: 0;
+}
+
+@mixin bold() {
+  font-family: Proxima Nova Bold, sans-serif;
+}
+
+@mixin semi-bold() {
+  font-family: Proxima Nova Semibold, sans-serif;
 }

@@ -19,6 +19,6 @@ public class MainHeader
   }
 
   public static SelenideElement dashboardNavigationButton() {
-    return $(createSelector(".header-navigation-menu li", nthChild(1), "a"));
+    return $(createSelector(".iq-navigation-menu li", nthChild(1), "a"));
   }
 }

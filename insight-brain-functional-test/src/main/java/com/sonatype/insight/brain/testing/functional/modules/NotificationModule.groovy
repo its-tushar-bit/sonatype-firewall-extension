@@ -14,9 +14,9 @@ class NotificationModule
 
   static content = {
     dropdown { $('#notification-dropdown-toggle') }
-    notificationCount (required: false) { $('.count-circle') }
-    notificationList (required: false) { moduleList NotificationItemModule, $('.notification-link') }
-    detailHeader(required: false) { $('.dropdown-sub-menu .disabled') }
+    notificationCount (required: false) { $('.iq-count-circle') }
+    notificationList (required: false) { moduleList NotificationItemModule, $('.iq-notification__link') }
+    detailHeader(required: false) { $('.dropdown-sub-menu .iq-dropdown-menu__title') }
     detailBody(required: false) { $('#detail-html-container div') }
     detailedBodyLinks(required: false) { detailBody.find('a') }
   }

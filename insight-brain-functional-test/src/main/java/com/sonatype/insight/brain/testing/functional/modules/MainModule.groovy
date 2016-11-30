@@ -21,7 +21,7 @@ class MainModule
     dashboard(to: DashboardOverviewPage, required: false, wait: false) { $('.dashboard') }
     management(to: RootOrgManagementPage) { $('.organizational-design') }
     reports(to: ReportViolationsPage) { $('.reporting') }
-    version { $('.navbar-version') }
+    version { $('.iq-title__version') }
   }
 
   void toManagement() {

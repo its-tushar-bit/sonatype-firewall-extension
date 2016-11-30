@@ -11,8 +11,8 @@ class NotificationItemModule
     extends Module
 {
   static content = {
-    age { $('.notification-age') }
-    ageLabel { $('.notification-age-label') }
-    summary { $('.notification-text') }
+    age { $('.iq-notification__age') }
+    ageLabel { $('.iq-notification__age-qualifier') }
+    summary { $('.iq-notification__text') }
   }
 }

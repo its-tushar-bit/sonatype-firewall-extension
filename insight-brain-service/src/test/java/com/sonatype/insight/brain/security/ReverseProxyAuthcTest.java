@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -19,16 +22,23 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
+@RunWith(Parameterized.class)
 public class ReverseProxyAuthcTest
     extends AbstractBrainServiceTest
 {
   @Rule
   public TestLdapServer ldapServer = new TestLdapServer();
+
+  private boolean setupLdap;
+
+  private boolean localUser;
 
   private final Configurator ENABLED = new Configurator()
   {
@@ -38,13 +48,36 @@ public class ReverseProxyAuthcTest
     }
   };
 
+  public ReverseProxyAuthcTest(boolean setupLdap, boolean localUser) {
+    this.setupLdap = setupLdap;
+    this.localUser = localUser;
+  }
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][]{
+        // only authenticate local users
+        {false, true},
+        // only authenticate ldap users
+        {true, false},
+        // authenticated local users go before ldap users
+        {true, true}
+    });
+  }
+
   @Override
   public void initTest() throws Exception {
-    ldapServer.start();
-    ldapServer.loadData("/ReverseProxyAuthcTest/ldap_users.ldif");
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), this.ldapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    if (setupLdap) {
+      ldapServer.start();
+      ldapServer.loadData("/ReverseProxyAuthcTest/ldap_users.ldif");
+      LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+      tempEntity.newLdapConnection(ldapServer.getId(), this.ldapServer.getPort());
+      tempEntity.newLdapUserMapping(ldapServer.getId());
+    }
+    if (localUser) {
+      // Be sure to keep the detail in-sync with the ldap defined user details for the testuser
+      tempEntity.newUser("testuser", "John", "Doe", "test.user@company.com");
+    }
 
     // defer brain server initialization to actual test method
   }
@@ -71,7 +104,7 @@ public class ReverseProxyAuthcTest
     assertThat(response.getSessionCookie(), is(notNullValue()));
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated(), is(true));
-    assertThat(authStatus.isClmUser(), is(false));
+    assertThat(authStatus.isClmUser(), is(localUser));
     assertThat(authStatus.getDisplayName(), is("John Doe"));
 
     response = request.subpath(PublicApiPaths.ORG_RESOURCE_PATH).get();
@@ -95,7 +128,7 @@ public class ReverseProxyAuthcTest
     assertThat(response.getSessionCookie(), is(notNullValue()));
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated(), is(true));
-    assertThat(authStatus.isClmUser(), is(false));
+    assertThat(authStatus.isClmUser(), is(localUser));
     assertThat(authStatus.getDisplayName(), is("John Doe"));
   }
 
@@ -110,7 +143,7 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
-  public void testEnabled_UserMustExistInLdap() throws Exception {
+  public void testEnabled_UserMustExist() throws Exception {
     initServer(ENABLED);
 
     HttpRequest request = restRequest().header("REMOTE_USER", "unknown-user").anon();

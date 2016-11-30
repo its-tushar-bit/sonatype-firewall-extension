@@ -278,9 +278,29 @@ public class LdapManager
    * Loads the user along with its group memberships, thereby verifying its general existence, to support integration
    * with 3rd-party SSO frontends that handle authentication and then forward the validated username (and only that).
    */
-  public LdapUser getUser(String username) throws NamingException {
-    LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, getUserMapping(conn)).getUser(username, true);
+  public LdapUser authenticateUserForReverseProxy(String username) throws NamingException {
+    final List<LdapServer> servers = serverDao.getAll();
+
+    final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers = new ArrayList<>();
+
+    for (final LdapServer server : servers) {
+      final LdapConnection conn = getDecryptedConnection(server);
+      checkValidConnection(conn);
+      try {
+        LdapUser user = new LdapQuery(conn, getUserMapping(conn)).getUser(username, true);
+        resetConnectionFailures(conn);
+        return user;
+      }
+      catch (NameNotFoundException e) {
+        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+      }
+      catch (NamingException e) {
+        recordConnectionFailure(conn);
+        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+      }
+    }
+
+    throw LdapServerExceptionWrapper.getSomethingToThrow(ldapServerExceptionWrappers);
   }
 
   // Password encryption

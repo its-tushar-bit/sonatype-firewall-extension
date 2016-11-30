@@ -1,4 +1,4 @@
-<script type='text/ng-template' id='change-password-template'>
+<script type="text/ng-template" id="change-password-template">
 <div>
   <div class="clm-modal-header">
     <h2>Change Password</h2>
@@ -34,10 +34,10 @@
   </form>
 </div>
 </script>
-<script type='text/ng-template' id='dropdown-detail-panel-template'>
+<script type="text/ng-template" id="dropdown-detail-panel-template">
   <div ng-transclude></div>
   <ul ng-if="item.selected" class="dropdown-sub-menu">
-    <li class="iq-dropdown-menu__title">{{item.summaryText}}</li>
+    <li class="iq-dropdown-menu__title">{{::item.summaryText}}</li>
     <li id="detail-html-container">
       <div ng-bind-html="item.detailHtml"></div>
     </li>
@@ -51,27 +51,27 @@
         Nexus IQ Server
       </div>
       <div class="iq-title__version">
-        {{productEdition}} {{getServerVersion()}}
+        {{::productEdition}} {{::getServerVersion()}}
       </div>
     </div>
     <div class="iq-navbar">
       <ul class="iq-navigation-menu iq-inline iq-pull-left">
         <li class="iq-navigation-menu__icon" ng-class="{ 'active' : $state.includes('dashboard') }"
-            tooltip='Dashboard' tooltip-placement='bottom' ng-if='isDashboardLicensed()'>
+            tooltip="Dashboard" tooltip-placement="bottom" ng-if="isDashboardLicensed()">
           <a ui-sref="dashboard.overview.violations" class="iq-navigation__link">
-            <span><i class='sonatype-icons medium dashboard'></i></span>
+            <span><i class="sonatype-icons medium dashboard"></i></span>
           </a> 
         </li><!-- fix chrome bounce
      --><li class="iq-navigation-menu__icon" ng-class="{ 'active' : $state.includes('violations') }"
-               tooltip='Reporting' tooltip-placement='bottom'>
+               tooltip="Reporting" tooltip-placement="bottom">
           <a ui-sref="violations" class="iq-navigation__link">
-            <span><i class='sonatype-icons medium reporting'></i></span>
+            <span><i class="sonatype-icons medium reporting"></i></span>
           </a>
         </li><!-- fix chrome bounce
      --><li class="iq-navigation-menu__icon" ng-class="{ 'active' : $state.includes('management') }"
-               tooltip='Organization & Policies' tooltip-placement='bottom'>
+               tooltip="Organization & Policies" tooltip-placement="bottom">
           <a ui-sref="management.view" class="iq-navigation__link">
-            <span><i class='sonatype-icons medium organizational-design'></i></span>
+            <span><i class="sonatype-icons medium organizational-design"></i></span>
           </a>
         </li>
         <li class="iq-navigation-menu__icon">
@@ -84,14 +84,14 @@
     <div id="help-menu" class="iq-dropdown-menu iq-dropdown-menu--help-menu">
       <div class="dropdown iq-pull-right">
         <a id="help-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
-          <i class='glyphicons-sonatype medium help'></i>
+          <i class="glyphicons-sonatype medium help"></i>
         </a>
         <ul class="dropdown-menu dropdown-menu-arrow">
           <li class="iq-dropdown-menu__title">SUPPORT&nbsp;OPTIONS</li>
           <li>
             <ul class="dropdown-contents">
               <li>
-                <a id="documentation-link" href="http://links.sonatype.com/products/clm/doc/{{majorMinorVersion}}"
+                <a id="documentation-link" href="http://links.sonatype.com/products/clm/doc/{{::majorMinorVersion}}"
                    title="Go to Online Help" target="_blank" class="iq-dropdown__link">Online Help</a>
               </li>
               <li>
@@ -108,7 +108,7 @@
          ng-if="hasAnyPermission()">
       <div class="dropdown iq-pull-right">
         <a id="system-configuration-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
-          <i class='glyphicons-sonatype medium cogwheel'></i>
+          <i class="glyphicons-sonatype medium cogwheel"></i>
         </a>
         <ul class="dropdown-menu dropdown-menu-arrow">
           <li class="iq-dropdown-menu__title">SYSTEM&nbsp;PREFERENCES</li>
@@ -120,19 +120,19 @@
               </li>
               <li id="system-configuration-roles" ng-if="permissions.VIEW_ROLES"
                   ng-class="{'active': $state.is('roles') }">
-                <a ui-sref='roles' class="iq-dropdown__link">Roles</a>
+                <a ui-sref="roles" class="iq-dropdown__link">Roles</a>
               </li>
               <li id="system-configuration-administrators" ng-if="permissions.CONFIGURE_SYSTEM"
                   ng-class="{'active': $state.is('administrators') }">
-                <a ui-sref='administrators' class="iq-dropdown__link">Administrators</a>
+                <a ui-sref="administrators" class="iq-dropdown__link">Administrators</a>
               </li>
               <li id="system-configuration-product-license" ng-if="permissions.CONFIGURE_SYSTEM"
                   ng-class="{'active': $state.is('productlicense') }">
-                <a ui-sref='productlicense' class="iq-dropdown__link">Product License</a>
+                <a ui-sref="productlicense" class="iq-dropdown__link">Product License</a>
               </li>
               <li id="system-configuration-ldap" ng-if="permissions.CONFIGURE_SYSTEM"
                   ng-class="{'active': $state.includes('ldap') }">
-                <a ui-sref='ldap-servers' class="iq-dropdown__link">LDAP</a>
+                <a ui-sref="ldap-servers" class="iq-dropdown__link">LDAP</a>
               </li>
             </ul>
           </li>
@@ -141,9 +141,9 @@
     </div>
     <div id="notification-menu" class="iq-dropdown-menu iq-dropdown-menu--notification-menu" ng-controller="Notifications">
       <div class="dropdown iq-pull-right">
-        <a id="notification-dropdown-toggle" class='dropdown-toggle'
+        <a id="notification-dropdown-toggle" class="dropdown-toggle"
            data-toggle="dropdown" ng-click="clearSelected()">
-          <i class='glyphicons-sonatype medium inbox'></i>
+          <i class="glyphicons-sonatype medium inbox"></i>
           <div ng-if="unreadNotificationCount" class="iq-count-circle iq-pull-right"
                ng-class="{'exclamation': errorText}">
             {{unreadNotificationCount}}
@@ -173,7 +173,7 @@
                   {{notification.ageQualifier}}
                 </div>
                 <div class="iq-notification__text">
-                  {{notification.summaryText}}
+                  {{::notification.summaryText}}
                 </div>
               </li>
               <li ng-if="selectedNotification" ng-click="$event.stopPropagation();">
@@ -193,18 +193,18 @@
     <div id="user-menu" class="iq-dropdown-menu iq-pull-right iq-dropdown-menu--user-menu">
       <div class="dropdown">
         <a id="user-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
-          <i class='glyphicons-sonatype medium user'></i>
-          <span id="user-name">{{ displayName }} <i class="fa fa-caret-down"></i></span>
+          <i class="glyphicons-sonatype medium user"></i>
+          <span id="user-name">{{:: displayName }} <i class="fa fa-caret-down"></i></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-arrow">
           <li class="iq-dropdown-menu__title">CURRENT&nbsp;USER</li>
           <li> 
             <ul class="dropdown-contents">
-              <li ng-controller='ChangePassword' ng-show='canChangePassword()'>
-                <a id='change-password' ng-click="change()" class="iq-dropdown__link">Change Password</a>
+              <li ng-controller="ChangePassword" ng-show="canChangePassword()">
+                <a id="change-password" ng-click="change()" class="iq-dropdown__link">Change Password</a>
               </li>
-              <li ng-controller='LogoutController'> 
-                <a id='logout' ng-click="logout()" class="iq-dropdown__link">Logout</a>
+              <li ng-controller="LogoutController">
+                <a id="logout" ng-click="logout()" class="iq-dropdown__link">Logout</a>
               </li>
             </ul>
           </li>

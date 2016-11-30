@@ -122,8 +122,8 @@ public class LdapManager
    *
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> getUsers(String[] names, long maxResults) throws NamingException {
-    LdapConnection conn = getDecryptedConnection();
+  public List<LdapUser> getUsers(LdapServer ldapServer, String[] names, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection(ldapServer);
     return new LdapQuery(conn, getUserMapping(conn)).getUsers(names, maxResults);
   }
 

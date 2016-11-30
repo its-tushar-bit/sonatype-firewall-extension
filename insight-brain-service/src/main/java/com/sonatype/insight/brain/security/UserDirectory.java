@@ -180,22 +180,29 @@ public class UserDirectory
       sortedUserNames.remove(user.getUsername());
     }
 
+    List<NamingException> namingExceptions = new ArrayList<>();
+    List<Exception> otherExceptions = new ArrayList<>();
     if (ldapManager.isLdapEnabled() && !sortedUserNames.isEmpty()) {
-      try {
-        String ldapName = ldapManager.getLdapServerName();
+      for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+        try {
+          String ldapName = ldapServer.getName();
 
-        for (LdapUser user : ldapManager.getUsers(sortedUserNames.toArray(new String[sortedUserNames.size()]),
-            sortedUserNames.size())) {
-          Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
-          members.add(member);
+          for (LdapUser user : ldapManager.getUsers(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]),
+              sortedUserNames.size())) {
+            members.add(new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName));
+            sortedUserNames.remove(user.getUsername());
+          }
         }
-      }
-      catch (Exception e) {
-        return new QueryResult(members, e);
+        catch (NamingException e) {
+          namingExceptions.add(e);
+        }
+        catch (Exception e) {
+          otherExceptions.add(e);
+        }
       }
     }
 
-    return new QueryResult(members);
+    return new QueryResult(members, mergeExceptions(namingExceptions, otherExceptions));
   }
 
   /**
@@ -317,8 +324,13 @@ public class UserDirectory
     }
 
     String[] userNames = { user.getUsername() };
-    List<LdapUser> ldapUsers = ldapManager.getUsers(userNames, userNames.length);
-    return !ldapUsers.isEmpty();
+
+    for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+      if (!ldapManager.getUsers(ldapServer, userNames, userNames.length).isEmpty()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

@@ -700,17 +700,29 @@ public class LdapManagerTest
 
   @Test
   public void testGetUsers() throws Exception {
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    startLdapServer(testLdapServer1, ldapConnection);
+    LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
 
-    createUserMapping(ldapServer);
+    LdapConnection ldapConnection1 = createLdapConnection(ldapServer1);
+    startLdapServer(testLdapServer1, ldapConnection1);
+    LdapConnection ldapConnection2 = createLdapConnection(ldapServer2);
+    startLdapServer(testLdapServer2, ldapConnection2);
 
-    List<LdapUser> users = manager.getUsers(new String[] { "test_user1_1", "test_user2_1" }, 100);
-    assertThat(users.size(), is(2));
+    createUserMapping(ldapServer1);
+    createUserMapping(ldapServer2);
 
-    users = manager.getUsers(new String[] { "foo" }, 100);
-    assertThat(users.size(), is(0));
+    List<LdapUser> users1 = manager.getUsers(ldapServer1, new String[] { "test_user1_1", "test_user2_1", "test_user1_2" }, 100);
+    assertThat(users1.size(), is(2));
+    Collections.sort(users1);
+    assertThat(users1.get(0).getUsername(), is("test_user1_1"));
+    assertThat(users1.get(1).getUsername(), is("test_user2_1"));
+
+    users1 = manager.getUsers(ldapServer1, new String[] { "foo" }, 100);
+    assertThat(users1.size(), is(0));
+
+    List<LdapUser> users2 = manager.getUsers(ldapServer2, new String[] { "test_user1_1", "test_user2_1", "test_user1_2" }, 100);
+    assertThat(users2.size(), is(1));
+    assertThat(users2.get(0).getUsername(), is("test_user1_2"));
   }
 
   @Test
@@ -721,7 +733,7 @@ public class LdapManagerTest
 
     createUserMapping(ldapServer);
 
-    List<LdapUser> users = manager.getUsers(new String[] { "test_user*" }, 100);
+    List<LdapUser> users = manager.getUsers(ldapServer, new String[] { "test_user*" }, 100);
     assertThat(users.size(), is(0));
   }
 

@@ -43,6 +43,7 @@ import org.mockito.Mockito;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
@@ -54,6 +55,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -169,9 +171,10 @@ public class UserDirectoryTest
   @Test
   public void testGetMembersByName_WithUserDirectoryError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    tempEntity.newLdapServer("Test Server");
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    NamingException namingException = new NamingException("Naming Exception!");
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenThrow(namingException);
+    Throwable namingException = new NamingException("Naming Exception!");
+    when(mockLdapManager.getUsers(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(namingException);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
@@ -185,7 +188,9 @@ public class UserDirectoryTest
     // Verify that the CLM user has been returned.
     assertThat(members, hasSize(1));
     assertThat(names, hasItems(members.get(0).getInternalName()));
-    assertEquals(result.getException(), namingException);
+    assertThat(result.getException(), instanceOf(NamingException.class));
+    assertThat(result.getException().getSuppressed().length, is(1));
+    assertThat(result.getException().getSuppressed()[0], is(namingException));
   }
 
   @Test
@@ -199,7 +204,7 @@ public class UserDirectoryTest
     UserDirectory.QueryResult result = userDirectory.getMembersByName(new LinkedList<Member>());
 
     assertThat(result.get(), hasSize(0));
-    verify(mockLdapManager, never()).getUsers(any(String[].class), any(Long.class));
+    verify(mockLdapManager, never()).getUsers(any(LdapServer.class), any(String[].class), any(Long.class));
     verify(mockLdapManager, never()).getGroups(any(String[].class), any(Long.class));
   }
 
@@ -380,10 +385,12 @@ public class UserDirectoryTest
   @Test
   public void testGetUsersByName_LdapOnlyCalledWithNamesNotFoundInCLMRealm() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    tempEntity.newLdapServer("Test Server");
+
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
     List<LdapUser> emptyLdapUsers = new ArrayList<>();
     String[] expectedArgument = new String[] { "Alpha", "CLMBOB" };
-    when(mockLdapManager.getUsers(expectedArgument, 2)).thenReturn(emptyLdapUsers);
+    when(mockLdapManager.getUsers(any(LdapServer.class), argThat(is(equalTo(expectedArgument))), eq(2L))).thenReturn(emptyLdapUsers);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
@@ -398,12 +405,27 @@ public class UserDirectoryTest
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
     // That 'John' was removed from the user names to search.
-    verify(mockLdapManager).getUsers(expectedArgument, 2);
+    verify(mockLdapManager).getUsers(any(LdapServer.class), argThat(is(equalTo(expectedArgument))), eq(2L));
 
     // Test that the get users method isn't called when only CLM users are provided.
     userDirectory.getUsersByName(Sets.newHashSet("tesTcLmUsEr"));
     // Count of the number of calls is still one, as expected.
-    verify(mockLdapManager, times(1)).getUsers(any(String[].class), anyInt());
+    verify(mockLdapManager, times(1)).getUsers(any(LdapServer.class), any(String[].class), anyInt());
+  }
+  
+  @Test
+  public void testGetUsersByName_MultipleLdapServers() throws Exception {
+    // Configure LDAP.
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
+
+    // Get users from both server 1 and server 2
+    List<Member> members = userDirectory.getUsersByName(Sets.newHashSet("testuser1", "testuser2")).get();
+    assertThat(members, hasSize(2));
+    assertThat(members.get(0).getInternalName(), is("testuser1"));
+    assertThat(members.get(0).getRealm(), is("LDAP1"));
+    assertThat(members.get(1).getInternalName(), is("testuser2"));
+    assertThat(members.get(1).getRealm(), is("LDAP2"));
   }
 
   @Test
@@ -489,8 +511,9 @@ public class UserDirectoryTest
   @Test
   public void testValidateUsers_LdapErrorOnGetUsers() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenThrow(new NamingException("Naming Exception!"));
+    when(mockLdapManager.getUsers(argThat(new SameId(ldapServer)), any(String[].class), anyInt())).thenThrow(new NamingException("Naming Exception!"));
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
@@ -503,8 +526,10 @@ public class UserDirectoryTest
   @Test
   public void testIsLdapUser() throws Exception {
     configureAndStartNewLdapServer(testLdapServer1, "LDAP");
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
     assertTrue(userDirectory.isLdapUser(new User("testuser1", null, null, null, null)));
+    assertTrue(userDirectory.isLdapUser(new User("testuser2", null, null, null, null)));
     assertFalse(userDirectory.isLdapUser(new User("not-a-real-user", null, null, null, null)));
   }
 

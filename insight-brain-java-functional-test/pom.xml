@@ -17,6 +17,9 @@
   <properties>
     <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>
+    <selenium.version>3.0.1</selenium.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <build>
@@ -74,7 +77,7 @@
     <dependency>
       <groupId>com.codeborne</groupId>
       <artifactId>selenide</artifactId>
-      <version>3.11</version>
+      <version>4.0</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>

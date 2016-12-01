@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
@@ -248,21 +250,41 @@ public class UserDirectoryTest
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("clmbob"));
 
-    // Get both groups and users.
+    // Get users.
     members = userDirectory.getMembersByQuery("John Doe", true).get();
 
     assertThat(members, hasSize(2));
     assertThat(members.get(0).getInternalName(), is("testuser1"));
     assertThat(members.get(1).getInternalName(), is("testuser2"));
 
-    // Get both groups and users, case insensitive.
+    // Get users, case insensitive.
     members = userDirectory.getMembersByQuery("JOHN DOE", true).get();
 
     assertThat(members, hasSize(2));
     assertThat(members.get(0).getInternalName(), is("testuser1"));
     assertThat(members.get(1).getInternalName(), is("testuser2"));
+
+    // Add a new CLM user.
+    tempEntity.newUser("alphabob", "alphaclm", "bob", "alphaclmbob@bob");
+    // Get both groups and users, case insensitive.
+    members = userDirectory.getMembersByQuery("ALPHA*", true).get();
+
+    assertThat(members, hasSize(4));
+    assertTrue(containsInternalName(members, "alphabob"));
+    assertTrue(containsInternalName(members, "Alpha"));
+    assertTrue(containsInternalName(members, "Alpha1"));
+    assertTrue(containsInternalName(members, "Alpha2"));
   }
 
+  private boolean containsInternalName(Collection<Member> members, String internalName) {
+    for (Member member : members) {
+      if (member != null && member.getInternalName().equals(internalName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   @Test
   public void testGetMembersByQuery_WithWildcards() throws Exception {
     // Configure LDAP.
@@ -319,6 +341,27 @@ public class UserDirectoryTest
   }
 
   @Test
+  public void testGetMembersByQuery_GroupsWithLdapError() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isGroupSearchEnabled(argThat(new SameId(ldapServer)))).thenReturn(true);
+    Throwable namingException = new NamingException("Naming Exception!");
+    when(mockLdapManager.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
+        .thenThrow(namingException);
+
+    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapManager);
+    
+    UserDirectory.QueryResult result = underTest.getMembersByQuery("Alpha", true);
+    List<Member> members = result.get();
+
+    assertThat(members, hasSize(0));
+    assertThat(result.getException(), instanceOf(NamingException.class));
+    assertThat(result.getException().getSuppressed().length, is(1));
+    assertThat(result.getException().getSuppressed()[0], is(namingException));
+  }
+
+  @Test
   public void testGetMembersByQuery_WithGenericError() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
@@ -338,6 +381,27 @@ public class UserDirectoryTest
     // Verify that the CLM user has been returned.
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
+    assertThat(result.getException(), instanceOf(Exception.class));
+    assertThat(result.getException().getSuppressed().length, is(1));
+    assertThat(result.getException().getSuppressed()[0], is(exception));
+  }
+
+  @Test
+  public void testGetMembersByQuery_GroupsWithGenericError() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isGroupSearchEnabled(argThat(new SameId(ldapServer)))).thenReturn(true);
+    Throwable exception = new RuntimeException("Exception!");
+    when(mockLdapManager.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
+        .thenThrow(exception);
+
+    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapManager);
+
+    UserDirectory.QueryResult result = underTest.getMembersByQuery("Alpha", true);
+    List<Member> members = result.get();
+
+    assertThat(members, hasSize(0));
     assertThat(result.getException(), instanceOf(Exception.class));
     assertThat(result.getException().getSuppressed().length, is(1));
     assertThat(result.getException().getSuppressed()[0], is(exception));
@@ -376,6 +440,45 @@ public class UserDirectoryTest
     assertThat(members, hasSize(2));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
     assertThat(members.get(1).getInternalName(), is("testldapuser"));
+    assertThat(result.getException(), instanceOf(Exception.class));
+    assertThat(result.getException().getSuppressed().length, is(2));
+    assertThat(result.getException().getSuppressed()[0], is(namingException));
+    assertThat(result.getException().getSuppressed()[1], is(exception));
+  }
+
+  @Test
+  public void testGetMembersByQuery_GroupsWithMultipleErrors() throws Exception {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
+    LdapServer ldapServer3 = tempEntity.newLdapServer("Test Server3");
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isGroupSearchEnabled(argThat(new SameId(ldapServer1)))).thenReturn(true);
+    // First LDAP server throws a generic exception
+    Throwable exception = new RuntimeException("Exception!");
+    when(mockLdapManager.findGroupsByName(argThat(new SameId(ldapServer1)), any(String.class), anyInt()))
+        .thenThrow(exception);
+    // Second LDAP server throws a NamingException
+    when(mockLdapManager.isGroupSearchEnabled(argThat(new SameId(ldapServer2)))).thenReturn(true);
+    Throwable namingException = new NamingException("NamingException!");
+    when(mockLdapManager.findGroupsByName(argThat(new SameId(ldapServer2)), any(String.class), anyInt()))
+        .thenThrow(namingException);
+    // Third LDAP server returns a group
+    LdapGroup ldapGroup = new LdapGroup();
+    ldapGroup.setGroupname("testldapgroup");
+    when(mockLdapManager.isGroupSearchEnabled(argThat(new SameId(ldapServer3)))).thenReturn(true);
+    when(mockLdapManager.findGroupsByName(argThat(new SameId(ldapServer3)), any(String.class), anyInt()))
+        .thenReturn(Collections.singletonList(ldapGroup));
+
+    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapManager);
+    
+    UserDirectory.QueryResult result = underTest.getMembersByQuery("any", true);
+    List<Member> members = result.get();
+
+    // Verify that the LDAP group have been returned.
+    assertThat(members, hasSize(1));
+    //assertThat(members.get(0).getInternalName(), is("testclmuser"));
+    assertThat(members.get(0).getDisplayName(), is("testldapgroup"));
     assertThat(result.getException(), instanceOf(Exception.class));
     assertThat(result.getException().getSuppressed().length, is(2));
     assertThat(result.getException().getSuppressed()[0], is(namingException));
@@ -635,6 +738,28 @@ public class UserDirectoryTest
     assertThat(members.get(0).getRealm(), is("IQ Server"));
   }
 
+  @Test
+  public void testGetMembersByQuery_SameGroupInMultipleRealms() throws Exception {
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
+
+    // Should return all groups from all realms. When same group occurs in both realms a single occurence is retrieved.
+    List<Member> members = userDirectory.getMembersByQuery("Alpha*", true).get();
+    assertThat(members, hasSize(3));
+    assertTrue(containsDisplayName(members, "Alpha"));
+    assertTrue(containsDisplayName(members, "Alpha1"));
+    assertTrue(containsDisplayName(members, "Alpha2"));
+  }
+
+  private boolean containsDisplayName(Collection<Member> members, String displayName) {
+    for (Member member : members) {
+      if (member != null && member.getDisplayName().equals(displayName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   private static class SameId
       extends ArgumentMatcher<LdapServer>
   {

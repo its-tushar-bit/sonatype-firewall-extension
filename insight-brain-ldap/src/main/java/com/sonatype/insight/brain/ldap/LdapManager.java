@@ -160,13 +160,14 @@ public class LdapManager
 
   /**
    * Find a list of groups, searching the Group ID attribute.
-   * 
-   * @param name String to match against
+   *
+   * @param ldapServer The ldap server to query against
+   * @param name       String to match against
    * @param maxResults Limit on the number of results to return
    * @return List of LdapGroup objects that match the search criteria
    */
-  public List<LdapGroup> findGroupsByName(String name, long maxResults) throws NamingException {
-    LdapConnection conn = getDecryptedConnection();
+  public List<LdapGroup> findGroupsByName(LdapServer ldapServer, String name, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection(ldapServer);
     return new LdapQuery(conn, getUserMapping(conn)).queryGroupsByName(name, maxResults);
   }
 
@@ -204,6 +205,18 @@ public class LdapManager
       if (mapping != null) {
         return mapping.getGroupMappingType() != LdapGroupMappingType.DYNAMIC || mapping.isDynamicGroupSearchEnabled();
       }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates whether the ldapServer instance can be searched for groups.
+   */
+  public boolean isGroupSearchEnabled(LdapServer ldapServer) {
+    LdapConnection conn = getDecryptedConnection(ldapServer);
+    LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
+    if (mapping != null && mapping.getGroupMappingType() != LdapGroupMappingType.NONE) {
+      return mapping.getGroupMappingType() != LdapGroupMappingType.DYNAMIC || mapping.isDynamicGroupSearchEnabled();
     }
     return false;
   }

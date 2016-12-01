@@ -253,7 +253,7 @@
     }
 
     function getTooltip(item) {
-      return item.realm ? item.realm + (item.email ? '\n' + item.email : '') : null;
+      return item.realm && item.type !== 'GROUP' ? item.realm + (item.email ? '\n' + item.email : '') : null;
     }
   }
 

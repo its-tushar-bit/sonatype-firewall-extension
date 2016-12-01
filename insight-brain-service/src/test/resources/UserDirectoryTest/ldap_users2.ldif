@@ -49,3 +49,9 @@ cn: Beta
 objectClass: top
 objectClass: groupOfNames
 member: uid=Beta
+
+dn: cn=Alpha2,ou=groups,dc=company,dc=com
+cn: Alpha2
+objectClass: top
+objectClass: groupOfNames
+member: uid=testuser2

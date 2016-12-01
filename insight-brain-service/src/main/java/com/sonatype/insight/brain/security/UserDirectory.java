@@ -234,7 +234,9 @@ public class UserDirectory
     List<Exception> otherExceptions = new ArrayList<>();
     if (ldapManager.isLdapEnabled()) {
       try {
-        for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+        List<LdapServer> ldapServers = new LdapServerDAO().getAll();
+        // searching for users
+        for (LdapServer ldapServer : ldapServers) {
           try {
             for (LdapUser user : ldapManager.findUsersByName(ldapServer, query, 100)) {
               Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
@@ -253,13 +255,28 @@ public class UserDirectory
             otherExceptions.add(e);
           }
         }
-
-        String ldapName = ldapManager.getLdapServerName();
-        if (groupsEnabled && ldapManager.isGroupSearchEnabled()) {
-          for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
-            final String groupName = group.getGroupname();
-            Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
-            groups.put(groupName, member);
+        // searching for groups
+        if (groupsEnabled) {
+          for (LdapServer ldapServer : ldapServers) {
+            try {
+              if (ldapManager.isGroupSearchEnabled(ldapServer)) {
+                for (LdapGroup group : ldapManager.findGroupsByName(ldapServer, query, 100)) {
+                  final String groupName = group.getGroupname();
+                  Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapServer.getName());
+                  String key = member.getInternalNameLowerCase();
+                  // Ignore any group that was already discovered in the other realms.
+                  if (!groups.containsKey(key)) {
+                    groups.put(key, member);
+                  }
+                }
+              }
+            }
+            catch (NamingException e) {
+              namingExceptions.add(e);
+            }
+            catch (Exception e) {
+              otherExceptions.add(e);
+            }
           }
         }
       }

@@ -1109,7 +1109,7 @@ public class LdapManagerTest
     createStaticGroupMapping(ldapServer);
 
     // Wrong Objectclass, groupOfUniqueNames not groupOfNames
-    List<LdapGroup> groups = manager.findGroupsByName("Alpha", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "Alpha", 100);
     assertThat(groups, hasSize(0));
   }
 
@@ -1121,11 +1121,11 @@ public class LdapManagerTest
 
     createStaticGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("Omega", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "Omega", 100);
     assertThat(groups, hasSize(1));
     assertThat(groups.get(0).getGroupname(), is("Omega"));
 
-    groups = manager.findGroupsByName("meg", 100);
+    groups = manager.findGroupsByName(ldapServer, "meg", 100);
     assertThat(groups, hasSize(0));
   }
 
@@ -1137,7 +1137,7 @@ public class LdapManagerTest
 
     createStaticGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("oMEGA", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "oMEGA", 100);
     assertThat(groups, hasSize(1));
     assertThat(groups.get(0).getGroupname(), is("Omega"));
   }
@@ -1150,10 +1150,10 @@ public class LdapManagerTest
 
     createStaticGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("*a*", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "*a*", 100);
     assertThat(groups, hasSize(5));
 
-    groups = manager.findGroupsByName("*a*", 2);
+    groups = manager.findGroupsByName(ldapServer, "*a*", 2);
     assertThat(groups, hasSize(2));
   }
 
@@ -1165,7 +1165,7 @@ public class LdapManagerTest
 
     createStaticGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("*a", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "*a", 100);
     assertThat(groups, hasSize(5));
     List<String> foundNames = new ArrayList<>();
     for (LdapGroup group : groups) {
@@ -1182,7 +1182,7 @@ public class LdapManagerTest
 
     createStaticGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("Foo", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "Foo", 100);
     assertThat(groups, hasSize(0));
   }
 
@@ -1333,10 +1333,10 @@ public class LdapManagerTest
 
     createDynamicGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("*b*", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "*b*", 100);
     assertThat(groups, hasSize(5));
 
-    groups = manager.findGroupsByName("*b*", 2);
+    groups = manager.findGroupsByName(ldapServer, "*b*", 2);
     assertThat(groups, hasSize(2));
   }
 
@@ -1348,7 +1348,7 @@ public class LdapManagerTest
 
     createDynamicGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("*b", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "*b", 100);
     assertThat(groups, hasSize(2));
     List<String> foundNames = new ArrayList<>();
     for (LdapGroup group : groups) {
@@ -1365,7 +1365,7 @@ public class LdapManagerTest
 
     createDynamicGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("b*", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "b*", 100);
     assertThat(groups, hasSize(2));
     List<String> foundNames = new ArrayList<>();
     for (LdapGroup group : groups) {
@@ -1382,7 +1382,7 @@ public class LdapManagerTest
 
     createDynamicGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("*b*", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "*b*", 100);
     assertThat(groups.toString(), groups, hasSize(5));
     List<String> foundNames = new ArrayList<>();
     for (LdapGroup group : groups) {
@@ -1399,11 +1399,11 @@ public class LdapManagerTest
 
     createDynamicGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("ab", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "ab", 100);
     assertThat(groups, hasSize(1));
     assertThat(groups.get(0).getGroupname(), is("ab"));
 
-    groups = manager.findGroupsByName("b", 100);
+    groups = manager.findGroupsByName(ldapServer, "b", 100);
     assertThat(groups, hasSize(0));
   }
 
@@ -1415,7 +1415,7 @@ public class LdapManagerTest
 
     createDynamicGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("ABC", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "ABC", 100);
     assertThat(groups, hasSize(1));
     assertThat(groups.get(0).getGroupname(), is("abc"));
   }
@@ -1428,7 +1428,7 @@ public class LdapManagerTest
 
     createDynamicGroupMapping(ldapServer);
 
-    List<LdapGroup> groups = manager.findGroupsByName("Foo", 100);
+    List<LdapGroup> groups = manager.findGroupsByName(ldapServer, "Foo", 100);
     assertThat(groups, hasSize(0));
   }
 
@@ -1510,6 +1510,54 @@ public class LdapManagerTest
     userMappingDAO.update(umap);
 
     assertThat(manager.isGroupSearchEnabled(), is(false));
+  }
+
+  @Test
+  public void testIsGroupSearchEnabled_WithGivenLdapServer() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    LdapConnection ldapConnection = createLdapConnection(ldapServer);
+    ldapConnection.setHostname("localhost");
+    ldapConnection.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(ldapConnection);
+
+    assertThat(manager.isGroupSearchEnabled(ldapServer), is(false));
+
+    LdapUserMapping umap = createUserMapping(ldapServer);
+    umap.setGroupMappingType(LdapGroupMappingType.NONE);
+
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    userMappingDAO.update(umap);
+
+    assertThat(manager.isGroupSearchEnabled(ldapServer), is(false));
+
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    userMappingDAO.update(umap);
+
+    assertThat(manager.isGroupSearchEnabled(ldapServer), is(true));
+
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setDynamicGroupSearchEnabled(true);
+    userMappingDAO.update(umap);
+
+    assertThat(manager.isGroupSearchEnabled(ldapServer), is(true));
+
+    umap.setDynamicGroupSearchEnabled(false);
+    userMappingDAO.update(umap);
+
+    assertThat(manager.isGroupSearchEnabled(ldapServer), is(false));
+  }
+  
+  @Test
+  public void testIsGroupSearchEnabled_LdapConnectionNotSetup() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    try {
+      manager.isGroupSearchEnabled(ldapServer);
+      fail("Expected exception.");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(),
+          containsString("LDAP connection is not configured for LDAP server " + ldapServer.getName() + "."));
+    }
   }
 
   @Test

@@ -65,7 +65,7 @@ describe('dashboard.controller.spec', function() {
   describe('getExportUrl()', function() {
     it('throws error when state is not one of the dashboard views', function() {
       stateMock.current.name = 'Foo';
-      expect(scope.getExportUrl).toThrow(new Error('Export is not supported for state Foo'));
+      expect(scope.getExportUrl).toThrowError('Export is not supported for state Foo');
     });
 
     it('uses violations export URl when on violations view', function() {

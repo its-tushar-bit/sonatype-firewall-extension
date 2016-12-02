@@ -156,14 +156,14 @@ describe('label.editor.controller.spec.js', function() {
     }));
 
     it('clean', function() {
-      spyOn(vm.dirtyLabel, 'isDirty').andReturn(false);
+      spyOn(vm.dirtyLabel, 'isDirty').and.returnValue(false);
 
       SpecUtil.expectStateChangeNotPrevented(scope);
       expect(vm.dirtyLabel.isDirty).toHaveBeenCalled();
     });
 
     it('dirty', function() {
-      spyOn(vm.dirtyLabel, 'isDirty').andReturn(true);
+      spyOn(vm.dirtyLabel, 'isDirty').and.returnValue(true);
 
       SpecUtil.expectStateChangePrevented(scope);
       expect(vm.dirtyLabel.isDirty).toHaveBeenCalled();

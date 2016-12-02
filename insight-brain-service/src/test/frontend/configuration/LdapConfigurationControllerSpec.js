@@ -61,8 +61,8 @@ describe('Tests for the LdapConfigurationController', function() {
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
 
-      spyOn($state, 'go').andReturn(false);
-      spyOn($state, 'transitionTo').andReturn(false);
+      spyOn($state, 'go').and.returnValue(false);
+      spyOn($state, 'transitionTo').and.returnValue(false);
 
       scope = $rootScope.$new();
       scope.$$childHead = scope.$new();
@@ -119,7 +119,7 @@ describe('Tests for the LdapConfigurationController', function() {
       }],'123');
 
       expect($state.go).toHaveBeenCalledWith('edit-ldap.connection', { ldapId: '123' });
-      $state.go.reset();
+      $state.go.calls.reset();
       $state.current.name = 'edit-ldap.connection';
 
       expect(scope.ldap.id).toEqual('123');

@@ -5,7 +5,7 @@ describe('Stores', function() {
 
   describe('CachedStore', function() {
     beforeEach(inject(function(CachedStore) {
-      getUrlSpy = jasmine.createSpy('getUrl').andReturn('http://foo.bar');
+      getUrlSpy = jasmine.createSpy('getUrl').and.returnValue('http://foo.bar');
       var template = {
               getUrl: getUrlSpy,
               template: { id: null }
@@ -37,7 +37,7 @@ describe('Stores', function() {
       cachedStore.get();
       $httpBackend.flush();
 
-      expect(getUrlSpy.callCount).toBe(1);
+      expect(getUrlSpy.calls.count()).toBe(1);
 
       var data;
       cachedStore.get().then(function(response) {
@@ -45,7 +45,7 @@ describe('Stores', function() {
       });
 
       $rootScope.$digest();
-      expect(getUrlSpy.callCount).toBe(1);
+      expect(getUrlSpy.calls.count()).toBe(1);
       expect(data).not.toBeUndefined();
       expect(data.length).toBe(1);
       expect(data[0].id).toBe('qux');

@@ -16,9 +16,8 @@ describe('save.filter.modal.controller.js', function() {
         filterName: name,
         existingFilters: existingFilters
       });
-      scope.$close = jasmine.createSpy('$close');
-      scope.vm.formMask = { wrap : jasmine.createSpy('formMask').andCallFake(function (x) { return x; }) };
-
+      scope.$close = jasmine.createSpy('$close').and.callFake(angular.noop);
+      scope.vm.formMask = { wrap : jasmine.createSpy('formMask').and.callFake(function (x) { return x; }) };
       scope.$digest();
     });
 

@@ -64,7 +64,7 @@ describe('ValidatorsSpec', function() {
           model: {
             value: ''
           },
-          validator: jasmine.createSpy().andReturn({
+          validator: jasmine.createSpy().and.returnValue({
             validity: testCase
           })
         });

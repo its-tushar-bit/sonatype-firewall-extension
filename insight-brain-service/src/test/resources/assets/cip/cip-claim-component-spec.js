@@ -140,7 +140,7 @@ describe('CIP Claim Component tests', function() {
         type: 'cancel'
       }]
     });
-    Dialog.open.mostRecentCall.args[0].buttons[0].click();
+    Dialog.open.calls.mostRecent().args[0].buttons[0].click();
     $http.flush();
   }));
 

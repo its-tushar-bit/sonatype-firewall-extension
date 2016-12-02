@@ -32,9 +32,9 @@ describe('owner.summary.controller.js', function() {
             }
           }
           
-          spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
-          spyOn(StageTypeStore, 'getDashboardStages').andReturn(stageTypeStoreDefer.promise);
-          spyOn(CLMAppLocations, 'isApplication').andReturn(isApp);
+          spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
+          spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
+          spyOn(CLMAppLocations, 'isApplication').and.returnValue(isApp);
 
           mockState = {
             current: {
@@ -88,7 +88,7 @@ describe('owner.summary.controller.js', function() {
       $timeout.flush();
 
       if (isApp) {
-        spyOn(mockState, 'href').andReturn();
+        spyOn(mockState, 'href').and.returnValue();
         spyOn(mockWindow, 'open');
 
         vm.openReport(MockData.getDashboardStageData()[0]);

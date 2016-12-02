@@ -135,14 +135,14 @@ describe('application.category.editor.controller.spec.js', function() {
         });
 
         it('clean', function() {
-          spyOn(vm, 'areCategoriesDirty').andReturn(false);
+          spyOn(vm, 'areCategoriesDirty').and.returnValue(false);
 
           SpecUtil.expectStateChangeNotPrevented(scope);
           expect(vm.areCategoriesDirty).toHaveBeenCalled();
         });
 
         it('dirty', function() {
-          spyOn(vm, 'areCategoriesDirty').andReturn(true);
+          spyOn(vm, 'areCategoriesDirty').and.returnValue(true);
 
           SpecUtil.expectStateChangePrevented(scope);
           expect(vm.areCategoriesDirty).toHaveBeenCalled();

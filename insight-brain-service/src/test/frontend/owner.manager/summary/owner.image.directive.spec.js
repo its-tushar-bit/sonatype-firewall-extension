@@ -9,7 +9,7 @@ describe('owner.image.directive.spec.js', function() {
     CLMAppLocations = _CLMAppLocations_;
     scope = $rootScope.$new();
 
-    spyOn(CLMAppLocations, 'getOwnerImageUrl').andCallThrough();
+    spyOn(CLMAppLocations, 'getOwnerImageUrl').and.callThrough();
 
     scope.owner = {id: '123'};
     var element = $compile('<div owner-image="owner"></div>')(scope);

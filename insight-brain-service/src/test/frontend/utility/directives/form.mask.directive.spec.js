@@ -49,7 +49,7 @@ describe('form.mask.directive.spec.js', function() {
       spyOn(maskController, 'activateMask');
       spyOn(maskController, 'showSuccessMask');
       spyOn(maskController, 'removeMask');
-      spyOn(deferred.promise, 'then').andCallThrough();
+      spyOn(deferred.promise, 'then').and.callThrough();
 
       maskController.wrap(deferred.promise).then(function(data) {
         results = data;
@@ -73,7 +73,7 @@ describe('form.mask.directive.spec.js', function() {
 
       spyOn(maskController, 'activateMask');
       spyOn(maskController, 'removeMask');
-      spyOn(deferred.promise, 'then').andCallThrough();
+      spyOn(deferred.promise, 'then').and.callThrough();
 
       maskController.wrap(deferred.promise).then(angular.noop, function(data) {
         results = data;
@@ -98,7 +98,7 @@ describe('form.mask.directive.spec.js', function() {
       spyOn(maskController, 'activateMask');
       spyOn(maskController, 'showSuccessMask');
       spyOn(maskController, 'removeMask');
-      spyOn(deferred.promise, 'then').andCallThrough();
+      spyOn(deferred.promise, 'then').and.callThrough();
 
       maskController.wrap(deferred.promise);
 

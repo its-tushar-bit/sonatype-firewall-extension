@@ -13,7 +13,7 @@ describe('enter.key.call.directive.js', function() {
   }));
 
   it('enter', function() {
-    spyOn(scope, 'doSomething').andCallThrough();
+    spyOn(scope, 'doSomething').and.callThrough();
     var event = jQuery.Event('keydown');
     event.keyCode = 13;
     element.trigger(event);

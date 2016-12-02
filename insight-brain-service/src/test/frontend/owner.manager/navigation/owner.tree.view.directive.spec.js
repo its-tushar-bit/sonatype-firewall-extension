@@ -42,7 +42,7 @@ describe('owner.tree-view.directive.spec.js', function() {
             'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp);
         scope.$digest();
 
-        spyOn($state, 'includes').andReturn(false);
+        spyOn($state, 'includes').and.returnValue(false);
 
         $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
         $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
@@ -96,7 +96,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       it('checks if an organization or application is selected', function() {
         // vaguely perf tracking, minor changes w/ Angular versions aren't an issue but large changes could indicate a
         // potential perf issue with a large number of apps+orgs
-        expect(scope.vm.$state.includes.calls.length).toBe(permissions.length > 0 ? 30 : 29);
+        expect(scope.vm.$state.includes.calls.count()).toBe(permissions.length > 0 ? 30 : 29);
         expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.view.organization', {
           organizationId: ownerList.organizations[2].id
         });
@@ -302,7 +302,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       CLMLocations = _CLMLocations_;
       CLMAppLocations = _CLMAppLocations_;
 
-      spyOn($state, 'is').andReturn(true);
+      spyOn($state, 'is').and.returnValue(true);
       scope = _$rootScope_.$new();
       var ownerTreeView = angular.element('<div owner-tree-view></div>');
       _$compile_(ownerTreeView)(scope);

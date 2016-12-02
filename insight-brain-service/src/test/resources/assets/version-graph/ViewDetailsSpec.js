@@ -53,21 +53,22 @@ describe('Eclipse View Details tests', function() {
       Insight.resetLogger();
     });
 
-    it('Exceptions before registration are logged', inject(function($exceptionHandler) {
-      var spy = jasmine.createSpy('logger');
-      $exceptionHandler(new Error('foo'));
-      Insight.setLogger(spy);
+    it('Exceptions before registration are logged', function(done) {
+      inject(function($exceptionHandler) {
+        var spy = jasmine.createSpy('logger');
+        $exceptionHandler(new Error('foo'));
+        Insight.setLogger(spy);
 
-      // wait for an async call
-      waitsFor(function () {
-        return spy.callCount > 0;
-      }, "log to have been called", 10);
-
-      runs(function () {
-        expect(spy).toHaveBeenCalled();
-        expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
+        var interval = setInterval(function() {
+          if (spy.calls.count() > 0) {
+            clearInterval(interval);
+            expect(spy).toHaveBeenCalled();
+            expect(spy.calls.first().args[0]).toMatch(/Error\: foo.*/);
+            done();
+          }
+        }, 10);
       });
-    }));
+    });
 
     it('Exceptions after registration are logged', inject(function($exceptionHandler) {
       var spy = jasmine.createSpy('logger');
@@ -75,7 +76,7 @@ describe('Eclipse View Details tests', function() {
       $exceptionHandler(new Error('foo'));
 
       expect(spy).toHaveBeenCalled();
-      expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
+      expect(spy.calls.first().args[0]).toMatch(/Error\: foo.*/);
     }));
   });
 
@@ -151,7 +152,7 @@ describe('Eclipse View Details tests', function() {
 
   describe('componentIdentifier', function () {
     beforeEach(function () {
-      spyOn(Brain.ide, 'getComponentUrl').andCallThrough();
+      spyOn(Brain.ide, 'getComponentUrl').and.callThrough();
     });
 
     it('legacy', inject(function ($controller) {
@@ -161,7 +162,9 @@ describe('Eclipse View Details tests', function() {
               false, {
                 groupId: 'gid',
                 artifactId: 'aid',
-                version: '1.0'
+                version: '1.0',
+                classifier: undefined,
+                extension: undefined
               });
       httpBackend.flush();
     }));

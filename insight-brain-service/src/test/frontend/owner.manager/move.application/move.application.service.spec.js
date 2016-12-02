@@ -81,7 +81,7 @@ describe('move.application.service.js', function() {
     it('refreshes application cache and returns data on success', function() {
       $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond(['message1', 'message2']);
 
-      applicationStore.refresh.andReturn($q.resolve());
+      applicationStore.refresh.and.returnValue($q.resolve());
 
       moveApplicationService.moveApplication(1, 2).then(function(messages) {
         expect(messages).toEqual(['message1', 'message2']);
@@ -95,7 +95,7 @@ describe('move.application.service.js', function() {
     it('refreshes application cache and returns nothing on success if provided array of messages is empty', function() {
       $httpBackend.expectPOST(CLMLocations.getMoveApplicationUrl(1, 2)).respond([]);
 
-      applicationStore.refresh.andReturn($q.resolve());
+      applicationStore.refresh.and.returnValue($q.resolve());
 
       moveApplicationService.moveApplication(1, 2).then(function(messages) {
         expect(messages).toBeNull();
@@ -110,7 +110,7 @@ describe('move.application.service.js', function() {
 
       var refreshPromise = $q.defer();
 
-      applicationStore.refresh.andReturn(refreshPromise.promise);
+      applicationStore.refresh.and.returnValue(refreshPromise.promise);
 
       moveApplicationService.moveApplication(1, 2).then(function(messages) {
         throw 'promise should not have been resolved';

@@ -504,7 +504,7 @@ describe('AngularCommon', function() {
     var testCases = [
       { input: function() {
         return '/';
-      }, expected: '' },
+      }, expected: '/' },
       { input: function() {
         return '//';
       }, expected: '' },
@@ -534,14 +534,19 @@ describe('AngularCommon', function() {
       }, expected: 'fileName' },
       { input: function() {
         return null;
-      }, expected: null },
+      }, expected: 'null' },
       { input: function() {
         return '';
       }, expected: '' }
     ];
     function validateFilter(input, expected) {
       it('should filter to: ' + expected, function() {
-        expect(fileNameFilter(input())).toMatch(expected);
+        if (expected) {
+          expect(fileNameFilter(input())).toMatch(expected);
+        }
+        else {
+          expect(fileNameFilter(input())).toEqual(expected);
+        }
       });
     }
     for (var i = 0; i < testCases.length; i++) {

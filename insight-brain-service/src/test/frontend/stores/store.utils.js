@@ -44,9 +44,9 @@ var StoreUtils = function() {
 
         for (var key in promises) {
           if (promises.hasOwnProperty(key)) {
-            spyOn(promises[key].promise, 'then').andCallThrough();
+            spyOn(promises[key].promise, 'then').and.callThrough();
             if (store.hasOwnProperty(key)) {
-              spyOn(store, key).andReturn(promises[key].promise);
+              spyOn(store, key).and.returnValue(promises[key].promise);
             }
           }
         }
@@ -78,14 +78,14 @@ var StoreUtils = function() {
 
     function resetPromise(promiseName) {
       promises[promiseName] = $q.defer();
-      spyOn(promises[promiseName].promise, 'then').andCallThrough();
-      store[promiseName].andReturn(promises[promiseName].promise);
+      spyOn(promises[promiseName].promise, 'then').and.callThrough();
+      store[promiseName].and.returnValue(promises[promiseName].promise);
     }
   }
 
   function createMockHierarchyStoreData(data, field) {
     data[field].forEach(function(owner) {
-      owner.store = {create: jasmine.createSpy().andReturn({})};
+      owner.store = {create: jasmine.createSpy().and.returnValue({})};
     });
 
     return data[field];

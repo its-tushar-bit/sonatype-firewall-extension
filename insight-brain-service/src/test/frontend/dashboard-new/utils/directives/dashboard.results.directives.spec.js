@@ -47,7 +47,7 @@ describe('dashboard.results.directives.spec', function() {
       }));
 
       it('Filter Set', function() {
-        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.resolve(['foo']));
+        dashboardDataServiceMock[directive.serviceMethod].and.returnValue($q.resolve(['foo']));
         scope.$apply(function() {
           scope.filters = {
             applicationIds: ['foo'],
@@ -60,7 +60,7 @@ describe('dashboard.results.directives.spec', function() {
         expect(directiveScope.data).toEqual('foo');
 
         // Filter is changed
-        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.resolve(['bar']));
+        dashboardDataServiceMock[directive.serviceMethod].and.returnValue($q.resolve(['bar']));
         scope.$apply(function() {
           scope.filters = angular.copy(scope.filters);
           scope.filters.applicationIds = ['bar'];
@@ -71,7 +71,7 @@ describe('dashboard.results.directives.spec', function() {
       it('Drops Requests That Don\'t Match', function() {
         var deferred1 = $q.defer([]);
         var deferred2 = $q.defer([]);
-        dashboardDataServiceMock[directive.serviceMethod].andReturn(deferred1.promise);
+        dashboardDataServiceMock[directive.serviceMethod].and.returnValue(deferred1.promise);
         scope.$apply(function() {
           scope.filters = {
             applicationIds: ['foo'],
@@ -83,7 +83,7 @@ describe('dashboard.results.directives.spec', function() {
         });
 
         // Before the request completes the user alters the filter again
-        dashboardDataServiceMock[directive.serviceMethod].andReturn(deferred2.promise);
+        dashboardDataServiceMock[directive.serviceMethod].and.returnValue(deferred2.promise);
         scope.$apply(function() {
           scope.filters = angular.copy(scope.filters);
           scope.filters.applicationIds = ['bar'];
@@ -99,7 +99,7 @@ describe('dashboard.results.directives.spec', function() {
       });
 
       it('Errors', function() {
-        dashboardDataServiceMock[directive.serviceMethod].andReturn($q.reject('foo'));
+        dashboardDataServiceMock[directive.serviceMethod].and.returnValue($q.reject('foo'));
         scope.$apply(function() {
           scope.filters = {
             applicationIds: ['foo'],

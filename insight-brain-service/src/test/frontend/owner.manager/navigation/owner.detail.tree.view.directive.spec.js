@@ -26,9 +26,9 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       CLMAppLocations = _CLMAppLocations_;
       ProductFeatures = _ProductFeatures_;
 
-      spyOn(CLMAppLocations, 'isApplication').andReturn(type === 'application');
-      spyOn(CLMAppLocations, 'isRepositories').andReturn(type === 'repositories');
-      spyOn(CLMAppLocations, 'getEntityId').andReturn(owner[type === 'application' ? 'publicId' : 'id']);
+      spyOn(CLMAppLocations, 'isApplication').and.returnValue(type === 'application');
+      spyOn(CLMAppLocations, 'isRepositories').and.returnValue(type === 'repositories');
+      spyOn(CLMAppLocations, 'getEntityId').and.returnValue(owner[type === 'application' ? 'publicId' : 'id']);
 
       vm = $controller('OwnerDetailTreeViewController', {
         $scope: $scope,

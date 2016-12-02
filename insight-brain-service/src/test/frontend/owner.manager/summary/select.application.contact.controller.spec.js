@@ -92,7 +92,7 @@ describe('select.application.contact.controller.spec.js', function() {
     }));
 
     it('clean', function() {
-      spyOn(vm, 'isDirty').andReturn(false);
+      spyOn(vm, 'isDirty').and.returnValue(false);
 
       SpecUtil.expectStateChangeNotPrevented(scope);
       expect(vm.unsavedModalVisible).toBeFalsy();
@@ -100,7 +100,7 @@ describe('select.application.contact.controller.spec.js', function() {
     });
 
     it('dirty', function() {
-      spyOn(vm, 'isDirty').andReturn(true);
+      spyOn(vm, 'isDirty').and.returnValue(true);
 
       SpecUtil.expectStateChangePrevented(scope);
       expect(vm.unsavedModalVisible).toBeTruthy();

@@ -16,8 +16,8 @@ describe('policy.editor.actions.controller.spec.js', function() {
     $timeout = _$timeout_;
 
     stageTypeStoreDefer = $q.defer();
-    spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
-    spyOn(StageTypeStore, 'getActionStages').andReturn(stageTypeStoreDefer.promise);
+    spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
+    spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
     vm = $controller('policy.editor.actions.controller', {}, {actions: []});
   }));
 

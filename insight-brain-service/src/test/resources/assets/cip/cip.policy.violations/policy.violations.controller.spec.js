@@ -28,7 +28,7 @@ describe('policy.violations.controller', function() {
 
   beforeEach(inject(function($controller, $rootScope) {
     scope = $rootScope.$new();
-    policyViolationsSpy = jasmine.createSpy('violationsresponse');
+    policyViolationsSpy = jasmine.createSpy('violationsresponse').and.returnValue(undefined);
 
     $controller('PolicyViolationsController', {
       $scope: scope,
@@ -46,7 +46,7 @@ describe('policy.violations.controller', function() {
   it('error', inject(function(PolicyViolations) {
     expect(policyViolationsSpy).toHaveBeenCalled();
 
-    policyViolationsSpy.calls[0].args[1].call(null, {status: 404, data: 'failure'})
+    policyViolationsSpy.calls.first().args[1].call(null, {status: 404, data: 'failure'})
 
     expect(scope.error).toEqual('failure');
   }));

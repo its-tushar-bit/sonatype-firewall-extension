@@ -12,7 +12,7 @@ describe('proprietary.matchers.modal.controller.spec', function() {
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy('$close');
     proprietaryMatchersService = jasmine.createSpyObj('service', ['addComponentMatchers', 'getApplicationInfo']);
-    proprietaryMatchersService.getApplicationInfo.andReturn($q.resolve({name: 'test application'}));
+    proprietaryMatchersService.getApplicationInfo.and.returnValue($q.resolve({name: 'test application'}));
 
     CLM = {
       path: '../brain/'
@@ -56,7 +56,7 @@ describe('proprietary.matchers.modal.controller.spec', function() {
     });
 
     it('when getApplicationInfo() fails - uses app id', function() {
-      proprietaryMatchersService.getApplicationInfo.andReturn($q.reject('error'));
+      proprietaryMatchersService.getApplicationInfo.and.returnValue($q.reject('error'));
       var vm = initController();
       expect(vm.applicationName).toBeUndefined();
       expect(vm.isLoading()).toBe(true);
@@ -118,7 +118,7 @@ describe('proprietary.matchers.modal.controller.spec', function() {
       };
       vm.selectedPathNames = ['bar', 'baz'];
       vm.regex = '(regex)';
-      proprietaryMatchersService.addComponentMatchers.andReturn($q.resolve());
+      proprietaryMatchersService.addComponentMatchers.and.returnValue($q.resolve());
     });
 
     it('aborts if form is invalid', function() {
@@ -143,7 +143,7 @@ describe('proprietary.matchers.modal.controller.spec', function() {
     });
 
     it('on failure sets error', function() {
-      proprietaryMatchersService.addComponentMatchers.andReturn($q.reject('test error message'));
+      proprietaryMatchersService.addComponentMatchers.and.returnValue($q.reject('test error message'));
       delete vm.error;
       vm.save();
       scope.$apply(); // resolve promises

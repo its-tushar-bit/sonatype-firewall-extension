@@ -43,7 +43,7 @@ describe('owner.editor.controller.spec.js', function() {
 
       describe('Page Changes', function() {
         it('clean', function() {
-          spyOn(vm.dirtyOwner, 'isDirty').andReturn(false);
+          spyOn(vm.dirtyOwner, 'isDirty').and.returnValue(false);
 
           SpecUtil.expectStateChangeNotPrevented(controllerScope);
           expect(vm.unsavedModalVisible).toBeFalsy();
@@ -51,7 +51,7 @@ describe('owner.editor.controller.spec.js', function() {
         });
 
         it('dirty', function() {
-          spyOn(vm.dirtyOwner, 'isDirty').andReturn(true);
+          spyOn(vm.dirtyOwner, 'isDirty').and.returnValue(true);
 
           SpecUtil.expectStateChangePrevented(controllerScope);
           expect(vm.unsavedModalVisible).toBeTruthy();
@@ -71,7 +71,7 @@ describe('owner.editor.controller.spec.js', function() {
           $timeout = _$timeout_;
           saveDeferred = $q.defer();
 
-          spyOn(vm.dirtyOwner, '$save').andReturn(saveDeferred.promise);
+          spyOn(vm.dirtyOwner, '$save').and.returnValue(saveDeferred.promise);
 
           controllerScope.$apply(function() {
             vm.dirtyOwner.name = 'My new ' + type;

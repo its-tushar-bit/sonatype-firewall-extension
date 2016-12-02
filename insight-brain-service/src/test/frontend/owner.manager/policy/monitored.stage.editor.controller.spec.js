@@ -84,14 +84,14 @@ describe('monitored.stage.editor.controller.spec.js', function() {
     });
 
     it('clean', function() {
-      spyOn(vm, 'isDirty').andReturn(false);
+      spyOn(vm, 'isDirty').and.returnValue(false);
 
       SpecUtil.expectStateChangeNotPrevented(scope);
       expect(vm.isDirty).toHaveBeenCalled();
     });
 
     it('dirty', function() {
-      spyOn(vm, 'isDirty').andReturn(true);
+      spyOn(vm, 'isDirty').and.returnValue(true);
 
       SpecUtil.expectStateChangePrevented(scope);
       expect(vm.isDirty).toHaveBeenCalled();

@@ -65,7 +65,7 @@ describe('category.editor.controller.spec.js', function() {
       DeleteModalService: mockDeleteService
     });
 
-    var spy = spyOn(mockDeleteService, 'deleteCustom').andReturn(deleteServiceResourceDefer.promise);
+    var spy = spyOn(mockDeleteService, 'deleteCustom').and.returnValue(deleteServiceResourceDefer.promise);
     mockCategory.id = 'testCatId';
     mockCategoryStore.resolveGet([{tags: [{id: 'testCatId_neg'}, mockCategory]}]);
     mockCategoryStore.resolveGetById(mockCategory);
@@ -88,7 +88,7 @@ describe('category.editor.controller.spec.js', function() {
 
     vm.deleteCategory();
 
-    expect(spy.mostRecentCall.args[1]).toMatch('in use by the following applications: Test App.');
+    expect(spy.calls.mostRecent().args[1]).toMatch('in use by the following applications: Test App.');
   }));
 
   it('Updates siblings list after creating new', function() {
@@ -182,14 +182,14 @@ describe('category.editor.controller.spec.js', function() {
     }));
 
     it('clean', function() {
-      spyOn(vm.dirtyCategory, 'isDirty').andReturn(false);
+      spyOn(vm.dirtyCategory, 'isDirty').and.returnValue(false);
 
       SpecUtil.expectStateChangeNotPrevented(scope);
       expect(vm.dirtyCategory.isDirty).toHaveBeenCalled();
     });
 
     it('dirty', function() {
-      spyOn(vm.dirtyCategory, 'isDirty').andReturn(true);
+      spyOn(vm.dirtyCategory, 'isDirty').and.returnValue(true);
 
       SpecUtil.expectStateChangePrevented(scope);
       expect(vm.dirtyCategory.isDirty).toHaveBeenCalled();
@@ -211,7 +211,7 @@ describe('category.editor.controller.spec.js', function() {
     });
     categoryStorePayload.forEach(function(owner){
       owner.tags.forEach(function(cat) {
-      cat.$clone = jasmine.createSpy().andReturn(cat);
+      cat.$clone = jasmine.createSpy().and.returnValue(cat);
     });
     });
 

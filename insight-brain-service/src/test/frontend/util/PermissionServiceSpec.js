@@ -61,7 +61,10 @@ describe('PermissionService.js', function() {
       PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).not.toHaveBeenCalled();
-      expect(errorSpy).toHaveBeenCalledWith([{ data : 'foo', status : 500, statusText : '', config : jasmine.any(Object), headers : jasmine.any(Function) }]);
+      var response = errorSpy.calls.first().args[0][0];
+      expect(response.data).toEqual('foo');
+      expect(response.status).toEqual(500);
+      expect(response.statusText).toEqual('');
     }));
   });
 
@@ -112,7 +115,11 @@ describe('PermissionService.js', function() {
       PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).not.toHaveBeenCalled();
-      expect(errorSpy).toHaveBeenCalledWith([{ data : 'foo', status : 500, statusText : '', config : jasmine.any(Object), headers : jasmine.any(Function) }]);
+
+      var response = errorSpy.calls.first().args[0][0];
+      expect(response.data).toEqual('foo');
+      expect(response.status).toEqual(500);
+      expect(response.statusText).toEqual('');
     }));
   });
 

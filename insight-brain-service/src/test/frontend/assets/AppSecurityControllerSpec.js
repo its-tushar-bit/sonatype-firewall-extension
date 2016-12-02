@@ -208,6 +208,7 @@ describe('AppSecurityControllerSpec', function() {
         type: 'GROUP',
         internalName : 'finstones',
         displayName : 'Flintstone Family',
+        email : undefined,
         realm : 'bedrock'
       }]);
 

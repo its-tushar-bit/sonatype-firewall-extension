@@ -208,7 +208,7 @@ describe('RoleModuleSpec.js', function() {
             }
           });
 
-          spyOn(Dialog, 'open').andReturn({
+          spyOn(Dialog, 'open').and.returnValue({
             result : {
               then : dialogPromise = jasmine.createSpy('promise')
             }
@@ -220,7 +220,7 @@ describe('RoleModuleSpec.js', function() {
 
           deleteScope.deleteRole();
           expect(Dialog.open).toHaveBeenCalled();
-          dialogPromise.mostRecentCall.args[0]();
+          dialogPromise.calls.mostRecent().args[0]();
 
           // In real-world usage this GET would have already occured in another controller
           $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);

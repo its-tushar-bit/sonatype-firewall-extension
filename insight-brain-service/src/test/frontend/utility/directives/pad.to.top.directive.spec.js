@@ -11,7 +11,7 @@ describe('pad.to.top.directive.spec.js', function() {
     scope = $rootScope.$new();
     $interval = _$interval_;
 
-    spyOn($interval, 'cancel').andCallThrough();
+    spyOn($interval, 'cancel').and.callThrough();
   }));
 
   describe('When element as top target', function() {

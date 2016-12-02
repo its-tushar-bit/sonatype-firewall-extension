@@ -123,15 +123,15 @@
             if (attrs.messages) {
               messages = scope.$eval(attrs.messages);
               if (typeof messages !== 'object') {
-                throw 'Messages provided to the input must be an Object!';
+                throw new Error('Messages provided to the input must be an Object!');
               }
             }
 
             if (!ctrl.$name) {
-              throw 'The input must have a name';
+              throw new Error('The input must have a name');
             }
             if (!form.$name) {
-              throw 'The form must have a name';
+              throw new Error('The form must have a name');
             }
 
             // display a popover on validation errors

@@ -23,7 +23,7 @@
     <wro4j.version>1.8.0</wro4j.version>
     <licensing.version>1.4</licensing.version>
     <angularjs.version>1.5.8</angularjs.version>
-    <jasmine.version>1.3.1.4</jasmine.version>
+    <jasmine.version>2.2</jasmine.version>
     <saga.version>1.5.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
@@ -571,7 +571,12 @@
                 <include>resources/assets/**/CIP*.js</include>
                 <include>resources/assets/brain-client/*.js</include>
               </specIncludes>
-              <junitXmlReportFileName>TEST-cip.xml</junitXmlReportFileName>
+              <fileSystemReporters>
+                <reporter>
+                  <fileName>TEST-cip.xml</fileName>
+                  <reporterName>JUNIT_XML</reporterName>
+                </reporter>
+              </fileSystemReporters>
             </configuration>
           </execution>
           <execution>
@@ -623,7 +628,12 @@
                 <include>frontend/**/*MockData.js</include>
                 <include>resources/assets/audit-report/*.js</include>
               </specIncludes>
-              <junitXmlReportFileName>TEST-audit.xml</junitXmlReportFileName>
+              <fileSystemReporters>
+                <reporter>
+                  <fileName>TEST-audit.xml</fileName>
+                  <reporterName>JUNIT_XML</reporterName>
+                </reporter>
+              </fileSystemReporters>
             </configuration>
           </execution>
           <execution>
@@ -678,7 +688,12 @@
                 <exclude>frontend/brain-client/**/*.js</exclude>
                 <exclude>frontend/version-graph/**/*.js</exclude>
               </specExcludes>
-              <junitXmlReportFileName>TEST-server-new.xml</junitXmlReportFileName>
+              <fileSystemReporters>
+                <reporter>
+                  <fileName>TEST-server.xml</fileName>
+                  <reporterName>JUNIT_XML</reporterName>
+                </reporter>
+              </fileSystemReporters>
             </configuration>
           </execution>
           <execution>
@@ -708,6 +723,12 @@
                 <include>frontend/**/lib/*.js</include>
                 <include>resources/assets/version-graph/VersionGraphSpec.js</include>
               </specIncludes>
+              <fileSystemReporters>
+                <reporter>
+                  <fileName>TEST-version-graph.xml</fileName>
+                  <reporterName>JUNIT_XML</reporterName>
+                </reporter>
+              </fileSystemReporters>
             </configuration>
           </execution>
           <execution>
@@ -728,6 +749,12 @@
                 <include>frontend/**/lib/*.js</include>
                 <include>resources/assets/version-graph/ViewDetailsSpec.js</include>
               </specIncludes>
+              <fileSystemReporters>
+                <reporter>
+                  <fileName>TEST-view-details.xml</fileName>
+                  <reporterName>JUNIT_XML</reporterName>
+                </reporter>
+              </fileSystemReporters>
             </configuration>
           </execution>
         </executions>

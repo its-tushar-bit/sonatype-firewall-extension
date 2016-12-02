@@ -41,8 +41,8 @@ describe("policy.editor.notifications.controller.spec.js", function() {
       enabledDefer = $q.defer();
       getProjectsDefer = $q.defer();
 
-      jiraService.isEnabled.andReturn(enabledDefer.promise);
-      jiraService.getJiraProjects.andReturn(getProjectsDefer.promise);
+      jiraService.isEnabled.and.returnValue(enabledDefer.promise);
+      jiraService.getJiraProjects.and.returnValue(getProjectsDefer.promise);
     }
 
     return {

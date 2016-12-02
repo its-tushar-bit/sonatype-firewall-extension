@@ -11,7 +11,7 @@ describe('submit.validation.directive.spec.js', function() {
 
   it('is disabled when not dirty and displays correct submit message', function() {
     var element = $compile('<form name="form"><button submit-validation submit-dirty="dirty" submit-type="submit"></button></form>')(scope).children(0);
-    spyOn($.fn, 'tooltip').andReturn(element);
+    spyOn($.fn, 'tooltip').and.returnValue(element);
 
     scope.dirty = false;
     scope.$digest();
@@ -22,7 +22,7 @@ describe('submit.validation.directive.spec.js', function() {
 
   it('is disabled when not valid and displays correct update message', function() {
     var element = $compile('<form name="form"><button submit-validation submit-dirty="dirty" submit-type="update"></button></form>')(scope).children(0);
-    spyOn($.fn, 'tooltip').andReturn(element);
+    spyOn($.fn, 'tooltip').and.returnValue(element);
 
     scope.dirty = false;
     scope.$digest();
@@ -38,7 +38,7 @@ describe('submit.validation.directive.spec.js', function() {
 
   it('is enabled when valid and dirty', function() {
     var element = $compile('<form name="form"><button submit-validation submit-dirty="dirty" submit-type="submit"></button></form>')(scope).children(0);
-    spyOn($.fn, 'tooltip').andReturn(element);
+    spyOn($.fn, 'tooltip').and.returnValue(element);
 
     scope.dirty = true;
     scope.$digest();

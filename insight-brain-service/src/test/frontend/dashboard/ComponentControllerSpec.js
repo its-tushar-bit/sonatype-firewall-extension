@@ -59,7 +59,7 @@ describe('ComponentController tests', function() {
     beforeEach(inject(function($rootScope, $controller, $httpBackend, $timeout, $q, CLMLocations, StageTypeStore) {
       scope = $rootScope.$new();
       var stageTypeStoreDefer = $q.defer();
-      spyOn(StageTypeStore, 'getDashboardStages').andReturn(stageTypeStoreDefer.promise);
+      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
       stageTypeStoreDefer.resolve([]);
       $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
       $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond(displayName);

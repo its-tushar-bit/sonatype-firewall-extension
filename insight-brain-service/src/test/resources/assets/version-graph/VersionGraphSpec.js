@@ -64,21 +64,22 @@ var clmEndpointTemplate = {
         Insight.resetLogger();
       });
 
-      it('Exceptions before registration are logged', inject(function($exceptionHandler) {
-        var spy = jasmine.createSpy('logger');
-        $exceptionHandler(new Error('foo'));
-        Insight.setLogger(spy);
+      it('Exceptions before registration are logged', function(done) {
+        inject(function($exceptionHandler) {
+          var spy = jasmine.createSpy('logger');
+          $exceptionHandler(new Error('foo'));
+          Insight.setLogger(spy);
 
-        // wait for an async call
-        waitsFor(function() {
-          return spy.callCount > 0;
-        }, "log to have been called", 10);
-
-        runs(function() {
-          expect(spy).toHaveBeenCalled();
-          expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
+          var interval = setInterval(function() {
+            if (spy.calls.count() > 0) {
+              clearInterval(interval);
+              expect(spy).toHaveBeenCalled();
+              expect(spy.calls.first().args[0]).toMatch(/Error\: foo.*/);
+              done();
+            }
+          }, 10);
         });
-      }));
+      });
 
       it('Exceptions after registration are logged', inject(function($exceptionHandler) {
         var spy = jasmine.createSpy('logger');
@@ -86,7 +87,7 @@ var clmEndpointTemplate = {
         $exceptionHandler(new Error('foo'));
 
         expect(spy).toHaveBeenCalled();
-        expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
+        expect(spy.calls.first().args[0]).toMatch(/Error\: foo.*/);
       }));
     });
 
@@ -152,7 +153,7 @@ var clmEndpointTemplate = {
       }));
 
       it('Insight.setGAV', inject(function(Coordinates, Properties) {
-        spyOn(Coordinates, 'set').andCallThrough();
+        spyOn(Coordinates, 'set').and.callThrough();
         Insight.setGav({
           groupId: 'g1',
           artifactId: 'a1',
@@ -176,8 +177,8 @@ var clmEndpointTemplate = {
       }));
 
       it('Insight.clearGAV', inject(function(Coordinates, State, Properties) {
-        spyOn(Coordinates, 'set').andCallThrough();
-        spyOn(State, 'set').andCallThrough();
+        spyOn(Coordinates, 'set').and.callThrough();
+        spyOn(State, 'set').and.callThrough();
         Insight.setGav({
           groupId: 'g1',
           artifactId: 'a1',
@@ -202,8 +203,8 @@ var clmEndpointTemplate = {
         Insight.clearGav();
 
         expect(Coordinates.set).toHaveBeenCalledWith(null);
-        expect(Coordinates.get()).toEqual(null);
-        expect(Coordinates.getSelected()).toEqual(null);
+        expect(Coordinates.get()).toBeFalsy();
+        expect(Coordinates.getSelected()).toBeFalsy();
         expect(Coordinates.getFormat()).toEqual(null);
         expect(State.set).toHaveBeenCalledWith(null, undefined);
         expect(Properties.getFilename()).toBeUndefined();
@@ -401,7 +402,7 @@ var clmEndpointTemplate = {
           });
           $httpBackend.verifyNoOutstandingRequest();
 
-          spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').andReturn('foo');
+          spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
           $httpBackend.expectGET('foo').respond({list: [{}]});
           Insight.setGav(gav);
           $httpBackend.flush();
@@ -443,7 +444,7 @@ var clmEndpointTemplate = {
           describe('when non maven pathnames present', function() {
             beforeEach(function() {
               // mock selected component with non maven pathnames present
-              selectedComponent.get.andReturn({
+              selectedComponent.get.and.returnValue({
                 pathnames: ['foo', 'dependency:/baz', 'bar']
               });
             });
@@ -484,7 +485,7 @@ var clmEndpointTemplate = {
           describe('when non maven pathnames are not present', function() {
             beforeEach(function() {
               // mock selected component with non maven pathnames present
-              selectedComponent.get.andReturn({
+              selectedComponent.get.and.returnValue({
                 pathnames: ['dependency:/foo', 'dependency:/baz', 'dependency:/bar']
               });
             });
@@ -528,7 +529,7 @@ var clmEndpointTemplate = {
           it('calls modal with owner Id and filtered pathnames', function() {
 
             // mock selected component
-            selectedComponent.get.andReturn({
+            selectedComponent.get.and.returnValue({
               pathnames: ['foo', 'dependency:/baz', 'bar']
             });
 
@@ -574,7 +575,7 @@ var clmEndpointTemplate = {
         });
         $httpBackend.verifyNoOutstandingRequest();
 
-        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').andReturn('foo');
+        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue('foo');
         $httpBackend.expectGET('foo').respond({securityVulnerabilities: [], policyAlerts: []});
         Insight.setGav(angular.extend({matchState: 'similar'}, gav));
         $httpBackend.flush();
@@ -634,8 +635,8 @@ var clmEndpointTemplate = {
 
         expect(scope.canMigrate()).toBeFalsy();
 
-        spyOn(Coordinates, 'get').andReturn(gav);
-        spyOn(Coordinates, 'getSelected').andReturn(selected);
+        spyOn(Coordinates, 'get').and.returnValue(gav);
+        spyOn(Coordinates, 'getSelected').and.returnValue(selected);
 
         expect(scope.canMigrate()).toBeFalsy();
 
@@ -660,7 +661,7 @@ var clmEndpointTemplate = {
           version: 'version'
         };
 
-        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').andReturn('foo');
+        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue('foo');
         $httpBackend.expectGET('foo').respond({
           securityVulnerabilities: [{severity: null}, {severity: 2}, {severity: 9}, {severity: 8}],
           policyAlerts: []
@@ -708,9 +709,9 @@ var clmEndpointTemplate = {
           artifactId: 'artifactId',
           version: 'version'
         };
-        expect(scope.highestPolicyThreat).toEqual(null);
+        expect(scope.highestPolicyThreat).toBeFalsy();
 
-        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').andReturn('foo');
+        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue('foo');
         $httpBackend.expectGET('foo').respond({
           securityVulnerabilities: [],
           policyAlerts: [
@@ -798,7 +799,7 @@ var clmEndpointTemplate = {
           parentScope = null;
 
       beforeEach(inject(function($compile, $rootScope, Coordinates, Properties) {
-        spyOn(Insight, 'ComponentInformation').andReturn(undefined);
+        spyOn(Insight, 'ComponentInformation').and.returnValue(undefined);
 
         parentScope = $rootScope.$new();
         parentScope.componentDetails = [
@@ -974,11 +975,11 @@ var clmEndpointTemplate = {
       });
 
       it('Version Click', inject(function(Coordinates, Properties) {
-        Insight.ComponentInformation.mostRecentCall.args[0].versionClick('5.5.23');
+        Insight.ComponentInformation.calls.mostRecent().args[0].versionClick('5.5.23');
         expect(Coordinates.getSelected()).toEqual({"version": "5.5.23"});
         expect(Properties.getHash()).toEqual("b98a1711908a4641301a");
 
-        Insight.ComponentInformation.mostRecentCall.args[0].versionClick('5.0.28');
+        Insight.ComponentInformation.calls.mostRecent().args[0].versionClick('5.0.28');
         expect(Coordinates.getSelected()).toEqual({"version": "5.0.28"});
         expect(Properties.getHash()).toEqual("abcd");
       }));
@@ -988,7 +989,7 @@ var clmEndpointTemplate = {
         parentScope.$on('viewDetails', function(event, v) {
           version = v;
         });
-        Insight.ComponentInformation.mostRecentCall.args[0].versionDblClick('5.5.23');
+        Insight.ComponentInformation.calls.mostRecent().args[0].versionDblClick('5.5.23');
 
         expect(version).toEqual('5.5.23');
       }));

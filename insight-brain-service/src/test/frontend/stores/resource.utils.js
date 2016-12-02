@@ -16,7 +16,7 @@ var ResourceUtils = function () {
             me = this;
 
         me.$revert = jasmine.createSpy();
-        me.$clone = jasmine.createSpy().andReturn(me);
+        me.$clone = jasmine.createSpy().and.returnValue(me);
         me.resolveDelete = resolvePromise('$delete');
         me.rejectDelete = rejectPromise('$delete');
         me.resolveSave = resolvePromise('$save');
@@ -31,8 +31,8 @@ var ResourceUtils = function () {
                 me[fn] = function() {
                     return promises[fn].promise;
                 };
-                spyOn(promises[fn].promise, 'then').andCallThrough();
-                spyOn(me, fn).andCallThrough();
+                spyOn(promises[fn].promise, 'then').and.callThrough();
+                spyOn(me, fn).and.callThrough();
             });
         }));
 

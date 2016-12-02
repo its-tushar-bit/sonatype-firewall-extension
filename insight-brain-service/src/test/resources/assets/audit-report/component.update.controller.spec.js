@@ -22,9 +22,9 @@ describe('component.update.controller', function() {
 
     secondaryScope = $rootScope.$new();
 
-    var updatedSpy = jasmine.createSpy('updatedSpy').andCallFake(function (event, hash, promises) {
+    var updatedSpy = jasmine.createSpy('updatedSpy').and.callFake(function (event, hash, promises) {
       promise = $q.defer();
-      spyOn(promise.promise, 'then').andCallThrough();
+      spyOn(promise.promise, 'then').and.callThrough();
       promises.push(promise.promise);
     });
     secondaryScope.$on('component.evaluation.updated', updatedSpy);

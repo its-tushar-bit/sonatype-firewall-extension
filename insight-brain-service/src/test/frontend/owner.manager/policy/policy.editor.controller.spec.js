@@ -60,8 +60,8 @@ describe('policy.editor.controller.spec.js', function() {
 
       mockCategoryOwners = TagResourceMockData.getTagsUrl(type, owner.id);
       mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
-      spyOn(CLMAppLocations, 'isApplication').andReturn(isApp);
-      spyOn(CLMAppLocations, 'getEntityId').andReturn(isApp ? owner.publicId : owner.id);
+      spyOn(CLMAppLocations, 'isApplication').and.returnValue(isApp);
+      spyOn(CLMAppLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
 
       $state.current.name = type;
       if (type === 'application') {
@@ -295,14 +295,14 @@ describe('policy.editor.controller.spec.js', function() {
       }));
 
       it('clean', function() {
-        spyOn(vm, 'isPolicyDirty').andReturn(false);
+        spyOn(vm, 'isPolicyDirty').and.returnValue(false);
 
         SpecUtil.expectStateChangeNotPrevented(scope);
         expect(vm.isPolicyDirty).toHaveBeenCalled();
       });
 
       it('dirty', function() {
-        spyOn(vm, 'isPolicyDirty').andReturn(true);
+        spyOn(vm, 'isPolicyDirty').and.returnValue(true);
 
         SpecUtil.expectStateChangePrevented(scope);
         expect(vm.isPolicyDirty).toHaveBeenCalled();

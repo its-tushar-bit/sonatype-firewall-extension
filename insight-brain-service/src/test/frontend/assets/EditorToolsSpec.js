@@ -70,11 +70,11 @@ describe('EditorToolsSpec', function() {
         scope.$digest();
         expect(scope.$invalid).toBeTruthy();
 
-        expect(directiveScope.check('Foo')).toEqual(null);
+        expect(directiveScope.check('Foo')).toBeFalsy();
         scope.$digest();
         expect(scope.$invalid).not.toBeTruthy();
 
-        expect(directiveScope.check('._ -')).toEqual(null);
+        expect(directiveScope.check('._ -')).toBeFalsy();
         scope.$digest();
         expect(scope.$invalid).not.toBeTruthy();
 

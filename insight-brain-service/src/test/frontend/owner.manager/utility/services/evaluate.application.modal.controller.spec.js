@@ -16,7 +16,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
     var stageTypeStoreDefer = $q.defer();
 
     scope = $rootScope.$new();
-    scope.$dismiss = jasmine.createSpy('$dismiss').andReturn(undefined);
+    scope.$dismiss = jasmine.createSpy('$dismiss').and.returnValue(undefined);
 
     $timeout = _$timeout_;
     $httpBackend = _$httpBackend_;
@@ -27,8 +27,8 @@ describe('evaluate.application.modal.controller.spec.js', function() {
       name: 'test app'
     };
 
-    spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
-    spyOn(StageTypeStore, 'get').andReturn(stageTypeStoreDefer.promise);
+    spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
+    spyOn(StageTypeStore, 'get').and.returnValue(stageTypeStoreDefer.promise);
 
     vm = $controller('evaluate.application.modal.controller',
         {$scope: scope, selectedApplication: mockSelectedApplication});
@@ -50,7 +50,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
   });
 
   it('Compiles bundle url with expected values', inject(function(CLMLocations) {
-    spyOn(CLMLocations, 'getBundleUploadUrl').andReturn(true);
+    spyOn(CLMLocations, 'getBundleUploadUrl').and.returnValue(true);
 
     vm.bundle.stage = vm.stages[2];
     vm.bundle.file = '/test/test/test.war';
@@ -79,7 +79,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
         };
       };
       var original = angular.element;
-      spyOn(angular, 'element').andCallFake(function(selector) {
+      spyOn(angular, 'element').and.callFake(function(selector) {
         if (selector === '#bundleFile') {
           return [
             {

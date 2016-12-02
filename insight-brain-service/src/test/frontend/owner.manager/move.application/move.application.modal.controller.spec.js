@@ -192,7 +192,7 @@ describe('move.application.modal.controller.js', function() {
 
       describe('vm.showIncompatibilities()', function() {
         it('opens info modal with in error mode', function() {
-          moveApplicationErrorModal.open.andReturn($q.resolve());
+          moveApplicationErrorModal.open.and.returnValue($q.resolve());
           scope.$apply(); // resolve promises
           vm.showIncompatibilities();
           expect(moveApplicationErrorModal.open)
@@ -210,7 +210,7 @@ describe('move.application.modal.controller.js', function() {
 
       it('refreshes nav tree and data, closes the modal and opens info modal', function() {
         spyOn($rootScope, '$broadcast');
-        moveApplicationSuccessModal.open.andReturn($q.resolve());
+        moveApplicationSuccessModal.open.and.returnValue($q.resolve());
         scope.$apply(); // resolve promises
         expect($rootScope.$broadcast).toHaveBeenCalledWith('reload.owner.tree.data');
         expect(scope.$close).toHaveBeenCalled();

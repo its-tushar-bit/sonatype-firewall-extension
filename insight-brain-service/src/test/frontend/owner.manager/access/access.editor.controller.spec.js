@@ -41,7 +41,7 @@ describe('access.editor.controller.spec.js', function() {
     CLMAppLocations = _CLMAppLocations_;
 
     $state.current.name = 'application'; // used by CLMAppLocations
-    spyOn(ApplicationId, 'encoded').andReturn('abc');
+    spyOn(ApplicationId, 'encoded').and.returnValue('abc');
   }));
 
   afterEach(function() {

@@ -410,7 +410,7 @@ describe('dashboard.filter.controller', function() {
           },
           name: 'test filter'
         };
-        spyOn(vm, 'isDirty').andReturn(true);
+        spyOn(vm, 'isDirty').and.returnValue(true);
         vm.showDirtyAsterisk = true;
         $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(savedFilter.filter);
         vm.applySavedFilter(savedFilter);
@@ -487,9 +487,9 @@ describe('dashboard.filter.controller', function() {
         vm.selected.policyThreatLevels[0] = 0;
 
         var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-        spyOn(saveFilterModal, 'open').andReturn($q.resolve());
+        spyOn(saveFilterModal, 'open').and.returnValue($q.resolve());
         $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond('saved filters');
-        spyOn(vm, 'isDirty').andReturn(false);
+        spyOn(vm, 'isDirty').and.returnValue(false);
 
         vm.openSaveFilterModal($event);
         expect($event.stopPropagation).not.toHaveBeenCalled();
@@ -505,9 +505,9 @@ describe('dashboard.filter.controller', function() {
         vm.activeFilterName = 'My First Filter';
 
         var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-        spyOn(saveFilterModal, 'open').andReturn($q.resolve());
+        spyOn(saveFilterModal, 'open').and.returnValue($q.resolve());
         $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond('saved filters');
-        spyOn(vm, 'isDirty').andReturn(false);
+        spyOn(vm, 'isDirty').and.returnValue(false);
 
         vm.openSaveFilterModal($event);
         expect($event.stopPropagation).not.toHaveBeenCalled();
@@ -519,7 +519,7 @@ describe('dashboard.filter.controller', function() {
 
       it('does nothing if filter changes were not applied', function() {
         var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-        spyOn(saveFilterModal, 'open').andReturn($q.resolve());
+        spyOn(saveFilterModal, 'open').and.returnValue($q.resolve());
         // change filter
         delete vm.selected.applications.applicationIdZ;
         vm.openSaveFilterModal($event);
@@ -530,8 +530,8 @@ describe('dashboard.filter.controller', function() {
       it('save modal filter name matches the saved filter name', function() {
         var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
         $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond('saved filters');
-        spyOn(vm, 'isDirty').andReturn(false);
-        spyOn(saveFilterModal, 'open').andReturn($q.resolve("TestFilterName"));
+        spyOn(vm, 'isDirty').and.returnValue(false);
+        spyOn(saveFilterModal, 'open').and.returnValue($q.resolve("TestFilterName"));
         vm.openSaveFilterModal($event);
         $httpBackend.flush();
         expect(vm.showDirtyAsterisk).toBe(false);
@@ -554,7 +554,7 @@ describe('dashboard.filter.controller', function() {
         vm.savedNamedFilters = originalSavedFilterJson;
 
         var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-        spyOn(deleteFiltersModal, 'open').andReturn($q.resolve());
+        spyOn(deleteFiltersModal, 'open').and.returnValue($q.resolve());
         $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(afterDeleteSavedFilterJson);
         expect(vm.savedNamedFilters).toBeDefined();
 
@@ -570,7 +570,7 @@ describe('dashboard.filter.controller', function() {
       it('does nothing when there are no filters', function() {
         var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
         expect(vm.savedNamedFilters.length).toBeFalsy();
-        spyOn(deleteFiltersModal, 'open').andReturn($q.resolve());
+        spyOn(deleteFiltersModal, 'open').and.returnValue($q.resolve());
         vm.openDeleteFiltersModal($event);
         expect($event.stopPropagation).toHaveBeenCalled();
         expect(deleteFiltersModal.open).not.toHaveBeenCalled();

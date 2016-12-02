@@ -291,18 +291,10 @@ describe('Resource', function() {
     firstObj.$save().then(spy, errorSpy);
     $httpBackend.flush();
 
-    expect(spy).toHaveBeenCalledWith({
-      data: [ 'foo' ],
-      id: 'bar',
-      $new : false,
-      isDirty: jasmine.any(Function),
-      $updateOriginal: jasmine.any(Function),
-      $getOriginal: jasmine.any(Function),
-      $revert: jasmine.any(Function),
-      $clone: jasmine.any(Function),
-      $save: jasmine.any(Function),
-      $delete: jasmine.any(Function)
-    });
+    var resource = spy.calls.first().args[0];
+    expect(resource.data).toEqual(['foo']);
+    expect(resource.id).toEqual('bar');
+    expect(resource.$new).toEqual(false);
     expect(errorSpy).not.toHaveBeenCalled();
 
     expect(firstObj.data).toEqual(['foo']);
@@ -813,7 +805,7 @@ describe('Resource', function() {
     });
 
     it('gets called on Refresh', function() {
-      callback.reset();
+      callback.calls.reset();
 
       store.refresh();
       $httpBackend.expectGET(storeUrl).respond([{id: 'foo2'}, {id: 'bar2'}]);
@@ -829,7 +821,7 @@ describe('Resource', function() {
       $httpBackend.expectPOST(storeUrl).respond([newResource]);
       $httpBackend.flush();
 
-      callback.reset();
+      callback.calls.reset();
       newResource.$delete();
       $httpBackend.expectDELETE(storeUrl + 'abc').respond([]);
       $httpBackend.flush();
@@ -838,7 +830,7 @@ describe('Resource', function() {
     });
 
     it('gets called on Resource Save', function() {
-      callback.reset();
+      callback.calls.reset();
 
       var newResource = store.create();
       newResource.$save();
@@ -849,7 +841,7 @@ describe('Resource', function() {
     });
 
     it('unregisters properly', function() {
-      callback.reset();
+      callback.calls.reset();
       unregister();
 
       store.refresh();
@@ -862,9 +854,9 @@ describe('Resource', function() {
     function assertCallbackArguments(type, ids) {
       expect(callback).toHaveBeenCalled();
 
-      expect(callback.calls[0].args[0]).toEqual(type);
+      expect(callback.calls.mostRecent().args[0]).toEqual(type);
 
-      var secondArgument = callback.calls[0].args[1];
+      var secondArgument = callback.calls.mostRecent().args[1];
       expect(secondArgument.length).toBe(2);
       expect(secondArgument[0].id).toEqual(ids[0]);
       expect(secondArgument[1].id).toEqual(ids[1]);

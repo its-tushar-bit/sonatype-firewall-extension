@@ -46,8 +46,8 @@ describe('policy.tile.controller.spec.js', function() {
         ProductFeatures = _ProductFeatures_;
         EventNameConstant = $injector.get('event.name.constant');
         stageTypeStoreDefer = $q.defer();
-        spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
-        spyOn(StageTypeStore, 'getActionStages').andReturn(stageTypeStoreDefer.promise);
+        spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
+        spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
         $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
         vm = $controller('policy.tile.controller', {
           $scope: scope
@@ -63,7 +63,7 @@ describe('policy.tile.controller.spec.js', function() {
   it('Properly Loading Owner Policies', function() {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    spyOn(MonitoredStageService, 'getMonitoredStage').andReturn({ stageName: 'Develop', stageTypeId: 'develop' });
+    spyOn(MonitoredStageService, 'getMonitoredStage').and.returnValue({ stageName: 'Develop', stageTypeId: 'develop' });
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
@@ -86,8 +86,8 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Uses the placeholder value for monitored stage if one is not inherited', function() {
-    spyOn(MonitoredStageService, 'getMonitoredStage').andReturn(undefined);
-    spyOn(MonitoredStageService, 'createInheritOrNoMonitorOption').andReturn({stageName: 'Do not monitor'});
+    spyOn(MonitoredStageService, 'getMonitoredStage').and.returnValue(undefined);
+    spyOn(MonitoredStageService, 'createInheritOrNoMonitorOption').and.returnValue({stageName: 'Do not monitor'});
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());

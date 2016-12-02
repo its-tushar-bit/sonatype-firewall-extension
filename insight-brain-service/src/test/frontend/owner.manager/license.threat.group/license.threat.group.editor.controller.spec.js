@@ -69,7 +69,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
 
   it('Updates siblings list after creating new', inject(function($controller) {
     vm = $controller('license.threat.group.editor.controller', {$scope: scope});
-    spyOn(vm, 'isLTGDirty').andReturn(true);
+    spyOn(vm, 'isLTGDirty').and.returnValue(true);
 
     $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
     $httpBackend.whenGET(CLMAppLocations.getApplicableLicenseGroupsUrl()).respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
@@ -246,14 +246,14 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     }));
 
     it('clean', function() {
-      spyOn(vm.dirtyLTG, 'isDirty').andReturn(false);
+      spyOn(vm.dirtyLTG, 'isDirty').and.returnValue(false);
 
       SpecUtil.expectStateChangeNotPrevented(scope);
       expect(vm.dirtyLTG.isDirty).toHaveBeenCalled();
     });
 
     it('dirty', function() {
-      spyOn(vm.dirtyLTG, 'isDirty').andReturn(true);
+      spyOn(vm.dirtyLTG, 'isDirty').and.returnValue(true);
 
       SpecUtil.expectStateChangePrevented(scope);
       expect(vm.dirtyLTG.isDirty).toHaveBeenCalled();

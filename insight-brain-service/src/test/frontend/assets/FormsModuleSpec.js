@@ -15,19 +15,19 @@ describe('Forms module', function() {
     it('Requires that the input have a "name" set', function() {
       expect(function() {
         compile('<form name="form"><input clm-input type="text" ng-model="field"></form>')(scope);
-      }).toThrow(new Error('The input must have a name'));
+      }).toThrowError('The input must have a name');
     });
 
     it('Requires that the form have a "name" set', function() {
       expect(function() {
         compile('<form><input name="test" clm-input type="text" ng-model="field"></form>')(scope);
-      }).toThrow(new Error('The form must have a name'));
+      }).toThrowError('The form must have a name');
     });
 
     it('Will reject a "messages" attr that is not an Object', function() {
       expect(function() {
         compile('<form><input messages="foo" name="test" clm-input type="text" ng-model="field"></form>')(scope);
-      }).toThrow(new Error('Messages provided to the input must be an Object!'));
+      }).toThrowError('Messages provided to the input must be an Object!');
     });
 
     describe('Popover validation messages', function() {

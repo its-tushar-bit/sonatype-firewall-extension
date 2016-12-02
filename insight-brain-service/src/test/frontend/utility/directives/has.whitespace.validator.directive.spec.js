@@ -30,12 +30,12 @@ describe('has.whitespace.validator.directive.spec.js', function() {
 
   it('validates whitespace requires ng-trim to be false', inject(function($compile) {
     var html = '<ng-form><input name="control" type="text" ng-model="whitespace" has-whitespace-validator ng-trim="true" /></ng-form>';
-    var error = new Error('has-whitespace-validator directive requires that the ngTrim attribute be set to false');
+    var error = 'has-whitespace-validator directive requires that the ngTrim attribute be set to false';
     function wrapper() {
       $compile(html)(scope);
     }
-    expect(wrapper).toThrow(error);
+    expect(wrapper).toThrowError(error);
     html = '<ng-form><input name="control" type="text" ng-model="whitespace" has-whitespace-validator /></ng-form>';
-    expect(wrapper).toThrow(error);
+    expect(wrapper).toThrowError(error);
   }));
 });

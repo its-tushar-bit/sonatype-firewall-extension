@@ -21,7 +21,7 @@ describe('copy.to.clipboard.directive.js', function() {
 
   describe('in non-safari browsers', function() {
     it('copies expression value and clears document selection', function() {
-      spyOn($window.document, 'execCommand').andCallFake(function() {
+      spyOn($window.document, 'execCommand').and.callFake(function() {
         // the selections should contain expected text
         expect($window.getSelection().toString()).toBe('test-app-id');
         simulateCopy();
@@ -43,11 +43,11 @@ describe('copy.to.clipboard.directive.js', function() {
 
     beforeEach(function() {
       // simulate copy failure
-      spyOn($window.document, 'execCommand').andReturn(false);
+      spyOn($window.document, 'execCommand').and.returnValue(false);
 
       // mock the tooltip
       promptTooltip = jasmine.createSpy('promptTooltip');
-      spyOn($.fn, 'tooltip').andReturn({
+      spyOn($.fn, 'tooltip').and.returnValue({
         tooltip: promptTooltip
       });
     });

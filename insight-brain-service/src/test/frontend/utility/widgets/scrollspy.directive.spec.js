@@ -48,8 +48,8 @@ describe('scrollspy.directive.spec.js', function() {
     element.find('#pills .nav li > a').click();
     $timeout.flush();
 
-    expect(spy.callCount).toBe(1);
-    expect(spy.callCount).toBe(1);
+    expect(spy.calls.count()).toBe(1);
+    expect(spy.calls.count()).toBe(1);
   }));
 
   it('Validate scrollspy applied when dom inserted after initialization', inject(function($compile, $timeout){
@@ -70,7 +70,7 @@ describe('scrollspy.directive.spec.js', function() {
           refresh: jasmine.createSpy()
         };
 
-        spyOn($.fn.scrollspy, 'Constructor').andReturn(scrollspyObj);
+        spyOn($.fn.scrollspy, 'Constructor').and.returnValue(scrollspyObj);
         spyOn($.fn, 'animate');
 
         $compile(getFullElement())(controllerScope);
@@ -80,8 +80,8 @@ describe('scrollspy.directive.spec.js', function() {
         $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY);
         expect(scrollspyObj.refresh).toHaveBeenCalled();
         expect($.fn.animate).not.toHaveBeenCalled();
-        scrollspyObj.refresh.reset();
-        $.fn.animate.reset();
+        scrollspyObj.refresh.calls.reset();
+        $.fn.animate.calls.reset();
         expect($.fn.animate).not.toHaveBeenCalled();
         $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {resetScroll: true});
         expect(scrollspyObj.refresh).not.toHaveBeenCalled();

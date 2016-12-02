@@ -7,7 +7,7 @@ describe('copied.tooltip.directive.spec.js', function() {
   beforeEach(inject(function($rootScope, $compile) {
     scope = $rootScope.$new();
     element = $compile('<div copied-tooltip="tooltip"></div>')(scope);
-    spyOn($.fn, 'tooltip').andReturn(element);
+    spyOn($.fn, 'tooltip').and.returnValue(element);
   }));
 
   it('tooltip is not shown initially', function() {
@@ -19,7 +19,7 @@ describe('copied.tooltip.directive.spec.js', function() {
     expect(scope.tooltip.showTooltip).toBeDefined();
 
     scope.tooltip.showTooltip();
-    expect($.fn.tooltip.calls.length).toBe(2);
+    expect($.fn.tooltip.calls.count()).toBe(2);
     expect($.fn.tooltip).toHaveBeenCalledWith('show');
   });
 

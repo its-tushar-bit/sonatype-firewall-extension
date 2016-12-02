@@ -54,14 +54,14 @@ describe('classybrew.factory.spec', function() {
     expect(brew.getColor(0)).toBe('rgb(247,251,255)');
     expect(brew.getColorInRange).not.toHaveBeenCalled();
 
-    brew.getColorInRange.andReturn('color');
+    brew.getColorInRange.and.returnValue('color');
     expect(brew.getColor(1)).toBe('color');
     expect(brew.getColorInRange).toHaveBeenCalledWith(1);
   });
 
   function setUpColors(theBrew, colors) {
-    theBrew.getColors.andReturn(colors);
-    theBrew.getColorInRange.andCallFake(function(score) {
+    theBrew.getColors.and.returnValue(colors);
+    theBrew.getColorInRange.and.callFake(function(score) {
       return colors[score - 1];
     });
   }

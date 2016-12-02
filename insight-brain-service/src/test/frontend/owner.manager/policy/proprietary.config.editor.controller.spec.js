@@ -45,14 +45,14 @@ describe("proprietary.config.editor.controller.spec.js", function() {
     }));
 
     it('clean', function() {
-      spyOn(vm.dirtyProprietaryConfig, 'isDirty').andReturn(false);
+      spyOn(vm.dirtyProprietaryConfig, 'isDirty').and.returnValue(false);
 
       SpecUtil.expectStateChangeNotPrevented(scope);
       expect(vm.dirtyProprietaryConfig.isDirty).toHaveBeenCalled();
     });
 
     it('dirty', function() {
-      spyOn(vm.dirtyProprietaryConfig, 'isDirty').andReturn(true);
+      spyOn(vm.dirtyProprietaryConfig, 'isDirty').and.returnValue(true);
 
       SpecUtil.expectStateChangePrevented(scope);
       expect(vm.dirtyProprietaryConfig.isDirty).toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe("proprietary.config.editor.controller.spec.js", function() {
     expect(vm.regexMatcher).toBeUndefined();
     expect(vm.isAddButtonDisabled()).toBe(true);
     vm.regexMatcher = 'foo';
-    expect(vm.isAddButtonDisabled()).toNotBe(true);
+    expect(vm.isAddButtonDisabled()).toBeFalsy();
     vm.regexMatcher = undefined;
     expect(vm.isAddButtonDisabled()).toBe(true);
   });
@@ -234,7 +234,7 @@ describe("proprietary.config.editor.controller.spec.js", function() {
     expect(vm.packageMatcher).toBeUndefined();
     expect(vm.isAddButtonDisabled()).toBe(true);
     vm.packageMatcher = 'foo';
-    expect(vm.isAddButtonDisabled()).toNotBe(true);
+    expect(vm.isAddButtonDisabled()).toBeFalsy();
     vm.packageMatcher = undefined;
     expect(vm.isAddButtonDisabled()).toBe(true);
   });

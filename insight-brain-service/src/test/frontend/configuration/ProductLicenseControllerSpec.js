@@ -27,11 +27,11 @@ describe('ProductLicenseController', function() {
       FormData: true
     };
 
-    spyOn(window, 'FormData').andReturn({append: angular.noop});
+    spyOn(window, 'FormData').and.returnValue({append: angular.noop});
 
     module('ProductLicense', 'HttpInterceptors', function($provide) {
       modalResultSpy = jasmine.createSpy('modalResultSpy');
-      modalOpenSpy = jasmine.createSpy('modalOpenSpy').andReturn({
+      modalOpenSpy = jasmine.createSpy('modalOpenSpy').and.returnValue({
         result: {
           then: modalResultSpy
         }
@@ -127,15 +127,15 @@ describe('ProductLicenseController', function() {
     it('Should hide the eula and show the installed modal when license is installed', inject(function($window, $timeout, $httpBackend) {
       scope.onFileChanged();
       expect(modalOpenSpy).toHaveBeenCalled();
-      expect(modalOpenSpy.mostRecentCall.args[0].templateUrl).toEqual('eula-modal-template');
+      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual('eula-modal-template');
 
       // trigger success
       $httpBackend.expectPOST('').respond(204);
-      modalResultSpy.mostRecentCall.args[0]();
+      modalResultSpy.calls.mostRecent().args[0]();
       $httpBackend.flush();
 
-      expect(modalOpenSpy.calls.length).toEqual(2);
-      expect(modalOpenSpy.mostRecentCall.args[0].templateUrl).toEqual('license-installed-modal-template');
+      expect(modalOpenSpy.calls.count()).toEqual(2);
+      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual('license-installed-modal-template');
 
       $timeout.flush();
       expect($window.location.reload).toHaveBeenCalled();
@@ -152,7 +152,7 @@ describe('ProductLicenseController', function() {
 
       // trigger success
       $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/product/license')).respond(501, "failure");
-      modalResultSpy.mostRecentCall.args[0]();
+      modalResultSpy.calls.mostRecent().args[0]();
       $httpBackend.flush();
 
       expect(ErrorDialog.open).toHaveBeenCalledWith("failure");
@@ -169,7 +169,7 @@ describe('ProductLicenseController', function() {
       expect(modalOpenSpy).toHaveBeenCalled();
 
       // trigger success
-      modalResultSpy.mostRecentCall.args[0]();
+      modalResultSpy.calls.mostRecent().args[0]();
 
       // ng-upload does this
       scope.uploadCompleted('fail');
@@ -183,14 +183,14 @@ describe('ProductLicenseController', function() {
     it('Should show confirmation when uninstalling license', inject(function($window, $timeout) {
       scope.viewUninstallLicense();
       expect(modalOpenSpy).toHaveBeenCalled();
-      expect(modalOpenSpy.mostRecentCall.args[0].templateUrl).toEqual('license-uninstall-modal-template');
+      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual('license-uninstall-modal-template');
 
       // trigger success
-      modalResultSpy.mostRecentCall.args[0]();
-      expect(modalOpenSpy.calls.length).toEqual(2);
-      expect(modalOpenSpy.mostRecentCall.args[0].templateUrl).toEqual('license-uninstalled-modal-template');
+      modalResultSpy.calls.mostRecent().args[0]();
+      expect(modalOpenSpy.calls.count()).toEqual(2);
+      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual('license-uninstalled-modal-template');
 
-      modalResultSpy.mostRecentCall.args[0]();
+      modalResultSpy.calls.mostRecent().args[0]();
       $timeout.flush();
       expect($window.location.reload).toHaveBeenCalled();
     }));

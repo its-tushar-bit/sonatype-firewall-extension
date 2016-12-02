@@ -17,8 +17,8 @@ describe('policy.editor.constraints.controller.spec.js', function() {
 
     constraintStoreDefer = $q.defer();
 
-    spyOn(constraintStoreDefer.promise, 'then').andCallThrough();
-    spyOn(ConstraintStore, 'get').andReturn(constraintStoreDefer.promise);
+    spyOn(constraintStoreDefer.promise, 'then').and.callThrough();
+    spyOn(ConstraintStore, 'get').and.returnValue(constraintStoreDefer.promise);
 
     vm = $controller('policy.editor.constraints.controller', {}, {constraints: []});
   }));
@@ -32,7 +32,9 @@ describe('policy.editor.constraints.controller.spec.js', function() {
     resolveLoadData();
 
     Object.keys(vm.conditionTypes).forEach(function(type) {
-      expect(vm.conditionTypes[type].valueType).toEqual(conditionTypeValues[vm.conditionTypes[type].valueTypeId]);
+      if (vm.conditionTypes[type].valueTypeId) {
+        expect(vm.conditionTypes[type].valueType).toEqual(conditionTypeValues[vm.conditionTypes[type].valueTypeId]);
+      }
     });
   });
 

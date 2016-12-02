@@ -30,7 +30,7 @@ describe('violations.table.controller.spec', function() {
   });
 
   it('Opens the right report when supplied with valid params', function() {
-    spyOn(mockState, 'href').andCallFake(function(state, params) {
+    spyOn(mockState, 'href').and.callFake(function(state, params) {
       return state + '.' + params.publicId + '.' + params.scanId;
     });
     vm.openReport('appId', 'scanId');

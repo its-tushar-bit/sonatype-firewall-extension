@@ -235,7 +235,7 @@ describe('UserModuleSpec.js', function() {
       userScope.cancelClick(userScope.user);
       expect(Dialog.open).toHaveBeenCalled();
       expect(userScope.user).toBeTruthy();
-      Dialog.open.calls[0].args[0].buttons[0].click();
+      Dialog.open.calls.first().args[0].buttons[0].click();
       expect(userScope.user).toBeFalsy();
     }));
 

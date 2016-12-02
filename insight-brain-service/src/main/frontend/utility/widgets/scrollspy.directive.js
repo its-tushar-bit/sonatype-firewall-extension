@@ -23,7 +23,7 @@
           element.animate({ scrollTop: $(me.attr('data-target')).position().top + element.scrollTop() - 8}, 300, 'easeInOutSine');
           $($scope.scrollspy + ' .nav li').removeClass('active');
           me.parent().addClass('active');
-          $timeout(function(){
+          $timeout(function() {
             unpauseScrollspy(scrollspyObject.$scrollElement);
           });
         };
@@ -34,7 +34,7 @@
           $(document).off('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
         });
 
-        $scope.$on(EventNameConstant.UPDATE_SCROLLSPY, function(event, options){
+        $scope.$on(EventNameConstant.UPDATE_SCROLLSPY, function(event, options) {
           if (scrollspyObject) {
             if (options) {
               if (options.resetScroll) {

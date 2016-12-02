@@ -18,7 +18,7 @@
 
       promise = $http.get(CLMLocations.getProductFeaturesUrl()).then(function(response) {
         productFeatures = {};
-        angular.forEach(response.data,function(feature){
+        angular.forEach(response.data, function(feature) {
           productFeatures[feature] = true;
         });
       });

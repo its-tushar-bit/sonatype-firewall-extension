@@ -64,7 +64,7 @@ var AngularStateUtils = {
     }
   },
   fnOnNewItemState: function(scope, fn) {
-    scope.$watch('$state.current.name',function(value){
+    scope.$watch('$state.current.name', function(value) {
       if (value.indexOf('.new') > -1) {
         fn();
       }
@@ -90,7 +90,7 @@ var AngularStateUtils = {
     $scope.deletedEnabled = true;
     $scope.selected = selected;
 
-    $scope.doDelete  = function() {
+    $scope.doDelete = function() {
       $scope.deletedEnabled = false;
       selected.$delete().then(function () {
         $scope.$close();
@@ -255,7 +255,6 @@ var AngularStateUtils = {
     };
   });
 
-
   /**
    * Ensure that a given value contains only valid name characters.
    */
@@ -312,7 +311,7 @@ var AngularStateUtils = {
           });
         }
         scope.$watch(model, function(value) {
-          if(value) {
+          if (value) {
             element[0].focus();
           }
         });
@@ -601,7 +600,7 @@ var AngularStateUtils = {
             });
           }
         };
-        
+
         var dropdownScroll = angular.element(dropdownScrollHtml);
         if (attrs.hasOwnProperty('useVsRepeat')) {
           dropdownScroll.attr('vs-repeat', '');
@@ -621,7 +620,7 @@ var AngularStateUtils = {
         function hide(event) {
           if (scope.open) {
             var parents = $(event.target).parentsUntil(element);
-            if (parents.length > 0 && parents[parents.length-1].tagName === 'HTML') {
+            if (parents.length > 0 && parents[parents.length - 1].tagName === 'HTML') {
               scope.$applyAsync(function () {
                 scope.open = false;
               });
@@ -655,7 +654,7 @@ var AngularStateUtils = {
             return scope.noneSelectedText ? scope.noneSelectedText : 'None selected';
           }
 
-          if(scope.summarizeWith && scope.selectedIds.length >= 3){
+          if (scope.summarizeWith && scope.selectedIds.length >= 3) {
             return scope.selectedIds.length + ' ' + scope.summarizeWith;
           }
 
@@ -686,7 +685,7 @@ var AngularStateUtils = {
 
         $(document).click(hide);
         scope.$watch('selectedIds', updateSelection);
-        scope.$watch('items' , updateSelection);
+        scope.$watch('items', updateSelection);
         scope.$on('$destroy', function () {
           $(document).unbind('click', hide);
         });
@@ -729,7 +728,7 @@ var AngularStateUtils = {
         return sum;
       },
       setDimensions : function (element, options) {
-       options = angular.extend({
+        options = angular.extend({
           bottomPadding: 35,
           checkBodyScroll: false,
           minHeight: 400
@@ -922,7 +921,7 @@ var AngularStateUtils = {
   /**
    * English language abbreviations for elapsed time.
    */
-  services.filter('terseAgo', function(){
+  services.filter('terseAgo', function() {
     var rules = angular.extend({
       diffFunction: function(date) { return new Date().getTime() - date; }
     }, timeAbbreviations);
@@ -963,7 +962,7 @@ var AngularStateUtils = {
    * @returns {Function}
    * @constructor
    */
-  function ElapsedTimeFunctionFactory(rules){
+  function ElapsedTimeFunctionFactory(rules) {
     return function(date) {
       var diff,
         unit,
@@ -1025,7 +1024,7 @@ var AngularStateUtils = {
    */
   services.filter('agoLastDay', function() {
     return function(agoString) {
-      if(agoString.indexOf('seconds ago') > -1 || agoString.indexOf('minute') > -1 || agoString.indexOf('hour') > -1){
+      if (agoString.indexOf('seconds ago') > -1 || agoString.indexOf('minute') > -1 || agoString.indexOf('hour') > -1) {
         return 'Less than a day ago';
       }
       return agoString;
@@ -1045,14 +1044,14 @@ var AngularStateUtils = {
   services.filter('truncate', function () {
       return function (text, length) {
         var end = '...';
-        if (isNaN(length)){
+        if (isNaN(length)) {
           length = 25;
         }
         if (text.length <= length) {
           return text;
         }
         else {
-          return String(text).substring(0, length-end.length) + end;
+          return String(text).substring(0, length - end.length) + end;
         }
       };
     });
@@ -1085,7 +1084,7 @@ var AngularStateUtils = {
     }
   ]);
 
-  services.service('LastSelectedOrganization', [function(){
+  services.service('LastSelectedOrganization', [function() {
     var lastOrg = {};
     return {
       get: function() {
@@ -1106,7 +1105,7 @@ var AngularStateUtils = {
 
   services.filter('safeDivide', function() {
     return function(value, max) {
-      return max === 0 ? 0 : value/max;
+      return max === 0 ? 0 : value / max;
     };
   });
 

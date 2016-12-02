@@ -12,7 +12,7 @@
 
   // To avoid hacking dependency order, states must be declared with their parent.
   // Fixed https://github.com/angular-ui/ui-router/pull/492
-  dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateProvider,  $urlRouterProvider) {
+  dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
 
     $stateProvider.state('dashboard', {
       url: '/dashboard',

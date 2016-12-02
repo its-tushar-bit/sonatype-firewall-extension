@@ -130,7 +130,7 @@
           var options = {location: replaceLastHistoryRecord ? 'replace' : true};
           if (topOrganization.synthetic) {
             $state.go('.application', {applicationPublicId: topOrganization.applications[0].publicId}, options);
-          } 
+          }
           else {
             $state.go('.organization', {organizationId: topOrganization.id}, options);
           }

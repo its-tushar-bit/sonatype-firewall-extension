@@ -6,6 +6,7 @@
 /*global angular, jQuery */
 (function() {
   'use strict';
+
   var module = angular.module('ResourceModule', []);
 
   function createTemplateFn(object) {

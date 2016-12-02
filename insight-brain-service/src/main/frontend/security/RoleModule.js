@@ -156,19 +156,20 @@
       Dialog.open({
         title : 'Failed to Delete',
         body : Messages.getHttpErrorMessage(arguments),
-        buttons :  [{
+        buttons : [{
           name: 'Close',
           dismiss: true
         }]
       });
     }
 
-    $scope.deleteRole = function () {
+    $scope.deleteRole = function ()
+    {
       Dialog.open({
         title : 'Delete Role',
         body : 'Are you sure you want to delete the Role <strong>' + $('<div/>').text($scope.role.name).html() +
                '</strong>?',
-        buttons :  [{
+        buttons : [{
           name: 'Delete',
           type: 'primary'
         }, {

@@ -36,7 +36,7 @@
     });
 
     function changeApplicationId() {
-      if(!isDirty()) {
+      if (!isDirty()) {
         return;
       }
       delete vm.error;

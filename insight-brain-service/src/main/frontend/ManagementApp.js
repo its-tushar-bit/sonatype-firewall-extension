@@ -5,6 +5,7 @@
  */
 (function() {
   'use strict';
+
   angular.module('managementApp',
       [
         'MainModule', 'UserModule', 'RoleModule', 'ldap.module', 'owner.manager.module',

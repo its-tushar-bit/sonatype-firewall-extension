@@ -34,7 +34,6 @@
 
     function doLoad() {
       if (vm.isApp) {
-
         $q.all([
           ApplicationStore[vm.loadError ? 'refresh' : 'get'](),
           $http.get(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())),

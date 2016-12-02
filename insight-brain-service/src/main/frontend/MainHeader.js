@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
- /* global angular, clmServerVersion, clmBuildTimestamp */
+/* global angular, clmServerVersion, clmBuildTimestamp */
 (function() {
   'use strict';
 
@@ -66,7 +66,7 @@
       function($scope, $http, $sce, CLMLocations, timeAgoService, Messages) {
     function processNotifications(notifications) {
       $scope.unreadNotificationCount = 0;
-      angular.forEach(notifications, function(notification){
+      angular.forEach(notifications, function(notification) {
         if (!notification.viewed) {
           $scope.unreadNotificationCount++;
         }
@@ -144,7 +144,7 @@
     PermissionService.getValidPermissions([
       'CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES'
     ]).then(function(permissions) {
-      angular.forEach(permissions, function(permission){
+      angular.forEach(permissions, function(permission) {
         $scope.permissions[permission] = true;
       });
     });

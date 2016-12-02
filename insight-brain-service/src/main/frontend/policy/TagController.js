@@ -23,7 +23,7 @@
       var tagStores = CachedHierarchyStore.get(tagStoreTemplate);
 
       return angular.extend(tagStores, {
-        getApplied: function(){
+        getApplied: function() {
           return $http.get(CLMLocations.getOrganizationAppliedTagUrl(CLMAppLocations.getEntityId()));
         }
       });

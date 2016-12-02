@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
- /* global angular */
+/* global angular */
 (function() {
   'use strict';
+
   var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation', 'vs-repeat']);
 
   reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',

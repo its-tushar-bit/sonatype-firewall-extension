@@ -104,7 +104,7 @@
 
         getAddIconUrl: function(ownerType) {
           var servicePath = (ownerType) ? window.encodeURIComponent(ownerType) : getServicePath();
-          return baseUrl.get() + '/rest/' + servicePath +  '/icon' + (!$window.FormData ? '?noFormData=true' : '');
+          return baseUrl.get() + '/rest/' + servicePath + '/icon' + (!$window.FormData ? '?noFormData=true' : '');
         },
 
         getEntityId: function() {
@@ -149,7 +149,7 @@
           return baseUrl.get() + '/rest/policyMonitoring/' + getServicePathWithId();
         },
 
-        getApplicablePolicyMonitoring: function(){
+        getApplicablePolicyMonitoring: function() {
           return this.getPolicyMonitoringUrl() + '/applicable';
         },
 

@@ -5,6 +5,7 @@
  */
 (function(angular) {
   'use strict';
+
   function LicenseThreatGroupTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService,
                                             EventNameConstant)
   {

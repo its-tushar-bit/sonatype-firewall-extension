@@ -10,8 +10,8 @@
     var vm = this;
 
     vm.colorRows = [
-      [ 'light-red', 'yellow', 'light-green', 'light-blue', 'light-purple' ],
-      [ 'dark-red', 'orange', 'dark-green', 'dark-blue', 'dark-purple' ]
+      ['light-red', 'yellow', 'light-green', 'light-blue', 'light-purple'],
+      ['dark-red', 'orange', 'dark-green', 'dark-blue', 'dark-purple']
     ];
   }
 

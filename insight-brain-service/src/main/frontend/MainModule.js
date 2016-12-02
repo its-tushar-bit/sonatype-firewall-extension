@@ -137,9 +137,9 @@
       }
 
       function doStart() {
-        $q.all([licenseChecker.check(), currentUser, ProductFeatures.load()]).then(function(data){
+        $q.all([licenseChecker.check(), currentUser, ProductFeatures.load()]).then(function(data) {
           initSuccess(data);
-        }, function(data){
+        }, function(data) {
           initFailure(data);
         });
 

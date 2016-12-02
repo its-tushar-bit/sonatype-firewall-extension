@@ -282,7 +282,7 @@
     }
 
     function openSaveFilterModal($event) {
-      if(vm.isDirty()) {
+      if (vm.isDirty()) {
         $event.stopPropagation();
         return;
       }
@@ -294,7 +294,7 @@
     }
 
     function openDeleteFiltersModal($event) {
-      if(!vm.savedNamedFilters.length) {
+      if (!vm.savedNamedFilters.length) {
         $event.stopPropagation();
         return;
       }

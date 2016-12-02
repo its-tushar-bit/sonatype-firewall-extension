@@ -122,7 +122,7 @@
       if (keypressEvent) {
         keypressEvent.preventDefault();
       }
-      
+
       if (!vm.recipientToAdd) {
         return;
       }

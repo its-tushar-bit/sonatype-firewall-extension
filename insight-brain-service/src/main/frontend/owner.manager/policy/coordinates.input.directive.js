@@ -5,7 +5,7 @@
  */
 (function(angular) {
   'use strict';
-  
+
   var types = {
     'maven': ['groupId', 'artifactId', 'version'],
     'a-name': ['name', 'qualifier', 'version']
@@ -50,7 +50,7 @@
               values.push(vm.coordinates[field]);
             });
 
-            while(values.length > 0 && !values[values.length - 1]) {
+            while (values.length > 0 && !values[values.length - 1]) {
               values.pop();
             }
 

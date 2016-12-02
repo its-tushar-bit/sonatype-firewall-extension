@@ -97,7 +97,7 @@
       vm.accessEditorAddGroup.$setPristine();
     }
 
-    function isDirty(){
+    function isDirty() {
       function internalName(user) {
         return user.internalName;
       }
@@ -201,7 +201,7 @@
       if (vm.query) {
         delete vm.searchError;
         var pickedUsers = currentlyPicked();
-        vm.searchInProgress= true;
+        vm.searchInProgress = true;
 
         vm.accessEditorSearchMask.wrap($http.get(CLMAppLocations.getFindUsersUrl(), {
           params: {

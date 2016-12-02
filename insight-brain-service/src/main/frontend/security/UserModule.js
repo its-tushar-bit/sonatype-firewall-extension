@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
- /* global angular, AngularUtils, ZeroClipboard, clmBuildTimestamp, $ */
+/* global angular, AngularUtils, ZeroClipboard, clmBuildTimestamp, $ */
 (function() {
   'use strict';
+
   angular.module('SecurityModule', ['ui.router', 'AngularCommon', 'ApplicationSecurityModule', 'PermissionServiceModule'], ['$stateProvider',
       function($stateProvider) {
         $stateProvider.state('administrators', {
@@ -99,7 +100,7 @@
       }
     };
     $scope.cancelClick = function(user) {
-      function doCancel(){
+      function doCancel() {
         if ($scope.context.userEditMap[user.id]) {
           $scope.context.userEditMap[user.id] = null;
         }
@@ -189,7 +190,7 @@
       }
     };
   });
-  
+
   module.directive('zeroClipboard', function() {
     ZeroClipboard.config({
       moviePath: 'lib/zeroclipboard/ZeroClipboard-1.3.2.swf'
@@ -198,14 +199,14 @@
       restrict: 'A',
       link: function(scope, element, attrs) {
         var clip = new ZeroClipboard(element);
-        
+
         clip.on('dataRequested', function () {
-          clip.setText( $('#' + attrs.zeroClipboard).val() );
+          clip.setText($('#' + attrs.zeroClipboard).val());
         });
       }
     };
   });
-  
+
   //simple directive that will select the text in an input field
   //when user clicks on it
   module.directive('selectText', [function () {

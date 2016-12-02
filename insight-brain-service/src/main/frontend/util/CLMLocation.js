@@ -102,7 +102,7 @@
           return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationPublicId) + '/' +
               encodeURIComponent(scanId) + '/browseReport/index.html';
         },
-        
+
         getSessionUrl: function() {
           return baseUrl.get() + '/rest/user/session';
         },
@@ -142,12 +142,12 @@
         getApplicationScanSummary : function (applicationPublicId, scanId) {
           return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationPublicId) + '/' + scanId;
         },
-        
+
         getBundleUploadUrl : function (applicationPublicId, stageId, sendNotifications) {
           return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '?stageId=' + stageId +
               '&sendNotifications=' + sendNotifications + (!$window.FormData ? '&noFormData=true' : '');
         },
-        
+
         getEvaluationStatusUrl : function (applicationPublicId, ticketId) {
           return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '/' + ticketId;
         },
@@ -230,7 +230,7 @@
         getDashboardDeleteFiltersUrl : function() {
           return baseUrl.get() + '/rest/dashboard/filters/named/delete';
         },
-        
+
         getDashboardComponentMatchSummaryUrl : function() {
           return baseUrl.get() + '/rest/dashboard/components/summary';
         },

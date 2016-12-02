@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
- /* global angular */
+/* global angular */
 (function() {
   'use strict';
 
@@ -11,7 +11,7 @@
     type: 'GROUP',
     header: 'GROUPS',
     icon: 'group'
-  },{
+  }, {
     type: 'USER',
     header: 'USERS',
     icon: 'user'
@@ -63,8 +63,8 @@
       }
     };
 
-    $scope.$on('roleSaveComplete',function(event, roleId, newMappings){
-      for (var i = 0 ; i < $scope.context.roles.length ; i++) {
+    $scope.$on('roleSaveComplete', function(event, roleId, newMappings) {
+      for (var i = 0; i < $scope.context.roles.length; i++) {
         if ($scope.context.roles[i].roleId === roleId) {
           $scope.context.roles[i].membersByOwner[0].members = newMappings.members.slice();
           break;
@@ -132,7 +132,7 @@
     $scope.isDuplicate = function (internalName, realm, type) {
       if (internalName) {
         var nameregex = new RegExp('^' + internalName + '$', 'i');
-        for (var i=0; i<$scope.mappings[0].members.length; i++) {
+        for (var i = 0; i < $scope.mappings[0].members.length; i++) {
           if (nameregex.test($scope.mappings[0].members[i].internalName) &&
                   $scope.mappings[0].members[i].realm === realm &&
                   $scope.mappings[0].members[i].type === type) {
@@ -158,7 +158,7 @@
 
     $scope.removeMember = function ($parentIndex, member) {
       if ($parentIndex === 0) {
-        for (var i=0; i<$scope.mappings[0].members.length; i++) {
+        for (var i = 0; i < $scope.mappings[0].members.length; i++) {
           if (member === $scope.mappings[0].members[i]) {
             $scope.mappings[0].members.splice(i, 1);
             break;
@@ -195,8 +195,8 @@
       if (angular.isArray(input) && angular.isArray(mappings)) {
         result = input.slice();
 
-        for (var i=0; i<result.length; i++) {
-          for (var x=0; x<mappings[0].members.length; x++) {
+        for (var i = 0; i < result.length; i++) {
+          for (var x = 0; x < mappings[0].members.length; x++) {
             if (result[i].internalName === mappings[0].members[x].internalName &&
                 result[i].type === mappings[0].members[x].type) {
               result.splice(i, 1);
@@ -241,7 +241,7 @@
       }
     };
   }]);
-  
+
   appSecurityModule.directive('userListItem', function () {
     return {
       restrict : 'A',
@@ -269,7 +269,7 @@
         '</div>'
     };
   });
-  
+
   appSecurityModule.directive('appUserSearch', ['$timeout', '$http', 'CLMAppLocations', 'Messages', function ($timeout, $http, clmAppLocations, Messages) {
     return {
       restrict : 'A',
@@ -297,7 +297,7 @@
         '</form>',
       priority : 99,
       link : function ($scope, element) {
-        
+
         // Configure a help popover that explains how searches are conducted.
         var modal = element.parents('.modal');
         var options = {
@@ -308,10 +308,10 @@
         };
         var helpDiv = element.find('#user-search-help');
         helpDiv.popover(options);
-        if(modal.length > 0) {
+        if (modal.length > 0) {
           helpDiv.data('popover').tip().css('z-index', parseInt(modal.css('z-index')) + 1);
         }
-        
+
         var filterTimeout = null;
 
         $scope.requestActive = 0;

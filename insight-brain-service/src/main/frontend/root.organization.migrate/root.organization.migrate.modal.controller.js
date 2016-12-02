@@ -40,9 +40,9 @@
 
     function doLoad() {
       delete vm.loadError;
-      OrganizationStore.refresh().then(function(data){
+      OrganizationStore.refresh().then(function(data) {
         vm.organizations = data;
-      }, function(error){
+      }, function(error) {
         vm.loadError = Messages.getHttpErrorMessage(error);
       });
     }

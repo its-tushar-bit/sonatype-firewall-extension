@@ -21,7 +21,7 @@
         save: function(policyMonitoring) {
           return $http.put(CLMAppLocations.getPolicyMonitoringUrl(), policyMonitoring);
         },
-        remove: function(){
+        remove: function() {
           return $http['delete'](CLMAppLocations.getPolicyMonitoringUrl());
         }
       };

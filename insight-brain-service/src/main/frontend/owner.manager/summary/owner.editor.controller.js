@@ -98,7 +98,7 @@
       }
 
       vm.ownerEditorMask.wrap(vm.dirtyOwner.$save().then(function(result) {
-        var form = $('#custom-icon-form'), 
+        var form = $('#custom-icon-form'),
             nameChanged = !vm.ownerEditor.name.$pristine;
         vm.ownerEditor.name.$setPristine();
 

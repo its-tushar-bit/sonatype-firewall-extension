@@ -122,6 +122,27 @@
           '!<%= config.frontend %>/lib/**/*'
         ]
       },
+      jscs: {
+        check: {
+          src: [
+              '<%= config.frontend %>/**/*.js',
+              '!<%= config.frontend %>/lib/**/*'
+          ],
+          options: {
+            config: ".jscsrc"
+          }
+        },
+        fix: {
+          src: [
+              '<%= config.frontend %>/**/*.js',
+              '!<%= config.frontend %>/lib/**/*'
+          ],
+          options: {
+            config: ".jscsrc",
+            fix: true // Autofix code style violations when possible.
+          }
+        }
+      },
       template: {
         options: {
           data: function() {
@@ -223,6 +244,7 @@
       'configure_override:build',
 
       'jshint',
+      'jscs:check',
       'clean',
       'copy:build',
       'sass',
@@ -260,6 +282,7 @@
       'configure_override:develop',
 
       'jshint',
+      'jscs:check',
       'bower:install',
       'clean:temp',
       'copy:develop',
@@ -269,5 +292,7 @@
       'watch',
       'clean:temp'
     ]);
+
+    grunt.registerTask('fix', ['jscs:fix']);
   };
 }());

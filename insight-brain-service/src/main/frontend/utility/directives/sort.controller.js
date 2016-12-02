@@ -10,7 +10,7 @@
     var vm = this;
     vm.setSort = setSort;
     vm.extractSortField = extractSortField;
-    vm.sortFields =  $attrs.sort.split(',');
+    vm.sortFields = $attrs.sort.split(',');
 
     function setSort(newFields) {
       if (angular.equals(vm.sortFields, newFields)) {

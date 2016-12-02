@@ -114,7 +114,7 @@
           return message;
         }
 
-        return{
+        return {
           restrict: 'A',
           require: ['ngModel', '^form'],
           link: function(scope, element, attrs, ctrls) {

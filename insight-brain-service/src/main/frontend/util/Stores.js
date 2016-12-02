@@ -245,7 +245,6 @@
     }
   ]);
 
-
   storesModule.service('ProprietaryConfigHierarchyStore', [
     'CLMAppLocations', 'CachedHierarchyStore', function(CLMAppLocations, CachedHierarchyStore) {
       var proprietaryConfigStoreTemplate = {

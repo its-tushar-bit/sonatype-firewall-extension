@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-    function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope, DeleteModalService,
+  function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope, DeleteModalService,
           $modal, $q, isAuthorized) {
     var username = null;
 
@@ -87,7 +87,7 @@
   }
 
   UserListController.$inject = ['$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-                                'DeleteModalService','$modal', '$q', 'isAuthorized'];
+                                'DeleteModalService', '$modal', '$q', 'isAuthorized'];
 
   angular.module('UserModule').controller('UserListController', UserListController);
 }());

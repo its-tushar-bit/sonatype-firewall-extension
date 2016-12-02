@@ -24,7 +24,7 @@
             type = isApp ? 'application' : isRepositories ? 'repositories' : 'organization',
             ownerId = isApp ? 'applicationPublicId' : 'organizationId';
 
-        to = 'management.' + ownerState + '.' + type + (to ? ('.' + to ) : '');
+        to = 'management.' + ownerState + '.' + type + (to ? ('.' + to) : '');
         params = params || {};
 
         if ($state.params[ownerId]) {

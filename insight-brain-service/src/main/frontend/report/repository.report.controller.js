@@ -9,7 +9,7 @@
 
   function RepositoryReportController($http, $stateParams, CLMLocations, ReEvaluateModal) {
     var vm = this;
-    
+
     vm.doLoad = doLoad;
     vm.error = undefined;
     vm.repository = null;

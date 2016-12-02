@@ -21,7 +21,7 @@
     function doLoad() {
       if (vm.isAuthorized) {
         delete vm.error;
-        $q.all([ldapStore.get(), ProductFeatures.load()]).then(function(results){
+        $q.all([ldapStore.get(), ProductFeatures.load()]).then(function(results) {
           vm.ldapList = results[0];
         }, function(error) {
           vm.error = error;

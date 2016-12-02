@@ -54,7 +54,7 @@
           msg: 'Success!'
         });
       } else {
-        showAlert($scope.alerts,{
+        showAlert($scope.alerts, {
           type: 'error',
           msg: result.message
         });
@@ -66,7 +66,7 @@
       if (errorResponse.status === 0) {
         msg = 'Unable to reach IQ Server';
       }
-      showAlert($scope.alerts,{
+      showAlert($scope.alerts, {
         type: 'error',
         msg: msg
       });
@@ -218,7 +218,7 @@
           $scope.saving = false;
           origLdapConn = response.data;
           $scope.ldapConn = angular.copy(origLdapConn);
-          showAlert($scope.alerts, {type:'success', msg: 'Configuration saved.'});
+          showAlert($scope.alerts, {type: 'success', msg: 'Configuration saved.'});
         }, function(error) {
           $scope.saving = false;
           ErrorDialog.open(error);
@@ -279,7 +279,7 @@
           $scope.saving = false;
           origLdapUserMapping = response.data;
           $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
-          showAlert($scope.alerts,{type:'success', msg: 'Configuration saved.'});
+          showAlert($scope.alerts, {type: 'success', msg: 'Configuration saved.'});
         }, function(error) {
           $scope.saving = false;
           ErrorDialog.open(error);

@@ -12,7 +12,7 @@
       require: '^sort',
       scope: {
         field: '@sortColumn', // comma separated list
-        inverted: '@?sortInverted', // is the data logically inverted, i.e. AGE vs TIME
+        inverted: '@?sortInverted' // is the data logically inverted, i.e. AGE vs TIME
       },
       transclude: true,
       template: '<a class="sort-col" ng-click="vm.setSort()">' +
@@ -56,7 +56,7 @@
           sortController.setSort(scope.vm.field.split(','));
         };
 
-        scope.$watchGroup([scope.vm.isDown, scope.vm.isUp], 
+        scope.$watchGroup([scope.vm.isDown, scope.vm.isUp],
           function() {
             scope.vm.updateHeader();
           }

@@ -6,6 +6,7 @@
 /* global angular */
 (function() {
   'use strict';
+
   var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable', 'ngCookies']);
 
   module.run(['editableOptions', function (editableOptions) {
@@ -96,7 +97,7 @@
             }
           }
           // check if spaces are not allowed
-          if(scope.noSpaces && val.match(spaceRegex)) {
+          if (scope.noSpaces && val.match(spaceRegex)) {
             return 'Spaces or tabs are not allowed';
           }
           // check for invalid characters
@@ -105,7 +106,7 @@
               (scope.noSpaces ? ' or' : '') + ' "-"' + (scope.noSpaces ? '' : ', or spaces');
           }
           // check for double spaces or tabs
-          if (scope.whitespaceCheck  && val.match(/^ | {2,}|\t| $/)) {
+          if (scope.whitespaceCheck && val.match(/^ | {2,}|\t| $/)) {
             return 'No double spaces or tabs in name';
           }
           scope.invalid = false;
@@ -116,19 +117,19 @@
     };
   }]);
 
-  module.directive('noSpaces', function () {
-   var regexp = /\s/;
-   return {
-     require: 'ngModel',
-     link: function (scope, element, attrs, ctrl) {
-       ctrl.$validators.noSpaces = function (modelValue, viewValue) {
-         if (ctrl.$isEmpty(modelValue)) {
-           return true;
-         }
-         return !regexp.test(viewValue);
-       };
-     }
-   };
+  module.directive('noSpaces', function() {
+    var regexp = /\s/;
+    return {
+      require: 'ngModel',
+      link: function(scope, element, attrs, ctrl) {
+        ctrl.$validators.noSpaces = function(modelValue, viewValue) {
+          if (ctrl.$isEmpty(modelValue)) {
+            return true;
+          }
+          return !regexp.test(viewValue);
+        };
+      }
+    };
   });
 
 }());

@@ -11,7 +11,7 @@
       var timerId;
 
       function updateDimensions() {
-          timerId = maximizeHeightService.updateDimensions(element, {bottomPadding: 0}) || timerId;
+        timerId = maximizeHeightService.updateDimensions(element, {bottomPadding: 0}) || timerId;
       }
 
       function dedupe() {

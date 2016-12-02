@@ -32,7 +32,6 @@
     vm.selectContact = selectContact;
     vm.changeApplicationId = changeApplicationId;
 
-
     var siblings,
         stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
         type = vm.isApp ? ownerConstant.APPLICATION_TYPE : ownerConstant.ORGANIZATION_TYPE,

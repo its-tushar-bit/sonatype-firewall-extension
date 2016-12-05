@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function LdapServerListController($q, ldapStore, isAuthorized, ProductFeatures)
+  function LdapServerListController($state, ldapStore, isAuthorized)
   {
     var vm = this;
 
@@ -14,15 +14,14 @@
     vm.ldapList = undefined;
     vm.error = undefined;
     vm.isAuthorized = isAuthorized;
-    vm.isMultipleLdapServersEnabled = ProductFeatures.isMultipleLdapServersEnabled;
 
     vm.doLoad();
 
     function doLoad() {
       if (vm.isAuthorized) {
         delete vm.error;
-        $q.all([ldapStore.get(), ProductFeatures.load()]).then(function(results) {
-          vm.ldapList = results[0];
+        ldapStore.get().then(function(results) {
+          vm.ldapList = results;
         }, function(error) {
           vm.error = error;
         });
@@ -31,7 +30,7 @@
   }
 
   LdapServerListController.$inject = [
-    '$q', 'LdapConfigurationStore', 'isAuthorized', 'ProductFeatures'
+    '$state', 'LdapConfigurationStore', 'isAuthorized'
   ];
 
   angular//

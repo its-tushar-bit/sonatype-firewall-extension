@@ -30,16 +30,12 @@ public class FeaturesService
 
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
-  private FeatureUtils featureUtils;
-
   @Inject
   public FeaturesService(CLMLicenseManager licenseManager,
-                         RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
-                         FeatureUtils featureUtils)
+                         RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
   {
     this.licenseManager = licenseManager;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
-    this.featureUtils = featureUtils;
   }
 
   /**
@@ -57,10 +53,6 @@ public class FeaturesService
       }
       else if (!rootOrganizationConfigMigrationUtils.isMigrationScheduled()) {
         features.add(Feature.ROOT_ORG_MIGRATE);
-      }
-
-      if(featureUtils.hasMultipleLdapServersEnabled()) {
-        features.add(Feature.MULTIPLE_LDAP_SERVERS_ENABLED);
       }
     }
     log.debug("Found features: {}", features);

@@ -36,18 +36,13 @@ public class FeatureServiceTest
 
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
-  private FeatureUtils featureUtils;
-
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
     licenseManager = mock(CLMLicenseManager.class);
     rootOrganizationConfigMigrationUtils = mock(RootOrganizationConfigMigrationUtils.class);
-    featureUtils = mock(FeatureUtils.class);
-
     binder.bind(CLMLicenseManager.class).toInstance(licenseManager);
     binder.bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
-    binder.bind(FeatureUtils.class).toInstance(featureUtils);
   }
 
   @Test
@@ -77,7 +72,6 @@ public class FeatureServiceTest
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.DASHBOARD);
     expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
-    expectedFeatures.remove(Feature.MULTIPLE_LDAP_SERVERS_ENABLED);
     assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 
@@ -102,7 +96,6 @@ public class FeatureServiceTest
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.POLICY_MONITORING);
     expectedFeatures.remove(Feature.ROOT_ORG_MIGRATE);
-    expectedFeatures.remove(Feature.MULTIPLE_LDAP_SERVERS_ENABLED);
     assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 
@@ -132,29 +125,5 @@ public class FeatureServiceTest
     Set<Feature> features = featuresService.getFeatures();
     assertFalse(features.contains(Feature.ROOT_ORG_MIGRATE));
     assertFalse(features.contains(Feature.ROOT_ORG));
-  }
-
-  @Test
-  public void testGetFeatures_WithMultipleLdapServers() {
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-    when(featureUtils.hasMultipleLdapServersEnabled()).thenReturn(true);
-    when(licenseManager.isValid()).thenReturn(true);
-    Set<Feature> features = featuresService.getFeatures();
-    assertThat(
-        features,
-        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG, Feature.MULTIPLE_LDAP_SERVERS_ENABLED));
-  }
-
-  @Test
-  public void testGetFeatures_WithoutMultipleLdapServers() {
-    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-    when(featureUtils.hasMultipleLdapServersEnabled()).thenReturn(false);
-    when(licenseManager.isValid()).thenReturn(true);
-    Set<Feature> features = featuresService.getFeatures();
-    assertThat(
-        features,
-        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG));
   }
 }

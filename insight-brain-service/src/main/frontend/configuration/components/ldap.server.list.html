@@ -1,16 +1,16 @@
 <div class='scrollable-root-container' authorization-wrapper="vm.isAuthorized" maximize-container-height>
   <div class="tile container config ldap-server-list">
     <div load-wrapper='vm.error' loading='!vm.ldapList' reload='vm.doLoad()'>
-      <h2>{{::vm.isMultipleLdapServersEnabled() ? 'LDAP Servers' : 'LDAP Server'}}</h2>
-      <div class="sub-header" ng-if="vm.isMultipleLdapServersEnabled()">will be queried in the order listed</div>
+      <h2>LDAP Servers</h2>
+      <div class="sub-header">will be queried in the order listed</div>
       <div class="simple-list">
         <h4 class="subsection-header">
-          <button class="btn btn-tertiary" ui-sref="create-ldap" ng-disabled="!vm.isMultipleLdapServersEnabled() && vm.ldapList.length > 0">
+          <button class="btn btn-tertiary" ui-sref="create-ldap">
             <i class="fa fa-plus"></i>Add a Server
           </button>
         </h4>
         <div class="empty-list" ng-if="vm.ldapList.length <= 0">
-          {{::vm.isMultipleLdapServersEnabled() ? 'No LDAP servers are defined' : 'No LDAP server is defined'}}
+          No LDAP servers are defined
         </div>
         <ul>
           <li class="clickable" ng-repeat="ldap in vm.ldapList" ui-sref="edit-ldap({ldapId: ldap.id})">

@@ -35,10 +35,6 @@ public class LdapConfigurationPage
     return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".nav-crumb"));
   }
 
-  public static SelenideElement ldapServersLink() {
-    return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".nav-crumb", "a"));
-  }
-
   public static SelenideElement connectionTab() {
     return $(".tri-pane li:first-child a");
   }

@@ -61,6 +61,7 @@ public class LdapConfigurationTest
 
   @Before
   public void before() {
+    server = tempEntity.newLdapServer("Test Ldap Server");
     refresh();
   }
 
@@ -79,7 +80,7 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.URL);
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.ldapServerList().elements().shouldHaveSize(0);
+    serverListPage.ldapServerList().elements().shouldHaveSize(1);
     serverListPage.newServerButton().click();
 
     waitUntilUrl(LdapConfigurationPage.createLdapUrl());
@@ -90,14 +91,14 @@ public class LdapConfigurationTest
     ldapNameEditor.saveButton().shouldBe(visible, disabled);
     ldapNameEditor.cancelButton().shouldBe(visible, enabled);
 
-    nameEditor.shouldBe(visible).setValue("Test Ldap Server");
+    nameEditor.shouldBe(visible).setValue("Another Ldap Server");
     ldapNameEditor.saveButton().shouldBe(visible, enabled).click();
     ldapNameEditor.saveButton().shouldNotBe(visible);
     ldapNameEditor.cancelButton().shouldNotBe(visible);
 
     LdapConfigurationPage.breadCrumb().shouldHave(text("LDAP Servers / Edit Configuration"));
 
-    server = ldapServerDAO.getByName("Test Ldap Server");
+    server = ldapServerDAO.getByName("Another Ldap Server");
     assertThat(server, is(notNullValue()));
 
     testFormValidation();
@@ -111,8 +112,6 @@ public class LdapConfigurationTest
 
   @Test
   public void testResetForm() {
-    server = tempEntity.newLdapServer("Test Ldap Server");
-
     refreshOrOpen(LdapConfigurationPage.editLdapUrl(server.getId()));
     LdapConfigurationPage.root().should(appear);
     LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
@@ -137,8 +136,6 @@ public class LdapConfigurationTest
 
   @Test
   public void testDeleteServer() {
-    server = tempEntity.newLdapServer("Test Ldap Server");
-
     refreshOrOpen(LdapServerListPage.URL);
 
     LdapServerListPage serverListPage = new LdapServerListPage();

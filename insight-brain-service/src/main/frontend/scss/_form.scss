@@ -173,10 +173,6 @@
   }
 
   input[type=text], input[type=number], input[type=email], input[type=password], textarea {
-    @extend .regular;
-    font-size: 14px;
-    line-height: 18px;
-    margin-bottom: 0px;
 
     @include box-shadow(none);
     @include border-radius(0);
@@ -259,8 +255,6 @@
 */
 .clm-form {
   label.radio {
-    @extend .regular;
-    font-size: 14px;
     display: block;
     &:not(.disabled) {
       cursor: pointer;
@@ -381,8 +375,6 @@
 */
 .clm-form {
   label.checkbox {
-    @extend .regular;
-    font-size: 14px;
     display: block;
     position: relative;
     &:not(.disabled) {
@@ -579,8 +571,6 @@
   background-image: none;
   box-shadow: none;
   border-color: $link-blue;
-  font-family: Proxima Nova Semibold, serif;
-  font-size: 14px;
 }
 
 .toggle-checkbox .toggle {

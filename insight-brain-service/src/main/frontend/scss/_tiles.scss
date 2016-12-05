@@ -130,7 +130,6 @@ $tile-scroll-container-z-index: 0;
   background-color: white;
 
   h2 {
-    font-size: 20px;
     line-height: 20px;
     margin-top: 4px;
     margin-bottom: 0;
@@ -156,7 +155,6 @@ $tile-scroll-container-z-index: 0;
 
   .sub-header {
     margin-top: 2px;
-    font-size: 14px;
     line-height: 14px;
   }
 
@@ -458,7 +456,6 @@ $tile-scroll-container-z-index: 0;
 
       tr {
         td {
-          font-size: 14px;
           line-height: 16px;
           @extend .semi-bold;
         }

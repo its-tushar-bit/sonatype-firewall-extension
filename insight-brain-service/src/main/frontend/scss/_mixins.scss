@@ -1,3 +1,5 @@
+// NOTE: Typography mixins are located in _typography.scss
+
 @mixin main-content($top: '') {
   margin: 0 auto;
   width: 100%;
@@ -20,12 +22,4 @@
   bottom: 0px;
   left: 50%;
   width: 0;
-}
-
-@mixin bold() {
-  font-family: Proxima Nova Bold, sans-serif;
-}
-
-@mixin semi-bold() {
-  font-family: Proxima Nova Semibold, sans-serif;
 }

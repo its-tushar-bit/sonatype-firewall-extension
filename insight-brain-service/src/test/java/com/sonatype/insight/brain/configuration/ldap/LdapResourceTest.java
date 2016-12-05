@@ -133,6 +133,23 @@ public class LdapResourceTest
   }
 
   @Test
+  public void testUpdatePriority() throws Exception {
+    LdapServer server1 = tempEntity.newLdapServer("server1");
+    LdapServer server2 = tempEntity.newLdapServer("server2");
+    try {
+      HttpResponse response = restRequest().path(LdapResource.PRIORITY_PATH)
+          .body(Arrays.asList(server2.getId(), server1.getId())).put();
+      assertThat(serverDao.getById(server2.getId()).getPriority(), is(1));
+      assertThat(serverDao.getById(server1.getId()).getPriority(), is(2));
+      assertResponseStatus(204, response);
+    }
+    finally {
+      serverDao.delete(server1);
+      serverDao.delete(server2);
+    }
+  }
+
+  @Test
   public void testUserMappingCRUD() throws Exception {
     final LdapUserMapping orig = newUserMapping("test server");
     HttpRequest request = restRequest().path(LdapResource.USER_MAPPING_PATH);

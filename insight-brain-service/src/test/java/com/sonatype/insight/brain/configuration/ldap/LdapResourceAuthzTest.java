@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import java.util.Collections;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -142,5 +144,13 @@ public class LdapResourceAuthzTest
     ldapUserMapping.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
     ldapUserMapping.setServerId(ldapServer.getId());
     testAuthzPut(restRequest().path("{ldapServerId}/userMapping").parameter(ldapServer.getId()).body(ldapUserMapping));
+  }
+
+  @Test
+  public void testPriority() throws Exception {
+    grantConfigureSystemPermission();
+
+    LdapServer ldapServer = tempEntity.newLdapServer("testPriority");
+    testAuthzPut(restRequest().path(LdapResource.PRIORITY_PATH).body(Collections.singletonList(ldapServer.getId())));
   }
 }

@@ -46,6 +46,14 @@ public class LdapServer
   @Column(name = "name_lowercase_no_whitespace")
   private String nameLowercaseNoWhitespace;
 
+  /**
+   * Priority used for ordering servers
+   *
+   * @since 1.25
+   */
+  @Column(name = "priority")
+  private int priority;
+
   public LdapServer() {
   }
 
@@ -86,5 +94,13 @@ public class LdapServer
   @Deprecated
   @SuppressWarnings("unused")
   private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
+  }
+
+  public int getPriority() {
+    return priority;
+  }
+
+  public void setPriority(final int priority) {
+    this.priority = priority;
   }
 }

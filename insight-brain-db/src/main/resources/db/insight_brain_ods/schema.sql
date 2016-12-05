@@ -238,8 +238,10 @@ CREATE TABLE ldap_server (
   ldap_server_id varchar(50) NOT NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
+  priority int NOT NULL,
   CONSTRAINT ldap_server_pk PRIMARY KEY (ldap_server_id),
-  CONSTRAINT ldap_server_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
+  CONSTRAINT ldap_server_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
+  CONSTRAINT ldap_server_priority_uk UNIQUE KEY (priority)
 );
 
 CREATE TABLE ldap_connection (

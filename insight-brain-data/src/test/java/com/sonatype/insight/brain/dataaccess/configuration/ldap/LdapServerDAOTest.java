@@ -5,28 +5,41 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class LdapServerDAOTest
     extends AbstractDbDAOTest
 {
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
+
   private LdapServerDAO dao = new LdapServerDAO();
 
   protected Set<LdapServer> serversToDelete = new LinkedHashSet<>();
@@ -283,6 +296,76 @@ public class LdapServerDAOTest
     dao.insert(config);
     serversToDelete.add(config);
     return config;
+  }
+
+  @Test
+  public void testInsert_AutoIncrementsPriority() {
+    LdapServer config1 = tempEntity.newLdapServer("test1");
+    LdapServer config2 = tempEntity.newLdapServer("test2");
+
+    assertThat(config2.getPriority(), is(greaterThan(config1.getPriority())));
+  }
+
+  @Test
+  public void testUpdatePriority() {
+    LdapServer config1 = tempEntity.newLdapServer("test1");
+    LdapServer config2 = tempEntity.newLdapServer("test2");
+
+    List<String> serverPriorityList = new ArrayList<>();
+    serverPriorityList.add(config2.getId());
+    serverPriorityList.add(config1.getId());
+
+    dao.updatePriority(serverPriorityList);
+
+    List<LdapServer> servers = dao.getAll();
+    assertThat(servers.get(0).getName(), is("test2"));
+    assertThat(servers.get(0).getPriority(), is(1));
+    assertThat(servers.get(1).getName(), is("test1"));
+    assertThat(servers.get(1).getPriority(), is(2));
+  }
+
+  @Test
+  public void testUpdatePriority_IncorrectNumberOfServers() {
+    tempEntity.newLdapServer("test1");
+    LdapServer config2 = tempEntity.newLdapServer("test2");
+
+    List<String> mismatchServerList = Collections.singletonList(config2.getId());
+
+    expectedException.expect(DataAccessException.class);
+    expectedException.expectMessage("Unable to update priority of Ldap servers due to server list mismatch.");
+
+    dao.updatePriority(mismatchServerList);
+  }
+
+  @Test
+  public void testUpdatePriority_DuplicateServers() {
+    LdapServer config1 = tempEntity.newLdapServer("test1");
+    LdapServer config2 = tempEntity.newLdapServer("test2");
+
+    List<String> serverPriorityList = new ArrayList<>();
+    serverPriorityList.add(config1.getId());
+    serverPriorityList.add(config1.getId());
+    serverPriorityList.add(config2.getId());
+
+    expectedException.expect(DataAccessException.class);
+    expectedException.expectMessage("Unable to update priority of Ldap servers due to duplicate server IDs.");
+
+    dao.updatePriority(serverPriorityList);
+  }
+
+  @Test
+  public void testUpdatePriority_IncorrectServerId() {
+    tempEntity.newLdapServer("test1");
+    LdapServer config2 = tempEntity.newLdapServer("test2");
+
+    List<String> serverPriorityList = new ArrayList<>();
+    serverPriorityList.add(config2.getId());
+    serverPriorityList.add("incorrectServerId");
+
+    expectedException.expect(NotFoundException.class);
+    expectedException.expectMessage("Cannot find LdapServer with ID incorrectServerId");
+
+    dao.updatePriority(serverPriorityList);
   }
 
   @After

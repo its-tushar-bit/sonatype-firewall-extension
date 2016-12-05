@@ -50,6 +50,8 @@ public class LdapResource
 
   public static final String TEST_LOGIN_PATH = "{ldapServerId}/testLogin";
 
+  public static final String PRIORITY_PATH = "priority";
+
   private final LdapServerDAO serverDao = new LdapServerDAO();
 
   private final LdapUserMappingDAO umapDao = new LdapUserMappingDAO();
@@ -247,5 +249,16 @@ public class LdapResource
     if (serverId == null || entity == null || !serverId.equals(entity.getServerId())) {
       throw new BadRequestException("Inconsistent LDAP server ID.");
     }
+  }
+
+  /**
+   * @since 1.25
+   */
+  @PUT
+  @Path(PRIORITY_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void updatePriority(List<String> serverIds) {
+    serverDao.updatePriority(serverIds);
   }
 }

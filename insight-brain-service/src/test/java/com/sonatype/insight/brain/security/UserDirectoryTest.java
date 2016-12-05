@@ -715,16 +715,16 @@ public class UserDirectoryTest
 
   @Test
   public void testGetMembersByQuery_SameUserInMultipleRealms() throws Exception {
-    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
 
-    // Should get back only the user from testLdapServer2, because testLdapServer1 was not started yet.
+    // Should get back only the user from testLdapServer1.
     List<Member> members = userDirectory.getMembersByQuery("Beta User", false).get();
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getDisplayName(), is("Beta User"));
-    assertThat(members.get(0).getRealm(), is("LDAP2"));
+    assertThat(members.get(0).getRealm(), is("LDAP1"));
 
-    // Start testLdapServer1. Should get back only the user from testLdapServer1.
-    configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
+    // Start testLdapServer2. Should still get back only the user from testLdapServer1 since it is higher priority.
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
     members = userDirectory.getMembersByQuery("Beta User", false).get();
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getDisplayName(), is("Beta User"));

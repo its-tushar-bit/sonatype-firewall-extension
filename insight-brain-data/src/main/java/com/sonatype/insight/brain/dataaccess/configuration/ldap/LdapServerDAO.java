@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
@@ -30,7 +32,13 @@ public class LdapServerDAO
   }
 
   public LdapServer getByIdNotNull(String id) {
-    LdapServer config = getById(id);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
+    }
+  }
+
+  private LdapServer getByIdNotNull(TransactionContext tx, String id) {
+    LdapServer config = getById(tx, id);
     if (config == null) {
       throw new NotFoundException("Cannot find LdapServer with ID " + id + ".");
     }
@@ -56,7 +64,7 @@ public class LdapServerDAO
 
   public List<LdapServer> getAll() {
     String sQuery = "SELECT entity FROM LdapServer entity" + //
-        " ORDER BY entity.name";
+        " ORDER BY entity.priority";
     return getList(sQuery);
   }
 
@@ -67,8 +75,16 @@ public class LdapServerDAO
     if (getByName(tx, config.getName()) != null) {
       throw new InvalidNameException(config.getName() + " is already used as a name.");
     }
+    int priority = getNextPriority(tx);
+    config.setPriority(priority);
 
     super.insert(tx, config);
+  }
+
+  private int getNextPriority(TransactionContext tx) {
+    String sQuery = "SELECT MAX(entity.priority) FROM LdapServer entity";
+    Integer currentPriority = getSingle(tx, Integer.class, sQuery);
+    return currentPriority == null ? 1 : currentPriority + 1;
   }
 
   @Override
@@ -88,5 +104,41 @@ public class LdapServerDAO
     new LdapConnectionDAO().deleteByServerId(tx, entity.getId());
     new LdapUserMappingDAO().deleteByServerId(tx, entity.getId());
     super.delete(tx, entity);
+  }
+
+  public void updatePriority(List<String> serverIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      updatePriority(tx, serverIds);
+      tx.commit();
+    }
+  }
+
+  private void updatePriority(TransactionContext tx, List<String> serverIds) {
+    if (new HashSet<>(serverIds).size() != serverIds.size()) {
+      throw new DataAccessException("Unable to update priority of Ldap servers due to duplicate server IDs.");
+    }
+
+    if (serverIds.size() != getAll().size()) {
+      throw new DataAccessException("Unable to update priority of Ldap servers due to server list mismatch.");
+    }
+
+    // shifting priorities temporarily due to unique key constraint
+    List<LdapServer> servers = new ArrayList<>();
+    int maxPriority = getNextPriority(tx) - 1;
+    for (String serverId : serverIds) {
+      LdapServer server = getByIdNotNull(tx, serverId);
+      server.setPriority(server.getPriority() + maxPriority);
+      update(tx, server);
+      servers.add(server);
+    }
+
+    // re-ordering of priorities
+    int i = 1;
+    for (LdapServer server : servers) {
+      server.setPriority(i);
+      update(tx, server);
+      i++;
+    }
   }
 }

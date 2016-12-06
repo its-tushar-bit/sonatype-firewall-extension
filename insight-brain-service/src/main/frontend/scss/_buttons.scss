@@ -119,6 +119,10 @@
   &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
     border-color: $slate;
   }
+  
+  &.dropdown-toggle:hover {
+    color: #575757;
+  }
 
   &:active:not(.disabled):not([disabled]) {
     background-color: $grey-2;

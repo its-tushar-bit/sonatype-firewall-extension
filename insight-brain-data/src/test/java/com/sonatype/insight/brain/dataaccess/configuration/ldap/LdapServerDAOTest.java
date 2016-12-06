@@ -7,9 +7,7 @@ package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -20,8 +18,6 @@ import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.StringUtils;
-import org.junit.After;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,30 +38,25 @@ public class LdapServerDAOTest
 
   private LdapServerDAO dao = new LdapServerDAO();
 
-  protected Set<LdapServer> serversToDelete = new LinkedHashSet<>();
-
   @Test
   public void testCRUD() {
     String name = "name";
 
     // insert
 
-    LdapServer server = new LdapServer();
-    server.setName(name);
-    Assert.assertNull(server.getId()); // sanity check
-    dao.insert(server);
+    LdapServer server = tempEntity.newLdapServer(name);
 
     // select by id
 
     LdapServer echo = dao.getById(server.getId());
-    Assert.assertNotNull(echo);
-    Assert.assertEquals(name, echo.getName());
-    Assert.assertEquals(NameHelper.normalize(name), echo.getNameLowercaseNoWhitespace());
+    assertNotNull(echo);
+    assertEquals(name, echo.getName());
+    assertEquals(NameHelper.normalize(name), echo.getNameLowercaseNoWhitespace());
 
     // select by name
 
     echo = dao.getByName(name);
-    Assert.assertNotNull(echo);
+    assertNotNull(echo);
 
     // update
 
@@ -73,18 +64,18 @@ public class LdapServerDAOTest
     server.setName(changedName);
     dao.update(server);
     echo = dao.getById(server.getId());
-    Assert.assertEquals(changedName, echo.getName());
+    assertEquals(changedName, echo.getName());
 
     // delete
     dao.delete(server);
-    Assert.assertNull(dao.getById(server.getId()));
+    assertNull(dao.getById(server.getId()));
   }
 
   @Test
   public void testValidateNullName_Insert() {
-    LdapServer config = createLdapServer(null /* name */);
+    LdapServer ldapServer = new LdapServer(null /* name */);
     try {
-      dao.insert(config);
+      dao.insert(ldapServer);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -94,13 +85,13 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateNullName_Update() {
-    LdapServer config = insertLdapServer("testValidateNullName");
-    assertEquals("testvalidatenullname", config.getNameLowercaseNoWhitespace());
+    LdapServer ldapServer = tempEntity.newLdapServer("testValidateNullName");
+    assertEquals("testvalidatenullname", ldapServer.getNameLowercaseNoWhitespace());
 
-    config.setName(null);
-    assertNull(config.getNameLowercaseNoWhitespace());
+    ldapServer.setName(null);
+    assertNull(ldapServer.getNameLowercaseNoWhitespace());
     try {
-      dao.update(config);
+      dao.update(ldapServer);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -111,7 +102,7 @@ public class LdapServerDAOTest
   @Test
   public void testValidateEmptyName_Insert() {
     try {
-      insertLdapServer(" ");
+      tempEntity.newLdapServer(" ");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -121,13 +112,13 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateEmptyName_Update() {
-    LdapServer config = insertLdapServer("testValidateEmptyName");
-    assertEquals("testvalidateemptyname", config.getNameLowercaseNoWhitespace());
+    LdapServer ldapServer = tempEntity.newLdapServer("testValidateEmptyName");
+    assertEquals("testvalidateemptyname", ldapServer.getNameLowercaseNoWhitespace());
 
-    config.setName(" ");
-    assertEquals("", config.getNameLowercaseNoWhitespace());
+    ldapServer.setName(" ");
+    assertEquals("", ldapServer.getNameLowercaseNoWhitespace());
     try {
-      dao.update(config);
+      dao.update(ldapServer);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -138,9 +129,9 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      LdapServer config = createLdapServer(name);
+      LdapServer ldapServer = new LdapServer(name);
       try {
-        dao.insert(config);
+        dao.insert(ldapServer);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -151,11 +142,11 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    LdapServer config = insertLdapServer("testValidateNameInvalidChars");
+    LdapServer ldapServer = tempEntity.newLdapServer("testValidateNameInvalidChars");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      config.setName(name);
+      ldapServer.setName(name);
       try {
-        dao.update(config);
+        dao.update(ldapServer);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -184,7 +175,7 @@ public class LdapServerDAOTest
   public void testValidateNameSpaces_Insert() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       try {
-        insertLdapServer(name);
+        tempEntity.newLdapServer(name);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -196,11 +187,11 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    LdapServer config = insertLdapServer("testValidateNameSpaces");
+    LdapServer ldapServer = tempEntity.newLdapServer("testValidateNameSpaces");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      config.setName(name);
+      ldapServer.setName(name);
       try {
-        dao.update(config);
+        dao.update(ldapServer);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -214,23 +205,23 @@ public class LdapServerDAOTest
   public void testNameIsCaseAndWhitespaceInsensitive() {
     String name = "test string With Case and Whitespace";
 
-    LdapServer config = insertLdapServer(name);
+    LdapServer ldapServer = tempEntity.newLdapServer(name);
 
-    assertEquals(name, config.getName());
-    assertEquals("teststringwithcaseandwhitespace", config.getNameLowercaseNoWhitespace());
+    assertEquals(name, ldapServer.getName());
+    assertEquals("teststringwithcaseandwhitespace", ldapServer.getNameLowercaseNoWhitespace());
 
     String name1 = "TEST String      With    cASE and      whitespace";
-    LdapServer config1 = dao.getByName(name1);
-    assertNotNull(config1);
-    assertEquals(config.getId(), config1.getId());
+    LdapServer ldapServer1 = dao.getByName(name1);
+    assertNotNull(ldapServer1);
+    assertEquals(ldapServer.getId(), ldapServer1.getId());
   }
 
   @Test
   public void testDuplicateName_Insert() {
-    insertLdapServer("testDuplicateName");
+    tempEntity.newLdapServer("testDuplicateName");
 
     try {
-      insertLdapServer("testDuplicateName");
+      tempEntity.newLdapServer("testDuplicateName");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -240,12 +231,12 @@ public class LdapServerDAOTest
 
   @Test
   public void testDuplicateName_Update() {
-    insertLdapServer("testDuplicateName");
-    LdapServer config = insertLdapServer("testDuplicateName1");
+    tempEntity.newLdapServer("testDuplicateName");
+    LdapServer ldapServer = tempEntity.newLdapServer("testDuplicateName1");
 
-    config.setName("Test Duplicate Name");
+    ldapServer.setName("Test Duplicate Name");
     try {
-      dao.update(config);
+      dao.update(ldapServer);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -257,63 +248,50 @@ public class LdapServerDAOTest
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     try {
-      insertLdapServer(name + "a");
+      tempEntity.newLdapServer(name + "a");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
       assertEquals("Name must be 60 characters or less.", expected.getMessage());
     }
 
-    insertLdapServer(name);
+    tempEntity.newLdapServer(name);
   }
 
   @Test
   public void testValidateNameLength_Update() {
-    LdapServer config = insertLdapServer("test name");
+    LdapServer ldapServer = tempEntity.newLdapServer("test name");
 
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    config.setName(name + "a");
+    ldapServer.setName(name + "a");
     try {
-      dao.update(config);
+      dao.update(ldapServer);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
       assertEquals("Name must be 60 characters or less.", expected.getMessage());
     }
 
-    config.setName(name);
-    dao.update(config);
-  }
-
-  protected LdapServer createLdapServer(String name) {
-    LdapServer config = new LdapServer();
-    config.setName(name);
-    return config;
-  }
-
-  protected LdapServer insertLdapServer(String name) {
-    LdapServer config = createLdapServer(name);
-    dao.insert(config);
-    serversToDelete.add(config);
-    return config;
+    ldapServer.setName(name);
+    dao.update(ldapServer);
   }
 
   @Test
   public void testInsert_AutoIncrementsPriority() {
-    LdapServer config1 = tempEntity.newLdapServer("test1");
-    LdapServer config2 = tempEntity.newLdapServer("test2");
+    LdapServer ldapServer1 = tempEntity.newLdapServer("test1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
 
-    assertThat(config2.getPriority(), is(greaterThan(config1.getPriority())));
+    assertThat(ldapServer2.getPriority(), is(greaterThan(ldapServer1.getPriority())));
   }
 
   @Test
   public void testUpdatePriority() {
-    LdapServer config1 = tempEntity.newLdapServer("test1");
-    LdapServer config2 = tempEntity.newLdapServer("test2");
+    LdapServer ldapServer1 = tempEntity.newLdapServer("test1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
 
     List<String> serverPriorityList = new ArrayList<>();
-    serverPriorityList.add(config2.getId());
-    serverPriorityList.add(config1.getId());
+    serverPriorityList.add(ldapServer2.getId());
+    serverPriorityList.add(ldapServer1.getId());
 
     dao.updatePriority(serverPriorityList);
 
@@ -327,9 +305,9 @@ public class LdapServerDAOTest
   @Test
   public void testUpdatePriority_IncorrectNumberOfServers() {
     tempEntity.newLdapServer("test1");
-    LdapServer config2 = tempEntity.newLdapServer("test2");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
 
-    List<String> mismatchServerList = Collections.singletonList(config2.getId());
+    List<String> mismatchServerList = Collections.singletonList(ldapServer2.getId());
 
     expectedException.expect(DataAccessException.class);
     expectedException.expectMessage("Unable to update priority of Ldap servers due to server list mismatch.");
@@ -339,13 +317,13 @@ public class LdapServerDAOTest
 
   @Test
   public void testUpdatePriority_DuplicateServers() {
-    LdapServer config1 = tempEntity.newLdapServer("test1");
-    LdapServer config2 = tempEntity.newLdapServer("test2");
+    LdapServer ldapServer1 = tempEntity.newLdapServer("test1");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
 
     List<String> serverPriorityList = new ArrayList<>();
-    serverPriorityList.add(config1.getId());
-    serverPriorityList.add(config1.getId());
-    serverPriorityList.add(config2.getId());
+    serverPriorityList.add(ldapServer1.getId());
+    serverPriorityList.add(ldapServer1.getId());
+    serverPriorityList.add(ldapServer2.getId());
 
     expectedException.expect(DataAccessException.class);
     expectedException.expectMessage("Unable to update priority of Ldap servers due to duplicate server IDs.");
@@ -356,25 +334,15 @@ public class LdapServerDAOTest
   @Test
   public void testUpdatePriority_IncorrectServerId() {
     tempEntity.newLdapServer("test1");
-    LdapServer config2 = tempEntity.newLdapServer("test2");
+    LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
 
     List<String> serverPriorityList = new ArrayList<>();
-    serverPriorityList.add(config2.getId());
+    serverPriorityList.add(ldapServer2.getId());
     serverPriorityList.add("incorrectServerId");
 
     expectedException.expect(NotFoundException.class);
     expectedException.expectMessage("Cannot find LdapServer with ID incorrectServerId");
 
     dao.updatePriority(serverPriorityList);
-  }
-
-  @After
-  public void deleteLdapEntities() {
-    for (LdapServer config : serversToDelete) {
-      config = dao.getById(config.getId());
-      if (config != null) {
-        dao.delete(config);
-      }
-    }
   }
 }

@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.codehaus.plexus.util.FileUtils;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,8 +48,6 @@ public class LdapResourceTest
   @Rule
   public TestLdapServer ldapServer = new TestLdapServer();
 
-  private LdapServer server;
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(LdapResource.RESOURCE_PATH);
@@ -60,30 +57,20 @@ public class LdapResourceTest
     return restRequest().path(LdapResource.TEST_CONNECTION_PATH).parameter(conn.getServerId()).body(conn);
   }
 
-  @After
-  public void deleteLdapServer() {
-    if (server != null) {
-      serverDao.delete(server);
-      server = null;
-    }
-
-    Assert.assertEquals(0, serverDao.getAll().size());
-  }
-
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Test
   public void testServerCRUD() throws Exception {
     // Create
-    LdapServer server = createLdapServer("LdapConfigurationResourceTest");
+    LdapServer server = new LdapServer("test server");
 
     HttpResponse response = restRequest().body(server).post();
     assertResponseStatus(200, response);
     server = response.getBody(LdapServer.class);
     assertNotNull(server);
     assertNotNull(server.getId());
-    assertEquals("LdapConfigurationResourceTest", server.getName());
+    assertEquals("test server", server.getName());
     String ldapServerId = server.getId();
 
     LdapServer raw = serverDao.getById(server.getId());
@@ -136,17 +123,11 @@ public class LdapResourceTest
   public void testUpdatePriority() throws Exception {
     LdapServer server1 = tempEntity.newLdapServer("server1");
     LdapServer server2 = tempEntity.newLdapServer("server2");
-    try {
-      HttpResponse response = restRequest().path(LdapResource.PRIORITY_PATH)
-          .body(Arrays.asList(server2.getId(), server1.getId())).put();
-      assertThat(serverDao.getById(server2.getId()).getPriority(), is(1));
-      assertThat(serverDao.getById(server1.getId()).getPriority(), is(2));
-      assertResponseStatus(204, response);
-    }
-    finally {
-      serverDao.delete(server1);
-      serverDao.delete(server2);
-    }
+    HttpResponse response = restRequest().path(LdapResource.PRIORITY_PATH)
+        .body(Arrays.asList(server2.getId(), server1.getId())).put();
+    assertThat(serverDao.getById(server2.getId()).getPriority(), is(1));
+    assertThat(serverDao.getById(server1.getId()).getPriority(), is(2));
+    assertResponseStatus(204, response);
   }
 
   @Test
@@ -176,8 +157,7 @@ public class LdapResourceTest
 
   @Test
   public void testNewUserMapping() throws Exception {
-    server = createLdapServer("test server");
-    serverDao.insert(server);
+    LdapServer server = tempEntity.newLdapServer("test server");
 
     HttpResponse response = restRequest().path(LdapResource.USER_MAPPING_PATH).parameter(server.getId()).get();
     assertResponseStatus(200, response);
@@ -188,8 +168,7 @@ public class LdapResourceTest
 
   @Test
   public void testNewConnection() throws Exception {
-    server = createLdapServer("test server");
-    serverDao.insert(server);
+    LdapServer server = tempEntity.newLdapServer("test server");
 
     HttpResponse response = restRequest().path(LdapResource.CONNECTION_PATH).parameter(server.getId()).get();
     assertResponseStatus(200, response);
@@ -201,7 +180,7 @@ public class LdapResourceTest
   @Test
   public void testConnectionCRUD() throws Exception {
     // Create
-    LdapConnection conn = createLdapConnection("LdapConfigurationResourceTest");
+    LdapConnection conn = createLdapConnection("test server");
     HttpRequest request = restRequest().path(LdapResource.CONNECTION_PATH).parameter(conn.getServerId());
 
     HttpResponse response = request.body(conn).put();
@@ -295,7 +274,7 @@ public class LdapResourceTest
 
   @Test
   public void testInconsistentConnectionServerId() throws Exception {
-    LdapConnection conn = createLdapConnection("LdapConfigurationResourceTest");
+    LdapConnection conn = createLdapConnection("test server");
 
     HttpResponse response = restRequest().path(LdapResource.CONNECTION_PATH).parameter("wrong").body(conn).put();
     assertResponseStatus(400, response);
@@ -304,7 +283,7 @@ public class LdapResourceTest
   @Test
   public void testAddLdapServer_Unlicensed() throws Exception {
     uninstallLicense();
-    LdapServer server = createLdapServer("LdapServerResourceTest");
+    LdapServer server = new LdapServer("test server");
 
     HttpResponse response = restRequest().body(server).post();
     assertResponseStatus(402, response);
@@ -312,16 +291,11 @@ public class LdapResourceTest
 
   @Test
   public void testUpdateLdapServer_Unlicensed() throws Exception {
-    LdapServer server = createLdapServer("LdapServerResourceTest");
-    HttpResponse response = restRequest().body(server).post();
-    assertResponseStatus(200, response);
-    server = response.getBody(LdapServer.class);
+    LdapServer server = tempEntity.newLdapServer("test server");
 
     uninstallLicense();
-    response = restRequest().body(server).put();
+    HttpResponse response = restRequest().body(server).put();
     assertResponseStatus(402, response);
-
-    serverDao.delete(serverDao.getById(server.getId()));
   }
 
   @Test
@@ -517,8 +491,7 @@ public class LdapResourceTest
     ldapServer.start();
     ldapServer.loadData("/LdapResourceTest/ldap_users.ldif");
 
-    server = createLdapServer("test");
-    serverDao.insert(server);
+    LdapServer server = tempEntity.newLdapServer("test");
 
     LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
     HttpRequest request = restRequest().path(LdapResource.TEST_USER_MAPPING_PATH).parameter(mapping.getServerId())
@@ -544,8 +517,7 @@ public class LdapResourceTest
     ldapServer.start();
     ldapServer.loadData("/LdapResourceTest/ldap_users.ldif");
 
-    server = createLdapServer("test");
-    serverDao.insert(server);
+    LdapServer server = tempEntity.newLdapServer("test");
 
     LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
     LdapTestLoginRequest login = new LdapTestLoginRequest();
@@ -581,17 +553,8 @@ public class LdapResourceTest
     return tempFile;
   }
 
-  private static LdapServer createLdapServer(String name) {
-    LdapServer config = new LdapServer();
-    config.setName(name);
-    return config;
-  }
-
   private LdapConnection createLdapConnection(String name) {
-    if (server == null) {
-      server = createLdapServer(name);
-      serverDao.insert(server);
-    }
+    LdapServer server = tempEntity.newLdapServer(name);
 
     LdapConnection conn = new LdapConnection();
     conn.setServerId(server.getId());
@@ -605,10 +568,7 @@ public class LdapResourceTest
   }
 
   private LdapUserMapping newUserMapping(String name) {
-    if (server == null) {
-      server = createLdapServer(name);
-      serverDao.insert(server);
-    }
+    LdapServer server = tempEntity.newLdapServer(name);
 
     LdapUserMapping umap = new LdapUserMapping();
 

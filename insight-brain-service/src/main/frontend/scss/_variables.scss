@@ -1,0 +1,109 @@
+/*
+  #Colors
+*/
+// Sonatype brand colours
+$iq-sonatype-blue: #336699;
+$iq-sonatype-orange: #f89100;
+
+// Colour variables
+$main-background-color: #fff;
+
+$off-black: #070707;
+$slate: #575757;
+$off-white: #fefefe;
+
+$grey-4: #cacaca;
+$grey-3: #dedede;
+$grey-2: #eaeaea;
+$grey-1: #f5f5f5;
+
+$link-blue: #2476c3;
+$deep-blue: #0046b1;
+$dark-blue: #006bbf;
+$light-blue: #97cbee;
+
+$dark-purple: #885195;
+$medium-purple: #b087ba;
+$light-purple: #dbc6df;
+
+$dark-green: #099843;
+$light-green: #b6e9ab;
+
+$dark-red: #bc012f;
+$light-red: #edb1af;
+
+$orange: #f4861d;
+$yellow: #f5c648;
+
+$valid-green: #84c900;
+$invalid-red: #c70000;
+
+$alert-fg: #9d6800;
+$alert-bg: #fcf8e3;
+
+$fail-fg: #831d1d;
+$fail-bg: #fce2e2;
+$fail-active: #5c0000;
+$fail-disabled: #dd9595;
+
+$pickable-colors:
+  ('light-red', $light-red),
+  ('yellow', $yellow),
+  ('light-green', $light-green),
+  ('light-blue', $light-blue),
+  ('light-purple', $light-purple),
+  ('dark-red', $dark-red),
+  ('orange', $orange),
+  ('dark-green', $dark-green),
+  ('dark-blue', $dark-blue),
+  ('dark-purple', $dark-purple);
+
+/*
+  ##Threat Colors
+*/
+$critical-color: $dark-red;
+$severe-color: $orange;
+$moderate-color: $yellow;
+$none-color: $dark-blue;
+$low-color: $dark-blue;
+$policy-none-color: $light-blue;
+$ignore-color: $light-blue;
+$unspecified-color: #d9dade;
+
+$threat-levels:
+  ("critical", #FFF, $critical-color, (8, 9, 10)),
+  ("severe", #FFF, $severe-color, (4, 5, 6, 7)),
+  ("moderate", #444, $moderate-color, (1, 2, 3)),
+  ("none", #FFF, $none-color, (0));
+
+$policy-threat-levels:
+  ("critical", #FFF, $critical-color, (8, 9, 10)),
+  ("severe", #FFF, $severe-color, (4, 5, 6, 7)),
+  ("moderate", #444, $moderate-color, (2, 3)),
+  ("low", #444, $low-color, (1)),
+  ("none", #FFF, $policy-none-color, (0));
+
+/*
+  #z-indexes
+  Gathered here for better visibility
+*/
+$color-picker-zindex: $zindexModalBackdrop - 10;
+$form-mask-zindex: $zindexModal + 10;
+// need the login panel above the form save mask
+// ui-bootstrap modal window template sets z-index via ng-style, hence important
+$zindex-login-modal: $zindexModal + 20 !important;
+$zindexSidebar: 1;
+
+/*
+  #Borders
+*/
+$small-grey-border: 1px solid #d3d3d3;
+$grey-border: 1px solid $grey-3;
+
+/*
+  #Responsive
+*/
+$minimum-content-width: 1024px;
+$maximum-content-width: 1366px;
+
+$maximum-paragraph-width: 562px;

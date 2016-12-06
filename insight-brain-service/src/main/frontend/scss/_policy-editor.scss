@@ -45,7 +45,6 @@
 </table>
 ```
 */
-$gray-border: 1px solid #ddd;
 
 table.policy-actions thead tr:first-child th {
   border: 0;
@@ -53,7 +52,7 @@ table.policy-actions thead tr:first-child th {
 
 table.policy-actions .action-header {
   border-radius: 4px 4px 0 0;
-  border: $gray-border;
+  border: $grey-border;
   border-bottom: 0;
   text-align: center;
   font-weight: normal;
@@ -88,7 +87,7 @@ table.policy-actions > tbody > tr > td {
 }
 
 table.policy-actions td:last-child, table.policy-actions th:last-child {
-  border-right: $gray-border;
+  border-right: $grey-border;
 }
 
 $condition-indent-width: 24px;

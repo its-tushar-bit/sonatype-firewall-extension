@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -13,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.naming.NamingException;
+import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -24,9 +27,12 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.Application;
@@ -43,7 +49,10 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.test.LogOutput;
@@ -51,14 +60,15 @@ import com.sonatype.insight.test.LogOutput;
 import org.sonatype.micromailer.Address;
 
 import com.google.inject.Binder;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Captor;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -66,8 +76,11 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -83,6 +96,9 @@ public class PolicyAlertEmailerTest
   @Rule
   public LogOutput log = new LogOutput(PolicyAlertEmailer.class);
 
+  @Rule
+  public LogOutput abstractPolicyAlertEmailerLog = new LogOutput(AbstractPolicyAlertEmailer.class);
+
   @Inject
   private InsightConfig config;
 
@@ -94,10 +110,11 @@ public class PolicyAlertEmailerTest
   @Captor
   private ArgumentCaptor<List<Address>> toAddressesArgumentCaptor;
 
-  private LdapServer serverDetails;
+  @Rule
+  public TestLdapServer testLdapServer1 = new TestLdapServer();
 
   @Rule
-  public TestLdapServer ldapServer = new TestLdapServer();
+  public TestLdapServer testLdapServer2 = new TestLdapServer();
 
   @Inject
   private LdapManager manager;
@@ -116,13 +133,6 @@ public class PolicyAlertEmailerTest
   @Before
   public void before() {
     config.setBaseUrl("http://localhost");
-  }
-
-  @After
-  public void cleanup() throws Exception {
-    if (serverDetails != null) {
-      new LdapServerDAO().delete(serverDetails);
-    }
   }
 
   @Test
@@ -297,13 +307,8 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void test_Notification_Role_WithGroups() throws Exception {
-    startLdapServer();
-    setSearchBase();
-
-    LdapUserMapping ldapUserMapping = createUserMapping();
-    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
-    new LdapUserMappingDAO().insert(ldapUserMapping);
+    startLdapServer1();
+    startLdapServer2();
 
     Application app = tempEntity.newApplicationWithParent("test");
 
@@ -323,7 +328,53 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
-    assertEmailAddresses("test.user@company.com", "test.user2@company.com", "test.user3@company.com");
+    assertEmailAddresses("test.user1_1@company.com", "test.user2_1@company.com", "test.user3_1@company.com",
+        "test.user1_2@company.com", "test.user2_2@company.com", "test.user3_2@company.com");
+  }
+
+  @Test
+  public void test_Notification_Role_WithGroups_WithOneLdapServerFailure() throws Exception {
+    startLdapServer1();
+    startLdapServer2();
+
+    Application app = tempEntity.newApplicationWithParent("test");
+
+    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    String groupName = "ab";
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), groupName, MemberType.GROUP);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = "scan-id";
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(app.getId(), "test");
+    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policyDAO.update(policy);
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+    List<LdapServer> ldapServers = new LdapServerDAO().getAll();
+    assertThat(ldapServers, hasSize(2));
+
+    Throwable expectedException = new NamingException("Naming exception!");
+    LdapManager ldapManagerSpy = Mockito.spy(manager);
+    doThrow(expectedException).when(ldapManagerSpy)
+        .findUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class), anyInt());
+
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapManagerSpy);
+    InsightConfig appConfig = new InsightConfig();
+    UriInfo uriInfo = mock(UriInfo.class);
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
+    when(uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080"));
+    PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, baseUrl, new ApplicationAdapter(userDirectory),
+        userDirectory, ldapManagerSpy, new OwnerDAO(), new MembershipMappingDAO());
+
+    undertest.sendNotifications(app, scanId, stage, policyNotifications);
+    // make sure emails from server 2 still go out
+    assertEmailAddresses("test.user1_2@company.com", "test.user2_2@company.com", "test.user3_2@company.com");
+    abstractPolicyAlertEmailerLog.assertError(
+        "Cannot send notifications to members of group " + groupName + " using ldap server " +
+            ldapServers.get(0).getName(), expectedException);
   }
 
   @Test
@@ -399,33 +450,43 @@ public class PolicyAlertEmailerTest
     assertThat(actualEmailAddresses, containsInAnyOrder(expectedEmailAddresses));
   }
 
-  private void startLdapServer() throws Exception {
-    serverDetails = tempEntity.newLdapServer("Test Server");
+  private void startLdapServer1() throws Exception {
+    LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server 1");
 
-    ldapServer.start();
-    ldapServer.loadData("/ldap_users1.ldif");
+    testLdapServer1.start();
+    testLdapServer1.loadData("/ldap_users1.ldif");
+
+    manager.saveConnection(createLdapConnection(ldapServer1, testLdapServer1));
+
+    new LdapUserMappingDAO().insert(createUserMapping(ldapServer1));
   }
 
-  protected LdapConnection createLdapConnection() {
-    LdapConnection conn = manager.loadConnection(serverDetails.getId());
-    conn.setServerId(serverDetails.getId());
+  private void startLdapServer2() throws Exception {
+    LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server 2");
+
+    testLdapServer2.start();
+    testLdapServer2.loadData("/ldap_users2.ldif");
+
+    manager.saveConnection(createLdapConnection(ldapServer2, testLdapServer2));
+
+    new LdapUserMappingDAO().insert(createUserMapping(ldapServer2));
+  }
+
+  private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {
+    LdapConnection conn = manager.loadConnection(ldapServer.getId());
+    conn.setServerId(ldapServer.getId());
     conn.setProtocol(LdapProtocol.LDAP);
-    if (ldapServer != null) {
-      conn.setHostname(ldapServer.getHostname());
-      conn.setPort(ldapServer.getPort());
+    conn.setSearchBase("dc=company,dc=com");
+    if (testLdapServer != null) {
+      conn.setHostname(testLdapServer.getHostname());
+      conn.setPort(testLdapServer.getPort());
     }
     return conn;
   }
 
-  private void setSearchBase() {
-    LdapConnection conn = createLdapConnection();
-    conn.setSearchBase("dc=company,dc=com");
-    manager.saveConnection(conn);
-  }
-
-  private LdapUserMapping createUserMapping() {
+  private LdapUserMapping createUserMapping(LdapServer ldapServer) {
     LdapUserMapping umap = new LdapUserMapping();
-    umap.setServerId(serverDetails.getId());
+    umap.setServerId(ldapServer.getId());
     umap.setUserBaseDN("ou=users");
     umap.setUserObjectClass("person");
     umap.setUserIDAttribute("uid");
@@ -435,6 +496,8 @@ public class PolicyAlertEmailerTest
     umap.setGroupBaseDN("ou=groups");
     umap.setGroupIDAttribute("cn");
     umap.setGroupSubtree(true);
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
     return umap;
   }
 
@@ -477,5 +540,24 @@ public class PolicyAlertEmailerTest
     policyFact.addComponentFact(componentFact);
 
     return policyFact;
+  }
+
+  private static class SameId
+      extends ArgumentMatcher<LdapServer>
+  {
+    private final String ldapServerId;
+
+    SameId(LdapServer ldapServer) {
+      ldapServerId = ldapServer.getId();
+    }
+
+    @Override
+    public boolean matches(Object obj) {
+      if (obj == null) {
+        return false;
+      }
+      LdapServer other = (LdapServer) obj;
+      return ldapServerId.equals(other.getId());
+    }
   }
 }

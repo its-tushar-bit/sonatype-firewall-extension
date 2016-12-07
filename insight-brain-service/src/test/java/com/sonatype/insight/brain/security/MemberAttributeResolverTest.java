@@ -12,6 +12,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 
@@ -22,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
@@ -31,10 +33,16 @@ public class MemberAttributeResolverTest
   @Inject
   private UserDirectory userDirectory;
 
+  @Inject
+  private LdapManager manager;
+
   private MemberAttributeResolver memberAttributeResolver;
 
   @Rule
-  public TestLdapServer embeddedLdapServer = new TestLdapServer();
+  public TestLdapServer embeddedLdapServer1 = new TestLdapServer();
+
+  @Rule
+  public TestLdapServer embeddedLdapServer2 = new TestLdapServer();
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -62,60 +70,129 @@ public class MemberAttributeResolverTest
   // Test both user and group to reduce the overhead of starting an EmbeddedLdapServer
   @Test
   public void testResolveLDAPUserAndGroup() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/MemberAttributeResolverTest/ldap_users.ldif");
+    embeddedLdapServer1.start();
+    embeddedLdapServer1.loadData("/MemberAttributeResolverTest/ldap_users1.ldif");
 
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    embeddedLdapServer2.start();
+    embeddedLdapServer2.loadData("/MemberAttributeResolverTest/ldap_users2.ldif");
 
-    final Member userMember = new Member();
-    userMember.setType(MemberType.USER);
-    userMember.setInternalName("testuser");
+    LdapServer ldapServer1 = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer1.getId(), embeddedLdapServer1.getPort());
+    tempEntity.newLdapUserMapping(ldapServer1.getId());
 
-    List<Member> members = Arrays.asList(userMember);
+    LdapServer ldapServer2 = tempEntity.newLdapServer("LDAP2");
+    tempEntity.newLdapConnection(ldapServer2.getId(), embeddedLdapServer2.getPort());
+    tempEntity.newLdapUserMapping(ldapServer2.getId());
+
+    final Member userMember1 = new Member();
+    userMember1.setType(MemberType.USER);
+    userMember1.setInternalName("testuser1_1");
+
+    final Member userMember2 = new Member();
+    userMember2.setType(MemberType.USER);
+    userMember2.setInternalName("testuser1_2");
+
+    List<Member> members = Arrays.asList(userMember1, userMember2);
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(userMember, MemberType.USER, "testuser", "John Doe", "test.user@company.com", "LDAP");
+    assertMember(userMember1, MemberType.USER, "testuser1_1", "John Doe", "test.user1_1@company.com", "LDAP");
+    assertMember(userMember2, MemberType.USER, "testuser1_2", "John Doe", "test.user1_2@company.com", "LDAP2");
 
-    final Member groupMember = new Member();
-    groupMember.setType(MemberType.GROUP);
-    groupMember.setInternalName("Alpha");
 
-    members = Arrays.asList(groupMember);
+    final Member groupMember1 = new Member();
+    groupMember1.setType(MemberType.GROUP);
+    groupMember1.setInternalName("Alpha1");
+
+    final Member groupMember2 = new Member();
+    groupMember2.setType(MemberType.GROUP);
+    groupMember2.setInternalName("Alpha2");
+
+    members = Arrays.asList(groupMember1, groupMember2);
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(groupMember, MemberType.GROUP, "Alpha", "Alpha", null, "LDAP");
+    assertMember(groupMember1, MemberType.GROUP, "Alpha1", "Alpha1", null, "LDAP");
+    assertMember(groupMember2, MemberType.GROUP, "Alpha2", "Alpha2", null, "LDAP2");
+  }
+
+  @Test
+  public void testResolveLDAPGroup_GroupSearchNotEnabled() throws Exception {
+    embeddedLdapServer1.start();
+    embeddedLdapServer1.loadData("/MemberAttributeResolverTest/ldap_users1.ldif");
+
+    embeddedLdapServer2.start();
+    embeddedLdapServer2.loadData("/MemberAttributeResolverTest/ldap_users2.ldif");
+
+    LdapServer ldapServer1 = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer1.getId(), embeddedLdapServer1.getPort());
+
+
+    LdapServer ldapServer2 = tempEntity.newLdapServer("LDAP2");
+    tempEntity.newLdapConnection(ldapServer2.getId(), embeddedLdapServer2.getPort());
+    tempEntity.newLdapUserMapping(ldapServer2.getId());
+
+    assertThat(manager.isGroupSearchEnabled(ldapServer1), is(false));
+    assertThat(manager.isGroupSearchEnabled(ldapServer2), is(true));
+
+    final Member groupMember1 = new Member();
+    groupMember1.setType(MemberType.GROUP);
+    groupMember1.setInternalName("Alpha1");
+
+    final Member groupMember2 = new Member();
+    groupMember2.setType(MemberType.GROUP);
+    groupMember2.setInternalName("Alpha2");
+
+    List<Member>members = Arrays.asList(groupMember1, groupMember2);
+    
+    memberAttributeResolver.resolve(members);
+
+    assertThat(members, hasSize(2));
+    assertMember(groupMember1, MemberType.GROUP, "Alpha1", null, null, null);
+    assertMember(groupMember2, MemberType.GROUP, "Alpha2", "Alpha2", null, "LDAP2");
   }
 
   @Test
   public void testIqUserShading() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/MemberAttributeResolverTest/ldap_users.ldif");
+    embeddedLdapServer1.start();
+    embeddedLdapServer1.loadData("/MemberAttributeResolverTest/ldap_users1.ldif");
 
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
+    embeddedLdapServer2.start();
+    embeddedLdapServer2.loadData("/MemberAttributeResolverTest/ldap_users2.ldif");
 
-    final Member member = new Member();
-    member.setType(MemberType.USER);
-    member.setInternalName("testuser");
+    LdapServer ldapServer1 = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer1.getId(), embeddedLdapServer1.getPort());
+    tempEntity.newLdapUserMapping(ldapServer1.getId());
 
-    List<Member> members = Arrays.asList(member);
+    LdapServer ldapServer2 = tempEntity.newLdapServer("LDAP2");
+    tempEntity.newLdapConnection(ldapServer2.getId(), embeddedLdapServer2.getPort());
+    tempEntity.newLdapUserMapping(ldapServer2.getId());
+
+    final Member member1 = new Member();
+    member1.setType(MemberType.USER);
+    member1.setInternalName("testuser1_1");
+
+    final Member member2 = new Member();
+    member2.setType(MemberType.USER);
+    member2.setInternalName("testuser1_2");
+
+    List<Member> members = Arrays.asList(member1, member2);
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member, MemberType.USER, "testuser", "John Doe", "test.user@company.com", "LDAP");
+    assertMember(member1, MemberType.USER, "testuser1_1", "John Doe", "test.user1_1@company.com", "LDAP");
+    assertMember(member2, MemberType.USER, "testuser1_2", "John Doe", "test.user1_2@company.com", "LDAP2");
 
-    tempEntity.newUser("testuser");
+    tempEntity.newUser("testuser1_1");
+    tempEntity.newUser("testuser1_2");
+
     // Need to reinitialize attribute resolver to clear cache
     memberAttributeResolver = new MemberAttributeResolver(userDirectory);
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "IQ Server");
+    assertMember(member1, MemberType.USER, "testuser1_1", "John Doe", "testuser1_1@void.com", "IQ Server");
+    assertMember(member2, MemberType.USER, "testuser1_2", "John Doe", "testuser1_2@void.com", "IQ Server");
   }
 
   private void assertMember(Member member,

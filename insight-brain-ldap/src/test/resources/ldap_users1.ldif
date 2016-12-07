@@ -20,7 +20,7 @@ objectClass: inetOrgPerson
 sn: User
 cn: Test User 1 1
 userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
-mail: test.user@company.com
+mail: test.user1_1@company.com
 departmentNumber: ab
 departmentNumber: xb
 departmentNumber: abc
@@ -35,7 +35,7 @@ objectClass: inetOrgPerson
 sn: User
 cn: Test User 2 1
 userPassword: test
-mail: test.user2@company.com
+mail: test.user2_1@company.com
 departmentNumber: ab
 departmentNumber: bc
 departmentNumber: bx
@@ -50,7 +50,7 @@ objectClass: inetOrgPerson
 sn: User
 cn: Test*User 1 1
 userPassword: te*st
-mail: test.user3@company.com
+mail: test.user3_1@company.com
 departmentNumber: ab
 departmentNumber: bc
 departmentNumber: bx
@@ -65,7 +65,7 @@ objectClass: inetOrgPerson
 sn: User
 cn: Test SASL User 1 1
 userPassword: s3cr3t
-mail: test.sasl.user@company.com
+mail: test.sasl.user_1@company.com
 departmentNumber: ab
 departmentNumber: saslUsers
 

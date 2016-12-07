@@ -121,34 +121,54 @@ public class UserDirectory
         break;
       }
     }
+    List<NamingException> namingExceptions = new ArrayList<>();
+    List<Exception> otherExceptions = new ArrayList<>();
+    if (!groupNames.isEmpty()) {
+      boolean groupSearchHasBeenDisabled = false;
 
-    if (!result.hasException() && ldapManager.isLdapEnabled()) {
-      String ldapName = ldapManager.getLdapServerName();
-      if (ldapManager.isGroupSearchEnabled()) {
-        if (!groupNames.isEmpty()) {
+      for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+        String ldapName = ldapServer.getName();
+        if (ldapManager.isGroupSearchEnabled(ldapServer)) {
           try {
-            for (LdapGroup group : ldapManager.getGroups(groupNames.toArray(new String[groupNames.size()]),
+            for (LdapGroup group : ldapManager.getGroups(ldapServer, groupNames.toArray(new String[groupNames.size()]),
                 groupNames.size())) {
               final String groupName = group.getGroupname();
               Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
               result.get().add(member);
+              groupNames.remove(groupName);
             }
           }
+          catch (NamingException e) {
+            namingExceptions.add(e);
+          }
           catch (Exception e) {
-            result.exception = e;
+            otherExceptions.add(e);
           }
         }
+        else {
+          groupSearchHasBeenDisabled = true;
+        }
       }
-      else {
+      if (groupSearchHasBeenDisabled) {
         for (Member m : purgeMembersNullUsernames(members)) {
           if (MemberType.GROUP.equals(m.getType())) {
             result.get().add(m);
-            m.setRealm(ldapName);
           }
         }
       }
     }
-    return result;
+
+    if (result.hasException()) {
+      Exception exception = result.getException();
+      if (exception instanceof NamingException) {
+        namingExceptions.add((NamingException) exception);
+      }
+      else {
+        otherExceptions.add(exception);
+      }
+    }
+
+    return new QueryResult(result.members, mergeExceptions(namingExceptions, otherExceptions));
   }
 
   /**
@@ -182,22 +202,23 @@ public class UserDirectory
 
     List<NamingException> namingExceptions = new ArrayList<>();
     List<Exception> otherExceptions = new ArrayList<>();
-    if (ldapManager.isLdapEnabled() && !sortedUserNames.isEmpty()) {
+    if (ldapManager.isLdapEnabled()) {
       for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
-        try {
-          String ldapName = ldapServer.getName();
+        if (!sortedUserNames.isEmpty()) {
+          try {
+            String ldapName = ldapServer.getName();
 
-          for (LdapUser user : ldapManager.getUsers(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]),
-              sortedUserNames.size())) {
-            members.add(new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName));
-            sortedUserNames.remove(user.getUsername());
+            for (LdapUser user : ldapManager.getUsers(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]), sortedUserNames.size())) {
+              members.add(new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName));
+              sortedUserNames.remove(user.getUsername());
+            }
           }
-        }
-        catch (NamingException e) {
-          namingExceptions.add(e);
-        }
-        catch (Exception e) {
-          otherExceptions.add(e);
+          catch (NamingException e) {
+            namingExceptions.add(e);
+          }
+          catch (Exception e) {
+            otherExceptions.add(e);
+          }
         }
       }
     }

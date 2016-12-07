@@ -20,7 +20,9 @@ import javax.naming.NamingException;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
@@ -161,14 +163,16 @@ public abstract class AbstractPolicyAlertEmailer
         emailAddresses.add(member.getEmail());
       }
       if (MemberType.GROUP == member.getType()) {
-        try {
-          List<LdapUser> ldapUsers = ldapManager.findUsersByGroup(member.getInternalName(), 0 /* no max results */);
-          for (LdapUser ldapUser : ldapUsers) {
-            emailAddresses.add(ldapUser.getEmail());
+        for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+          try {
+            for (LdapUser ldapUser : ldapManager.findUsersByGroup(ldapServer, member.getInternalName(), 0 /* no max results */)) {
+              emailAddresses.add(ldapUser.getEmail());
+            }
           }
-        }
-        catch (NamingException e) {
-          log.error("Cannot send notifications to members of group {}", member.getInternalName(), e);
+          catch (NamingException e) {
+            log.error("Cannot send notifications to members of group {} using ldap server {}", member.getInternalName(), 
+                ldapServer.getName(), e);
+          }
         }
       }
     }

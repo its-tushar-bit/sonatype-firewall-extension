@@ -127,8 +127,8 @@ public class LdapManager
     return new LdapQuery(conn, getUserMapping(conn)).getUsers(names, maxResults);
   }
 
-  public List<LdapGroup> getGroups(String[] names, long maxResults) throws NamingException {
-    LdapConnection conn = getDecryptedConnection();
+  public List<LdapGroup> getGroups(LdapServer ldapServer, String[] names, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection(ldapServer);
     return new LdapQuery(conn, getUserMapping(conn)).getGroups(names, maxResults);
   }
 
@@ -153,8 +153,8 @@ public class LdapManager
    * 
    * @since 1.14.0
    */
-  public List<LdapUser> findUsersByGroup(String groupName, long maxResults) throws NamingException {
-    LdapConnection conn = getDecryptedConnection();
+  public List<LdapUser> findUsersByGroup(LdapServer ldapServer, String groupName, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection(ldapServer);
     return new LdapQuery(conn, getUserMapping(conn)).queryUsersByGroup(groupName, maxResults);
   }
 

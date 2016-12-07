@@ -632,7 +632,7 @@ public class LdapManagerTest
     assertThat(user.getUsername(), is("test*user1_" + suffix));
     assertThat(user.getDn(), is("uid=test*user1_" + suffix + ",ou=users,dc=company,dc=com"));
     assertThat(user.getRealName(), is("Test*User 1 " + suffix));
-    assertThat(user.getEmail(), is("test.user3@company.com"));
+    assertThat(user.getEmail(), is("test.user3_" + suffix + "@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
     assertThat(user.getMembership(), nullValue());
 
@@ -640,7 +640,7 @@ public class LdapManagerTest
     assertThat(user.getUsername(), is("test_user1_" + suffix));
     assertThat(user.getDn(), is("uid=test_user1_" + suffix + ",ou=users,dc=company,dc=com"));
     assertThat(user.getRealName(), is("Test User 1 " + suffix));
-    assertThat(user.getEmail(), is("test.user@company.com"));
+    assertThat(user.getEmail(), is("test.user1_" + suffix + "@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
     assertThat(user.getMembership(), nullValue());
 
@@ -648,7 +648,7 @@ public class LdapManagerTest
     assertThat(user.getUsername(), is("test_user2_" + suffix));
     assertThat(user.getDn(), is("uid=test_user2_" + suffix + ",ou=users,dc=company,dc=com"));
     assertThat(user.getRealName(), is("Test User 2 " + suffix));
-    assertThat(user.getEmail(), is("test.user2@company.com"));
+    assertThat(user.getEmail(), is("test.user2_" + suffix + "@company.com"));
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
     assertThat(user.getMembership(), nullValue());
   }
@@ -935,14 +935,14 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[] { "Gamma", "Theta" }, 100);
+    List<LdapGroup> groups = manager.getGroups(ldapServer, new String[] { "Gamma", "Theta" }, 100);
     assertThat(groups.size(), is(2));
 
     // Test max results
-    groups = manager.getGroups(new String[] { "Gamma", "Theta" }, 1);
+    groups = manager.getGroups(ldapServer, new String[] { "Gamma", "Theta" }, 1);
     assertThat(groups.size(), is(1));
 
-    groups = manager.getGroups(new String[] { "foo" }, 100);
+    groups = manager.getGroups(ldapServer, new String[] { "foo" }, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -960,7 +960,7 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[] { "*ta" }, 100);
+    List<LdapGroup> groups = manager.getGroups(ldapServer, new String[] { "*ta" }, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -976,13 +976,13 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[] { "ab", "abc", "bc" }, 100);
+    List<LdapGroup> groups = manager.getGroups(ldapServer, new String[] { "ab", "abc", "bc" }, 100);
     assertThat(groups.size(), is(3));
 
-    groups = manager.getGroups(new String[] { "ab", "abc", "bc" }, 1);
+    groups = manager.getGroups(ldapServer, new String[] { "ab", "abc", "bc" }, 1);
     assertThat(groups.size(), is(1));
 
-    groups = manager.getGroups(new String[] { "foo" }, 100);
+    groups = manager.getGroups(ldapServer, new String[] { "foo" }, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -998,7 +998,7 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[] { "ab*" }, 100);
+    List<LdapGroup> groups = manager.getGroups(ldapServer, new String[] { "ab*" }, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -1200,7 +1200,7 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("${dn}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = manager.findUsersByGroup("Epsilon", 100);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "Epsilon", 100);
     assertThat(users, hasSize(2));
   }
 
@@ -1218,7 +1218,7 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = manager.findUsersByGroup("Delta", 100);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "Delta", 100);
     assertThat(users, hasSize(2));
   }
 
@@ -1236,7 +1236,7 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("dc=company,${dn},dc=com,${dn}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = manager.findUsersByGroup("Lambda", 100);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "Lambda", 100);
     assertThat(users, hasSize(2));
   }
 
@@ -1254,9 +1254,9 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("${dn}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = manager.findUsersByGroup("Epsilon", 1);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "Epsilon", 1);
     assertThat(users, hasSize(1));
-    users = manager.findUsersByGroup("Epsilon", 0);
+    users = manager.findUsersByGroup(ldapServer, "Epsilon", 0);
     assertThat(users, hasSize(2));
   }
 
@@ -1268,9 +1268,9 @@ public class LdapManagerTest
 
     createStaticGroupMapping(ldapServer);
 
-    List<LdapUser> users = manager.findUsersByGroup("Theta", 1);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "Theta", 1);
     assertThat(users, hasSize(1));
-    users = manager.findUsersByGroup("Theta", 0);
+    users = manager.findUsersByGroup(ldapServer, "Theta", 0);
     assertThat(users, hasSize(2));
   }
 
@@ -1288,7 +1288,7 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = manager.findUsersByGroup("Delt*", 100);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "Delt*", 100);
     assertThat(users, hasSize(0));
   }
 
@@ -1303,7 +1303,7 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     new LdapUserMappingDAO().update(umap);
 
-    List<LdapUser> users = manager.findUsersByGroup("a*", 100);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "a*", 100);
     assertThat(users, hasSize(0));
   }
 
@@ -1616,15 +1616,15 @@ public class LdapManagerTest
     createDynamicGroupMapping(ldapServer);
 
     // Group with one user
-    List<LdapUser> users = manager.findUsersByGroup("xb", 0 /* maxResults */);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "xb", 0 /* maxResults */);
     assertThat(users, hasSize(1));
     LdapUser user = users.get(0);
     assertThat(user.getUsername(), is("test_user1_1"));
     assertThat(user.getRealName(), is("Test User 1 1"));
-    assertThat(user.getEmail(), is("test.user@company.com"));
+    assertThat(user.getEmail(), is("test.user1_1@company.com"));
 
     // Group with two users
-    users = manager.findUsersByGroup("ab", 0 /* maxResults */);
+    users = manager.findUsersByGroup(ldapServer, "ab", 0 /* maxResults */);
     Set<String> usernames = new HashSet<>();
     for (LdapUser user1 : users) {
       usernames.add(user1.getUsername());
@@ -1632,7 +1632,7 @@ public class LdapManagerTest
     assertThat(usernames, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
 
     // Group without users
-    users = manager.findUsersByGroup("no such group", 0 /* maxResults */);
+    users = manager.findUsersByGroup(ldapServer, "no such group", 0 /* maxResults */);
     assertThat(users, hasSize(0));
   }
 
@@ -1645,9 +1645,9 @@ public class LdapManagerTest
     createDynamicGroupMapping(ldapServer);
 
     // Group with two users
-    List<LdapUser> users = manager.findUsersByGroup("ab", 0 /* maxResults */);
+    List<LdapUser> users = manager.findUsersByGroup(ldapServer, "ab", 0 /* maxResults */);
     assertThat(users, hasSize(3));
-    users = manager.findUsersByGroup("ab", 1 /* maxResults */);
+    users = manager.findUsersByGroup(ldapServer, "ab", 1 /* maxResults */);
     assertThat(users, hasSize(1));
   }
 

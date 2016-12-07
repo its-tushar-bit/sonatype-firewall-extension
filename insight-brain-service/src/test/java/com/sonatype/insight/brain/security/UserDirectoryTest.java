@@ -98,12 +98,13 @@ public class UserDirectoryTest
   public void testGetMembersByName() throws Exception {
     // Configure LDAP.
     configureAndStartNewLdapServer(testLdapServer1, "LDAP");
+    configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
     // Add a new CLM user.
     tempEntity.newUser("clmbob");
 
     // Get users only, no groups.
-    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha");
+    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1", "Alpha2");
     List<Member> members = userDirectory.getUsersByName(names).get();
 
     assertThat(members, hasSize(2));
@@ -111,16 +112,17 @@ public class UserDirectoryTest
 
     // Get both groups and users.
     members = userDirectory
-        .getMembersByName(Sets.newHashSet(createUser("clmbob"), createUser("testuser1"), createGroup("Alpha"))).get();
+        .getMembersByName(Sets.newHashSet(createUser("clmbob"), createUser("testuser1"), createGroup("Alpha1"), 
+            createGroup("Alpha2"))).get();
 
-    assertThat(members, hasSize(3));
+    assertThat(members, hasSize(4));
     assertThat(
         names,
         containsInAnyOrder(members.get(0).getInternalName(), members.get(1).getInternalName(), members.get(2)
-            .getInternalName()));
+            .getInternalName(), members.get(3).getInternalName()));
 
     // Get users only, case insensitive.
-    names = Sets.newHashSet("CLMBOB", "TESTUSER1", "ALPHA");
+    names = Sets.newHashSet("CLMBOB", "TESTUSER1", "ALPHA1", "ALPHA2");
     members = userDirectory.getUsersByName(names).get();
 
     assertThat(members, hasSize(2));
@@ -131,15 +133,15 @@ public class UserDirectoryTest
 
     // Get users and groups, case insensitive.
     members = userDirectory
-        .getMembersByName(Sets.newHashSet(createUser("CLMBOB"), createUser("TESTUSER1"), createGroup("ALPHA"))).get();
+        .getMembersByName(Sets.newHashSet(createUser("CLMBOB"), createUser("TESTUSER1"), createGroup("ALPHA1"), 
+            createGroup("ALPHA2"))).get();
 
-    assertThat(members, hasSize(3));
+    assertThat(members, hasSize(4));
     assertThat(
         names,
         containsInAnyOrder(members.get(0).getInternalName().toUpperCase(Locale.ENGLISH), members.get(1)
             .getInternalName().toUpperCase(Locale.ENGLISH), members.get(2).getInternalName()
-            .toUpperCase(Locale.ENGLISH)));
-
+            .toUpperCase(Locale.ENGLISH), members.get(3).getInternalName().toUpperCase(Locale.ENGLISH)));
   }
 
   @Test
@@ -158,6 +160,8 @@ public class UserDirectoryTest
     umap.setDynamicGroupSearchEnabled(false);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.update(umap);
+    
+    assertThat(manager.isGroupSearchEnabled(ldapServer), is(false));
 
     QueryResult result = userDirectory.getMembersByQuery("testUsers", true);
     assertThat(result.get(), hasSize(0));
@@ -167,14 +171,15 @@ public class UserDirectoryTest
     Member member = result.get().get(0);
     assertEquals(MemberType.GROUP, member.getType());
     assertEquals("testUsers", member.getInternalName());
-    assertEquals("LDAP", member.getRealm());
+    assertEquals(null, member.getRealm());
   }
 
   @Test
-  public void testGetMembersByName_WithUserDirectoryError() throws Exception {
+  public void testGetMembersByName_WithUserDirectory_GetUsersNamingError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     tempEntity.newLdapServer("Test Server");
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
     when(mockLdapManager.getUsers(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(namingException);
 
@@ -183,8 +188,63 @@ public class UserDirectoryTest
     // Add a new CLM user.
     tempEntity.newUser("clmbob");
 
-    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha");
-    UserDirectory.QueryResult result = userDirectory.getUsersByName(names);
+    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1");
+    UserDirectory.QueryResult result = userDirectory.getMembersByName(Sets.newHashSet(createUser("clmbob"), 
+        createUser("testuser1"), createGroup("Alpha1")));
+    List<Member> members = result.get();
+
+    // Verify that the CLM user has been returned.
+    assertThat(members, hasSize(1));
+    assertThat(names, hasItems(members.get(0).getInternalName()));
+    assertThat(result.getException(), instanceOf(NamingException.class));
+    assertThat(result.getException().getSuppressed().length, is(1));
+    assertThat(result.getException().getSuppressed()[0], instanceOf(NamingException.class));
+  }
+
+  @Test
+  public void testGetMembersByName_WithUserDirectory_GetUsersGenericError() throws Exception {
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    tempEntity.newLdapServer("Test Server");
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
+    Throwable exception = new RuntimeException("Exception!");
+    when(mockLdapManager.getUsers(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(exception);
+
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
+
+    // Add a new CLM user.
+    tempEntity.newUser("clmbob");
+
+    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1");
+    UserDirectory.QueryResult result = userDirectory.getMembersByName(Sets.newHashSet(createUser("clmbob"),
+        createUser("testuser1"), createGroup("Alpha1")));
+    List<Member> members = result.get();
+
+    // Verify that the CLM user has been returned.
+    assertThat(members, hasSize(1));
+    assertThat(names, hasItems(members.get(0).getInternalName()));
+    assertThat(result.getException(), instanceOf(Exception.class));
+    assertThat(result.getException().getSuppressed().length, is(1));
+    assertThat(result.getException().getSuppressed()[0], instanceOf(Exception.class));
+  }
+
+  @Test
+  public void testGetMembersByName_WithUserDirectory_GetGroupsNamingError() throws Exception {
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    tempEntity.newLdapServer("Test Server");
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
+    Throwable namingException = new NamingException("Naming Exception!");
+    when(mockLdapManager.getGroups(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(namingException);
+
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
+
+    // Add a new CLM user.
+    tempEntity.newUser("clmbob");
+
+    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1");
+    UserDirectory.QueryResult result = userDirectory.getMembersByName(Sets.newHashSet(createUser("clmbob"), 
+        createUser("testuser1"), createGroup("Alpha1")));
     List<Member> members = result.get();
 
     // Verify that the CLM user has been returned.
@@ -193,6 +253,33 @@ public class UserDirectoryTest
     assertThat(result.getException(), instanceOf(NamingException.class));
     assertThat(result.getException().getSuppressed().length, is(1));
     assertThat(result.getException().getSuppressed()[0], is(namingException));
+  }
+
+  @Test
+  public void testGetMembersByName_WithUserDirectory_GetGroupsGenericError() throws Exception {
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    tempEntity.newLdapServer("Test Server");
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
+    Throwable exception = new RuntimeException("Exception!");
+    when(mockLdapManager.getGroups(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(exception);
+
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
+
+    // Add a new CLM user.
+    tempEntity.newUser("clmbob");
+
+    Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1");
+    UserDirectory.QueryResult result = userDirectory.getMembersByName(Sets.newHashSet(createUser("clmbob"),
+        createUser("testuser1"), createGroup("Alpha1")));
+    List<Member> members = result.get();
+
+    // Verify that the CLM user and testuser1 have been returned.
+    assertThat(members, hasSize(1));
+    assertThat(names, hasItems(members.get(0).getInternalName()));
+    assertThat(result.getException(), instanceOf(Exception.class));
+    assertThat(result.getException().getSuppressed().length, is(1));
+    assertThat(result.getException().getSuppressed()[0], is(exception));
   }
 
   @Test
@@ -207,7 +294,7 @@ public class UserDirectoryTest
 
     assertThat(result.get(), hasSize(0));
     verify(mockLdapManager, never()).getUsers(any(LdapServer.class), any(String[].class), any(Long.class));
-    verify(mockLdapManager, never()).getGroups(any(String[].class), any(Long.class));
+    verify(mockLdapManager, never()).getGroups(any(LdapServer.class), any(String[].class), any(Long.class));
   }
 
   @Test
@@ -522,8 +609,14 @@ public class UserDirectoryTest
     configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
+    // Get one user
+    List<Member> members = userDirectory.getUsersByName(Sets.newHashSet("testuser1")).get();
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getInternalName(), is("testuser1"));
+    assertThat(members.get(0).getRealm(), is("LDAP1"));
+
     // Get users from both server 1 and server 2
-    List<Member> members = userDirectory.getUsersByName(Sets.newHashSet("testuser1", "testuser2")).get();
+    members = userDirectory.getUsersByName(Sets.newHashSet("testuser1", "testuser2")).get();
     assertThat(members, hasSize(2));
     assertThat(members.get(0).getInternalName(), is("testuser1"));
     assertThat(members.get(0).getRealm(), is("LDAP1"));

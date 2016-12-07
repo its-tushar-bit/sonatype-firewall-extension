@@ -1,0 +1,31 @@
+dn: ou=users,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: users
+description: Container for user entries
+
+dn: ou=groups,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+description: Container for group entries
+
+dn: uid=testuser1_2,ou=users,dc=company,dc=com
+uid: testuser1_2
+givenName: John Doe
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: test.user1_2@company.com
+departmentNumber: testUsers
+departmentNumber: primaryUsers
+
+dn: cn=Alpha2,ou=groups,dc=company,dc=com
+cn: Alpha2
+objectClass: top
+objectClass: groupOfNames
+member: uid=testuser1_2

@@ -100,7 +100,7 @@ public class UserDirectoryTest
     configureAndStartNewLdapServer(testLdapServer1, "LDAP");
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("clmbob");
 
     // Get users only, no groups.
@@ -185,7 +185,7 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("clmbob");
 
     Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1");
@@ -193,7 +193,7 @@ public class UserDirectoryTest
         createUser("testuser1"), createGroup("Alpha1")));
     List<Member> members = result.get();
 
-    // Verify that the CLM user has been returned.
+    // Verify that the internal user has been returned.
     assertThat(members, hasSize(1));
     assertThat(names, hasItems(members.get(0).getInternalName()));
     assertThat(result.getException(), instanceOf(NamingException.class));
@@ -212,7 +212,7 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("clmbob");
 
     Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1");
@@ -220,7 +220,7 @@ public class UserDirectoryTest
         createUser("testuser1"), createGroup("Alpha1")));
     List<Member> members = result.get();
 
-    // Verify that the CLM user has been returned.
+    // Verify that the internal user has been returned.
     assertThat(members, hasSize(1));
     assertThat(names, hasItems(members.get(0).getInternalName()));
     assertThat(result.getException(), instanceOf(Exception.class));
@@ -239,7 +239,7 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("clmbob");
 
     Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1");
@@ -247,7 +247,7 @@ public class UserDirectoryTest
         createUser("testuser1"), createGroup("Alpha1")));
     List<Member> members = result.get();
 
-    // Verify that the CLM user has been returned.
+    // Verify that the internal user has been returned.
     assertThat(members, hasSize(1));
     assertThat(names, hasItems(members.get(0).getInternalName()));
     assertThat(result.getException(), instanceOf(NamingException.class));
@@ -266,7 +266,7 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("clmbob");
 
     Set<String> names = Sets.newHashSet("clmbob", "testuser1", "Alpha1");
@@ -274,7 +274,7 @@ public class UserDirectoryTest
         createUser("testuser1"), createGroup("Alpha1")));
     List<Member> members = result.get();
 
-    // Verify that the CLM user and testuser1 have been returned.
+    // Verify that the internal user and testuser1 have been returned.
     assertThat(members, hasSize(1));
     assertThat(names, hasItems(members.get(0).getInternalName()));
     assertThat(result.getException(), instanceOf(Exception.class));
@@ -322,16 +322,16 @@ public class UserDirectoryTest
     configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("clmbob", "clm", "bob", "clmbob@bob");
 
-    // Get CLM user.
+    // Get internal user.
     List<Member> members = userDirectory.getMembersByQuery("clm bob", false).get();
 
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("clmbob"));
 
-    // Get CLM user case insensitive.
+    // Get internal user case insensitive.
     members = userDirectory.getMembersByQuery("CLM BOB", false).get();
 
     assertThat(members, hasSize(1));
@@ -351,7 +351,7 @@ public class UserDirectoryTest
     assertThat(members.get(0).getInternalName(), is("testuser1"));
     assertThat(members.get(1).getInternalName(), is("testuser2"));
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("alphabob", "alphaclm", "bob", "alphaclmbob@bob");
     // Get both groups and users, case insensitive.
     members = userDirectory.getMembersByQuery("ALPHA*", true).get();
@@ -377,7 +377,7 @@ public class UserDirectoryTest
     // Configure LDAP.
     configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("clmbob", "clm", "bob", "clmbob@bob");
 
     // Prefix wildcard
@@ -413,13 +413,13 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
 
     UserDirectory.QueryResult result = userDirectory.getMembersByQuery("John *", false);
     List<Member> members = result.get();
 
-    // Verify that the CLM user has been returned.
+    // Verify that the internal user has been returned.
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
     assertThat(result.getException(), instanceOf(NamingException.class));
@@ -459,13 +459,13 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
 
     UserDirectory.QueryResult result = userDirectory.getMembersByQuery("John *", false);
     List<Member> members = result.get();
 
-    // Verify that the CLM user has been returned.
+    // Verify that the internal user has been returned.
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
     assertThat(result.getException(), instanceOf(Exception.class));
@@ -517,13 +517,13 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
 
     UserDirectory.QueryResult result = userDirectory.getMembersByQuery("John *", false);
     List<Member> members = result.get();
 
-    // Verify that the CLM user and the LDAP user have been returned.
+    // Verify that the internal user and the LDAP user have been returned.
     assertThat(members, hasSize(2));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
     assertThat(members.get(1).getInternalName(), is("testldapuser"));
@@ -573,7 +573,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetUsersByName_LdapOnlyCalledWithNamesNotFoundInCLMRealm() throws Exception {
+  public void testGetUsersByName_LdapOnlyCalledWithNamesNotFoundInInternalRealm() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     tempEntity.newLdapServer("Test Server");
 
@@ -584,20 +584,20 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
-    // Add a new CLM user.
+    // Add a new internal user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
 
     UserDirectory.QueryResult result = userDirectory.getUsersByName(Sets.newHashSet("tesTcLmUsEr", expectedArgument[0],
         expectedArgument[1]));
     List<Member> members = result.get();
 
-    // Verify that only the CLM user has been returned.
+    // Verify that only the internal user has been returned.
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
     // That 'John' was removed from the user names to search.
     verify(mockLdapManager).getUsers(any(LdapServer.class), argThat(is(equalTo(expectedArgument))), eq(2L));
 
-    // Test that the get users method isn't called when only CLM users are provided.
+    // Test that the get users method isn't called when only internal users are provided.
     userDirectory.getUsersByName(Sets.newHashSet("tesTcLmUsEr"));
     // Count of the number of calls is still one, as expected.
     verify(mockLdapManager, times(1)).getUsers(any(LdapServer.class), any(String[].class), anyInt());
@@ -651,7 +651,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testValidateUsers_ClmUserFound() {
+  public void testValidateUsers_InternalUserFound() {
     User testUser = tempEntity.newUser();
 
     Set<String> users = Collections.singleton(testUser.getUsername());
@@ -687,7 +687,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testValidateUsers_ClmUserNotFound_LdapNotConfigured() {
+  public void testValidateUsers_InternalUserNotFound_LdapNotConfigured() {
     Set<String> users = Sets.newHashSet("invaliduser");
     Set<String> invalidUsers = userDirectory.validateUsers(users);
     assertThat(invalidUsers, hasSize(1));
@@ -695,7 +695,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testValidateUsers_ClmUserNotFound_LdapConfigured() throws Exception {
+  public void testValidateUsers_InternalUserNotFound_LdapConfigured() throws Exception {
     configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
     Set<String> users = Sets.newHashSet("invaliduser");

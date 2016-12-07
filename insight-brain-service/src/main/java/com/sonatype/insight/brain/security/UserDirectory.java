@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A facade that accesses either the internal CLM user data or LDAP data.
+ * A facade that accesses either the internal user data or LDAP data.
  * 
  * @since 1.11.0
  */
@@ -77,8 +77,8 @@ public class UserDirectory
     }
 
     /**
-     * @return The list of members produced by a query, if an exception occurred then this list will only represent
-     *         results local to CLM.
+     * @return The list of members produced by a query. If an exception occurs when querying a realm, it is still
+     *         likely that this list contains member information from the other realms.
      */
     public @NotNull List<Member> get() {
       return members;
@@ -102,9 +102,9 @@ public class UserDirectory
   }
 
   /**
-   * @param names The members that should be populated and returned
+   * @param members The members that should be populated and returned
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
-   *         result contains local user information.
+   *         result contains user/group information.
    */
   public QueryResult getMembersByName(Collection<Member> members) {
     if (members == null || members.isEmpty()) {
@@ -175,7 +175,7 @@ public class UserDirectory
    * 
    * @param origUserNames the user names to find
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
-   *         result contains local user information.
+   *         result contains user information.
    */
   public QueryResult getUsersByName(Set<String> origUserNames) {
     if (origUserNames == null || origUserNames.isEmpty()) {
@@ -192,12 +192,12 @@ public class UserDirectory
 
     Set<String> sortedUserNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
     sortedUserNames.addAll(userNames);
-    List<User> clmUsers = userDao.getByUsernames(sortedUserNames);
-    for (User user : clmUsers) {
-      Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(),
-          InternalRealm.DISPLAY_NAME);
+    List<User> internalUsers = userDao.getByUsernames(sortedUserNames);
+    for (User internalUser : internalUsers) {
+      Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
+          internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
       members.add(member);
-      sortedUserNames.remove(user.getUsername());
+      sortedUserNames.remove(internalUser.getUsername());
     }
 
     List<NamingException> namingExceptions = new ArrayList<>();
@@ -231,7 +231,7 @@ public class UserDirectory
    *          names.
    * @param groupsEnabled True, if LDAP groups should also be searched.
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
-   *         result contains local user information.
+   *         result contains user/group information.
    */
   public QueryResult getMembersByQuery(String query, boolean groupsEnabled) {
     List<Member> members = new ArrayList<>();
@@ -240,14 +240,14 @@ public class UserDirectory
       return new QueryResult(members);
     }
 
-    // Users are shaded by any user from the CLM domain that has the same user name.
+    // LDAP users are shaded by any user from the internal realm that has the same user name.
     Map<String, Member> users = new LinkedHashMap<>();
     Map<String, Member> groups = new LinkedHashMap<>();
 
-    String clmRealmQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
-    for (User user : userDao.findUsersByName(clmRealmQuery)) {
-      Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(),
-          InternalRealm.DISPLAY_NAME);
+    String internalRealmQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
+    for (User internalUser : userDao.findUsersByName(internalRealmQuery)) {
+      Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
+          internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
       users.put(member.getInternalNameLowerCase(), member);
     }
 

@@ -237,7 +237,8 @@ public class ComponentInfoService
       componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
     }
 
-    log.debug("Loaded component details list in {} ms.", System.currentTimeMillis() - start);
+    log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
+        componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
 
     return componentDetailsList;
   }

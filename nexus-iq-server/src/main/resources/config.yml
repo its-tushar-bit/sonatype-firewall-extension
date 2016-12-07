@@ -109,6 +109,17 @@ http:
   # The password used to connect to the JIRA server
   #password: "guest"
 
+  # Any custom fields that you wish to populate in the JIRA notification. Any
+  # required fields must have default values configured here. Examples are shown below.
+  #customFields:
+  #   reporter:
+  #     name: "username"
+  #   labels:
+  #     - test
+  #     - bug
+  #   environment: "dev"
+  #   duedate: "2016-11-01"
+
 # Proxy settings.
 #proxy:
 

@@ -14,76 +14,70 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.service.InsightConfig;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.jira.JiraField.DESCRIPTION;
 import static com.sonatype.insight.brain.jira.JiraField.ISSUETYPE;
 import static com.sonatype.insight.brain.jira.JiraField.PROJECT;
+import static com.sonatype.insight.brain.jira.JiraField.REPORTER;
 import static com.sonatype.insight.brain.jira.JiraField.SUMMARY;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class JiraServiceTest
 {
-  private JiraService createMinimalService() {
-    return new JiraService(mock(InsightConfig.class), mock(JiraClientFactory.class));
+  @Mock
+  private InsightConfig insightConfig;
+
+  @Mock
+  private JiraConfig jiraConfig;
+
+  @Mock
+  private JiraClientFactory jiraClientFactory;
+
+  @Mock
+  private JiraClient jiraClient;
+
+  private JiraService underTest;
+
+  @Before
+  public void setUp() {
+    Map<String, String> reporterMap = new HashMap<>();
+    reporterMap.put("name", "reporter_name");
+
+    Map<String, Object> customFields = new HashMap<>();
+    customFields.put(REPORTER, reporterMap);
+
+    when(insightConfig.getJiraConfig()).thenReturn(jiraConfig);
+    when(jiraConfig.getCustomFields()).thenReturn(customFields);
+
+    underTest = new JiraService(insightConfig, jiraClientFactory);
   }
 
   @Test
   public void testIsEnabled() {
-    InsightConfig insightConfig = new InsightConfig();
-
-    JiraService underTest = new JiraService(insightConfig, mock(JiraClientFactory.class));
-
     // default null configuration should NOT be enabled
-    assertThat(insightConfig.getJiraConfig(), nullValue());
+    when(insightConfig.getJiraConfig()).thenReturn(null);
+
     assertThat(underTest.isEnabled(), is(false));
 
     // install configuration and it should be enabled
-    JiraConfig jiraConfig = new JiraConfig();
-    insightConfig.setJiraConfig(jiraConfig);
+    when(insightConfig.getJiraConfig()).thenReturn(jiraConfig);
+
     assertThat(underTest.isEnabled(), is(true));
-  }
-
-  private JiraIssueType createIssueType() {
-    JiraIssueType issueType = new JiraIssueType();
-    Map<String, JiraField> fields = new HashMap<>();
-    issueType.setFields(fields);
-    defaultFields(fields);
-    return issueType;
-  }
-
-  /**
-   * Fill in the default fields.
-   */
-  private void defaultFields(final Map<String, JiraField> fields) {
-    JiraField field = new JiraField();
-    field.setRequired(true);
-    fields.put(PROJECT, field);
-
-    field = new JiraField();
-    field.setRequired(true);
-    fields.put(ISSUETYPE, field);
-
-    field = new JiraField();
-    field.setRequired(true);
-    fields.put(SUMMARY, field);
-
-    // default appears that description is optional, but we support it required as well
-    field = new JiraField();
-    field.setRequired(false);
-    fields.put(DESCRIPTION, field);
   }
 
   @Test
   public void testIsAcceptableIssueType_IsAcceptable() {
     JiraIssueType issueType = createIssueType();
-    JiraService underTest = createMinimalService();
 
     assertThat(underTest.isAcceptableIssueType(issueType), is(true));
   }
@@ -93,7 +87,6 @@ public class JiraServiceTest
     JiraIssueType issueType = createIssueType();
     issueType.setSubtask(true);
 
-    JiraService underTest = createMinimalService();
     assertThat(underTest.isAcceptableIssueType(issueType), is(false));
   }
 
@@ -107,8 +100,6 @@ public class JiraServiceTest
     JiraField field = new JiraField();
     field.setRequired(true);
     issueType.getFields().put("custom", field);
-
-    JiraService underTest = createMinimalService();
 
     assertThat(underTest.isAcceptableIssueType(issueType), is(false));
   }
@@ -124,19 +115,11 @@ public class JiraServiceTest
     field.setRequired(false);
     issueType.getFields().put("custom", field);
 
-    JiraService underTest = createMinimalService();
-
     assertThat(underTest.isAcceptableIssueType(issueType), is(true));
   }
 
   @Test
   public void testGetProjectsWithAcceptableIssues() throws IOException {
-    InsightConfig insightConfig = new InsightConfig();
-    insightConfig.setJiraConfig(new JiraConfig());
-
-    JiraClientFactory jiraClientFactory = mock(JiraClientFactory.class);
-    JiraClient jiraClient = mock(JiraClient.class);
-
     JiraIssueCreateMeta jiraIssueCreateMeta = new JiraIssueCreateMeta();
     List<JiraProject> jiraProjectList = new ArrayList<>();
 
@@ -179,5 +162,40 @@ public class JiraServiceTest
     assertEquals(jiraProject.getKey(), "key1");
     assertThat(jiraProject.getIssueTypes(), hasSize(1));
     assertEquals(jiraProject.getIssueTypes().get(0).getId(), 1);
+  }
+
+  private JiraIssueType createIssueType() {
+    JiraIssueType issueType = new JiraIssueType();
+    Map<String, JiraField> fields = new HashMap<>();
+    issueType.setFields(fields);
+    defaultFields(fields);
+    return issueType;
+  }
+
+  /**
+   * Fill in the default fields.
+   */
+  private void defaultFields(final Map<String, JiraField> fields) {
+    JiraField field = new JiraField();
+    field.setRequired(true);
+    fields.put(PROJECT, field);
+
+    field = new JiraField();
+    field.setRequired(true);
+    fields.put(ISSUETYPE, field);
+
+    field = new JiraField();
+    field.setRequired(true);
+    fields.put(SUMMARY, field);
+
+    // default appears that description is optional, but we support it required as well
+    field = new JiraField();
+    field.setRequired(false);
+    fields.put(DESCRIPTION, field);
+
+    // JIRA 7 now marks reporter as required
+    field = new JiraField();
+    field.setRequired(true);
+    fields.put(REPORTER, field);
   }
 }

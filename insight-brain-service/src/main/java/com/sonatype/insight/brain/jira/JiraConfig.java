@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.jira;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -34,8 +35,8 @@ public class JiraConfig
    *
    * See https://docs.atlassian.com/jira/REST/latest/#api/2/issue-createIssue
    */
-  @Nullable
-  private Map<String, Object> customFields;
+  @NotNull
+  private Map<String, Object> customFields = new HashMap<>();
 
   public String getUrl() {
     return url;

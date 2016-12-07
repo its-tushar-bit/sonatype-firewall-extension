@@ -108,6 +108,8 @@ public class JiraService
       return false;
     }
 
+    JiraConfig jiraConfig = insightConfig.getJiraConfig();
+
     for (Entry<String, JiraField> entry : issueType.getFields().entrySet()) {
       String key = entry.getKey();
       JiraField field = entry.getValue();
@@ -116,8 +118,10 @@ public class JiraService
             SUMMARY.equals(key) ||
             ISSUETYPE.equals(key) ||
             DESCRIPTION.equals(key) ||
-            field.isHasDefaultValue()) {
-          // accept the minimum set of required fields, or required field with default value
+            field.isHasDefaultValue() ||
+            jiraConfig.getCustomFields().containsKey(key)) {
+          // accept the minimum set of required fields, required fields with default value,
+          // or required fields with custom field defined for it
           continue;
         }
         else {

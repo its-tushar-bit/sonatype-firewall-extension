@@ -11,5 +11,6 @@ package com.sonatype.insight.brain.dashboard;
 public class NamedDashboardFilterDTO
 {
   public String name;
+  public String basedOnFilterName;
   public DashboardFilterDTO filter;
 }

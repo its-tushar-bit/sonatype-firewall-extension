@@ -157,7 +157,10 @@
     <button id="dashboard-filter-apply" class="btn" type="submit" submit-validation submit-dirty="vm.isDirty()"
             submit-type="update" submit-tooltip-target='body'>Apply
     </button>
-    <button id="dashboard-filter-revert" class="btn btn-tertiary" type="button" ng-click="vm.revert()">Revert</button>
+    <button id="dashboard-filter-revert" class="btn btn-tertiary" ng-class="{disabled: !vm.isDirty()}" type="button"
+            ng-click="vm.revert()">
+      Revert
+    </button>
     <button id="dashboard-filter-clear" class="btn btn-tertiary" type="button" ng-click="vm.clear()">Clear</button>
   </div>
 </form>

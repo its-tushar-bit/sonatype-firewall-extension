@@ -107,7 +107,7 @@ public class DashboardResourceTest
   }
   
   @Test
-  public void testGetActiveDashboardFilterForCurrentUser_UnnamedFilter() throws Exception {
+  public void testGetActiveDashboardFilterForCurrentUser_ActiveFilter() throws Exception {
     User tempUser = tempEntity.newUser();
     String filterName = "";
     Organization org = tempEntity.newOrganization();
@@ -122,9 +122,10 @@ public class DashboardResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
-    DashboardFilterDTO result = response.getBody(DashboardFilterDTO.class);
+    NamedDashboardFilterDTO result = response.getBody(NamedDashboardFilterDTO.class);
     assertThat(result, notNullValue());
-    assertDashboardFilterDTO(result, dashboardFilterDTO);
+    assertDashboardFilterDTO(result.filter, dashboardFilterDTO);
+    assertThat(result.name, is(filterName));
   }
 
   @Test
@@ -134,7 +135,7 @@ public class DashboardResourceTest
     Application app = tempEntity.newApplication(org.getId());
     Tag tag = tempEntity.newTag(org.getId());
     // creating a new filter
-    DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
+    NamedDashboardFilterDTO dashboardFilterDTO = createNamedDashboardFilter(app, tag);
     // Test the create
     HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
         .path(DashboardResource.FILTERS_PATH);
@@ -146,7 +147,7 @@ public class DashboardResourceTest
 
     DashboardFilterDTO returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
-    assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
+    assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO.filter);
   }
 
   @Test
@@ -156,12 +157,12 @@ public class DashboardResourceTest
     Application app = tempEntity.newApplication(org.getId());
     Tag tag = tempEntity.newTag(org.getId());
     String filterName = "";
-    DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
+    NamedDashboardFilterDTO dashboardFilterDTO = createNamedDashboardFilter(app, tag);
     // creating a new filter
     tempEntity.newDashboardFilter(tempUser.getUsername(), filterName, JsonUtils.format(dashboardFilterDTO));
     // updating the new filter
-    dashboardFilterDTO.minPolicyThreatLevel = 8;
-    dashboardFilterDTO.maxPolicyThreatLevel = 20;
+    dashboardFilterDTO.filter.minPolicyThreatLevel = 4;
+    dashboardFilterDTO.filter.maxPolicyThreatLevel = 9;
     HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
         .path(DashboardResource.FILTERS_PATH);
     HttpResponse response = request.body(dashboardFilterDTO).put();
@@ -169,7 +170,7 @@ public class DashboardResourceTest
 
     DashboardFilterDTO result = response.getBody(DashboardFilterDTO.class);
     assertThat(result, notNullValue());
-    assertDashboardFilterDTO(result, dashboardFilterDTO);
+    assertDashboardFilterDTO(result, dashboardFilterDTO.filter);
   }
 
   private void assertDashboardFilterDTO(DashboardFilterDTO actual, DashboardFilterDTO expected) {
@@ -203,6 +204,12 @@ public class DashboardResourceTest
     dashboardFilterDTO.stageTypeFilters.add(Stage.ID_BUILD);
 
     return dashboardFilterDTO;
+  }
+  
+  private NamedDashboardFilterDTO createNamedDashboardFilter(Application application, Tag tag) {
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+    namedDashboardFilterDTO.filter = createDashboardFilter(application, tag);
+    return namedDashboardFilterDTO;
   }
 
   @Test
@@ -380,7 +387,7 @@ public class DashboardResourceTest
     NamedDashboardFilterDTO namedDashboardFilterDTO2 = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO2.name = "";
     namedDashboardFilterDTO2.filter = createDashboardFilter(app, tag);
-    // creating a new unnamed filter i.e. ""
+    // creating a new active filter (without a name)
     tempEntity.newDashboardFilter(tempUser.getUsername(), "", JsonUtils.format(namedDashboardFilterDTO.filter));
     
     HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())

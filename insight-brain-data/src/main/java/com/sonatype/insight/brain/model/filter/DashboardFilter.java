@@ -38,6 +38,9 @@ public class DashboardFilter
   @Column(name = "filter_json")
   private String filter;
 
+  @Column(name = "based_on_filter_name")
+  private String basedOnFilterName;
+
   public DashboardFilter() {
   }
 
@@ -94,5 +97,13 @@ public class DashboardFilter
 
   public void setFilter(final String filter) {
     this.filter = filter;
+  }
+
+  public String getBasedOnFilterName() {
+    return basedOnFilterName;
+  }
+
+  public void setBasedOnFilterName(final String basedOnFilterName) {
+    this.basedOnFilterName = basedOnFilterName;
   }
 }

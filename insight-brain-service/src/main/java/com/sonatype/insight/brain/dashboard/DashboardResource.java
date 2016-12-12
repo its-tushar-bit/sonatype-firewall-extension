@@ -123,7 +123,7 @@ public class DashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getActiveDashboardFilterForCurrentUserExceptionMeter")
-  public DashboardFilterDTO getActiveDashboardFilterForCurrentUser() throws IOException {
+  public NamedDashboardFilterDTO getActiveDashboardFilterForCurrentUser() throws IOException {
     return dashboardFilterService.getActiveDashboardFilterForCurrentUser();
   }
 
@@ -148,10 +148,8 @@ public class DashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "updateDashboardFilterForCurrentUserExceptionMeter")
-  public DashboardFilterDTO updateDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
-    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+  public DashboardFilterDTO updateDashboardFilterForCurrentUser(NamedDashboardFilterDTO namedDashboardFilterDTO) {
     namedDashboardFilterDTO.name = "";
-    namedDashboardFilterDTO.filter = dashboardFilterDTO;
     return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO).filter;
   }
 

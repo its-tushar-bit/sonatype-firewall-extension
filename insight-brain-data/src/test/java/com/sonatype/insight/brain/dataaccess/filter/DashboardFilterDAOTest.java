@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class DashboardFilterDAOTest
@@ -298,6 +299,56 @@ public class DashboardFilterDAOTest
     }
     dashboardFilter.setName(name);
     dashboardFilterDAO.update(dashboardFilter);
+  }
+
+  @Test
+  public void testValidate_insertNamedFilterBasedOnAnother() {
+    DashboardFilter dashboardFilter = new DashboardFilter("valid name");
+    dashboardFilter.setBasedOnFilterName("any non-null value");
+    try {
+      dashboardFilterDAO.insert(dashboardFilter);
+      fail("Expected exception to be thrown.");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("Only the active filter can be based on another filter.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidate_insertActiveFilterBasedOnMissingFilter() {
+    DashboardFilter dashboardFilter = new DashboardFilter("");
+    dashboardFilter.setUsername("test user");
+    dashboardFilter.setBasedOnFilterName("valid name of a filter that does not exist");
+    dashboardFilter.setFilter("some filter string");
+    dashboardFilterDAO.insert(dashboardFilter);
+
+    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName("test user", "");
+    assertNull(activeFilter.getBasedOnFilterName());
+  }
+
+  @Test
+  public void testValidate_updateNamedFilterBasedOnAnother() {
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter("test user", "valid name", "originalFilter");
+    dashboardFilter.setFilter("updatedFilter");
+    dashboardFilter.setBasedOnFilterName("any non-null value");
+    try {
+      dashboardFilterDAO.update(dashboardFilter);
+      fail("Expected exception to be thrown.");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("Only the active filter can be based on another filter.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidate_updateActiveFilterBasedOnMissingFilter() {
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter("another test user", "", "originalFilter");
+    dashboardFilter.setFilter("updatedFilter");
+    dashboardFilter.setBasedOnFilterName("valid name of a filter that does not exist");
+    dashboardFilterDAO.update(dashboardFilter);
+
+    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName("test user", "");
+    assertNull(activeFilter.getBasedOnFilterName());
   }
 
   private void assertFilter(DashboardFilter actualFilter, DashboardFilter expectedFilter) {

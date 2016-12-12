@@ -393,6 +393,7 @@ CREATE TABLE dashboard_filter (
   username varchar(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
+  based_on_filter_name varchar(60),
   filter_json CLOB NOT NULL, -- The dashboard filter stored in json format
   CONSTRAINT dashboard_filter_pk PRIMARY KEY (dashboard_filter_id),
   CONSTRAINT dashboard_filter_uk UNIQUE KEY (username, name_lowercase_no_whitespace)

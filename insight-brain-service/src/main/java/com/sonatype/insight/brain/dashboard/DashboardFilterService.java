@@ -48,7 +48,7 @@ public class DashboardFilterService
 {
   private static final Logger log = LoggerFactory.getLogger(DashboardFilterService.class);
 
-  public static final String DEFAULT_FILTER_NAME = "";
+  public static final String ACTIVE_FILTER_NAME = "";
 
   private final OwnerDAO ownerDAO;
 
@@ -89,19 +89,24 @@ public class DashboardFilterService
   /**
    * @since 1.24.0
    */
-  public DashboardFilterDTO getActiveDashboardFilterForCurrentUser() throws IOException {
+  public NamedDashboardFilterDTO getActiveDashboardFilterForCurrentUser() throws IOException {
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
-    //TODO: this will change in the sub-sequent story CLM-7040 for tracking the current/active filter
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, "");
     if (dashboardFilter == null) {
-      return createDefaultDashboardFilterForCurrentUser().filter;
+      return createDefaultDashboardFilterForCurrentUser();
     }
     DashboardFilterDTO dto = JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
 
     pruneUnauthorizedApplicationIds(dto);
-    return dto;
+
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+    namedDashboardFilterDTO.name = ACTIVE_FILTER_NAME;
+    namedDashboardFilterDTO.filter = dto;
+    namedDashboardFilterDTO.basedOnFilterName = dashboardFilter.getBasedOnFilterName();
+
+    return namedDashboardFilterDTO;
   }
 
   /**
@@ -140,7 +145,7 @@ public class DashboardFilterService
     dashboardFilterDTO.policyThreatCategoryFilters = new ArrayList<>();
     dashboardFilterDTO.tagFilters = new ArrayList<>();
 
-    namedDashboardFilterDTO.name = DEFAULT_FILTER_NAME;
+    namedDashboardFilterDTO.name = ACTIVE_FILTER_NAME;
     namedDashboardFilterDTO.filter = dashboardFilterDTO;
 
     return createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO);
@@ -160,15 +165,41 @@ public class DashboardFilterService
 
     DashboardFilter existingDashboardFilter = dashboardFilterDAO
         .getByUsernameAndName(username, namedDashboardFilterDTO.name);
-    if (existingDashboardFilter == null) {
-      dashboardFilterDAO.insert(dashboardFilter);
+
+    if (!ACTIVE_FILTER_NAME.equals(namedDashboardFilterDTO.name)) {
+      if (existingDashboardFilter == null) {
+        dashboardFilterDAO.insert(dashboardFilter);
+      }
+      else {
+        dashboardFilter.setId(existingDashboardFilter.getId());
+        dashboardFilterDAO.update(dashboardFilter);
+      }
     }
-    else {
-      dashboardFilter.setId(existingDashboardFilter.getId());
-      dashboardFilterDAO.update(dashboardFilter);
+    createOrUpdateActiveFilter(namedDashboardFilterDTO, username);
+    return namedDashboardFilterDTO;
+  }
+
+  private void createOrUpdateActiveFilter(NamedDashboardFilterDTO namedDashboardFilterDTO, String username) {
+    DashboardFilter newActiveFilter = new DashboardFilter();
+    newActiveFilter.setUsername(username);
+    newActiveFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
+    newActiveFilter.setName(ACTIVE_FILTER_NAME);
+
+    if (namedDashboardFilterDTO.basedOnFilterName != null) {
+      newActiveFilter.setBasedOnFilterName(namedDashboardFilterDTO.basedOnFilterName);
+    }
+    else if (!namedDashboardFilterDTO.name.equals(ACTIVE_FILTER_NAME)) {
+      newActiveFilter.setBasedOnFilterName(namedDashboardFilterDTO.name);
     }
 
-    return namedDashboardFilterDTO;
+    DashboardFilter existingActiveFilter = dashboardFilterDAO.getByUsernameAndName(username, ACTIVE_FILTER_NAME);
+    if (existingActiveFilter != null) {
+      newActiveFilter.setId(existingActiveFilter.getId());
+      dashboardFilterDAO.update(newActiveFilter);
+    }
+    else {
+      dashboardFilterDAO.insert(newActiveFilter);
+    }
   }
 
   /**
@@ -182,10 +213,15 @@ public class DashboardFilterService
     }
     List<DashboardFilterErrorResponseDTO> errorMessages = new ArrayList<>();
     String username = currentUser.getUsername();
+    DashboardFilter appliedDashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, ACTIVE_FILTER_NAME);
     for (String filterName : filterNames) {
       try {
         DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, filterName);
         if (dashboardFilter != null) {
+          if (appliedDashboardFilter != null && filterName.equals(appliedDashboardFilter.getBasedOnFilterName())) {
+            appliedDashboardFilter.setBasedOnFilterName(null);
+            dashboardFilterDAO.update(appliedDashboardFilter);
+          }
           dashboardFilterDAO.delete(dashboardFilter);
         }
         else {

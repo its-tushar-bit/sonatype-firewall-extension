@@ -93,7 +93,12 @@ describe('dashboard.filter.controller', function() {
           "name": "Test1",
           "filter": filterData
         }
-      ];
+      ],
+      appliedDirtyFilterData = {
+        "name": "",
+        "basedOnFilterName": "Test1",
+        "filter": filterData
+      };
 
   describe('successful load', function() {
 
@@ -102,7 +107,7 @@ describe('dashboard.filter.controller', function() {
       $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
       $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData);
-      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterData);
+      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(appliedDirtyFilterData);
       $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
       $httpBackend.flush();
     });
@@ -134,6 +139,9 @@ describe('dashboard.filter.controller', function() {
       expect(vm.categories.length).toBe(tagData.length);
       expect(vm.categories[0].id).toBe(tagData[0].id);
       expect(vm.categories[0].owner).toBe(organizationData[0].name);
+
+      expect(vm.activeFilterName).toBe(appliedDirtyFilterData.basedOnFilterName);
+      expect(vm.showDirtyAsterisk).toBe(false);
     });
 
     it('watches organizations to update selected applications', function() {
@@ -291,7 +299,7 @@ describe('dashboard.filter.controller', function() {
       $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
       $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData);
-      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterData);
+      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(appliedDirtyFilterData);
       $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond([]);
       $httpBackend.flush();
     });
@@ -310,6 +318,14 @@ describe('dashboard.filter.controller', function() {
         vm.loadErrorFilterName = 'test filter';
         vm.applyCurrentFilter();
         expect(vm.loadErrorFilterName).toBeUndefined();
+      });
+
+      it('passes name of active filter as \'basedOnFilterName\'', function() {
+        delete vm.selected.applications.applicationIdR;
+        vm.applyCurrentFilter();
+
+        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), {filter: filterData, basedOnFilterName: 'Test1'}).respond('ok');
+        $httpBackend.flush();
       });
     });
 
@@ -339,7 +355,7 @@ describe('dashboard.filter.controller', function() {
           },
           name: 'test saved filter'
         };
-        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(savedFilter.filter);
+        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter).respond(savedFilter.filter);
         vm.applySavedFilter(savedFilter);
         $httpBackend.flush();
         vm.clear();
@@ -365,13 +381,17 @@ describe('dashboard.filter.controller', function() {
         'event.name.constant', function(EventNameConstant) {
           spyOn($rootScope, '$broadcast');
 
-          var expected = angular.copy(filterData);
-          expected.policyThreatCategoryFilters.splice(0, 1); // remove QUALITY
-          expected.stageTypeFilters.splice(0, 1); // remove release
-          expected.tagFilters.splice(0, 1); // remove tagId1
-          expected.applicationFilters.splice(0, 1); // remove applicationIdZ
-          expected.applicationFilters.push(applicationData[3].id); // pickup orgId2 application which wasn't in the original filter
-          expected.minPolicyThreatLevel = 0;
+          var expected = {
+            basedOnFilterName: null,
+            filter: angular.copy(filterData)
+          };
+          expected.filter.policyThreatCategoryFilters.splice(0, 1); // remove QUALITY
+          expected.filter.stageTypeFilters.splice(0, 1); // remove release
+          expected.filter.tagFilters.splice(0, 1); // remove tagId1
+          expected.filter.applicationFilters.splice(0, 1); // remove applicationIdZ
+          expected.filter.applicationFilters.push(applicationData[3].id); // pickup orgId2 application which wasn't in the original filter
+          expected.filter.minPolicyThreatLevel = 0;
+          expected.basedOnFilterName = 'Test1';
           $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), expected).respond(expected);
 
           delete vm.selected.applications.applicationIdZ;
@@ -412,7 +432,7 @@ describe('dashboard.filter.controller', function() {
         };
         spyOn(vm, 'isDirty').and.returnValue(true);
         vm.showDirtyAsterisk = true;
-        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(savedFilter.filter);
+        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter).respond(savedFilter.filter);
         vm.applySavedFilter(savedFilter);
         $httpBackend.flush();
         expect(vm.activeFilterName).toEqual('test filter');
@@ -436,7 +456,9 @@ describe('dashboard.filter.controller', function() {
         'event.name.constant', function(EventNameConstant) {
           spyOn(vm, 'loadFilterFromJson');
           spyOn($rootScope, '$broadcast');
-          $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(savedFilter.filter);
+          var savedFilterWithBasedOnFlag = angular.copy(savedFilter);
+          savedFilterWithBasedOnFlag.basedOnFilterName = savedFilter.name;
+          $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilterWithBasedOnFlag).respond(savedFilter.filter);
           vm.applySavedFilter(savedFilter);
           $httpBackend.flush();
           expect(vm.activeFilterName).toEqual('test filter');
@@ -449,7 +471,7 @@ describe('dashboard.filter.controller', function() {
       ]));
 
       it('handles error', function() {
-        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond(500);
+        $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter).respond(500);
         vm.applySavedFilter(savedFilter);
         $httpBackend.flush();
         expect(vm.loadErrorFilterName).toBe('test filter');
@@ -457,7 +479,7 @@ describe('dashboard.filter.controller', function() {
 
       it('clears loadErrorFilterName', function() {
         vm.loadErrorFilterName = 'test filter';
-        $httpBackend.whenPUT(CLMLocations.getDashboardFilters(), savedFilter.filter).respond([]);
+        $httpBackend.whenPUT(CLMLocations.getDashboardFilters(), savedFilter).respond([]);
         vm.applySavedFilter(savedFilter);
         $httpBackend.flush();
         expect(vm.loadErrorFilterName).toBeUndefined();
@@ -493,7 +515,7 @@ describe('dashboard.filter.controller', function() {
 
         vm.openSaveFilterModal($event);
         expect($event.stopPropagation).not.toHaveBeenCalled();
-        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, undefined, vm.savedNamedFilters);
+        expect(saveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, 'Test1', vm.savedNamedFilters);
 
         $httpBackend.flush();
         expect(vm.savedNamedFilters).toBe('saved filters');
@@ -580,8 +602,10 @@ describe('dashboard.filter.controller', function() {
 
   describe('loadFilterFromJson()', function() {
     var emptyFilterData = {
-      minPolicyThreatLevel: 2,
-      maxPolicyThreatLevel: 10
+      filter: {
+        minPolicyThreatLevel: 2,
+        maxPolicyThreatLevel: 10
+      }
     };
 
     beforeEach(function() {

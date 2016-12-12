@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -60,6 +61,7 @@ import static com.sonatype.clm.testing.functional.elements.DashboardFilters.INAC
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 public class DashboardFilterTest
     extends AbstractFunctionalTest
@@ -251,7 +253,7 @@ public class DashboardFilterTest
   }
 
   @Test
-  public void testSaveLoadFilter() {
+  public void testSaveLoadFilter() throws IOException {
     ManageFilters manage = DashboardFilters.manage();
 
     // no saved filters
@@ -268,21 +270,38 @@ public class DashboardFilterTest
     manage.filters().shouldHaveSize(1);
     manage.filter(0).shouldHave(text("Initial"));
     manage.openMenuButton().click();
+    DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
+    DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
 
     // Overwrite the filter, verifies the confirmation path
     saveFilter("Initial", "Initial");
+    DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
+    DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
 
     // "save filter" should be disabled if filter changes are not applied
     setSomeFilterValues();
+    DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
     manage.openMenuButton().click();
     manage.saveFilter().shouldHave(DISABLED).click();
     manage.saveFilterDialog().shouldNotBe(visible);
     manage.saveFilter().hover();
     manage.tooltip().shouldHave(text("Please apply filter before saving"));
 
-    // apply and save new filter
+    // apply new filter
     DashboardFilters.applyButton().click();
+    DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
     DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
+
+    // check that the 'dirty' asterisk remains after reload
+    refresh();
+    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = new DashboardFilterDAO()
+        .getByUsername("admin");
+    assertThat(filters.size(), is(2));
+    assertThat(filters.get(0).getName(), is(""));
+    assertThat(filters.get(0).getBasedOnFilterName(), is("Initial"));
+
+    // save new filter
     saveFilter("New Filter", "Initial");
     DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
     DashboardFilters.saveFilterNameLabel().shouldHave(text("New Filter"));
@@ -294,6 +313,11 @@ public class DashboardFilterTest
     ViolationsResults table = DashboardPage.violationsView().results();
     table.violations().shouldHaveSize(1);
     manage.filter(0).click();
+    assertInitialFilterState("Initial");
+    table.violations().shouldHaveSize(3);
+
+    // check that refreshing doesn't change anything
+    refresh();
     assertInitialFilterState("Initial");
     table.violations().shouldHaveSize(3);
   }
@@ -364,6 +388,40 @@ public class DashboardFilterTest
     assertThat(filters.get(1).getName(), is(filter2));
   }
 
+  @Test
+  public void testDeleteSavedFilter_appliedFilter() {
+    ManageFilters manage = DashboardFilters.manage();
+    String filter1 = "Applied Filter Is Based On Me";
+
+    // save a filter
+    saveFilter(filter1, null);
+    // modify, apply, but don't save
+    setSomeFilterValues();
+    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    DashboardFilters.saveFilterNameLabel().shouldHave(text("Applied Filter Is Based On Me"));
+    DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
+
+    // delete the saved filter
+    manage.openMenuButton().click();
+    manage.deleteFilters().shouldNotHave(DISABLED).click();
+    DeleteFiltersDialog deleteFiltersDialog = manage.deleteFiltersDialog();
+    deleteFiltersDialog.checkboxItem(1).click();
+    deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
+    manage.deleteDialog().continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // check the UI is in a clean state
+    DashboardFilters.saveFilterNameLabel().shouldNotBe(visible);
+    DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
+
+    // verify that applied filter is no longer based on the deleted one
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    com.sonatype.insight.brain.model.filter.DashboardFilter filter = dashboardFilterDAO
+        .getByUsernameAndName("admin", "");
+    assertThat(filter.getBasedOnFilterName(), is(nullValue()));
+  }
+  
   private void saveFilter(String filterName, String existingFilterName) {
     ManageFilters manage = DashboardFilters.manage();
     manage.openMenuButton().click();

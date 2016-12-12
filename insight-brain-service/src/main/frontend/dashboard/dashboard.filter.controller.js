@@ -70,12 +70,13 @@
       ];
 
       $q.all(promises).then(function(data) {
-        var activeFilter = data[4].data;
+        var activeFilter = data[4].data.filter;
         vm.organizations = angular.copy(data[2]); // copied as we modify objects
         vm.applications = data[0];
         vm.stages = data[1];
         vm.categories = data[3].data;
         vm.savedNamedFilters = data[5].data;
+        vm.activeFilterName = appliedFilterName = data[4].data.basedOnFilterName;
 
         angular.forEach(vm.categories, function(category) {
           for (var i = 0; i < vm.organizations.length; i++) {
@@ -163,6 +164,12 @@
         });
 
         appliedFilter = angular.copy(vm.selected);
+        var savedNamedFilter = vm.activeFilterName && vm.savedNamedFilters.filter(function(savedFilter) {
+          return savedFilter.name === vm.activeFilterName;
+        })[0];
+        if (savedNamedFilter && !angular.equals(activeFilter, savedNamedFilter.filter)) {
+          vm.showDirtyAsterisk = true;
+        }
         $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter);
       }, function(error) {
         vm.loadError = error;
@@ -200,7 +207,12 @@
         return;
       }
 
-      applyFilter(filterToJson(vm.selected)).then(function() {
+      var namedFilter = {
+        filter: filterToJson(vm.selected),
+        basedOnFilterName: vm.activeFilterName
+      };
+
+      applyFilter(namedFilter).then(function() {
         vm.showDirtyAsterisk = true;
         appliedFilter = angular.copy(vm.selected);
       }, function(error) {
@@ -210,6 +222,7 @@
 
     function loadFilterFromJson(filterJson) {
       resetFilter();
+      filterJson = angular.copy(filterJson); // copied as we modify app filters
       (filterJson.organizationFilters || []).forEach(function(organizationId) {
 
         var orgExists = vm.organizations.some(function(organization) {
@@ -254,7 +267,8 @@
     function applySavedFilter(savedFilter) {
       delete vm.loadErrorFilterName;
 
-      applyFilter(savedFilter.filter).then(function(activeFilter) {
+      savedFilter.basedOnFilterName = savedFilter.name;
+      applyFilter(savedFilter).then(function(activeFilter) {
         vm.loadFilterFromJson(activeFilter);
         appliedFilter = angular.copy(vm.selected);
         appliedFilterName = vm.activeFilterName = savedFilter.name;

@@ -13,12 +13,17 @@ import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.11.0
  */
 public class DashboardFilterDAO
     extends AbstractOperationalSqlDAO<DashboardFilter>
 {
+  private static final Logger log = LoggerFactory.getLogger(DashboardFilterDAO.class);
+
   @Override
   public DashboardFilter getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM DashboardFilter entity" + //
@@ -66,7 +71,7 @@ public class DashboardFilterDAO
 
   @Override
   public void insert(TransactionContext tx, DashboardFilter dashboardFilter) {
-    validateFilterName(dashboardFilter);
+    validate(tx, dashboardFilter);
     if (getByUsernameAndName(tx, dashboardFilter.getUsername(), dashboardFilter.getName()) != null) {
       throw new BadRequestException(dashboardFilter.getName() + " is already used as a name.");
     }
@@ -75,7 +80,7 @@ public class DashboardFilterDAO
 
   @Override
   public void update(TransactionContext tx, DashboardFilter dashboardFilter) {
-    validateFilterName(dashboardFilter);
+    validate(tx, dashboardFilter);
     DashboardFilter existingFilter = getByUsernameAndName(tx, dashboardFilter.getUsername(), dashboardFilter.getName());
     if (existingFilter != null && !existingFilter.getId().equals(dashboardFilter.getId())) {
       throw new BadRequestException(dashboardFilter.getName() + " is already used as a name.");
@@ -83,10 +88,21 @@ public class DashboardFilterDAO
     super.update(tx, dashboardFilter);
   }
 
-  private void validateFilterName(final DashboardFilter dashboardFilter) {
+  private void validate(TransactionContext tx, DashboardFilter dashboardFilter) {
     final String name = dashboardFilter.getName();
     if (!"".equals(name)) {
       NameHelper.validate(name);
+      if (dashboardFilter.getBasedOnFilterName() != null) {
+        throw new BadRequestException("Only the active filter can be based on another filter.");
+      }
+    }
+    else {
+      if (dashboardFilter.getBasedOnFilterName() != null &&
+          getByUsernameAndName(tx, dashboardFilter.getUsername(), dashboardFilter.getBasedOnFilterName()) == null) {
+        log.debug("Attempted to persist active filter based on non-existing saved filter named {}.",
+            dashboardFilter.getBasedOnFilterName());
+        dashboardFilter.setBasedOnFilterName(null);
+      }
     }
   }
 }

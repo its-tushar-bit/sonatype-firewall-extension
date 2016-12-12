@@ -56,13 +56,13 @@ public class DashboardFilterServiceAuthzTest
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO);
 
     grantReadPermission(app.getId());
-    DashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
-    assertThat(actual.applicationFilters, contains(app.getId()));
-    assertThat(actual.applicationFilters, not(contains(app2.getId())));
+    NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertThat(actual.filter.applicationFilters, contains(app.getId()));
+    assertThat(actual.filter.applicationFilters, not(contains(app2.getId())));
 
     grantReadPermission(app2.getId());
     actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
-    assertThat(actual.applicationFilters, containsInAnyOrder(app.getId(), app2.getId()));
+    assertThat(actual.filter.applicationFilters, containsInAnyOrder(app.getId(), app2.getId()));
   }
 
   private NamedDashboardFilterDTO createNamedDashboardFilterDTO(final String filterName, String... applicationIDs) {

@@ -76,7 +76,6 @@
   },
   "requireVarDeclFirst": false, // should enable this
   "validateIndentation": 2,
-  "validateLineBreaks": "LF",
   "validateParameterSeparator": ", ",
   "validateQuoteMarks": "'",
   "disallowSpacesInsideParentheses": true

@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -253,7 +252,7 @@ public class DashboardFilterTest
   }
 
   @Test
-  public void testSaveLoadFilter() throws IOException {
+  public void testSaveLoadFilter() {
     ManageFilters manage = DashboardFilters.manage();
 
     // no saved filters

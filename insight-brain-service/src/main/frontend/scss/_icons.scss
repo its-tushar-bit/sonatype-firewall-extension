@@ -318,6 +318,26 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   }
 }
 
+.fa-stack.iq-move-to-top {
+  .fa:first-child {
+    font-size: 1.7em;
+    top: -3px
+  }
+  .fa:last-child {
+    top: 2px
+  }
+}
+
+.fa-stack.iq-move-to-bottom {
+  .fa:first-child {
+    font-size: 1.7em;
+    top: 6px
+  }
+  .fa:last-child {
+    top: -2px
+  }
+}
+
 // This icon requires the use of size-xx class. Currently only size-16 and size-20 are supported.
 .proprietary-components-icon {
   display: inline-block;

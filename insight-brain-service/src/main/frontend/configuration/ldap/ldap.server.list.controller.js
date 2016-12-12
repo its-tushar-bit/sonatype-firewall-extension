@@ -6,31 +6,42 @@
 (function(angular) {
   'use strict';
 
-  function LdapServerListController($state, ldapStore, isAuthorized)
-  {
+  function LdapServerListController(ldapStore, isAuthorized, LdapServerOrderingModal) {
     var vm = this;
 
     vm.doLoad = doLoad;
     vm.ldapList = undefined;
     vm.error = undefined;
     vm.isAuthorized = isAuthorized;
+    vm.reorder = reorder;
 
     vm.doLoad();
 
     function doLoad() {
       if (vm.isAuthorized) {
         delete vm.error;
-        ldapStore.get().then(function(results) {
-          vm.ldapList = results;
-        }, function(error) {
-          vm.error = error;
-        });
+        handleStoreLoad(ldapStore.get());
       }
+    }
+
+    function handleStoreLoad(promise) {
+      promise.then(function(results) {
+        vm.ldapList = results;
+      }, function(error) {
+        vm.error = error;
+      });
+    }
+
+    function reorder() {
+      LdapServerOrderingModal.open().then(function() {
+        vm.ldapList = undefined;
+        handleStoreLoad(ldapStore.refresh());
+      });
     }
   }
 
   LdapServerListController.$inject = [
-    '$state', 'LdapConfigurationStore', 'isAuthorized'
+    'LdapConfigurationStore', 'isAuthorized', 'LdapServerOrderingModal'
   ];
 
   angular//

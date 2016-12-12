@@ -90,6 +90,10 @@
           return this.getLdapConfig($state.params.ldapId) + '/testLogin';
         },
 
+        getLdapPriority: function() {
+          return this.getLdapConfig() + '/priority';
+        },
+
         getLdapUserMappingConfig: function() {
           return this.getLdapConfig($state.params.ldapId) + '/userMapping';
         },

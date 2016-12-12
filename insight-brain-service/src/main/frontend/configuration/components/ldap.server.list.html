@@ -2,18 +2,24 @@
   <div class="tile container config ldap-server-list">
     <div load-wrapper='vm.error' loading='!vm.ldapList' reload='vm.doLoad()'>
       <h2>LDAP Servers</h2>
-      <div class="sub-header">will be queried in the order listed</div>
+      <div class="sub-header">
+          <div class="pull-right">
+            <button class="btn btn-tertiary" ng-click="vm.reorder()" ng-disabled="vm.ldapList.length <= 1">
+              <i class="fa fa-pencil"></i>Reorder List
+            </button>
+            <button class="btn btn-tertiary" ui-sref="create-ldap">
+              <i class="fa fa-plus"></i>Add a Server
+            </button>
+          </div>
+          will be queried in the order listed
+      </div>
       <div class="simple-list">
-        <h4 class="subsection-header">
-          <button class="btn btn-tertiary" ui-sref="create-ldap">
-            <i class="fa fa-plus"></i>Add a Server
-          </button>
-        </h4>
+        <h4 class="subsection-header"></h4>
         <div class="empty-list" ng-if="vm.ldapList.length <= 0">
           No LDAP servers are defined
         </div>
         <ul>
-          <li class="clickable" ng-repeat="ldap in vm.ldapList" ui-sref="edit-ldap({ldapId: ldap.id})">
+          <li class="clickable" ng-repeat="ldap in vm.ldapList | orderBy:priority" ui-sref="edit-ldap({ldapId: ldap.id})">
             <div class="title single-row-text">
               {{::ldap.name}}
             </div>

@@ -7,9 +7,12 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
+import com.sonatype.clm.testing.functional.ldap.ReorderLdapModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Condition.visible;
 
 public class LdapServerListPage 
     extends BasicElement<LdapServerListPage>
@@ -31,7 +34,20 @@ public class LdapServerListPage
   }
 
   public SelenideElement newServerButton() {
-    return child("button");
+    return child("button:last-child");
+  }
+
+  public ReorderLdapModal openModalWithAssert() {
+    reorderButton().shouldBe(visible).click();
+
+    ReorderLdapModal modal = new ReorderLdapModal();
+    modal.shouldBe(visible);
+
+    return modal;
+  }
+
+  public SelenideElement reorderButton() {
+    return child("button:first-child");
   }
 
   public TileSimpleList ldapServerList() {

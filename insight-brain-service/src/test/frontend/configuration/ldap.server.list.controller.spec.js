@@ -60,6 +60,33 @@ describe('ldap.server.list.controller.spec.js', function() {
       $httpBackend.flush();
       expect(vm.error).toBeFalsy();
     });
+
+    it('Refresh after reorder', inject(function(LdapConfigurationStore, LdapServerOrderingModal, $q, $timeout) {
+      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond([]);
+      $httpBackend.flush();
+      spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.resolve());
+      spyOn(LdapConfigurationStore, 'refresh').and.returnValue($q.defer().promise);
+
+      vm.reorder();
+      $timeout.flush();
+
+      expect(LdapConfigurationStore.refresh).toHaveBeenCalled();
+      expect(vm.ldapStore).toBeFalsy();
+    }));
+
+    it('Does not refresh on cancelled reorder', inject(function(LdapConfigurationStore, LdapServerOrderingModal, $q,
+            $timeout) {
+      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond([]);
+      $httpBackend.flush();
+      spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.reject());
+      spyOn(LdapConfigurationStore, 'refresh').and.returnValue($q.defer().promise);
+
+      vm.reorder();
+      $timeout.flush();
+
+      expect(LdapConfigurationStore.refresh).not.toHaveBeenCalled();
+      expect(vm.ldapStore).toBeFalsy();
+    }));
   });
 
   describe('Not authorized', function() {

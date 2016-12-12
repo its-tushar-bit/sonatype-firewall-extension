@@ -5,20 +5,30 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
+import com.sonatype.clm.testing.functional.ldap.ReorderLdapModal;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 
+import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class LdapServerListTest
     extends AbstractFunctionalTest
@@ -28,6 +38,11 @@ public class LdapServerListTest
   public static void startup() {
     open(LdapServerListPage.URL);
     loginAsAdmin();
+  }
+
+  @Before
+  public void before() {
+    refreshOrOpen(LdapServerListPage.URL);
   }
 
   @After
@@ -62,5 +77,57 @@ public class LdapServerListTest
     TileSimpleListElement row2 = list.element(1);
     row2.chevron().shouldBe(visible);
     row2.name().shouldBe(visible).shouldHave(text("Another Ldap Server"));
+  }
+
+  @Test
+  public void testReorderLdapServers() {
+    tempEntity.newLdapServer("Fourth Server");
+    tempEntity.newLdapServer("Third Server");
+    tempEntity.newLdapServer("Second Server");
+    tempEntity.newLdapServer("First Server");
+    refresh();
+
+    ReorderLdapModal modal = new LdapServerListPage().openModalWithAssert();
+    modal.assertOrder("Fourth Server", "Third Server", "Second Server", "First Server");
+    modal.assertUpDownButtonEnabled(false, false);
+    modal.saveButton().shouldBe(DISABLED);
+
+    SelenideElement row = modal.row(0);
+    row.click();
+
+    row.shouldBe(ReorderLdapModal.SELECTED);
+    modal.assertUpDownButtonEnabled(false, true);
+
+    modal.moveToLastButton().click();
+    modal.assertOrder("Third Server", "Second Server", "First Server", "Fourth Server");
+    modal.assertUpDownButtonEnabled(true, false);
+
+    modal.row(0).click();
+    modal.moveDownButton().click();
+    modal.assertOrder("Second Server", "Third Server", "First Server", "Fourth Server");
+    modal.assertUpDownButtonEnabled(true, true);
+
+    modal.row(2).click();
+    modal.moveUpButton().click();
+    modal.assertOrder("Second Server", "First Server", "Third Server", "Fourth Server");
+    modal.assertUpDownButtonEnabled(true, true);
+
+    modal.moveToFirstButton().click();
+    modal.assertOrder("First Server", "Second Server", "Third Server", "Fourth Server");
+    modal.assertUpDownButtonEnabled(false, true);
+
+    modal.saveButton().shouldNotBe(DISABLED).click();
+    modal.should(disappear);
+
+    new LdapServerListPage().shouldBe(visible).ldapServerList().elements()
+        .shouldHave(texts("First Server", "Second Server", "Third Server", "Fourth Server"));
+
+    List<LdapServer> actualServers = new LdapServerDAO().getAll();
+    String[] serverNames = new String[] { "First Server", "Second Server", "Third Server", "Fourth Server" };
+    for (int i = 0; i < serverNames.length; i++) {
+      LdapServer server = actualServers.get(i);
+      assertThat(server.getName(), is(serverNames[i]));
+      assertThat(server.getPriority(), is(i + 1));
+    }
   }
 }

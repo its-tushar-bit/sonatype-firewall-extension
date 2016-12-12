@@ -8,7 +8,7 @@ src/main/frontend/lib/angular
 src/main/frontend/lib/bootstrap-sass-official
 src/main/frontend/lib/components-font-awesome
 src/main/frontend/lib/fuse.js
-src/main/frontend/lib/jQuery
+src/main/frontend/lib/jquery
 src/main/frontend/lib/jquery-ui
 src/main/frontend/lib/classybrew
 src/main/frontend/lib/ngUpload

@@ -18,6 +18,8 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.Binder;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.util.ThreadContext;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.After;
@@ -26,6 +28,7 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,6 +69,9 @@ public class AbstractComponentTest
   public void setUpSecurity() {
     subject = mock(Subject.class);
     when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", true));
+    SecurityManager securityManager = mock(SecurityManager.class);
+    when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
+    ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);
   }
 

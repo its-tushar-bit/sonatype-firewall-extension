@@ -11,6 +11,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.webhook.EventAction;
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
@@ -44,16 +46,20 @@ public class LicenseThreatGroupService
 
   private final OwnerDAO ownerDAO;
 
+  private final ManagementEventService managementEventService;
+
   @Inject
   public LicenseThreatGroupService(final LicenseThreatGroupDAO licenseThreatGroupDAO,
                                    final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
                                    final PolicyDAO policyDAO,
-                                   final OwnerDAO ownerDAO)
+                                   final OwnerDAO ownerDAO,
+                                   final ManagementEventService managementEventService)
   {
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
     this.policyDAO = policyDAO;
     this.ownerDAO = ownerDAO;
+    this.managementEventService = managementEventService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -99,6 +105,8 @@ public class LicenseThreatGroupService
     licenseThreatGroup.setOwnerId(orgId);
     licenseThreatGroupDAO.insert(licenseThreatGroup);
 
+    managementEventService.postEvent(EventAction.CREATED, licenseThreatGroup);
+
     return licenseThreatGroup;
   }
 
@@ -116,6 +124,8 @@ public class LicenseThreatGroupService
 
     licenseThreatGroup.setOwnerId(internalOwnerId);
     licenseThreatGroupDAO.update(licenseThreatGroup);
+
+    managementEventService.postEvent(EventAction.UPDATED, licenseThreatGroup);
 
     return licenseThreatGroup;
   }
@@ -137,6 +147,8 @@ public class LicenseThreatGroupService
     validateLicenseThreatGroupNotUsedInAnyPolicy(ownerDAO.getById(internalOwnerId), licenseThreatGroup);
 
     licenseThreatGroupDAO.delete(licenseThreatGroup);
+
+    managementEventService.postEvent(EventAction.DELETED, licenseThreatGroup);
   }
 
   public static class ApplicableLicenseThreatGroups

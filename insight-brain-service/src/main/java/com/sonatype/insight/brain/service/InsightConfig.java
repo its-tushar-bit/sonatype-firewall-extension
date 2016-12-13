@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.jira.JiraConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -154,6 +155,20 @@ public class InsightConfig
   @Min(1)
   @Max(24 * 60 * 60)
   private int repositoryPolicyViolationNotificationInterval = 300;
+
+  /**
+   * @since 1.25.0
+   */
+  @NotNull
+  @JsonProperty
+  private String webhookSecretPassphrase = "^d1swM!FF&qQ";
+
+  /**
+   * @since 1.25.0
+   */
+  @NotNull
+  @JsonProperty
+  private EventBusConfig eventBus = new EventBusConfig();
 
   @NotNull
   public ProxyConfig getProxyConfig() {
@@ -402,5 +417,22 @@ public class InsightConfig
 
   public void setRepositoryPolicyViolationNotificationInterval(int repositoryPolicyViolationNotificationInterval) {
     this.repositoryPolicyViolationNotificationInterval = repositoryPolicyViolationNotificationInterval;
+  }
+
+  public EventBusConfig getEventBusConfig() {
+    return eventBus;
+  }
+
+  public void setEventBusConfig(final EventBusConfig eventBusConfig) {
+    this.eventBus = eventBusConfig;
+  }
+
+
+  public String getWebhookSecretPassphrase() {
+    return webhookSecretPassphrase;
+  }
+
+  public void setWebhookSecretPassphrase(final String webhookSecretPassphrase) {
+    this.webhookSecretPassphrase = webhookSecretPassphrase;
   }
 }

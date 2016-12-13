@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -81,16 +82,20 @@ public class ScanPolicyEvaluator
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
+  private final ApplicationEvaluationEventService applicationEvaluationEventService;
+
   @Inject
   public ScanPolicyEvaluator(final InsightWork insightWork,
                              final ReportService reportService,
                              final PolicyThreatsAdapter policyThreatsAdapter,
-                             final ComponentPolicyEvaluator componentPolicyEvaluator)
+                             final ComponentPolicyEvaluator componentPolicyEvaluator,
+                             final ApplicationEvaluationEventService applicationEvaluationEventService)
   {
     this.work = insightWork;
     this.reportService = reportService;
     this.policyThreatsAdapter = policyThreatsAdapter;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
+    this.applicationEvaluationEventService = applicationEvaluationEventService;
   }
 
   public PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage)
@@ -148,6 +153,8 @@ public class ScanPolicyEvaluator
         .createPolicyThreats(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()))));
 
     ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
+
+    postEvaluateEvent(policyEvaluation);
 
     return policyEvaluation;
   }
@@ -326,6 +333,14 @@ public class ScanPolicyEvaluator
       policyEvaluationResult.setAlerts(policyAlerts);
     }
     return policyEvaluationResult;
+  }
+
+  /**
+   * @since 1.25.0
+   */
+  private void postEvaluateEvent(PolicyEvaluation policyEvaluation) {
+    PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation);
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
   }
 
   private static Object getPersistenceLock(String appId) {

@@ -29,6 +29,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -55,6 +56,10 @@ import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
+
 @Named
 @Path(PolicyResource.RESOURCE_PATH)
 public class PolicyResource
@@ -72,12 +77,16 @@ public class PolicyResource
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
 
+  private final ManagementEventService managementEventService;
+
   @Inject
   public PolicyResource(PolicyImportExport policyImportExport,
-                        NgUploadResponseGenerator ngUploadResponseGenerator)
+                        NgUploadResponseGenerator ngUploadResponseGenerator,
+                        final ManagementEventService managementEventService)
   {
     this.policyImportExport = policyImportExport;
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
+    this.managementEventService = managementEventService;
   }
 
   @GET
@@ -152,6 +161,8 @@ public class PolicyResource
     policy.setOwnerId(internalOwnerId);
     new PolicyDAO().insert(policy);
 
+    managementEventService.postEvent(CREATED, policy);
+
     return policy;
   }
 
@@ -175,6 +186,8 @@ public class PolicyResource
     policy.setOwnerId(internalOwnerId);
     policyDAO.update(policy);
 
+    managementEventService.postEvent(UPDATED, policy);
+
     return policy;
   }
 
@@ -196,6 +209,8 @@ public class PolicyResource
     }
 
     policyDAO.delete(policy);
+
+    managementEventService.postEvent(DELETED, policy);
   }
 
   @GET

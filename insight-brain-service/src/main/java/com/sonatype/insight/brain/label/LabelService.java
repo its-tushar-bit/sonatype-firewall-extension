@@ -12,6 +12,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -37,6 +38,10 @@ import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
+
 /**
  * @since 1.17.0
  */
@@ -53,6 +58,8 @@ public class LabelService
 
   private final ApplicationDAO applicationDAO;
 
+  private final ManagementEventService managementEventService;
+
   private PermissionService permissionService;
 
   @Inject
@@ -60,13 +67,15 @@ public class LabelService
                       final LabelDAO labelDAO,
                       final OwnerDAO ownerDAO,
                       final PolicyDAO policyDAO,
-                      final ApplicationDAO applicationDAO)
+                      final ApplicationDAO applicationDAO,
+                      final ManagementEventService managementEventService)
   {
     this.permissionService = permissionService;
     this.labelDAO = labelDAO;
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.applicationDAO = applicationDAO;
+    this.managementEventService = managementEventService;
   }
 
   /**
@@ -169,6 +178,8 @@ public class LabelService
     label.fixLabelLowercase();
     labelDAO.insert(label);
 
+    managementEventService.postEvent(CREATED, label);
+
     return label;
   }
 
@@ -186,6 +197,8 @@ public class LabelService
     label.setOwnerId(internalOwnerId);
     label.fixLabelLowercase();
     labelDAO.update(label);
+
+    managementEventService.postEvent(UPDATED, label);
 
     return label;
   }
@@ -205,6 +218,8 @@ public class LabelService
     validateLabelNotUsedInAnyPolicy(ownerDAO.getById(internalOwnerId), label);
 
     labelDAO.delete(label);
+
+    managementEventService.postEvent(DELETED, label);
   }
 
   public static class ApplicableLabels

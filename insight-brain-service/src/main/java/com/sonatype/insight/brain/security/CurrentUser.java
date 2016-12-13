@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.util.ThreadContext;
 
 /**
  * Helps to get some information about the current user.
@@ -34,6 +35,18 @@ public class CurrentUser
       return "anonymous";
     }
     return ((UserPrincipal) principal).getUsername();
+  }
+
+  /**
+   * Gets the internal name for the user associated with the calling thread if SecurityManager is accessible.
+   * If no principal is associated with the Subject, returns 'anonymous'. If no SecurityManager is accessible, returns
+   * 'system'.
+   */
+  public String getUsernameOrSystem() {
+    if (ThreadContext.getSecurityManager() == null) {
+      return "system";
+    }
+    return getUsername();
   }
 
   public boolean isAnonymous() {

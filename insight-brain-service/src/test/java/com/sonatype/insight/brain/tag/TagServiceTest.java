@@ -8,11 +8,14 @@ package com.sonatype.insight.brain.tag;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -22,10 +25,16 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tag.TagResource.ApplicableTags;
 import com.sonatype.insight.brain.tag.TagResource.AppliedTags;
+import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
+import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
@@ -39,6 +48,46 @@ public class TagServiceTest
 {
   @Inject
   private TagService tagService;
+
+  @Inject
+  private AsyncEventBus eventBus;
+
+  @Test
+  public void testAddUpdateAndDeleteTagPostEvents() throws Exception {
+    TestEventHandler<TagEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    eventBus.register(handler);
+
+    Organization organization = tempEntity.newOrganization();
+    Tag tag = new Tag(organization.getId(), "TAG", "test tag", Color.yellow);
+
+    Tag created = tagService.addTag(organization.getId(), tag);
+
+    assertThat(handler.getLatch().await(5, SECONDS), is(true));
+    assertThat(handler.getEvent().action, is(CREATED));
+    assertThat(handler.getEvent().ownerId, is(organization.getId()));
+    assertThat(handler.getEvent().tag.getId(), is(tag.getId()));
+
+    handler.setLatch(new CountDownLatch(1));
+
+    created.setDescription("some new description");
+    tagService.updateTag(organization.getId(), created);
+
+    assertThat(handler.getLatch().await(5, SECONDS), is(true));
+    assertThat(handler.getEvent().action, is(UPDATED));
+    assertThat(handler.getEvent().ownerId, is(organization.getId()));
+    assertThat(handler.getEvent().tag.getId(), is(tag.getId()));
+
+    handler.setLatch(new CountDownLatch(1));
+
+    tagService.deleteTag(organization.getId(), created.getId());
+
+    assertThat(handler.getLatch().await(5, SECONDS), is(true));
+    assertThat(handler.getEvent().action, is(DELETED));
+    assertThat(handler.getEvent().ownerId, is(organization.getId()));
+    assertThat(handler.getEvent().tag.getId(), is(tag.getId()));
+
+    eventBus.unregister(handler);
+  }
 
   @Test
   public void testUpdateApplicationTags() {

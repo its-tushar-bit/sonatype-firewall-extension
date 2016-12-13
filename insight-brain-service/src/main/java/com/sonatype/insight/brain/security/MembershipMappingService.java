@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.webhook.EventAction;
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -51,13 +53,16 @@ public class MembershipMappingService
 
   private final UserDirectory userDirectory;
 
+  private final ManagementEventService managementEventService;
+
   @Inject
   public MembershipMappingService(final ApplicationDAO appDAO,
                                   OrganizationDAO orgDAO,
                                   final RoleDAO roleDAO,
                                   final MembershipMappingDAO memberMapDAO,
                                   final OwnerDAO ownerDAO,
-                                  UserDirectory userDirectory)
+                                  UserDirectory userDirectory,
+                                  final ManagementEventService managementEventService)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
@@ -65,6 +70,7 @@ public class MembershipMappingService
     this.memberMapDAO = memberMapDAO;
     this.ownerDAO = ownerDAO;
     this.userDirectory = userDirectory;
+    this.managementEventService = managementEventService;
   }
 
   // Authorization is checked in loadMembersByRoleForGlobalContext and loadMembersByRoleForNonGlobalContext
@@ -182,6 +188,8 @@ public class MembershipMappingService
 
       tx.commit();
     }
+
+    managementEventService.postEvent(EventAction.UPDATED, roleToMembers, internalOwnerId);
   }
 
   private void setMembershipMappingsForRole(final TransactionContext tx,
@@ -206,6 +214,7 @@ public class MembershipMappingService
       final MembershipMapping memberMap = new MembershipMapping(member.getInternalName(), member.getType());
       memberMaps.add(memberMap);
     }
+
     memberMapDAO.setMembershipMappingsForContextAndRole(tx, internalOwnerId, roleId, memberMaps);
   }
 

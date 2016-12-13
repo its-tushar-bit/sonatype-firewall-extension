@@ -28,11 +28,16 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.webhook.LicenseOverrideEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 
 /**
  * @since 1.17.0
@@ -50,18 +55,22 @@ public class LicenseOverrideService
 
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
+  private final LicenseOverrideEventService licenseOverrideEventService;
+
   @Inject
   public LicenseOverrideService(final InsightWork work,
                                 final OwnerDAO ownerDAO,
                                 final CurrentUser currentUser,
                                 final LicenseOverrideDAO licenseOverrideDAO,
-                                final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
+                                final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
+                                final LicenseOverrideEventService licenseOverrideEventService)
   {
     this.work = work;
     this.currentUser = currentUser;
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.ownerDAO = ownerDAO;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
+    this.licenseOverrideEventService = licenseOverrideEventService;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -82,10 +91,12 @@ public class LicenseOverrideService
     if (existingLicenseOverride != null) {
       licenseOverride.setId(existingLicenseOverride.getId());
       licenseOverrideDAO.update(licenseOverride);
+      licenseOverrideEventService.postEvent(UPDATED, licenseOverride);
     }
     else {
       licenseOverride.setId(null);
       licenseOverrideDAO.insert(licenseOverride);
+      licenseOverrideEventService.postEvent(CREATED, licenseOverride);
     }
 
     String user = currentUser.getUsername();
@@ -134,6 +145,8 @@ public class LicenseOverrideService
     auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, true /* isDelete */);
 
     licenseOverrideDAO.delete(licenseOverride);
+
+    licenseOverrideEventService.postEvent(DELETED, licenseOverride);
   }
 
   @Authorize(permission = Permission.READ)

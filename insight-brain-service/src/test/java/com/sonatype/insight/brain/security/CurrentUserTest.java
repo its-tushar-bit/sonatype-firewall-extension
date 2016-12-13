@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import org.apache.shiro.util.ThreadContext;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -82,5 +83,24 @@ public class CurrentUserTest
     assertThat(currentUser.getUsername(), is("anonymous"));
     when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Administrator", true));
     assertThat(currentUser.getUsername(), is("admin"));
+  }
+
+  @Test
+  public void testGetUsernameOrSystem_Anonymous() {
+    when(subject.getPrincipal()).thenReturn(null);
+    assertThat(currentUser.getUsernameOrSystem(), is("anonymous"));
+  }
+
+  @Test
+  public void testGetUsernameOrSystem_Username() {
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Administrator", true));
+    assertThat(currentUser.getUsernameOrSystem(), is("admin"));
+  }
+
+  @Test
+  public void testGetUsernameOrSystem_System() {
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
+    assertThat(currentUser.getUsernameOrSystem(), is("system"));
   }
 }

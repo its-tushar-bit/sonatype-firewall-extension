@@ -24,11 +24,16 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 
 /**
  * @since 1.11.0
@@ -48,18 +53,22 @@ public class OrganizationService
 
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
+  private final ManagementEventService managementEventService;
+
   @Inject
   public OrganizationService(final InsightWork work,
                              final ApplicationCleaner applicationCleaner,
                              final FileCleaner fileCleaner,
                              final OrganizationDAO organizationDAO,
-                             final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
+                             final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils,
+                             final ManagementEventService managementEventService)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
     this.fileCleaner = fileCleaner;
     this.organizationDAO = organizationDAO;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
+    this.managementEventService = managementEventService;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
@@ -70,12 +79,17 @@ public class OrganizationService
   @Authorize(permission = Permission.WRITE)
   public Organization addOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_OWNER) Organization organization) {
     organizationDAO.insert(organization);
+
+    managementEventService.postEvent(CREATED, organization);
+
     return organization;
   }
 
   @Authorize(permission = Permission.WRITE)
   public Organization updateOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
     organizationDAO.update(organization);
+
+    managementEventService.postEvent(UPDATED, organization);
     return organization;
   }
 
@@ -89,26 +103,27 @@ public class OrganizationService
   public void deleteOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
       throws IOException
   {
+    Organization organization;
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
-      deleteOrganization(tx, organizationId);
+      organization = organizationDAO.getByIdNotNull(tx, organizationId);
+      deleteOrganization(tx, organization);
       tx.commit();
     }
+    managementEventService.postEvent(DELETED, organization);
   }
 
-  private void deleteOrganization(final TransactionContext tx, final String organizationId) throws IOException {
-    Organization organization = organizationDAO.getByIdNotNull(tx, organizationId);
-
+  private void deleteOrganization(final TransactionContext tx, final Organization organization) throws IOException {
     if (organization.getParentOrganizationId() == null) {
       throw new BadRequestException("The root organization cannot be deleted.");
     }
 
     // cascade to applications first
-    for (Application application : new ApplicationDAO().getByOrganizationId(tx, organizationId)) {
+    for (Application application : new ApplicationDAO().getByOrganizationId(tx, organization.getId())) {
       applicationCleaner.delete(tx, application);
     }
 
-    File organizationIconDirectory = new File(work.getOrganizationIconDir(), organizationId);
+    File organizationIconDirectory = new File(work.getOrganizationIconDir(), organization.getId());
     try {
       fileCleaner.delete(organizationIconDirectory);
     }

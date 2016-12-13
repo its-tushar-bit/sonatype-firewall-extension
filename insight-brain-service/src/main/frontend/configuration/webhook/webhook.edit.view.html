@@ -1,0 +1,62 @@
+<div id="webhook-editor" class="tile-editor-container">
+  <div class="container tile" load-wrapper="error" reload="doLoad()">
+    <div class="webhooks">
+      <h2 class="title"><img src="img/webhooks_20px.png" class="pull-left webhook-icon" alt="Webhooks">{{::vm.dirtyWebhook.id ?
+        'Edit' : 'Create'}} Webhook</h2>
+    </div>
+
+    <div class="webhooks">
+
+      <form name="vm.webhookEditor" class="clm-form" role="form"
+            ng-submit="vm.webhookEditor.$valid && vm.dirtyWebhook.isDirty() && vm.saveWebhook()" novalidate
+            form-mask="vm.webhookEditorMask" mask-attach-to-body>
+
+        <!-- These two fields are in place solely to stop browsers from autopopulating the webhook auth fields -->
+        <input class="hidden-input-hack" type="text"/>
+        <input class="hidden-input-hack" type="password"/>
+
+        <div class="section">
+          <div class="field">
+            <label for="editor-webhook-url">Webhook URL</label>
+            <div class="sub-label">to send the POST request</div>
+            <input class="wide" id="editor-webhook-url" type="text" name="url" required
+                   ng-model="vm.dirtyWebhook.url"
+                   ng-maxlength="2048"
+                   focus-input="true"
+                   clm-input/>
+          </div>
+          <div class="field">
+            <label for="editor-webhook-secret-key">Secret Key <span class="optional">- optional</span></label>
+            <div class="sub-label">used for the HMAC payload digest</div>
+            <input class="wide" id="editor-webhook-secret-key" type="password" name="secret-key"
+                   ng-model="vm.dirtyWebhook.secretKey"
+                   ng-maxlength="512"
+                   clm-input/>
+          </div>
+          <div class="field" id="event-types">
+            <label>Event Types</label>
+            <div class="sub-label">which trigger this Webhook</div>
+            <div ng-repeat="eventType in ::vm.webhookEventTypes">
+              <label class="checkbox">
+                <input type="checkbox" ng-checked="vm.hasEventTypeSelected(eventType)"
+                       ng-click="vm.toggleEventTypeSelected(eventType)">
+                <span>{{::eventType}}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.saveWebhook()">
+          <button type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyWebhook.isDirty()"
+                  submit-type="vm.dirtyWebhook.id ? 'update' : 'create'">
+            {{::vm.dirtyWebhook.id ? 'Update' : 'Create'}}
+          </button>
+          <button class="btn btn-link btn-cancel" type="button" ui-sref="webhooks.list">Cancel</button>
+          <button id="delete-webhook-button" class="btn btn-tertiary" type="button"
+                  ng-click="vm.deleteWebhook()" ng-if="vm.dirtyWebhook && vm.dirtyWebhook.id">
+            <i class="fa fa-fw fa-trash"></i>Remove Webhook
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

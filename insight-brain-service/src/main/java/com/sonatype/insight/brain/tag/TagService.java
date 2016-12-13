@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -39,6 +40,10 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Iterables;
 
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
+
 @Named
 /**
  * @since 1.9
@@ -61,6 +66,8 @@ class TagService
 
   private final OrganizationDAO organizationDAO;
 
+  private final ManagementEventService managementEventService;
+
   @Inject
   public TagService(ApplicationService applicationService,
                     ApplicationTagDAO applicationTagDAO,
@@ -69,7 +76,8 @@ class TagService
                     PolicyTagDAO policyTagDAO,
                     ApplicationDAO applicationDAO,
                     OrganizationDAO organizationDAO,
-                    PolicyDAO policyDAO)
+                    PolicyDAO policyDAO,
+                    ManagementEventService managementEventService)
   {
     this.applicationService = applicationService;
     this.applicationTagDAO = applicationTagDAO;
@@ -79,6 +87,7 @@ class TagService
     this.policyTagDAO = policyTagDAO;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
+    this.managementEventService = managementEventService;
   }
 
   public List<Tag> getTagsUsedByApplications() {
@@ -118,6 +127,8 @@ class TagService
     tag.setOrganizationId(organizationId);
     tagDAO.insert(tag);
 
+    managementEventService.postEvent(CREATED, tag);
+
     return tag;
   }
 
@@ -131,6 +142,8 @@ class TagService
     tag.setOrganizationId(organizationId);
     tagDAO.update(tag);
 
+    managementEventService.postEvent(UPDATED, tag);
+
     return tag;
   }
 
@@ -142,6 +155,8 @@ class TagService
           "Cannot find an application category with id " + tagId + " for organization id " + organizationId);
     }
     tagDAO.delete(tag);
+
+    managementEventService.postEvent(DELETED, tag);
   }
 
   @Authorize(permission = Permission.READ)

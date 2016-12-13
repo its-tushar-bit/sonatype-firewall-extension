@@ -201,3 +201,12 @@ logging:
     archivedFileCount: 50
 
     logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+
+
+# Passphrase used to encrypt the Webhook Secret Keys
+#webhookSecretPassphrase: "^d1swM!FF&qQ"
+
+#eventBus:
+  # Configures the number of threads used for the EventBus
+  # Defaults to 500 if not provided.
+  # maxPoolSize: 500

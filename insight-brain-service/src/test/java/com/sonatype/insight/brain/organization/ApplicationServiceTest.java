@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.organization;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -20,10 +22,16 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
+import com.sonatype.insight.brain.webhook.TestEventHandler;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -40,6 +48,9 @@ public class ApplicationServiceTest
   private Organization org;
   private Application app1;
   private Application app2;
+
+  @Inject
+  private AsyncEventBus eventBus;
 
   @Before
   public void before() {
@@ -131,6 +142,44 @@ public class ApplicationServiceTest
     assertThat(mappings.size(), is(1));
     assertThat(mappings.get(0).getMemberName(), is(USERNAME));
     assertThat(mappings.get(0).getMemberType(), is(MemberType.USER));
+  }
+
+  @Test
+  public void testAddUpdateAndDeleteApplicationPostEvents() throws Exception {
+    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    eventBus.register(handler);
+
+    Organization org = tempEntity.newOrganization();
+    Application app = new Application("appPublicId", "appName", org.getId());
+    app = applicationService.addApplication(app);
+    tempEntity.register(app);
+    final String applicationId = app.getId();
+
+    assertThat(handler.getLatch().await(5, SECONDS), is(true));
+    assertThat(handler.getEvent().action, is(CREATED));
+    assertThat(handler.getEvent().ownerId, is(applicationId));
+    assertThat(handler.getEvent().owner.getId(), is(applicationId));
+
+    handler.setLatch(new CountDownLatch(1));
+
+    app.setName("new appId");
+    applicationService.updateApplication(app);
+
+    assertThat(handler.getLatch().await(5, SECONDS), is(true));
+    assertThat(handler.getEvent().action, is(UPDATED));
+    assertThat(handler.getEvent().ownerId, is(applicationId));
+    assertThat(handler.getEvent().owner.getId(), is(applicationId));
+
+    handler.setLatch(new CountDownLatch(1));
+
+    applicationService.deleteApplicationByPublicId(app.getPublicId());
+
+    assertThat(handler.getLatch().await(5, SECONDS), is(true));
+    assertThat(handler.getEvent().action, is(DELETED));
+    assertThat(handler.getEvent().ownerId, is(applicationId));
+    assertThat(handler.getEvent().owner.getId(), is(applicationId));
+
+    eventBus.unregister(handler);
   }
 
   @Test

@@ -1,0 +1,136 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.configuration.webhook;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.service.InsightConfig;
+
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.configuration.webhook.Webhook.FAKE_SECRET_KEY;
+
+@Named
+@Singleton
+public class WebhookService
+{
+  private static final Logger log = LoggerFactory.getLogger(WebhookService.class);
+
+  private final WebhookDAO webhookDao = new WebhookDAO();
+
+  private final InsightConfig insightConfig;
+
+  private final PlexusCipher plexusCipher;
+
+  @Inject
+  public WebhookService(final InsightConfig insightConfig, final PlexusCipher plexusCipher) {
+    this.insightConfig = insightConfig;
+    this.plexusCipher = plexusCipher;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public List<Webhook> getAll() {
+    List<Webhook> result = new ArrayList<>();
+    for (Webhook webhook : webhookDao.getAll()) {
+      webhook.setSecretKey(FAKE_SECRET_KEY);
+      result.add(webhook);
+    }
+    return result;
+  }
+
+  public List<Webhook> getAll_Unauthorized() {
+    List<Webhook> result = new ArrayList<>();
+    for (Webhook webhook : webhookDao.getAll()) {
+      webhook.setSecretKey(FAKE_SECRET_KEY);
+      result.add(webhook);
+    }
+    return result;
+  }
+
+  public Webhook getDecrypted(String webhookId) {
+    Webhook webhook = webhookDao.getByIdNotNull(webhookId);
+    decryptWebhookSecretKey(webhook);
+    return webhook;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public List<WebhookEventType> getAllWebhookEventTypes() {
+    return Lists.newArrayList(WebhookEventType.values());
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public Webhook addWebhook(Webhook webhook) {
+    encryptWebhookSecretKey(webhook);
+    webhookDao.insert(webhook);
+    webhook.setSecretKey(FAKE_SECRET_KEY);
+    return webhook;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public Webhook updateWebhook(Webhook webhook) {
+    if (FAKE_SECRET_KEY.equals(webhook.getSecretKey())) {
+      Webhook savedWebhook = webhookDao.getByIdNotNull(webhook.getId());
+      webhook.setSecretKey(savedWebhook.getSecretKey());
+    }
+    else {
+      encryptWebhookSecretKey(webhook);
+    }
+    webhookDao.update(webhook);
+
+    webhook.setSecretKey(FAKE_SECRET_KEY);
+    return webhook;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deleteWebhook(String webhookId) {
+    Webhook webhook = webhookDao.getByIdNotNull(webhookId);
+    webhookDao.delete(webhook);
+  }
+
+  private void encryptWebhookSecretKey(final Webhook webhook) {
+    if (StringUtils.isNotEmpty(webhook.getSecretKey())) {
+      synchronized (plexusCipher) {
+        try {
+          webhook.setSecretKey(
+              plexusCipher.encrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase()));
+        }
+        catch (PlexusCipherException e) {
+          log.error("Unable to encrypt Webhook secret key", e);
+          throw new IllegalStateException(e);
+        }
+      }
+    }
+  }
+
+  public void decryptWebhookSecretKey(final Webhook webhook) {
+    if (StringUtils.isNotBlank(webhook.getSecretKey())) {
+      synchronized (plexusCipher) {
+        try {
+          webhook.setSecretKey(plexusCipher
+              .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase()));
+        }
+        catch (PlexusCipherException e) {
+          log.error("Unable to decrypt Webhook secret key", e);
+          throw new IllegalStateException(e);
+        }
+      }
+    }
+  }
+}

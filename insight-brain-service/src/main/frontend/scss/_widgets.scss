@@ -1321,3 +1321,43 @@ root-organization-migrate {
     }
   }
 }
+
+/*
+  # Webhook event types in webhook list
+
+```
+  <ul class="list-horizontal">
+    <li>
+      <i class="fa fa-circle" title="Security Vulnerability Override Management"></i>Security Vulnerability Override Management
+    </li>
+    <li>
+      <i class="fa fa-circle" title="Policy Management"></i>Policy Management
+    </li>
+    <li>
+      <i class="fa fa-circle" title="License Override Management"></i>License Override Management
+    </li>
+    <li>
+      <i class="fa fa-circle" title="Application Evaluation"></i>Application Evaluation
+    </li>
+  </ul>
+```
+*/
+
+#webhook-event-type-list {
+  clear: both;
+
+  > li {
+    display: inline;
+    padding-right: 24px;
+    padding-left: 0;
+    border-bottom: none;
+    border-top: none;
+
+    > i {
+      font-size: 75%;
+      top: -1px;
+      position: relative;
+      padding-right: 5px;
+    }
+  }
+}

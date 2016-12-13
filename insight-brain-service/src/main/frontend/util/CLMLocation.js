@@ -315,6 +315,14 @@
 
         getJiraProjectsUrl: function() {
           return baseUrl.get() + '/rest/jira/project';
+        },
+
+        getWebhooksUrl : function() {
+          return baseUrl.get() + '/rest/config/webhook';
+        },
+
+        getWebhookEventTypesUrl : function() {
+          return baseUrl.get() + '/rest/config/webhook/eventTypes';
         }
       };
     }

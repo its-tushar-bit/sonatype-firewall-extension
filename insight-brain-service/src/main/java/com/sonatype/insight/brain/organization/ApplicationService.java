@@ -22,12 +22,16 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 @Named
@@ -41,14 +45,18 @@ public class ApplicationService
 
   private final ApplicationHelper applicationHelper;
 
+  private final ManagementEventService managementEventService;
+
   @Inject
   public ApplicationService(ApplicationDAO applicationDAO,
                             final ApplicationCleaner applicationCleaner,
-                            final ApplicationHelper applicationHelper)
+                            final ApplicationHelper applicationHelper,
+                            final ManagementEventService managementEventService)
   {
     this.applicationDAO = applicationDAO;
     this.applicationCleaner = applicationCleaner;
     this.applicationHelper = applicationHelper;
+    this.managementEventService = managementEventService;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -147,12 +155,18 @@ public class ApplicationService
   @Authorize(permission = Permission.ADD_APPLICATION)
   public Application addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application) {
     applicationHelper.addApplication(application);
+
+    managementEventService.postEvent(CREATED, application);
+
     return application;
   }
 
   @Authorize(permission = Permission.WRITE)
   public Application updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
     applicationDAO.update(application);
+
+    managementEventService.postEvent(UPDATED, application);
+
     return application;
   }
 
@@ -160,12 +174,14 @@ public class ApplicationService
   public void deleteApplicationByPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
       throws IOException
   {
+    Application application;
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
-      Application application = applicationDAO.getByPublicIdNotNull(tx, applicationPublicId);
+      application = applicationDAO.getByPublicIdNotNull(tx, applicationPublicId);
       applicationCleaner.delete(tx, application);
       tx.commit();
     }
+    managementEventService.postEvent(DELETED, application);
   }
 
   public Set<String> getApplicationIdsByOrganizationIds(Set<String> organizationIds) {

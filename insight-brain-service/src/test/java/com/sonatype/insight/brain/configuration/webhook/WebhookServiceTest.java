@@ -1,0 +1,122 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.configuration.webhook;
+
+import java.util.EnumSet;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
+import org.junit.Test;
+
+import static com.sonatype.insight.brain.configuration.webhook.Webhook.FAKE_SECRET_KEY;
+import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
+import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+
+public class WebhookServiceTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private WebhookService webhookService;
+
+  @Inject
+  private InsightConfig insightConfig;
+
+  @Inject
+  private PlexusCipher plexusCipher;
+
+  @Test
+  public void testAddWebhook_EncryptsSecretKey() throws PlexusCipherException {
+    WebhookDAO webhookDAO = new WebhookDAO();
+
+    final String secretKey = "some secret key";
+    Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey(secretKey);
+    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+    webhook = webhookService.addWebhook(webhook);
+
+    // WebhookService should fake out secret key when returning from addWebhook
+    assertThat(webhook.getSecretKey(), is(FAKE_SECRET_KEY));
+
+    webhook = webhookDAO.getByIdNotNull(webhook.getId());
+
+    // WebhookService should store secret key encrypted
+    assertThat(webhook.getSecretKey(), is(not(secretKey)));
+    synchronized (plexusCipher) {
+      final String decryptedSecretKey = plexusCipher
+          .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase());
+      assertThat(decryptedSecretKey, is(secretKey));
+    }
+
+    webhookDAO.delete(webhook);
+  }
+
+  @Test
+  public void testUpdateWebhook_EncryptsSecretKey() throws PlexusCipherException {
+    WebhookDAO webhookDAO = new WebhookDAO();
+
+    Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+
+    webhook = webhookService.updateWebhook(webhook);
+
+    // WebhookService should fake out secret key when returning from updateWebhook
+    assertThat(webhook.getSecretKey(), is(FAKE_SECRET_KEY));
+
+    webhook = webhookDAO.getByIdNotNull(webhook.getId());
+
+    // WebhookService should store secret key encrypted
+    assertThat(webhook.getSecretKey(), is(not(WEBHOOK_SECRET_KEY_CLEAR)));
+    synchronized (plexusCipher) {
+      final String decryptedSecretKey = plexusCipher
+          .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase());
+      assertThat(decryptedSecretKey, is(WEBHOOK_SECRET_KEY_CLEAR));
+    }
+  }
+
+  @Test
+  public void testAddWebhook_EmptySecretKeyEncryptsEmpty() {
+    WebhookDAO webhookDAO = new WebhookDAO();
+
+    Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+    webhook.setSecretKey("");
+    webhook = webhookService.addWebhook(webhook);
+
+    // WebhookService should fake out secret key when returning from addWebhook
+    assertThat(webhook.getSecretKey(), is(FAKE_SECRET_KEY));
+
+    webhook = webhookDAO.getByIdNotNull(webhook.getId());
+
+    // WebhookService should store empty secret key as empty string
+    assertThat(webhook.getSecretKey(), isEmptyString());
+
+    webhookDAO.delete(webhook);
+  }
+
+  @Test
+  public void testGetDecrypted() {
+    Webhook webhook = tempEntity.newWebhookWithSecret("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+
+    Webhook result = webhookService.getDecrypted(webhook.getId());
+
+    assertThat(result.getId(), is(webhook.getId()));
+    assertThat(result.getUrl(), is(webhook.getUrl()));
+    assertThat(result.getSecretKey(), is(WEBHOOK_SECRET_KEY_CLEAR));
+  }
+}

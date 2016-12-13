@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.configuration.webhook;
+
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+/**
+ * @since 1.25
+ */
+@Named
+@Path(value = WebhookResource.RESOURCE_PATH)
+public class WebhookResource
+{
+  public static final String WEBHOOK_ID = "{webhookId}";
+
+  public static final String RESOURCE_PATH = "rest/config/webhook";
+
+  public static final String WEBHOOK_EVENT_TYPES_PATH = "eventTypes";
+
+  private final WebhookService webhookService;
+
+  @Inject
+  public WebhookResource(final WebhookService webhookService) {
+    this.webhookService = webhookService;
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<Webhook> getAll() {
+    return webhookService.getAll();
+  }
+
+  @Path(WEBHOOK_EVENT_TYPES_PATH)
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<WebhookEventType> getAllWebhookEventTypes() {
+    return webhookService.getAllWebhookEventTypes();
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Webhook addWebhook(Webhook webhook) {
+    return webhookService.addWebhook(webhook);
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Webhook updateWebhook(Webhook webhook) {
+    return webhookService.updateWebhook(webhook);
+  }
+
+  @DELETE
+  @Path(WEBHOOK_ID)
+  public void deleteWebhook(@PathParam("webhookId") final String webhookId) {
+    webhookService.deleteWebhook(webhookId);
+  }
+}

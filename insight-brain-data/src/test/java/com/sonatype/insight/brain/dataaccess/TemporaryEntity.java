@@ -23,11 +23,14 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -113,6 +116,10 @@ public class TemporaryEntity
 
   private static final String USER_PASSWORD_HASH = "$shiro1$SHA-256$10$Gsv3gW95oRKzzxp37k/wJA==$T2VDhMzPuXN7VTobkLUcwDsxxJJXj5pInbW7YUn8muY=";
 
+  public static final String WEBHOOK_SECRET_KEY_CLEAR = "secret_key";
+
+  public static final String WEBHOOK_SECRET_KEY_ENCRYPTED = "yt81KDLODoAH7i0U4G5lEr53mhus9kOCjB3dMtcDVFY=";
+
   private final ApplicationDAO appDAO = new ApplicationDAO();
 
   private final OrganizationDAO orgDAO = new OrganizationDAO();
@@ -181,6 +188,8 @@ public class TemporaryEntity
 
   private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
+  private final WebhookDAO webhookDAO = new WebhookDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -214,7 +223,11 @@ public class TemporaryEntity
   private Collection<RepositoryManager> repositoryManagers;
 
   private Collection<SecurityVulnerabilityOverride> securityVulnerabilityOverrides;
+
   private Collection<MembershipMapping> membershipMappings;
+
+  private Collection<Webhook> webhooks;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -235,6 +248,7 @@ public class TemporaryEntity
     repositoryManagers = new ArrayList<>();
     securityVulnerabilityOverrides = new ArrayList<>();
     membershipMappings = new ArrayList<>();
+    webhooks = new ArrayList<>();
   }
 
   @Override
@@ -343,6 +357,12 @@ public class TemporaryEntity
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
       proprietaryConfigDAO.delete(config);
+    }
+
+    for (Webhook webhook : webhooks) {
+      if ((webhook = webhookDAO.getById(webhook.getId())) != null) {
+        webhookDAO.delete(webhook);
+      }
     }
   }
 
@@ -1355,5 +1375,29 @@ public class TemporaryEntity
     ProprietaryConfig config = new ProprietaryConfig(ownerId, packages, regexes);
     proprietaryConfigDAO.insert(config);
     return config;
+  }
+
+  public Webhook newWebhookWithSecret(String url, Set<WebhookEventType> events) {
+    Webhook webhook = new Webhook(url, WEBHOOK_SECRET_KEY_ENCRYPTED, events);
+    webhookDAO.insert(webhook);
+    webhooks.add(webhook);
+    return webhook;
+  }
+
+  public Webhook newWebhookWithSecret(Set<WebhookEventType> events) {
+    String uuid = uuid();
+    return newWebhookWithSecret("http://localhost/" + uuid, events);
+  }
+
+  public Webhook newWebhook(String url, Set<WebhookEventType> events) {
+    Webhook webhook = new Webhook(url, null, events);
+    webhookDAO.insert(webhook);
+    webhooks.add(webhook);
+    return webhook;
+  }
+
+  public Webhook newWebhook(Set<WebhookEventType> events) {
+    String uuid = uuid();
+    return newWebhook("http://localhost/" + uuid, events);
   }
 }

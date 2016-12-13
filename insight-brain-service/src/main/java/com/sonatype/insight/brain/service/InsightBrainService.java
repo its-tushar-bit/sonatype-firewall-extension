@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.migration.DataMigrator;
@@ -305,10 +306,17 @@ public class InsightBrainService
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
     };
+    Module eventBus = new AbstractModule()
+    {
+      @Override
+      protected void configure() {
+        bind(EventBusConfig.class).toInstance(config.getEventBusConfig());
+      }
+    };
     Module authc = new SecurityModule(config);
     Module authz = new SecurityAopModule(config.isAnonymousClientAccessAllowed());
 
-    return Arrays.asList(bindings, authc, authz);
+    return Arrays.asList(bindings, eventBus, authc, authz);
   }
 
   private static String getLocalHostString() {

@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.configuration.webhook;
+
+import java.util.Set;
+
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Table;
+
+import com.sonatype.insight.model.HasStringId;
+
+/**
+ * @since 1.25.0
+ */
+@Entity
+@Table(name = "webhook")
+public class Webhook
+    implements HasStringId
+{
+  public static final String FAKE_SECRET_KEY = "#~FAKE~SECRET~KEY~#";
+
+  @Id
+  @Column(name = "webhook_id")
+  private String id;
+
+  @Column(name = "url")
+  private String url;
+
+  @Column(name = "secret_key")
+  private String secretKey;
+
+  @ElementCollection(targetClass = WebhookEventType.class)
+  @CollectionTable(name = "webhook_event_type", joinColumns = @JoinColumn(name = "webhook_id"))
+  @Column(name = "event_type", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private Set<WebhookEventType> eventTypes;
+
+  public Webhook() {
+  }
+
+  public Webhook(final String url, final String secretKey) {
+    this.url = url;
+    this.secretKey = secretKey;
+  }
+
+  public Webhook(final String url,
+                 final String secretKey,
+                 final Set<WebhookEventType> eventTypes)
+  {
+    this.url = url;
+    this.secretKey = secretKey;
+    this.eventTypes = eventTypes;
+  }
+
+  @Override
+  public String getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(final String id) {
+    this.id = id;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(final String url) {
+    this.url = url;
+  }
+
+  public String getSecretKey() {
+    return secretKey;
+  }
+
+  public void setSecretKey(final String secretKey) {
+    this.secretKey = secretKey;
+  }
+
+  public Set<WebhookEventType> getEventTypes() {
+    return eventTypes;
+  }
+
+  public void setEventTypes(final Set<WebhookEventType> eventTypes) {
+    this.eventTypes = eventTypes;
+  }
+}

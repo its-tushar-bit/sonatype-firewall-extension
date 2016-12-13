@@ -245,6 +245,23 @@
     }
   ]);
 
+  storesModule.service('WebhookStore', [
+    'CLMLocations', 'CachedStore', function(clmLocations, CachedStore) {
+      var webhookStoreTemplate = {
+        id: 'id',
+        template: {
+          id: null,
+          url: '',
+          secretKey: '',
+          eventTypes: []
+        },
+        getUrl: clmLocations.getWebhooksUrl
+      };
+
+      return CachedStore.get(webhookStoreTemplate);
+    }
+  ]);
+
   storesModule.service('ProprietaryConfigHierarchyStore', [
     'CLMAppLocations', 'CachedHierarchyStore', function(CLMAppLocations, CachedHierarchyStore) {
       var proprietaryConfigStoreTemplate = {

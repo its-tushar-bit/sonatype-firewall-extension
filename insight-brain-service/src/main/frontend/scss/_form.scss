@@ -7,6 +7,13 @@
   See clmControlGroup and clmInput directives.
 */
 .clm-form {
+  .hidden-input-hack {
+    position: absolute;
+    left: -1000px;
+    height: 0;
+    width: 0;
+  }
+
   .section {
     .field {
       &:nth-child(n + 2) {

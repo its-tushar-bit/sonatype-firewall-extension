@@ -60,7 +60,7 @@
             tooltip="Dashboard" tooltip-placement="bottom" ng-if="isDashboardLicensed()">
           <a ui-sref="dashboard.overview.violations" class="iq-navigation__link">
             <span><i class="sonatype-icons medium dashboard"></i></span>
-          </a> 
+          </a>
         </li><!-- fix chrome bounce
      --><li class="iq-navigation-menu__icon" ng-class="{ 'active' : $state.includes('violations') }"
                tooltip="Reporting" tooltip-placement="bottom">
@@ -134,6 +134,10 @@
                   ng-class="{'active': $state.includes('ldap') }">
                 <a ui-sref="ldap-servers" class="iq-dropdown__link">LDAP</a>
               </li>
+              <li id="system-configuration-webhooks" ng-if="permissions.CONFIGURE_SYSTEM"
+                  ng-class="{'active': $state.includes('webhooks.list') }">
+                <a ui-sref="webhooks.list" class="iq-dropdown__link">Webhooks</a>
+              </li>
             </ul>
           </li>
         </ul>
@@ -198,7 +202,7 @@
         </a>
         <ul class="dropdown-menu dropdown-menu-arrow">
           <li class="iq-dropdown-menu__title">CURRENT&nbsp;USER</li>
-          <li> 
+          <li>
             <ul class="dropdown-contents">
               <li ng-controller="ChangePassword" ng-show="canChangePassword()">
                 <a id="change-password" ng-click="change()" class="iq-dropdown__link">Change Password</a>

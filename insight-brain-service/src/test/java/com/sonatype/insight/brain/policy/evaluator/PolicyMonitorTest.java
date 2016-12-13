@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.mail.Message;
 
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -45,6 +48,8 @@ import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.insight.brain.webhook.TestEventHandler;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
@@ -71,6 +76,10 @@ public class PolicyMonitorTest
 
   private String savedBaseUrl;
 
+  private AsyncEventBus asyncEventBus;
+
+  private TestEventHandler<ApplicationEvaluationEvent> handler;
+
   @Before
   public void setup() {
     insightConfig = getCLMServer().getInjector().getInstance(InsightConfig.class);
@@ -78,11 +87,16 @@ public class PolicyMonitorTest
     insightConfig.setBaseUrl("http://clm.sonatype.com/test");
     insightWork = getCLMServer().getInjector().getInstance(InsightWork.class);
     policyMonitor = getCLMServer().getInjector().getInstance(PolicyMonitor.class);
+    asyncEventBus = getCLMServer().getInjector().getInstance(AsyncEventBus.class);
   }
 
   @After
   public void cleanup() {
     insightConfig.setBaseUrl(savedBaseUrl);
+
+    if (handler != null) {
+      asyncEventBus.unregister(handler);
+    }
   }
 
   @Test
@@ -184,6 +198,19 @@ public class PolicyMonitorTest
   @Test
   public void testRootOrganizationMonitored() throws Exception {
     testMonitored(OwnerType.GLOBAL);
+  }
+
+  @Test
+  public void testRun_NoShiroSubjectEmitsApplicationEvaluation() throws Exception {
+    handler = new TestEventHandler<>(new CountDownLatch(1));
+    asyncEventBus.register(handler);
+
+    testMonitored(OwnerType.APPLICATION);
+
+    assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
+    ApplicationEvaluationEvent event = handler.getEvent();
+    assertThat(event, is(notNullValue()));
+    assertThat(event.initiator, is("system"));
   }
 
   private void testMonitored(OwnerType monitorOwnerType) throws Exception {

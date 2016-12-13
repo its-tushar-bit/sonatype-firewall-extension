@@ -89,6 +89,10 @@
       <artifactId>insight-brain-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-event</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-scanner-model</artifactId>
     </dependency>

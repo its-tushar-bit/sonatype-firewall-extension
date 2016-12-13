@@ -1,110 +1,5 @@
 /*
-Deltas
-```
-<div class='policy-summary-table'>
-  <div class='delta-column'>
-    <span class='natural'><i class='sonatype-icons up'></i> <i class='sonatype-icons down'></i></span>
-    <span class='inverse'><i class='sonatype-icons up'></i> <i class='sonatype-icons down'></i></span>
-    <span class='neutral'><i class='sonatype-icons up'></i></i></span>
-  </div>
-</div>
-```
-
-Sparklines
-```
-<div class='policy-summary-table'>
-  <div class='natural'>
-    <div class='sparkline'>
-      <svg class='chart'>
-        <g>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948L120.76923076923077,30L109.97202797202799,30L99.17482517482519,30L88.37762237762239,30L77.58041958041959,30L66.78321678321679,30L55.986013986013994,30L45.188811188811194,30L34.39160839160839,30L23.594405594405597,30L12.797202797202798,30L2,30Z" class="fill base"></path>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948" class="line base"></path><path d="M120.76923076923077,26.949494949494948L131,2L131,30L120.76923076923077,30Z" class="fill up"></path><path d="M120.76923076923077,26.949494949494948L131,2" class="line up"></path>
-          <line opacity="0" x1="0" y1="0" x2="0" y2="30" class="guideline" transform="translate(45.188811188811194,0)"></line>
-        </g>
-      </svg>
-    </div>
-  </div>
-  <div class='inverse'>
-    <div class='sparkline'>
-      <svg class='chart'>
-        <g>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948L120.76923076923077,30L109.97202797202799,30L99.17482517482519,30L88.37762237762239,30L77.58041958041959,30L66.78321678321679,30L55.986013986013994,30L45.188811188811194,30L34.39160839160839,30L23.594405594405597,30L12.797202797202798,30L2,30Z" class="fill base"></path>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948" class="line base"></path><path d="M120.76923076923077,26.949494949494948L131,2L131,30L120.76923076923077,30Z" class="fill up"></path><path d="M120.76923076923077,26.949494949494948L131,2" class="line up"></path>
-          <line opacity="0" x1="0" y1="0" x2="0" y2="30" class="guideline" transform="translate(45.188811188811194,0)"></line>
-        </g>
-      </svg>
-    </div>
-  </div>
-  <div class='neutral'>
-    <div class='sparkline'>
-      <svg class='chart'>
-        <g>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948L120.76923076923077,30L109.97202797202799,30L99.17482517482519,30L88.37762237762239,30L77.58041958041959,30L66.78321678321679,30L55.986013986013994,30L45.188811188811194,30L34.39160839160839,30L23.594405594405597,30L12.797202797202798,30L2,30Z" class="fill base"></path>
-          <path d="M2,28L12.797202797202798,19.595959595959595L23.594405594405597,18.808080808080806L34.39160839160839,18.808080808080806L45.188811188811194,17.757575757575758L55.986013986013994,17.757575757575758L66.78321678321679,16.96969696969697L77.58041958041959,26.949494949494948L88.37762237762239,26.949494949494948L99.17482517482519,26.949494949494948L109.97202797202799,26.949494949494948L120.76923076923077,26.949494949494948" class="line base"></path><path d="M120.76923076923077,26.949494949494948L131,2L131,30L120.76923076923077,30Z" class="fill up"></path><path d="M120.76923076923077,26.949494949494948L131,2" class="line up"></path>
-          <line opacity="0" x1="0" y1="0" x2="0" y2="30" class="guideline" transform="translate(45.188811188811194,0)"></line>
-        </g>
-      </svg>
-    </div>
-  </div>
-</div>
-```
-
-Bar Graphs
-```
-<div class='policy-summary-table'>
-  <div class='natural'>
-    <svg class="chart">
-      <rect x="8" y="14.210526315789474" height="7.2180451127819545" width="8" class="bar up"></rect>
-      <rect x="18" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="28" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="38" y="20.526315789473685" height="0.9022556390977439" width="8" class="bar up"></rect>
-      <rect x="48" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="58" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="68" y="21.42857142857143" height="8.571428571428571" width="8" class="bar down"></rect>
-      <rect x="78" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="88" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="98" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="108" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="118" y="0" height="21.42857142857143" width="8" class="bar up"></rect>
-      <line x1="8" x2="126" y1="21.42857142857143" y2="21.42857142857143" stroke="#777777" stroke-width="0.5"></line>
-    </svg>
-  </div>
-  <div class='inverse'>
-    <svg class="chart">
-      <rect x="8" y="14.210526315789474" height="7.2180451127819545" width="8" class="bar up"></rect>
-      <rect x="18" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="28" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="38" y="20.526315789473685" height="0.9022556390977439" width="8" class="bar up"></rect>
-      <rect x="48" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="58" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="68" y="21.42857142857143" height="8.571428571428571" width="8" class="bar down"></rect>
-      <rect x="78" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="88" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="98" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="108" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="118" y="0" height="21.42857142857143" width="8" class="bar up"></rect>
-      <line x1="8" x2="126" y1="21.42857142857143" y2="21.42857142857143" stroke="#777777" stroke-width="0.5"></line>
-    </svg>
-  </div>
-  <div class='neutral'>
-    <svg class="chart">
-      <rect x="8" y="14.210526315789474" height="7.2180451127819545" width="8" class="bar up"></rect>
-      <rect x="18" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="28" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="38" y="20.526315789473685" height="0.9022556390977439" width="8" class="bar up"></rect>
-      <rect x="48" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="58" y="20.75187969924812" height="0.6766917293233075" width="8" class="bar up"></rect>
-      <rect x="68" y="21.42857142857143" height="8.571428571428571" width="8" class="bar down"></rect>
-      <rect x="78" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="88" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="98" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="108" y="21.42857142857143" height="0" width="8" class="bar down"></rect>
-      <rect x="118" y="0" height="21.42857142857143" width="8" class="bar up"></rect>
-      <line x1="8" x2="126" y1="21.42857142857143" y2="21.42857142857143" stroke="#777777" stroke-width="0.5"></line>
-    </svg>
-  </div>
-</div>
-```
+  #Deltas, Sparklines and Bar Graphs
 */
 $policy-summary-table-row-height: 25px;
 
@@ -114,21 +9,22 @@ $policy-summary-table-row-height: 25px;
   }
 
   &.table td {
-    @extend .bold;
-    padding: 5px 2px;
-    line-height: $policy-summary-table-row-height;
+    @include bold();
+
     font-size: 1.1em;
+    line-height: $policy-summary-table-row-height;
+    padding: 5px 2px;
     min-width: 40px;
   }
 
   &.table .buffer-column {
-    min-width: 0px;
     padding: 0;
+    min-width: 0px;
   }
 
   &.table .delta-column {
-    min-width: 0px;
     text-align: right;
+    min-width: 0px;
   }
 
   &.table td:not(:first-child),
@@ -145,8 +41,8 @@ $policy-summary-table-row-height: 25px;
   }
 
   &.table .category-header {
-    min-width: 95px;
     text-align: left;
+    min-width: 95px;
   }
 
   .delta-column .up:before, .delta-column .down:before {
@@ -157,35 +53,8 @@ $policy-summary-table-row-height: 25px;
 
   .chart {
     height: $policy-summary-table-row-height;
-    width: 115px;
     margin: auto;
-  }
-
-  .sparkline {
-    .guideline {
-      stroke: #444444;
-    }
-    .guide-circle {
-      fill: #198FFA;
-    }
-    .guide-rect {
-      fill: white;
-    }
-    .guide-text {
-      @extend .bold;
-      fill: black;
-      cursor: default;
-    }
-    .line {
-      &.base {
-        stroke: #198FFA;
-      }
-      stroke-width: 2px;
-      fill: none;
-    }
-    .fill.base {
-      fill: #E8E8E8;
-    }
+    width: 115px;
   }
 
   .natural {
@@ -193,28 +62,35 @@ $policy-summary-table-row-height: 25px;
       .up:before {
         color: $dark-green;
       }
+      
       .down:before {
         color: $dark-red;
       }
     }
+    
     .sparkline {
       .fill.up {
         fill: $light-green;
       }
+      
       .line.up {
         stroke: $dark-green;
       }
+      
       .fill.down {
         fill: $light-red;
       }
+      
       .line.down {
         stroke: $dark-red;
       }
     }
+    
     .chart {
       .bar.up {
         fill: $dark-green;
       }
+      
       .bar.down {
         fill: $dark-red;
       }
@@ -226,28 +102,35 @@ $policy-summary-table-row-height: 25px;
       .up:before {
         color: $dark-red;
       }
+      
       .down:before {
         color: $dark-green;
       }
     }
+    
     .sparkline {
       .fill.up {
         fill: $light-red;
       }
+      
       .line.up {
         stroke: $dark-red;
       }
+      
       .fill.down {
         fill: $light-green;
       }
+      
       .line.down {
         stroke: $dark-green;
       }
     }
+    
     .chart {
       .bar.up {
         fill: $dark-red;
       }
+      
       .bar.down {
         fill: $dark-green;
       }
@@ -260,18 +143,55 @@ $policy-summary-table-row-height: 25px;
         color: $dark-blue;
       }
     }
+    
     .sparkline {
       .fill.up, .fill.down {
         fill: $light-blue;
       }
+      
       .line.up, .line.down {
         stroke: $dark-blue;
       }
     }
+    
     .chart {
       .bar {
         fill: $dark-blue;
       }
     }
+  }
+}
+
+.sparkline {
+  .guideline {
+    stroke: #444444;
+  }
+  
+  .guide-circle {
+    fill: #198FFA;
+  }
+  
+  .guide-rect {
+    fill: white;
+  }
+  
+  .guide-text {
+    @include bold();
+
+    cursor: default;
+    fill: black;
+  }
+  
+  .line {
+    fill: none;
+    stroke-width: 2px;
+    
+    &.base {
+      stroke: #198FFA;
+    }
+  }
+  
+  .fill.base {
+    fill: #E8E8E8;
   }
 }

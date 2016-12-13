@@ -5,84 +5,6 @@
   ##Text inputs
 
   See clmControlGroup and clmInput directives.
-
-  ```
-  <form class='clm-form'>
-    <div class="section">
-      <div class="field">
-        <label for='normal'>An input with its initial value</label>
-        <input type='text' id='normal' class='initial-value' placeholder='ex. Antiquated Value'>
-      </div>
-      <div class="field">
-        <label for='valid'>An input that has been updated and is valid</label>
-        <input type='text' id='valid' class='ng-valid' value='Valid'>
-      </div>
-      <div class="field">
-        <label for='invalid'>An input that has been updated and is invalid</label>
-        <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
-      </div>
-      <div class="field">
-        <label for='disabled' class='disabled'>A disabled label requires the disabled class</label>
-        <input type='text' id='disabled' disabled class='ng-valid' value='Disabled'>
-      </div>
-    </div>
-    <div class="section">
-     <div class="field">
-        <label for='wide'>A wide input</label>
-        <input type='text' id='wide' class='ng-valid wide' placeholder='ex. A very long value can fit in here.'>
-      </div>
-    </div>
-    <div class="section">
-      <div class="field">
-        <div class="field-left">
-          <label for='inlinefield'>Inline input</label>
-          <input type='text' id='inlinefield' class='ng-valid wide'>
-        </div>
-        <div class="field-right">
-          some inline stuff
-        </div>
-      </div>
-      <div class="inline-fields">
-        <div class="field">
-          <label for='inlinefield1'>Inline input 1</label>
-          <input type='text' id='inlinefield1' class='ng-valid'>
-        </div>
-        <div class="field">
-          <label for='inlinefield2'>Inline input 2</label>
-          <input type='text' id='inlinefield2' class='ng-valid'>
-        </div>
-      </div>
-    </div>
-  </form>
-  ```
-
-  ##Interactive Examples
-  ```
-  <div ng-app="formsStyle">
-    <form class='clm-form' name='someForm'>
-      <div class="section">
-        <div class="field">
-          <label for='normal'>An optional email</label>
-          <input type='email' ng-model='emailOne'>
-        </div>
-        <div class="field">
-          <label for='normal'>An optional email with an initial value</label>
-          <input type='email' ng-model='emailTwo'>
-        </div>
-      </div>
-      <div class="section">
-        <div class="field">
-          <label for='normal'>A required email</label>
-          <input type='email' ng-model='emailThree'>
-        </div>
-        <div class="field">
-          <label for='normal'>A required email with an initial value</label>
-          <input type='email' ng-model='emailFour' class='wide'>
-        </div>
-      </div>
-    </form>
-  </div>
-  ```
 */
 .clm-form {
   .section {
@@ -103,21 +25,23 @@
         }
       }
       .warning {
+        color: $fail-fg;
+        line-height: 14px;
         margin-top: 10px;
         margin-bottom: 4px;
-        line-height: 14px;
-        color: $fail-fg;
       }
     }
 
     #current-contact {
+      color: $off-black;
       line-height: 18px;
       margin-top: 2px;
       padding-bottom: 2px;
-      color: $off-black;
+
       .fa {
         margin-right: 8px;
       }
+
       .grey-4 {
         color: $grey-4;
       }
@@ -130,8 +54,8 @@
 
       .field {
         display: inline-block;
-        vertical-align: top;
         margin-top: 0;
+        vertical-align: top;
 
         &:nth-child(n + 2) {
           margin-left: 32px;
@@ -173,13 +97,12 @@
   }
 
   input[type=text], input[type=number], input[type=email], input[type=password], textarea {
-
     @include box-shadow(none);
     @include border-radius(0);
 
-    padding: 4px 8px;
     border: 1px solid $grey-4;
     border-left-width: 4px;
+    padding: 4px 8px;
 
     &.wide {
       width: 395px;
@@ -200,7 +123,7 @@
     }
 
     &.ng-invalid:not(.ng-dirty):focus {
-      /* override bootstrap */
+      // override bootstrap
       border-color: $grey-4;
       border-left-color: $valid-green;
       box-shadow: initial;
@@ -208,9 +131,9 @@
     }
 
     &:disabled {
+      background: $white;
       border-color: $grey-3;
       border-left: 4px double $grey-3;
-      background: $white;
     }
   }
 
@@ -231,37 +154,17 @@
 
 /*
   ##Radio inputs
-
-  ```
-    <form class='clm-form' style='padding: 5px'>
-      <label class="radio">
-        <input type="radio" name="optionsRadios" id="optionOne" value="one" checked>
-        <span>Selected option</span>
-      </label>
-      <label class="radio">
-        <input type="radio" name="optionsRadios" id="optionTwo" value="two">
-        <span>Unselected option</span>
-      </label>
-      <label class="radio disabled">
-        <input type="radio" name="disabledOptionsRadios" id="optionThree" value="three" disabled>
-        <span>Disabled option label requires the disabled class</span>
-      </label>
-      <label class="radio disabled">
-        <input type="radio" name="disabledOptionsRadios" id="optionFour" value="four" checked disabled>
-        <span>Disabled checked option label requires the disabled class</span>
-      </label>
-    </form>
-  ```
 */
 .clm-form {
   label.radio {
     display: block;
-    &:not(.disabled) {
-      cursor: pointer;
-    }
     margin-bottom: 0px;
     padding-left: 24px;
 
+    &:not(.disabled) {
+      cursor: pointer;
+    }
+    
     // Monochrome radio button to override native implementation. Native is hidden and pseudo selectors on the label's
     // text's span build a monochrome circle
     input[type=radio] {
@@ -274,39 +177,39 @@
       width: 1px;
 
       & + span {
-        position: relative;
-        padding-left: 24px;
+        color: $off-black;
         cursor: pointer;
         display: inline-block;
-        color: $off-black;
+        position: relative;
+        padding-left: 24px;
       }
 
       & + span:before, & + span:after {
         content: '';
+        height: 14px;
+        margin-top: 2px;
         position: absolute;
         left: 0;
         top: 0;
-        margin-top: 2px;
         width: 14px;
-        height: 14px;
         z-index: 0;
       }
 
       & + span:before {
-        border-radius: 50%;
         border: 1px solid $slate;
+        border-radius: 50%;
       }
 
       &:checked + span:after {
-        border-radius: 50%;
-        border: 1px solid $slate;
         background-color: $slate;
-        z-index: 0;
+        border: 1px solid $slate;
+        border-radius: 50%;
         -webkit-transform: scale(.5);
         -moz-transform: scale(.5);
         -ms-transform: scale(.5);
         -o-transform: scale(.5);
         transform: scale(.5);
+        z-index: 0;
       }
 
       // Implementations for focus marker on custom radio button
@@ -336,8 +239,8 @@
         }
 
         &:checked + span:after {
-          border-color: $grey-4;
           background-color: $grey-4;
+          border-color: $grey-4;
         }
 
         & + span {
@@ -351,37 +254,17 @@
 
 /*
   ##Checkbox inputs
-
-  ```
-    <form class='clm-form' style='padding: 5px'>
-      <label class="checkbox">
-        <input type="checkbox" value="one" checked>
-        <span>Selected option</span>
-      </label>
-      <label class="checkbox">
-        <input type="checkbox" value="two">
-        <span>Unselected option</span>
-      </label>
-      <label class="checkbox disabled">
-        <input type="checkbox" value="three" disabled>
-        <span>Disabled option label requires disabled class</span>
-      </label>
-      <label class="checkbox disabled">
-        <input type="checkbox" value="two" checked disabled>
-        <span>Disabled checked option label requires disabled class</span>
-      </label>
-    </form>
-  ```
 */
 .clm-form {
   label.checkbox {
     display: block;
+    margin-bottom: 0px;
+    padding-left: 24px;
     position: relative;
+
     &:not(.disabled) {
       cursor: pointer;
     }
-    margin-bottom: 0px;
-    padding-left: 24px;
 
     // Monochrome checkbox to override native implementation. Native is hidden and pseudo selectors on the label's
     // text's span build a monochrome square
@@ -396,30 +279,30 @@
       width: 1px;
 
       & + span {
+        color: $off-black;
         display: block;
         position: relative;
-        color: $off-black;
       }
 
       & + span:before {
-        content: '';
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        vertical-align: -3px;
         border-radius: 2px;
         border: 1px solid $slate;
+        content: '';
+        display: inline-block;
+        height: 14px;
         margin-right: 8px;
+        vertical-align: -3px;
+        width: 14px;
       }
 
       &:checked + span:after {
-        font: normal normal normal 14px/1 FontAwesome;
+        color: $slate;
         content: "\f00c";
         display: inline-block;
+        font: normal normal normal 14px/1 FontAwesome;
         position: absolute;
         left: 1px;
         top: 2px;
-        color: $slate;
       }
 
       // Implementations for focus marker on custom checkbox
@@ -458,12 +341,13 @@
       }
     }
 
-    /* For checkboxes that do not need label text and can be text-aligned */
+    // For checkboxes that do not need label text and can be text-aligned
     &.no-text {
       padding-left: 0px;
+
       input[type="checkbox"]:checked + span:after {
-        position: static;
         margin-left: -15px;
+        position: static;
         width: 15px;
       }
 
@@ -484,18 +368,7 @@
 
 /*
   #Components
-*/
-/*
   ##Inputs
-
-  ```
-    <div class="tree-view-filter search input-prepend">
-      <span class="add-on">
-        <i role="button" class="fa fa-filter"></i>
-      </span>
-      <input type="text" placeholder="Appended Input">
-    </div>
-  ```
 */
 .input-prepend {
   .add-on {
@@ -511,8 +384,8 @@
       border-radius: 0;
 
       &::-ms-clear {
-        width: 0;
         height: 0;
+        width: 0;
       }
     }
   }
@@ -526,45 +399,14 @@
   ##Toggle Switches
   Toggle switches use the [Bootstrap Toggle](http://www.bootstraptoggle.com/) plugin. Height is set programmatically
   to 32px using "height: '24px'", where there is 8px of margins.
-
-  Markup:
-  ```
-    <div class="checkbox toggle-checkbox">
-      <label>
-        <input type="checkbox" toggle-checkbox data-on="Can" data-off="Cannot" ng-model="permission.value">
-        Do Action
-      </label>
-    </div>
-  ```
-
-  Rendered:
-  ```
-    <div class="checkbox toggle-checkbox">
-      <label>
-        <div class="toggle btn btn-primary" style="width: 53px; height: 24px;">
-          <input type="checkbox">
-          <div class="toggle-group">
-            <label class="btn btn-primary toggle-on" style="line-height: 24px;">
-              Can
-            </label>
-            <label class="btn btn-default active toggle-off" style="line-height: 24px;">
-              Cannot
-            </label>
-            <span class="toggle-handle btn btn-default"></span>
-          </div>
-        </div>
-        <span>Edit</span>
-      </label>
-    </div>
-  ```
 */
 .toggle-checkbox {
   padding-left: 24px;
 }
 
 .toggle-checkbox .toggle-handle {
-  padding: 4px 7px;
   height: calc(100% - 8px);
+  padding: 4px 7px;
 }
 
 .toggle-checkbox .btn {
@@ -574,8 +416,8 @@
 }
 
 .toggle-checkbox .toggle {
-  margin-right: 16px;
   border-width: 2px;
+  margin-right: 16px;
 
   .toggle-group label {
     border: none;
@@ -587,13 +429,13 @@
 }
 
 .toggle-checkbox .btn-default {
-  color: $link-blue;
   background-color: $off-white;
+  color: $link-blue;
 }
 
 .toggle-checkbox .btn-primary {
-  color: $off-white;
   background-color: $link-blue;
+  color: $off-white;
   text-shadow: none;
 }
 
@@ -615,43 +457,6 @@
 
 /*
   ##Inline Controls with Description
-
-  ```
-    <table class="inline-control-table">
-      <tbody>
-        <tr>
-          <td>
-            <h3>Header One</h3>
-          </td>
-        </tr>
-        <tr>
-          <td class='inline-control'>
-            <label for='foo'>Foo</label>
-            <input type='text' id='foo' placeholder='ex. Foo'>
-          </td>
-          <td>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent id ullamcorper velit. Etiam in lacus ac nunc feugiat luctus.
-          </td>
-        </tr>
-      </tbody>
-      <tbody>
-        <tr>
-          <td>
-            <h3>Header Two</h3>
-          <td>
-        </tr>
-        <tr>
-          <td class='inline-control'>
-            <label for='bar'>Bar</label>
-            <input type='text' id='bar' placeholder='ex. Bar'>
-          </td>
-          <td>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent id ullamcorper velit. Etiam in lacus ac nunc feugiat luctus.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  ```
 */
 .inline-table {
   border-spacing: 0 5px;
@@ -663,35 +468,22 @@
 }
 
 .inline-control {
-  white-space: nowrap;
   padding-right: 24px;
+  white-space: nowrap;
 }
 
-//
-//.inline-control-group:after {
-//  content: "";
-//  clear: both;
-//  display: table;
-//}
 /*
   ##Validation popovers
   Modified version of bootstrap popover styling, should appear at the far right edge of an invalidated input
-
   See clmInput directive.
-
-  ```
-  <div class="popover input-popover fade top in" style="top: 10px; left: 10px; display: block;">
-    <div class="arrow"></div>
-    <div class="popover-content">Please enter a value</div>
- </div>
-  ```
 */
 .input-popover {
-  background-color: $errorBackground !important;
-  color: $errorText;
-  border: 1px solid $errorBorder;
-  z-index: $zindexModalBackdrop - 1;
   @include border-radius($borderRadiusSmall);
+
+  background-color: $errorBackground !important;
+  border: 1px solid $errorBorder;
+  color: $errorText;
+  z-index: $zindexModalBackdrop - 1;
 
   .modal & {
     z-index: $zindexModal + 1;
@@ -729,8 +521,8 @@
 }
 
 .input-popover.top .arrow {
-  left: 80%;
   border-top-color: $errorBorder !important;
+  left: 80%;
 }
 
 .input-popover.top .arrow:after {
@@ -742,35 +534,8 @@
 }
 
 /*
-  ##Form Actions
-```
-    <button type='button' class='btn'>Reset</button>
-    <button type='button' class='btn btn-warning'>Update</button>
-    <button type='button' class='btn btn-success'>Action</button>
-    <button type='button' class='btn btn-primary'>Submit</button>
-    <button type='button' class='btn btn-primary' disabled>Submit</button>
-```
-*/
-.btn-primary.disabled, .btn-primary[disabled] {
-  color: $off-white;
-  background-color: $light-blue;
-  text-shadow: none;
-}
-
-/*
   ##Alerts
-
   See clmAlerts directive.
-
-```
-  <div class='alert alert-success'>
-    A green alert indicates that a successful action took place.
-  </div>
-
-  <div class='alert alert-error'>
-    A red alert indicates that an error occurred.
-  </div>
-```
 */
 .alert {
   word-break: break-word;
@@ -778,13 +543,6 @@
 
 /*
   ##Well
-```
-  <div class='well clm-well'>
-    <from class='clm-form'>
-      Forms are displayed within a well.
-    </form>
-  </div>
-```
 */
 .clm-well {
   border: 2px solid $grey-4 !important;
@@ -793,64 +551,7 @@
 
 /*
   #List Editor Form
-
   See listEditor, clmControlGroup and clmInput directives.
-
-```
-  <div class='clm-form well clm-well'>
-    <form class='clm-form list-editor-form'>
-      <div class='control-group'>
-        <label for='current-entry'>Text Entry</label>
-        <div class='controls'>
-          <div class='input-append controls'>
-            <input type='text'>
-            <button class='btn' title='Add Entry'>Add</button>
-          </div>
-        </div>
-      </div>
-    </form>
-    <form class='clm-form list-editor-form'>
-      <div class='control-group'>
-        <label for='current-entry'>Combobox Entry</label>
-        <div class='controls'>
-          <div class='input-append controls'>
-            <select>
-              <option>Option</option>
-            </select>
-            <button class='btn' title='Add Entry'>Add</button>
-          </div>
-        </div>
-      </div>
-    </form>
-    <div class='checkbox'>
-      <label>
-        <input type='checkbox'> Checkbox
-      </label>
-    </div>
-    <div class='well well-small list-editor-well'>
-      <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>
-                <div title='AddedEntry'>AddedEntry</div>
-              </td>
-              <td>
-                <button class='btn btn-mini' title='Remove Entry'>
-                  <i class='icon-minus-sign'></i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <button class='btn btn-link btn-cancel'>Cancel</button>
-    <span class='pull-right'>
-      <button class='btn btn-primary'>Done</button>
-    </span>
-  </div>
-```
 */
 .list-editor-form {
   margin-bottom: 0px;
@@ -869,10 +570,10 @@
 }
 
 .list-editor-well {
-  padding: 3px;
-  margin-bottom: 20px;
-  height: 120px;
   background: #fff;
+  height: 120px;
+  margin-bottom: 20px;
+  padding: 3px;
 }
 
 .list-editor-well > div {
@@ -901,8 +602,8 @@
 
 .list-editor-well td:nth-child(1) > div {
   max-width: 100%;
+  overflow: hidden;
   text-overflow: ellipsis;
-  overflow: hidden
 }
 
 .list-editor-well td:nth-child(2) {

@@ -5,11 +5,10 @@
  */
 @import "../lib/bootstrap/bootstrap-variables";
 @import "../lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/mixins";
+@import "variables";
 @import "mixins";
 @import "global";
-@import "variables";
 @import "typography";
-@import "placeholders";
 @import "widgets";
 @import "chiclet";
 @import "buttons";

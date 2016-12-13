@@ -1,108 +1,18 @@
 /*
   ##Buttons
-
-  ```
-  <table>
-    <thead>
-      <tr>
-        <td>Button</td>
-        <td>Disabled</td>
-        <td>Link</td>
-        <td>Link Disabled</td>
-      </td>
-    </thead>
-    <tbody>
-      <tr>
-        <td>
-          <button class='btn'>Default</button>
-        </td>
-        <td>
-          <button class='btn' disabled='true'>Default</button>
-        </td>
-        <td>
-          <a href='#' class='btn'>Default</a>
-        </td>
-        <td>
-          <a href='#' class='btn' disabled='true'>Default</a>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <button class='btn btn-primary'>Primary</button>
-        </td>
-        <td>
-          <button class='btn btn-primary' disabled='true'>Primary</button>
-        </td>
-        <td>
-          <a href='#' class='btn btn-primary'>Primary</a>
-        </td>
-        <td>
-          <a href='#' class='btn btn-primary' disabled='true'>Primary</a>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <button class='btn btn-tertiary'>Tertiary</button>
-        </td>
-        <td>
-          <button class='btn btn-tertiary' disabled='true'>Tertiary</button>
-        </td>
-        <td>
-          <a href='#' class='btn btn-tertiary'>Tertiary</a>
-        </td>
-        <td>
-          <a href='#' class='btn btn-tertiary' disabled='true'>Tertiary</a>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <button class='btn btn-error'>Error</button>
-        </td>
-        <td>
-          <button class='btn btn-error' disabled='true'>Error</button>
-        </td>
-        <td>
-          <a href='#' class='btn btn-error'>Error</a>
-        </td>
-        <td>
-          <a href='#' class='btn btn-error' disabled='true'>Error</a>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  ```
-
-  ###Buttons with icons
-  ```
-    <button class='btn btn-error'><i class='fa fa-refresh'></i>Error</button>
-    <button class='btn btn-icon-only'><i class='fa fa-arrow-right'></i></button>
-  ```
-
-  ###Appended buttons
-  ```
-    <span class="input-append">
-      <input type="text" />
-      <button class='btn btn-icon-only'><i class='fa fa-arrow-right'></i></button>
-    </span>
-  ```
 */
 .btn {
-  @extend .semi-bold;
-  background-color: $grey-1;
+  @include semi-bold();
 
+  background-color: $grey-1;
   border: 1px solid $grey-4;
   border-radius: 4px;
-
-  cursor: pointer;
-
-  display: inline-block;
-
   color: $slate;
+  cursor: pointer;
+  display: inline-block;
   font-size: 14px;
-  text-align: center;
-
   padding: 5px 12px;
-
+  text-align: center;
   vertical-align: middle;
 
   &:not(.btn-icon-only) > .fa {
@@ -185,14 +95,23 @@
   }
 
   &.btn-icon-only {
-    width: 32px;
     height: 32px;
     padding: 0;
+    width: 32px;
   }
 
   .input-append & {
     padding: 4px 12px;
   }
+}
+
+/*
+  ##Form Actions
+*/
+.btn-primary.disabled, .btn-primary[disabled] {
+  color: $off-white;
+  background-color: $light-blue;
+  text-shadow: none;
 }
 
 // For now we scope min-width to new elements
@@ -205,9 +124,9 @@
 // mini buttons (only used in legacy UI pages)
 #ldapName, #proprietary-component-form, .accordion-group.users {
   .btn-mini {
-    padding: $paddingMini;
-    font-size: $fontSizeMini;
     @include border-radius($borderRadiusSmall);
+
+    font-size: $fontSizeMini;
+    padding: $paddingMini;
   }
 }
-

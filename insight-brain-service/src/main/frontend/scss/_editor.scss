@@ -1,55 +1,6 @@
 /*
   #Editor
 */
-/*
-  ##Editor Tile
-  ```
-  <div class="tile-editor-container">
-    <div class="tile">
-      <h2>
-        <i class="fa size-16px fa-tag outline"></i> Edit component
-      </h2>
-      <form name="editor" role="form" class="clm-form">
-        <div class="section">
-          <div class="field">
-            <label for="editor-field">Input Field - <span class="optional">optional</span></label>
-            <input type="text" name="theField" id="editor-field" clm-input>
-          </div>
-        </div>
-        <div class="editor-footer">
-          <button class="btn btn-primary" type="submit">Create</button><!--   
-        --><button class='btn btn-tertiary' type="button" disabled>Reset</button>
-        </div>
-      </form>
-    </div>
-    </div>
-  </div>
-  <div class="tile tile-editor-container">
-    <div class="editor-section">
-      <div class="editor-section-header">Subsection 1</div>
-      <form name="editor" role="form" class="clm-form">
-          <div class="section">
-            <div class="field">
-              <label for="editor-field2">Input Field - <span class="optional">optional</span></label>
-              <input type="text" name="theField" id="editor-field2" clm-input>
-            </div>
-          </div>
-      </form>
-    </div>
-    <div class="editor-section">
-      <div class="editor-section-header">Subsection 2</div>
-      <form name="editor" role="form" class="clm-form">
-          <div class="section">
-            <div class="field">
-              <label for="editor-field3">Input Field - <span class="optional">optional</span></label>
-              <input type="text" name="theField" id="editor-field3" clm-input>
-            </div>
-          </div>
-      </form>
-    </div>
-  </div>
-  ```
-*/
 .tile-editor-container {
   margin: 0 8px 8px 8px;
   padding-top: 8px;
@@ -62,8 +13,8 @@
   .tile {
     h2 {
       border-bottom: 1px solid $grey-4;
-      padding-bottom: 8px;
       margin-bottom: 20px;
+      padding-bottom: 8px;
     }
   }
 
@@ -80,22 +31,22 @@
   }
 
   .editor-footer {
-    padding-top: 12px;
-    padding-left: 4px;
-    padding-bottom: 4px;
     border-top: 1px solid $grey-4;
+    padding-top: 12px;
+    padding-bottom: 4px;
+    padding-left: 4px;
 
     // Space out buttons
     .btn + .btn {
-      margin-left: 12px;
       margin-bottom: 0;
+      margin-left: 12px;
     }
   }
 
   label span.optional {
-    font-style: italic;
     color: $slate;
     font-size: 16px;
+    font-style: italic;
     font-weight: normal;
   }
 }
@@ -109,11 +60,12 @@
 #policy-editor, #proprietary-config-editor {
   .editor-section {
     .editor-section-header {
-      @extend .semi-bold;
+      @include semi-bold();
+      
       border-bottom: 1px solid $grey-4;
-      text-transform: uppercase;
-      padding-bottom: 8px;
       margin-bottom: 20px;
+      padding-bottom: 8px;
+      text-transform: uppercase;
     }
   }
 
@@ -134,9 +86,9 @@
     $button-container-width: 32px + 32px + 8px;
 
     .constraint {
-      padding-left: 8px;
-      padding-bottom: 7px;
       border-bottom: 1px solid $grey-1;
+      padding-bottom: 7px;
+      padding-left: 8px;
 
       &:not(:first-child) {
         padding-top: 8px;
@@ -156,13 +108,14 @@
         position: relative;
 
         .constraint-summary-name {
-          @extend .semi-bold;
+          @include semi-bold();
+
+          color: $off-black;
           font-size: 16px;
+          overflow: hidden;
           padding-bottom: 1px;
           padding-right: $button-container-width;
-          overflow: hidden;
           text-overflow: ellipsis;
-          color: $off-black;
         }
 
         .constraint-summary-subheader {
@@ -183,8 +136,8 @@
 
         .constraint-operator {
           display: inline-block;
-          width: 75px;
           margin-right: 4px;
+          width: 75px;
         }
 
       }
@@ -202,9 +155,9 @@
 
   #policy-edit-actions, #policy-edit-notifications, .inherited-proprietary-component-matchers, .local-proprietary-component-matchers {
     .editor-section-header {
+      border-bottom: 0px;
       margin-top: 20px;
       margin-bottom: 0px;
-      border-bottom: 0px;
     }
 
     .header-text {
@@ -219,6 +172,7 @@
       thead tr {
         height: 40px;
         line-height: 15px;
+
         th {
           background-color: $grey-1;
           color: $slate;
@@ -238,7 +192,7 @@
         border-bottom: 1px solid $grey-1;
         td {
           &:first-child {
-            @extend .semi-bold;
+            @include semi-bold();
           }
         }
       }
@@ -247,18 +201,18 @@
         vertical-align: middle;
 
         &.greedy-column {
-          text-align: left;
-          padding-left: 12px;
-          width: auto;
-          white-space: nowrap;
           overflow: hidden;
+          padding-left: 12px;
+          text-align: left;
           text-overflow: ellipsis;
+          white-space: nowrap;
+          width: auto;
         }
 
         &:not(.greedy-column) {
           padding: 0;
-          width: 80px;
           text-align: center;
+          width: 80px;
         }
 
         &.delete {
@@ -271,7 +225,8 @@
 
         &.action {
           text-align: left;
-          padding: 0 0 0 0px;
+          padding: 0;
+
           label {
             padding-left: 32px;
           }
@@ -284,8 +239,8 @@
 
         span {
           > .fa, > svg {
-            margin-right: 8px;
             margin-top: 2px;
+            margin-right: 8px;
           }
 
           > .svg-slate-16px {
@@ -358,24 +313,24 @@
   $notification-item-height: 40px;
 
   .notification-list {
-    overflow-y: auto;
+    border-top: 1px solid $grey-3;
     max-height: $notification-item-height * 5;
-    margin-left: 32px;
     margin-top: 0px;
     margin-bottom: 24px;
-    border-top: 1px solid $grey-3;
+    margin-left: 32px;
+    overflow-y: auto;
 
     &.empty {
       border-top: none;
     }
 
     .empty-list {
-      height: 40px;
-      line-height: 40px;
-      text-align: center;
-      margin-right: 28px;
       border-top: 1px solid $grey-3;
       border-bottom: 1px solid $grey-1;
+      height: 40px;
+      line-height: 40px;
+      margin-right: 28px;
+      text-align: center;
     }
 
     ul {
@@ -384,15 +339,18 @@
     }
 
     li {
-      height: $notification-item-height;
       border-bottom: 1px solid $grey-1;
+      height: $notification-item-height;
+      
       span {
         line-height: 40px;
         padding-left: 8px;
+      
         .fa {
           margin-right: 8px;
         }
       }
+      
       button {
         float: right;
         margin-top: 4px;

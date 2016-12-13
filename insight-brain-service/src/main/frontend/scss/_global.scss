@@ -1,11 +1,38 @@
 /*
   #Helper Classes
 */
-
 .iq-pull-left {
   float: left;
 }
 
 .iq-pull-right {
   float: right;
+}
+
+/*
+ #Placeholder classes
+*/
+%link {
+  &.disabled {
+    color: $light-blue;
+    cursor: default;
+
+    &:hover {
+      color: $light-blue;
+    }
+  }
+
+  &:not(.disabled) {
+    color: $link-blue;
+
+    &:hover:not(:active) {
+      color: $link-blue;
+      text-decoration: underline;
+    }
+    
+    &:active {
+      color: $deep-blue;
+      text-decoration: none;
+    }
+  }
 }

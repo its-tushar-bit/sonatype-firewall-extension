@@ -1,82 +1,46 @@
 /*
   #Layout
-
-  ##Layout Containers
-
-  ```
-  <div class="main-view">
-    <div class="root-container">
-      <div class="sidebar-container">
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-        Cool nav content<br>
-      </div>
-      <div class="body-container">
-        <div class="tile-container">
-          <div class="tile summary-tile">
-            <h1>First Tile</h1>
-            <ul class="nav nav-pills">
-              <li class="active"><a href="">Application Types</a></li>
-              <li><a href="">Policy</a></li>
-              <li><a href="">Component Labels</a></li>
-              <li><a href="">License Threat Groups</a></li>
-              <li><a href="">Access</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  ```
 */
 body {
-  //we want to let the sidebar-container and body-container control the vertical scrolling
-  overflow-y: hidden;
   background-color: $grey-3;
   color: #333333;
   display: block;
-  position: absolute;
   height: auto;
-  bottom: 0;
+  overflow-y: hidden; // we want to let the sidebar-container and body-container control the vertical scrolling
+  position: absolute;
   top: 0;
-  left: 0;
   right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 .main-view {
   @include main-content();
-  width: calc(100% - 2px);
+
   background-color: $off-white;
-  border-left: solid 1px $grey-4;
   border-right: solid 1px $grey-4;
+  border-left: solid 1px $grey-4;
+  width: calc(100% - 2px);
 }
 
 .root-container {
   @include main-content(35px);
+
   white-space: nowrap;
 }
 
 .sidebar-container {
+  background-color: $grey-2;
+  border-right: 1px solid $grey-3;
+  display: inline-block;
+  height: 100%;
   position: relative;
-  z-index: $zindexSidebar;
+  vertical-align: top;
+  white-space: normal;
   width: 22%;
   min-width: 215px;
   max-width: 300px;
-  height: 100%;
-  display: inline-block;
-  background-color: $grey-2;
-  border-right: 1px solid $grey-3;
-  white-space: normal;
-  vertical-align: top;
+  z-index: $zindexSidebar;
 
   // Hack to prevent rendering issues in Chrome. This will create a new layer with its own backing surface, preventing
   // the background and text from disappearing. Witnessed on Chrome 43.0.2357.130 (64-bit) on a MBP laptop screen.
@@ -84,17 +48,17 @@ body {
 }
 
 .body-container {
+  background: url("../img/tile_bg.png");
   display: inline-block;
-  width: calc(78% - 1px);
   height: 100%;
   white-space: normal;
-  background: url("../img/tile_bg.png");
+  width: calc(78% - 1px);
   
   @media only screen and (-moz-min-device-pixel-ratio: 2), 
   only screen and (-webkit-min-device-pixel-ratio: 2), 
   only screen and (min-devicepixel-ratio: 2), 
   only screen and (min-resolution: 2dppx) {
-    background: url("../img/tile_bg_@2X.jpg");
+    background-image: url("../img/tile_bg_@2X.jpg");
     background-size: 150px 150px;
   }
 }
@@ -106,10 +70,10 @@ body {
 .dashboard-root-container {
   $dashboard-link-hover-color: #2476FC;
 
-  width: calc(100% - 20px);
+  overflow-y: auto;
   padding-left: 8px;
   padding-right: 12px;
-  overflow-y: auto;
+  width: calc(100% - 20px);
 
   @supports (overflow:-webkit-marquee) and (justify-content:inherit) { // Only effects Safari
     th {
@@ -134,39 +98,47 @@ body {
   }
 
   .application-header {
+    max-width: 220px;
     min-width: 110px;
-    max-width: 220px;
   }
+
   .policy-header {
-    min-width: 67px;
     max-width: 220px;
+    min-width: 67px;
   }
+
   .component-header {
     min-width: 179px;
   }
+
   #threat-header {
-    min-width: 75px;
     max-width: 75px;
+    min-width: 75px;
   }
+
   .time-header {
-    min-width: 47px;
     max-width: 47px;
+    min-width: 47px;
   }
+
   #stage-header-stage-release {
-    min-width: 61px;
     max-width: 61px;
+    min-width: 61px;
   }
+
   #stage-header-release {
-    min-width: 76px;
     max-width: 76px;
+    min-width: 76px;
   }
+
   #stage-header-operate {
-    min-width: 79px;
     max-width: 79px;
+    min-width: 79px;
   }
+
   #stage-header-build {
-    min-width: 58px;
     max-width: 58px;
+    min-width: 58px;
   }
 
   a {
@@ -180,29 +152,12 @@ body {
 
 /*
   ##Simple container with left right padding, for content that gets a little too close to the edge
-
-  ```
-    <div class="report-list-container">
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-    </div>
-  ```
 */
 .report-list-container {
-  padding-top: 8px;
-  padding-left: 8px;
-  padding-right: 8px;
   overflow-y: auto;
+  padding-top: 8px;
+  padding-right: 8px;
+  padding-left: 8px;
 }
 
 #clm-welcome-message a.link {
@@ -211,36 +166,15 @@ body {
 
 /*
   ##Single pane scrollable layout container
-
-  ```
-    <div class="scrollable-root-container">
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-      Place awesome content here<br>
-    </div>
-  ```
 */
 .scrollable-root-container {
   @include main-content(35px);
+
   overflow: auto;
 }
 
 /*
  ##Sections
-```
-  <div class='sub-section'>foo</div>
-  <div class='section'>foo</div>
-  <div>bar</div>
-```
 */
 .section {
   margin-bottom: 20px;
@@ -262,10 +196,6 @@ body {
 
 /*
   Inline Middle
-```
-  <div class='inline-middle'>Text aligned on the same line with any image</div>
-  <img class='inline-middle' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gYbDyMwf5TyMQAAAEdJREFUSMdj/P//PwMtAQsDAwNNbWBiGAUEAON/GscyzeOAhYGBgXE0DoZ3HNDcB4xGGbNHy6IBzgdDPg4YaV1ljuaDgY8DABJfGLG/0aWxAAAAAElFTkSuQmCC'>
-```
 */
 .inline-middle {
   display: inline-block;
@@ -274,10 +204,6 @@ body {
 
 /*
   No Margins
-```
-  <h4 class='no-margin'>Use typography</h4>
-  <h5 class='no-margin'>Without its pesky margins</h5>
-```
 */
 .no-margin {
   margin: 0;

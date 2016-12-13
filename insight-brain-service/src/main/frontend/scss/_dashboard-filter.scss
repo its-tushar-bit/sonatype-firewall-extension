@@ -1,6 +1,7 @@
 .dashboard-filter-container {
   $tree-view-margin-bottom: 8px;
   $filter-footer-height: #{32px + 12px + 12px + 1px};
+  
   height: 100%;
   margin: 0;
   position: relative;
@@ -28,57 +29,59 @@
       }
 
       .dashboard-filter-counter {
-        @extend .semi-bold;
-        float: right;
+        @include semi-bold();
+        
         background-color: $grey-1;
-        height: 16px;
         border: 1px $grey-3 solid;
         border-radius: 8px;
-        padding: 0px 4px;
-        font-size: 11px;
         color: $slate;
-        line-height: 18px; /* used for vertical alignment */
+        float: right;
+        font-size: 11px;
+        height: 16px;
+        line-height: 18px; // used for vertical alignment
         margin-right: 8px;
-
+        padding: 0px 4px;
+        
         &.inactive {
           background-color: $grey-3;
           border-color: $grey-4;
-          min-width: 8px;
           text-align: center;
+          min-width: 8px;
         }
       }
     }
 
     .tree-view-group:last-child {
-      /* margin bottom added to last element as FF, and other browsers don't consider padding for overflow */
+      // margin bottom added to last element as FF, and other browsers don't consider padding for overflow
       margin-bottom: $tree-view-margin-bottom;
     }
 
     .dashboard-filter-name {
+      border-bottom: 1px $grey-4 solid;
       color: $slate;
       margin-top: -8px;
-      margin-bottom: 7px; /* assumes tree-view-item has padding of 7px */
+      margin-bottom: 7px; // assumes tree-view-item has padding of 7px
       padding-bottom: 3px;
-      border-bottom: 1px $grey-4 solid;
 
       & .dashboard-filter-dirty-asterisk {
-        font-size: 16px;
         color: $off-black;
+        font-size: 16px;
       }
     }
   }
 
   .dashboard-filter-footer {
     $footer-side-margin: 8px;
-    width: calc(100% - #{2 * $footer-side-margin});
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    padding: 12px 0;
-    margin: 0 $footer-side-margin;
+    
     border-top: 1px solid $grey-4;
     box-shadow: 0px 0px 12px 10px $grey-2;
-
+    margin: 0 $footer-side-margin;
+    padding: 12px 0;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: calc(100% - #{2 * $footer-side-margin});
+    
     .btn {
       min-width: auto;
 
@@ -101,6 +104,7 @@
   &.filter-item-tooltip .tooltip-arrow {
     margin-left: 23px;
   }
+  
   &.filter-label-tooltip .tooltip-arrow {
     margin-left: 53px;
   }
@@ -114,25 +118,25 @@
   }
 
   .dropdown-menu {
-    right: inherit;
-    top: inherit;
-    width: 254px;
     padding: 8px 0 8px 8px;
+    top: inherit;
+    right: inherit;
+    width: 254px;
 
     .btn {
       margin-top: 0;
     }
 
     .menu-sub-header {
-      margin: 0 8px 0 0;
-      padding: 12px;
       border-bottom: 1px solid $grey-4;
       color: $off-black;
+      margin: 0 8px 0 0;
+      padding: 12px;
     }
 
     .empty-list {
-      text-align: center;
       line-height: 40px;
+      text-align: center;
     }
 
     .disabled {
@@ -143,28 +147,32 @@
     .dropdown-contents {
       height: auto;
       max-height: 568px;
+      list-style: none;
+      margin-left: 0;
       overflow-x: hidden;
       white-space: nowrap;
-      margin-left: 0;
-      list-style: none;
+      
       .filter-item {
-        line-height: 40px;
-        border-top: 1px solid transparent;
         border-bottom: 1px solid $grey-1;
+        border-top: 1px solid transparent;
+        line-height: 40px;
         margin-right: 8px;
         overflow: hidden;
         text-overflow: ellipsis;
+        
         &:hover {
           border-top: 1px solid $grey-4;
           border-bottom: 1px solid $grey-4;
           color: $off-black;
         }
+        
         &:active {
+          background: $grey-1;
           border-top: 1px solid $grey-4;
           border-bottom: 1px solid $grey-4;
           color: $off-black;
-          background: $grey-1;
         }
+        
         &:focus {
           outline: 0;
         }
@@ -203,8 +211,8 @@
 
   .clm-modal-footer {
     .error {
-      min-height: 60px;
       max-height: 60px;
+      min-height: 60px;
       overflow-x: hidden;
 
       i.fa::before {

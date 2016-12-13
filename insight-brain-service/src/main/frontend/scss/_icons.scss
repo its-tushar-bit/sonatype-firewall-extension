@@ -8,6 +8,7 @@ $icon-font-size-small: 12px;
 $icon-font-size-extra-small: 10px;
 
 $font-families: ('sonatype-icons', 'sonatype-glyphicons');
+
 /*
   Global icon styles
 */
@@ -27,16 +28,16 @@ $font-families: ('sonatype-icons', 'sonatype-glyphicons');
   Mixins
 */
 @mixin icon-font {
-  font-size: $icon-font-size-large;
   color: $icon-font-color;
-  *zoom: 1;
-  line-height: 30px;
+  font-size: $icon-font-size-large;
   font-style: normal;
-  font-weight: normal;
   font-variant: normal;
+  font-weight: normal;
+  line-height: 30px;
   text-transform: none;
+  *zoom: 1;
 
-  /* Better Font Rendering =========== */
+  // Better Font Rendering
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -95,8 +96,9 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
 }
 
 .sonatype-icons:before, .iq-sonatype-icons:before {
-  font-family: $sonatype-icon-font-name;
   @include icon-font();
+
+  font-family: $sonatype-icon-font-name;
 }
 
 /*
@@ -105,8 +107,9 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
 $sonatype-glyphicon-font-name: 'Glyphicons';
 
 .sonatype-glyphicons:before, .iq-sonatype-glyphicons:before {
-  font-family: $sonatype-glyphicon-font-name;
   @include icon-font();
+
+  font-family: $sonatype-glyphicon-font-name;
 }
 
 //build out the icons
@@ -126,24 +129,9 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
 /*
   # Icons
-*/
-/*
   ## Sizes
-```
-  <div><i class="fa fa-camera" style="margin-right:8px;"></i>Default</div>
-  <div><i class="fa fa-camera size-16px" style="margin-right:8px;"></i>16 Pixels</div>
-  <div><i class="fa fa-camera size-20px" style="margin-right:8px;"></i>20 Pixels</div>
-```
-*/
-/*
   ## Styles
-```
-  <div><i class="fa fa-camera" style="margin-right:8px;"></i>Default</div>
-  <div><i class="fa fa-camera inverse" style="margin-right:8px;"></i>Inverse</div>
-  <div><i class="fa fa-camera outline" style="margin-right:8px;"></i>Outline</div>
-```
 */
-
 .fa {
   &.inverse {
     background-color: $slate;
@@ -222,27 +210,16 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 /*
   ## Label Colors
   Colors for organization or application labels
-
-```
-  <div><i class="fa fa-tag white" style="margin-right:8px;"></i>White</div>
-  <div><i class="fa fa-tag grey" style="margin-right:8px;"></i>Grey</div>
-  <div><i class="fa fa-tag black" style="margin-right:8px;"></i>Black</div>
-  <div><i class="fa fa-tag green" style="margin-right:8px;"></i>Green</div>
-  <div><i class="fa fa-tag yellow" style="margin-right:8px;"></i>Yellow</div>
-  <div><i class="fa fa-tag orange" style="margin-right:8px;"></i>Orange</div>
-  <div><i class="fa fa-tag red" style="margin-right:8px;"></i>Red</div>
-  <div><i class="fa fa-tag blue" style="margin-right:8px;"></i>Blue</div>
-```
 */
-
 .fa {
   @include icon-colours(color);
 }
 
 .hexagon {
   @include icon-colours(fill);
-  width: 12px;
+
   height: 14px;
+  width: 12px;
 
   &.outline {
     > path {
@@ -253,8 +230,8 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   }
 
   &.size-20px {
-    width: 17px;
     height: 20px;
+    width: 17px;
 
     &.size-fw {
       width: 20px;
@@ -262,8 +239,8 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   }
 
   &.size-16px {
-    width: 14px;
     height: 16px;
+    width: 14px;
 
     &.size-fw {
       width: 16px;
@@ -274,7 +251,6 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 /*
   ## License Threat Group Colors
   Colors for license threat group icons
-
 */
 .fa-book {
   @each $threat in $threat-levels {
@@ -291,10 +267,10 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   text-align: center;
 
   &.size-16px {
-    width: 16px;
-    height: 16px;
     font-size: 11px;
+    height: 16px;
     line-height: 16px;
+    width: 16px;
   }
 
   @each $threat in $policy-threat-levels {
@@ -356,14 +332,14 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
   // for filling in the shackle on the lock
   span:before {
-    content: "\f111"; // fa-circle
     color: $white;
+    content: "\f111"; // fa-circle
     position: absolute;
   }
 
   span:after {
-    content: "\f023"; // fa-lock
     color: $white;
+    content: "\f023"; // fa-lock
     position: absolute;
   }
 

@@ -1,7 +1,6 @@
 /*
   #Main Header
 */
-
 $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87, 87, 87, 1);
 $header-dropdown-panel-border: 1px solid $grey-4;
 $header-dropdown-panel-background-color-rgba: rgba(0, 0, 0, 0.2);
@@ -12,7 +11,6 @@ $notification-item-border: 1px solid $grey-1;
 /*
   First Row
 */
-
 .iq-header {
   background-color: $off-black;
   min-height: 40px;
@@ -64,6 +62,7 @@ i.sonatype-icons, i.glyphicons-sonatype {
 
 .iq-title__brand {
   @include semi-bold();
+
   display: block;
   font-size: 18px;
   line-height: 18px;
@@ -129,11 +128,12 @@ i.sonatype-icons, i.glyphicons-sonatype {
   }
 }
 
-/* DROPDOWNS 
---------------------------------------------------------*/
-
+/*
+  #DROPDOWNS
+*/
 .iq-dropdown-menu {
   @include semi-bold();
+
   float: left;
 
   .alert {
@@ -144,7 +144,6 @@ i.sonatype-icons, i.glyphicons-sonatype {
 }
 
 // Modifications to Bootstrap styles below
-
 .dropdown-toggle {
   color: $main-header-color;
   display: inline-block;
@@ -214,25 +213,25 @@ i.sonatype-icons, i.glyphicons-sonatype {
 .dropdown-menu-arrow {
 
   &::before {
+    border-right: 9px solid transparent;
     border-bottom: 8px solid $header-dropdown-panel-background-color-rgba;
     border-left: 9px solid transparent;
-    border-right: 9px solid transparent;
     content: "";
     display: inline-block;
     position: absolute;
-    left: 1px;
     top: -8px;
+    left: 1px;
   }
 
   &::after {
+    border-right: 8px solid transparent;
     border-bottom: 8px solid $off-white;
     border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
     content: "";
     display: inline-block;
     position: absolute;
-    left: 2px;
     top: -8px;
+    left: 2px;
   }
 }
 
@@ -252,13 +251,14 @@ a.iq-dropdown__link {
 .iq-count-circle {
   @include bold();
   @include border-radius(50%);
+
   background-color: #2476FC;
   color: white;
   font-size: 10px;
   height: 16px;
   position: absolute;
-  left: 20px;
   top: 18px;
+  left: 20px;
   text-align: center;
   width: 16px;
 
@@ -274,19 +274,19 @@ a.iq-dropdown__link {
   float: right;
 
   .dropdown-menu-arrow::before {
-    left: inherit;
     right: 107px;
+    left: inherit;
   }
 
   .dropdown-menu-arrow::after {
-    left: inherit;
     right: 109px;
+    left: inherit;
   }
 
   .dropdown-menu {
     padding-bottom: 12px;
-    left: auto;
     right: -100px;
+    left: auto;
   }
 
   .dropdown-contents {
@@ -304,29 +304,29 @@ a.iq-dropdown__link {
     margin-right: 12px;
     padding-bottom: 12px;
     position: absolute;
-    right: 360px;
     top: 0px;
+    right: 360px;
 
     &::before {
-      border-left: 8px solid $off-white;
-      border-bottom: 10px solid transparent;
       border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 8px solid $off-white;
       content: "";
       display: inline-block;
       position: absolute;
-      right: -8px;
       top: 16px;
+      right: -8px;
     }
 
     &::after {
-      border-left: 8px solid rgba(254, 254, 254, 0.2);;
-      border-bottom: 8px solid transparent;
       border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 8px solid rgba(254, 254, 254, 0.2);;
       content: "";
       display: inline-block;
       position: absolute;
-      right: -8px;
       top: 16px;
+      right: -8px;
     }    
 
     li {
@@ -396,18 +396,18 @@ a.iq-dropdown__link {
   float: right;
 
   .dropdown-menu {
-    left: auto;
     right: 0;
+    left: auto;
   }
 
   .dropdown-menu-arrow::before {
-    left: inherit;
     right: 9px;
+    left: inherit;
   }
 
   .dropdown-menu-arrow::after {
-    left: inherit;
     right: 10px;
+    left: inherit;
   }
 }
 
@@ -417,7 +417,6 @@ a.iq-dropdown__link {
   width: auto;
 
   .dropdown {
-
     a {
       width: auto;
     }
@@ -425,6 +424,7 @@ a.iq-dropdown__link {
 
   .dropdown-toggle span {
     @include bold();
+
     padding-left: 10px;
     vertical-align: 3px;
   }

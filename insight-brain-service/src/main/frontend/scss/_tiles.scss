@@ -1,94 +1,13 @@
 /*
   #Tile System
 */
-/*
-  ##Tiles
-```
-<div class="body-container">
-  <div class="tile-container">
-    <div class="tile summary-tile">
-      <h1>First Tile</h1>
-      <ul class="nav nav-pills">
-        <li class="active"><a href="">Application Types</a></li>
-        <li><a href="">Policy</a></li>
-        <li><a href="">Component Labels</a></li>
-        <li><a href="">License Threat Groups</a></li>
-        <li><a href="">Access</a></li>
-      </ul>
-    </div>
-
-    <div class="tile-scroll-container">
-      <div class="tile">
-        <h2>Another title</h2>
-        <div class="sub-header">Another day</div>
-      </div>
-      <div class="tile">
-        <h2><i class="fa fa-tag size-20px"></i>Icon Header</h2>
-        <div class="sub-header">another sub-header</div>
-      </div>
-  </div>
-</div>
-```
-*/
-/*
-  ##List Tiles
-```
-<div class="tile">
-  <h2>Simple List Tile</h2>
-  <div class="sub-header">Tile List sub-header</div>
-  <div class="simple-list">
-    <h4 class="subsection-header">Subsection Header</h4>
-    <div class="empty-list">Empty List</div>
-  </div>
-  <div class="simple-list">
-    <h4 class="subsection-header">Subsection Header with Button
-        <button class="btn btn-tertiary">
-          <i class="fa fa-plus"></i>Button
-        </button>
-    </h4>
-
-    <ul>
-      <li class="with-subtitle">
-        <div class="title">
-          <i class="fa fa-tag size-16px"></i>
-          List Item with Subtitle
-        </div>
-        <div class="subtitle">Subtitle</div>
-      </li>
-      <li class="with-subtitle">
-        <div class="title">
-          <i class="fa fa-tag size-16px"></i>
-          List Item with Subtitle and Chevron
-        </div>
-        <div class="subtitle">Subtitle</div>
-        <i class="fa fa-chevron-right"></i>
-      </li>
-      <li class="simple">
-        <div class="title">
-          <i class="fa fa-tag size-16px"></i>
-          Simple List Item
-        </div>
-      </li>
-      <li class="simple">
-        <div class="title">
-          <i class="fa fa-tag size-16px"></i>
-          Simple List Item with Chevron
-        </div>
-        <i class="fa fa-chevron-right"></i>
-      </li>
-    </ul>
-  </div>
-</div>
-```
-*/
-
 $tile-scroll-container-z-index: 0;
 
 .tile-container {
-  height: 100%;
-  min-width: 810px;
   float: left;
+  height: 100%;
   width: 100%;
+  min-width: 810px;
 }
 
 .summary-tile-container {
@@ -99,219 +18,34 @@ $tile-scroll-container-z-index: 0;
   z-index: $tile-scroll-container-z-index + 1;
 
   &:after {
-    content: '';
-    width: calc(100% - #{2 * ($shadow-spread + $container-padding)});
-    height: 0;
-    display: block;
-    position: absolute;
-    left: #{$shadow-spread + $container-padding};
-    bottom: 0;
-    z-index: -1;
     box-shadow: 0px 0px $shadow-spread 5px $grey-1;
+    content: '';
+    display: block;
+    height: 0;
+    position: absolute;
+    bottom: 0;
+    left: #{$shadow-spread + $container-padding};
+    width: calc(100% - #{2 * ($shadow-spread + $container-padding)});
+    z-index: -1;
   }
 }
 
 .tile-scroll-container {
+  height: calc(100% - 132px);
   margin: 0 8px;
-  padding-top: 8px;
   overflow-y: auto;
   overflow-x: visible;
+  padding-top: 8px;
+  position: relative; //required for scrollspy
   width: calc(100% - 16px);
-  height: calc(100% - 132px);
-  //required for scrollspy
-  position: relative;
   z-index: $tile-scroll-container-z-index;
 }
 
-.simple-list {
-  h4.subsection-header {
-    position: relative;
-    border-bottom: 1px solid $grey-3;
-    padding-top: 20px;
-    padding-bottom: 8px;
-    margin: 0;
-    // to overlap the bottom border of this header with the top border of the following list element
-    margin-bottom: -1px;
-
-    > .btn {
-      position: absolute;
-      right: 0;
-      bottom: 8px;
-      text-transform: none;
-    }
-  }
-
-  div.subsection-divider {
-    padding-top: 20px;
-    border-bottom: 1px solid $grey-3;
-  }
-
-  div.empty-list {
-    height: 40px;
-    line-height: 34px;
-    text-align: center;
-    border-bottom: 1px solid $grey-1;
-  }
-
-  ul {
-    list-style: none;
-    margin: 0;
-
-    li {
-      padding-left: 8px;
-      position: relative;
-
-      &.selected {
-        background-color: $grey-1;
-
-        &:not(:first-child) {
-          border-top-color: $grey-4;
-        }
-        &:last-child {
-          border-bottom-color: $grey-4;
-        }
-      }
-
-      &.selected + * {
-          border-top-color: $grey-4;
-      }
-
-      &.with-subtitle {
-        min-height: 52px;
-      }
-
-      &.simple {
-        min-height: 40px;
-      }
-
-      .threat-legend {
-        display: inline-block;
-        width: 8px;
-        float: left;
-        min-height: inherit;
-        margin: 0px 8px 0px -8px;
-
-        @each $threat in $threat-levels {
-          @each $threatLevel in nth($threat, 4) {
-            &.threat-level-#{$threatLevel} {
-              background-color: nth($threat, 3);
-            }
-          }
-        }
-      }
-
-      .title {
-        padding-top: 10px;
-        font-size: 14px;
-        line-height: 14px;
-        margin-right: 42px;
-        @extend .semi-bold;
-
-        > .hexagon {
-          vertical-align: bottom;
-          margin-right: 6px;
-        }
-
-        > .fa {
-          vertical-align: bottom;
-          margin-right: 4px;
-        }
-      }
-
-      .single-row-text {
-        padding-top: 0px;
-        line-height: 40px;
-      }
-
-      .threat-group-title {
-        font-size: 14px;
-        line-height: 40px;
-        margin-right: 42px;
-        @extend .semi-bold;
-        vertical-align: middle;
-      }
-
-      .subtitle {
-        padding-top: 4px;
-        padding-bottom: 12px;
-        margin-right: 42px;
-        font-size: 14px;
-        line-height: 14px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      > .fa-chevron-right {
-        font-size: 12px;
-        top: calc(50% - 6.5px);
-        width: 7px;
-        right: 12px;
-        position: absolute;
-        color: $slate;
-      }
-    }
-  }
-
-  table {
-    position: relative;
-  }
-
-  li, tr {
-    border-top: 1px solid transparent;
-
-    &:not(:first-child) {
-      border-top-color: $grey-1;
-    }
-    &:last-child {
-      border-bottom: 1px solid $grey-1;
-    }
-
-    &.clickable {
-      &:hover, &:active {
-        cursor: pointer;
-
-        > .fa-chevron-right {
-          color: $off-black;
-        }
-      }
-
-      &:active, &:focus {
-        outline: 0;
-      }
-
-      &:hover {
-        border-top-color: $grey-4;
-
-        &:last-child {
-          border-bottom-color: $grey-4;
-        }
-
-        + li, + tr {
-          border-top-color: $grey-4;
-        }
-      }
-
-      &:active {
-        background: $grey-1;
-        border-top-color: $slate;
-
-        &:last-child {
-          border-bottom-color: $slate;
-        }
-
-        + li, + tr {
-          border-top-color: $slate;
-        }
-      }
-    }
-  }
-}
-
 .tile {
+  background-color: white;
+  border: 1px solid $grey-2;
   margin-bottom: 8px;
   padding: 8px;
-  border: 1px solid $grey-2;
-  background-color: white;
 
   h2 {
     line-height: 20px;
@@ -319,13 +53,13 @@ $tile-scroll-container-z-index: 0;
     margin-bottom: 0;
 
     > .hexagon {
-      vertical-align: bottom;
       margin-right: 8px;
+      vertical-align: bottom;
     }
 
     > .fa {
-      vertical-align: bottom;
       margin-right: 8px;
+      vertical-align: bottom;
 
       &.slate {
         color: $slate;
@@ -338,32 +72,32 @@ $tile-scroll-container-z-index: 0;
   }
 
   .sub-header {
-    margin-top: 2px;
     line-height: 14px;
+    margin-top: 2px;
   }
 
   &.summary-tile {
     margin: 8px 8px 0px 8px;
 
     .tile-header {
-      @extend .bold;
+      @include bold();
 
-      padding: 4px 16px 8px 0px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 1;
       font-size: $h1-font-size;
+      line-height: 1;
+      overflow: hidden;
+      padding: 4px 16px 8px 0px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
 
       .minor-text{
-        @extend .regular;
+        @include regular();
       }
 
       // Application / Organization Icon
       img {
-        width: 26px;
         height: 26px;
         vertical-align: bottom;
+        width: 26px;
       }
     }
 
@@ -376,27 +110,27 @@ $tile-scroll-container-z-index: 0;
       font-weight: bold;
       margin-bottom: 8px;
       > .fa {
-        vertical-align: top;
         margin-right: 8px;
+        vertical-align: top;
       }
     }
 
     .nav.nav-pills {
-      padding: 8px;
       background-color: $grey-2;
       margin-bottom: 0px;
+      padding: 8px;
 
       a {
-        min-width: 100px;
-        padding: 8px 12px;
-        display: inline-block;
-        text-align: center;
         border-radius: 4px;
         color: inherit;
+        display: inline-block;
+        padding: 8px 12px;
+        text-align: center;
+        min-width: 100px;
 
         &:hover, &:focus {
-          color: inherit;
           border: 1px solid $grey-4;
+          color: inherit;
           padding: 7px 11px;
         }
       }
@@ -412,89 +146,204 @@ $tile-scroll-container-z-index: 0;
   }
 
   .simple-list {
+    h4.subsection-header {
+      border-bottom: 1px solid $grey-3;
+      margin: 0;
+      margin-bottom: -1px; // overlap the bottom border of this header with the top border of the following list element
+      padding-top: 20px;
+      padding-bottom: 8px;
+      position: relative;
+
+      > .btn {
+        position: absolute;
+        right: 0;
+        bottom: 8px;
+        text-transform: none;
+      }
+    }
+
+    div.subsection-divider {
+      border-bottom: 1px solid $grey-3;
+      padding-top: 20px;
+    }
+
+    div.empty-list {
+      border-bottom: 1px solid $grey-1;
+      height: 40px;
+      line-height: 34px;
+      text-align: center;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+
+      li {
+        padding-left: 8px;
+        position: relative;
+
+        &.with-subtitle {
+          min-height: 52px;
+        }
+
+        &.simple {
+          min-height: 40px;
+        }
+
+        .threat-legend {
+          display: inline-block;
+          float: left;
+          min-height: inherit;
+          margin: 0px 8px 0px -8px;
+          width: 8px;
+
+          @each $threat in $threat-levels {
+            @each $threatLevel in nth($threat, 4) {
+              &.threat-level-#{$threatLevel} {
+                background-color: nth($threat, 3);
+              }
+            }
+          }
+        }
+
+        .title {
+          @include semi-bold();
+
+          font-size: 14px;
+          line-height: 14px;
+          margin-right: 42px;
+          padding-top: 10px;
+
+          > .hexagon {
+            margin-right: 6px;
+            vertical-align: bottom;
+          }
+
+          > .fa {
+            margin-right: 4px;
+            vertical-align: bottom;
+          }
+        }
+
+        .single-row-text {
+          line-height: 40px;
+          padding-top: 0px;
+        }
+
+        .threat-group-title {
+          @include semi-bold();
+
+          font-size: 14px;
+          line-height: 40px;
+          margin-right: 42px;
+          vertical-align: middle;
+        }
+
+        .subtitle {
+          font-size: 14px;
+          line-height: 14px;
+          margin-right: 42px;
+          overflow: hidden;
+          padding-top: 4px;
+          padding-bottom: 12px;
+          text-overflow: ellipsis;
+        }
+
+        > .fa-chevron-right {
+          color: $slate;
+          font-size: 12px;
+          position: absolute;
+          right: 12px;
+          top: calc(50% - 6.5px);
+          width: 7px;
+        }
+      }
+    }
+
+    table {
+      position: relative;
+    }
+
+    li, tr {
+      border-top: 1px solid transparent;
+
+      &:not(:first-child) {
+        border-top-color: $grey-1;
+      }
+      &:last-child {
+        border-bottom: 1px solid $grey-1;
+      }
+
+      &.clickable {
+        &:hover, &:active {
+          cursor: pointer;
+
+          > .fa-chevron-right {
+            color: $off-black;
+          }
+        }
+
+        &:active, &:focus {
+          outline: 0;
+        }
+
+        &:hover {
+          border-top-color: $grey-4;
+
+          &:last-child {
+            border-bottom-color: $grey-4;
+          }
+
+          + li, + tr {
+            border-top-color: $grey-4;
+          }
+        }
+
+        &:active {
+          background: $grey-1;
+          border-top-color: $slate;
+
+          &:last-child {
+            border-bottom-color: $slate;
+          }
+
+          + li, + tr {
+            border-top-color: $slate;
+          }
+        }
+      }
+    }
 
     /*
       ##Access Tiles
-    ```
-    <div class="tile">
-      <h2><i class="fa fa-key size-20px slate"></i>Access</h2>
-
-      <div class="sub-header">Access List sub-header</div>
-       <div class="simple-list">
-        <h4 class="subsection-header">Subsection Header</h4>
-        <div class="empty-list">Empty List</div>
-      </div>
-      <div class="simple-list">
-        <h4 class="subsection-header">Subsection Header
-          <button id="add-role-button" class="btn btn-tertiary">
-            <i class="fa fa-plus"></i>Add a Role
-          </button>
-        </h4>
-        <table class="access-list">
-          <tr class="simple clickable" style="vertical-align: middle">
-            <td class="role">Clickable Row</td>
-            <td class="members">
-              <span>
-                <span class="list-within-list">
-                  <i class="fa fa-user size-16px slate"></i>
-                  <span>Test User1</span>
-                  <i class="fa fa-user size-16px slate"></i>
-                  <span>Test User2</span>
-                </span>
-              </span>
-            </td>
-            <td>
-              <i class="fa fa-chevron-right"></i>
-            </td>
-          </tr>
-        </table>
-        <table class="access-list">
-          <tr class="simple" style="vertical-align: middle">
-            <td class="role">Non-Clickable Row</td>
-            <td class="members">
-              <span>
-                <span class="list-within-list">
-                  <i class="fa fa-user size-16px slate"></i>
-                  <span>Test User1</span>
-                  <i class="fa fa-user size-16px slate"></i>
-                  <span>Test User2</span>
-                </span>
-              </span>
-            </td>
-            <td>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </div>
-    ```
     */
     .access-list {
       width: 100%;
 
       tr {
         td {
+          @include semi-bold();
+ 
           line-height: 16px;
-          @extend .semi-bold;
         }
 
         .role {
           padding-top: 12px;
-          vertical-align: top;
-          padding-left: 8px;
           padding-right: 24px;
+          padding-left: 8px;
+          vertical-align: top;
           min-width: 140px;
         }
 
         .members {
-          width: 100%;
           padding-top: 10.0px;
           vertical-align: bottom;
-
+          width: 100%;
+ 
           .list-within-list {
-            white-space: nowrap;
-            padding-bottom: 12px;
             display: inline-block;
+            padding-bottom: 12px;
+            white-space: nowrap;
 
             i {
               margin-right: 8px;
@@ -507,17 +356,17 @@ $tile-scroll-container-z-index: 0;
 
         td:last-child {
           padding-top: 0px;
-          vertical-align: middle;
-          padding-left: 24px;
           padding-right: 12px;
+          padding-left: 24px;
+          vertical-align: middle;
 
           > .fa-chevron-right {
-            font-size: 12px;
-            top: calc(50% - 6.5px);
-            width: 7px;
-            right: 12px;
             color: $slate;
+            font-size: 12px;
+            right: 12px;
+            top: calc(50% - 6.5px);
             vertical-align: middle;
+            width: 7px;
           }
         }
 
@@ -530,10 +379,10 @@ $tile-scroll-container-z-index: 0;
     .greedy-table.policy-list {
       .threat-legend {
         display: inline-block;
-        width: 8px;
         float: left;
         min-height: inherit;
         margin: 0px 8px 0px -12px;
+        width: 8px;
 
         @each $threat in $policy-threat-levels {
           @each $threatLevel in nth($threat, 4) {

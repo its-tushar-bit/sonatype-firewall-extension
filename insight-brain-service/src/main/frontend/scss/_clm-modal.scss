@@ -1,74 +1,24 @@
 /*
   #Modals
+*/
 
- ##CLM Modals
-
-```
-<div class='clm-modal'>
-  <div class='clm-modal-header'>
-    <h2>A Modal Title</h2>
-  </div>
-  <div class='clm-modal-body'>
-    Your content
-  </div>
-  <div class='clm-modal-footer'>
-    <button class='btn btn-primary'>Save</button> <button class='btn'>Cancel</button>
-  </div>
-</div>
-```
-
-##CLM Modal Error
-
-```
-<div class='clm-modal'>
-  <div class='clm-modal-header'>
-    <h2>A Modal Title</h2>
-  </div>
-  <div class='clm-modal-body'>
-    Your content
-  </div>
-  <div class='clm-modal-footer error'>
-    <button class='btn btn-error'>Retry</button> <button class='btn'>Cancel</button>
-  </div>
-</div>
-```
-
-##CLM Modal Warning
-
-```
-<div class='clm-modal'>
-  <div class='clm-modal-header'>
-    <h2>A Modal Title</h2>
-  </div>
-  <div class='clm-modal-body'>
-    Your content
-    <div class="clm-alert alert">
-      <i class="fa fa-warning"></i>
-      Are you sure you really want to do this?
-    </div>
-  </div>
-  <div class='clm-modal-footer'>
-    <button class='btn btn-primary'>Save</button> <button class='btn'>Cancel</button>
-  </div>
-</div>
-```
-
- */
  $iq-modal-hor-padding: 12px;
+
 .modal-backdrop {
   background-color: rgba($off-black, 0.4) !important;
 }
 
 .clm-modal {
-  background-color: $off-white;
   $external-border: 1px solid $off-black;
+
+  background-color: $off-white;
   border-radius: 0px;
   border-width: 0px;
 
   .clm-modal-header {
-    padding: 12px 8px;
     border: $external-border;
     border-bottom: 1px solid $grey-4;
+    padding: 12px 8px;
 
     h2 {
       margin-top: -5px;
@@ -81,8 +31,8 @@
   }
 
   .clm-modal-body {
-    border-left: $external-border;
     border-right: $external-border;
+    border-left: $external-border;
     padding: 24px $iq-modal-hor-padding;
 
     #user-search-input-label {
@@ -122,122 +72,21 @@
 
 /*
   ##Delete Modal
-
-  ```
-  <div class="clm-modal">
-    <div class="clm-modal-header">
-      <h2>
-        <i class="fa size-20px fa-trash"></i> Delete Label
-      </h2>
-    </div>
-    <div class="clm-modal-body warn">
-      <div class="clm-alert alert">
-        <i class="fa fa-warning"></i>
-        <span>You are about to permanently remove Foo from Lifecycle. This action cannot be undone.</span>
-      </div>
-    </div>
-    <div class="clm-modal-footer">
-      <button class="btn btn-primary">
-        Continue
-      </button>
-      <button class="btn">Cancel</button>
-    </div>
-  </div>
-
-  <div class="clm-modal">
-    <div class="clm-modal-header">
-      <h2>
-        <i class="fa size-20px fa-trash"></i> Delete Label
-      </h2>
-    </div>
-    <div class="clm-modal-footer error">
-      <div class="section with-icon">
-        <i class="fa fa-warning"></i> Cannot find a label with ID Foo.
-      </div>
-      <button class="btn btn-error">
-        <i class="fa fa-refresh"></i> Retry
-      </button>
-      <button class="btn">Cancel</button>
-    </div>
-  </div>
-  ```
 */
 .clm-modal {
   .clm-modal-body.warn {
     padding: 0;
 
     div.clm-alert {
-      margin: 0;
-      border-left: 0;
       border-right: 0;
+      border-left: 0;
+      margin: 0;
     }
   }
 }
 
 /*
   #Modals with Forms
-
-  ##CLM Modal Forms
-```
-    <div class='clm-modal'>
-      <div class="clm-modal-header">
-        <h2>
-          Modal Header
-        </h2>
-      </div>
-      <form name="aForm" role="form" class="clm-form">
-        <div class="clm-modal-body">
-          <div class="section">
-            <div class="field">
-              <label for='normal'>An input that is not required and hasn't been updated</label>
-              <input type='text' id='normal' class='ng-valid ng-untouched' placeholder='ex. Antiquated Value'>
-            </div>
-            <div class="field">
-              <label for='required'>An input that is required and hasn't been updated</label>
-              <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
-            </div>
-            <div class="field">
-              <label>Check something</label>
-              <div>
-                <label class="checkbox">
-                  <input type="checkbox" value="one" checked>
-                  <span>Selected option</span>
-                </label>
-                <label class="checkbox">
-                  <input type="checkbox" value="two">
-                  <span>Unselected option</span>
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class="section">
-            <div class="field">
-              <label>Radio something</label>
-              <div>
-                <label class="radio">
-                  <input type="radio" name="optionsRadios" id="optionOne" value="one" checked>
-                  <span>Selected option</span>
-                </label>
-                <label class="radio">
-                  <input type="radio" name="optionsRadios" id="optionTwo" value="two">
-                  <span>Unselected option</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="clm-modal-footer">
-          <button class="btn btn-primary" type="submit">
-            Primary
-          </button>
-          <button class="btn btn-error" type="submit">
-            <i class="fa fa-refresh"></i>Retry
-          </button>
-          <button class="btn" type="button">Cancel</button>
-        </div>
-      </form>
-    </div>
-```
 */
 .modal-footer {
   text-align: left;
@@ -267,8 +116,8 @@
   }
 
   .progress {
-    margin-bottom: 6px;
     margin-top: 7px;
+    margin-bottom: 6px;
   }
 }
 
@@ -286,25 +135,24 @@
 
 .change-application-id-modal {
   width: 440px;
+  
   #editor-current-id {
-    margin-left: 12px;
     color: $off-black;
+    margin-left: 12px;
   }
 }
 
 .modal.fit-content {
   $default-bootstrap-modal-width: 560px;
-
+  
+  margin: 0;
+  left: 50%; // With larger modal sizes we need to ensure they are centered
+  -ms-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
   width: auto; // for IE9 support
   width: initial;
   min-width: $default-bootstrap-modal-width;
-  max-width: #{$minimum-content-width - (2 * 12px)}; // 12px padding on each side, as to not fill the entire window
-
-  // With larger modal sizes we need to ensure they are centered
-  left: 50%;
-  margin: 0;
-  -ms-transform: translate(-50%, 0);
-  transform: translate(-50%, 0);
+  max-width: #{$minimum-content-width - (2 * 12px)};   // 12px padding on each side, as to not fill the entire window
 }
 
 #ldap-server-ordering-modal {

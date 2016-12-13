@@ -105,8 +105,8 @@
     <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
     <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_component-animations.scss</css>
     <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tooltip.scss</css>
-    <css>/frontend/scss/_global.scss</css>
     <css>/frontend/scss/_variables.scss</css>
+    <css>/frontend/scss/_global.scss</css>
     <css>/frontend/scss/_typography.scss</css>
     <css>/frontend/scss/_clm-modal.scss</css>
     <css>/frontend/scss/_mask.scss</css>
@@ -174,8 +174,8 @@
 
   <group name='viewdetails'>
     <group-ref>bootstrap-css</group-ref>
-    <css>/frontend/scss/_global.scss</css>
     <css>/frontend/scss/_variables.scss</css>
+    <css>/frontend/scss/_global.scss</css>
     <css>/frontend/scss/_typography.scss</css>
     <css>/frontend/scss/_threatBars.scss</css>
     <css>/wro4j/version-graph/viewdetails.css</css>

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.archive.RegexSelector;
 import com.sonatype.insight.scan.archive.Selector.Selection;
+import com.sonatype.insight.scan.archive.TFileUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.DirectoryScanItem;
 import com.sonatype.insight.scan.model.Scan;
@@ -34,6 +36,7 @@ import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import de.schlichtherle.truezip.file.TArchiveDetector;
 import de.schlichtherle.truezip.file.TFile;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
@@ -130,13 +133,15 @@ public class ScanHandler
       
       RegexSelector proprietaryRegexSelector = RegexSelector.forProprietaryRegexes(proprietaryConfig.getRegexes());
 
+      TArchiveDetector archiveDetector = TFileUtils
+          .getArchiveDetector(Collections.<TFileUtils.Driver, String> emptyMap(), null /* badExtensions */);
       ArrayNode scannedFiles = JsonUtils.parse(twistlockScan.getFilesJson());
       for (JsonNode scannedFile : scannedFiles) {
         String hash = scannedFile.get("sha1").asText();
         hash = hash.substring(0, 20);
         String path = scannedFile.get("path").asText();
   
-        TFile tFile = new TFile(path);
+        TFile tFile = new TFile(path, archiveDetector);
         ScanItem scanItem = tFile.isArchive() ? new DirectoryScanItem() : new ScanItem();
         scanItem.setSha1(hash);
         scanItem.setPath(path);

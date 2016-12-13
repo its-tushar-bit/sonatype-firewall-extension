@@ -10,8 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.servlet.ServletInputStream;
@@ -21,6 +23,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.scan.archive.TFileUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.DirectoryScanItem;
 import com.sonatype.insight.scan.model.Scan;
@@ -28,6 +31,9 @@ import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.io.ScanReader;
 
 import com.google.inject.Binder;
+import de.schlichtherle.truezip.file.TArchiveDetector;
+import de.schlichtherle.truezip.fs.FsDriver;
+import de.schlichtherle.truezip.fs.FsScheme;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -104,7 +110,7 @@ public class ScanHandlerTest
     scanReceipt.setScanId(scanId);
 
     File inputScanFile = TwistlockScanTestHelper.createInputScanFile(tempDir,
-        new File("target/test-classes/ScanHandlerTest"));
+        new File("target/test-classes/ScanHandlerTest/twistlock-scan"));
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream())
         .thenReturn(new ServletInputStreamImpl(FileUtils.readFileToByteArray(inputScanFile)));
@@ -146,6 +152,64 @@ public class ScanHandlerTest
     assertThat(scan.getSummary().getStartTime(), notNullValue());
     assertThat(scan.getSummary().getEndTime(), notNullValue());
     assertThat(scan.getSummary().getClientInfo().size(), greaterThan(0));
+  }
+
+  @Test
+  public void testHandle_TwistlockScanType_DetectsAllArchiveTypes() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    String scanId = "test-scan-id";
+    scanReceipt.setScanId(scanId);
+
+    File inputScanFile = TwistlockScanTestHelper.createInputScanFile(tempDir,
+        new File("target/test-classes/ScanHandlerTest/twistlock-scan-all-archive-types"));
+    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+    when(servletRequest.getInputStream())
+        .thenReturn(new ServletInputStreamImpl(FileUtils.readFileToByteArray(inputScanFile)));
+    when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
+        eq((Map<String, String>) null), (String[]) anyVararg())).thenReturn(scanReceipt);
+
+    scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
+    assertThat(scanReceipt.getScanId(), is(scanId));
+    File scanDir = work.getScanDir(app.getId());
+    File scanFile = new File(scanDir, "scan-" + scanId + ".xml.gz");
+    assertThat(scanFile.exists(), is(true));
+
+    Scan scan = scanReader.read(scanFile);
+
+    // Verify the top scan item in the scan
+    List<ScanItem> scanItems = scan.getItems();
+    assertThat(scanItems, hasSize(1));
+    ScanItem scanItem = scanItems.get(0);
+    assertThat(scanItem, instanceOf(DirectoryScanItem.class));
+    assertThat(scanItem.getPath(), is("DockerImage"));
+
+    // Verify the sub scan items in the scan
+    Set<FsScheme> supportedFsSchemesForArchives = getSupportedFsSchemesForArchives();
+    Set<FsScheme> detectedFsSchemesForArchives = new HashSet<>();
+    List<? extends ScanItem> subScanItems = scanItem.getItems();
+    for (ScanItem subScanItem : subScanItems) {
+      assertThat("Item not detected as archive: " + subScanItem.getPath(), subScanItem,
+          instanceOf(DirectoryScanItem.class));
+      detectedFsSchemesForArchives.add(new FsScheme(subScanItem.getPath().substring("/opt/foo.".length())));
+    }
+    assertThat(detectedFsSchemesForArchives, is(supportedFsSchemesForArchives));
+  }
+
+  private Set<FsScheme> getSupportedFsSchemesForArchives() {
+    TArchiveDetector archiveDetector = TFileUtils.getArchiveDetector(Collections.<TFileUtils.Driver, String> emptyMap(),
+        null /* badExtensions */);
+    Set<FsScheme> supportedFsSchemes = new HashSet<>();
+    Map<FsScheme, FsDriver> fsDriversByScheme = archiveDetector.get();
+    // truezip considers a file to be an archive only if there is a driver for that file's suffix that returns
+    // isFederated()=true.
+    for (FsScheme fsScheme : fsDriversByScheme.keySet()) {
+      if (fsDriversByScheme.get(fsScheme).isFederated()) {
+        supportedFsSchemes.add(fsScheme);
+      }
+    }
+
+    return supportedFsSchemes;
   }
 
   @Test

@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Sets;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -43,29 +42,11 @@ public class ApiPolicyViolationServiceV2Test
   @Inject
   private ApiPolicyViolationServiceV2 apiPolicyViolationService;
 
-  private PolicyData appPolicyData1;
-
-  private PolicyData appPolicyData2;
-
-  private PolicyData appPolicyData3;
-
-  @Before
-  public void setUpPolicyViolations() {
-    // Create three org/apps with policies and policy violations
-    appPolicyData1 = createPolicyTestData("org-policy1", "scanId1App1",
-        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", "r1");
-    appPolicyData2 = createPolicyTestData("org-policy2", "scanId1App2",
-        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), "h2", "r2");
-    createPolicyTestData("org-policy3", "scanId1App3", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"),
-        "h3", "r3");
-    appPolicyData3 = createPolicyTestData("org-policy4", "scanId1App4",
-        ComponentIdentifier.createNugetCoordinates("nuget1", "v1"), "h3", "r4");
-    createPolicyTestData("org-policy5", "scanId1App5", ComponentIdentifier.createNugetCoordinates("nuget2", "v1"),
-        "h4", "r5");
-  }
-
   @Test
   public void testGetPolicyViolations_noPolicyIds() {
+    createPolicyTestData("org-policy1", "scanId1App1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"),
+        "h1", "r1");
+
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(Collections.<String> emptySet());
     assertThat(apiApplicationViolationListDTO, notNullValue());
@@ -74,7 +55,14 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetPolicyViolations_filteredByPolicyId() {
-    // Get two of the three policy violations by policy ids
+    PolicyData appPolicyData1 = createPolicyTestData("org-policy1", "scanId1App1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", "r1");
+    PolicyData appPolicyData2 = createPolicyTestData("org-policy2", "scanId1App2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), "h2", "r2");
+    createPolicyTestData("org-policy3", "scanId1App3", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"),
+        "h3", "r3");
+
+    // Get the policy violations for two (out of three) policies
     Set<String> policyIds = Sets.newHashSet(appPolicyData1.orgPolicy.getId(), appPolicyData2.orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(policyIds);
@@ -97,8 +85,12 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetPolicyViolations_nuGetFilteredByPolicyId() {
-    // Get two of the three policy violations by policy ids
-    Set<String> policyIds = Sets.newHashSet(appPolicyData3.orgPolicy.getId());
+    PolicyData appPolicyData1 = createPolicyTestData("org-policy1", "scanId1App1",
+        ComponentIdentifier.createNugetCoordinates("nuget1", "v1"), "h3", "r4");
+    createPolicyTestData("org-policy2", "scanId1App2", ComponentIdentifier.createNugetCoordinates("nuget2", "v1"), "h4",
+        "r5");
+
+    Set<String> policyIds = Sets.newHashSet(appPolicyData1.orgPolicy.getId());
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
         .getPolicyViolations(policyIds);
 
@@ -106,7 +98,7 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO1 = apiApplicationViolationListDTO.applicationViolations
         .get(0);
-    assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData3);
+    assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1);
   }
 
   private void assertPolicyViolation(ApiApplicationViolationDTOV2 apiApplicationViolationDTO, PolicyData appPolicyData)
@@ -204,7 +196,7 @@ public class ApiPolicyViolationServiceV2Test
     return policyTestData;
   }
 
-  class PolicyData
+  private static class PolicyData
   {
     public Organization organization;
 

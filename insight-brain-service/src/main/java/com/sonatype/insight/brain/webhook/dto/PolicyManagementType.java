@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.webhook.dto;
 
-public enum OwnerManagementType
+public enum PolicyManagementType
 {
   APPLICATION,
   ORGANIZATION,

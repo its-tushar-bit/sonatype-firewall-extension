@@ -20,7 +20,7 @@ public class LicenseOverridePayload
 
   public String id;
 
-  public LicenseOverrideDTO licenseOverrideDTO;
+  public LicenseOverrideDTO licenseOverride;
 
   public static class LicenseOverrideDTO
   {

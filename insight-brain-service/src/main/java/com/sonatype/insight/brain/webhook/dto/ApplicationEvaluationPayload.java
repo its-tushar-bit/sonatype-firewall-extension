@@ -15,7 +15,7 @@ public class ApplicationEvaluationPayload
 {
   public String id;
 
-  public ApplicationEvaluationDTO applicationEvaluationDTO;
+  public ApplicationEvaluationDTO applicationEvaluation;
 
   public static class ApplicationEvaluationDTO
   {

@@ -17,7 +17,7 @@ public class PolicyManagementPayload
 {
   public EventAction action;
 
-  public OwnerManagementType type;
+  public PolicyManagementType type;
 
   public String id;
 

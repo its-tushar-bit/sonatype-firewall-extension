@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
-import com.sonatype.insight.brain.webhook.dto.OwnerManagementType;
+import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
@@ -120,7 +120,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator, is("initiator"));
     assertThat(webhookPayload.id, is("policyEvaluationId"));
 
-    ApplicationEvaluationDTO applicationEvaluationDTO = webhookPayload.applicationEvaluationDTO;
+    ApplicationEvaluationDTO applicationEvaluationDTO = webhookPayload.applicationEvaluation;
     assertThat(applicationEvaluationDTO.policyEvaluationId, is("policyEvaluationId"));
     assertThat(applicationEvaluationDTO.stage, is("stage"));
     assertThat(applicationEvaluationDTO.ownerId, is("ownerId"));
@@ -158,7 +158,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator, is("initiator"));
     assertThat(webhookPayload.action, is(EventAction.CREATED));
     assertThat(webhookPayload.id, is(organization.getId()));
-    assertThat(webhookPayload.type, is(OwnerManagementType.ORGANIZATION));
+    assertThat(webhookPayload.type, is(PolicyManagementType.ORGANIZATION));
     assertThat(webhookPayload.owner.id, is(organization.getId()));
   }
 
@@ -189,7 +189,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator, is("initiator"));
     assertThat(webhookPayload.action, is(EventAction.CREATED));
     assertThat(webhookPayload.id, is(tag.getId()));
-    assertThat(webhookPayload.type, is(OwnerManagementType.APPLICATION_CATEGORY));
+    assertThat(webhookPayload.type, is(PolicyManagementType.APPLICATION_CATEGORY));
     assertThat(webhookPayload.owner.id, is(organization.getId()));
   }
 
@@ -220,7 +220,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator, is("initiator"));
     assertThat(webhookPayload.action, is(EventAction.CREATED));
     assertThat(webhookPayload.id, is(label.getId()));
-    assertThat(webhookPayload.type, is(OwnerManagementType.LABEL));
+    assertThat(webhookPayload.type, is(PolicyManagementType.LABEL));
     assertThat(webhookPayload.owner.id, is(organization.getId()));
   }
 
@@ -251,7 +251,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator, is("initiator"));
     assertThat(webhookPayload.action, is(EventAction.CREATED));
     assertThat(webhookPayload.id, is(licenseThreatGroup.getId()));
-    assertThat(webhookPayload.type, is(OwnerManagementType.LICENSE_THREAT_GROUP));
+    assertThat(webhookPayload.type, is(PolicyManagementType.LICENSE_THREAT_GROUP));
     assertThat(webhookPayload.owner.id, is(organization.getId()));
   }
 
@@ -282,7 +282,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator, is("initiator"));
     assertThat(webhookPayload.action, is(EventAction.CREATED));
     assertThat(webhookPayload.id, is(policy.getId()));
-    assertThat(webhookPayload.type, is(OwnerManagementType.POLICY));
+    assertThat(webhookPayload.type, is(PolicyManagementType.POLICY));
     assertThat(webhookPayload.owner.id, is(organization.getId()));
   }
 
@@ -311,7 +311,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator, is("initiator"));
     assertThat(webhookPayload.action, is(EventAction.CREATED));
     assertThat(webhookPayload.id, is(organization.getId()));
-    assertThat(webhookPayload.type, is(OwnerManagementType.ACCESS));
+    assertThat(webhookPayload.type, is(PolicyManagementType.ACCESS));
     assertThat(webhookPayload.owner.id, is(organization.getId()));
   }
 
@@ -407,7 +407,7 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.initiator, is("initiator"));
     assertThat(webhookPayload.action, is(EventAction.UPDATED));
     assertThat(webhookPayload.id, is(givenOverride.getId()));
-    LicenseOverrideDTO actualOverride = webhookPayload.licenseOverrideDTO;
+    LicenseOverrideDTO actualOverride = webhookPayload.licenseOverride;
     assertThat(actualOverride.id, is(givenOverride.getId()));
     assertThat(actualOverride.comment, is("testing"));
     assertThat(actualOverride.componentIdentifier, is(notNullValue()));

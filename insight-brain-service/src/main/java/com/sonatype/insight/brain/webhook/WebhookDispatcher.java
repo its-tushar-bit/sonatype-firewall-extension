@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
-import com.sonatype.insight.brain.webhook.dto.OwnerManagementType;
+import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
@@ -84,8 +84,8 @@ public class WebhookDispatcher
   @Subscribe
   public void on(final OwnerEvent ownerEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      OwnerManagementType type = ownerEvent.owner.getType() ==
-          OwnerType.ORGANIZATION ? OwnerManagementType.ORGANIZATION : OwnerManagementType.APPLICATION;
+      PolicyManagementType type = ownerEvent.owner.getType() ==
+          OwnerType.ORGANIZATION ? PolicyManagementType.ORGANIZATION : PolicyManagementType.APPLICATION;
       sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), type, ownerEvent.owner.getId(),
           ownerEvent);
     }
@@ -95,14 +95,14 @@ public class WebhookDispatcher
   public void on(final TagEvent tagEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
       sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()),
-          OwnerManagementType.APPLICATION_CATEGORY, tagEvent.tag.getId(), tagEvent);
+          PolicyManagementType.APPLICATION_CATEGORY, tagEvent.tag.getId(), tagEvent);
     }
   }
 
   @Subscribe
   public void on(final LabelEvent labelEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), OwnerManagementType.LABEL,
+      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.LABEL,
           labelEvent.label.getId(), labelEvent);
     }
   }
@@ -111,7 +111,7 @@ public class WebhookDispatcher
   public void on(final LicenseThreatGroupEvent licenseThreatGroupEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
       sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()),
-          OwnerManagementType.LICENSE_THREAT_GROUP, licenseThreatGroupEvent.licenseThreatGroup.getId(),
+          PolicyManagementType.LICENSE_THREAT_GROUP, licenseThreatGroupEvent.licenseThreatGroup.getId(),
           licenseThreatGroupEvent);
     }
   }
@@ -119,7 +119,7 @@ public class WebhookDispatcher
   @Subscribe
   public void on(final PolicyEvent policyEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), OwnerManagementType.POLICY,
+      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.POLICY,
           policyEvent.policy.getId(), policyEvent);
     }
   }
@@ -127,7 +127,7 @@ public class WebhookDispatcher
   @Subscribe
   public void on(final RoleEvent roleEvent) {
     for (Webhook webhook : getWebhooksOfEventType(WebhookEventType.POLICY_MANAGEMENT)) {
-      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), OwnerManagementType.ACCESS,
+      sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), PolicyManagementType.ACCESS,
           roleEvent.ownerId, roleEvent);
     }
   }
@@ -172,7 +172,7 @@ public class WebhookDispatcher
     payload.id = event.licenseOverride.getId();
     payload.timestamp = new Date();
     payload.initiator = event.initiator;
-    payload.licenseOverrideDTO = licenseOverrideDTO;
+    payload.licenseOverride = licenseOverrideDTO;
 
     webhookClientUtil.post(webhook, LICENSE_OVERRIDE_MANAGEMENT_ID, payload);
   }
@@ -193,7 +193,7 @@ public class WebhookDispatcher
     payload.timestamp = new Date();
     payload.initiator = event.initiator;
     payload.id = event.policyEvaluationId;
-    payload.applicationEvaluationDTO = applicationEvaluationDTO;
+    payload.applicationEvaluation = applicationEvaluationDTO;
 
     webhookClientUtil.post(webhook, APPLICATION_EVALUATION_ID, payload);
   }
@@ -221,7 +221,7 @@ public class WebhookDispatcher
   }
 
   private void sendPolicyManagementPayload(final Webhook webhook,
-                                           final OwnerManagementType type,
+                                           final PolicyManagementType type,
                                            final String id,
                                            final ManagementEvent event)
   {

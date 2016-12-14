@@ -36,7 +36,7 @@ public class ApiPolicyViolationResourceV2Test
   private static final String ORG_POLICY_NAME1 = "org-policy1";
 
   @Test
-  public void testGetPolicies() throws Exception {
+  public void testGetPolicyViolations() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Policy orgPolicy = tempEntity.newPolicy(org.getId(), ORG_POLICY_NAME1);

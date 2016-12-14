@@ -88,7 +88,7 @@ public class WebhookServiceAuthzTest
 
     webhook.setEventTypes(Sets.newHashSet(WebhookEventType.APPLICATION_EVALUATION));
 
-    Webhook result = webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -117,8 +117,6 @@ public class WebhookServiceAuthzTest
     Webhook webhook = tempEntity.newWebhook(Sets.newHashSet(WebhookEventType.POLICY_MANAGEMENT));
 
     webhookService.deleteWebhook(webhook.getId());
-
-    Webhook result = webhookDAO.getById(webhook.getId());
   }
 
   @Test(expected = UnauthorizedException.class)

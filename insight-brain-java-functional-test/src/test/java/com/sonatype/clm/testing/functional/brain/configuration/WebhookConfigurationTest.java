@@ -27,8 +27,8 @@ import org.mockito.internal.util.collections.Sets;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.hasText;
 import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -75,7 +75,7 @@ public class WebhookConfigurationTest
 
     newWebhook.click();
     webhookEditPage.should(appear);
-    webhookEditPage.title().should(hasText("Create Webhook"));
+    webhookEditPage.title().should(text("Create Webhook"));
 
     webhookEditPage.url().val("http://foo.bar");
 
@@ -117,7 +117,7 @@ public class WebhookConfigurationTest
     webhookConfigurationPage.should(appear);
     firstWebhook = webhookConfigurationPage.webhook(0);
 
-    firstWebhook.title().shouldHave(hasText("http://foo.bar"));
+    firstWebhook.title().shouldHave(text("http://foo.bar"));
     firstWebhook.webhookEvents().shouldHave(texts("License Override"));
   }
 

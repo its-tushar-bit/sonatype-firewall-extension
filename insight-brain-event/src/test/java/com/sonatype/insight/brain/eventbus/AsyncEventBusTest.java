@@ -97,7 +97,7 @@ public class AsyncEventBusTest
     }
 
     @Subscribe
-    public void handleEvent(final String message) {
+    public void handleEvent(@SuppressWarnings("unused") final String message) {
       latch.countDown();
     }
   }
@@ -116,7 +116,7 @@ public class AsyncEventBusTest
     }
 
     @Subscribe
-    public void handle(final String message) {
+    public void handle(@SuppressWarnings("unused") final String message) {
       latch.countDown();
       throw new RuntimeException("something bad happened");
     }
@@ -139,7 +139,7 @@ public class AsyncEventBusTest
     }
 
     @Subscribe
-    public void handle(final String message) throws InterruptedException {
+    public void handle(@SuppressWarnings("unused") final String message) throws InterruptedException {
       Thread.sleep(sleepTime);
       latch.countDown();
     }

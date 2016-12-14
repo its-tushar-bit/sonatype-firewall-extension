@@ -156,6 +156,7 @@ public class WebhookClientUtilTest
     webhook.setSecretKey("secret");
     WebhookPayload webhookPayload = new WebhookPayload()
     {
+      @SuppressWarnings("unused")
       public String foo = "bar";
     };
     webhookClientUtil.post(webhook, webhookId, webhookPayload);

@@ -34,6 +34,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 
 public class ApiPolicyViolationServiceV2Test
@@ -101,6 +102,21 @@ public class ApiPolicyViolationServiceV2Test
     assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData1);
   }
 
+  @Test
+  public void testGetPolicyViolations_unknownComponent() {
+    PolicyData appPolicyData = createPolicyTestData("org-policy", "scanId", null /* componentIdentifier */, "testhash",
+        "testreason");
+
+    Set<String> policyIds = Collections.singleton(appPolicyData.orgPolicy.getId());
+    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
+        .getPolicyViolations(policyIds);
+
+    assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
+    ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
+        .get(0);
+    assertPolicyViolation(apiApplicationViolationDTO, appPolicyData);
+  }
+
   private void assertPolicyViolation(ApiApplicationViolationDTOV2 apiApplicationViolationDTO, PolicyData appPolicyData)
   {
     assertThat(apiApplicationViolationDTO.application, notNullValue());
@@ -143,10 +159,15 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(apiPolicyViolationDTO.stageId, is(policyEvaluation.getStageTypeId()));
     assertThat(apiPolicyViolationDTO.component.hash, is(policyViolation.getHash()));
     assertThat(apiPolicyViolationDTO.component.proprietary, is(appPolicyData.applicationComponent.isProprietary()));
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(
-        apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
-        apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
-    assertThat(componentIdentifier, is(policyViolation.getComponentIdentifier()));
+    if (policyViolation.getComponentIdentifier() != null) {
+      ComponentIdentifier componentIdentifier = new ComponentIdentifier(
+          apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
+          apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());
+      assertThat(componentIdentifier, is(policyViolation.getComponentIdentifier()));
+    }
+    else {
+      assertThat(apiPolicyViolationDTO.component.componentIdentifier, is(nullValue()));
+    }
 
     assertThat(apiPolicyViolationDTO.constraintViolations, hasSize(1));
     ApiConstraintViolationDTO apiConstraintViolationDTO = apiPolicyViolationDTO.constraintViolations.get(0);
@@ -177,13 +198,14 @@ public class ApiPolicyViolationServiceV2Test
         BuildStageType.ID, scanId + "1", new Date(time));
     tempEntity.newPolicyViolation(policyEvaluation, policyTestData.orgPolicy, componentIdentifier, hash, reason);
 
+    MatchState matchState = componentIdentifier != null ? MatchState.EXACT : MatchState.UNKNOWN;
     // Create a current violation for build stage
     policyTestData.policyEvaluation1 = tempEntity.newPolicyEvaluation(policyTestData.application.getId(),
         BuildStageType.ID, scanId, new Date());
     policyTestData.policyViolation1 = tempEntity.newPolicyViolation(policyTestData.policyEvaluation1,
         policyTestData.orgPolicy, componentIdentifier, hash, reason);
     policyTestData.applicationComponent = tempEntity.newApplicationComponent(policyTestData.application.getId(),
-        BuildStageType.ID, hash, componentIdentifier, null, MatchState.EXACT, true, new Date(time));
+        BuildStageType.ID, hash, componentIdentifier, null, matchState, true, new Date(time));
 
     // Create a current violation for release stage
     policyTestData.policyEvaluation2 = tempEntity.newPolicyEvaluation(policyTestData.application.getId(),
@@ -191,7 +213,7 @@ public class ApiPolicyViolationServiceV2Test
     policyTestData.policyViolation2 = tempEntity.newPolicyViolation(policyTestData.policyEvaluation2,
         policyTestData.orgPolicy, componentIdentifier, hash, reason);
     policyTestData.applicationComponent = tempEntity.newApplicationComponent(policyTestData.application.getId(),
-        ReleaseStageType.ID, hash, componentIdentifier, null, MatchState.EXACT, true, new Date(time));
+        ReleaseStageType.ID, hash, componentIdentifier, null, matchState, true, new Date(time));
 
     return policyTestData;
   }

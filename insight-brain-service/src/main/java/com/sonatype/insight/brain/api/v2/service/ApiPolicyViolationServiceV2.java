@@ -13,7 +13,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
@@ -125,27 +124,23 @@ public class ApiPolicyViolationServiceV2
         List<PolicyViolation> policyViolations = policyViolationMapByEvaluationId.get(policyEvaluation.getId());
         if (policyViolations != null) {
           for (PolicyViolation policyViolation : policyViolations) {
-            ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
-            if (componentIdentifier != null) {
-              ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiEnhancedPolicyViolationDTOV2();
-              apiPolicyViolationDTOs.add(apiPolicyViolationDTO);
-              apiPolicyViolationDTO.policyId = policyViolation.getPolicyId();
-              apiPolicyViolationDTO.policyName = policyViolation.getPolicyName();
-              apiPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
-              apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
-                  policyEvaluation.getScanId());
-              apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
-              ApplicationComponent applicationComponent = applicationComponentDAO
-                  .getByApplicationIdAndStageTypeIdAndHash(application.getId(), policyEvaluation.getStageTypeId(),
-                      policyViolation.getHash());
-              apiPolicyViolationDTO.component = new ApiComponentDTOV2();
-              apiPolicyViolationDTO.component.hash = policyViolation.getHash();
-              apiPolicyViolationDTO.component.proprietary = applicationComponent != null
-                  && applicationComponent.isProprietary();
-              apiPolicyViolationDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
-                  .fromComponentIdentifier(componentIdentifier);
-              apiPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
-            }
+            ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiEnhancedPolicyViolationDTOV2();
+            apiPolicyViolationDTOs.add(apiPolicyViolationDTO);
+            apiPolicyViolationDTO.policyId = policyViolation.getPolicyId();
+            apiPolicyViolationDTO.policyName = policyViolation.getPolicyName();
+            apiPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
+            apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
+                policyEvaluation.getScanId());
+            apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
+            ApplicationComponent applicationComponent = applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
+                application.getId(), policyEvaluation.getStageTypeId(), policyViolation.getHash());
+            apiPolicyViolationDTO.component = new ApiComponentDTOV2();
+            apiPolicyViolationDTO.component.hash = policyViolation.getHash();
+            apiPolicyViolationDTO.component.proprietary = applicationComponent != null
+                && applicationComponent.isProprietary();
+            apiPolicyViolationDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
+                .fromComponentIdentifier(policyViolation.getComponentIdentifier());
+            apiPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
           }
         }
       }

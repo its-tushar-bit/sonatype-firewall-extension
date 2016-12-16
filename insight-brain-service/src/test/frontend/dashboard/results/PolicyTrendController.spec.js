@@ -24,7 +24,7 @@ describe('PolicyTrendController.spec', function() {
     policyThreatLevel: [3, 9]
   };
 
-  beforeEach(module('dashboard.utils'));
+  beforeEach(module('dashboard.module'));
 
   afterEach(inject(function($httpBackend) {
     scope.$destroy();

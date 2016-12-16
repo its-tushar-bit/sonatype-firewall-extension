@@ -28,8 +28,8 @@
       abstract: true,
       views: {
         content: {
-          templateUrl: 'dashboard/dashboard.overview.html?' + clmBuildTimestamp,
-          controller: 'dashboard.controller'
+          templateUrl: 'dashboard/results/dashboard.results.html?' + clmBuildTimestamp,
+          controller: 'dashboard.results.controller'
         },
         filter: {
           templateUrl: 'dashboard/dashboard.filter.html?' + clmBuildTimestamp,
@@ -41,7 +41,7 @@
       url: '/violations',
       views: {
         'dashboard-results': {
-          templateUrl: 'dashboard/violations.html?' + clmBuildTimestamp
+          templateUrl: 'dashboard/results/violations.html?' + clmBuildTimestamp
         }
       },
       data: {
@@ -52,7 +52,7 @@
       url: '/components',
       views: {
         'dashboard-results': {
-          templateUrl: 'dashboard/components.html?' + clmBuildTimestamp
+          templateUrl: 'dashboard/results/components.html?' + clmBuildTimestamp
         }
       },
       data: {
@@ -63,7 +63,7 @@
       url: '/applications',
       views: {
         'dashboard-results': {
-          templateUrl: 'dashboard/applications.html?' + clmBuildTimestamp
+          templateUrl: 'dashboard/results/applications.html?' + clmBuildTimestamp
         }
       },
       data: {

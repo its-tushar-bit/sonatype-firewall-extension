@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function DashboardController($scope, $modal, EventNameConstant, $state, filterToParams, CLMLocations) {
+  function DashboardResultsController($scope, $modal, EventNameConstant, $state, filterToParams, CLMLocations) {
     $scope.maxResults = 100;
     $scope.showTrendDialog = showTrendDialog;
     $scope.getViewTitle = getViewTitle;
@@ -74,10 +74,10 @@
     }
   }
 
-  DashboardController.$inject = [
+  DashboardResultsController.$inject = [
     '$scope', '$modal', 'event.name.constant', '$state', 'filterToParams', 'CLMLocations'
   ];
 
-  angular.module('dashboard.module').controller('dashboard.controller', DashboardController);
+  angular.module('dashboard.module').controller('dashboard.results.controller', DashboardResultsController);
 
 }(angular));

@@ -144,6 +144,12 @@
       cursor: not-allowed;
     }
 
+    ul.iq-manage-filters-menu {
+      list-style: none;
+      margin-bottom: 0;
+      margin-left: 0;
+    }
+
     .dropdown-contents {
       height: auto;
       max-height: 568px;
@@ -178,6 +184,22 @@
         }
       }
     }
+
+    .error {
+      background-color: $fail-bg;
+      border: 1px solid $fail-fg;
+      border-radius: 0px 0px 4px 4px;
+      color: $fail-fg;
+      margin-top: -1px;
+      margin-bottom:-9px;
+      margin-left: -9px;
+      padding: 6px 0px 4px 12px;
+    }
+
+    .loading-spinner {
+      margin-top: 12px;
+      margin-left: 80px;
+    }
   }
 }
 
@@ -198,7 +220,7 @@
   .checkbox {
     margin-bottom: 8px !important;
   }
-  
+
   .field {
     max-height: 550px;
     overflow-x: hidden;

@@ -1,7 +1,7 @@
 describe('dashboard.data.service.spec', function() {
   var $httpBackend, dashboardDataService, CLMLocations;
 
-  beforeEach(module('dashboard.utils'));
+  beforeEach(module('dashboard.module'));
 
   beforeEach(inject(function($injector) {
     $httpBackend = $injector.get('$httpBackend');
@@ -142,40 +142,4 @@ describe('dashboard.data.service.spec', function() {
     });
   });
 
-  describe('deleteFilterNames()', function() {
-    it('properly parses multiple errors', function() {
-      $httpBackend.expectPOST(CLMLocations.getDashboardDeleteFiltersUrl()).respond(500, [
-        {
-          "name": "Test1",
-          "errorMessage": "foo",
-          "status": 404
-        },
-        {
-          "name": "Test2",
-          "errorMessage": "bar",
-          "status": 500
-        }
-      ]);
-
-      dashboardDataService.deleteSavedFilters(['Test1', 'Test2']).then(function() {
-        throw 'promise should have been rejected';
-      }).catch(function(error) {
-        expect(error).toEqual(['Filter Test1, foo', 'Filter Test2, bar']);
-      });
-
-      $httpBackend.flush();
-    });
-
-    it('properly parses single error', function() {
-      $httpBackend.expectPOST(CLMLocations.getDashboardDeleteFiltersUrl()).respond(404, "not found");
-
-      dashboardDataService.deleteSavedFilters(['Test1']).then(function() {
-        throw 'promise should have been rejected';
-      }).catch(function(error) {
-        expect(error).toEqual(['not found']);
-      });
-
-      $httpBackend.flush();
-    });
-  });
 });

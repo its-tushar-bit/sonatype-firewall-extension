@@ -7,7 +7,7 @@
   'use strict';
 
   function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
-                                     OrganizationStore, EventNameConstant, SaveFilterModal, DeleteFiltersModal)
+                                     OrganizationStore, EventNameConstant, filterService)
   {
     var vm = this,
         appliedFilter,
@@ -49,10 +49,16 @@
     vm.revert = revert;
     vm.activeFilterName = undefined;
     vm.applyCurrentFilter = applyCurrentFilter;
-    vm.applySavedFilter = applySavedFilter;
     vm.loadFilterFromJson = loadFilterFromJson;
-    vm.openSaveFilterModal = openSaveFilterModal;
-    vm.openDeleteFiltersModal = openDeleteFiltersModal;
+
+    vm.onFilterSelected = onFilterSelected;
+    vm.onActiveFilterDeleted = onActiveFilterDeleted;
+    vm.onFilterSaved = onFilterSaved;
+    vm.toggleManageFiltersDropdown = toggleManageFiltersDropdown;
+
+    function toggleManageFiltersDropdown(open) {
+      vm.isManageFiltersDropdownOpen = open;
+    }
 
     vm.doLoad();
 
@@ -208,7 +214,7 @@
       }
 
       var namedFilter = {
-        filter: filterToJson(vm.selected),
+        filter: filterService.filterToJson(vm.selected),
         basedOnFilterName: vm.activeFilterName
       };
 
@@ -264,7 +270,7 @@
       vm.selected.policyThreatLevels = [filterJson.minPolicyThreatLevel, filterJson.maxPolicyThreatLevel];
     }
 
-    function applySavedFilter(savedFilter) {
+    function onFilterSelected(savedFilter) {
       delete vm.loadErrorFilterName;
 
       savedFilter.basedOnFilterName = savedFilter.name;
@@ -276,6 +282,16 @@
       }, function() {
         vm.loadErrorFilterName = savedFilter.name;
       });
+
+    }
+
+    function onActiveFilterDeleted() {
+      appliedFilterName = vm.activeFilterName = undefined;
+    }
+
+    function onFilterSaved(filterName) {
+      appliedFilterName = vm.activeFilterName = filterName;
+      vm.showDirtyAsterisk = false;
     }
 
     /**
@@ -294,60 +310,11 @@
     function isDirty() {
       return !angular.equals(vm.selected, appliedFilter);
     }
-
-    function openSaveFilterModal($event) {
-      if (vm.isDirty()) {
-        $event.stopPropagation();
-        return;
-      }
-      SaveFilterModal.open(filterToJson(vm.selected), vm.activeFilterName, vm.savedNamedFilters).then(function(name) {
-        refreshSavedFilters();
-        appliedFilterName = vm.activeFilterName = name;
-        vm.showDirtyAsterisk = false;
-      });
-    }
-
-    function openDeleteFiltersModal($event) {
-      if (!vm.savedNamedFilters.length) {
-        $event.stopPropagation();
-        return;
-      }
-      DeleteFiltersModal.open(vm.savedNamedFilters).finally(function() {
-        refreshSavedFilters().then(function() {
-          // see if the active filter was deleted
-          var activeFilterNameExists = vm.savedNamedFilters.some(function(filter) {
-            return filter.name === vm.activeFilterName;
-          });
-
-          if (!activeFilterNameExists) {
-            appliedFilterName = vm.activeFilterName = undefined;
-          }
-        });
-      });
-    }
-
-    function refreshSavedFilters() {
-      return $http.get(CLMLocations.getDashboardSavedFilters()).then(function(response) {
-        vm.savedNamedFilters = response.data;
-      });
-    }
-  }
-
-  function filterToJson(filter) {
-    return {
-      organizationFilters: Object.keys(filter.organizations),
-      applicationFilters: Object.keys(filter.applications),
-      policyThreatCategoryFilters: Object.keys(filter.policyTypes),
-      stageTypeFilters: Object.keys(filter.stages),
-      tagFilters: Object.keys(filter.categories),
-      minPolicyThreatLevel: filter.policyThreatLevels[0],
-      maxPolicyThreatLevel: filter.policyThreatLevels[1]
-    };
   }
 
   DashboardFilterController.$inject = [
-    '$rootScope', '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore',
-    'StageTypeStore', 'OrganizationStore', 'event.name.constant', 'save.filter.modal', 'delete.filters.modal'
+    '$rootScope', '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
+    'event.name.constant', 'dashboard.filter.service'
   ];
 
   angular.module('dashboard.module').controller('dashboard.filter.controller', DashboardFilterController);

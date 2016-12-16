@@ -46,34 +46,23 @@
       </div>
     </script>
 
-    <div  id="manage-filters-dropdown" class="clm-dropdown pull-right">
-      <button id="manage-filters-button" class="btn btn-default dropdown-toggle btn-tertiary" type="button" data-toggle="dropdown">
+    <div id="manage-filters-dropdown" class="clm-dropdown pull-right" dropdown on-toggle="vm.toggleManageFiltersDropdown(open)">
+      <button id="manage-filters-button"
+              class="btn btn-default btn-tertiary"
+              type="button"
+              dropdown-toggle>
         Manage
         <span class="caret"></span>
       </button>
-      <ul class="dropdown-menu">
-        <li><a id="show-save-filter-dialog" ng-click="vm.openSaveFilterModal($event)" ng-class="{disabled: vm.isDirty()}"
-               data-tooltip="{{vm.isDirty() ? 'Please apply filter before saving': ''}}"
-               data-tooltip-placement="top-left"
-               data-tooltip-append-to-body="true"
-               tooltip-class="filter-label-tooltip">
-          <i class="fa fa-floppy-o"></i>Save...</a>
-        </li>
-        <li><a id="show-delete-filters-dialog" ng-click="vm.openDeleteFiltersModal($event)" ng-class="{disabled: !vm.savedNamedFilters.length}">
-          <i class="fa fa-trash"></i>Delete...</a>
-        </li>
-        <li><h4 class="menu-sub-header"><i class="fa fa-folder-open"></i>LOAD</h4></li>
-        <li class="empty-list" ng-hide="vm.savedNamedFilters.length">No saved filters.</li>
-        <li>
-          <ul class="dropdown-contents">
-            <li class="filter-item clickable" ng-repeat="savedFilter in vm.savedNamedFilters" ng-click="vm.applySavedFilter(savedFilter)" >
-              {{savedFilter.name}}
-            </li>
-          </ul>
-        </li>
-      </ul>
+      <manage-filter-menu ng-if="vm.isManageFiltersDropdownOpen"  class="dropdown-menu" active-filter-name="vm.activeFilterName"
+                          is-save-filter-disabled="vm.isDirty()"
+                          current-filter="vm.selected"
+                          on-filter-selected="vm.onFilterSelected(savedFilter)"
+                          on-active-filter-deleted="vm.onActiveFilterDeleted()"
+                          on-filter-saved="vm.onFilterSaved(filterName)">
+      </manage-filter-menu>
     </div>
-
+    
     <div class="tree-view-header">
       Filter
     </div>
@@ -140,7 +129,7 @@
           </div>
           <div class="twisty-container">
             <span class="twisty"
-                  ng-class="{ expand: !vm.policyThreatLevelState.isExpanded, 
+                  ng-class="{ expand: !vm.policyThreatLevelState.isExpanded,
                               collapse: vm.policyThreatLevelState.isExpanded }"></span>
           </div>
           <div class="filter-label">Policy Threat Level</div>

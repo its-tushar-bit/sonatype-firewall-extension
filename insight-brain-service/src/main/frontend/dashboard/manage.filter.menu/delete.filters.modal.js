@@ -18,7 +18,7 @@
         keyboard: false,
         windowClass: 'delete-filters-modal clm-modal',
         controller: 'delete.filters.modal.controller as vm',
-        templateUrl: 'dashboard/delete.filters.modal.html',
+        templateUrl: 'dashboard/manage.filter.menu/delete.filters.modal.html',
         resolve: {
           savedNamedFilters: function() {
             return savedNamedFilters;

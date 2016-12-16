@@ -1,4 +1,4 @@
-describe('dashboard.controller.spec', function() {
+describe('dashboard.results.controller.spec', function() {
   beforeEach(module('dashboard.module'));
   var scope, CLMLocations, EventNameConstant, stateMock;
 
@@ -12,7 +12,7 @@ describe('dashboard.controller.spec', function() {
         data: {}
       }
     };
-    $controller('dashboard.controller', {$scope: scope, $state: stateMock});
+    $controller('dashboard.results.controller', {$scope: scope, $state: stateMock});
   }));
 
   describe('initialisation', function() {

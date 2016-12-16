@@ -41,9 +41,9 @@ describe('mainModuleSpec', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
-      $httpBackend.expectGET('dashboard/dashboard.overview.html?').respond('<div></div>');
+      $httpBackend.expectGET('dashboard/results/dashboard.results.html?').respond('<div></div>');
       $httpBackend.expectGET('dashboard/dashboard.filter.html?').respond('<div></div>');
-      $httpBackend.expectGET('dashboard/violations.html?').respond('<div></div>');
+      $httpBackend.expectGET('dashboard/results/violations.html?').respond('<div></div>');
 
       initService.start();
       $httpBackend.flush();

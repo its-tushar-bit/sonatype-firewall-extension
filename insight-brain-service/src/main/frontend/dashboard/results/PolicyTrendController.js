@@ -6,9 +6,9 @@
 (function() {
   'use strict';
 
-  var dashboardUtilsModule = angular.module('dashboard.utils');
+  var dashboardModule = angular.module('dashboard.module');
 
-  dashboardUtilsModule.controller('PolicyTrendController', [
+  dashboardModule.controller('PolicyTrendController', [
     '$scope', 'CLMLocations', '$http', 'filters', 'filterToParams',
     function($scope, CLMLocations, $http, filters, filterToParams) {
       function delta(counts) {

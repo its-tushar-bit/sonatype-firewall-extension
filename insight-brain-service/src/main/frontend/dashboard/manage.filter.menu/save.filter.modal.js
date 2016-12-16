@@ -18,7 +18,7 @@
         keyboard: false,
         windowClass: 'save-filter-modal clm-modal',
         controller: 'save.filter.modal.controller as vm',
-        templateUrl: 'dashboard/save.filter.modal.html',
+        templateUrl: 'dashboard/manage.filter.menu/save.filter.modal.html',
         resolve: {
           filterJson: function() {
             return filterJson;

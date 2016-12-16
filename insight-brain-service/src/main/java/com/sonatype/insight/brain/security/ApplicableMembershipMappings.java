@@ -15,4 +15,6 @@ public class ApplicableMembershipMappings
   public String ldapRealm;
 
   public boolean groupSearchEnabled;
+
+  public boolean hasMixedGroupSearch;
 }

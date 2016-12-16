@@ -286,7 +286,6 @@ public class UserDirectoryTest
   public void testGetMembersByName_noUnnecessaryQueries() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.isGroupSearchEnabled()).thenReturn(true);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 

@@ -184,39 +184,22 @@ public class LdapManager
         && userDao.getByServerId(servers.get(0).getId()) != null;
   }
 
-  public boolean isLdapGroupEnabled() {
-    if (isLdapEnabled()) {
-      LdapConnection conn = getDecryptedConnection();
-      LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
-      if (mapping != null) {
-        return mapping.getGroupMappingType() != LdapGroupMappingType.NONE;
-      }
-    }
-    return false;
-  }
-
   /**
-   * Indicates whether the LDAP instance can be searched for groups.
+   * Determines if the ldapServer is enabled by checking whether it has LdapConnection and LdapUserMapping setup
    */
-  public boolean isGroupSearchEnabled() {
-    if (isLdapEnabled() && isLdapGroupEnabled()) {
-      LdapConnection conn = getDecryptedConnection();
-      LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
-      if (mapping != null) {
-        return mapping.getGroupMappingType() != LdapGroupMappingType.DYNAMIC || mapping.isDynamicGroupSearchEnabled();
-      }
-    }
-    return false;
+  public boolean isLdapEnabled(LdapServer ldapServer) {
+    return connDao.getByServerId(ldapServer.getId()) != null && userDao.getByServerId(ldapServer.getId()) != null;
   }
-
+  
   /**
    * Indicates whether the ldapServer instance can be searched for groups.
    */
   public boolean isGroupSearchEnabled(LdapServer ldapServer) {
-    LdapConnection conn = getDecryptedConnection(ldapServer);
-    LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
-    if (mapping != null && mapping.getGroupMappingType() != LdapGroupMappingType.NONE) {
-      return mapping.getGroupMappingType() != LdapGroupMappingType.DYNAMIC || mapping.isDynamicGroupSearchEnabled();
+    if (isLdapEnabled(ldapServer)) {
+      LdapUserMapping mapping = userDao.getByServerId(ldapServer.getId());
+      if (mapping != null && mapping.getGroupMappingType() != LdapGroupMappingType.NONE) {
+        return mapping.getGroupMappingType() != LdapGroupMappingType.DYNAMIC || mapping.isDynamicGroupSearchEnabled();
+      }
     }
     return false;
   }
@@ -226,16 +209,52 @@ public class LdapManager
    * determine whether it should allow manually adding groups)
    */
   public boolean isDynamicGroupSearchDisabled() {
-    if (isLdapEnabled() && isLdapGroupEnabled()) {
-      LdapConnection conn = getDecryptedConnection();
-      LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
-      if (mapping != null) {
-        return mapping.getGroupMappingType() == LdapGroupMappingType.DYNAMIC && !mapping.isDynamicGroupSearchEnabled();
+    for (final LdapServer ldapServer : serverDao.getAll()) {
+      if (isLdapEnabled(ldapServer)) {
+        LdapUserMapping mapping = userDao.getByServerId(ldapServer.getId());
+        if (mapping.getGroupMappingType() == LdapGroupMappingType.DYNAMIC && !mapping.isDynamicGroupSearchEnabled()) {
+          return true;
+        }
       }
     }
     return false;
   }
 
+  /**
+   * Finds whether the search in multiple ldap servers has mixed group search, meaning that there is at least one
+   * ldap server with dynamic group search disabled and at least one group search enabled in either dynamic or static.
+   */
+  public boolean hasMixedGroupSearch() {
+    boolean hasDynamicGroupSearchEnabled = false;
+    boolean hasDynamicGroupSearchDisabled = false;
+    boolean hasNonDynamicGroupSearchEnabled = false;
+
+    for (final LdapServer ldapServer : serverDao.getAll()) {
+      if (isLdapEnabled(ldapServer)) {
+        LdapUserMapping mapping = userDao.getByServerId(ldapServer.getId());
+
+        if (mapping.getGroupMappingType() != LdapGroupMappingType.NONE) {
+          boolean isDynamicGroup = mapping.getGroupMappingType() == LdapGroupMappingType.DYNAMIC;
+
+          if (isDynamicGroup && mapping.isDynamicGroupSearchEnabled()) {
+            hasDynamicGroupSearchEnabled = true;
+          }
+          else if (isDynamicGroup && !mapping.isDynamicGroupSearchEnabled()) {
+            hasDynamicGroupSearchDisabled = true;
+          }
+          else {
+            hasNonDynamicGroupSearchEnabled = true;
+          }
+        }
+
+        if (hasDynamicGroupSearchDisabled && (hasDynamicGroupSearchEnabled || hasNonDynamicGroupSearchEnabled)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
   /**
    * Returns the name of the first ldap server configured. Throws an exception when no LdapServers have been configured
    * in the database.
@@ -315,22 +334,7 @@ public class LdapManager
 
     throw LdapServerExceptionWrapper.getSomethingToThrow(ldapServerExceptionWrappers);
   }
-
-  // Password encryption
-
-  /**
-   * @deprecated Use getDecryptedConnection(LdapServer ldapServer) instead. This method should be removed when we finish
-   *             with all the user stories for multiple LDAP servers.
-   */
-  @Deprecated
-  private LdapConnection getDecryptedConnection() {
-    List<LdapServer> servers = serverDao.getAll();
-    if (servers.isEmpty()) {
-      throw new IllegalStateException("LDAP server is not configured");
-    }
-    return getDecryptedConnection(servers.get(0));
-  }
-
+  
   /**
    * Returns the current stored connection details with the password decrypted for the specified LDAP server.
    */
@@ -352,7 +356,7 @@ public class LdapManager
     }
     return conn;
   }
-
+  
   /**
    * Returns a copy of the given connection for clients with the password faked-out.
    */

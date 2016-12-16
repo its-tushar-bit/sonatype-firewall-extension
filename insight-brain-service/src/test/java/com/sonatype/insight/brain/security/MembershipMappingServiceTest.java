@@ -13,6 +13,10 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -82,4 +86,64 @@ public class MembershipMappingServiceTest
 
     eventBus.unregister(handler);
   }
+
+  @Test
+  public void testGetApplicableMembershipMappings_DynamicGroupSearchAllEnabled() {
+    setupLdapWithDynamicGroupType("test server 1", true);
+    setupLdapWithDynamicGroupType("test server 2", true);
+
+    ApplicableMembershipMappings actual = membershipMappingService
+        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
+
+    assertThat(actual.hasMixedGroupSearch, is(false));
+    assertThat(actual.groupSearchEnabled, is(true));
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_MixedDynamicGroupSearch() {
+    setupLdapWithDynamicGroupType("test server 1", false);
+    setupLdapWithDynamicGroupType("test server 2", true);
+
+    ApplicableMembershipMappings actual = membershipMappingService
+        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
+
+    assertThat(actual.hasMixedGroupSearch, is(true));
+    assertThat(actual.groupSearchEnabled, is(false));
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_MixedGroupSearch() {
+    setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.STATIC);
+    setupLdapWithNonDynamicGroupType("test server 2", LdapGroupMappingType.NONE);
+    setupLdapWithDynamicGroupType("test server 3", false);
+
+    ApplicableMembershipMappings actual = membershipMappingService
+        .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
+
+    assertThat(actual.hasMixedGroupSearch, is(true));
+    assertThat(actual.groupSearchEnabled, is(false));
+  }
+
+  private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {
+    LdapServer ldapServer = tempEntity.newLdapServer(serverName);
+    tempEntity.newLdapConnection(ldapServer.getId(), 389);
+
+    LdapUserMapping umap = tempEntity.newLdapUserMapping(ldapServer.getId());
+    umap.setGroupMappingType(groupMappingType);
+    umap.setDynamicGroupSearchEnabled(false);
+
+    new LdapUserMappingDAO().update(umap);
+  }
+
+  private void setupLdapWithDynamicGroupType(String serverName, boolean isDynamicGroupSearchEnabled) {
+    LdapServer ldapServer = tempEntity.newLdapServer(serverName);
+    tempEntity.newLdapConnection(ldapServer.getId(), 389);
+
+    LdapUserMapping umap = tempEntity.newLdapUserMapping(ldapServer.getId());
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
+
+    new LdapUserMappingDAO().update(umap);
+  }
 }
+

@@ -349,6 +349,10 @@ public class UserDirectory
     return ldapManager.isDynamicGroupSearchDisabled();
   }
 
+  public boolean hasMixedGroupSearch() {
+    return ldapManager.hasMixedGroupSearch();
+  }
+
   public String getGroupRealm() {
     if (ldapManager.isLdapEnabled()) {
       return ldapManager.getLdapServerName();

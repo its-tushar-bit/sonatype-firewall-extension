@@ -1450,75 +1450,24 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testIsLdapGroupEnabled() throws Exception {
+  public void testIsLdapEnabled_WithGivenLdapServer() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    assertThat(manager.isLdapGroupEnabled(), is(false));
+    assertThat(manager.isLdapEnabled(ldapServer), is(false));
 
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     ldapConnection.setHostname("localhost");
-    ldapConnection.setSearchBase("dc=company,dc=com");
     manager.saveConnection(ldapConnection);
+    assertThat(manager.isLdapEnabled(ldapServer), is(false));
 
-    assertThat(manager.isLdapGroupEnabled(), is(false));
+    createUserMapping(ldapServer);
 
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.NONE);
-
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    userMappingDAO.update(umap);
-
-    assertThat(manager.isLdapGroupEnabled(), is(false));
-
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    userMappingDAO.update(umap);
-
-    assertThat(manager.isLdapGroupEnabled(), is(true));
+    assertThat(manager.isLdapEnabled(ldapServer), is(true));
   }
-
+  
   @Test
   public void testIsGroupSearchEnabled() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    assertThat(manager.isGroupSearchEnabled(), is(false));
-
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    ldapConnection.setHostname("localhost");
-    ldapConnection.setSearchBase("dc=company,dc=com");
-    manager.saveConnection(ldapConnection);
-
-    assertThat(manager.isGroupSearchEnabled(), is(false));
-
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    umap.setGroupMappingType(LdapGroupMappingType.NONE);
-
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    userMappingDAO.update(umap);
-
-    assertThat(manager.isGroupSearchEnabled(), is(false));
-
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    userMappingDAO.update(umap);
-
-    assertThat(manager.isGroupSearchEnabled(), is(true));
-
-    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    umap.setDynamicGroupSearchEnabled(true);
-    userMappingDAO.update(umap);
-
-    assertThat(manager.isGroupSearchEnabled(), is(true));
-
-    umap.setDynamicGroupSearchEnabled(false);
-    userMappingDAO.update(umap);
-
-    assertThat(manager.isGroupSearchEnabled(), is(false));
-  }
-
-  @Test
-  public void testIsGroupSearchEnabled_WithGivenLdapServer() throws Exception {
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    ldapConnection.setHostname("localhost");
-    ldapConnection.setSearchBase("dc=company,dc=com");
-    manager.saveConnection(ldapConnection);
+    createLdapConnection(ldapServer);
 
     assertThat(manager.isGroupSearchEnabled(ldapServer), is(false));
 
@@ -1548,18 +1497,99 @@ public class LdapManagerTest
   }
   
   @Test
-  public void testIsGroupSearchEnabled_LdapConnectionNotSetup() throws Exception {
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    try {
-      manager.isGroupSearchEnabled(ldapServer);
-      fail("Expected exception.");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(),
-          containsString("LDAP connection is not configured for LDAP server " + ldapServer.getName() + "."));
-    }
+  public void testHasMixedGroupSearch_MultipleDynamicGroupSearchesEnabled() throws Exception {
+    setupLdapWithDynamicGroupType("test server 1", true);
+    setupLdapWithDynamicGroupType("test server 2", true);
+    
+    assertThat(manager.hasMixedGroupSearch(), is(false));
   }
 
+  @Test
+  public void testHasMixedGroupSearch_MultipleDynamicGroupSearchesDisabled() throws Exception {
+    setupLdapWithDynamicGroupType("test server 1", false);
+    setupLdapWithDynamicGroupType("test server 2", false);
+    
+    assertThat(manager.hasMixedGroupSearch(), is(false));
+  }
+
+  @Test
+  public void testHasMixedGroupSearch_MultipleStaticGroupSearchesEnabled() throws Exception {
+    setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.STATIC);
+    setupLdapWithNonDynamicGroupType("test server 2", LdapGroupMappingType.STATIC);
+    
+    assertThat(manager.hasMixedGroupSearch(), is(false));
+  }
+
+  @Test
+  public void testHasMixedGroupSearch_SingleDynamicGroupSearchDisabled() throws Exception {
+    setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.NONE);
+    setupLdapWithDynamicGroupType("test server 2", false);
+    
+    assertThat(manager.hasMixedGroupSearch(), is(false));
+  }
+
+  @Test
+  public void testHasMixedGroupSearch_MixedGroupSearches() throws Exception {
+    setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.NONE);
+    setupLdapWithDynamicGroupType("test server 2", false);
+    setupLdapWithNonDynamicGroupType("test server 3", LdapGroupMappingType.STATIC);
+    
+    assertThat(manager.hasMixedGroupSearch(), is(true));
+  }
+
+  @Test
+  public void testHasMixedGroupSearch_MixedDynamicGroupSearches() throws Exception {
+    setupLdapWithDynamicGroupType("test server 1", false);
+    setupLdapWithDynamicGroupType("test server 2", true);
+
+    assertThat(manager.hasMixedGroupSearch(), is(true));
+  }
+
+  @Test
+  public void testIsDynamicGroupSearchDisabled_MultipleDynamicGroupMappingTypes() {
+    setupLdapWithDynamicGroupType("test server 1", false);
+    setupLdapWithDynamicGroupType("test server 2", true);
+    
+    assertThat(manager.isDynamicGroupSearchDisabled(), is(true));
+  }
+
+  @Test
+  public void testIsDynamicGroupSearchDisabled_MixedTypesWithDynamicGroupSearchDisabled() {
+    setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.STATIC);
+    setupLdapWithDynamicGroupType("test server 2", false);
+    
+    assertThat(manager.isDynamicGroupSearchDisabled(), is(true));
+  }
+
+  @Test
+  public void testIsDynamicGroupSearchDisabled_MixedTypesWithDynamicGroupSearchEnabled() {
+    setupLdapWithDynamicGroupType("test server 1", true);
+    setupLdapWithNonDynamicGroupType("test server 2", LdapGroupMappingType.STATIC);
+    setupLdapWithNonDynamicGroupType("test server 3", LdapGroupMappingType.NONE);
+    
+    assertThat(manager.isDynamicGroupSearchDisabled(), is(false));
+  }
+
+  private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {
+    LdapServer ldapServer = tempEntity.newLdapServer(serverName);
+    createLdapConnection(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
+    umap.setGroupMappingType(groupMappingType);
+    umap.setDynamicGroupSearchEnabled(false);
+
+    new LdapUserMappingDAO().update(umap);
+  }
+
+  private void setupLdapWithDynamicGroupType(String serverName, boolean isDynamicGroupSearchEnabled) {
+    LdapServer ldapServer = tempEntity.newLdapServer(serverName);
+    createLdapConnection(ldapServer);
+    LdapUserMapping umap = createUserMapping(ldapServer);
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setDynamicGroupSearchEnabled(isDynamicGroupSearchEnabled);
+
+    new LdapUserMappingDAO().update(umap);
+  }
+  
   @Test
   public void testGetLdapServerName() throws Exception {
     try {

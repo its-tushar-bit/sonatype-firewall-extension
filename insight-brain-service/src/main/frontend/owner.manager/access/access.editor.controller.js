@@ -76,6 +76,7 @@
           }
         }
         vm.groupSearchEnabled = roleMappings.groupSearchEnabled;
+        vm.hasMixedGroupSearch = roleMappings.hasMixedGroupSearch;
         vm.availableRoles = LocalRoleService.getRolesWithoutLocalMembers(roleMappings.membersByRole);
         ldapRealm = roleMappings.ldapRealm;
       }, function(error) {

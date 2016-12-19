@@ -26,6 +26,9 @@ public class AccessEditorPage
 
   public static final String ACCESS_EDITOR_ID = "#access-editor";
 
+  public static final String MIXED_GROUP_SEARCH_WARNING =
+      "One or more LDAP servers have group search disabled, which will affect your results";
+
   public static String urlToEdit(String ownerType, String ownerId, String accessRoleId) {
     return urlToCreate(ownerType, ownerId) + "/" + accessRoleId;
   }
@@ -69,6 +72,10 @@ public class AccessEditorPage
 
   public static SelenideElement searchButton() {
     return $("#user-search-button");
+  }
+  
+  public static SelenideElement mixedGroupSearchWarning() {
+    return $("#mixed-group-search-warning");
   }
 
   public static Condition confirmRemovalThroughUpdateText(String roleName, String ownerType) {

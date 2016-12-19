@@ -93,6 +93,10 @@
   .sub-label {
     margin-top: -6px;
     margin-bottom: 7px;
+    .fa {
+      margin-right: 8px;
+      vertical-align: top;
+    }
   }
 
   input[type=text], input[type=number], input[type=email], input[type=password] {

@@ -23,6 +23,10 @@
         <div class="field form-horizontal">
           <label for="access-user-search-input">Search Users</label>
           <div class="sub-label">use &lsquo;*&rsquo; as wildcard (ex. &lsquo;Isa*&rsquo; matches &lsquo;Isaac Asimov&rsquo;)</div>
+          <div class="sub-label" id="mixed-group-search-warning" ng-if="vm.hasMixedGroupSearch">
+            <i class="fa fa-info-circle size-16px"></i><!--
+         -->One or more LDAP servers have group search disabled, which will affect your results
+          </div>
           <input id="access-user-search-input" type="text" name="search" ng-model="vm.query" ng-maxlength="60"
                  ng-disabled="vm.searchInProgress" clm-input><!--
        --><button id="user-search-button" class="btn" type="submit" submit-validation submit-dirty="vm.query"

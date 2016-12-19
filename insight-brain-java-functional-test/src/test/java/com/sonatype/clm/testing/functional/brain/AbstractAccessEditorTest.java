@@ -19,6 +19,9 @@ import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
@@ -39,6 +42,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.INITIAL_VALUE;
+import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.MIXED_GROUP_SEARCH_WARNING;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -199,6 +203,45 @@ public abstract class AbstractAccessEditorTest
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), is(empty()));
+  }
+
+  @Test
+  public void testMixedGroupSearchWarning() {
+    // start with two LDAP servers, both with dynamic group search disabled
+    String ldap_1 = tempEntity.newLdapServer("LDAP_1").getId();
+    tempEntity.newLdapConnection(ldap_1);
+
+    LdapUserMapping userMapping1 = tempEntity.newLdapUserMapping(ldap_1);
+    userMapping1.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    userMapping1.setDynamicGroupSearchEnabled(false);
+    new LdapUserMappingDAO().update(userMapping1);
+
+    String ldap_2 = tempEntity.newLdapServer("LDAP_2").getId();
+    tempEntity.newLdapConnection(ldap_2);
+
+    LdapUserMapping userMapping2 = tempEntity.newLdapUserMapping(ldap_2);
+    userMapping2.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    userMapping2.setDynamicGroupSearchEnabled(false);
+    new LdapUserMappingDAO().update(userMapping2);
+
+    refresh(); // reload because UI data is cached
+    goFromSummaryToAddRole();
+
+    AccessEditorPage.mixedGroupSearchWarning().shouldNot(exist);
+
+    // enable group search for one
+    userMapping1.setDynamicGroupSearchEnabled(true);
+    new LdapUserMappingDAO().update(userMapping1);
+    refresh();
+
+    AccessEditorPage.mixedGroupSearchWarning().shouldBe(visible).shouldHave(text(MIXED_GROUP_SEARCH_WARNING));
+
+    // ... and then the other one, too
+    userMapping2.setDynamicGroupSearchEnabled(true);
+    new LdapUserMappingDAO().update(userMapping2);
+    refresh();
+
+    AccessEditorPage.mixedGroupSearchWarning().shouldNot(exist);
   }
 
   private void assertThatRoleNotAvailableInDropdown(final String roleName) {

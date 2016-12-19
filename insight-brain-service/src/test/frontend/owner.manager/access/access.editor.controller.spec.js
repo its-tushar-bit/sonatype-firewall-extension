@@ -61,6 +61,8 @@ describe('access.editor.controller.spec.js', function() {
     expect(vm.role).toBeDefined();
     expect(vm.availableRoles.length).toBe(1);
     expect(vm.members.length).toBe(2);
+    expect(vm.groupSearchEnabled).toBe(true);
+    expect(vm.hasMixedGroupSearch).toBe(true);
   });
 
   it('Sets load error if url incorrect', function() {

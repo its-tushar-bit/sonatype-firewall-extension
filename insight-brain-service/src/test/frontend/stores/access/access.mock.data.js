@@ -1,7 +1,7 @@
 var AccessMockData = {
   getRoleMappings: function() {
     return {
-      "membersByRole": [
+      membersByRole: [
         {
           "roleId": "2cb71b3468d649789163ea2e212b5411",
           "roleName": "Test Role",
@@ -48,8 +48,9 @@ var AccessMockData = {
           ]
         }
       ],
-        "ldapRealm": 'some-ldap-realm',
-        "groupSearchEnabled": true
+      ldapRealm: 'some-ldap-realm',
+      groupSearchEnabled: true,
+      hasMixedGroupSearch: true
     };
   },
 

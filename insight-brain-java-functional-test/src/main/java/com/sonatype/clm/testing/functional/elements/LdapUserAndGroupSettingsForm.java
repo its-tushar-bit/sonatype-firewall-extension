@@ -21,6 +21,9 @@ public class LdapUserAndGroupSettingsForm
     extends BasicElement<LdapUserAndGroupSettingsForm>
     implements ILdapForm
 {
+  public static final String GROUP_SEARCH_WARNING = "Disabling group search may improve performance, but groups will "
+      + "not appear in search results.";
+
   public LdapUserAndGroupSettingsForm(String... selectors) {
     super(selectors);
   }
@@ -96,6 +99,10 @@ public class LdapUserAndGroupSettingsForm
 
   public SelenideElement userMemberOfGroupAttribute() {
     return child("#userMemberOfGroupAttribute");
+  }
+
+  public SelenideElement groupSearchWarning() {
+    return child(".group-search-warning");
   }
 
   public TestLoginModal testLoginModal() {

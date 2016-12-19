@@ -779,6 +779,19 @@ ul.tri-pane.left {
   min-width: 955px !important;
 }
 
+.ldap-configuration-editor .toggle-checkbox {
+  margin-top: 12px;
+  padding-left: 0px;
+}
+
+.ldap-configuration-editor .group-search-warning {
+  color: #9d6800;
+}
+
+.ldap-configuration-editor .group-search-warning > .fa {  
+  margin-right: 8px;  
+}
+
 /* See https://issues.sonatype.org/browse/CLM-3087 */
 .popover .arrow:before {
   border-style: none;

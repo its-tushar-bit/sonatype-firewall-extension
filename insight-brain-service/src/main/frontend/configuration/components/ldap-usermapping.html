@@ -84,9 +84,14 @@
                    ng-required='isGroupFieldRequired("DYNAMIC")'>
           </div>
           <div clm-control-group for="dynamicGroupSearchEnabled"
-               label="Included in Search">
-            <input type='checkbox' name='dynamicGroupSearchEnabled' id='dynamicGroupSearchEnabled'
-                   ng-model='ldapUserMapping.dynamicGroupSearchEnabled'>
+               label="Group Search">
+            <span class="group-search-warning">
+              <i class="fa fa-exclamation-triangle size-16px"></i><!--
+              -->Disabling group search may improve performance, but groups will not appear in search results.
+            </span>
+            <div class="toggle-checkbox">
+              <input type="checkbox" name='dynamicGroupSearchEnabled' id='dynamicGroupSearchEnabled' toggle-checkbox  data-on="Enabled" data-off="Disabled" ng-model="ldapUserMapping.dynamicGroupSearchEnabled">
+            </div>
           </div>
         </div>
       </div>

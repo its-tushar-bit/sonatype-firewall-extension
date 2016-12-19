@@ -281,7 +281,10 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.userEmailAttribute().shouldBe(empty).setValue("mail");
     userAndGroupSettingsForm.userSubtree().shouldNotBe(selected).click();
 
+    userAndGroupSettingsForm.groupSearchWarning().shouldNotBe(visible);
     userAndGroupSettingsForm.groupMappingType().shouldBe(text("NONE")).selectOption("DYNAMIC");
+    userAndGroupSettingsForm.groupSearchWarning().shouldBe(visible).
+        shouldHave(text(LdapUserAndGroupSettingsForm.GROUP_SEARCH_WARNING));
     userAndGroupSettingsForm.userMemberOfGroupAttribute().shouldBe(empty).setValue("departmentNumber");
 
     // buttons now enabled

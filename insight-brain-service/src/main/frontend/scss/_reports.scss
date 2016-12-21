@@ -17,3 +17,14 @@
     vertical-align: middle;
   }
 }
+
+// Begin CSS from insight.css
+.no-hover-underline:hover {
+  text-decoration: none;
+}
+
+/* I don't want the component details page to get this striping as well, so scoping to report list only */
+#report-list-table > tbody > tr:nth-child(even) {
+  background-color: #F4F4F4;
+}
+// End CSS from insight.css

@@ -36,3 +36,45 @@
     }
   }
 }
+
+// Begin CSS from insight.css
+.clickable {
+  cursor: pointer;
+}
+
+input[type="file"] {
+  line-height: normal;
+  height: auto;
+}
+
+.floatRight {
+  float: right;
+}
+
+.disabled img {
+  opacity: 0.4;
+  filter: alpha(opacity=40);
+}
+
+.page-title {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 1px 0px rgba(255, 255, 255, .6);
+  
+  .pull-right {
+    margin-bottom : 5px;
+  }
+}
+
+.underline {
+  border-bottom: 1px solid rgba(0, 0, 0, .1);
+  box-shadow: 0px 1px 0px rgba(255, 255, 255, .6);
+}
+
+table.clm-table-stripe > tbody > tr:nth-child(odd) {
+  background-color: #E8E8E8;
+}
+
+.clm-table-border-top {
+  border-top: 1px solid #ddd;
+}
+// End CSS from insight.css

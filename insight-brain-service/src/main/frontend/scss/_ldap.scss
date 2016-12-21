@@ -1,0 +1,225 @@
+/*
+  #LDAP Styles
+*/
+.content-header {
+  margin: 0px 0 10px 0px;
+ 
+  h4 {
+   border-bottom: 1px solid rgba(0, 0, 0, .1);
+  }
+}
+
+.ldap-loading {
+  margin: 20px;
+}
+
+/*
+  #Inline Editor
+*/
+.inline-editor {
+  @include bold();
+  
+  a:hover {
+    border-bottom: 1px dashed #909090;
+  }
+  
+  &.head {
+    .editable {
+      @include bold();
+
+      background: transparent;
+      -webkit-box-shadow: none;
+      -moz-box-shadow: none;
+      box-shadow: none;
+      color: #444;
+      font-size: 40px;
+      height: auto;
+      line-height: normal;
+      margin: 0;
+      text-rendering: optimizelegibility;
+    }
+    
+    .editable-error {
+      font-size: 14px;
+    }
+    
+    input {
+      @include bold();
+
+      background: transparent;
+      -webkit-box-shadow: none;
+      -moz-box-shadow: none;
+      box-shadow: none;
+      color: #444;
+      font-size: 40px;
+      height: auto;
+      line-height: normal;
+      margin: 0;
+      text-rendering: optimizelegibility;
+      width: 460px;
+    }
+    
+    .errors {
+      margin-top: -8px;
+      margin-bottom: 5px;
+    }
+    
+    a.editable-empty {
+      color: #909090;
+      font-style: normal;
+      text-decoration: none;
+    }
+    
+    .editable-wrap {
+      padding-bottom: 2px;
+    }
+  }
+
+  .editable-controls { 
+    input {
+      @include bold();
+
+      background: transparent;
+      border: none;
+      -webkit-box-shadow: none;
+      -moz-box-shadow: none;
+      box-shadow: none;
+      color: #444;
+      height: auto;
+      line-height: normal;
+      margin: 0;
+      padding: 0;
+      text-rendering: optimizelegibility;
+      
+      &:focus {
+        outline: none;
+        border: 0;
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+      }
+    }
+    
+    &.editable-inline {
+      vertical-align: text-bottom;
+    }
+  }
+
+  .editable {
+    @include bold();
+  
+    -webkit-appearance: none;
+    background: transparent;
+    border-top: none;
+    border-right: none;
+    border-bottom: 1px solid transparent;
+    border-left: none;
+    border-radius: 0;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    height: auto;
+    line-height: normal;
+    margin: 0;
+    padding: 0;
+    outline: none;
+    vertical-align: text-bottom;
+    width: auto;
+  
+    &:hover {
+      border-bottom: 1px dashed #909090;
+    }
+
+    &.editable-click, 
+    &.editable-click:hover {
+      color: #444;
+    }
+
+    &.error {
+      color: #b94a48;
+    }
+
+    &.editable-empty, 
+    &.editable-empty:hover, 
+    &.editable-empty:focus {
+      color: #909090;
+      font-style: normal;
+      text-decoration: none;
+    }
+    
+    &.selected {
+      color: #333333;
+    }
+  }
+  
+  .editableform .control-group {
+    line-height: normal;
+  }
+
+  .open .editable {
+    -webkit-appearance: none;
+    background: transparent;
+    border-top: none;
+    border-right: none;
+    border-bottom: 1px solid transparent;
+    border-left: none;
+    border-radius: 0;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    height: auto;
+    line-height: normal;
+    margin: 0;
+    outline: none;
+    padding: 0;
+    vertical-align: text-bottom;
+    width: auto;
+  }
+
+  .btn-group {
+    font-size: 14px;
+  }
+
+  .btn:hover, 
+  .open .btn, 
+  .btn-group.open .btn.dropdown-toggle {
+    background: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+  }
+}
+
+.fixed-width-small-form {
+  margin-top: 10px;
+  margin-bottom: 0px;
+  margin-left: auto;
+  max-width: 550px;
+}
+
+/* center the config pages */
+.container.config {
+  width: 520px !important;
+  min-width: 520px !important;
+  
+  &.ldap-server-list {
+    margin-top: 8px;
+    width: 800px !important;
+    min-width: 800px !important;
+   
+   .subsection-header {
+      clear: both;
+    }
+  }
+}
+
+.ldap-configuration-editor {
+  .group-search-warning {
+    color: #9d6800;
+  }
+  
+  .toggle-checkbox {
+    margin-top: 12px;
+    padding-left: 0px;
+  }
+}

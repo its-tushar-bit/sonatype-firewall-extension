@@ -60,6 +60,199 @@ tr:first-child .role-summary {
   vertical-align: middle;
 }
 
+.group-search-warning > .fa {
+  margin-right: 8px;
+}
+
+.container.administrators .group-search-warning {
+  margin-top: 8px;
+  margin-bottom: -8px;
+  > .fa {
+    color: #006bbf;
+    margin-right: 8px;
+  }
+}
+
+// Begin styles from app-security.css
+.roles {
+  width: 867px;
+  
+  > div.accordion-group:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
+
+  .collapsed > div {
+    height: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .member-list {
+    display: block;
+    text-indent: -24px;
+  }
+
+  .member-list .tooltip {
+    text-indent: 0px;
+  }
+
+  .collapsed .member-list {
+    display: inline;
+  }
+
+  .collapsed {
+    margin-left: -24px;
+  }
+
+  .expandable > div {
+    padding-bottom: 5px;
+    padding-left: 2px;
+  }
+  
+  .inherited {
+    color: #909090;
+  }
+
+  .inherited-section {
+    display: block;
+    padding-top: 5px;
+  }
+
+  .expandable {
+    cursor: pointer;
+    min-height: 24px;
+    padding: 5px;
+  }
+
+  .inherited-icon {
+    margin-left: -1px;
+    padding-right: 5px;
+    width: 16px;
+  }
+}
+
+.role-content {
+  float: left;
+  min-height: 1px;
+  margin-left: 30px;
+  width: 200px;
+}
+
+.role-header {
+  border-bottom: 1px solid rgba(0, 0, 0, .1);
+  margin-bottom: 10px;
+  
+  h4 {
+    box-sizing: border-box;
+    padding-left: 5px;
+  }
+}
+
+.role {
+  .hover-buttons {
+    margin-top: 6px
+  }
+  
+  .role-footer {
+    border-bottom: 1px solid #E8E8E8;
+    margin-bottom: 5px;
+  }
+}
+
+.member-content {
+  float: left;
+  min-height: 1px;
+  margin-left: 10px;
+  width: 630px;
+}
+// End styles from app-security.css
+
+// Begin styles from management.css
+.container.administrators {
+  width: 955px !important;
+  min-width: 955px !important;
+}
+
+.licenseSelectListItem {
+  cursor: pointer;
+
+  &:hover {
+    background-color: #E8E8E8;
+  }
+}
+
+.large-select-list-header {
+  @include bold();
+
+  border-bottom: 1px solid #d8d8d8;
+  color: #909090;
+  font-size: 12px;
+  height: 25px;
+  padding-left: 7px;
+}
+
+.large-select-query-item {
+  @include bold();
+
+  font-size: 12px;
+  padding-top: 2px;
+  padding-left: 10px;
+}
+// End styles from management.css
+
+// Begin stles from /user/user.css
+.user-parent, .user-parent h4 {
+  -moz-background-clip: padding; /* for Firefox */
+  -webkit-background-clip: padding-box; /* for Safari */
+  background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+}
+
+.users {
+  max-width: 469px;
+  min-width: 469px;
+  
+  form, .accordion {
+    margin: 0px;
+  }
+  
+  .accordion-heading > .floatRight {
+    padding-right: 5px;
+  }
+}
+
+.user-button > i {
+  margin-top: 0px;
+}
+
+.summary-label {
+  padding-left: 5px;
+  padding-right: 10px;
+  text-align: left;
+}
+
+.user-form-label {
+  padding-left: 20px;
+  text-align: left !important;
+}
+
+.new-user-button {
+  margin-left: 15px;
+  margin-top: 15px;
+}
+
+.user-button-bar {
+  padding-right: 5px;
+  padding-bottom: 5px;
+  text-align: right;
+}
+
+.user-list-loading {
+  margin: 30px;
+  text-align: center;
+}
+// End stles from /user/user.css
+
 // Begin CSS from insight.css
 .selectList, 
 .selectList-large {

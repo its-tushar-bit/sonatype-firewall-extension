@@ -223,7 +223,7 @@
     <css>/frontend/lib/bootstrap/bootstrap-variables.scss</css>
     <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
     <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
-    <css>/frontend/multi-select.css</css>
+    <css>/frontend/scss/_widgets.scss</css>
     <css>/wro4j/cip/cip.license.editor/cip-license-editor.css</css>
     <js>/wro4j/cip/cip.license.editor/cip.license.editor.module.js</js>
     <js>/wro4j/cip/cip.license.editor/cip.license.editor.directive.js</js>

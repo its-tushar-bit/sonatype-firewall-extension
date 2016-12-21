@@ -37,6 +37,24 @@
   }
 }
 
+
+// Begin styles from management.css
+.truncate-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-match {
+  font-family: Proxima Nova Bold, sans-serif;
+}
+
+// See https://issues.sonatype.org/browse/CLM-3087
+.popover .arrow:before {
+  border-style: none;
+}
+// End styles from management.css
+
 // Begin CSS from insight.css
 .clickable {
   cursor: pointer;
@@ -78,3 +96,4 @@ table.clm-table-stripe > tbody > tr:nth-child(odd) {
   border-top: 1px solid #ddd;
 }
 // End CSS from insight.css
+

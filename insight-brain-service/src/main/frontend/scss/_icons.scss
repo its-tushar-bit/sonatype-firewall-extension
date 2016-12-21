@@ -392,6 +392,15 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   padding-right: 5px;
 }
 
+// Begin styles from management.css
+.icon-reset-pw {
+  background-image: url("../img/icon_reset_pw.png") !important;
+  background-position: 0px 0px;
+  background-size: 14px 14px;
+}
+// End styles from management.css
+
+
 // Begin CSS from insight.css
 .emptyIconGlyph {
   display: inline-block;
@@ -399,4 +408,3 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   width: 14px;
 }
 // End CSS from insight.css
-

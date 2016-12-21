@@ -193,3 +193,32 @@
     }
   }
 }
+
+// Begin styles from management.css
+.master-modal {
+  z-index: 2200 !important;
+}
+
+/**
+ * styling to embed a scrollable table in a div, and fix the footer outside the scrolling area
+ */
+.modal-ldap {
+  margin-left: -380px;
+  width: 760px;
+}
+
+.modal-ldap-user-list {
+  max-height: 420px;
+  overflow: -moz-scrollbars-vertical;
+  overflow-y: scroll;
+  padding: 2% 0 0 2%;
+}
+
+.modal-ldap-user-list table {
+  width: 98%;
+}
+
+.modal > form.form-horizontal {
+  margin-bottom: 0px
+}
+// End styles from management.css

@@ -779,6 +779,16 @@ ul.tri-pane.left {
   min-width: 955px !important;
 }
 
+.container.administrators .group-search-warning {
+  margin-top: 8px;
+  margin-bottom: -8px;
+}
+
+.container.administrators .group-search-warning > .fa {
+  margin-right: 8px;
+  color: #006bbf;
+}
+
 .ldap-configuration-editor .toggle-checkbox {
   margin-top: 12px;
   padding-left: 0px;

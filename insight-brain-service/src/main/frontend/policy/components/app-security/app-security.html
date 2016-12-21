@@ -1,6 +1,10 @@
 <div id="security" style='min-width:955px'>
   <script type='text/ng-template' id='appSecurityEditor'>
     <div style='width:500px; margin:5px'>
+      <div class="group-search-warning" ng-hide='!hasMixedGroupSearch'>
+        <i class="fa fa-info-circle size-16px"></i>One or more LDAP servers have group search disabled, which will
+        affect your results
+      </div>
       <p class='btn-group' ng-hide='groupSearchEnabled'>
         <button class='btn' ng-click='mtype=null' ng-class='{ active : !mtype }'>Users</button>
         <button class='btn' ng-click='mtype="groups"' ng-class='{ active : mtype }'>Groups</button>
@@ -128,7 +132,7 @@
                   <i class="icon-pencil"></i>
                 </button>
               </div>
-              <div app-security-editor='role.membersByOwner' role-id='role.roleId' ldap-realm='context.ldapRealm' group-search-enabled='context.groupSearchEnabled' hide='$parent.editMode = false'></div>
+              <div app-security-editor='role.membersByOwner' role-id='role.roleId' ldap-realm='context.ldapRealm' group-search-enabled='context.groupSearchEnabled' has-mixed-group-search='context.hasMixedGroupSearch' hide='$parent.editMode = false'></div>
             </div>
           </div>
         </div>

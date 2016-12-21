@@ -55,7 +55,8 @@
           $scope.context = {
             roles: data.membersByRole,
             ldapRealm: data.ldapRealm,
-            groupSearchEnabled: data.groupSearchEnabled
+            groupSearchEnabled: data.groupSearchEnabled,
+            hasMixedGroupSearch: data.hasMixedGroupSearch
           };
         }, function(error) {
           $scope.error = error;
@@ -218,6 +219,7 @@
         roleId : '=',
         hide : '&',
         groupSearchEnabled : '=',
+        hasMixedGroupSearch : '<',
         ldapRealm : '='
       },
       controller : 'AppSecurityEditorController',

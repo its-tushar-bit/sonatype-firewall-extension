@@ -34,6 +34,11 @@ public class TwistlockParameters
       "--twistlock-console-password" }, description = "Password for the Twistlock console", required = true)
   private String twistlockConsolePassword;
 
+  // The param description was copied from the description of the --tlsverify param for the Twistlock scanner 1.6.79
+  @Parameter(names = {
+      "--twistlock-tlsverify" }, description = "Use Twistlock CA certificate to validate the connection with twistlock console", required = false)
+  private String twistlockTlsverify;
+
   public TwistlockParameters() {
   }
 
@@ -65,5 +70,9 @@ public class TwistlockParameters
   @Override
   public List<String> getScanTargets() {
     return scanTargets;
+  }
+
+  public String getTwistlockTlsverify() {
+    return twistlockTlsverify;
   }
 }

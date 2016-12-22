@@ -7,6 +7,9 @@ package com.sonatype.insight.scan.cli;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.inject.Named;
 
@@ -27,7 +30,8 @@ public class TwistlockScanner
               String imageId,
               String twistlockConsoleUrl,
               String twistlockConsoleUsername,
-              String twistlockConsolePassword)
+              String twistlockConsolePassword,
+              String twistlockTlsverify)
   {
     long start = System.currentTimeMillis();
 
@@ -35,11 +39,17 @@ public class TwistlockScanner
     log.info("Connecting to Twistlock console at '{}' using user name '{}'.", twistlockConsoleUrl,
         twistlockConsoleUsername);
 
-    ProcessBuilder processBuilder = new ProcessBuilder(twistlockScannerExecutable, //
-        "-c", twistlockConsoleUrl, "-u", twistlockConsoleUsername, "-p", twistlockConsolePassword, //
-        "-i", imageId, //
-        "--include-files", "--include-package-files", //
-        "--hash-method", "sha1");
+    List<String> twistlockScannerCommand = buildTwistlockScannerCommand(twistlockScannerExecutable, imageId,
+        twistlockConsoleUrl, twistlockConsoleUsername, twistlockConsolePassword, twistlockTlsverify);
+
+    String scannerOutput = runTwistlockScannerCommand(twistlockScannerCommand);
+
+    log.info("Scanned image with ID '{}' in {} ms.", imageId, System.currentTimeMillis() - start);
+    return scannerOutput;
+  }
+
+  String runTwistlockScannerCommand(List<String> twistlockScannerCommand) {
+    ProcessBuilder processBuilder = new ProcessBuilder(twistlockScannerCommand);
     processBuilder.redirectErrorStream(true);
     Process twistlockScannerProcess;
     try {
@@ -54,7 +64,6 @@ public class TwistlockScanner
             "The Twistlock scanner returned exit code = " + exitCode + ". Output: " + scannerOutput);
       }
 
-      log.info("Scanned image with ID '{}' in {} ms.", imageId, System.currentTimeMillis() - start);
 
       return scannerOutput;
     }
@@ -64,6 +73,41 @@ public class TwistlockScanner
     catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+
+  }
+
+  private List<String> buildTwistlockScannerCommand(String twistlockScannerExecutable,
+                                                    String imageId,
+                                                    String twistlockConsoleUrl,
+                                                    String twistlockConsoleUsername,
+                                                    String twistlockConsolePassword,
+                                                    String twistlockTlsverify)
+  {
+    List<String> twistlockScannerCommand = new ArrayList<String>();
+    twistlockScannerCommand.addAll(Arrays.asList(twistlockScannerExecutable, //
+        "-c", twistlockConsoleUrl, "-u", twistlockConsoleUsername, //
+        "-i", imageId, //
+        "--include-files", "--include-package-files", //
+        "--hash-method", "sha1"));
+    if (twistlockTlsverify != null) {
+      twistlockScannerCommand.add("--tlsverify=" + twistlockTlsverify);
+    }
+
+    logTwistlockScannerCommand(twistlockScannerCommand);
+
+    // Add the password parameter only after we logged the command.
+    twistlockScannerCommand.add("-p");
+    twistlockScannerCommand.add(twistlockConsolePassword);
+
+    return twistlockScannerCommand;
+  }
+
+  private void logTwistlockScannerCommand(List<String> twistlockScannerCommand) {
+    StringBuffer command = new StringBuffer();
+    for (String s : twistlockScannerCommand) {
+      command.append(s).append(" ");
+    }
+    log.info("Twistlock scanner command (password excluded): {}", command);
   }
 
   private String getStdOutContent(Process process) throws IOException {

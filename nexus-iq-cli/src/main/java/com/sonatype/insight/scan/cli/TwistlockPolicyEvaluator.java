@@ -48,6 +48,8 @@ public class TwistlockPolicyEvaluator
 {
   private static final Logger log = LoggerFactory.getLogger(TwistlockPolicyEvaluator.class);
 
+  static final String TWISTLOCK_SCAN_SUCCESS_MARKER = " evaluated successfully, Results at";
+
   private final TwistlockScanner twistlockScanner;
 
   private final ScanWriterFactory writerFactory;
@@ -119,7 +121,7 @@ public class TwistlockPolicyEvaluator
     String imageId = params.getScanTargets().get(0);
 
     String scannerOutput = twistlockScanner.scan(twistlockScannerExecutable, imageId, twistlockConsoleUrl,
-        twistlockConsoleUsername, twistlockConsolePassword);
+        twistlockConsoleUsername, twistlockConsolePassword, params.getTwistlockTlsverify());
     String scanResultUrl = parseTwistlockScannerOutput(scannerOutput);
     log.info("Twistlock scan results at: {}", scanResultUrl);
 
@@ -177,7 +179,7 @@ public class TwistlockPolicyEvaluator
       if (wasScanSuccessful) {
         return scannerOutputLine;
       }
-      if (scannerOutputLine.contains(" evaluated successfully, Results at")) {
+      if (scannerOutputLine.contains(TWISTLOCK_SCAN_SUCCESS_MARKER)) {
         wasScanSuccessful = true;
       }
     }

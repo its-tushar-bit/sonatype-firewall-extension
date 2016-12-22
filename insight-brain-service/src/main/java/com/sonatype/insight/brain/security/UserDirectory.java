@@ -202,23 +202,24 @@ public class UserDirectory
 
     List<NamingException> namingExceptions = new ArrayList<>();
     List<Exception> otherExceptions = new ArrayList<>();
-    if (ldapManager.isLdapEnabled()) {
-      for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
-        if (!sortedUserNames.isEmpty()) {
-          try {
-            String ldapName = ldapServer.getName();
+    for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+      if (ldapManager.isLdapEnabled(ldapServer) && !sortedUserNames.isEmpty()) {
+        try {
+          String ldapName = ldapServer.getName();
 
-            for (LdapUser user : ldapManager.getUsers(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]), sortedUserNames.size())) {
-              members.add(new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName));
-              sortedUserNames.remove(user.getUsername());
-            }
+          for (LdapUser user : ldapManager
+              .getUsers(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]),
+                  sortedUserNames.size())) {
+            members.add(
+                new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName));
+            sortedUserNames.remove(user.getUsername());
           }
-          catch (NamingException e) {
-            namingExceptions.add(e);
-          }
-          catch (Exception e) {
-            otherExceptions.add(e);
-          }
+        }
+        catch (NamingException e) {
+          namingExceptions.add(e);
+        }
+        catch (Exception e) {
+          otherExceptions.add(e);
         }
       }
     }
@@ -253,11 +254,11 @@ public class UserDirectory
 
     List<NamingException> namingExceptions = new ArrayList<>();
     List<Exception> otherExceptions = new ArrayList<>();
-    if (ldapManager.isLdapEnabled()) {
-      try {
-        List<LdapServer> ldapServers = new LdapServerDAO().getAll();
-        // searching for users
-        for (LdapServer ldapServer : ldapServers) {
+    try {
+      List<LdapServer> ldapServers = new LdapServerDAO().getAll();
+      // searching for users
+      for (LdapServer ldapServer : ldapServers) {
+        if (ldapManager.isLdapEnabled(ldapServer)) {
           try {
             for (LdapUser user : ldapManager.findUsersByName(ldapServer, query, 100)) {
               Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
@@ -276,34 +277,34 @@ public class UserDirectory
             otherExceptions.add(e);
           }
         }
-        // searching for groups
-        if (groupsEnabled) {
-          for (LdapServer ldapServer : ldapServers) {
-            try {
-              if (ldapManager.isGroupSearchEnabled(ldapServer)) {
-                for (LdapGroup group : ldapManager.findGroupsByName(ldapServer, query, 100)) {
-                  final String groupName = group.getGroupname();
-                  Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapServer.getName());
-                  String key = member.getInternalNameLowerCase();
-                  // Ignore any group that was already discovered in the other realms.
-                  if (!groups.containsKey(key)) {
-                    groups.put(key, member);
-                  }
+      }
+      // searching for groups
+      if (groupsEnabled) {
+        for (LdapServer ldapServer : ldapServers) {
+          try {
+            if (ldapManager.isGroupSearchEnabled(ldapServer)) {
+              for (LdapGroup group : ldapManager.findGroupsByName(ldapServer, query, 100)) {
+                final String groupName = group.getGroupname();
+                Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapServer.getName());
+                String key = member.getInternalNameLowerCase();
+                // Ignore any group that was already discovered in the other realms.
+                if (!groups.containsKey(key)) {
+                  groups.put(key, member);
                 }
               }
             }
-            catch (NamingException e) {
-              namingExceptions.add(e);
-            }
-            catch (Exception e) {
-              otherExceptions.add(e);
-            }
+          }
+          catch (NamingException e) {
+            namingExceptions.add(e);
+          }
+          catch (Exception e) {
+            otherExceptions.add(e);
           }
         }
       }
-      catch (Exception e) {
-        otherExceptions.add(e);
-      }
+    }
+    catch (Exception e) {
+      otherExceptions.add(e);
     }
 
     if (groupsEnabled) {
@@ -353,22 +354,11 @@ public class UserDirectory
     return ldapManager.hasMixedGroupSearch();
   }
 
-  public String getGroupRealm() {
-    if (ldapManager.isLdapEnabled()) {
-      return ldapManager.getLdapServerName();
-    }
-    return null;
-  }
-
   public boolean isLdapUser(final User user) throws NamingException {
-    if (!ldapManager.isLdapEnabled()) {
-      return false;
-    }
-
     String[] userNames = { user.getUsername() };
-
     for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
-      if (!ldapManager.getUsers(ldapServer, userNames, userNames.length).isEmpty()) {
+      if (ldapManager.isLdapEnabled(ldapServer) &&
+          !ldapManager.getUsers(ldapServer, userNames, userNames.length).isEmpty()) {
         return true;
       }
     }

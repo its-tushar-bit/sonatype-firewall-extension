@@ -172,18 +172,6 @@ public class LdapManager
   }
 
   // User authentication
-
-  /**
-   * Preliminary check used by Shiro to decide whether to start querying the LDAP realm.
-   * 
-   * @see LdapRealm#supports
-   */
-  public boolean isLdapEnabled() {
-    List<LdapServer> servers = serverDao.getAll();
-    return !servers.isEmpty() && connDao.getByServerId(servers.get(0).getId()) != null
-        && userDao.getByServerId(servers.get(0).getId()) != null;
-  }
-
   /**
    * Determines if the ldapServer is enabled by checking whether it has LdapConnection and LdapUserMapping setup
    */
@@ -255,18 +243,6 @@ public class LdapManager
     return false;
   }
   
-  /**
-   * Returns the name of the first ldap server configured. Throws an exception when no LdapServers have been configured
-   * in the database.
-   */
-  public String getLdapServerName() {
-    List<LdapServer> servers = serverDao.getAll();
-    if (servers.isEmpty()) {
-      throw new IllegalStateException("LDAP server is not configured");
-    }
-    return servers.get(0).getName();
-  }
-
   private LdapUserMapping getUserMapping(LdapConnection connection) {
     LdapUserMapping umap = userDao.getByServerId(connection.getServerId());
     if (umap == null) {
@@ -312,23 +288,24 @@ public class LdapManager
    */
   public LdapUser authenticateUserForReverseProxy(String username) throws NamingException {
     final List<LdapServer> servers = serverDao.getAll();
-
     final List<LdapServerExceptionWrapper> ldapServerExceptionWrappers = new ArrayList<>();
 
     for (final LdapServer server : servers) {
-      final LdapConnection conn = getDecryptedConnection(server);
-      checkValidConnection(conn);
-      try {
-        LdapUser user = new LdapQuery(conn, getUserMapping(conn)).getUser(username, true);
-        resetConnectionFailures(conn);
-        return user;
-      }
-      catch (NameNotFoundException e) {
-        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
-      }
-      catch (NamingException e) {
-        recordConnectionFailure(conn);
-        ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+      if (isLdapEnabled(server)) {
+        final LdapConnection conn = getDecryptedConnection(server);
+        checkValidConnection(conn);
+        try {
+          LdapUser user = new LdapQuery(conn, getUserMapping(conn)).getUser(username, true);
+          resetConnectionFailures(conn);
+          return user;
+        }
+        catch (NameNotFoundException e) {
+          ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+        }
+        catch (NamingException e) {
+          recordConnectionFailure(conn);
+          ldapServerExceptionWrappers.add(new LdapServerExceptionWrapper(server, e));
+        }
       }
     }
 

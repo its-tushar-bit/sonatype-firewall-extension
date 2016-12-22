@@ -12,6 +12,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -41,7 +43,14 @@ public class LdapRealm
 
   @Override
   public boolean supports(AuthenticationToken token) {
-    return super.supports(token) && ldapManager.isLdapEnabled();
+    if (super.supports(token)) {
+      for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+        if (ldapManager.isLdapEnabled(ldapServer)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @Override

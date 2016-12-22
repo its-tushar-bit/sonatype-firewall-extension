@@ -109,7 +109,6 @@ public class MembershipMappingService
     result.membersByRole.addAll(membersByRoleByRoleId.values());
     result.hasMixedGroupSearch = userDirectory.hasMixedGroupSearch();
     result.groupSearchEnabled = !userDirectory.isDynamicGroupSearchDisabled();
-    result.ldapRealm = userDirectory.getGroupRealm();
     return result;
   }
 

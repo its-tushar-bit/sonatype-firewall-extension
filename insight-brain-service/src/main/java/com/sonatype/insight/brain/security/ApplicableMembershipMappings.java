@@ -11,9 +11,7 @@ import java.util.List;
 public class ApplicableMembershipMappings
 {
   public List<MembersByRole> membersByRole = new ArrayList<>();
-
-  public String ldapRealm;
-
+  
   public boolean groupSearchEnabled;
 
   public boolean hasMixedGroupSearch;

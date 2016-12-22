@@ -178,7 +178,7 @@ public class UserDirectoryTest
   public void testGetMembersByName_WithUserDirectory_GetUsersNamingError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     tempEntity.newLdapServer("Test Server");
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapManager.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
     when(mockLdapManager.getUsers(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(namingException);
@@ -205,7 +205,7 @@ public class UserDirectoryTest
   public void testGetMembersByName_WithUserDirectory_GetUsersGenericError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     tempEntity.newLdapServer("Test Server");
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapManager.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable exception = new RuntimeException("Exception!");
     when(mockLdapManager.getUsers(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(exception);
@@ -232,7 +232,7 @@ public class UserDirectoryTest
   public void testGetMembersByName_WithUserDirectory_GetGroupsNamingError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     tempEntity.newLdapServer("Test Server");
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapManager.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
     when(mockLdapManager.getGroups(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(namingException);
@@ -259,7 +259,7 @@ public class UserDirectoryTest
   public void testGetMembersByName_WithUserDirectory_GetGroupsGenericError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     tempEntity.newLdapServer("Test Server");
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapManager.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable exception = new RuntimeException("Exception!");
     when(mockLdapManager.getGroups(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(exception);
@@ -285,7 +285,7 @@ public class UserDirectoryTest
   @Test
   public void testGetMembersByName_noUnnecessaryQueries() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
@@ -405,7 +405,7 @@ public class UserDirectoryTest
   public void testGetMembersByQuery_WithLdapError() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
     when(mockLdapManager.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
         .thenThrow(namingException);
@@ -430,7 +430,7 @@ public class UserDirectoryTest
   public void testGetMembersByQuery_GroupsWithLdapError() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapManager.isGroupSearchEnabled(argThat(new SameId(ldapServer)))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
     when(mockLdapManager.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
@@ -451,7 +451,7 @@ public class UserDirectoryTest
   public void testGetMembersByQuery_WithGenericError() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable exception = new RuntimeException("Exception!");
     when(mockLdapManager.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
         .thenThrow(exception);
@@ -476,7 +476,7 @@ public class UserDirectoryTest
   public void testGetMembersByQuery_GroupsWithGenericError() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapManager.isGroupSearchEnabled(argThat(new SameId(ldapServer)))).thenReturn(true);
     Throwable exception = new RuntimeException("Exception!");
     when(mockLdapManager.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
@@ -499,7 +499,7 @@ public class UserDirectoryTest
     LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
     LdapServer ldapServer3 = tempEntity.newLdapServer("Test Server3");
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     // First LDAP server throws a generic exception
     Throwable exception = new RuntimeException("Exception!");
     when(mockLdapManager.findUsersByName(argThat(new SameId(ldapServer1)), any(String.class), anyInt()))
@@ -538,7 +538,7 @@ public class UserDirectoryTest
     LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
     LdapServer ldapServer3 = tempEntity.newLdapServer("Test Server3");
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapManager.isGroupSearchEnabled(argThat(new SameId(ldapServer1)))).thenReturn(true);
     // First LDAP server throws a generic exception
     Throwable exception = new RuntimeException("Exception!");
@@ -576,7 +576,7 @@ public class UserDirectoryTest
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     tempEntity.newLdapServer("Test Server");
 
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     List<LdapUser> emptyLdapUsers = new ArrayList<>();
     String[] expectedArgument = new String[] { "Alpha", "CLMBOB" };
     when(mockLdapManager.getUsers(any(LdapServer.class), argThat(is(equalTo(expectedArgument))), eq(2L))).thenReturn(emptyLdapUsers);
@@ -707,7 +707,7 @@ public class UserDirectoryTest
   public void testValidateUsers_LdapErrorOnGetUsers() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    when(mockLdapManager.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapManager.getUsers(argThat(new SameId(ldapServer)), any(String[].class), anyInt())).thenThrow(new NamingException("Naming Exception!"));
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);

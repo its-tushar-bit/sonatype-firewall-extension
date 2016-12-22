@@ -46,7 +46,7 @@ public class ReverseProxyRealm
   protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
     String username = ((ReverseProxyAuthenticationToken) token).getUsername();
     AuthenticationInfo info = doGetInternalRealmAuthenticationInfo(username);
-    if (info == null && ldapManager.isLdapEnabled()) {
+    if (info == null) {
       info = doGetLdapRealmAuthenticationInfo(username);
     }
     return info;

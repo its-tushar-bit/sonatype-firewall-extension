@@ -1434,23 +1434,6 @@ public class LdapManagerTest
 
   @Test
   public void testIsLdapEnabled() throws Exception {
-    assertThat(manager.isLdapEnabled(), is(false));
-
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    assertThat(manager.isLdapEnabled(), is(false));
-
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    ldapConnection.setHostname("localhost");
-    manager.saveConnection(ldapConnection);
-    assertThat(manager.isLdapEnabled(), is(false));
-
-    createUserMapping(ldapServer);
-
-    assertThat(manager.isLdapEnabled(), is(true));
-  }
-
-  @Test
-  public void testIsLdapEnabled_WithGivenLdapServer() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     assertThat(manager.isLdapEnabled(ldapServer), is(false));
 
@@ -1590,23 +1573,6 @@ public class LdapManagerTest
     new LdapUserMappingDAO().update(umap);
   }
   
-  @Test
-  public void testGetLdapServerName() throws Exception {
-    try {
-      manager.getLdapServerName();
-      fail("Expected IllegalStateException");
-    }
-    catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is("LDAP server is not configured"));
-    }
-
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    startLdapServer(testLdapServer1, ldapConnection);
-    String name = manager.getLdapServerName();
-    assertThat(name, is("Test Server"));
-  }
-
   private void startLdapServer(TestLdapServer testLdapServer, LdapConnection ldapConnection) throws Exception {
     testLdapServer.setPort(ldapConnection.getPort());
     testLdapServer.start();

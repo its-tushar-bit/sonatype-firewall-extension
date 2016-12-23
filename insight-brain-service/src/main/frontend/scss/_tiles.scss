@@ -250,12 +250,9 @@ $tile-scroll-container-z-index: 0;
         }
 
         > .fa-chevron-right {
-          color: $slate;
-          font-size: 12px;
           position: absolute;
           right: 12px;
           top: calc(50% - 6.5px);
-          width: 7px;
         }
       }
     }
@@ -275,10 +272,17 @@ $tile-scroll-container-z-index: 0;
       }
 
       &.clickable {
+        .fa-chevron-right {
+          color: $slate;
+          font-size: 12px;
+          vertical-align: middle;
+          width: 7px;
+        }
+
         &:hover, &:active {
           cursor: pointer;
 
-          > .fa-chevron-right {
+          .fa-chevron-right {
             color: $off-black;
           }
         }
@@ -359,15 +363,6 @@ $tile-scroll-container-z-index: 0;
           padding-right: 12px;
           padding-left: 24px;
           vertical-align: middle;
-
-          > .fa-chevron-right {
-            color: $slate;
-            font-size: 12px;
-            right: 12px;
-            top: calc(50% - 6.5px);
-            vertical-align: middle;
-            width: 7px;
-          }
         }
 
         &.simple {

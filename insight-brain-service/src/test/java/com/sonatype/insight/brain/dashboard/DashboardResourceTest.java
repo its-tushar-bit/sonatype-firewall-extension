@@ -194,6 +194,9 @@ public class DashboardResourceTest
     dashboardFilterDTO.applicationFilters = new ArrayList<>();
     dashboardFilterDTO.applicationFilters.add(application.getId());
 
+    dashboardFilterDTO.organizationFilters = new ArrayList<>();
+    dashboardFilterDTO.organizationFilters.add(application.getOrganizationId());
+
     dashboardFilterDTO.tagFilters = new ArrayList<>();
     dashboardFilterDTO.tagFilters.add(tag.getId());
 
@@ -252,6 +255,31 @@ public class DashboardResourceTest
   }
 
   @Test
+  public void testGetNewestRisksExport_fileNamePrefix() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilter(app, tag);
+    namedDashboardFilterDTO.name = "test newest risks non dirty";
+
+    createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
+
+    String filterJson = JsonUtils.format(new RisksFilterDTO());
+    HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    assertResponseOkAndCsvHeadersSet(exportResponse, "test_newest_risks_non_dirty-violations");
+
+    dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
+
+    filterJson = JsonUtils.format(new RisksFilterDTO());
+    exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    assertResponseOkAndCsvHeadersSet(exportResponse, "results-violations");
+  }
+
+  @Test
   public void testGetApplicationRisksExport() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
@@ -287,6 +315,31 @@ public class DashboardResourceTest
   }
 
   @Test
+  public void testGetApplicationRisksExport_fileNamePrefix() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilter(app, tag);
+    namedDashboardFilterDTO.name = "test application risks non dirty";
+
+    createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
+
+    String filterJson = JsonUtils.format(new RisksFilterDTO());
+    HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    assertResponseOkAndCsvHeadersSet(exportResponse, "test_application_risks_non_dirty-applications");
+
+    dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
+
+    filterJson = JsonUtils.format(new RisksFilterDTO());
+    exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(GET_APPLICATION_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    assertResponseOkAndCsvHeadersSet(exportResponse, "results-applications");
+  }
+
+  @Test
   public void testGetComponentRisksExport_returnValidCsvHeadersWithoutAppSetup() throws Exception {
     String filterJson = new String(JsonUtils.generate(new RisksFilterDTO()));
     HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
@@ -315,6 +368,52 @@ public class DashboardResourceTest
     assertThat(lines[0], is(ComponentRiskDTO.getCsvHeader()));
     assertThat(lines[1], is("Group1 : Artifact2 : Version1,1,5,0,5,0,0"));
     assertThat(lines[2], is("Group1 : Artifact1 : Version1,1,5,0,5,0,0"));
+  }
+
+  @Test
+  public void testGetComponentRisksExport_fileNamePrefix() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag tag = tempEntity.newTag(org.getId());
+
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilter(app, tag);
+    namedDashboardFilterDTO.name = "test component risks non dirty";
+
+    createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
+
+    String filterJson = JsonUtils.format(new RisksFilterDTO());
+    HttpResponse exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    assertResponseOkAndCsvHeadersSet(exportResponse, "test_component_risks_non_dirty-components");
+
+    dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
+
+    filterJson = JsonUtils.format(new RisksFilterDTO());
+    exportResponse = restRequest().auth(tempUser.getUsername(), tempUser.getPassword())
+        .path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
+    assertResponseOkAndCsvHeadersSet(exportResponse, "results-components");
+  }
+
+  private void createNamedFilterForUserAndAssertResponseOk(NamedDashboardFilterDTO namedDashboardFilterDTO, User user)
+      throws Exception
+  {
+    HttpRequest request = restRequest().auth(user.getUsername(), user.getPassword())
+        .path(DashboardResource.NAMED_FILTERS_PATH);
+    HttpResponse response = request.body(namedDashboardFilterDTO).put();
+    assertResponseStatus(200, response);
+  }
+
+  private void dirtyNamedFilterForUserAndAssertResponseOk(NamedDashboardFilterDTO namedDashboardFilterDTO, User user)
+      throws Exception
+  {
+    namedDashboardFilterDTO.basedOnFilterName = namedDashboardFilterDTO.name;
+    namedDashboardFilterDTO.name = null;
+    namedDashboardFilterDTO.filter.maxPolicyThreatLevel -= 1;
+    HttpRequest request = restRequest().auth(user.getUsername(), user.getPassword())
+        .path(DashboardResource.FILTERS_PATH);
+    HttpResponse response = request.body(namedDashboardFilterDTO).put();
+    assertResponseStatus(200, response);
   }
 
   private PolicyViolation createFirstOccurrencePolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {

@@ -27,4 +27,48 @@ public class DashboardFilterDTO
   public List<PolicyThreatCategory> policyThreatCategoryFilters;
 
   public List<String> stageTypeFilters;
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DashboardFilterDTO that = (DashboardFilterDTO) o;
+
+    if (minPolicyThreatLevel != that.minPolicyThreatLevel) {
+      return false;
+    }
+    if (maxPolicyThreatLevel != that.maxPolicyThreatLevel) {
+      return false;
+    }
+    if (!applicationFilters.equals(that.applicationFilters)) {
+      return false;
+    }
+    if (!organizationFilters.equals(that.organizationFilters)) {
+      return false;
+    }
+    if (!tagFilters.equals(that.tagFilters)) {
+      return false;
+    }
+    if (!policyThreatCategoryFilters.equals(that.policyThreatCategoryFilters)) {
+      return false;
+    }
+    return stageTypeFilters.equals(that.stageTypeFilters);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = minPolicyThreatLevel;
+    result = 31 * result + maxPolicyThreatLevel;
+    result = 31 * result + applicationFilters.hashCode();
+    result = 31 * result + organizationFilters.hashCode();
+    result = 31 * result + tagFilters.hashCode();
+    result = 31 * result + policyThreatCategoryFilters.hashCode();
+    result = 31 * result + stageTypeFilters.hashCode();
+    return result;
+  }
 }

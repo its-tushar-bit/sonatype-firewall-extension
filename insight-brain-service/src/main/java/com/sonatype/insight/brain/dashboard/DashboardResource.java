@@ -245,7 +245,9 @@ public class DashboardResource
         .getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
             Integer.MAX_VALUE);
-    return Csv.generate(Response.ok(), "results-violations", NewestRiskDTO.getCsvHeader(), results).build();
+
+    String fileNamePrefix = calculateFileNamePrefixForView("violations");
+    return Csv.generate(Response.ok(), fileNamePrefix, NewestRiskDTO.getCsvHeader(), results).build();
   }
 
   /**
@@ -268,7 +270,9 @@ public class DashboardResource
         .getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
             Integer.MAX_VALUE);
-    return Csv.generate(Response.ok(), "results-components", ComponentRiskDTO.getCsvHeader(), results).build();
+
+    String fileNamePrefix = calculateFileNamePrefixForView("components");
+    return Csv.generate(Response.ok(), fileNamePrefix, ComponentRiskDTO.getCsvHeader(), results).build();
   }
 
   /**
@@ -291,6 +295,33 @@ public class DashboardResource
         .getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
             risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
             risksFilterDTO.policyThreatLevelRange, Integer.MAX_VALUE);
-    return Csv.generate(Response.ok(), "results-applications", ApplicationRiskScoreDTO.getCsvHeader(), results).build();
+
+    String fileNamePrefix = calculateFileNamePrefixForView("applications");
+    return Csv.generate(Response.ok(), fileNamePrefix, ApplicationRiskScoreDTO.getCsvHeader(), results).build();
+  }
+
+  private String calculateFileNamePrefixForView(final String viewName) throws IOException {
+    NamedDashboardFilterDTO activeFilter = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    NamedDashboardFilterDTO basedOnFilterForActiveFilter = null;
+    if (activeFilter.basedOnFilterName != null) {
+      List<NamedDashboardFilterDTO> allFiltersForCurrentUser =
+          dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+
+      for (final NamedDashboardFilterDTO namedDashboardFilterDTO : allFiltersForCurrentUser) {
+        if (namedDashboardFilterDTO.name.equals(activeFilter.basedOnFilterName)) {
+          basedOnFilterForActiveFilter = namedDashboardFilterDTO;
+          break;
+        }
+      }
+    }
+
+    String fileNamePrefix;
+    if (basedOnFilterForActiveFilter != null && activeFilter.filter.equals(basedOnFilterForActiveFilter.filter)) {
+      fileNamePrefix = activeFilter.basedOnFilterName.replace(" ", "_");
+    }
+    else {
+      fileNamePrefix = "results";
+    }
+    return fileNamePrefix + "-" + viewName;
   }
 }

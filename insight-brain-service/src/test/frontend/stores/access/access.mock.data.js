@@ -48,7 +48,6 @@ var AccessMockData = {
           ]
         }
       ],
-      ldapRealm: 'some-ldap-realm',
       groupSearchEnabled: true,
       hasMixedGroupSearch: true
     };

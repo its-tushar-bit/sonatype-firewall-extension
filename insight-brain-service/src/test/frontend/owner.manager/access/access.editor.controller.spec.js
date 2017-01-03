@@ -202,7 +202,7 @@ describe('access.editor.controller.spec.js', function() {
     it('addGroup', function() {
       vm.newGroupName = 'foo';
       vm.addGroup();
-      expect(vm.members).toEqual([{displayName: 'foo', email: null, internalName: 'foo', realm: 'some-ldap-realm', type: 'GROUP'}])
+      expect(vm.members).toEqual([{displayName: 'foo', email: null, internalName: 'foo', type: 'GROUP'}])
       expect(vm.accessEditorAddGroup.$setPristine).toHaveBeenCalled();
     });
   });

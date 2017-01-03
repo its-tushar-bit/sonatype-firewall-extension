@@ -16,7 +16,7 @@
              <input type='text' id="groupname" name="groupname" ng-model='$parent.queryString' focus-input="true">
              <button class='btn'
                      ng-click='addGroup()'
-                     ng-disabled='!queryString || isDuplicate(queryString, ldapRealm, "GROUP")'><i class='icon-plus'></i> Add Group</button>
+                     ng-disabled='!queryString || isDuplicate(queryString, "GROUP")'><i class='icon-plus'></i> Add Group</button>
            </div>
         </div>
         <div ng-switch-default>

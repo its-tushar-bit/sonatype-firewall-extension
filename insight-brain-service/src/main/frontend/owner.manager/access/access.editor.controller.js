@@ -12,7 +12,6 @@
     var originalMembers,
         ownerType,
         isNavigatingAfterRemove,
-        ldapRealm,
         vm = this;
 
     vm.accessEditor = undefined;
@@ -78,7 +77,6 @@
         vm.groupSearchEnabled = roleMappings.groupSearchEnabled;
         vm.hasMixedGroupSearch = roleMappings.hasMixedGroupSearch;
         vm.availableRoles = LocalRoleService.getRolesWithoutLocalMembers(roleMappings.membersByRole);
-        ldapRealm = roleMappings.ldapRealm;
       }, function(error) {
         vm.loadError = Messages.getHttpErrorMessage(error);
       });
@@ -89,7 +87,6 @@
         displayName: vm.newGroupName,
         email: null,
         internalName: vm.newGroupName,
-        realm: ldapRealm,
         type: 'GROUP'
       };
       updatePickedUsers([group]);

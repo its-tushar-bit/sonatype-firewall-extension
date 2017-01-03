@@ -54,7 +54,6 @@
           var data = response.data;
           $scope.context = {
             roles: data.membersByRole,
-            ldapRealm: data.ldapRealm,
             groupSearchEnabled: data.groupSearchEnabled,
             hasMixedGroupSearch: data.hasMixedGroupSearch
           };
@@ -130,12 +129,11 @@
       });
     };
 
-    $scope.isDuplicate = function (internalName, realm, type) {
+    $scope.isDuplicate = function (internalName, type) {
       if (internalName) {
         var nameregex = new RegExp('^' + internalName + '$', 'i');
         for (var i = 0; i < $scope.mappings[0].members.length; i++) {
           if (nameregex.test($scope.mappings[0].members[i].internalName) &&
-                  $scope.mappings[0].members[i].realm === realm &&
                   $scope.mappings[0].members[i].type === type) {
             return true;
           }
@@ -145,13 +143,12 @@
     };
 
     $scope.addGroup = function () {
-      if (!$scope.isDuplicate($scope.queryString, $scope.ldapRealm, 'GROUP')) {
+      if (!$scope.isDuplicate($scope.queryString, 'GROUP')) {
         $scope.mappings[0].members.push({
           type : 'GROUP',
           displayName : $scope.queryString,
           internalName : $scope.queryString,
-          email : null,
-          realm : $scope.ldapRealm
+          email : null
         });
         $scope.queryString = '';
       }
@@ -219,8 +216,7 @@
         roleId : '=',
         hide : '&',
         groupSearchEnabled : '=',
-        hasMixedGroupSearch : '<',
-        ldapRealm : '='
+        hasMixedGroupSearch : '<'
       },
       controller : 'AppSecurityEditorController',
       templateUrl : 'appSecurityEditor',

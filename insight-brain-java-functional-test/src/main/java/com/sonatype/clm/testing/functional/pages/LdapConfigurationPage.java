@@ -58,7 +58,7 @@ public class LdapConfigurationPage
   }
 
   public static SelenideElement deleteButton() {
-    return $("#ldapName .btn-mini");
+    return $("#ldapName #ldap-connection-delete");
   }
 
   public static SelenideElement deleteConfirmationButton() {

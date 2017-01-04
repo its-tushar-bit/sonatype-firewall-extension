@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.ldap.test;
+package com.sonatype.insight.brain.ldap;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,9 +17,6 @@ import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
-import com.sonatype.insight.brain.ldap.TestLdapServer;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.eclipse.sisu.launch.InjectedTest;

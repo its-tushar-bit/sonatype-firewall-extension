@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.ldap.test;
+package com.sonatype.insight.brain.ldap;
 
 import java.io.File;
 import java.util.Hashtable;
@@ -13,8 +13,6 @@ import javax.naming.AuthenticationNotSupportedException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
-
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.After;

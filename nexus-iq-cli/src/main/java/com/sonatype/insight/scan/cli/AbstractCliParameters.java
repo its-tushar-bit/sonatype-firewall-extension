@@ -22,6 +22,12 @@ abstract class AbstractCliParameters
   @Parameter(names = { "-a", "--authentication" }, description = "Authentication credentials to use for the IQ Server, format <username:password> ")
   private String serverUser;
 
+  /**
+   * @since 1.25
+   */
+  @Parameter(names = { "--pki-authentication" }, description = "Delegate to the JVM for PKI authentication")
+  private boolean pkiAuthentication;
+
   AbstractCliParameters() {
   }
 
@@ -45,5 +51,9 @@ abstract class AbstractCliParameters
   @Override
   public String getServerUser() {
     return serverUser;
+  }
+
+  public boolean isPkiAuthentication() {
+    return pkiAuthentication;
   }
 }

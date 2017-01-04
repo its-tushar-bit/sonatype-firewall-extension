@@ -226,6 +226,35 @@ public class PolicyEvaluatorTest
   }
 
   @Test
+  public void testBasicAndJvmDelegatedAuthcEnabled() throws Exception {
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "--pki-authentication", "-a", "user:pass",
+        "src/test/data/artifact.jar");
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException e) {
+      assertLog("[ERROR] Only one mode of authentication can be enabled at a time, --authentication and --pki-authentication are mutually exclusive.");
+    }
+  }
+
+  @Test
+  public void testJvmDelegatedAuthc() throws Exception {
+    when(restClient.getApplicationsForApplicationEvaluation()).thenThrow(new HttpResponseException(401, "Bad Authc"));
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "--pki-authentication",
+        "src/test/data/artifact.jar");
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException e) {
+      assertLog("[ERROR] The IQ Server http://localhost:8070/ rejected the supplied credentials.");
+      // verify that basic auth credentials are not set
+      assertNull(httpConfig.getValue().getServerAuth());
+    }
+  }
+
+  @Test
   public void testNoViolations() throws Exception {
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));

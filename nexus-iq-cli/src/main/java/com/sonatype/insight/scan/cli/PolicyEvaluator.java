@@ -84,4 +84,18 @@ public class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
   protected ClientScanType getClientScanType() {
     return ClientScanType.SONATYPE;
   }
+  
+  @Override
+  public void run(PARAMETERS params) throws ExitException {
+    validateAuthenticationConfig(params);
+    super.run(params);
+  }
+  
+  private void validateAuthenticationConfig(final PARAMETERS params) throws ExitException {
+    if (params.isPkiAuthentication() && params.getServerUser() != null) {
+      String message = "Only one mode of authentication can be enabled at a time, --authentication and --pki-authentication are mutually exclusive.";
+      log.error(message);
+      throw new ExitException(1, message);
+    }
+  }
 }

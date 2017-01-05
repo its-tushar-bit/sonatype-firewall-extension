@@ -226,7 +226,7 @@ public class PolicyEvaluatorTest
   }
 
   @Test
-  public void testBasicAndJvmDelegatedAuthcEnabled() throws Exception {
+  public void testMultiAuthenticationModesEnabled() throws Exception {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "--pki-authentication", "-a", "user:pass",
         "src/test/data/artifact.jar");
     try {
@@ -239,7 +239,7 @@ public class PolicyEvaluatorTest
   }
 
   @Test
-  public void testJvmDelegatedAuthc() throws Exception {
+  public void testPkiAuthenticationMode() throws Exception {
     when(restClient.getApplicationsForApplicationEvaluation()).thenThrow(new HttpResponseException(401, "Bad Authc"));
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "--pki-authentication",
         "src/test/data/artifact.jar");

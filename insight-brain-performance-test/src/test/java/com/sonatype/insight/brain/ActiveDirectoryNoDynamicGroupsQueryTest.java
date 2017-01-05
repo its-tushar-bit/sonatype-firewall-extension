@@ -7,8 +7,8 @@ package com.sonatype.insight.brain;
 
 import java.io.IOException;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 
 import com.excilys.ebi.gatling.app.Gatling;
 import com.excilys.ebi.gatling.core.config.GatlingPropertiesBuilder;

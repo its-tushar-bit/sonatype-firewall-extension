@@ -20,13 +20,13 @@ import javax.naming.NamingException;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;

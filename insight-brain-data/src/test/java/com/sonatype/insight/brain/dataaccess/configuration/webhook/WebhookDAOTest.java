@@ -10,16 +10,16 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import com.sonatype.insight.brain.configuration.webhook.Webhook;
-import com.sonatype.insight.brain.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
-import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
-import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;

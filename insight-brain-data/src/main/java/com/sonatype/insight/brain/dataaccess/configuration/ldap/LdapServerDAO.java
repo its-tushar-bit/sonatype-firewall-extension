@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 

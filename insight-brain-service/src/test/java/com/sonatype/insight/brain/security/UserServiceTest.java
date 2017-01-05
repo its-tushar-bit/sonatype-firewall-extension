@@ -9,12 +9,12 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;

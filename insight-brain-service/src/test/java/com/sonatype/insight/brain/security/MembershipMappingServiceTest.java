@@ -13,12 +13,12 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;

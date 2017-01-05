@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.webhook;
 import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.brain.configuration.webhook.WebhookEvent;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;

@@ -11,11 +11,11 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.configuration.webhook.Webhook;
-import com.sonatype.insight.brain.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;

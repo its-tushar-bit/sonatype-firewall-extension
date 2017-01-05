@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidProprietaryConfigRegexException;
 import com.sonatype.insight.brain.model.ValidationResult;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 

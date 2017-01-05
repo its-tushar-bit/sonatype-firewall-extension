@@ -10,6 +10,10 @@ import java.util.Collections;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;

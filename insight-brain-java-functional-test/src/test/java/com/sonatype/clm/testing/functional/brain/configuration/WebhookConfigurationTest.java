@@ -11,9 +11,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage.WebhookSummary;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
-import com.sonatype.insight.brain.configuration.webhook.Webhook;
-import com.sonatype.insight.brain.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;

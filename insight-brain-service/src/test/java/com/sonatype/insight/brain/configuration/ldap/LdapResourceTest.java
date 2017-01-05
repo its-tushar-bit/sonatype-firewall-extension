@@ -12,12 +12,18 @@ import java.util.Arrays;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapUser;
+import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
-import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;

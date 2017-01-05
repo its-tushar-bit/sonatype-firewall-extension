@@ -28,12 +28,12 @@ import javax.inject.Singleton;
 import javax.naming.NamingException;
 import javax.validation.constraints.NotNull;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
+import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.LdapGroup;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;

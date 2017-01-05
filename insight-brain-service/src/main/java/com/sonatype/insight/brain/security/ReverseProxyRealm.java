@@ -10,9 +10,9 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 

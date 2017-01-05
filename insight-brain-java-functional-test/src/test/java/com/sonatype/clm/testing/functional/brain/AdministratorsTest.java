@@ -9,9 +9,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsRoleMappingList.RoleMappingElement;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsRoleMappingList.RoleMappingElement.Content;
-import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
-import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 
 import org.junit.BeforeClass;
 import org.junit.Test;

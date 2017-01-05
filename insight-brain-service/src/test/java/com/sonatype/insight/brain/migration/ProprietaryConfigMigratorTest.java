@@ -9,9 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
-import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -87,7 +87,7 @@ public class ProprietaryConfigMigratorTest
     // assert
     File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
     assertThat(markerFile.exists(), is(true));
-    com.sonatype.insight.brain.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
+    com.sonatype.insight.brain.model.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
         .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     assertThat(migratedConfig, is(nullValue()));
   }
@@ -106,7 +106,7 @@ public class ProprietaryConfigMigratorTest
     // assert
     File markerFile = new File(work.getWorkDir(), ProprietaryConfigMigrator.MARKER_FILE_NAME);
     assertThat(markerFile.exists(), is(true));
-    com.sonatype.insight.brain.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
+    com.sonatype.insight.brain.model.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
         .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     assertThat(migratedConfig, is(nullValue()));
   }
@@ -127,7 +127,7 @@ public class ProprietaryConfigMigratorTest
 
     // assert
     assertThat(markerFile.exists(), is(true));
-    com.sonatype.insight.brain.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
+    com.sonatype.insight.brain.model.configuration.ProprietaryConfig migratedConfig = proprietaryConfigDAO
         .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     assertThat(migratedConfig, is(nullValue()));
   }

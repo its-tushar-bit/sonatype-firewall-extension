@@ -12,8 +12,8 @@ import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.ldap.ReorderLdapModal;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;

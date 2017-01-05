@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 
 import org.junit.Before;
 import org.junit.Test;

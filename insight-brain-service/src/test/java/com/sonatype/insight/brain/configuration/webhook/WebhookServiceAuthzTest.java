@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.configuration.webhook;
 
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;

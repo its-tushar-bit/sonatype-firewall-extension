@@ -10,6 +10,7 @@ import java.util.EnumSet;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -18,9 +19,9 @@ import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.configuration.webhook.Webhook.FAKE_SECRET_KEY;
-import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
+import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAKE_SECRET_KEY;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;

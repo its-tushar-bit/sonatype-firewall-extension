@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.proprietary;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.integration.Goal;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigResource.FilePathRegex;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;

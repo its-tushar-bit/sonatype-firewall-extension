@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 

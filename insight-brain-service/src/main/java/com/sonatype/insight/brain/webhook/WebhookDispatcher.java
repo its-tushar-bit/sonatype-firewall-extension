@@ -13,11 +13,11 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.configuration.webhook.Webhook;
-import com.sonatype.insight.brain.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LabelEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;

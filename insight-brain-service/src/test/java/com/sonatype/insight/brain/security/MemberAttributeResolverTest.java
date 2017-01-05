@@ -10,10 +10,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.TestLdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 
 import org.apache.commons.lang.StringUtils;

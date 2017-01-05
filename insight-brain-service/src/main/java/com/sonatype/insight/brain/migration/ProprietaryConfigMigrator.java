@@ -11,9 +11,9 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 

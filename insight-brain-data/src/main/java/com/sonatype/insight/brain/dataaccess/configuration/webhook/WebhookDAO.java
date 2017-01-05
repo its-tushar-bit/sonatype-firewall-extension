@@ -9,8 +9,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import com.sonatype.insight.brain.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;

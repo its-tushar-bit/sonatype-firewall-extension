@@ -15,10 +15,10 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.configuration.ldap.LdapManager;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
-import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;

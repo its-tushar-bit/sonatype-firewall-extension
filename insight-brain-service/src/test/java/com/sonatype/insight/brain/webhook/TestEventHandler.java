@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.webhook;
 
 import java.util.concurrent.CountDownLatch;
 
-import com.sonatype.insight.brain.configuration.webhook.WebhookEvent;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
 
 import com.google.common.eventbus.Subscribe;
 

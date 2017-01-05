@@ -10,9 +10,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.InvalidProprietaryConfigRegexException;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;

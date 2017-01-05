@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.webhook;
 
 import java.util.Date;
 
-import com.sonatype.insight.brain.configuration.webhook.WebhookEvent;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
 
 /**
  * @since 1.25.0

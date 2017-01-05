@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.security;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.ldap.LdapRealm;
+import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 

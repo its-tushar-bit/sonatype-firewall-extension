@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
 import java.util.Collection;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**

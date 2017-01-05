@@ -9,7 +9,7 @@ import java.util.List;
 
 import javax.mail.Message;
 
-import com.sonatype.insight.brain.configuration.ProprietaryConfig;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import static org.hamcrest.Matchers.hasSize;

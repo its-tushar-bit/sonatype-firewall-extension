@@ -21,11 +21,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
+import com.sonatype.insight.brain.model.configuration.ldap.HasLdapServerId;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;

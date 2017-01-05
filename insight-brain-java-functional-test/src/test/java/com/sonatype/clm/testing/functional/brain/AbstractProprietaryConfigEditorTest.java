@@ -19,11 +19,11 @@ import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage;
-import com.sonatype.insight.brain.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 
 import org.junit.BeforeClass;
 import org.junit.Test;

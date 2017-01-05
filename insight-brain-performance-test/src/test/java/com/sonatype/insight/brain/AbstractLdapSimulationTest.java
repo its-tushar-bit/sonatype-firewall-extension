@@ -8,16 +8,16 @@ package com.sonatype.insight.brain;
 import java.io.IOException;
 import java.util.Properties;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
-import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
-import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
-import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 

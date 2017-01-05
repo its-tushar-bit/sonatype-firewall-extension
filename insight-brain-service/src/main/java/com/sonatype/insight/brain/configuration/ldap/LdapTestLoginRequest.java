@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+
 public class LdapTestLoginRequest
 {
   private LdapUserMapping userMapping;

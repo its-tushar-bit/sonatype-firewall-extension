@@ -9,12 +9,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.StringUtils;

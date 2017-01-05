@@ -17,7 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.client.utils.AbstractClient;

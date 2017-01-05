@@ -12,18 +12,20 @@ import java.util.HashSet;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.configuration.webhook.Webhook.FAKE_SECRET_KEY;
-import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
-import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
-import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
-import static com.sonatype.insight.brain.configuration.webhook.WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT;
 import static com.sonatype.insight.brain.configuration.webhook.WebhookResource.WEBHOOK_EVENT_TYPES_PATH;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_ENCRYPTED;
+import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAKE_SECRET_KEY;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItems;

@@ -18,7 +18,7 @@ $tile-scroll-container-z-index: 0;
   z-index: $tile-scroll-container-z-index + 1;
 
   &:after {
-    box-shadow: 0px 0px $shadow-spread 5px $grey-1;
+    box-shadow: 0px 0px $shadow-spread 5px $iq-grey-1;
     content: '';
     display: block;
     height: 0;
@@ -43,7 +43,7 @@ $tile-scroll-container-z-index: 0;
 
 .tile {
   background-color: white;
-  border: 1px solid $grey-2;
+  border: 1px solid $iq-grey-2;
   margin-bottom: 8px;
   padding: 8px;
 
@@ -62,7 +62,7 @@ $tile-scroll-container-z-index: 0;
       vertical-align: bottom;
 
       &.slate {
-        color: $slate;
+        color: $iq-slate;
       }
 
       &.outline {
@@ -116,7 +116,7 @@ $tile-scroll-container-z-index: 0;
     }
 
     .nav.nav-pills {
-      background-color: $grey-2;
+      background-color: $iq-grey-2;
       margin-bottom: 0px;
       padding: 8px;
 
@@ -129,7 +129,7 @@ $tile-scroll-container-z-index: 0;
         min-width: 100px;
 
         &:hover, &:focus {
-          border: 1px solid $grey-4;
+          border: 1px solid $iq-grey-4;
           color: inherit;
           padding: 7px 11px;
         }
@@ -140,14 +140,14 @@ $tile-scroll-container-z-index: 0;
       }
 
       li.active > a {
-        background-color: $off-white;
+        background-color: $iq-off-white;
       }
     }
   }
 
   .simple-list {
     h4.subsection-header {
-      border-bottom: 1px solid $grey-3;
+      border-bottom: 1px solid $iq-grey-3;
       margin: 0;
       margin-bottom: -1px; // overlap the bottom border of this header with the top border of the following list element
       padding-top: 20px;
@@ -163,12 +163,12 @@ $tile-scroll-container-z-index: 0;
     }
 
     div.subsection-divider {
-      border-bottom: 1px solid $grey-3;
+      border-bottom: 1px solid $iq-grey-3;
       padding-top: 20px;
     }
 
     div.empty-list {
-      border-bottom: 1px solid $grey-1;
+      border-bottom: 1px solid $iq-grey-1;
       height: 40px;
       line-height: 34px;
       text-align: center;
@@ -265,10 +265,10 @@ $tile-scroll-container-z-index: 0;
       border-top: 1px solid transparent;
 
       &:not(:first-child) {
-        border-top-color: $grey-1;
+        border-top-color: $iq-grey-1;
       }
       &:last-child {
-        border-bottom: 1px solid $grey-1;
+        border-bottom: 1px solid $iq-grey-1;
       }
 
       &.clickable {
@@ -292,27 +292,27 @@ $tile-scroll-container-z-index: 0;
         }
 
         &:hover {
-          border-top-color: $grey-4;
+          border-top-color: $iq-grey-4;
 
           &:last-child {
-            border-bottom-color: $grey-4;
+            border-bottom-color: $iq-grey-4;
           }
 
           + li, + tr {
-            border-top-color: $grey-4;
+            border-top-color: $iq-grey-4;
           }
         }
 
         &:active {
-          background: $grey-1;
-          border-top-color: $slate;
+          background: $iq-grey-1;
+          border-top-color: $iq-slate;
 
           &:last-child {
-            border-bottom-color: $slate;
+            border-bottom-color: $iq-slate;
           }
 
           + li, + tr {
-            border-top-color: $slate;
+            border-top-color: $iq-slate;
           }
         }
       }
@@ -389,10 +389,10 @@ $tile-scroll-container-z-index: 0;
       }
 
       .action {
-        color: $slate;
+        color: $iq-slate;
 
         .fa span {
-          color: $off-black;
+          color: $iq-off-black;
         }
       }
     }
@@ -403,11 +403,11 @@ $tile-scroll-container-z-index: 0;
       }
 
       .fa-check-circle {
-        color: $valid-green;
+        color: $iq-valid-color;
       }
 
       .fa-times-circle {
-        color: $grey-4;
+        color: $iq-grey-4;
       }
     }
   }

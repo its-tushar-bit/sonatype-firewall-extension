@@ -12,7 +12,7 @@
 
   .tile {
     h2 {
-      border-bottom: 1px solid $grey-4;
+      border-bottom: 1px solid $iq-grey-4;
       margin-bottom: 20px;
       padding-bottom: 8px;
     }
@@ -31,7 +31,7 @@
   }
 
   .editor-footer {
-    border-top: 1px solid $grey-4;
+    border-top: 1px solid $iq-grey-4;
     padding-top: 12px;
     padding-bottom: 4px;
     padding-left: 4px;
@@ -44,7 +44,7 @@
   }
 
   label span.optional {
-    color: $slate;
+    color: $iq-slate;
     font-size: 16px;
     font-style: italic;
     font-weight: normal;
@@ -53,7 +53,7 @@
 
 #proprietary-config-editor {
   p {
-    max-width: $maximum-paragraph-width;
+    max-width: $iq-paragraph-width-maximum;
   }
 }
 
@@ -62,7 +62,7 @@
     .editor-section-header {
       @include semi-bold();
       
-      border-bottom: 1px solid $grey-4;
+      border-bottom: 1px solid $iq-grey-4;
       margin-bottom: 20px;
       padding-bottom: 8px;
       text-transform: uppercase;
@@ -71,7 +71,7 @@
 
   #editor-policy-inherit {
     label {
-      color: $slate;
+      color: $iq-slate;
     }
 
     label.radio {
@@ -86,7 +86,7 @@
     $button-container-width: 32px + 32px + 8px;
 
     .constraint {
-      border-bottom: 1px solid $grey-1;
+      border-bottom: 1px solid $iq-grey-1;
       padding-bottom: 7px;
       padding-left: 8px;
 
@@ -110,7 +110,7 @@
         .constraint-summary-name {
           @include semi-bold();
 
-          color: $off-black;
+          color: $iq-off-black;
           font-size: 16px;
           overflow: hidden;
           padding-bottom: 1px;
@@ -174,22 +174,22 @@
         line-height: 15px;
 
         th {
-          background-color: $grey-1;
-          color: $slate;
+          background-color: $iq-grey-1;
+          color: $iq-slate;
 
           h4.subsection-header {
             padding-bottom: 8px;
           }
 
           &.disabled .header-text{
-            color: $grey-4;
+            color: $iq-grey-4;
           }
         }
       }
 
       tr {
         height: 40px;
-        border-bottom: 1px solid $grey-1;
+        border-bottom: 1px solid $iq-grey-1;
         td {
           &:first-child {
             @include semi-bold();
@@ -234,7 +234,7 @@
 
         &.active {
           background-color: #F8F8F8;
-          border-bottom: 1px solid $grey-1;
+          border-bottom: 1px solid $iq-grey-1;
         }
 
         span {
@@ -244,17 +244,17 @@
           }
 
           > .svg-slate-16px {
-            fill: $slate;
+            fill: $iq-slate;
             height: 16px;
             width: 16px;
           }
 
           > .fail {
-            color: $dark-red;
+            color: $iq-dark-red;
           }
 
           > .warn {
-            color: $orange;
+            color: $iq-orange;
           }
         }
 
@@ -263,7 +263,7 @@
         }
 
         .empty-list {
-          color: $slate;
+          color: $iq-slate;
         }
       }
     }
@@ -276,7 +276,7 @@
       thead tr {
         th {
           background-color: $white;
-          color: $off-black;
+          color: $iq-off-black;
         }
       }
     }
@@ -313,7 +313,7 @@
   $notification-item-height: 40px;
 
   .notification-list {
-    border-top: 1px solid $grey-3;
+    border-top: 1px solid $iq-grey-3;
     max-height: $notification-item-height * 5;
     margin-top: 0px;
     margin-bottom: 24px;
@@ -325,8 +325,8 @@
     }
 
     .empty-list {
-      border-top: 1px solid $grey-3;
-      border-bottom: 1px solid $grey-1;
+      border-top: 1px solid $iq-grey-3;
+      border-bottom: 1px solid $iq-grey-1;
       height: 40px;
       line-height: 40px;
       margin-right: 28px;
@@ -339,7 +339,7 @@
     }
 
     li {
-      border-bottom: 1px solid $grey-1;
+      border-bottom: 1px solid $iq-grey-1;
       height: $notification-item-height;
       
       span {

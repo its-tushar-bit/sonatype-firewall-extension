@@ -1,13 +1,14 @@
 /*
   ##Buttons
 */
+
 .btn {
   @include semi-bold();
 
-  background-color: $grey-1;
-  border: 1px solid $grey-4;
+  background-color: $iq-grey-1;
+  border: 1px solid $iq-grey-4;
   border-radius: 4px;
-  color: $slate;
+  color: $iq-slate;
   cursor: pointer;
   display: inline-block;
   font-size: 14px;
@@ -20,14 +21,14 @@
   }
 
   &.disabled, &[disabled] {
-    background-color: $grey-1;
-    border-color: $grey-2;
+    background-color: $iq-grey-1;
+    border-color: $iq-grey-2;
     cursor: not-allowed;
-    color: $grey-4;
+    color: $iq-grey-4;
   }
 
   &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
-    border-color: $slate;
+    border-color: $iq-slate;
   }
   
   &.dropdown-toggle:hover {
@@ -35,62 +36,62 @@
   }
 
   &:active:not(.disabled):not([disabled]) {
-    background-color: $grey-2;
-    border-color: $slate;
+    background-color: $iq-grey-2;
+    border-color: $iq-slate;
   }
 
   &.btn-primary {
-    background-color: $link-blue;
+    background-color: $iq-link-color;
     border-color: transparent;
-    color: $off-white;
+    color: $iq-off-white;
 
     &.disabled, &[disabled] {
-      background-color: $light-blue;
+      background-color: $iq-light-blue;
     }
 
     &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
-      border-color: $dark-blue;
+      border-color: $iq-dark-blue;
     }
 
     &:active:not(.disabled):not([disabled]) {
-      background-color: $dark-blue;
+      background-color: $iq-dark-blue;
     }
   }
 
   &.btn-tertiary {
     background-color: transparent;
     border-color: transparent;
-    color: $slate;
+    color: $iq-slate;
 
     &.disabled, &[disabled] {
-      color: $grey-4;
+      color: $iq-grey-4;
     }
 
     &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
-      border-color: $grey-4;
+      border-color: $iq-grey-4;
     }
 
     &:active:not(.disabled):not([disabled]) {
       background-color: transparent;
-      border-color: $slate;
+      border-color: $iq-slate;
     }
   }
 
   &.btn-error {
-    background-color: $fail-fg;
-    color: $off-white;
-    border-color: $fail-fg;
+    background-color: $iq-fail-color;
+    color: $iq-off-white;
+    border-color: $iq-fail-color;
 
     &.disabled, &[disabled] {
-      background-color: $fail-disabled;
+      background-color: $iq-fail-color-disabled;
     }
 
     &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
-      border-color: $fail-active;
+      border-color: $iq-fail-color-active;
     }
 
     &:active:not(.disabled):not([disabled]) {
-      background-color: $fail-active;
+      background-color: $iq-fail-color-active;
     }
   }
 
@@ -109,8 +110,8 @@
   ##Form Actions
 */
 .btn-primary.disabled, .btn-primary[disabled] {
-  color: $off-white;
-  background-color: $light-blue;
+  color: $iq-off-white;
+  background-color: $iq-light-blue;
   text-shadow: none;
 }
 

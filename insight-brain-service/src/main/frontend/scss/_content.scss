@@ -2,7 +2,7 @@
   #Layout
 */
 body {
-  background-color: $grey-3;
+  background-color: $iq-grey-3;
   color: #333333;
   display: block;
   height: auto;
@@ -17,9 +17,9 @@ body {
 .main-view {
   @include main-content();
 
-  background-color: $off-white;
-  border-right: solid 1px $grey-4;
-  border-left: solid 1px $grey-4;
+  background-color: $iq-off-white;
+  border-right: solid 1px $iq-grey-4;
+  border-left: solid 1px $iq-grey-4;
   width: calc(100% - 2px);
 }
 
@@ -30,8 +30,8 @@ body {
 }
 
 .sidebar-container {
-  background-color: $grey-2;
-  border-right: 1px solid $grey-3;
+  background-color: $iq-grey-2;
+  border-right: 1px solid $iq-grey-3;
   display: inline-block;
   height: 100%;
   position: relative;
@@ -40,7 +40,7 @@ body {
   width: 22%;
   min-width: 215px;
   max-width: 300px;
-  z-index: $zindexSidebar;
+  z-index: $iq-sidebar-zindex;
 
   // Hack to prevent rendering issues in Chrome. This will create a new layer with its own backing surface, preventing
   // the background and text from disappearing. Witnessed on Chrome 43.0.2357.130 (64-bit) on a MBP laptop screen.

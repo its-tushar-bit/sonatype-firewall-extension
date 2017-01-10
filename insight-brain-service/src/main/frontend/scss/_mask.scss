@@ -2,24 +2,24 @@
   #Mask elements
 */
 .form-mask {
-  background-color: rgba($off-white, 0.9);
+  background-color: rgba($iq-off-white, 0.9);
   position: fixed;
   text-align: center;
-  z-index: $form-mask-zindex;
+  z-index: $iq-form-mask-zindex;
 
   .form-mask-msg {
-    background-color: $off-white;
-    border: 2px solid $slate;
-    box-shadow: -4px 4px 0px rgba($slate, 0.65);
+    background-color: $iq-off-white;
+    border: 2px solid $iq-slate;
+    box-shadow: -4px 4px 0px rgba($iq-slate, 0.65);
     display: inline-block;
     padding: 12px;
     position: relative;
     top: 50%;
-    z-index: $form-mask-zindex + 1;
+    z-index: $iq-form-mask-zindex + 1;
 
     &.success {
-      border-color: $dark-green;
-      color: $dark-green;
+      border-color: $iq-dark-green;
+      color: $iq-dark-green;
     }
   }
 }

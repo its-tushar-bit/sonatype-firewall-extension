@@ -2,17 +2,17 @@
   #Main Header
 */
 $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87, 87, 87, 1);
-$header-dropdown-panel-border: 1px solid $grey-4;
+$header-dropdown-panel-border: 1px solid $iq-grey-4;
 $header-dropdown-panel-background-color-rgba: rgba(0, 0, 0, 0.2);
 $main-header-color: #CCCCCC;
 $main-header-highlight: #2476FC;
-$notification-item-border: 1px solid $grey-1;
+$notification-item-border: 1px solid $iq-grey-1;
 
 /*
   First Row
 */
 .iq-header {
-  background-color: $off-black;
+  background-color: $iq-off-black;
   min-height: 40px;
   margin: 0;
   overflow: visible;
@@ -20,12 +20,12 @@ $notification-item-border: 1px solid $grey-1;
 }
 
 .iq-header__inner {
-  background-color: $off-black;
+  background-color: $iq-off-black;
   min-height: inherit;
   margin: 0 auto;
   width: 100%;
-  max-width: $maximum-content-width;
-  min-width: $minimum-content-width;
+  max-width: $iq-content-width-maximum;
+  min-width: $iq-content-width-minimum;
 
   &::before {
     display: table;
@@ -99,10 +99,10 @@ i.sonatype-icons, i.glyphicons-sonatype {
     width: 40px;
 
     &:hover {
-      color: $off-white;
+      color: $iq-off-white;
 
       i::before {
-        color: $off-white;
+        color: $iq-off-white;
       }
     }
   }
@@ -175,9 +175,9 @@ i.sonatype-icons, i.glyphicons-sonatype {
 }
 
 .iq-dropdown-menu__title {
-  background-color: $off-white;
+  background-color: $iq-off-white;
   border-bottom: $header-dropdown-panel-border;
-  color: $slate;
+  color: $iq-slate;
   font-size: 14px;
   padding: 12px 8px;
 }
@@ -190,7 +190,7 @@ i.sonatype-icons, i.glyphicons-sonatype {
   overflow-x: hidden;
 
   li {
-    background-color: $off-white;
+    background-color: $iq-off-white;
     border-bottom: $notification-item-border;
     font-family: Proxima Nova Regular;
     font-size: 14px;
@@ -203,7 +203,7 @@ i.sonatype-icons, i.glyphicons-sonatype {
     }
 
     &:hover {
-      background-color: $grey-1;
+      background-color: $iq-grey-1;
       cursor: pointer;
     }
   }
@@ -225,7 +225,7 @@ i.sonatype-icons, i.glyphicons-sonatype {
 
   &::after {
     border-right: 8px solid transparent;
-    border-bottom: 8px solid $off-white;
+    border-bottom: 8px solid $iq-off-white;
     border-left: 8px solid transparent;
     content: "";
     display: inline-block;
@@ -238,12 +238,12 @@ i.sonatype-icons, i.glyphicons-sonatype {
 // Modifications to Bootstrap styles above
 
 a.iq-dropdown__link {
-  color: $off-black;
+  color: $iq-off-black;
   display: block; // for top & bottom padding
   padding: 8px; // here to avoid dead zones on click targets
 
   &:hover {
-    color: $off-black;
+    color: $iq-off-black;
     text-decoration: none;
   }
 }
@@ -294,7 +294,7 @@ a.iq-dropdown__link {
   }
 
   .dropdown-sub-menu {
-    background-color: $off-white;
+    background-color: $iq-off-white;
     border: $header-dropdown-panel-border;
     border-radius: 0px;
     -webkit-box-shadow: $dropdown-menu-box-shadow;
@@ -310,7 +310,7 @@ a.iq-dropdown__link {
     &::before {
       border-top: 10px solid transparent;
       border-bottom: 10px solid transparent;
-      border-left: 8px solid $off-white;
+      border-left: 8px solid $iq-off-white;
       content: "";
       display: inline-block;
       position: absolute;
@@ -333,7 +333,7 @@ a.iq-dropdown__link {
       white-space: normal;
 
       &:hover {
-        background-color: $off-white;
+        background-color: $iq-off-white;
         cursor: default;
       }
     }
@@ -341,24 +341,24 @@ a.iq-dropdown__link {
 }
 
 .iq-notification__link {
-  background-color: $off-white;
-  color: $off-black;
+  background-color: $iq-off-white;
+  color: $iq-off-black;
   cursor: auto;
   min-height: 36px;
   padding: 8px;
 
   &.selected {
-    background-color: $grey-1;
+    background-color: $iq-grey-1;
   }
 
   &:hover {
-    color: $off-black;
+    color: $iq-off-black;
     cursor: pointer;
     text-decoration: none;
   }
 
   &.viewed {
-    color: $slate;
+    color: $iq-slate;
   }
 }
 

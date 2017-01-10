@@ -6,104 +6,109 @@ $iq-sonatype-blue: #336699;
 $iq-sonatype-orange: #f89100;
 
 // Colour variables
-$main-background-color: #fff;
+$iq-main-background-color: #fff;
 
-$off-black: #070707;
-$slate: #575757;
-$off-white: #fefefe;
+$iq-off-black: #070707;
+$iq-slate: #575757;
+$iq-off-white: #fefefe;
 
-$grey-4: #cacaca;
-$grey-3: #dedede;
-$grey-2: #eaeaea;
-$grey-1: #f5f5f5;
+$iq-grey-4: #cacaca;
+$iq-grey-3: #dedede;
+$iq-grey-2: #eaeaea;
+$iq-grey-1: #f5f5f5;
 
-$link-blue: #2476c3;
-$deep-blue: #0046b1;
-$dark-blue: #006bbf;
-$light-blue: #97cbee;
+$iq-link-color: #2476c3;
+$iq-link-color-active: #0046b1;
 
-$dark-purple: #885195;
-$medium-purple: #b087ba;
-$light-purple: #dbc6df;
+$iq-dark-blue: #006bbf;
+$iq-light-blue: #97cbee;
 
-$dark-green: #099843;
-$light-green: #b6e9ab;
+$iq-dark-purple: #885195;
+$iq-light-purple: #dbc6df;
+$iq-medium-purple: #b087ba;
 
-$dark-red: #bc012f;
-$light-red: #edb1af;
+$iq-dark-green: #099843;
+$iq-light-green: #b6e9ab;
 
-$orange: #f4861d;
-$yellow: #f5c648;
+$iq-dark-red: #bc012f;
+$iq-light-red: #edb1af;
 
-$valid-green: #84c900;
-$invalid-red: #c70000;
+$iq-orange: #f4861d;
+$iq-yellow: #f5c648;
 
-$alert-fg: #9d6800;
-$alert-bg: #fcf8e3;
+$iq-invalid-color: #c70000;
+$iq-valid-color: #84c900;
 
-$fail-fg: #831d1d;
-$fail-bg: #fce2e2;
-$fail-active: #5c0000;
-$fail-disabled: #dd9595;
+// Was alert-fg & alert-bg
+$iq-warn-color: #9d6800;
+$iq-warn-color-bg: #fcf8e3;
+
+$iq-fail-color: #831d1d;
+$iq-fail-color-bg: #fce2e2;
+
+$iq-fail-color-active: #5c0000;
+$iq-fail-color-disabled: #dd9595;
+$iq-fail-color-hover: #5d0000;
 
 $pickable-colors:
-  ('light-red', $light-red),
-  ('yellow', $yellow),
-  ('light-green', $light-green),
-  ('light-blue', $light-blue),
-  ('light-purple', $light-purple),
-  ('dark-red', $dark-red),
-  ('orange', $orange),
-  ('dark-green', $dark-green),
-  ('dark-blue', $dark-blue),
-  ('dark-purple', $dark-purple);
+  ('dark-blue', $iq-dark-blue),
+  ('light-blue', $iq-light-blue),
+  ('dark-green', $iq-dark-green),
+  ('light-green', $iq-light-green),
+  ('orange', $iq-orange),
+  ('dark-purple', $iq-dark-purple),
+  ('light-purple', $iq-light-purple),
+  ('dark-red', $iq-dark-red),
+  ('light-red', $iq-light-red),
+  ('yellow', $iq-yellow);
 
 /*
   ##Threat Colors
 */
-$critical-color: $dark-red;
-$severe-color: $orange;
-$moderate-color: $yellow;
-$none-color: $dark-blue;
-$low-color: $dark-blue;
-$policy-none-color: $light-blue;
-$ignore-color: $light-blue;
-$unspecified-color: #d9dade;
+$iq-threat-color-unspecified: #d9dade;
+$iq-threat-color-none: $iq-dark-blue;
+$iq-threat-color-low: $iq-dark-blue;
+$iq-threat-color-moderate: $iq-yellow;
+$iq-threat-color-severe: $iq-orange;
+$iq-threat-color-critical: $iq-dark-red;
+
+$iq-threat-color-ignore: $iq-light-blue;
+$iq-threat-color-policy-none: $iq-light-blue;
 
 $threat-levels:
-  ("critical", #FFF, $critical-color, (8, 9, 10)),
-  ("severe", #FFF, $severe-color, (4, 5, 6, 7)),
-  ("moderate", #444, $moderate-color, (1, 2, 3)),
-  ("none", #FFF, $none-color, (0));
+  ("none", #FFF, $iq-threat-color-none, (0)),
+  ("moderate", #444, $iq-threat-color-moderate, (1, 2, 3)),
+  ("severe", #FFF, $iq-threat-color-severe, (4, 5, 6, 7)),
+  ("critical", #FFF, $iq-threat-color-critical, (8, 9, 10));
 
 $policy-threat-levels:
-  ("critical", #FFF, $critical-color, (8, 9, 10)),
-  ("severe", #FFF, $severe-color, (4, 5, 6, 7)),
-  ("moderate", #444, $moderate-color, (2, 3)),
-  ("low", #444, $low-color, (1)),
-  ("none", #FFF, $policy-none-color, (0));
+  ("none", #FFF, $iq-threat-color-policy-none, (0)),
+  ("low", #444, $iq-threat-color-low, (1)),
+  ("moderate", #444, $iq-threat-color-moderate, (2, 3)),
+  ("severe", #FFF, $iq-threat-color-severe, (4, 5, 6, 7)),
+  ("critical", #FFF, $iq-threat-color-critical, (8, 9, 10));
+
+/*
+  #Borders
+*/
+$iq-grey-border: 1px solid $iq-grey-3;
 
 /*
   #z-indexes
   Gathered here for better visibility
 */
-$color-picker-zindex: $zindexModalBackdrop - 10;
-$form-mask-zindex: $zindexModal + 10;
+$iq-color-picker-zindex: $zindexModalBackdrop - 10;
+$iq-form-mask-zindex: $zindexModal + 10;
+
 // need the login panel above the form save mask
 // ui-bootstrap modal window template sets z-index via ng-style, hence important
-$zindex-login-modal: $zindexModal + 20 !important;
-$zindexSidebar: 1;
-
-/*
-  #Borders
-*/
-$small-grey-border: 1px solid #d3d3d3;
-$grey-border: 1px solid $grey-3;
+$iq-login-modal-zindex: $zindexModal + 20 !important;
+$iq-sidebar-zindex: 1;
 
 /*
   #Responsive
 */
-$minimum-content-width: 1024px;
-$maximum-content-width: 1366px;
+$iq-content-width-minimum: 1024px;
+$iq-content-width-maximum: 1366px;
 
-$maximum-paragraph-width: 562px;
+$iq-paragraph-width-maximum: 562px;

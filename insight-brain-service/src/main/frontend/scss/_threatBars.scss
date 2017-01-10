@@ -4,8 +4,8 @@
 }
 
 // name, foreground, background
-$threat-bars: ("ignore", #FFF, $ignore-color),
-        ("unspecified", #FFF, $unspecified-color);
+$threat-bars: ("ignore", #FFF, $iq-threat-color-ignore),
+        ("unspecified", #FFF, $iq-threat-color-unspecified);
 
 @each $threatdef in join($threat-levels, $threat-bars) {
   .clm-bar.#{nth($threatdef, 1)} {

@@ -2,8 +2,8 @@
 @mixin main-content($top: '') {
   margin: 0 auto;
   width: 100%;
-  max-width: $maximum-content-width;
-  min-width: $minimum-content-width;
+  max-width: $iq-content-width-maximum;
+  min-width: $iq-content-width-minimum;
 
   @if $top != '' {
     height: calc(100vh - #{$top});

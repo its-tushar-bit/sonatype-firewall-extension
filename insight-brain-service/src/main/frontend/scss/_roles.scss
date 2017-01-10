@@ -14,7 +14,7 @@ $role-list-width: 606px;
   }
 
   form > h2 {
-    border-bottom: $small-grey-border;
+    border-bottom: $iq-grey-border;
     margin-bottom: 12px;
   }
 
@@ -36,11 +36,11 @@ $role-list-width: 606px;
 }
 
 tr:first-child .role-summary {
-  border-top: $small-grey-border;
+  border-top: $iq-grey-border;
 }
 
 .role-summary {
-  border-bottom: $small-grey-border;
+  border-bottom: $iq-grey-border;
   padding-bottom: 8px;
   vertical-align: middle;
   width: 100%;

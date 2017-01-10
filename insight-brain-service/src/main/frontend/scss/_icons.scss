@@ -44,35 +44,35 @@ $font-families: ('sonatype-icons', 'sonatype-glyphicons');
 
 @mixin icon-colours($property) {
   &.white {
-    #{$property}: $grey-2;
+    #{$property}: $iq-grey-2;
   }
 
   &.grey, &.slate {
-    #{$property}: $slate;
+    #{$property}: $iq-slate;
   }
 
   &.black {
-    #{$property}: $off-black;
+    #{$property}: $iq-off-black;
   }
 
   &.green {
-    #{$property}: $dark-green;
+    #{$property}: $iq-dark-green;
   }
 
   &.yellow {
-    #{$property}: $yellow;
+    #{$property}: $iq-yellow;
   }
 
   &.orange {
-    #{$property}: $orange;
+    #{$property}: $iq-orange;
   }
 
   &.red {
-    #{$property}: $dark-red;
+    #{$property}: $iq-dark-red;
   }
 
   &.blue {
-    #{$property}: $dark-blue;
+    #{$property}: $iq-dark-blue;
   }
 
   @each $color-name, $pickable-color in $pickable-colors {
@@ -134,8 +134,8 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 */
 .fa {
   &.inverse {
-    background-color: $slate;
-    color: $off-white;
+    background-color: $iq-slate;
+    color: $iq-off-white;
   }
 
   &.size-22px {
@@ -195,7 +195,7 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
   &.outline {
     // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
-    text-shadow: $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px;
+    text-shadow: $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px;
   }
 
   &.fail {
@@ -203,7 +203,7 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   }
 
   &.warn {
-    color: $orange;
+    color: $iq-orange;
   }
 }
 
@@ -224,7 +224,7 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   &.outline {
     > path {
       fill: none;
-      stroke: $slate;
+      stroke: $iq-slate;
       stroke-width: 12px;
     }
   }
@@ -293,7 +293,7 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 .tree-view-item:not(.selected) {
   .proprietary-components-icon {
     span:before, span:after {
-      color: $grey-2;
+      color: $iq-grey-2;
     }
   }
 }

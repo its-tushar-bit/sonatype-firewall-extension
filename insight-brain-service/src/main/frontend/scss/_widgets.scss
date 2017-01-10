@@ -7,26 +7,26 @@
 .clm-alert {
   $maximum-alert-scroll-height: 318px;
 
-  background-color: $alert-bg;
-  border-color: $alert-fg;
+  background-color: $iq-warn-color-bg;
+  border-color: $iq-warn-color;
   border-radius: 0;
-  color: $alert-fg;
+  color: $iq-warn-color;
   margin: 5px;
   padding: 12px 8px;
 
   &.alert-error {
-    background-color: $fail-bg;
-    border-color: $fail-fg;
-    color: $fail-fg;
+    background-color: $iq-fail-color-bg;
+    border-color: $iq-fail-color;
+    color: $iq-fail-color;
   }
 
   &.alert-info {
-    background-color: $off-white;
-    border-color: $dark-blue;
-    color: $off-black;
+    background-color: $iq-off-white;
+    border-color: $iq-dark-blue;
+    color: $iq-off-black;
 
     .fa {
-      color: $dark-blue;
+      color: $iq-dark-blue;
     }
   }
 
@@ -46,7 +46,7 @@
 
 #move-app-error-modal {
   .fa-warning {
-    color: $fail-fg;
+    color: $iq-fail-color;
   }
 
   li {
@@ -92,7 +92,7 @@
     }
 
     &.collapse {
-      border-top: 5px solid $slate;
+      border-top: 5px solid $iq-slate;
       border-right: 5px solid transparent;
       border-left: 5px solid transparent;
       margin: 6px 3px;
@@ -101,7 +101,7 @@
     &.expand {
       border-top: 5px solid transparent;
       border-bottom: 5px solid transparent;
-      border-left: 5px solid $slate;
+      border-left: 5px solid $iq-slate;
       margin: 3px 8px 3px 3px;
     }
   }
@@ -121,17 +121,17 @@
     @extend h3;
     @include semi-bold();
 
-    color: $slate;
+    color: $iq-slate;
     margin-bottom: 16px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 
     a {
-      color: $link-blue;
+      color: $iq-link-color;
 
       &:hover {
-        border-bottom: 1px solid $link-blue;
+        border-bottom: 1px solid $iq-link-color;
         text-decoration: none;
       }
 
@@ -209,9 +209,9 @@
     .tree-view-item {
       @extend h4;
 
-      border-top: 1px solid $grey-2;
-      border-bottom: 1px solid $grey-2;
-      color: $slate;
+      border-top: 1px solid $iq-grey-2;
+      border-bottom: 1px solid $iq-grey-2;
+      color: $iq-slate;
       display: block;
       margin-right: -8px;
       margin-bottom: 0px;
@@ -229,10 +229,10 @@
       }
 
       &.selected {
-        background: $off-white;
-        border-top: 1px solid $grey-4;
-        border-bottom: 1px solid $grey-4;
-        color: $off-black;
+        background: $iq-off-white;
+        border-top: 1px solid $iq-grey-4;
+        border-bottom: 1px solid $iq-grey-4;
+        color: $iq-off-black;
         cursor: default;
         padding-top: 7px;
         padding-bottom: 7px;
@@ -247,29 +247,29 @@
           cursor: default;
 
           .twisty.collapse {
-            border-top-color: $grey-4;
+            border-top-color: $iq-grey-4;
           }
         }
       }
 
       &.disabled {
-        color: $grey-4;
+        color: $iq-grey-4;
         cursor: not-allowed;
 
         .inverse {
-          background-color: $grey-4;
+          background-color: $iq-grey-4;
         }
 
         .twisty-container {
           cursor: not-allowed;
 
           .twisty.expand {
-            border-left-color: $grey-4;
+            border-left-color: $iq-grey-4;
           }
         }
 
         .hexagon path {
-          stroke: $grey-4;
+          stroke: $iq-grey-4;
         }
       }
 
@@ -285,7 +285,7 @@
 */
 .tree-view.detail-tree-view {
   .fa.outline {
-    color: $grey-2;
+    color: $iq-grey-2;
   }
 }
 
@@ -304,7 +304,7 @@
 
 .tooltip-arrow {
   .tooltip.top &, .tooltip.top-left & {
-    border-top-color: $off-black;
+    border-top-color: $iq-off-black;
   }
 
   .tooltip.top-left & { // missing in our version of bootstrap
@@ -313,15 +313,15 @@
   }
 
   .tooltip.bottom & {
-    border-bottom-color: $off-black;
+    border-bottom-color: $iq-off-black;
   }
 
   .tooltip.right & {
-    border-right-color: $off-black;
+    border-right-color: $iq-off-black;
   }
 
   .tooltip.left & {
-    border-left-color: $off-black;
+    border-left-color: $iq-off-black;
   }
 
   &::after {
@@ -340,14 +340,14 @@
     }
 
     .tooltip.top &, .tooltip.top-left & {
-      border-top-color: $slate;
+      border-top-color: $iq-slate;
       border-bottom-width: 0;
       margin-top: -6px;
     }
 
     .tooltip.bottom & {
       border-top-width: 0;
-      border-bottom-color: $slate;
+      border-bottom-color: $iq-slate;
       margin-top: 1px;
     }
 
@@ -357,14 +357,14 @@
     }
 
     .tooltip.right & {
-      border-right-color: $slate;
+      border-right-color: $iq-slate;
       border-left-width: 0;
       margin-left: 1px;
     }
 
     .tooltip.left & {
       border-right-width: 0;
-      border-left-color: $slate;
+      border-left-color: $iq-slate;
       right: 1px;
     }
   }
@@ -379,10 +379,10 @@
 }
 
 .tooltip-inner {
-  background-color: $slate;
-  border: 1px solid $off-black;
+  background-color: $iq-slate;
+  border: 1px solid $iq-off-black;
   border-radius: 0;
-  color: $off-white;
+  color: $iq-off-white;
 }
 
 .tooltip.top-left.entity-item-tooltip .tooltip-arrow {
@@ -420,7 +420,7 @@
   ## Select List Item
 */
 .large-select-list-item {
-  border-bottom: 1px solid $grey-2;
+  border-bottom: 1px solid $iq-grey-2;
   cursor: pointer;
   font-size: 13px;
   padding-top: 4px;
@@ -438,7 +438,7 @@
   }
 
   &:hover {
-    background-color: $grey-4;
+    background-color: $iq-grey-4;
   }
 
   .large-select-list-item-content {
@@ -485,7 +485,7 @@
     margin-top: -4px;
 
     .caret {
-      border-top: 6px solid $slate;
+      border-top: 6px solid $iq-slate;
       border-width: 6px;
       margin-top: 7px;
       margin-left: 6px;
@@ -499,11 +499,11 @@
    *
    */
   .dropdown-menu {
-    background: $off-white;
-    border: 1px solid $grey-4;
+    background: $iq-off-white;
+    border: 1px solid $iq-grey-4;
     border-radius: 4px;
-    box-shadow: -4px 4px 10px 0px $slate;
-    color: $slate;
+    box-shadow: -4px 4px 10px 0px $iq-slate;
+    color: $iq-slate;
     padding: 8px 0px 8px 0px;
 
     li {
@@ -512,9 +512,9 @@
       a {
         @include semi-bold();
 
-        background: $off-white;
-        border-top: 1px solid $off-white;
-        border-bottom: 1px solid $off-white;
+        background: $iq-off-white;
+        border-top: 1px solid $iq-off-white;
+        border-bottom: 1px solid $iq-off-white;
         color: inherit;
         height: 32px;
         line-height: 32px;
@@ -532,11 +532,11 @@
 
         &:not(.link) {
           &:active {
-            background: $grey-1;
-            color: $off-black;
+            background: $iq-grey-1;
+            color: $iq-off-black;
           }
           &:hover:not(:active) {
-            color: $off-black;
+            color: $iq-off-black;
           }
         }
         &:hover, &:focus {
@@ -560,7 +560,7 @@
         width: 12px;
       }
       &.divider {
-        background-color: $grey-4;
+        background-color: $iq-grey-4;
         border: none;
         height: 1px;
         margin: 8px 12px 8px 12px;
@@ -581,7 +581,7 @@
   div {
     @include square(32px);
 
-    border: 1px solid $off-black;
+    border: 1px solid $iq-off-black;
     cursor: pointer;
     display: inline-block;
     position: relative;
@@ -597,15 +597,15 @@
     }
 
     &.selected {
-      border: 1px solid $off-white;
+      border: 1px solid $iq-off-white;
       z-index: 1;
     }
 
     .modal & {
-      z-index: $color-picker-zindex;
+      z-index: $iq-color-picker-zindex;
 
       &.selected {
-        z-index: $color-picker-zindex + 1;
+        z-index: $iq-color-picker-zindex + 1;
       }
     }
   }
@@ -676,20 +676,20 @@ double-column-picker {
     width: inherit;
 
     table {
-      border: 1px solid $grey-4;
+      border: 1px solid $iq-grey-4;
       table-layout: fixed;
       width: inherit;
 
       &.disabled {
-        border: 1px solid $grey-3;
+        border: 1px solid $iq-grey-3;
 
         .title {
-          color: $grey-4;
+          color: $iq-grey-4;
         }
       }
 
       .filter-row {
-        border-bottom: 1px solid $grey-4;
+        border-bottom: 1px solid $iq-grey-4;
         height: 32px;
 
         .td-container {
@@ -711,14 +711,14 @@ double-column-picker {
       }
 
       .info-row {
-        border-bottom: 1px solid $grey-2;
+        border-bottom: 1px solid $iq-grey-2;
 
         td {
           vertical-align: top;
           width: 49.5%;
 
           &:first-child {
-            border-right: 1px dotted $grey-3;
+            border-right: 1px dotted $iq-grey-3;
           }
 
           .td-container {
@@ -752,7 +752,7 @@ double-column-picker {
           width: 49.5%;
 
           &:first-child {
-            border-right: 1px dotted $grey-3;
+            border-right: 1px dotted $iq-grey-3;
           }
 
           .td-container {
@@ -781,7 +781,7 @@ double-column-picker {
                 white-space: nowrap;
 
                 .fa {
-                  color: $slate;
+                  color: $iq-slate;
                   margin-right: 8px;
                 }
               }
@@ -813,9 +813,9 @@ double-column-picker {
     vertical-align: top;
 
     &.selected-threat-level {
-      border-top: 1px solid $grey-4;
-      border-bottom: 1px solid $grey-4;
-      border-left: 1px solid $grey-4;
+      border-top: 1px solid $iq-grey-4;
+      border-bottom: 1px solid $iq-grey-4;
+      border-left: 1px solid $iq-grey-4;
 
       &.disabled {
         cursor: not-allowed;
@@ -824,10 +824,10 @@ double-column-picker {
       }
     }
     &.caret-button {
-      border: 1px solid $grey-4;
+      border: 1px solid $iq-grey-4;
 
       .caret {
-        border-top: 6px solid $grey-4;
+        border-top: 6px solid $iq-grey-4;
         border-right: 5px solid transparent;
         border-left: 5px solid transparent;
         margin-top: 13px;
@@ -835,11 +835,11 @@ double-column-picker {
       }
 
       &.disabled {
-        border: 1px solid $grey-3;
+        border: 1px solid $iq-grey-3;
         cursor: not-allowed;
 
         .caret {
-          border-top: 6px solid $grey-3;
+          border-top: 6px solid $iq-grey-3;
         }
       }
     }
@@ -852,11 +852,11 @@ double-column-picker {
   &:not(.open) {
     .selected-threat-level:hover + .caret-button:not(.disabled) {
       .caret {
-        border-top: 6px solid $slate;
+        border-top: 6px solid $iq-slate;
       }
     }
     .caret-button:not(.disabled):hover .caret {
-      border-top: 6px solid $slate;
+      border-top: 6px solid $iq-slate;
     }
   }
   
@@ -883,10 +883,10 @@ double-column-picker {
   }
 
   .dropdown-menu {
-    background-color: $off-white;
-    border: 1px solid $off-white;
+    background-color: $iq-off-white;
+    border: 1px solid $iq-off-white;
     border-radius: 0;
-    box-shadow: -4px 4px 10px 0 $slate;
+    box-shadow: -4px 4px 10px 0 $iq-slate;
     margin: 0;
     padding: 0;
     min-width: 30px;
@@ -914,7 +914,7 @@ double-column-picker {
   ## Dropdown Selector
 */
 dropdown-selector {
-  border: 1px solid $grey-4;
+  border: 1px solid $iq-grey-4;
   border-left-width: 4px;
   display: inline-block;
   vertical-align: middle;
@@ -931,7 +931,7 @@ dropdown-selector {
   }
 
   &.disabled {
-    border-color: $grey-3;
+    border-color: $iq-grey-3;
     border-left-style: double;
 
     &:hover,
@@ -940,22 +940,22 @@ dropdown-selector {
     }
 
     .selected-item .caret {
-      border-top: 6px solid $grey-3;
+      border-top: 6px solid $iq-grey-3;
     }
   }
 
   &:not(.disabled) {
     &.initial-value {
-      border-left-color: $valid-green;
+      border-left-color: $iq-valid-color;
       border-left-style: double;
     }
 
     &.ng-valid {
-      border-left-color: $valid-green;
+      border-left-color: $iq-valid-color;
     }
 
     &.ng-invalid.ng-dirty {
-      border-color: $invalid-red;
+      border-color: $iq-invalid-color;
       border-left-style: solid;
     }
   }
@@ -964,12 +964,12 @@ dropdown-selector {
     &.open {
       .selected-item,
       .selected-item:hover {
-        color: $grey-4;
+        color: $iq-grey-4;
       }
     }
 
     &:not(.open) .selected-item:not(.disabled):hover .caret {
-      border-top: 6px solid $slate;
+      border-top: 6px solid $iq-slate;
     }
 
     .selected-item,
@@ -986,12 +986,12 @@ dropdown-selector {
       white-space: nowrap;
 
       &.none-selected {
-        color: $grey-4;
+        color: $iq-grey-4;
       }
     }
 
     .selected-item .caret {
-      border-top: 6px solid $grey-4;
+      border-top: 6px solid $iq-grey-4;
       border-right: 5px solid transparent;
       border-left: 5px solid transparent;
       position: absolute;
@@ -1000,11 +1000,11 @@ dropdown-selector {
     }
 
     .dropdown-menu {
-      background: $off-white;
-      border: 1px solid $grey-4;
+      background: $iq-off-white;
+      border: 1px solid $iq-grey-4;
       border-collapse: separate;
       border-radius: 0;
-      box-shadow: -4px 6px 10px $slate;
+      box-shadow: -4px 6px 10px $iq-slate;
       max-height: 300px; // 10 list items
       margin: 0 0 0 -4px;
       overflow-y: auto;
@@ -1014,7 +1014,7 @@ dropdown-selector {
 
       > li {
         a {
-          color: $slate;
+          color: $iq-slate;
           height: 30px;
           line-height: 30px;
           overflow: hidden;
@@ -1023,9 +1023,9 @@ dropdown-selector {
           white-space: nowrap;
 
           &:hover {
-            background-color: $off-white; // override bootstrap style. 'inherit' causes flicker in IE9
+            background-color: $iq-off-white; // override bootstrap style. 'inherit' causes flicker in IE9
             background-image: inherit;
-            color: $off-black;
+            color: $iq-off-black;
             filter: none;
           }
         }
@@ -1038,11 +1038,11 @@ dropdown-selector {
   ## Sort Column
 */
 .sort-col {
-  color: $slate;
+  color: $iq-slate;
   position: relative;
 
   &:hover, &:active, &:visited, &:link, &:focus {
-    color: $slate;
+    color: $iq-slate;
     text-decoration: none;
   }
 
@@ -1062,10 +1062,10 @@ dropdown-selector {
   }
 
   .fa {
-    color: $grey-4;
+    color: $iq-grey-4;
 
     &.up, &.down {
-      color: $slate;
+      color: $iq-slate;
     }
   }
 }
@@ -1108,12 +1108,12 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 .greedy-table {
   thead tr {
     th {
-      background-color: $grey-1;
-      color: $slate;
+      background-color: $iq-grey-1;
+      color: $iq-slate;
       text-align: left;
 
       &.selected-column {
-        background-color: $grey-2;
+        background-color: $iq-grey-2;
       }
     }
   }
@@ -1127,10 +1127,10 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
       border-top: 1px solid transparent;
 
       &:not(:first-child) {
-        border-top-color: $grey-1;
+        border-top-color: $iq-grey-1;
       }
       &:last-child {
-        border-bottom: 1px solid $grey-1;
+        border-bottom: 1px solid $iq-grey-1;
       }
 
       &.clickable {
@@ -1138,7 +1138,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
           cursor: pointer;
 
           > .fa-chevron-right {
-            color: $off-black;
+            color: $iq-off-black;
           }
         }
 
@@ -1147,27 +1147,27 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
         }
 
         &:hover {
-          border-top-color: $grey-4;
+          border-top-color: $iq-grey-4;
 
           &:last-child {
-            border-bottom-color: $grey-4;
+            border-bottom-color: $iq-grey-4;
           }
 
           + tr {
-            border-top-color: $grey-4;
+            border-top-color: $iq-grey-4;
           }
         }
 
         &:active {
-          background: $grey-1;
-          border-top-color: $slate;
+          background: $iq-grey-1;
+          border-top-color: $iq-slate;
 
           &:last-child {
-            border-bottom-color: $slate;
+            border-bottom-color: $iq-slate;
           }
 
           + tr {
-            border-top-color: $slate;
+            border-top-color: $iq-slate;
           }
         }
       }
@@ -1201,7 +1201,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
         padding-left: 24px;
 
         > .fa-chevron-right {
-          color: $slate;
+          color: $iq-slate;
           font-size: 12px;
         }
       }
@@ -1217,7 +1217,7 @@ root-organization-migrate {
   margin: 0px 8px 0px 8px;
 
   #root-org-migrate-banner a {
-    color: $link-blue;
+    color: $iq-link-color;
   }
   
   .alert {
@@ -1255,14 +1255,15 @@ root-organization-migrate {
   > .tooltip-arrow {
     border-bottom-color: $green !important;
 
-    &::after {
-      border-bottom-color: $off-white !important;
+    &:after {
+      border-bottom-color: $iq-off-white !important;
+
     }
   }
 
   > .tooltip-content {
     // This is a wrapper around the extra content, since Bootstrap tooltip overwrites the tooltip-inner with the title
-    background-color: $off-white;
+    background-color: $iq-off-white;
     border: 1px solid $green;
     color: $green;
     padding: 4px 8px 4px 8px;
@@ -1291,7 +1292,7 @@ root-organization-migrate {
     width: 180px;
 
     .slider-track {
-      background: $grey-4 none;
+      background: $iq-grey-4 none;
       border-radius: 4px;
       border-width: 0px;
       box-shadow: none;
@@ -1310,10 +1311,10 @@ root-organization-migrate {
       .slider-handle {
         @include semi-bold();
 
-        background: $slate none;
+        background: $iq-slate none;
         border-width: 0px;
         box-shadow: none;
-        color: $off-white;
+        color: $iq-off-white;
         font-size: 12px;
         height: 16px !important;
         width: 16px;

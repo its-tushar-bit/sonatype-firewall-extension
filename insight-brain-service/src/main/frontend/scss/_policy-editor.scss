@@ -14,7 +14,7 @@ table.policy-actions thead tr:first-child th {
 
 table.policy-actions .action-header {
   background-color: #e8e8e8;
-  border: $grey-border;
+  border: $iq-grey-border;
   border-bottom: 0;
   border-radius: 4px 4px 0 0;
   color: #444;
@@ -49,7 +49,7 @@ table.policy-actions > tbody > tr > td {
 }
 
 table.policy-actions td:last-child, table.policy-actions th:last-child {
-  border-right: $grey-border;
+  border-right: $iq-grey-border;
 }
 
 .add-condition-button {
@@ -58,13 +58,13 @@ table.policy-actions td:last-child, table.policy-actions th:last-child {
 }
 
 .policy-condition {
-  border-bottom: 1px solid $grey-1;
+  border-bottom: 1px solid $iq-grey-1;
   margin-right: $condition-indent-width;
   margin-left: $condition-indent-width - $left-margin;
   padding-bottom: $condition-row-padding;
 
   &:first-child {
-    border-top: 1px solid $grey-1;
+    border-top: 1px solid $iq-grey-1;
     margin-top: $condition-row-padding;
   }
 

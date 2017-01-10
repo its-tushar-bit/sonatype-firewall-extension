@@ -63,22 +63,22 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     vertical-align: middle;
 
     i:before {
-      color: $deep-blue;
+      color: $iq-link-color-active;
       font-size: 14px;
       line-height: 16px;
       margin-right: 8px;
 
       &:hover {
-        color: $link-blue;
+        color: $iq-link-color;
       }
     }
 
     a {
-      color: $deep-blue;
+      color: $iq-link-color-active;
       margin-right: 5px;
 
       &:hover {
-        color: $link-blue;
+        color: $iq-link-color;
         text-decoration: none;
       }
     }

@@ -31,10 +31,10 @@
       .dashboard-filter-counter {
         @include semi-bold();
         
-        background-color: $grey-1;
-        border: 1px $grey-3 solid;
+        background-color: $iq-grey-1;
+        border: 1px $iq-grey-3 solid;
         border-radius: 8px;
-        color: $slate;
+        color: $iq-slate;
         float: right;
         font-size: 11px;
         height: 16px;
@@ -43,8 +43,8 @@
         padding: 0px 4px;
         
         &.inactive {
-          background-color: $grey-3;
-          border-color: $grey-4;
+          background-color: $iq-grey-3;
+          border-color: $iq-grey-4;
           text-align: center;
           min-width: 8px;
         }
@@ -57,14 +57,14 @@
     }
 
     .dashboard-filter-name {
-      border-bottom: 1px $grey-4 solid;
-      color: $slate;
+      border-bottom: 1px $iq-grey-4 solid;
+      color: $iq-slate;
       margin-top: -8px;
       margin-bottom: 7px; // assumes tree-view-item has padding of 7px
       padding-bottom: 3px;
 
       & .dashboard-filter-dirty-asterisk {
-        color: $off-black;
+        color: $iq-off-black;
         font-size: 16px;
       }
     }
@@ -73,8 +73,8 @@
   .dashboard-filter-footer {
     $footer-side-margin: 8px;
     
-    border-top: 1px solid $grey-4;
-    box-shadow: 0px 0px 12px 10px $grey-2;
+    border-top: 1px solid $iq-grey-4;
+    box-shadow: 0px 0px 12px 10px $iq-grey-2;
     margin: 0 $footer-side-margin;
     padding: 12px 0;
     position: absolute;
@@ -128,8 +128,8 @@
     }
 
     .menu-sub-header {
-      border-bottom: 1px solid $grey-4;
-      color: $off-black;
+      border-bottom: 1px solid $iq-grey-4;
+      color: $iq-off-black;
       margin: 0 8px 0 0;
       padding: 12px;
     }
@@ -140,7 +140,7 @@
     }
 
     .disabled {
-      color: $grey-4;
+      color: $iq-grey-4;
       cursor: not-allowed;
     }
 
@@ -159,7 +159,7 @@
       white-space: nowrap;
       
       .filter-item {
-        border-bottom: 1px solid $grey-1;
+        border-bottom: 1px solid $iq-grey-1;
         border-top: 1px solid transparent;
         line-height: 40px;
         margin-right: 8px;
@@ -167,16 +167,16 @@
         text-overflow: ellipsis;
         
         &:hover {
-          border-top: 1px solid $grey-4;
-          border-bottom: 1px solid $grey-4;
-          color: $off-black;
+          border-top: 1px solid $iq-grey-4;
+          border-bottom: 1px solid $iq-grey-4;
+          color: $iq-off-black;
         }
         
         &:active {
-          background: $grey-1;
-          border-top: 1px solid $grey-4;
-          border-bottom: 1px solid $grey-4;
-          color: $off-black;
+          background: $iq-grey-1;
+          border-top: 1px solid $iq-grey-4;
+          border-bottom: 1px solid $iq-grey-4;
+          color: $iq-off-black;
         }
         
         &:focus {
@@ -186,10 +186,10 @@
     }
 
     .error {
-      background-color: $fail-bg;
-      border: 1px solid $fail-fg;
+      background-color: $iq-fail-color-bg;
+      border: 1px solid $iq-fail-color;
       border-radius: 0px 0px 4px 4px;
-      color: $fail-fg;
+      color: $iq-fail-color;
       margin-top: -1px;
       margin-bottom:-9px;
       margin-left: -9px;

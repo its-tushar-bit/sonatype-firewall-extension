@@ -5,12 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.util.Arrays;
-
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ManagementPage;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsRoleMappingList;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsRoleMappingList.RoleMappingElement;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsRoleMappingList.RoleMappingElement.Content;
@@ -25,11 +21,9 @@ import org.junit.Test;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Selenide.open;
 import static com.codeborne.selenide.Selenide.$;
 

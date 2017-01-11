@@ -5,10 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 

@@ -3,12 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.testing.functional
+(function(angular) {
+  'use strict';
 
-class AdministratorsPage
-    extends BasePage
-{
-  static url = "assets/index.html#/administrators"
-
-  static at = { $('#security').displayed }
-}
+  angular.module('role.membership.module', ['CLMAppLocation', 'CommonServices']);
+})(angular);

@@ -1,77 +1,13 @@
 <div id="security" style='min-width:955px'>
   <script type='text/ng-template' id='appSecurityEditor'>
-    <div style='width:500px; margin:5px'>
-      <div class="group-search-warning" ng-hide='!hasMixedGroupSearch'>
-        <i class="fa fa-info-circle size-16px"></i>One or more LDAP servers have group search disabled, which will
-        affect your results
-      </div>
-      <p class='btn-group' ng-hide='groupSearchEnabled'>
-        <button class='btn' ng-click='mtype=null' ng-class='{ active : !mtype }'>Users</button>
-        <button class='btn' ng-click='mtype="groups"' ng-class='{ active : mtype }'>Groups</button>
-      </p>
-      <div ng-switch='mtype'>
-        <div ng-switch-when='groups'>
-          <label for="groupname">Group Name</label>
-           <div class='input-append'>
-             <input type='text' id="groupname" name="groupname" ng-model='$parent.queryString' focus-input="true">
-             <button class='btn'
-                     ng-click='addGroup()'
-                     ng-disabled='!queryString || isDuplicate(queryString, "GROUP")'><i class='icon-plus'></i> Add Group</button>
-           </div>
-        </div>
-        <div ng-switch-default>
-          <span app-user-search set-results='setResults($members, $error)'
-                query-string='$parent.queryString' request-active='$parent.requestActive'></span>
-        </div>
-      </div>
-      <div>
-        <div class='selectList-large'>
-          <h5>Applied</h5>
-          <div>
-            <div>
-              <div ng-repeat='grouping in groupings'>
-                <div class='large-select-list-header' ng-if='showGroupingHeader(grouping, mappings)'>
-                  <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
-                </div>
-                <div ng-repeat='mapping in mappings'>
-                  <div ng-repeat='member in mapping.members | displayNameContains:queryString:grouping.type | orderBy:"displayName"'>
-                    <div user-list-item='member'
-                         icon-class='{{$parent.$index ? "emptyIconGlyph" : "icon-minus-sign"}}'
-                         query='{{queryString}}'
-                         ng-click='removeMember($parent.$index, member)'
-                         ng-class='{ inherited : $parent.$index }'>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class='selectList-large' ng-show='!mtype'>
-          <h5>Available</h5>
-          <div>
-            <div>
-              <div class='large-select-query-item' ng-show="!queryString">Search above to find users</div>
-              <div ng-repeat='grouping in groupings'>
-                <div class='large-select-list-header' ng-if='showGroupingHeader(grouping, queryResults)'>
-                  <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
-                </div>
-                <div ng-repeat='member in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
-                  <div user-list-item='member' ng-click='addMember(member)' icon-class='icon-plus-sign' query-string='{{queryString}}'></div>
-                </div>
-              </div>
-              <div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
-                <i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style='padding: 10px 0px'>
-        <div clm-alerts='alerts'></div>
-        <div clm-buttons='buttons' accept-fn='save()' cancel-fn='cancel()'></div>
-      </div>
-    </div>
+    <role-membership save="save" role="role" original-members="originalMembers"
+                     get-current-members="getCurrentMembers" is-dirty="isDirty"
+                     group-search-enabled="groupSearchEnabled"
+                     has-mixed-group-search="hasMixedGroupSearch" ldap-realm="context.ldapRealm">
+      <div clm-alerts='alerts'></div>
+      <button class="btn btn-link btn-cancel" type="button" ng-click="cancel()">Cancel</button>
+      <button class="btn btn-primary pull-right" type="submit">Save</button>
+    </role-membership>
   </script>
   <div load-error='error' reload='doLoad()'></div>
   <div expand-role-on-event='roleEditClick'></div>
@@ -132,7 +68,10 @@
                   <i class="icon-pencil"></i>
                 </button>
               </div>
-              <div app-security-editor='role.membersByOwner' role-id='role.roleId' ldap-realm='context.ldapRealm' group-search-enabled='context.groupSearchEnabled' has-mixed-group-search='context.hasMixedGroupSearch' hide='$parent.editMode = false'></div>
+              <app-security-editor role='role' group-search-enabled='context.groupSearchEnabled'
+                                   hide="$parent.editMode = false"
+                                   has-mixed-group-search='context.hasMixedGroupSearch'>
+              </app-security-editor>
             </div>
           </div>
         </div>

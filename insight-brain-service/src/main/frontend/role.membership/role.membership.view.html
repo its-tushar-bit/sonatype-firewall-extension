@@ -1,0 +1,63 @@
+<div class="role-membership">
+  <form id="role-membership-search-form" name="vm.accessEditorSearch" class="clm-form" role="form"
+        ng-class="{'prop-down': !vm.roleId}" novalidate ng-submit="vm.search()">
+    <div class="section">
+      <div class="field form-horizontal">
+        <label for="access-user-search-input">Search Users</label>
+        <div class="sub-label">
+          use &lsquo;*&rsquo; as wildcard (ex. &lsquo;Isa*&rsquo; matches &lsquo;Isaac Asimov&rsquo;)
+        </div>
+
+        <div class="sub-label" id="mixed-group-search-warning" ng-if="vm.hasMixedGroupSearch">
+          <i class="fa fa-info-circle size-16px"></i>One or more LDAP servers have group
+          search disabled, which will affect your results
+        </div>
+
+        <input id="access-user-search-input" type="text" name="search" ng-model="vm.query" ng-maxlength="60"
+               ng-disabled="vm.searchInProgress" clm-input><!--
+     --><button id="user-search-button" class="btn" type="submit" submit-validation submit-dirty="vm.query"
+                   ng-disabled="vm.searchInProgress" submit-type="search">
+          Search
+        </button>
+
+        <div ng-if="vm.searchError" class="section with-icon warning">
+          <i class="fa fa-warning"></i>Search failed. {{vm.searchError}}
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <form id="role-membership-add-group-form" name="vm.accessEditorAddGroup" class="clm-form" role="form"
+        ng-if="!vm.groupSearchEnabled" ng-class="{'prop-down': !vm.roleId}" novalidate ng-submit="vm.addGroup();">
+    <div class="section">
+      <div class="field form-horizontal">
+        <label for="access-add-group-input">Associate Group</label>
+        <div class="sub-label">requires an exact match of the group name</div>
+        <input id="access-add-group-input" type="text" name="add" ng-model="vm.newGroupName" ng-maxlength="60"
+               ng-disabled="vm.searchInProgress" clm-input/><!--
+     --><button id="add-group-button" class="btn" type="submit"
+                ng-disabled="vm.searchInProgress || !vm.newGroupName || vm.groupExists(vm.newGroupName)">
+          Add
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <form id="role-membership-membership-form" name="vm.accessEditor" class="clm-form" role="form"
+        novalidate ng-submit="vm.save()">
+    <input type="hidden" ng-model="vm.role" required>
+
+    <div class="field">
+      <label for="access-associated-users">Associated Users</label>
+      <double-column-picker id="access-associated-users" class="wide" list="vm.members" hide-filter="true"
+                            left-column-name="Available" right-column-name="Associated" item-name-param="displayName"
+                            icon-fn="vm.getIconName(item)" tooltip-fn="vm.getTooltip(item)"
+                            form-mask="vm.accessEditorSearchMask" mask-message="Searching"
+                            mask-skip-success>
+      </double-column-picker>
+    </div>
+
+    <!-- Form submittal buttons included via transclusion -->
+    <ng-transclude></ng-transclude>
+  </form>
+</div>

@@ -54,7 +54,7 @@ var AccessMockData = {
   },
 
   getQueryResults: function() {
-    // intentionally includes a user and group with the same internalName
+    // intentionally includes a user and group with the same internalName and a user who is in the RoleMappings data
     return {
       'members':[{
         'type':'USER',
@@ -74,6 +74,12 @@ var AccessMockData = {
         'displayName':'Administrators',
         'email':null,
         'realm':'asdf'
+      }, {
+        "type": "USER",
+        "internalName": "userTest1",
+        "displayName": "User Test1",
+        "email": "userTest1@sonatype.com",
+        "realm": "CLM"
       }],
       'error':null
     };

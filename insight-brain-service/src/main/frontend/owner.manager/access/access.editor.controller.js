@@ -6,37 +6,23 @@
 (function(angular) {
   'use strict';
 
-  function AccessEditorController($rootScope, $scope, $stateParams, $http, CLMAppLocations, Messages, LocalRoleService,
+  function AccessEditorController($rootScope, $scope, $stateParams, Messages, LocalRoleService,
                                   SameOwnerStateNavigationService, DeleteModalService, RoleMappingService)
   {
-    var originalMembers,
-        ownerType,
+    var ownerType,
         isNavigatingAfterRemove,
         vm = this;
 
-    vm.accessEditor = undefined;
     vm.accessEditorMask = undefined;
-    vm.accessEditorSearch = undefined;
-    vm.accessEditorSearchMask = undefined;
-    vm.searchInProgress = false;
-    vm.loadError = undefined;
-    vm.query = undefined;
-    vm.role = undefined;
     vm.availableRoles = undefined;
     vm.submitError = undefined;
-    vm.searchError = undefined;
-    vm.members = undefined;
-    vm.newGroupName = undefined;
-    vm.addGroup = addGroup;
-    vm.doLoad = doLoad;
-    vm.groupExists = groupExists;
     vm.isNew = !$stateParams.roleId;
     vm.isValid = isValid;
     vm.removeRole = removeRole;
     vm.save = save;
-    vm.search = search;
-    vm.getIconName = getIconName;
-    vm.getTooltip = getTooltip;
+    vm.doLoad = doLoad;
+    vm.role = undefined;
+    vm.originalMembers = undefined;
 
     vm.doLoad();
 
@@ -48,7 +34,8 @@
 
     function doLoad() {
       delete vm.loadError;
-      vm.members = [];
+
+      vm.originalMembers = [];
 
       RoleMappingService.get().then(function(response) {
         var roleMappings = angular.copy(response); // copied as we modify objects
@@ -61,11 +48,7 @@
                 roleDescription: role.roleDescription
               };
               ownerType = role.membersByOwner[0].ownerType;
-              vm.members = role.membersByOwner[0].members;
-              originalMembers = angular.copy(vm.members);
-              vm.members.forEach(function(user) {
-                user.picked = true;
-              });
+              vm.originalMembers = role.membersByOwner[0].members;
               return true;
             }
           });
@@ -82,35 +65,19 @@
       });
     }
 
-    function addGroup() {
-      var group = {
-        displayName: vm.newGroupName,
-        email: null,
-        internalName: vm.newGroupName,
-        type: 'GROUP'
-      };
-      updatePickedUsers([group]);
-
-      vm.newGroupName = undefined;
-      vm.accessEditorAddGroup.$setPristine();
-    }
-
     function isDirty() {
-      function internalName(user) {
-        return user.internalName;
-      }
-
       if (vm.isNew) {
-        return vm.role || currentlyPicked().length > 0;
+        return vm.role || vm.getCurrentMembers().length > 0;
       }
       else {
-        return !angular.equals(currentlyPicked().map(internalName).sort(), originalMembers.map(internalName).sort());
+        //binding for role.membership.controller's isDirty function
+        return vm.isMembershipDirty();
       }
     }
 
     function isValid() {
       if (vm.isNew) {
-        return vm.role && currentlyPicked().length > 0;
+        return vm.role && vm.getCurrentMembers().length > 0;
       }
       else {
         return isDirty();
@@ -134,16 +101,17 @@
     }
 
     function save() {
-      var madePristine = false;
+      var madePristine = false,
+          currentMembers = vm.getCurrentMembers();
 
       if (isValid()) {
         delete vm.submitError;
 
-        if (currentlyPicked().length === 0) {
+        if (currentMembers.length === 0) {
           vm.removeRole('Next time, consider using the "Remove Role" button; it will save you some clicks!');
         }
         else {
-          vm.accessEditorMask.wrap(RoleMappingService.put(vm.role.roleId, currentlyPicked())).then(function() {
+          vm.accessEditorMask.wrap(RoleMappingService.put(vm.role.roleId, currentMembers)).then(function() {
 
             if (vm.isNew) {
               $rootScope.$broadcast('resource.data.modified');
@@ -160,7 +128,7 @@
                 SameOwnerStateNavigationService.goEdit('edit-access', {roleId: vm.role.roleId});
               }
               else {
-                vm.members = [];
+                vm.originalMembers = [];
                 delete vm.role;
               }
             }
@@ -177,86 +145,21 @@
           madePristine = true;
 
           if (!vm.isNew) {
-            originalMembers = currentlyPicked();
+            vm.originalMembers = currentMembers;
           }
           else {
             vm.rolePicker.$setPristine();
           }
 
-          delete vm.newGroupName;
-          delete vm.query;
-          delete vm.searchError;
-          vm.accessEditor.$setPristine();
-          vm.accessEditorSearch.$setPristine();
-          vm.members.forEach(function(user) {
-            user.checked = false;
-          });
+          //tell child component to clean itself up too
+          $scope.$broadcast('role.membership.makeEditorPristine');
         }
       }
-    }
-
-    function search() {
-      if (vm.query) {
-        delete vm.searchError;
-        var pickedUsers = currentlyPicked();
-        vm.searchInProgress = true;
-
-        vm.accessEditorSearchMask.wrap($http.get(CLMAppLocations.getFindUsersUrl(), {
-          params: {
-            q: vm.query
-          }
-        })).then(function(result) {
-          vm.searchInProgress = false;
-          vm.members = result.data.members;
-          updatePickedUsers(pickedUsers);
-
-          if (result.data.error) {
-            vm.searchError = result.data.error;
-          }
-        }, function(error) {
-          vm.searchInProgress = false;
-          vm.searchError = Messages.getHttpErrorMessage(error);
-        });
-      }
-    }
-
-    function currentlyPicked() {
-      return vm.members.filter(function(user) {
-        return user.picked;
-      });
-    }
-
-    function updatePickedUsers(pickedUsers) {
-      pickedUsers.forEach(function(pickedUser) {
-        var replaced = vm.members.some(function(user, index) {
-          if (user.internalName === pickedUser.internalName && user.type === pickedUser.type) {
-            vm.members[index] = pickedUser;
-            return true;
-          }
-        });
-        if (!replaced) {
-          vm.members.push(pickedUser);
-        }
-      });
-    }
-
-    function groupExists(groupName) {
-      return vm.members.some(function(member) {
-        return member.internalName === groupName;
-      });
-    }
-
-    function getIconName(item) {
-      return item.type === 'USER' ? 'fa-user' : 'fa-group';
-    }
-
-    function getTooltip(item) {
-      return item.realm && item.type !== 'GROUP' ? item.realm + (item.email ? '\n' + item.email : '') : null;
     }
   }
 
   AccessEditorController.$inject = [
-    '$rootScope', '$scope', '$stateParams', '$http', 'CLMAppLocations', 'Messages', 'local.role.service',
+    '$rootScope', '$scope', '$stateParams', 'Messages', 'local.role.service',
     'SameOwnerStateNavigationService', 'DeleteModalService', 'role.mapping.service'
   ];
 

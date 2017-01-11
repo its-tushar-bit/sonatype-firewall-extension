@@ -8,7 +8,7 @@
   'use strict';
 
   var module = angular.module('MainHeader',
-      ['ui.router', 'AngularCommon', 'CLMLocation', 'ProductFeaturesModule', 'PermissionServiceModule', 'ngSanitize']);
+      ['ui.router', 'ui.utils', 'AngularCommon', 'CLMLocation', 'ProductFeaturesModule', 'PermissionServiceModule', 'ngSanitize']);
 
   module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
       $scope.logout = function () {

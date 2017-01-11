@@ -10,7 +10,7 @@
       [
         'Stores', 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule',
         'utility', 'utility.directives', 'PermissionServiceModule', 'Policy', 'CLMLocation', 'utility.services',
-        'Validators'
+        'Validators', 'role.membership.module'
       ])
       .config([
         '$stateProvider', function($stateProvider) {

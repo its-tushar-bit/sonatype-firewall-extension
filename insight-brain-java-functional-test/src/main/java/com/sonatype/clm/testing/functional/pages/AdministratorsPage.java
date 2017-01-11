@@ -5,11 +5,16 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import static com.codeborne.selenide.Condition.exactText;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -40,7 +45,7 @@ public class AdministratorsPage
     }
 
     public RoleMappingElement element(int num) {
-      return new RoleMappingElement(selector, ".accordion-group", nthChild(num));
+      return new RoleMappingElement(selector, ".accordion-group", nthChild(num + 1));
     }
 
     public static class RoleMappingElement
@@ -68,8 +73,64 @@ public class AdministratorsPage
           super(selectors);
         }
 
+        public SelenideElement editor() {
+          return child("app-security-editor > role-membership");
+        }
+
         public SelenideElement groupSearchWarning() {
-          return child(".group-search-warning");
+          return child("#mixed-group-search-warning");
+        }
+
+        public SelenideElement cancelButton() {
+          return child(".btn-cancel");
+        }
+
+        public SelenideElement queryInput() {
+          return child("#access-user-search-input");
+        }
+
+        public SelenideElement searchButton() {
+          return child("#user-search-button");
+        }
+
+        public ElementsCollection members() {
+          return children(".member-list");
+        }
+
+        public SelenideElement availableMembersList() {
+          return child(".available-list");
+        }
+
+        public ElementsCollection availableMembers() {
+          return children(".available-list label");
+        }
+
+        public SelenideElement availableMember(String text) {
+          return availableMembers().find(exactText(text));
+        }
+
+        public SelenideElement appliedMembersList() {
+          return child(".picked-list");
+        }
+
+        public ElementsCollection appliedMembers() {
+          return children(".picked-list label");
+        }
+
+        public SelenideElement appliedMember(String text) {
+          return appliedMembers().find(exactText(text));
+        }
+
+        public SelenideElement unpickButton() {
+          return child("double-column-picker button > .fa-arrow-left");
+        }
+
+        public SelenideElement pickButton() {
+          return child("double-column-picker button > .fa-arrow-right");
+        }
+
+        public SelenideElement confirmButton() {
+          return child("button.btn-primary");
         }
       }
     }

@@ -15,12 +15,6 @@ describe('access.editor.controller.spec.js', function() {
       mockSameOwnerStateNavigationService = {
         goEdit: jasmine.createSpy()
       },
-      mockAccessEditor = {
-        $setPristine: angular.noop
-      },
-      mockSearchEditor = {
-        $setPristine: angular.noop
-      },
       mockRolePicker = {
         $setPristine: angular.noop
       },
@@ -49,7 +43,7 @@ describe('access.editor.controller.spec.js', function() {
     $httpBackend.verifyNoOutstandingRequest();
   });
 
-  it('Sets roles and users', function() {
+  it('Sets roles and originalMembers', function() {
     inject(function($controller) {
       vm = $controller('access.editor.controller', {$scope: scope, $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'},
         isAuthorized: true});
@@ -60,7 +54,7 @@ describe('access.editor.controller.spec.js', function() {
 
     expect(vm.role).toBeDefined();
     expect(vm.availableRoles.length).toBe(1);
-    expect(vm.members.length).toBe(2);
+    expect(vm.originalMembers.length).toBe(2);
     expect(vm.groupSearchEnabled).toBe(true);
     expect(vm.hasMixedGroupSearch).toBe(true);
   });
@@ -75,18 +69,20 @@ describe('access.editor.controller.spec.js', function() {
 
     expect(vm.role).toBeUndefined();
     expect(vm.availableRoles).toBeUndefined();
-    expect(vm.members.length).toBe(0);
+    expect(vm.originalMembers.length).toBe(0);
     expect(vm.loadError).toBeDefined();
   });
 
   it('Calls remove on update with no picked users', function() {
     inject(function($controller) {
       vm = $controller('access.editor.controller', {$scope: scope, $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'}, isAuthorized: true});
+
+      vm.getCurrentMembers = function() { return []; };
+      vm.isMembershipDirty = function() { return true; };
     });
     $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
     vm.removeRole = jasmine.createSpy();
-    vm.members.forEach(function(user) { user.picked = false; });
     vm.accessEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();
@@ -120,11 +116,9 @@ describe('access.editor.controller.spec.js', function() {
     $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
     $httpBackend.flush();
     expect(vm.availableRoles.length).toBe(1);
-    vm.accessEditor = mockAccessEditor;
-    vm.accessEditorSearch = mockSearchEditor;
     vm.rolePicker = mockRolePicker;
     vm.role = vm.availableRoles[0];
-    vm.members = [{internalName: 'testUser', picked: true}];
+    vm.getCurrentMembers = function() { return [{internalName: 'testUser', picked: true}]; };
     vm.accessEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();
@@ -139,79 +133,13 @@ describe('access.editor.controller.spec.js', function() {
     expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('edit-access', {roleId: 'abcdef'});
   });
 
-  it('Search in progress flag properly set', function() {
-    inject(function($controller) {
-      vm = $controller('access.editor.controller', {
-        $scope: scope, isAuthorized: true
-      });
-    });
-    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
-    $httpBackend.flush();
-
-    vm.query = 'arbitrary';
-    vm.accessEditorSearchMask = {wrap: SpecUtil.promiseWrapper($q)};
-    $httpBackend.expectGET(CLMAppLocations.getFindUsersUrl() +
-        '?q=arbitrary').respond(AccessMockData.getQueryResults());
-
-    expect(vm.searchInProgress).toBeFalsy();
-    vm.search();
-    expect(vm.searchInProgress).toBeTruthy();
-    $httpBackend.flush();
-    expect(vm.searchInProgress).toBeFalsy();
-
-    expect(vm.members.length).toEqual(3);
-  });
-
-  it('Creates correct tooltip message', function() {
-    inject(function($controller) {
-      vm = $controller('access.editor.controller', {
-        $scope: scope
-      });
-    });
-    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
-    $httpBackend.flush();
-
-    expect(vm.getTooltip({realm: 'foo'})).toBe('foo');
-    expect(vm.getTooltip({realm: 'foo', email: 'test@test.com'})).toBe('foo\ntest@test.com');
-    // existing LDAP entry but connection is down so no realm/email
-    expect(vm.getTooltip({displayName: 'test'})).toBe(null);
-  });
-
-  describe('typical cases', function () {
-    beforeEach(inject(function($controller, $httpBackend) {
-      vm = $controller('access.editor.controller', {
-        $scope: scope
-      });
-      vm.accessEditorAddGroup = {
-        $setPristine: jasmine.createSpy('$setPristine')
-      };
-
-      $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
-      $httpBackend.flush();
-    }));
-
-    it('groupExists', function() {
-      expect(vm.groupExists('foo')).toBeFalsy();
-      vm.newGroupName = 'foo';
-      vm.addGroup();
-
-      expect(vm.groupExists('bar')).toBeFalsy();
-      expect(vm.groupExists('foo')).toBeTruthy();
-    });
-    
-    it('addGroup', function() {
-      vm.newGroupName = 'foo';
-      vm.addGroup();
-      expect(vm.members).toEqual([{displayName: 'foo', email: null, internalName: 'foo', type: 'GROUP'}])
-      expect(vm.accessEditorAddGroup.$setPristine).toHaveBeenCalled();
-    });
-  });
-
   describe('Page Changes', function() {
     beforeEach(inject(function($controller) {
       vm = $controller('access.editor.controller', {
         $scope: scope
       });
+
+      vm.getCurrentMembers = function() { return []; };
 
       $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
       $httpBackend.flush();

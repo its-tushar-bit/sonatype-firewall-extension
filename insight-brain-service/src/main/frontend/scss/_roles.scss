@@ -165,6 +165,11 @@ tr:first-child .role-summary {
   min-height: 1px;
   margin-left: 10px;
   width: 630px;
+
+  double-column-picker {
+    background-color: white;
+    width: 100%;
+  }
 }
 // End styles from app-security.css
 

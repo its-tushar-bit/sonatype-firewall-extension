@@ -42,7 +42,7 @@ public class PolicyAlertNotifierTest
     extends AbstractComponentTest
 {
   @Rule
-  public LogOutput log = new LogOutput(PolicyAlertNotifier.class);
+  public LogOutput logOutput = new LogOutput(PolicyAlertNotifier.class);
 
   @Inject
   private PolicyAlertNotifier notifier;
@@ -62,7 +62,7 @@ public class PolicyAlertNotifierTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
 
     notifier.sendNotifications(app, eval, null);
-    log.assertDebug("Not sending notifications for application " + app.getPublicId() + " and scan "
+    logOutput.assertDebug("Not sending notifications for application " + app.getPublicId() + " and scan "
         + eval.getScanId() + " in stage " + eval.getStageTypeId() + ", no new policy violations since last evaluation");
   }
 
@@ -95,7 +95,7 @@ public class PolicyAlertNotifierTest
         anyString(), any(Stage.class), anyListOf(PolicyNotification.class));
 
     notifier.sendNotifications(app, eval, null);
-    log.assertError("Email notification failed", ex);
+    logOutput.assertError("Email notification failed", ex);
 
     // Then...
     PolicyViolation violationAfterAlerting = new PolicyViolationDAO().getById(violationBeforeAlerting.getId());

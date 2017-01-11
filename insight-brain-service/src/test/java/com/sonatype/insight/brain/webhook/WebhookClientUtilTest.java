@@ -46,7 +46,7 @@ public class WebhookClientUtilTest
   private final String webhookId = "webhookId";
 
   @Rule
-  public LogOutput log = new LogOutput(WebhookClientUtil.class);
+  public LogOutput logOutput = new LogOutput(WebhookClientUtil.class);
 
   @Before
   public void before() throws Exception {
@@ -89,7 +89,7 @@ public class WebhookClientUtilTest
     doWebhookClientUtilPost();
 
     String deliveryId = headers.get(WebhookClientUtil.WEBHOOK_DELIVERY_HEADER);
-    log.assertDebug("Sending Webhook " + webhookId + " with delivery ID " + deliveryId);
+    logOutput.assertDebug("Sending Webhook " + webhookId + " with delivery ID " + deliveryId);
   }
 
   @Test
@@ -126,7 +126,7 @@ public class WebhookClientUtilTest
     };
 
     doWebhookClientUtilPost();
-    log.assertError(
+    logOutput.assertError(
         "Unable to perform HTTP request for Webhook " + webhookId + " with delivery ID " + deliveryIds.get(0) +
             " due to Status Code: 400 Message: Bad Request");
   }

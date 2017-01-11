@@ -36,7 +36,7 @@ public class ReportDownloaderTest
   private InsightWork work;
 
   @Rule
-  public LogOutput log = new LogOutput(ReportDownloader.class);
+  public LogOutput logOutput = new LogOutput(ReportDownloader.class);
 
   private HdsClient mockHdsClient;
 
@@ -59,6 +59,6 @@ public class ReportDownloaderTest
     boolean rc = reportDownloader.downloadReport(scanId, reportFile, 0, 0);
     assertThat(rc, is(false));
     assertThat(reportFile.getParentFile().exists(), is(false));
-    log.assertError("test", expectedException);
+    logOutput.assertError("test", expectedException);
   }
 }

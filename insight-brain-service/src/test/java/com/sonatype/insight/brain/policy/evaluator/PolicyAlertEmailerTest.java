@@ -94,10 +94,10 @@ public class PolicyAlertEmailerTest
   private static final int NOTIFICATION_WAIT_TIMEOUT = 5000; // millisecs
 
   @Rule
-  public LogOutput log = new LogOutput(PolicyAlertEmailer.class);
+  public LogOutput logOutput = new LogOutput(PolicyAlertEmailer.class);
 
   @Rule
-  public LogOutput abstractPolicyAlertEmailerLog = new LogOutput(AbstractPolicyAlertEmailer.class);
+  public LogOutput abstractPolicyAlertEmailerLogOutput = new LogOutput(AbstractPolicyAlertEmailer.class);
 
   @Inject
   private InsightConfig config;
@@ -169,7 +169,7 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
 
-    log.assertDebug(
+    logOutput.assertDebug(
         "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
             + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy",
         NOTIFICATION_WAIT_TIMEOUT);
@@ -193,7 +193,7 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
 
-    log.assertDebug(
+    logOutput.assertDebug(
         "Sending notification email via " + mailer.getServer() + " to " + email + " for application "
             + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(),
         NOTIFICATION_WAIT_TIMEOUT);
@@ -221,7 +221,7 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
 
-    log.assertError(
+    logOutput.assertError(
         "Unable to send notification email to " + email + " for application " + app.getPublicId()
             + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex, NOTIFICATION_WAIT_TIMEOUT);
   }
@@ -372,7 +372,7 @@ public class PolicyAlertEmailerTest
     undertest.sendNotifications(app, scanId, stage, policyNotifications);
     // make sure emails from server 2 still go out
     assertEmailAddresses("test.user1_2@company.com", "test.user2_2@company.com", "test.user3_2@company.com");
-    abstractPolicyAlertEmailerLog.assertError(
+    abstractPolicyAlertEmailerLogOutput.assertError(
         "Cannot send notifications to members of group " + groupName + " using ldap server " +
             ldapServers.get(0).getName(), expectedException);
   }
@@ -430,7 +430,7 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
 
     // No email should be sent out with only Jira Notification
-    log.assertDebug(
+    logOutput.assertDebug(
         "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
             + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy",
         NOTIFICATION_WAIT_TIMEOUT);

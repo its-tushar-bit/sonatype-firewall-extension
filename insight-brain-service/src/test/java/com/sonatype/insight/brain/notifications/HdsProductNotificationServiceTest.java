@@ -45,7 +45,7 @@ public class HdsProductNotificationServiceTest
 {
 
   @Rule
-  public LogOutput log = new LogOutput(HdsProductNotificationService.class);
+  public LogOutput logOutput = new LogOutput(HdsProductNotificationService.class);
 
   @Inject
   private HdsProductNotificationService hdsNotificationService;
@@ -168,7 +168,7 @@ public class HdsProductNotificationServiceTest
 
     retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
-    log.assertError(expectedException.getMessage(), expectedException);
+    logOutput.assertError(expectedException.getMessage(), expectedException);
   }
 
   private ProductNotificationList createNotifications() {

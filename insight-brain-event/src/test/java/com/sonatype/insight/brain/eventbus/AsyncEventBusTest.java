@@ -31,7 +31,7 @@ public class AsyncEventBusTest
   private HandlerWithException handlerWithException;
 
   @Rule
-  public LogOutput log = new LogOutput(AsyncEventBusDiscardPolicy.class);
+  public LogOutput logOutput = new LogOutput(AsyncEventBusDiscardPolicy.class);
 
   @Before
   public void setUp() {
@@ -79,7 +79,7 @@ public class AsyncEventBusTest
 
     Thread.sleep(sleepTime + 10);
 
-    log.assertError("Discarding event because the thread bounds and queue capacities are reached");
+    logOutput.assertError("Discarding event because the thread bounds and queue capacities are reached");
     assertThat(longHandler.getLatch().getCount(), is(1L));
   }
 

@@ -55,7 +55,7 @@ public class JiraPolicyAlertNotifierTest
   private static final int NOTIFICATION_WAIT_TIMEOUT = 5000; // millisecs
 
   @Rule
-  public LogOutput log = new LogOutput(JiraPolicyAlertNotifier.class);
+  public LogOutput logOutput = new LogOutput(JiraPolicyAlertNotifier.class);
 
   @Inject
   private JiraPolicyAlertNotifier jiraPolicyAlertNotifier;
@@ -175,7 +175,7 @@ public class JiraPolicyAlertNotifierTest
     doThrow(ex).when(jiraClient).createIssue(any(JiraIssueCreateRequest.class));
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    log.assertError(
+    logOutput.assertError(
         "Failed to create JIRA notification for JIRA project key " + projectKey + " and JIRA issue type id " +
             issueTypeId + ". Failed for application " + application.getPublicId() + " and scan " + scanId +
             " in stage " +
@@ -202,7 +202,7 @@ public class JiraPolicyAlertNotifierTest
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    log.assertDebug(
+    logOutput.assertDebug(
         "Not sending JIRA notifications for application " + application.getPublicId() + " and scan " +
             evaluation.getScanId()
             + " in stage " + evaluation.getStageTypeId() + ", no JIRA projects configured for any violated policy",
@@ -216,7 +216,7 @@ public class JiraPolicyAlertNotifierTest
     jiraPolicyAlertNotifier
         .sendNotifications(new Application(), "", new Stage(), Collections.<PolicyNotification>emptyList());
 
-    log.assertDebug("JIRA integration is not enabled; skipping issue creation");
+    logOutput.assertDebug("JIRA integration is not enabled; skipping issue creation");
 
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT).times(0)).createIssue(any(JiraIssueCreateRequest.class));
   }

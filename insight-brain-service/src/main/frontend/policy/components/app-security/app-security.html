@@ -34,8 +34,8 @@
             </div>
             <div class='member-content'>
               <div class='hover-buttons floatRight'>
-                <button type='button' class="btn btn-mini" title="Edit Role" ng-click='$parent.editMode = true;$parent.expanded = true;' ng-disabled='editMode'>
-                  <i class="icon-pencil"></i>
+                <button type='button' class="btn btn-mini btn-icon-only" title="Edit Role" ng-click='$parent.editMode = true;$parent.expanded = true;' ng-disabled='editMode'>
+                  <i class="fa fa-fw fa-pencil"></i>
                 </button>
               </div>
               <div class='expandable' ng-class='{"collapsed" : !expanded}'>
@@ -64,8 +64,8 @@
             </div>
             <div class='member-content'>
               <div class='hover-buttons floatRight'>
-                <button type='button' class="btn btn-mini" title="Edit Role" ng-disabled='true'>
-                  <i class="icon-pencil"></i>
+                <button type='button' class="btn btn-mini btn-icon-only" title="Edit Role" ng-disabled='true'>
+                  <i class="fa fa-fw fa-pencil"></i>
                 </button>
               </div>
               <app-security-editor role='role' group-search-enabled='context.groupSearchEnabled'

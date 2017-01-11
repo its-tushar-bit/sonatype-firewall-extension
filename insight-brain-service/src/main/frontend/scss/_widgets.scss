@@ -1450,43 +1450,43 @@ root-organization-migrate {
   width: 30px;
   
   &.yellowLabel {
-    background-color: $yellow;
+    background-color: $iq-yellow;
   }
 
   &.orangeLabel {
-    background-color: $orange;
+    background-color: $iq-orange;
   }
 
   &.light-redLabel {
-    background-color: $light-red;
+    background-color: $iq-light-red;
   }
 
   &.dark-redLabel {
-    background-color: $dark-red;
+    background-color: $iq-dark-red;
   }
 
   &.light-greenLabel {
-    background-color: $light-green;
+    background-color: $iq-light-green;
   }
 
   &.dark-greenLabel {
-    background-color: $dark-green;
+    background-color: $iq-dark-green;
   }
 
   &.light-purpleLabel {
-    background-color: $light-purple;
+    background-color: $iq-light-purple;
   }
 
   &.dark-purpleLabel {
-    background-color: $dark-purple;
+    background-color: $iq-dark-purple;
   }
 
   &.light-blueLabel {
-    background-color: $light-blue;
+    background-color: $iq-light-blue;
   }
 
   &.dark-blueLabel {
-    background-color: $dark-blue;
+    background-color: $iq-dark-blue;
   }
 }
 // End from multi-select.css
@@ -1660,9 +1660,9 @@ root-organization-migrate {
 
   .active::after {
     border-right: 8px solid transparent;
-    border-bottom: 8px solid $grey-4;
+    border-bottom: 8px solid $iq-grey-4;
     border-left: 8px solid transparent;
-    color: $grey-4;
+    color: $iq-grey-4;
     content: "";
     display: block;
     -webkit-font-smoothing: antialiased;

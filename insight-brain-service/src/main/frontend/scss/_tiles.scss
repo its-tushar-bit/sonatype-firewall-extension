@@ -273,7 +273,7 @@ $tile-scroll-container-z-index: 0;
 
       &.clickable {
         .fa-chevron-right {
-          color: $slate;
+          color: $iq-slate;
           font-size: 12px;
           vertical-align: middle;
           width: 7px;
@@ -283,7 +283,7 @@ $tile-scroll-container-z-index: 0;
           cursor: pointer;
 
           .fa-chevron-right {
-            color: $off-black;
+            color: $iq-off-black;
           }
         }
 

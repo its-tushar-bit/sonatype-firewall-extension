@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,6 +36,9 @@ public class ReverseProxyAuthcTest
 {
   @Rule
   public TestLdapServer ldapServer = new TestLdapServer();
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(ReverseProxyAuthenticationFilter.class);
 
   private boolean setupLdap;
 
@@ -150,5 +154,26 @@ public class ReverseProxyAuthcTest
     HttpResponse response = request.subpath("rest/anything").get();
     assertResponseStatus(401, response);
     assertThat(response.getBodyText(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+  }
+
+  @Test
+  public void testEnabled_HeaderWithValidUserDoesNotMatchSession() throws Exception {
+    initServer(ENABLED);
+
+    // explicitly call the before method, since DropWizard ignores the LogOutput configuration
+    logOutput.before();
+
+    tempEntity.newUser("Beta", "Beta", "User", "beta.user@company.com");
+
+    HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
+    HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
+
+    HttpRequest mismatchRequest =
+        restRequest().cookie(response.getSessionCookie()).header("REMOTE_USER", "Beta").anon();
+    HttpResponse mismatchResponse = mismatchRequest.subpath(UserSessionResource.RESOURCE_PATH).get();
+    assertResponseStatus(200, mismatchResponse);
+    AuthenticationStatus authenticationStatus = mismatchResponse.getBody(AuthenticationStatus.class);
+    assertThat(authenticationStatus.getUsername(), is("Beta"));
+    logOutput.assertInfo("Detected mismatch between user specified by reverse proxy authentication (Beta) and user specified by session cookie (testuser)");
   }
 }

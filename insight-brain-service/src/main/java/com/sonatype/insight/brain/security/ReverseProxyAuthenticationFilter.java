@@ -10,6 +10,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import org.apache.shiro.authc.AuthenticationException;
@@ -39,6 +40,18 @@ public class ReverseProxyAuthenticationFilter
   private String getUsername(ServletRequest request) {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     return httpRequest.getHeader(usernameHeader);
+  }
+
+  @Override
+  protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+    String username = getUsername(request);
+    UserPrincipal userPrincipal = (UserPrincipal) getSubject(request, response).getPrincipal();
+    if (username != null && userPrincipal != null && !username.equals(userPrincipal.getUsername())) {
+      log.info("Detected mismatch between user specified by reverse proxy authentication ({}) and user specified by session cookie ({})", username, userPrincipal.getUsername());
+      return false;
+    }
+
+    return super.isAccessAllowed(request, response, mappedValue);
   }
 
   @Override

@@ -193,8 +193,8 @@ public class DashboardComponentsTest
     table.lastComponent().shouldHave(text("Group4 : Artifact4 : Version4"));
 
     // CSV export with no filters
-    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
-        testCLMServer.getCLMServer().getPort(), "/rest/dashboard/export/componentRisks");
+    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/componentRisks",
+        testCLMServer.getCLMServer().getPort());
     reverseProxyServer.addHandler(responseCopyHandler);
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Components Data")).click();

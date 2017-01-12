@@ -228,8 +228,8 @@ public class DashboardViolationsTest
     table.lastViolation().shouldHave(text("g1 : a1 : v1"));
 
     // CSV export with no filters
-    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
-        testCLMServer.getCLMServer().getPort(), "/rest/dashboard/export/newestRisks");
+    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/newestRisks",
+        testCLMServer.getCLMServer().getPort());
     reverseProxyServer.addHandler(responseCopyHandler);
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Violations Data")).click();

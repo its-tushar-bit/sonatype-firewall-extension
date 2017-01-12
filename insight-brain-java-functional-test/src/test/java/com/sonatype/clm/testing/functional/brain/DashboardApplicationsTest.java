@@ -204,7 +204,7 @@ public class DashboardApplicationsTest
 
     // CSV export with no filters
     ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
-        testCLMServer.getCLMServer().getPort(), "/rest/dashboard/export/applicationRisks");
+        "/rest/dashboard/export/applicationRisks", testCLMServer.getCLMServer().getPort());
     reverseProxyServer.addHandler(responseCopyHandler);
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Applications Data")).click();

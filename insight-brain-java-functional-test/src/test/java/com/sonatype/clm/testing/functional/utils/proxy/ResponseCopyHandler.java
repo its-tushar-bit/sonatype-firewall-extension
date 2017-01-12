@@ -8,12 +8,15 @@ package com.sonatype.clm.testing.functional.utils.proxy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
+
+import com.codeborne.selenide.Configuration;
 
 public class ResponseCopyHandler
     implements IRequestHandler
@@ -24,9 +27,9 @@ public class ResponseCopyHandler
 
   private HttpServletResponseCopier responseCopier;
 
-  public ResponseCopyHandler(int brainPort, String url) {
+  public ResponseCopyHandler(String url, int brainPort) {
     this.url = url;
-    this.reverseProxy = new ReverseProxyHandler(brainPort, url);
+    this.reverseProxy = new ReverseProxyHandler(brainPort, URI.create(Configuration.baseUrl).getPath());
   }
 
   public byte[] getResponseCopy() {
@@ -35,7 +38,7 @@ public class ResponseCopyHandler
 
   @Override
   public boolean matches(HttpServletRequest request) {
-    return request.getRequestURI().equals(url);
+    return request.getRequestURI().endsWith(url);
   }
 
   @Override

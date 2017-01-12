@@ -97,7 +97,7 @@ public class ReverseProxyHandler
       builder.setScheme("http");
       builder.setHost("localhost");
       builder.setPort(brainPort);
-      builder.setPath(URLDecoder.decode(request.getRequestURI(), "UTF-8"));
+      builder.setPath(URLDecoder.decode(request.getRequestURI(), "UTF-8").substring(proxyBasePath.length()));
       for (Entry<String, String[]> parameter : request.getParameterMap().entrySet()) {
         for (String value : parameter.getValue()) {
           builder.addParameter(parameter.getKey(), value);

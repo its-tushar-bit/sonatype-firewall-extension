@@ -163,16 +163,78 @@
 
   .simple-list {
     border-right: $border-width solid $iq-grey-4;
-    min-height: #{($toolbar-btn-width + $toolbar-padding) * 4 + $toolbar-padding};
     max-height: 550px;
+    min-height: #{($toolbar-btn-width + $toolbar-padding) * 4 + $toolbar-padding};
     overflow-x: hidden;
     width: calc(100% - #{$toolbar-btn-width + 2 * $toolbar-padding + $border-width});
+    
+    ul {
+      list-style: none;
+      margin: 0;
+    
+      li {
+        border-bottom: 1px solid transparent;
+        border-top: 1px solid transparent;
+        padding-left: $iq-modal-hor-padding;
+        position: relative;
+        
+        &:not(:first-child) {
+          border-top: 1px solid $iq-grey-1;
+        }
 
-    li {
-      padding-left: $iq-modal-hor-padding;
+        &:last-child {
+          border-bottom: 1px solid $iq-grey-1;
+        }
+        
+        &.selected {
+          background-color: $iq-grey-1;  
+          
+          &:not(:first-child) {
+            border-top: 1px solid $iq-grey-4;
+          }
 
-      .single-row-text  span:first-child {
-        margin-right:8px;
+          &:last-child {
+            border-bottom: 1px solid $iq-grey-4;
+          }        
+        }
+        
+        &:hover {
+          border-bottom: 1px solid $iq-grey-4;
+        }
+
+        &:hover:not(:first-child) {
+          border-top: 1px solid $iq-grey-4;
+        }
+
+        &.selected + * {
+          border-top-color: $iq-grey-4;
+        }
+
+        &.with-subtitle {
+          min-height: 52px;
+        }
+
+        &.simple {
+          min-height: 40px;
+        }
+      }
+      
+      .title {
+        @extend .semi-bold;
+
+        font-size: 14px;
+        line-height: 14px;
+        margin-right: 42px;
+        padding-top: 10px;
+      }
+      
+      .single-row-text {
+        line-height: 40px;
+        padding-top: 0px;
+        
+        span:first-child {
+          margin-right:8px;
+        }
       }
     }
   }

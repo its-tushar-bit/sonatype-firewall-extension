@@ -172,6 +172,10 @@
           color: $iq-off-black;
         }
         
+        &:hover:first-child {
+          border-top: 1px solid transparent;
+        }
+        
         &:active {
           background: $iq-grey-1;
           border-top: 1px solid $iq-grey-4;

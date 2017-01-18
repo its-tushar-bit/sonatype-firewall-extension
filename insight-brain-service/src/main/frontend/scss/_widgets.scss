@@ -540,7 +540,9 @@
           }
         }
         &:hover, &:focus {
+          color: $iq-off-black;
           filter: none; // bootstrap override
+          text-decoration: none;
         }
       }
 

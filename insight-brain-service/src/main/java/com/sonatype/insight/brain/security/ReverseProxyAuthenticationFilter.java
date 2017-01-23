@@ -31,10 +31,16 @@ public class ReverseProxyAuthenticationFilter
   private static final Logger log = LoggerFactory.getLogger(ReverseProxyAuthenticationFilter.class);
 
   private final String usernameHeader;
+  private boolean allowSessionCreation = true;
 
   public ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
     setEnabled(reverseProxyAuthentication.isEnabled());
     this.usernameHeader = reverseProxyAuthentication.getUsernameHeader();
+  }
+
+  public ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication, boolean allowSessionCreation) {
+    this(reverseProxyAuthentication);
+    this.allowSessionCreation = allowSessionCreation;
   }
 
   private String getUsername(ServletRequest request) {
@@ -81,7 +87,9 @@ public class ReverseProxyAuthenticationFilter
     // not yet authenticated (e.g. via session) but if the remote-user header is present, time for a login
     if (isLoginRequest(request, response)) {
       // there's no dedicated login prompt/request in case of SSO so allow any request to start the session
-      request.removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
+      if (allowSessionCreation) {
+        request.removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
+      }
 
       if (executeLogin(request, response)) {
         return true;

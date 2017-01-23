@@ -9,23 +9,18 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 /**
- * Specialized BASIC auth filter that ignores session cookies and instead requires a valid authc header on each request.
+ * Specialized BASIC auth filter that does not send the challenge response.
  * To be used for the public REST API (stateless).
+ * 
+ * @since 1.25.0
  */
-public class BasicHttpAuthenticationMandatoryFilter
+public class NoChallengeBasicHttpAuthenticationFilter
     extends UserFriendlyBasicHttpAuthenticationFilter
 {
-  public static final String INVALID_AUTHENTICATION_MESSAGE = "Invalid authentication.";
-
-  public static final String SESSION_COOKIE_MESSAGE = "This REST API is meant for system to system integration and can't be accessed with a web browser.";
-
-  @Override
-  protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
-    return false;
-  }
 
   /**
    * This is the method called by the parent class when the access is denied.
@@ -38,15 +33,9 @@ public class BasicHttpAuthenticationMandatoryFilter
       return false;
     }
 
-    String message;
-    if (getSubject(request, response).isAuthenticated()) {
-      message = SESSION_COOKIE_MESSAGE;
-    }
-    else {
-      message = INVALID_AUTHENTICATION_MESSAGE;
-    }
     LoginErrorResponseHandler
-        .sendError((HttpServletResponse) response, new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, message));
+        .sendError((HttpServletResponse) response, new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED,
+            ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
     return false;
   }
 }

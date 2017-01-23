@@ -29,6 +29,7 @@ import org.junit.runners.Parameterized;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 @RunWith(Parameterized.class)
 public class ReverseProxyAuthcTest
@@ -112,7 +113,8 @@ public class ReverseProxyAuthcTest
     assertThat(authStatus.getDisplayName(), is("John Doe"));
 
     response = request.subpath(PublicApiPaths.ORG_RESOURCE_PATH).get();
-    assertResponseStatus(401, response);
+    assertResponseStatus(200, response);
+    assertThat(response.getSessionCookie(), is(nullValue()));
   }
 
   @Test

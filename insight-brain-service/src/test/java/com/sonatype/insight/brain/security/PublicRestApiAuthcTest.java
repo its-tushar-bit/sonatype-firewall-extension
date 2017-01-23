@@ -12,6 +12,8 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import com.google.common.net.HttpHeaders;
 import org.junit.Test;
@@ -27,6 +29,15 @@ import static org.hamcrest.Matchers.nullValue;
 public class PublicRestApiAuthcTest
     extends AbstractBrainServiceTest
 {
+
+  private final Configurator REVERSE_PROXY_ENABLED = new Configurator()
+  {
+    @Override
+    public void configure(InsightConfig config) {
+      config.getReverseProxyAuthentication().setEnabled(true);
+    }
+  };
+
   @Test
   public void testSessionCookieInsufficientForAuthentication() throws Exception {
     HttpResponse response = restRequest().path(UserSessionResource.RESOURCE_PATH).post();
@@ -37,21 +48,21 @@ public class PublicRestApiAuthcTest
 
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().cookie(sessionCookie);
     response = request.get();
-    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.SESSION_COOKIE_MESSAGE);
+    assertResponse401(response, NoSessionAllowedFilter.SESSION_COOKIE_MESSAGE);
 
     response = request.put();
-    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.SESSION_COOKIE_MESSAGE);
+    assertResponse401(response, NoSessionAllowedFilter.SESSION_COOKIE_MESSAGE);
 
     response = request.post();
-    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.SESSION_COOKIE_MESSAGE);
+    assertResponse401(response, NoSessionAllowedFilter.SESSION_COOKIE_MESSAGE);
 
     response = request.delete();
-    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.SESSION_COOKIE_MESSAGE);
+    assertResponse401(response, NoSessionAllowedFilter.SESSION_COOKIE_MESSAGE);
   }
 
   @Test
   public void testNoAuthentication() throws Exception {
-    testBadAuthentication(null, null, BasicHttpAuthenticationMandatoryFilter.INVALID_AUTHENTICATION_MESSAGE);
+    testBadAuthentication(null, null, ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }
 
   @Test
@@ -83,17 +94,7 @@ public class PublicRestApiAuthcTest
   @Test
   public void testExplicitCredentialsSufficientForAuthentication() throws Exception {
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing");
-    HttpResponse response = request.get();
-    assertResponseStatus(404, response);
-
-    response = request.put();
-    assertResponseStatus(404, response);
-
-    response = request.post();
-    assertResponseStatus(404, response);
-
-    response = request.delete();
-    assertResponseStatus(404, response);
+    assertResponses(request, 404);
   }
 
   @Test
@@ -114,11 +115,81 @@ public class PublicRestApiAuthcTest
     response = request.delete();
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie(), is(nullValue()));
+
+    initServer(REVERSE_PROXY_ENABLED);
+    request = restRequest().header("REMOTE_USER", "admin").anon();
+
+    request.path(PublicApiPaths.BASE_PATH, "any/thing");
+    response = request.get();
+    assertResponseStatus(404, response);
+    assertThat(response.getSessionCookie(), is(nullValue()));
+
+    response = request.put();
+    assertResponseStatus(404, response);
+    assertThat(response.getSessionCookie(), is(nullValue()));
+
+    response = request.post();
+    assertResponseStatus(404, response);
+    assertThat(response.getSessionCookie(), is(nullValue()));
+
+    response = request.delete();
+    assertResponseStatus(404, response);
+    assertThat(response.getSessionCookie(), is(nullValue()));
+  }
+
+  @Test
+  public void testReverseProxy() throws Exception {
+    initServer(REVERSE_PROXY_ENABLED);
+    HttpRequest request = restRequest().header("REMOTE_USER", "admin").anon();
+
+    request.path(PublicApiPaths.BASE_PATH, "any/thing");
+    assertResponses(request, 404);
+  }
+
+  @Test
+  public void testReverseProxyBeforeBasicAuthentication() throws Exception {
+    initServer(REVERSE_PROXY_ENABLED);
+    HttpRequest request = restRequest().header("REMOTE_USER", "admin").auth("admin", "wrong password");
+
+    request.path(PublicApiPaths.BASE_PATH, "any/thing");
+    assertResponses(request, 404);
+  }
+
+  @Test
+  public void testReverseProxyMissingHeaderFallbackToBasicAuthentication() throws Exception {
+    initServer(REVERSE_PROXY_ENABLED);
+    HttpRequest request = restRequest();
+
+    request.path(PublicApiPaths.BASE_PATH, "any/thing");
+    assertResponses(request, 404);
+  }
+
+  @Test
+  public void testReverseProxyFailureDoesNotTryBasicAuthentication() throws Exception {
+    initServer(REVERSE_PROXY_ENABLED);
+    HttpRequest request = restRequest().header("REMOTE_USER", "invalid");
+
+    request.path(PublicApiPaths.BASE_PATH, "any/thing");
+    assertResponses(request, 401);
   }
 
   private void assertResponse401(HttpResponse response, String expectedMessage) {
     assertResponseStatus(401, response);
     assertThat(response.getBodyText(), is(expectedMessage));
     assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE), is(nullValue()));
+  }
+
+  private void assertResponses(HttpRequest request, int status) throws Exception  {
+    HttpResponse response = request.get();
+    assertResponseStatus(status, response);
+
+    response = request.put();
+    assertResponseStatus(status, response);
+
+    response = request.post();
+    assertResponseStatus(status, response);
+
+    response = request.delete();
+    assertResponseStatus(status, response);
   }
 }

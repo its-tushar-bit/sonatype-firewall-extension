@@ -1004,14 +1004,14 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testDownloadBundle() throws Exception {
+  public void testDownloadBundle_v2() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    mockReport(scanId, "/ReportResourceTest/standalone");
+    mockReport(scanId, "/ReportResourceTest/standalone-v2");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE", "", "jar");

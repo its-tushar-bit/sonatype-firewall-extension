@@ -36,15 +36,15 @@ public class OwnerSummaryPage
     }
 
     public static SelenideElement name() {
-      return $(SelectorUtils.createSelector(ROOT_ID, ".tile-header"));
+      return $(SelectorUtils.createSelector(ROOT_ID, ".iq-tile-header"));
     }
 
     public static SelenideElement publicId() {
-      return $(SelectorUtils.createSelector(ROOT_ID, ".tile-header .minor-text"));
+      return $(SelectorUtils.createSelector(ROOT_ID, ".iq-tile-header__description"));
     }
 
     public static SelenideElement contact() {
-      return root().find(".sub-header");
+      return root().find(".iq-tile-header__subtitle");
     }
 
     public static SelenideElement icon() {

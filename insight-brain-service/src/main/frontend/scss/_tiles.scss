@@ -1,7 +1,94 @@
+$tile-scroll-container-z-index: 0;
+
+/*
+  #Name-spaced Tile System
+*/
+
+// Base Tile    
+
+.iq-tile {
+  background-color: $iq-main-background-color;
+  border: 1px solid $iq-grey-2;
+  margin: 8px;
+  padding: 0 8px 8px 8px;
+}
+
+.iq-tile-header {
+  min-height: 43px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.iq-tile-header__title {
+  display: inline-block;
+  height: 37px;
+  
+  .iq-tile-header__icon {
+    display: block;
+    float: left;
+    font-size: 30px;
+    height: 42px;
+    line-height: 42px;
+    margin-top: -1px; // magic number for default globe graphic
+    margin-right: 8px; 
+    vertical-align: middle;
+    
+    img {
+      max-height: 25px; // magic number for default globe graphic
+      width: auto;
+    }        
+  }
+   
+  h1 {
+    display: inline-block;
+    font-size: 26px;
+    line-height: 42px;
+    margin: 0;
+    margin-left: -1px; // Magic number b/c H1 has mysterious 1px to the left
+    padding: 1px 0 0 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+    .iq-tile-header__description {
+      @include regular();
+      
+      font-weight: normal;
+    }
+  }
+}
+
+.iq-tile-header__subtitle {
+  line-height: 16px;
+  margin: -1px 0 6px 0;
+  max-width: 520px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.iq-tile__actions {
+  float: right;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  
+  .clm-dropdown .btn {
+    margin-top: 0px; // override should be removed when the full task is done.
+  }
+}
+
+// Summary Tile
+
+.iq-tile--top-tile {
+  box-shadow: 0px 5px 6px 0px $iq-grey-1;
+  margin-bottom: 0;
+  position: relative;
+  z-index: $tile-scroll-container-z-index + 1;
+}
+
 /*
   #Tile System
 */
-$tile-scroll-container-z-index: 0;
 
 .tile-container {
   float: left;
@@ -17,7 +104,7 @@ $tile-scroll-container-z-index: 0;
   position: relative;
   z-index: $tile-scroll-container-z-index + 1;
 
-  &:after {
+  &::after {
     box-shadow: 0px 0px $shadow-spread 5px $iq-grey-1;
     content: '';
     display: block;

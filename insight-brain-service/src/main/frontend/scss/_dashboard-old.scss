@@ -411,6 +411,14 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     .expandable-row {
       border-top: 1px solid #ddd;
     }
+    
+    .stage-column, .risk-column {
+      width: 84px;
+    }
+    
+    .share-risk-column {
+      width: 120px;
+    }
   }
 
   .component-violations-table {

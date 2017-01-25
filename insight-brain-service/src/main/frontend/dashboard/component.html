@@ -57,7 +57,7 @@
                       clazz="clm-arc application"></span>
               &nbsp;{{totalRisk === 0 ? 0 : (applicationComponent.risk/totalRisk*100 | number:0)}}%
             </td>
-            <td>
+            <td class="risk-column">
               {{applicationComponent.risk}}
             </td>
             <td ng-repeat='stageDetails in applicationComponent.stageDetails' class="stage-column">

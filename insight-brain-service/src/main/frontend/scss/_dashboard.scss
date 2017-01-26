@@ -138,7 +138,7 @@
         height: 32px;
         padding: 8px 12px;
 
-        &:hover {
+        &:hover, &:focus {
           color: $iq-off-black;
           text-decoration: none;
 
@@ -160,6 +160,8 @@
           border-left: $dashboard-border;
           border-top-right-radius: 4px;
           border-top-left-radius: 4px;
+          color: $iq-off-black;
+          cursor: default;
         }
       }
       

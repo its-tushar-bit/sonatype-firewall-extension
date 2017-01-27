@@ -21,7 +21,7 @@
 
   angular.module('InitModule', [
     'ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices', 'ngAria',
-    'ReportModule', 'Report', 'MainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
+    'ReportModule', 'Report', 'mainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
     'ProductFeaturesModule', 'HttpInterceptors', 'dashboard.module', 'FormsModule'
   ], [
     '$stateProvider', '$routeProvider', '$urlRouterProvider',
@@ -101,6 +101,7 @@
         $rootScope.username = data[1].username;
         $rootScope.initialized = true;
         $rootScope.productEdition = data[0].productEdition;
+        $rootScope.$state = $state;
 
         stateChangePrevention(); // Remove block
         if (savedState) {

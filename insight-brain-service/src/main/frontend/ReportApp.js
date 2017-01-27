@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  angular.module('ReportModule', ['ui.router', 'MainHeader', 'ReportViolations'],
+  angular.module('ReportModule', ['ui.router', 'ReportViolations'],
     ['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
       $urlRouterProvider.when('/reports', '/reports/violations');
       $stateProvider.state('violations', {

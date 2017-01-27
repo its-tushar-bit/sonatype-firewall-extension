@@ -1,0 +1,59 @@
+<div>
+  <script type="text/ng-template" id="change-password-template">
+    <div>
+      <div class="clm-modal-header">
+        <h2>Change Password</h2>
+      </div>
+      <form name="passwordForm" class="clm-form" ng-submit="save()">
+        <div class="clm-modal-body">
+          <div clm-control-group for="originalPassword" label="Current Password">
+            <input clm-input type="password" id="originalPassword" name="originalPassword"
+                   ng-model="result.originalPassword" required focus-input="true">
+          </div>
+          <hr/>
+          <div clm-control-group for="newPassword" label="New Password">
+            <input clm-input type="password" id="newPassword" name="newPassword"
+                   ng-model="result.newPassword" required>
+          </div>
+          <div clm-control-group for="confirmPassword" label="Confirm New Password">
+            <input clm-input type="password" id="confirmPassword" name="confirmPassword"
+                   ng-model="result.confirmPassword" required ui-validate=" '$value==result.newPassword' "
+                   ui-validate-watch=" 'result.newPassword' "
+                   messages="{validator: 'Passwords must match!'}">
+          </div>
+        </div>
+        <div class="clm-modal-footer" ng-class="{error: error}">
+          <div ng-if="error" class="section with-icon"><i class="fa fa-warning"></i>{{error}}</div>
+          <button type="submit" class="btn btn-error" id="change-password-submit"
+                  ng-if="error"
+                  ng-disabled="passwordForm.$invalid || submitActive"><i class="fa fa-refresh"></i>Retry</button>
+          <button type="submit" class="btn btn-primary" id="change-password-submit"
+                  ng-if="!error"
+                  ng-disabled="passwordForm.$invalid || submitActive">Change</button>
+          <button type="button" class="btn btn-cancel" ng-click="$dismiss()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </script>
+  <div id="user-menu" class="iq-dropdown-menu iq-pull-right iq-dropdown-menu--user-menu">
+    <div class="dropdown">
+      <a id="user-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
+        <i class="glyphicons-sonatype medium user"></i>
+        <span id="user-name">{{vm.currentUser.displayName }} <i class="fa fa-caret-down"></i></span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-arrow">
+        <li class="iq-dropdown-menu__title">CURRENT&nbsp;USER</li>
+        <li>
+          <ul class="dropdown-contents">
+            <li ng-show="vm.canChangePassword()">
+              <a id="change-password" ng-click="vm.changePassword()" class="iq-dropdown__link">Change Password</a>
+            </li>
+            <li>
+              <a id="logout" ng-click="vm.logout()" class="iq-dropdown__link">Logout</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

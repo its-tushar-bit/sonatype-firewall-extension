@@ -666,7 +666,7 @@
                 <source>frontend/SpecUtil.js</source>
               </preloadSources>
               <sourceIncludes>
-                <include>frontend/**/*.module.js</include>
+                <include>frontend/**/*module.js</include>
                 <include>frontend/**/*Module.js</include>
                 <include>frontend/**/*.js</include>
               </sourceIncludes>

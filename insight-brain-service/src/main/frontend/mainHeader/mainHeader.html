@@ -1,0 +1,44 @@
+<div class="iq-header">
+  <div class="iq-header__inner">
+    <div class="iq-title">
+      <img src="img/sonatype-header.png" class="iq-pull-left" alt="Logo">
+      <div class="iq-title__brand">
+        Nexus IQ Server
+      </div>
+      <div class="iq-title__version">
+        {{::vm.productEdition}} {{::vm.getServerVersion()}}
+      </div>
+    </div>
+    <div class="iq-navbar">
+      <ul class="iq-navigation-menu iq-inline iq-pull-left">
+        <li class="iq-navigation-menu__icon" ng-class="{ 'active' : vm.$state.includes('dashboard') }"
+            tooltip="Dashboard" tooltip-placement="bottom" ng-if="vm.isDashboardLicensed()">
+          <a ui-sref="dashboard.overview.violations" class="iq-navigation__link">
+            <span><i class="sonatype-icons medium dashboard"></i></span>
+          </a>
+        </li><!-- fix chrome bounce
+     --><li class="iq-navigation-menu__icon" ng-class="{ 'active' : vm.$state.includes('violations') }"
+               tooltip="Reporting" tooltip-placement="bottom">
+          <a ui-sref="violations" class="iq-navigation__link">
+            <span><i class="sonatype-icons medium reporting"></i></span>
+          </a>
+        </li><!-- fix chrome bounce
+     --><li class="iq-navigation-menu__icon" ng-class="{ 'active' : vm.$state.includes('management') }"
+               tooltip="Organization & Policies" tooltip-placement="bottom">
+          <a ui-sref="management.view" class="iq-navigation__link">
+            <span><i class="sonatype-icons medium organizational-design"></i></span>
+          </a>
+        </li>
+        <li class="iq-navigation-menu__icon">
+          <!-- This div is here strictly to support dev and is not intended for client facing content -->
+          <div id="functionalTestingSupport" style="color: red;"></div>
+        </li>
+      </ul>
+    </div>
+    <!-- Each of these div's represents a button set. They must be listed in inverse order -->
+    <help-menu></help-menu>
+    <system-configuration-menu ng-if="vm.hasAnyPermission()" permissions="vm.permissions"></system-configuration-menu>
+    <notifications-menu></notifications-menu>
+    <user-menu></user-menu>
+  </div>
+</div>

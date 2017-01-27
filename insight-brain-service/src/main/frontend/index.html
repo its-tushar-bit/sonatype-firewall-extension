@@ -105,7 +105,13 @@
   <script src="dashboard/manage.filter.menu/manage.filter.menu.js"></script>
   <script src="EditorTools.js"></script>
   <script src="FormsModule.js"></script>
-  <script src="MainHeader.js"></script>
+  <script src="mainHeader/module.js"></script>
+  <script src="mainHeader/userMenu/CurrentUserService.js"></script>
+  <script src="mainHeader/helpMenu/helpMenu.js"></script>
+  <script src="mainHeader/userMenu/userMenu.js"></script>
+  <script src="mainHeader/notificationsMenu/notificationsMenu.js"></script>
+  <script src="mainHeader/systemConfigurationMenu/systemConfigurationMenu.js"></script>
+  <script src="mainHeader/mainHeader.js"></script>
   <script src="MainModule.js"></script>
   <script src="ManagementApp.js"></script>
   <script src="ReportApp.js"></script>
@@ -254,7 +260,7 @@
   <!-- endbuild -->
 </head>
 <body>
-  <div main-header></div>
+  <main-header></main-header>
   <div ng-show='!error' class="main-view">
     <div ui-view></div>
   </div>

@@ -14,14 +14,14 @@ $tile-scroll-container-z-index: 0;
 }
 
 .iq-tile-header {
-  min-height: 43px;
+  min-height: 34px;
   margin-bottom: 8px;
   overflow: hidden;
 }
 
 .iq-tile-header__title {
   display: inline-block;
-  height: 37px;
+  height: 43px;
   
   .iq-tile-header__icon {
     display: block;
@@ -55,6 +55,10 @@ $tile-scroll-container-z-index: 0;
       font-weight: normal;
     }
   }
+}
+
+.iq-tile-header--no-actions {
+  height: 34px;
 }
 
 .iq-tile-header__subtitle {

@@ -1,16 +1,24 @@
 <div class="tile-container" fill-vertical>
   <div class="summary-tile-container">
-    <div class="tile summary-tile" id="repositories-summary">
-      <h1><i class="fa fa-database"></i> Repositories</h1>
-      <ul class="nav nav-pills">
-        <li class="active"><a data-toggle="pill" id="repositories-configuration-button"
-                              data-target="#repositories-pill-configuration">Configuration</a></li>
-        <li><a data-toggle="pill" id="repositories-access-button" data-target="#repositories-pill-access">Access</a>
+    <div class="iq-tile iq-tile--top-tile" id="repositories-summary">
+      <div class="iq-tile-header iq-tile-header--no-actions">
+        <div class="iq-tile-header__title">
+          <i class="fa fa-database iq-tile-header__icon"></i>
+          <h1>Repositories</h1>
+        </div>
+      </div>
+      <ul class="nav nav-pills iq-nav-pills">
+        <li class="iq-nav-pills__pill active">
+          <a data-toggle="pill" id="repositories-configuration-button" data-target="#repositories-pill-configuration">
+             Configuration
+          </a>
+        </li>
+        <li class="iq-nav-pills__pill">
+          <a data-toggle="pill" id="repositories-access-button" data-target="#repositories-pill-access">Access</a>
         </li>
       </ul>
     </div>
   </div>
-
   <div class="tile-scroll-container" calc-tile-scroll-height="#repositories-summary" scrollspy="#repositories-summary">
     <div id="repositories-pill-configuration" class="tile"
          ng-controller="repositories.configuration.tile.controller as vm">

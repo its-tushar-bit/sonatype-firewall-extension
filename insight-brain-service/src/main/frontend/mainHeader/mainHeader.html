@@ -11,20 +11,27 @@
     </div>
     <div class="iq-navbar">
       <ul class="iq-navigation-menu iq-inline iq-pull-left">
-        <li class="iq-navigation-menu__icon" ng-class="{ 'active' : vm.$state.includes('dashboard') }"
-            tooltip="Dashboard" tooltip-placement="bottom" ng-if="vm.isDashboardLicensed()">
+        <li class="iq-navigation-menu__icon"
+            ng-class="{ 'active' : vm.$state.includes('dashboard') }"
+            tooltip="Dashboard"
+            tooltip-placement="bottom"
+            ng-if="vm.isDashboardLicensed()">
           <a ui-sref="dashboard.overview.violations" class="iq-navigation__link">
             <span><i class="sonatype-icons medium dashboard"></i></span>
           </a>
         </li><!-- fix chrome bounce
-     --><li class="iq-navigation-menu__icon" ng-class="{ 'active' : vm.$state.includes('violations') }"
-               tooltip="Reporting" tooltip-placement="bottom">
+     --><li class="iq-navigation-menu__icon"
+            ng-class="{ 'active' : vm.$state.includes('violations') }"
+            tooltip="Reporting"
+            tooltip-placement="bottom">
           <a ui-sref="violations" class="iq-navigation__link">
             <span><i class="sonatype-icons medium reporting"></i></span>
           </a>
         </li><!-- fix chrome bounce
-     --><li class="iq-navigation-menu__icon" ng-class="{ 'active' : vm.$state.includes('management') }"
-               tooltip="Organization & Policies" tooltip-placement="bottom">
+     --><li class="iq-navigation-menu__icon"
+            ng-class="{ 'active' : vm.$state.includes('management') }"
+            tooltip="Organization & Policies"
+            tooltip-placement="bottom">
           <a ui-sref="management.view" class="iq-navigation__link">
             <span><i class="sonatype-icons medium organizational-design"></i></span>
           </a>

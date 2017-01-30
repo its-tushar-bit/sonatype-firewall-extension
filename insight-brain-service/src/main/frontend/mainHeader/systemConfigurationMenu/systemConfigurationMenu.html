@@ -7,27 +7,33 @@
       <li class="iq-dropdown-menu__title">SYSTEM&nbsp;PREFERENCES</li>
       <li>
         <ul class="dropdown-contents">
-          <li id="system-configuration-users" ng-if="vm.permissions.CONFIGURE_SYSTEM"
+          <li id="system-configuration-users"
+              ng-if="vm.permissions.CONFIGURE_SYSTEM"
               ng-class="{'active': vm.state.is('users') }">
             <a ui-sref="users" class="iq-dropdown__link">Users</a>
           </li>
-          <li id="system-configuration-roles" ng-if="vm.permissions.VIEW_ROLES"
+          <li id="system-configuration-roles"
+              ng-if="vm.permissions.VIEW_ROLES"
               ng-class="{'active': vm.state.is('roles') }">
             <a ui-sref="roles" class="iq-dropdown__link">Roles</a>
           </li>
-          <li id="system-configuration-administrators" ng-if="vm.permissions.CONFIGURE_SYSTEM"
+          <li id="system-configuration-administrators"
+              ng-if="vm.permissions.CONFIGURE_SYSTEM"
               ng-class="{'active': vm.state.is('administrators') }">
             <a ui-sref="administrators" class="iq-dropdown__link">Administrators</a>
           </li>
-          <li id="system-configuration-product-license" ng-if="vm.permissions.CONFIGURE_SYSTEM"
+          <li id="system-configuration-product-license"
+              ng-if="vm.permissions.CONFIGURE_SYSTEM"
               ng-class="{'active': vm.state.is('productlicense') }">
             <a ui-sref="productlicense" class="iq-dropdown__link">Product License</a>
           </li>
-          <li id="system-configuration-ldap" ng-if="vm.permissions.CONFIGURE_SYSTEM"
+          <li id="system-configuration-ldap"
+              ng-if="vm.permissions.CONFIGURE_SYSTEM"
               ng-class="{'active': vm.state.includes('ldap') }">
             <a ui-sref="ldap-servers" class="iq-dropdown__link">LDAP</a>
           </li>
-          <li id="system-configuration-webhooks" ng-if="vm.permissions.CONFIGURE_SYSTEM"
+          <li id="system-configuration-webhooks"
+              ng-if="vm.permissions.CONFIGURE_SYSTEM"
               ng-class="{'active': vm.state.includes('webhooks.list') }">
             <a ui-sref="webhooks.list" class="iq-dropdown__link">Webhooks</a>
           </li>

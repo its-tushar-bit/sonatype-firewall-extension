@@ -1,10 +1,13 @@
 $tile-scroll-container-z-index: 0;
 
+$iq-tile-header: 34px; // Minimum height
+$iq-tile-header-title: 42px; // Height with sub-title and/or right button
+
 /*
   #Name-spaced Tile System
 */
 
-// Base Tile    
+// Base Tile
 
 .iq-tile {
   background-color: $iq-main-background-color;
@@ -13,52 +16,60 @@ $tile-scroll-container-z-index: 0;
   padding: 0 8px 8px 8px;
 }
 
+// Tile headers
+
 .iq-tile-header {
-  min-height: 34px;
+  min-height: $iq-tile-header;
   margin-bottom: 8px;
   overflow: hidden;
 }
 
 .iq-tile-header__title {
   display: inline-block;
-  height: 43px;
-  
-  .iq-tile-header__icon {
-    display: block;
-    float: left;
-    font-size: 30px;
-    height: 42px;
-    line-height: 42px;
-    margin-top: -1px; // magic number for default globe graphic
-    margin-right: 8px; 
-    vertical-align: middle;
-    
-    img {
-      max-height: 25px; // magic number for default globe graphic
-      width: auto;
-    }        
-  }
-   
+  height: $iq-tile-header-title;
+
+
   h1 {
     display: inline-block;
     font-size: 26px;
-    line-height: 42px;
+    line-height: $iq-tile-header-title;
     margin: 0;
     margin-left: -1px; // Magic number b/c H1 has mysterious 1px to the left
     padding: 1px 0 0 0;
     text-overflow: ellipsis;
     white-space: nowrap;
-    
+
     .iq-tile-header__description {
       @include regular();
-      
+
       font-weight: normal;
     }
   }
 }
 
-.iq-tile-header--no-actions {
-  height: 34px;
+.iq-tile-header__icon {
+  display: block;
+  float: left;
+  font-size: 30px;
+  height: $iq-tile-header-title;
+  line-height: $iq-tile-header-title;
+  margin-right: 8px; 
+  vertical-align: middle;
+
+  img {
+    display: block;
+    max-height: 25px; // magic number for default globe graphic
+    margin-top: 10px; // magic number for default globe graphic
+    width: auto;
+  }
+
+  &.fa {
+    font-size: 22px;
+  }
+}
+
+.iq-tile-header__title--no-actions {
+  height: $iq-tile-header;
 }
 
 .iq-tile-header__subtitle {

@@ -39,7 +39,7 @@ public class PolicyEditorPage
   }
 
   public static SelenideElement title() {
-    return $("#policy-editor-summary h2");
+    return $("#policy-editor-summary h1");
   }
 
   public static SelenideElement saveButton() {

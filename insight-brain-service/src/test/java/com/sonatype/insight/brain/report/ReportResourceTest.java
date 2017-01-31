@@ -13,6 +13,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -1098,6 +1099,100 @@ public class ReportResourceTest
         assertThat(detailsFromList.getLicenseThreatLevel(), is(2));
       }
     }
+  }
+
+  @Test
+  public void testDownloadBundle_v3() throws Exception {
+    final String applicationPublicId = "ReportResourceTest_AppId";
+    String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
+    final String scanId = "ReportResourceTest_ScanId";
+    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    mockReport(scanId, "/ReportResourceTest/standalone-v3/");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.webjars.npm",
+        "reactivex:rxjs", "5.0.0-alpha.7", "", "jar");
+    Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
+
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
+        .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
+    assertResponseStatus(200, response);
+
+    response = restRequest(applicationPublicId, scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
+    assertResponseStatus(200, response);
+    assertThat(response.getContentType(), is("application/zip"));
+    assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
+    try (InputStream actual = response.getBodyStream()) {
+      File temp = File.createTempFile("report", "zip");
+      FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
+      try (ZipFile zip = new ZipFile(temp)) {
+        assertNotNull(zip.getEntry("data/report.pdf"));
+        assertNull(zip.getEntry("detail.rptdesign"));
+        assertNull(zip.getEntry("data/index.html"));
+
+        ZipEntry componentEntry = zip.getEntry("data/components.json");
+        assertNotNull(componentEntry);
+        ApiReportDataDTOV2 components = JsonUtils.parse(zip.getInputStream(componentEntry), ApiReportDataDTOV2.class);
+
+        assertEquals(1, components.matchSummary.knownComponentCount);
+        assertEquals(481, components.matchSummary.totalComponentCount); // Jar has a lot of JS in it
+        assertComponent("org.webjars.npm", "reactivex:rxjs", "5.0.0-alpha.7", "Sonatype Special Licenses", 5,
+            components.components);
+
+        assertNotNull(zip.getEntry("data/sv/maven/"
+            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/9276b9bfccfcd3614dc2.cve.CVE-2013-1624.json"));
+        assertNotNull(zip.getEntry("data/release-graph/maven/"
+            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/releases.png"));
+        assertNotNull(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME));
+
+        assertNull(zip.getEntry("cip/details/9276b9bfccfcd3614dc2.json"));
+        TestNamedComponentDetails details = JsonUtils.parse(
+            zip.getInputStream(zip.getEntry("data/cip/details/9276b9bfccfcd3614dc2.json")),
+            TestNamedComponentDetails.class);
+        assertThat(details.getMatchState(), is("exact"));
+        assertComponentIdentifier(details, componentIdentifier);
+        assertThat(details.getDisplayName().toString(), is("org.webjars.npm : reactivex:rxjs : 5.0.0-alpha.7"));
+        assertThat(details.getCatalogDate(), is(1447958674000L));
+        assertThat(details.getOverriddenLicenses(), hasSize(0));
+        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Sonatype Special Licenses"));
+        assertThat(details.getLicenseThreatLevel(), is(5));
+        assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+        assertThat(details.getPolicyAlerts(), hasSize(1));
+        assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId(), is(policy.getId()));
+        assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts(), hasSize(1));
+
+        ComponentDetailsList list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
+            + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7"
+            + "/list.json")), ComponentDetailsList.class);
+        assertThat(list.getList(), hasSize(1));
+      }
+    }
+  }
+
+  @Test
+  public void testToDataPathV3_invalidCharacters() {
+    for (char c = 0; c < 16; c++) {
+      assertThat(ReportResource.toDataPathV3(identifier(c)), is("bb/x=%0" + Integer.toHexString(c)));
+    }
+
+    for (char c = 16; c < 31; c++) {
+      assertThat(ReportResource.toDataPathV3(identifier(c)), is("bb/x=%" + Integer.toHexString(c)));
+    }
+
+    assertThat(ReportResource.toDataPathV3(identifier('*')), is("bb/x=%2a"));
+    assertThat(ReportResource.toDataPathV3(identifier('\\')), is("bb/x=%5c"));
+    assertThat(ReportResource.toDataPathV3(identifier('/')), is("bb/x=%2f"));
+    assertThat(ReportResource.toDataPathV3(identifier('?')), is("bb/x=%3f"));
+    assertThat(ReportResource.toDataPathV3(identifier(':')), is("bb/x=%3a"));
+    assertThat(ReportResource.toDataPathV3(identifier('|')), is("bb/x=%7c"));
+    assertThat(ReportResource.toDataPathV3(identifier('"')), is("bb/x=%22"));
+    assertThat(ReportResource.toDataPathV3(identifier('<')), is("bb/x=%3c"));
+    assertThat(ReportResource.toDataPathV3(identifier('>')), is("bb/x=%3e"));
+  }
+
+  private static ComponentIdentifier identifier(Character c) {
+    return new ComponentIdentifier("bb", Collections.singletonMap("x", String.valueOf(c)));
   }
 
   private static void assertComponent(String groupId,

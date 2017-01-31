@@ -1,0 +1,40 @@
+{
+  "hash" : "9276b9bfccfcd3614dc2",
+  "matchState" : "exact",
+  "declaredLicenses" : [ {
+    "licenseId" : "Apache-2.0",
+    "licenseName" : "Apache-2.0"
+  } ],
+  "observedLicenses" : [ {
+    "licenseId" : "UNSPECIFIED",
+    "licenseName" : "Not Provided"
+  } ],
+  "overriddenLicenses" : [ ],
+  "effectiveLicenses" : [ ],
+  "effectiveLicenseStatus" : null,
+  "catalogDate" : 1447958674000,
+  "relativePopularity" : 100,
+  "securityVulnerabilities" : [ ],
+  "website" : null,
+  "policyAlerts" : null,
+  "licenseThreatLevel" : null,
+  "licenseThreatGroupNames" : null,
+  "majorRevisionStep" : false,
+  "identificationSource" : null,
+  "identificationSourceComment" : null,
+  "componentIdentifier" : {
+    "format" : "maven",
+    "coordinates" : {
+      "artifactId" : "reactivex:rxjs",
+      "classifier" : "",
+      "extension" : "jar",
+      "groupId" : "org.webjars.npm",
+      "version" : "5.0.0-alpha.7"
+    }
+  },
+  "version" : "5.0.0-alpha.7",
+  "groupId" : "org.webjars.npm",
+  "artifactId" : "reactivex:rxjs",
+  "observedLicenseIds" : [ "UNSPECIFIED" ],
+  "declaredLicenseIds" : [ "Apache-2.0" ]
+}

@@ -8,12 +8,15 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -93,6 +96,8 @@ public class ReportResource
 
   private static final Logger log = LoggerFactory.getLogger(ReportResource.class);
 
+  private static final Set<Character> INVALID_FILESYSTEM_CHARACTERS;
+
   private static final long YEAR = (long) 365 * 24 * 60 * 60 * 1000;
 
   private final InsightWork work;
@@ -116,6 +121,16 @@ public class ReportResource
   private final ComponentDetailsLoader componentDetailsLoader;
 
   private final VersionService versionService;
+
+  static {
+    Set<Character> invalid = new HashSet<>(
+        Arrays.asList(new Character[] { '*', '\\', '/', '?', ':', '|', '"', '<', '>' }));
+
+    for (char c = 0; c <= 31; c++) {
+      invalid.add(c);
+    }
+    INVALID_FILESYSTEM_CHARACTERS = Collections.unmodifiableSet(invalid);
+  }
 
   @Inject
   public ReportResource(final ReportService reportService,
@@ -349,7 +364,10 @@ public class ReportResource
             if (!cipListPath.isEmpty()
                 && IdentificationSource.MANUAL.getId().equals(clmDetails.getIdentificationSource())) {
               String listPath = cipListPath;
-              if (dataVersion >= 1) {
+              if (dataVersion >= 3) {
+                listPath += toDataPathV3(clmDetails.getComponentIdentifier()) + "/list.json";
+              }
+              else if (dataVersion >= 1) {
                 listPath += toDataPath(clmDetails.getComponentIdentifier()) + "/list.json";
               }
               else {
@@ -380,6 +398,36 @@ public class ReportResource
     response.entity(updatedFile);
     response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(filename));
     return response.build();
+  }
+
+  static String toDataPathV3(ComponentIdentifier componentIdentifier) {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(componentIdentifier.getFormat());
+    for (Map.Entry<String, String> entry : componentIdentifier.getCoordinates().entrySet()) {
+      buffer.append('/').append(entry.getKey());
+      buffer.append('=').append(encode(entry.getValue()));
+    }
+    return buffer.toString();
+  }
+
+  private static String encode(String piece) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < piece.length(); i++) {
+      Character c = piece.charAt(i);
+      if (INVALID_FILESYSTEM_CHARACTERS.contains(c)) {
+        String hexString = Integer.toHexString(c);
+        sb.append("%");
+        if (hexString.length() == 1) {
+          sb.append('0');
+        }
+        sb.append(Integer.toHexString(c));
+      }
+      else {
+        sb.append(piece.charAt(i));
+      }
+    }
+
+    return sb.toString();
   }
 
   private String toDataPath(ComponentIdentifier componentIdentifier) {
@@ -413,7 +461,10 @@ public class ReportResource
       ComponentIdentifier componentIdentifier = convertFromApi(component.componentIdentifier);
       if (componentIdentifier != null) {
         String imagePath;
-        if (dataVersion >= 1) {
+        if (dataVersion >= 3) {
+          imagePath = toDataPathV3(componentIdentifier) + "/releases.png";
+        }
+        else if (dataVersion >= 1) {
           imagePath = toDataPath(componentIdentifier) + "/releases.png";
         }
         else if (!componentIdentifier.isMaven()) {

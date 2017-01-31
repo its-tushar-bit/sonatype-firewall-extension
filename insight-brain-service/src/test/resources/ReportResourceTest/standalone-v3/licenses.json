@@ -1,0 +1,31 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactivex:rxjs",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars.npm",
+        "version" : "5.0.0-alpha.7"
+      }
+    },
+    "groupId" : "org.webjars.npm",
+    "artifactId" : "reactivex:rxjs",
+    "version" : "5.0.0-alpha.7",
+    "hash" : "9276b9bfccfcd3614dc2",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1447958674000
+  } ]
+}

@@ -7,9 +7,10 @@ package com.sonatype.clm.testing.functional.utils.proxy;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.sonatype.insight.test.reverseproxy.IRequestHandler;
 
 public class SimpleStatusRequestHandler
     implements IRequestHandler
@@ -32,7 +33,7 @@ public class SimpleStatusRequestHandler
   }
 
   @Override
-  public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+  public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.sendError(status, message);
   }
 }

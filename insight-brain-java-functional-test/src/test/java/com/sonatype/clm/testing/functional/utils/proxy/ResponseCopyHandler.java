@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
+
+import com.sonatype.insight.test.reverseproxy.IRequestHandler;
+import com.sonatype.insight.test.reverseproxy.ReverseProxyHandler;
 
 import com.codeborne.selenide.Configuration;
 
@@ -42,7 +44,7 @@ public class ResponseCopyHandler
   }
 
   @Override
-  public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+  public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
     this.responseCopier = new HttpServletResponseCopier(response);
     reverseProxy.handle(request, responseCopier);
     responseCopier.flushBuffer();

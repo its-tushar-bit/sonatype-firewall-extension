@@ -33,6 +33,6 @@ public class TwistlockScanTest
   public void testGetScanXml() throws Exception {
     TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
     assertThat(twistlockScan.getScanXml(),
-        is(FileUtils.fileRead("target/test-classes/TwistlockScanTest/expected-scan.xml")));
+        is(FileUtils.fileRead("target/test-classes/TwistlockScanTest/expected-scan.xml").replace("\r\n", "\n")));
   }
 }

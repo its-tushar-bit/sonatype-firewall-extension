@@ -71,7 +71,7 @@ public class LdapRealmTest
   private String oldTrustStore;
 
   @Inject
-  private LdapManager manager;
+  private LdapService ldapService;
 
   @Inject
   private LdapRealm realm;
@@ -314,7 +314,7 @@ public class LdapRealmTest
     ldapServer.loadData("/ldap_users1.ldif");
 
     connectionDetails.setPort(ldapServer.getPort());
-    manager.saveConnection(connectionDetails);
+    ldapService.saveConnection(connectionDetails);
 
     return this;
   }

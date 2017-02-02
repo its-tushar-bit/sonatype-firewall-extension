@@ -38,7 +38,7 @@ import org.codehaus.plexus.util.StringUtils;
  */
 @Named
 @Singleton
-public class LdapManager
+public class LdapService
 {
   public static final String FAKE_PASSWORD = "#~FAKE~PASSWORD~#";
 
@@ -53,7 +53,7 @@ public class LdapManager
   private final PlexusCipher cipher;
 
   @Inject
-  public LdapManager(PlexusCipher cipher) {
+  public LdapService(PlexusCipher cipher) {
     this.cipher = cipher;
   }
 

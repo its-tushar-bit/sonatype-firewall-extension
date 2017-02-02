@@ -24,7 +24,7 @@ import org.apache.shiro.realm.ldap.DefaultLdapRealm;
 import org.apache.shiro.realm.ldap.LdapContextFactory;
 
 /**
- * Shiro realm that uses {@link LdapManager} for authentication.
+ * Shiro realm that uses {@link LdapService} for authentication.
  * 
  * @since 1.7
  */
@@ -33,19 +33,19 @@ import org.apache.shiro.realm.ldap.LdapContextFactory;
 public class LdapRealm
     extends DefaultLdapRealm
 {
-  private final LdapManager ldapManager;
+  private final LdapService ldapService;
 
   @Inject
-  public LdapRealm(LdapManager ldapManager) {
+  public LdapRealm(LdapService ldapService) {
     setAuthenticationTokenClass(UsernamePasswordToken.class);
-    this.ldapManager = ldapManager;
+    this.ldapService = ldapService;
   }
 
   @Override
   public boolean supports(AuthenticationToken token) {
     if (super.supports(token)) {
       for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
-        if (ldapManager.isLdapEnabled(ldapServer)) {
+        if (ldapService.isLdapEnabled(ldapServer)) {
           return true;
         }
       }
@@ -65,7 +65,7 @@ public class LdapRealm
     String username = ((UsernamePasswordToken) token).getUsername();
     char[] password = ((UsernamePasswordToken) token).getPassword();
 
-    LdapUser ldapUser = ldapManager.authenticateUser(username, password);
+    LdapUser ldapUser = ldapService.authenticateUser(username, password);
     Set<String> membership = ldapUser.getMembership();
 
     return new SimpleAuthenticationInfo(new UserPrincipal(username, ldapUser.getRealName(), false, membership), null,

@@ -10,7 +10,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.naming.NamingException;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
@@ -33,11 +33,11 @@ import org.apache.shiro.realm.AuthenticatingRealm;
 public class ReverseProxyRealm
     extends AuthenticatingRealm
 {
-  private final LdapManager ldapManager;
+  private final LdapService ldapService;
 
   @Inject
-  public ReverseProxyRealm(LdapManager ldapManager) {
-    this.ldapManager = ldapManager;
+  public ReverseProxyRealm(LdapService ldapService) {
+    this.ldapService = ldapService;
     setAuthenticationTokenClass(ReverseProxyAuthenticationToken.class);
     setCredentialsMatcher(new AllowAllCredentialsMatcher());
   }
@@ -63,7 +63,7 @@ public class ReverseProxyRealm
 
   private AuthenticationInfo doGetLdapRealmAuthenticationInfo(String username) {
     try {
-      LdapUser ldapUser = ldapManager.authenticateUserForReverseProxy(username);
+      LdapUser ldapUser = ldapService.authenticateUserForReverseProxy(username);
       if (ldapUser != null) {
         return new SimpleAuthenticationInfo(new UserPrincipal(username, ldapUser.getRealName(), false,
             ldapUser.getMembership()), null, getName());

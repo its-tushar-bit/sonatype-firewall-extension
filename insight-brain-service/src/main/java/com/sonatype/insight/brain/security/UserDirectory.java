@@ -29,7 +29,7 @@ import javax.naming.NamingException;
 import javax.validation.constraints.NotNull;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
-import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -93,12 +93,12 @@ public class UserDirectory
 
   private final UserDAO userDao;
 
-  private final LdapManager ldapManager;
+  private final LdapService ldapService;
 
   @Inject
-  public UserDirectory(UserDAO userDao, LdapManager ldapManager) {
+  public UserDirectory(UserDAO userDao, LdapService ldapService) {
     this.userDao = userDao;
-    this.ldapManager = ldapManager;
+    this.ldapService = ldapService;
   }
 
   /**
@@ -128,9 +128,9 @@ public class UserDirectory
 
       for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
         String ldapName = ldapServer.getName();
-        if (ldapManager.isGroupSearchEnabled(ldapServer)) {
+        if (ldapService.isGroupSearchEnabled(ldapServer)) {
           try {
-            for (LdapGroup group : ldapManager.getGroups(ldapServer, groupNames.toArray(new String[groupNames.size()]),
+            for (LdapGroup group : ldapService.getGroups(ldapServer, groupNames.toArray(new String[groupNames.size()]),
                 groupNames.size())) {
               final String groupName = group.getGroupname();
               Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
@@ -203,11 +203,11 @@ public class UserDirectory
     List<NamingException> namingExceptions = new ArrayList<>();
     List<Exception> otherExceptions = new ArrayList<>();
     for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
-      if (ldapManager.isLdapEnabled(ldapServer) && !sortedUserNames.isEmpty()) {
+      if (ldapService.isLdapEnabled(ldapServer) && !sortedUserNames.isEmpty()) {
         try {
           String ldapName = ldapServer.getName();
 
-          for (LdapUser user : ldapManager
+          for (LdapUser user : ldapService
               .getUsers(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]),
                   sortedUserNames.size())) {
             members.add(
@@ -258,9 +258,9 @@ public class UserDirectory
       List<LdapServer> ldapServers = new LdapServerDAO().getAll();
       // searching for users
       for (LdapServer ldapServer : ldapServers) {
-        if (ldapManager.isLdapEnabled(ldapServer)) {
+        if (ldapService.isLdapEnabled(ldapServer)) {
           try {
-            for (LdapUser user : ldapManager.findUsersByName(ldapServer, query, 100)) {
+            for (LdapUser user : ldapService.findUsersByName(ldapServer, query, 100)) {
               Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
                   ldapServer.getName());
               String key = member.getInternalNameLowerCase();
@@ -282,8 +282,8 @@ public class UserDirectory
       if (groupsEnabled) {
         for (LdapServer ldapServer : ldapServers) {
           try {
-            if (ldapManager.isGroupSearchEnabled(ldapServer)) {
-              for (LdapGroup group : ldapManager.findGroupsByName(ldapServer, query, 100)) {
+            if (ldapService.isGroupSearchEnabled(ldapServer)) {
+              for (LdapGroup group : ldapService.findGroupsByName(ldapServer, query, 100)) {
                 final String groupName = group.getGroupname();
                 Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapServer.getName());
                 String key = member.getInternalNameLowerCase();
@@ -347,18 +347,18 @@ public class UserDirectory
   }
 
   public boolean isDynamicGroupSearchDisabled() {
-    return ldapManager.isDynamicGroupSearchDisabled();
+    return ldapService.isDynamicGroupSearchDisabled();
   }
 
   public boolean hasMixedGroupSearch() {
-    return ldapManager.hasMixedGroupSearch();
+    return ldapService.hasMixedGroupSearch();
   }
 
   public boolean isLdapUser(final User user) throws NamingException {
     String[] userNames = { user.getUsername() };
     for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
-      if (ldapManager.isLdapEnabled(ldapServer) &&
-          !ldapManager.getUsers(ldapServer, userNames, userNames.length).isEmpty()) {
+      if (ldapService.isLdapEnabled(ldapServer)
+          && !ldapService.getUsers(ldapServer, userNames, userNames.length).isEmpty()) {
         return true;
       }
     }

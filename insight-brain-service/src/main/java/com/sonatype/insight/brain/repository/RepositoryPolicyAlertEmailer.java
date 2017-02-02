@@ -15,7 +15,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
@@ -47,12 +47,12 @@ public class RepositoryPolicyAlertEmailer
   @Inject
   public RepositoryPolicyAlertEmailer(final InsightMail mail,
                                       final UserDirectory userDirectory,
-                                      final LdapManager ldapManager,
+                                      final LdapService ldapService,
                                       final OwnerDAO ownerDAO,
                                       final MembershipMappingDAO membershipMappingDAO,
                                       final BaseUrl baseUrl)
   {
-    super(mail, userDirectory, ldapManager, ownerDAO, membershipMappingDAO);
+    super(mail, userDirectory, ldapService, ownerDAO, membershipMappingDAO);
     this.baseUrl = baseUrl;
   }
 

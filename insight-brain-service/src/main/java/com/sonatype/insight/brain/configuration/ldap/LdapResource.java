@@ -21,8 +21,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapManager;
-import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnectionStatus.Status;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -60,11 +58,11 @@ public class LdapResource
 
   private final LdapUserMappingDAO umapDao = new LdapUserMappingDAO();
 
-  private final LdapManager ldapManager;
+  private final LdapService ldapService;
 
   @Inject
-  public LdapResource(LdapManager ldapManager) {
-    this.ldapManager = ldapManager;
+  public LdapResource(LdapService ldapService) {
+    this.ldapService = ldapService;
   }
 
   /**
@@ -125,7 +123,7 @@ public class LdapResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapConnection getConnection(@PathParam("ldapServerId") String serverId) {
-    return ldapManager.loadConnection(serverId);
+    return ldapService.loadConnection(serverId);
   }
 
   /**
@@ -138,7 +136,7 @@ public class LdapResource
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapConnection updateLdapConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
     validateServerId(serverId, conn);
-    return ldapManager.saveConnection(conn);
+    return ldapService.saveConnection(conn);
   }
 
   // user mapping
@@ -191,7 +189,7 @@ public class LdapResource
     validateServerId(serverId, conn);
 
     try {
-      ldapManager.testConnection(conn);
+      ldapService.testConnection(conn);
       return LdapConnectionStatus.SUCCESS;
     }
     catch (NamingException e) {
@@ -213,7 +211,7 @@ public class LdapResource
     validateServerId(serverId, umap);
 
     try {
-      return ldapManager.testUserMapping(umap, 20);
+      return ldapService.testUserMapping(umap, 20);
     }
     catch (IllegalStateException e) {
       // happens when ldap server connection is not configured
@@ -237,7 +235,7 @@ public class LdapResource
     validateServerId(serverId, umap);
 
     try {
-      ldapManager.testUserLogin(umap, request.getUsername(), request.getPassword().toCharArray());
+      ldapService.testUserLogin(umap, request.getUsername(), request.getPassword().toCharArray());
       return LdapConnectionStatus.SUCCESS;
     }
     catch (IllegalStateException e) {

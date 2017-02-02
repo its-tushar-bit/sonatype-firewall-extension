@@ -22,7 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -117,7 +117,7 @@ public class PolicyAlertEmailerTest
   public TestLdapServer testLdapServer2 = new TestLdapServer();
 
   @Inject
-  private LdapManager manager;
+  private LdapService ldapService;
 
   private PolicyDAO policyDAO = new PolicyDAO();
 
@@ -357,17 +357,17 @@ public class PolicyAlertEmailerTest
     assertThat(ldapServers, hasSize(2));
 
     Throwable expectedException = new NamingException("Naming exception!");
-    LdapManager ldapManagerSpy = Mockito.spy(manager);
-    doThrow(expectedException).when(ldapManagerSpy)
+    LdapService ldapServiceSpy = Mockito.spy(ldapService);
+    doThrow(expectedException).when(ldapServiceSpy)
         .findUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class), anyInt());
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapManagerSpy);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
     InsightConfig appConfig = new InsightConfig();
     UriInfo uriInfo = mock(UriInfo.class);
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
     when(uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080"));
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, baseUrl, new ApplicationAdapter(userDirectory),
-        userDirectory, ldapManagerSpy, new OwnerDAO(), new MembershipMappingDAO());
+        userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO());
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications);
     // make sure emails from server 2 still go out
@@ -456,7 +456,7 @@ public class PolicyAlertEmailerTest
     testLdapServer1.start();
     testLdapServer1.loadData("/ldap_users1.ldif");
 
-    manager.saveConnection(createLdapConnection(ldapServer1, testLdapServer1));
+    ldapService.saveConnection(createLdapConnection(ldapServer1, testLdapServer1));
 
     new LdapUserMappingDAO().insert(createUserMapping(ldapServer1));
   }
@@ -467,13 +467,13 @@ public class PolicyAlertEmailerTest
     testLdapServer2.start();
     testLdapServer2.loadData("/ldap_users2.ldif");
 
-    manager.saveConnection(createLdapConnection(ldapServer2, testLdapServer2));
+    ldapService.saveConnection(createLdapConnection(ldapServer2, testLdapServer2));
 
     new LdapUserMappingDAO().insert(createUserMapping(ldapServer2));
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {
-    LdapConnection conn = manager.loadConnection(ldapServer.getId());
+    LdapConnection conn = ldapService.loadConnection(ldapServer.getId());
     conn.setServerId(ldapServer.getId());
     conn.setProtocol(LdapProtocol.LDAP);
     conn.setSearchBase("dc=company,dc=com");

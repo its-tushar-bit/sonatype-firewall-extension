@@ -47,7 +47,7 @@ public class LdapUserAndGroupMappingTest
   private LdapServer serverDetails;
 
   @Inject
-  private LdapManager manager;
+  private LdapService ldapService;
 
   @Before
   public void initialize() {
@@ -244,8 +244,8 @@ public class LdapUserAndGroupMappingTest
   }
 
   private LdapUserAndGroupMappingTest checkMapping(LdapConnection conn, LdapUserMapping umap) throws Exception {
-    manager.saveConnection(conn);
-    List<LdapUser> users = manager.testUserMapping(umap, -1);
+    ldapService.saveConnection(conn);
+    List<LdapUser> users = ldapService.testUserMapping(umap, -1);
     Collections.sort(users);
 
     LdapUser user;
@@ -256,7 +256,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail(), is("brianf@sonatype.com"));
     assertThat(user.getMembership(), containsInAnyOrder("public", "releases"));
 
-    manager.testUserLogin(umap, "brianf", "brianf123".toCharArray());
+    ldapService.testUserLogin(umap, "brianf", "brianf123".toCharArray());
 
     user = users.get(1);
     assertThat(user.getUsername(), is("cstamas"));
@@ -264,7 +264,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail(), is("cstamas@sonatype.com"));
     assertThat(user.getMembership(), containsInAnyOrder("public", "snapshots"));
 
-    manager.testUserLogin(umap, "cstamas", "cstamas123".toCharArray());
+    ldapService.testUserLogin(umap, "cstamas", "cstamas123".toCharArray());
 
     user = users.get(2);
     assertThat(user.getUsername(), is("jvanzyl"));
@@ -272,7 +272,7 @@ public class LdapUserAndGroupMappingTest
     assertThat(user.getEmail(), is("jvanzyl@sonatype.com"));
     assertThat(user.getMembership(), containsInAnyOrder("public", "releases", "snapshots"));
 
-    manager.testUserLogin(umap, "jvanzyl", "jvanzyl123".toCharArray());
+    ldapService.testUserLogin(umap, "jvanzyl", "jvanzyl123".toCharArray());
 
     return this;
   }
@@ -301,7 +301,7 @@ public class LdapUserAndGroupMappingTest
   }
 
   private LdapConnection createLdapConnection() {
-    LdapConnection conn = manager.loadConnection(serverDetails.getId());
+    LdapConnection conn = ldapService.loadConnection(serverDetails.getId());
     conn.setServerId(serverDetails.getId());
 
     conn.setProtocol(LdapProtocol.LDAP);

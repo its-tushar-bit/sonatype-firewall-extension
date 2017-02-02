@@ -10,7 +10,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -34,7 +34,7 @@ public class MemberAttributeResolverTest
   private UserDirectory userDirectory;
 
   @Inject
-  private LdapManager manager;
+  private LdapService ldapService;
 
   private MemberAttributeResolver memberAttributeResolver;
 
@@ -132,8 +132,8 @@ public class MemberAttributeResolverTest
     tempEntity.newLdapConnection(ldapServer2.getId(), embeddedLdapServer2.getPort());
     tempEntity.newLdapUserMapping(ldapServer2.getId());
 
-    assertThat(manager.isGroupSearchEnabled(ldapServer1), is(false));
-    assertThat(manager.isGroupSearchEnabled(ldapServer2), is(true));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer1), is(false));
+    assertThat(ldapService.isGroupSearchEnabled(ldapServer2), is(true));
 
     final Member groupMember1 = new Member();
     groupMember1.setType(MemberType.GROUP);

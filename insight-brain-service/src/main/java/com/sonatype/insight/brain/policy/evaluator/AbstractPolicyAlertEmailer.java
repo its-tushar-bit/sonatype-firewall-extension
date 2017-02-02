@@ -20,7 +20,7 @@ import javax.naming.NamingException;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.configuration.ldap.LdapManager;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -58,7 +58,7 @@ public abstract class AbstractPolicyAlertEmailer
 
   private final MemberAttributeResolver memberAttributeResolver;
 
-  private final LdapManager ldapManager;
+  private final LdapService ldapService;
 
   private final OwnerDAO ownerDAO;
 
@@ -66,13 +66,13 @@ public abstract class AbstractPolicyAlertEmailer
 
   public AbstractPolicyAlertEmailer(final InsightMail mail,
                                     final UserDirectory userDirectory,
-                                    final LdapManager ldapManager,
+                                    final LdapService ldapService,
                                     final OwnerDAO ownerDAO,
                                     final MembershipMappingDAO membershipMappingDAO)
   {
     this.mail = mail;
     memberAttributeResolver = new MemberAttributeResolver(userDirectory);
-    this.ldapManager = ldapManager;
+    this.ldapService = ldapService;
     this.ownerDAO = ownerDAO;
     this.membershipMappingDAO = membershipMappingDAO;
   }
@@ -165,7 +165,8 @@ public abstract class AbstractPolicyAlertEmailer
       if (MemberType.GROUP == member.getType()) {
         for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
           try {
-            for (LdapUser ldapUser : ldapManager.findUsersByGroup(ldapServer, member.getInternalName(), 0 /* no max results */)) {
+            for (LdapUser ldapUser : ldapService.findUsersByGroup(ldapServer, member.getInternalName(),
+                0 /* no max results */)) {
               emailAddresses.add(ldapUser.getEmail());
             }
           }

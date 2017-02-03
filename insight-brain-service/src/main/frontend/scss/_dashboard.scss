@@ -628,6 +628,12 @@
   }
 }
 
+.iq-dashboard-headers {
+  box-shadow: 0px 2px 5px 0px $iq-grey-1;
+  position: relative;
+  z-index: 1;
+}
+
 #max-results-shown .tile {
   background-color: transparent;
   border: none;

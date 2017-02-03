@@ -104,18 +104,35 @@
   <root-organization-migrate></root-organization-migrate>
   <div class="dashboard-summary">
     <!-- TODO load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()"-->
-    <div class="tile summary-tile">
-      <div class="clm-dropdown pull-right">
-        <button class="btn btn-default dropdown-toggle btn-tertiary" type="button" data-toggle="dropdown" id="view-dropdown">
-          View
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-left">
-          <li><a id="show-trend-dialog" ng-click="showTrendDialog()"><i class="fa fa-calculator"></i>Calculate Trends</a></li>
-          <li><a id="export-results" onclick="document.forms['export-results'].submit();" ><i class="fa fa-file-o"></i>Export {{getViewTitle()}} Data</a></li>
-        </ul>
+    <div class="iq-tile iq-tile--top-tile iq-tile--dashboard">
+      <div class="iq-tile__actions">
+        <div class="clm-dropdown pull-right">
+          <button class="btn btn-default dropdown-toggle btn-tertiary"
+                  type="button"
+                  data-toggle="dropdown"
+                  id="view-dropdown">
+            View
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-left">
+            <li>
+              <a id="show-trend-dialog" ng-click="showTrendDialog()">
+                <i class="fa fa-calculator"></i>Calculate Trends
+              </a>
+            </li>
+            <li>
+              <a id="export-results" onclick="document.forms['export-results'].submit();">
+                <i class="fa fa-file-o"></i>Export {{getViewTitle()}} Data
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="tile-header dashboard-summary-header">Results</div>
+      <div class="iq-tile-header">
+        <div class="iq-tile-header__title">
+          <h1>Results</h1>
+        </div>
+      </div>
       <div dashboard-tabs filters="filters"></div>
     </div>
   </div>

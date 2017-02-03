@@ -1,7 +1,7 @@
 $tile-scroll-container-z-index: 0;
 
 $iq-tile-header: 34px; // Minimum height
-$iq-tile-header-title: 42px; // Height with sub-title and/or right button
+$iq-tile-header-title: 43px; // Height with sub-title and/or right button
 
 /*
   #Name-spaced Tile System
@@ -99,6 +99,14 @@ $iq-tile-header-title: 42px; // Height with sub-title and/or right button
   margin-bottom: 0;
   position: relative;
   z-index: $tile-scroll-container-z-index + 1;
+}
+
+// Dashboard Top Tile
+
+.iq-tile--dashboard {
+  border-bottom: none;
+  box-shadow: none;
+  padding-bottom: 0;
 }
 
 /*

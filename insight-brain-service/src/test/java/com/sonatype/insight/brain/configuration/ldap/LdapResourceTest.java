@@ -12,9 +12,6 @@ import java.util.Arrays;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.configuration.ldap.LdapService;
-import com.sonatype.insight.brain.configuration.ldap.LdapUser;
-import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -321,7 +318,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
   }
 
   @Test
@@ -339,7 +336,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
   }
 
   @Test
@@ -357,7 +354,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
   }
 
   @Test
@@ -375,7 +372,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-    assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
   }
 
   @Test
@@ -479,7 +476,7 @@ public class LdapResourceTest
       assertResponseStatus(200, response);
       LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-      assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
+      assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
     }
     finally {
       if (origTruststore != null) {
@@ -547,7 +544,7 @@ public class LdapResourceTest
     response = request.body(login).put();
     assertResponseStatus(200, response);
     status = response.getBody(LdapConnectionStatus.class);
-    assertThat(status.getStatus(), is(LdapConnectionStatus.Status.OK));
+    assertThat(status.getMessage(), status.getStatus(), is(LdapConnectionStatus.Status.OK));
   }
 
   private File getTestResourceFile(String path) throws IOException {

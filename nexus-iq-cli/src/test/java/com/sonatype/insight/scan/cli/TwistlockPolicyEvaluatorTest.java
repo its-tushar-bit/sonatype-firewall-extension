@@ -16,8 +16,8 @@ import java.util.zip.ZipFile;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.mock.PortAllocator;
-import com.sonatype.insight.mock.TwistlockMockServerRule;
+import com.sonatype.insight.mock.twistlock.PortAllocator;
+import com.sonatype.insight.mock.twistlock.TwistlockMockServerRule;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.io.DefaultScanReader;
 import com.sonatype.insight.scan.model.io.ScanReader;

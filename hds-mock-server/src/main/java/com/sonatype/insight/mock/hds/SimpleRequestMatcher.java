@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.mock;
+package com.sonatype.insight.mock.hds;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,7 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.mock.InsightMockServer.RequestMatcher;
+import com.sonatype.insight.mock.hds.InsightMockServer.RequestMatcher;
 
 import org.eclipse.jetty.util.UrlEncoded;
 

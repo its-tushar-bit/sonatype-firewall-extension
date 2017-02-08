@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.mock.InsightMockServer;
+import com.sonatype.insight.mock.hds.InsightMockServer;
 
 import org.junit.rules.ExternalResource;
 

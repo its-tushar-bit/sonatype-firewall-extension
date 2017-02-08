@@ -3,9 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.mock;
+package com.sonatype.insight.mock.twistlock;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -28,34 +27,22 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ConnectHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.util.B64Code;
 import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Password;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-public class InsightMockServer
+public class TwistlockMockServer
 {
   private int httpPort = 0;
-
-  private int httpsPort = -1;
-
-  private String keyStoreLocation;
-
-  private String keyStorePassword;
 
   private String username;
 
   private String password;
 
-  private String proxyUsername;
-
-  private String proxyPassword;
-
   private Server server;
 
-  private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<>();
+  private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<RequestMatcher, ResponseProvider>();
 
   public void reset() {
     responseProviders.clear();
@@ -66,23 +53,11 @@ public class InsightMockServer
     if (body == null) {
       throw new IllegalArgumentException("response body missing for " + uri);
     }
-    else if (body instanceof String) {
-      responseProvider = new BytesResponseProvider(status, (String) body);
-    }
-    else if (body instanceof byte[]) {
-      responseProvider = new BytesResponseProvider(status, (byte[]) body);
-    }
-    else if (body instanceof File) {
-      responseProvider = new UrlResponseProvider(status, (File) body);
-    }
     else if (body instanceof URL) {
       responseProvider = new UrlResponseProvider(status, (URL) body);
     }
     else {
-      responseProvider = new BytesResponseProvider(status, ResponseProvider.CONTENT_TYPE_JSON, Json.write(body));
-    }
-    if (!uri.startsWith("/")) {
-      uri = "/" + uri;
+      throw new IllegalStateException("No response provider");
     }
     responseProviders.put(new SimpleRequestMatcher(uri), responseProvider);
   }
@@ -96,7 +71,7 @@ public class InsightMockServer
     return null;
   }
 
-  public InsightMockServer setHttpPort(int httpPort) {
+  public TwistlockMockServer setHttpPort(int httpPort) {
     this.httpPort = httpPort;
     return this;
   }
@@ -112,37 +87,9 @@ public class InsightMockServer
     return "http://localhost:" + getHttpPort();
   }
 
-  public InsightMockServer setHttpsPort(int httpsPort) {
-    this.httpsPort = httpsPort;
-    return this;
-  }
-
-  public int getHttpsPort() {
-    if (httpsPort >= 0 && server != null && server.isRunning()) {
-      return server.getConnectors()[(httpPort < 0) ? 0 : 1].getLocalPort();
-    }
-    return httpsPort;
-  }
-
-  public String getHttpsUrl() {
-    return "https://localhost:" + getHttpsPort();
-  }
-
-  public InsightMockServer setAuthentication(String username, String password) {
+  public TwistlockMockServer setAuthentication(String username, String password) {
     this.username = username;
     this.password = password;
-    return this;
-  }
-
-  public InsightMockServer setProxyAuthentication(String username, String password) {
-    this.proxyUsername = username;
-    this.proxyPassword = password;
-    return this;
-  }
-
-  public InsightMockServer setKeyStore(String path, String password) {
-    keyStoreLocation = path;
-    keyStorePassword = password;
     return this;
   }
 
@@ -152,29 +99,13 @@ public class InsightMockServer
     return connector;
   }
 
-  private Connector newHttpsConnector() {
-    SslContextFactory ssl = new SslContextFactory();
-    ssl.setKeyStorePath(new File(keyStoreLocation).getAbsolutePath());
-    ssl.setKeyStorePassword(keyStorePassword);
-    ssl.setKeyManagerPassword(keyStorePassword);
-    SslSocketConnector connector = new SslSocketConnector(ssl);
-    connector.setPort(httpsPort);
-    return connector;
-  }
-
-  public InsightMockServer start() throws Exception {
+  public TwistlockMockServer start() throws Exception {
     if (server != null) {
       return this;
     }
 
     server = new Server();
-
-    if (httpPort >= 0) {
-      server.addConnector(newHttpConnector());
-    }
-    if (httpsPort >= 0 && keyStoreLocation != null) {
-      server.addConnector(newHttpsConnector());
-    }
+    server.addConnector(newHttpConnector());
 
     Handler mainHandler = new RestHandler();
 
@@ -200,10 +131,6 @@ public class InsightMockServer
     }
 
     HandlerList handlers = new HandlerList();
-
-    if (proxyUsername != null) {
-      handlers.addHandler(new ProxyHandler());
-    }
 
     handlers.addHandler(new ConnectHandler());
     handlers.addHandler(mainHandler);
@@ -233,7 +160,6 @@ public class InsightMockServer
     private static final String SCAN_ID = "SCAN-ID";
 
     private void handleMatchedRequest(HttpServletRequest request) throws IOException {
-      validateLicense(request);
       IO.copy(request.getInputStream(), IO.getNullStream());
     }
 
@@ -271,10 +197,6 @@ public class InsightMockServer
     {
       String uri = request.getRequestURI();
       String uriWithParams = uri;
-      if (request.getQueryString() != null) {
-        // remove timestamp parameters that are generated at runtime
-        uriWithParams += '?' + request.getQueryString().replaceAll("&(ts|timestamp)=[0-9]*", "");
-      }
 
       try {
         ResponseProvider responseProvider = getResponseProvider(uriWithParams);
@@ -297,15 +219,6 @@ public class InsightMockServer
     }
   }
 
-  private String validateLicense(HttpServletRequest request) throws RequestException {
-    String licenseFingerprint = request.getHeader("X-CLM-Token");
-    if (licenseFingerprint == null || licenseFingerprint.isEmpty()) {
-      throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "license fingerprint required");
-    }
-    System.out.println("license fingerprint: " + licenseFingerprint);
-    return licenseFingerprint;
-  }
-
   static class RequestException
       extends RuntimeException
   {
@@ -324,7 +237,6 @@ public class InsightMockServer
   class ProxyHandler
       extends AbstractHandler
   {
-
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
         throws IOException, ServletException
@@ -338,39 +250,12 @@ public class InsightMockServer
         auth = auth.substring(auth.indexOf(' ') + 1).trim();
         auth = B64Code.decode(auth, "ISO-8859-1");
       }
-
-      if (!(proxyUsername + ':' + proxyPassword).equals(auth)) {
-        response.setStatus(HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED);
-        response.addHeader("Proxy-Authenticate", "Basic realm=\"TestRealm\"");
-        response.getWriter().println("Proxy authentication required");
-
-        baseRequest.setHandled(true);
-      }
     }
   }
 
-  interface RequestMatcher
-  {
-    boolean matches(String uri);
-  }
-
-  interface ResponseProvider
-  {
-    static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
-
-    static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
-
-    void render(HttpServletResponse response) throws IOException;
-  }
-
   public static void main(String[] args) throws Exception {
-    InsightMockServer server = new InsightMockServer();
+    TwistlockMockServer server = new TwistlockMockServer();
     server.setHttpPort(9000);
-    server.setProxyAuthentication("proxyuser", "proxypass");
-    // server.setKeyStore(System.getProperty("javax.net.ssl.trustStore"), "server-pwd");
-    // server.setAuthentication("testuser", "testpass");
-    // server.setProxyAuthentication("proxyuser", "proxypass");
     server.start();
   }
-
 }

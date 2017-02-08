@@ -628,10 +628,17 @@
   }
 }
 
+// Placeholder that allows dropdowns to appear above table headers
+.iq-dashboard-summary {
+  position: relative;
+  z-index: $iq-dashboard-summary-zindex;
+}
+
+//Placeholder that allows box-shadow to appear over scrollable contents 
 .iq-dashboard-headers {
   box-shadow: 0px 2px 5px 0px $iq-grey-1;
   position: relative;
-  z-index: 1;
+  z-index: $iq-dashboard-headers-zindex;
 }
 
 #max-results-shown .tile {

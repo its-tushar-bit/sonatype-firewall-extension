@@ -103,7 +103,15 @@ $iq-form-mask-zindex: $zindexModal + 10;
 // need the login panel above the form save mask
 // ui-bootstrap modal window template sets z-index via ng-style, hence important
 $iq-login-modal-zindex: $zindexModal + 20 !important;
-$iq-sidebar-zindex: 1;
+
+// sidebar manage filter dropdown higher than main content
+$iq-sidebar-zindex: 3;
+
+// dropdowns to appear above table headers
+$iq-dashboard-summary-zindex: 2;
+
+// box-shadow to appear over scrollable contents 
+$iq-dashboard-headers-zindex: 1;
 
 /*
   #Responsive

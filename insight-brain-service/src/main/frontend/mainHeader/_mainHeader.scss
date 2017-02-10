@@ -270,22 +270,22 @@ a.iq-dropdown__link {
 }
 
 // This chunk contains customizations to support the notification menu 
-.iq-dropdown-menu--notification-menu {
+.iq-dropdown--notification-menu {
   float: right;
 
   .dropdown-menu-arrow::before {
-    right: 107px;
+    right: 95px;
     left: inherit;
   }
 
   .dropdown-menu-arrow::after {
-    right: 109px;
+    right: 97px;
     left: inherit;
   }
 
   .dropdown-menu {
     padding-bottom: 12px;
-    right: -100px;
+    right: -85px;
     left: auto;
   }
 
@@ -392,7 +392,7 @@ a.iq-dropdown__link {
   width: 500px;
 }
 
-.iq-dropdown-menu--help-menu, .iq-dropdown-menu--system-configuration-menu {
+.iq-dropdown--help-menu, .iq-dropdown--system-configuration-menu {
   float: right;
 
   .dropdown-menu {
@@ -411,7 +411,7 @@ a.iq-dropdown__link {
   }
 }
 
-.iq-dropdown-menu--user-menu {
+.iq-dropdown--user-menu {
   float: right;
   margin-right: 12px;
   width: auto;
@@ -430,6 +430,6 @@ a.iq-dropdown__link {
   }
 }
 
-.iq-dropdown-menu--help-menu {
+.iq-dropdown--help-menu {
   margin-right: 6px;
 }

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.test.SslProperties;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -40,6 +41,11 @@ import org.slf4j.LoggerFactory;
 public class TestInsightBrainService
     extends InsightBrainService
 {
+
+  static {
+    SslProperties.use();
+  }
+
   private static final Logger log = LoggerFactory.getLogger(TestInsightBrainService.class);
 
   public interface Configurator

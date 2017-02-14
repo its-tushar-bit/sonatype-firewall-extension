@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.PortAllocator;
 import com.sonatype.insight.brain.service.ProxyConfig;
+import com.sonatype.insight.test.SslProperties;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 
@@ -43,6 +44,10 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class HdsClientProxyTest
 {
+
+  static {
+    SslProperties.use();
+  }
 
   private Server server;
 

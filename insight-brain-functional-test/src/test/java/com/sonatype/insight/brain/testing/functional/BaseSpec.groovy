@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.service.InsightMockServerRule
 import com.sonatype.insight.brain.service.PortAllocator
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
+import com.sonatype.insight.test.SslProperties;
 
 import org.sonatype.licensing.product.ProductLicenseManager
 import org.sonatype.licensing.product.util.LicenseFingerprinter
@@ -37,7 +38,7 @@ import spock.lang.Shared
 abstract class BaseSpec
 extends GebReportingSpec {
   static {
-    System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
+    SslProperties.use();
   }
 
   @Shared

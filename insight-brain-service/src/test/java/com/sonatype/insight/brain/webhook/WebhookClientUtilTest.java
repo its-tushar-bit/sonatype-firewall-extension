@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.test.SslProperties;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
@@ -37,6 +38,11 @@ import static org.junit.Assert.assertThat;
 
 public class WebhookClientUtilTest
 {
+
+  static {
+    SslProperties.use();
+  }
+
   private Server server;
 
   private AbstractHandler handler;

@@ -38,6 +38,11 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-test-reverse-proxy</artifactId>
+      <scope>compile</scope>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

@@ -15,6 +15,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.test.SslProperties;
+
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
@@ -34,6 +36,11 @@ import org.eclipse.jetty.util.security.Password;
 
 public class TwistlockMockServer
 {
+
+  static {
+    SslProperties.use();
+  }
+
   private int httpPort = 0;
 
   private String username;

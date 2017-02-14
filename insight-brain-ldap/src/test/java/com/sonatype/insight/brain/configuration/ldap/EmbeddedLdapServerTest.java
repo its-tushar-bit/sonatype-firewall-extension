@@ -14,6 +14,8 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 
+import com.sonatype.insight.test.SslProperties;
+
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.After;
 import org.junit.Assert;
@@ -109,23 +111,10 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testLdaps() throws Exception {
-    server.enableLdaps(new File("src/test/resources/keystore/insight-test.ks"), "secret");
+    server.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
     server.start();
 
-    String origTruststore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
-    try {
-      System.setProperty(SYSPROP_SSLTRUSTSTORE,
-          new File("src/test/resources/keystore/insight-testclient.ks").getCanonicalPath());
-      assertLogin(AUTH_NONE);
-    }
-    finally {
-      if (origTruststore != null) {
-        System.setProperty(SYSPROP_SSLTRUSTSTORE, origTruststore);
-      }
-      else {
-        System.getProperties().remove(SYSPROP_SSLTRUSTSTORE);
-      }
-    }
+    assertLogin(AUTH_NONE);
   }
 
   private void assertLogin(String... mechanisms) throws NamingException {

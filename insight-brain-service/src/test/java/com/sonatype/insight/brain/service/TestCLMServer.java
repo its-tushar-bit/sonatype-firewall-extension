@@ -18,6 +18,7 @@ import com.google.inject.Module;
  */
 public class TestCLMServer
 {
+
   private final InsightMockServerRule insightMockServer;
 
   private final TestInsightBrainServiceRule brain;

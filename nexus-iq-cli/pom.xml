@@ -48,6 +48,10 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-cli-common</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-test-reverse-proxy</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

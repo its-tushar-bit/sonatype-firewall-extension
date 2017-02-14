@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.test.SslProperties;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -57,6 +58,11 @@ import static org.mockito.Mockito.when;
 
 public class HdsClientTest
 {
+
+  static {
+    SslProperties.use();
+  }
+
   private static final String USER_AGENT_SUFFIX = "test suffix";
 
   private Server server;

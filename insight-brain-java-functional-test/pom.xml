@@ -181,8 +181,6 @@
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-test-reverse-proxy</artifactId>
-      <version>${insight-scanner.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.sonatype.clm</groupId>

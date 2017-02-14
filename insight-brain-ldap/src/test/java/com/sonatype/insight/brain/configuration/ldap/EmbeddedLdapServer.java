@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.test.SslProperties;
+
 
 import org.apache.directory.api.ldap.model.constants.AuthenticationLevel;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
@@ -348,7 +350,7 @@ public class EmbeddedLdapServer
     File workingDirectory = new File("target/apacheds");
     new FileCleaner().delete(workingDirectory);
     EmbeddedLdapServer server = new EmbeddedLdapServer(workingDirectory);
-    server.enableLdaps(new File("src/test/resources/keystore/insight-test.ks"), "secret");
+    server.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
     server.start();
   }
 }

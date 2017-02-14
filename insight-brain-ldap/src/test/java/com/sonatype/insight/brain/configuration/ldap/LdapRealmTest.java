@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.test.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.apache.shiro.authc.AuthenticationException;
@@ -67,8 +68,6 @@ public class LdapRealmTest
 
   @Rule
   public TestLdapServer ldapServer = new TestLdapServer();
-
-  private String oldTrustStore;
 
   @Inject
   private LdapService ldapService;
@@ -302,10 +301,7 @@ public class LdapRealmTest
     }
 
     if (protocol == LdapProtocol.LDAPS) {
-      oldTrustStore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
-      System.setProperty(SYSPROP_SSLTRUSTSTORE,
-          getTestResourceFile("/keystore/insight-testclient.ks").getAbsolutePath());
-      ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
+      ldapServer.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
     }
 
     new LdapUserMappingDAO().insert(userMappingDetails);
@@ -325,17 +321,5 @@ public class LdapRealmTest
     File tempFile = temporaryFolder.newFile();
     FileUtils.copyURLToFile(resource, tempFile);
     return tempFile;
-  }
-
-  @After
-  public void cleanup() throws Exception {
-    if (protocol == LdapProtocol.LDAPS) {
-      if (oldTrustStore != null) {
-        System.setProperty(SYSPROP_SSLTRUSTSTORE, oldTrustStore);
-      }
-      else {
-        System.clearProperty(SYSPROP_SSLTRUSTSTORE);
-      }
-    }
   }
 }

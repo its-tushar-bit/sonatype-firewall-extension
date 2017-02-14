@@ -62,10 +62,6 @@ public abstract class AbstractBrainServiceTest
   {
   }
 
-  static {
-    System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
-  }
-
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Rule

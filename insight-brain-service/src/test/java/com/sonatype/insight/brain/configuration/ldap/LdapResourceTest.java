@@ -43,8 +43,6 @@ public class LdapResourceTest
     extends AbstractResourceTest
 {
 
-  private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
-
   private static final LdapServerDAO serverDao = new LdapServerDAO();
 
   @Rule
@@ -456,36 +454,22 @@ public class LdapResourceTest
   @Test
   public void testTestConnection_ldaps() throws Exception {
     ldapServer.setAuthenticationSimple();
-    ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
+    ldapServer.enableLdaps(getTestResourceFile("/com/sonatype/insight/test/localhost.jks"), "password");
     ldapServer.start();
 
-    String origTruststore = System.getProperty(SYSPROP_SSLTRUSTSTORE);
-    try {
-      System.setProperty(SYSPROP_SSLTRUSTSTORE,
-          getTestResourceFile("/keystore/insight-testclient.ks").getCanonicalPath());
+    LdapConnection conn = createLdapConnection("test");
+    conn.setProtocol(LdapProtocol.LDAPS);
+    conn.setHostname("localhost");
+    conn.setPort(ldapServer.getPort());
+    conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
+    conn.setSystemUsername(ldapServer.getSystemUserDN());
+    conn.setSystemPassword(ldapServer.getSystemUserPassword());
 
-      LdapConnection conn = createLdapConnection("test");
-      conn.setProtocol(LdapProtocol.LDAPS);
-      conn.setHostname("localhost");
-      conn.setPort(ldapServer.getPort());
-      conn.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-      conn.setSystemUsername(ldapServer.getSystemUserDN());
-      conn.setSystemPassword(ldapServer.getSystemUserPassword());
+    HttpResponse response = testConnectionRequest(conn).put();
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
-      HttpResponse response = testConnectionRequest(conn).put();
-      assertResponseStatus(200, response);
-      LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-      assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
-    }
-    finally {
-      if (origTruststore != null) {
-        System.setProperty(SYSPROP_SSLTRUSTSTORE, origTruststore);
-      }
-      else {
-        System.getProperties().remove(SYSPROP_SSLTRUSTSTORE);
-      }
-    }
+    assertEquals(status.getMessage(), LdapConnectionStatus.Status.OK, status.getStatus());
   }
 
   @Test

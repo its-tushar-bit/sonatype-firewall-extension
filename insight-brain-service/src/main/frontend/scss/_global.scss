@@ -6,6 +6,10 @@ a {
   cursor: pointer;
 }
 
+.iq-clickable {
+  cursor: pointer;
+}
+
 /*
   #Helper Classes
 */
@@ -15,6 +19,12 @@ a {
 
 .iq-pull-right {
   float: right;
+}
+
+.iq-error {
+  background-color: $iq-fail-color-bg;
+  border: 1px solid $iq-fail-color;
+  color: $iq-fail-color;
 }
 
 /*

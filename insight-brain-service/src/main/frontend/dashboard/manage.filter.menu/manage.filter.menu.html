@@ -1,37 +1,41 @@
-<ul class="iq-manage-filters-menu">
-  <li>
-    <a id="show-save-filter-dialog"
-       ng-click="vm.openSaveFilterModal($event)"
-       ng-class="{disabled: vm.isSaveFilterDisabled}"
-       data-tooltip="{{vm.isSaveFilterDisabled ? 'Please apply filter before saving': ''}}"
-       data-tooltip-placement="top-left"
-       data-tooltip-append-to-body="true"
-       tooltip-class="filter-label-tooltip">
-      <i class="fa fa-floppy-o"></i>Save...
-    </a>
-  </li>
-  <li>
-    <a id="show-delete-filters-dialog"
-       ng-click="vm.openDeleteFiltersModal($event)"
-       ng-class="{disabled: !vm.hasSavedFilters()}">
-      <i class="fa fa-trash"></i>Delete...
-    </a>
-  </li>
-  <li>
-    <h4 class="menu-sub-header">
-      <i class="fa fa-folder-open"></i>LOAD
-    </h4>
-  </li>
-  <li class="empty-list" ng-hide="vm.hasSavedFilters() || vm.isLoadingSavedFilters() || vm.savedFiltersHasError">No saved filters.</li>
-  <li class="error" ng-if="vm.savedFiltersHasError">
-    <i class="fa fa-warning"></i>
-    <span>Failed to open the saved filter list.</span>
-  </li>
-  <li>
-    <ul class="dropdown-contents" ng-hide="vm.savedFiltersHasError" load-wrapper loading="vm.isLoadingSavedFilters()">
-      <li class="filter-item clickable" ng-repeat="savedFilter in vm.savedNamedFilters" ng-click="vm.applySavedFilter(savedFilter)">
-        {{ ::savedFilter.name }}
-      </li>
-    </ul>
-  </li>
-</ul>
+<div class="iq-dropdown-menu__actions">
+  <a id="show-save-filter-dialog"
+     class="btn iq-btn--dropdown"
+     ng-click="vm.openSaveFilterModal($event)"
+     ng-class="{disabled: vm.isSaveFilterDisabled}"
+     data-tooltip="{{vm.isSaveFilterDisabled ? 'Please apply filter before saving': ''}}"
+     data-tooltip-placement="top-left"
+     data-tooltip-append-to-body="true"
+     tooltip-class="filter-label-tooltip">
+    <i class="fa fa-floppy-o iq-dropdown__action-icon"></i>Save...
+  </a>
+  <a id="show-delete-filters-dialog"
+     class="btn iq-btn--dropdown"
+     ng-click="vm.openDeleteFiltersModal($event)"
+     ng-class="{disabled: !vm.hasSavedFilters()}">
+    <i class="fa fa-trash iq-dropdown__action-icon"></i>Delete...
+  </a>
+</div>
+<div class="iq-manage-filters-menu__filters iq-action-list">
+  <h4 class="iq-action-list__title">
+    LOAD
+  </h4>
+  <div class="iq-action-list__item iq-action-list__item--empty"
+       ng-hide="vm.hasSavedFilters() || vm.isLoadingSavedFilters() || vm.savedFiltersHasError">
+    No saved filters.
+  </div>
+  <div class="iq-action-list__item iq-error" ng-if="vm.savedFiltersHasError">
+    <i class="fa fa-warning"></i>Failed to open the saved filter list.
+  </div>
+  <ul ng-hide="vm.savedFiltersHasError"
+      load-wrapper
+      loading="vm.isLoadingSavedFilters()"
+      id="manage-filter-list"
+      class="iq-scrollable">
+    <li class="iq-action-list__item iq-clickable"
+        ng-repeat="savedFilter in vm.savedNamedFilters"
+        ng-click="vm.applySavedFilter(savedFilter)">
+      {{::savedFilter.name}}
+    </li>
+  </ul>
+</div>

@@ -177,3 +177,39 @@
     }
   }
 }
+
+/*
+  #Buttons for dropdowns
+*/
+.iq-btn--dropdown {
+  background-color: transparent;
+  border-color: transparent;
+  display: block;
+  height: 32px;
+  line-height: 32px;
+  margin: 0 0 0 -12px;
+  padding: 0 10px 0 12px;
+  text-align: left;
+  text-decoration: none;
+  width: 100%;
+  
+  &:hover:not(.disabled):not([disabled]),
+  &:focus:not(.disabled):not([disabled]) {
+    border-color: transparent;
+    color: $iq-off-black;
+    text-decoration: none;
+  }
+
+  &:active:not(.disabled):not([disabled]) {
+    background-color: $iq-grey-1;
+  }
+
+  &:last-child {
+    margin-bottom: 8px;
+  }
+
+  .fa {
+    height: 12px;
+    width: 12px;
+  }
+}

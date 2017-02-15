@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import java.io.File;
 import java.util.Hashtable;
 
 import javax.naming.AuthenticationException;
@@ -29,7 +28,6 @@ import static org.hamcrest.Matchers.containsString;
  */
 public class EmbeddedLdapServerTest
 {
-  private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
   private static final String AUTH_CRAMMD5 = "CRAM-MD5";
   private static final String AUTH_DIGESTMD5 = "DIGEST-MD5";
   private static final String AUTH_SIMPLE = "simple";

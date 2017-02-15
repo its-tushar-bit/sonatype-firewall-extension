@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.Iterator;
 
 import javax.inject.Inject;
@@ -29,9 +26,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.sisu.launch.InjectedTest;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,8 +47,6 @@ import static org.junit.Assert.fail;
 public class LdapRealmTest
     extends InjectedTest
 {
-  private static final String SYSPROP_SSLTRUSTSTORE = "javax.net.ssl.trustStore";
-
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
@@ -313,13 +306,5 @@ public class LdapRealmTest
     ldapService.saveConnection(connectionDetails);
 
     return this;
-  }
-
-  private File getTestResourceFile(String path) throws IOException {
-    URL resource = getClass().getResource(path);
-    assertNotNull(resource); // sanity check
-    File tempFile = temporaryFolder.newFile();
-    FileUtils.copyURLToFile(resource, tempFile);
-    return tempFile;
   }
 }

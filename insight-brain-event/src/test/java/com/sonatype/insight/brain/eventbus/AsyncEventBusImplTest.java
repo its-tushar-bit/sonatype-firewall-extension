@@ -18,11 +18,11 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class AsyncEventBusTest
+public class AsyncEventBusImplTest
 {
   private EventBusConfig config = new EventBusConfig();
 
-  private AsyncEventBus underTest;
+  private AsyncEventBusImpl underTest;
 
   private Handler handler1;
 
@@ -35,7 +35,7 @@ public class AsyncEventBusTest
 
   @Before
   public void setUp() {
-    underTest = new AsyncEventBus(config);
+    underTest = new AsyncEventBusImpl(config);
     handler1 = new Handler(underTest, new CountDownLatch(1));
     handler2 = new Handler(underTest, new CountDownLatch(1));
     handlerWithException = new HandlerWithException(underTest, new CountDownLatch(1));
@@ -70,7 +70,7 @@ public class AsyncEventBusTest
     final int sleepTime = 50;
 
     config.setMaxPoolSize(1);
-    underTest = new AsyncEventBus(config);
+    underTest = new AsyncEventBusImpl(config);
 
     HandlerWithLongExecution longHandler = new HandlerWithLongExecution(underTest, new CountDownLatch(2), sleepTime);
 
@@ -87,7 +87,7 @@ public class AsyncEventBusTest
   {
     private CountDownLatch latch;
 
-    public Handler(final AsyncEventBus asyncEventBus, final CountDownLatch latch) {
+    public Handler(final AsyncEventBusImpl asyncEventBus, final CountDownLatch latch) {
       this.latch = latch;
       asyncEventBus.register(this);
     }
@@ -106,7 +106,7 @@ public class AsyncEventBusTest
   {
     private CountDownLatch latch;
 
-    public HandlerWithException(final AsyncEventBus asyncEventBus, final CountDownLatch latch) {
+    public HandlerWithException(final AsyncEventBusImpl asyncEventBus, final CountDownLatch latch) {
       this.latch = latch;
       asyncEventBus.register(this);
     }
@@ -128,7 +128,9 @@ public class AsyncEventBusTest
 
     private int sleepTime;
 
-    public HandlerWithLongExecution(final AsyncEventBus asyncEventBus, final CountDownLatch latch, final int sleepTime) {
+    public HandlerWithLongExecution(final AsyncEventBusImpl asyncEventBus, final CountDownLatch latch,
+                                    final int sleepTime)
+    {
       this.latch = latch;
       this.sleepTime = sleepTime;
       asyncEventBus.register(this);

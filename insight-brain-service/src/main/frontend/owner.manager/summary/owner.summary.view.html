@@ -2,61 +2,57 @@
   <div class="iq-tile iq-tile--top-tile" id='owner-summary' ng-controller="OwnerSummaryController as vm">
     <div load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()">
       <div class="iq-tile__actions">
-        <div class="clm-dropdown pull-right" id="action-dropdown">
+        <div class="iq-dropdown dropdown pull-right" id="action-dropdown">
           <button class="btn dropdown-toggle btn-tertiary" type="button" id="action-menu" data-toggle="dropdown">
             Actions
             <span class="caret"></span>
           </button>
-          <ul class="dropdown-menu">
-            <li ng-if="vm.isApp">
-              <a id="copy-app-id-link" copy-to-clipboard="vm.owner.publicId" copied-tooltip>
-                <i class="fa fa-clipboard fa-fw"/><span>App ID to Clipboard</span>
+          <div class="dropdown-menu iq-dropdown-menu">
+            <div class="iq-dropdown-menu__actions">
+              <a ng-if="vm.isApp"
+                 id="copy-app-id-link"
+                 copy-to-clipboard="vm.owner.publicId"
+                 copied-tooltip
+                 class="btn iq-btn--dropdown">
+                <i class="fa fa-clipboard fa-fw"/>App ID to Clipboard
               </a>
-            </li>
-            <li ng-if="vm.isApp">
-              <a id="select-contact-link" ng-click='vm.selectContact(vm.owner)'>
-                <i class="fa fa-user fa-fw"/><span>Select Contact</span>
+              <a ng-if="vm.isApp"
+                 id="select-contact-link"
+                 ng-click='vm.selectContact(vm.owner)'
+                 class="btn iq-btn--dropdown">
+                <i class="fa fa-user fa-fw"/>Select Contact
               </a>
-            </li>
-            <li>
-              <a ng-click='vm.edit()' id="app-org-link">
-                <i class="fa fa-pencil fa-fw"/><span>Edit {{:: vm.getShortTypeName()}} Name / Icon</span>
+              <a ng-click='vm.edit()' id="app-org-link" class="btn iq-btn--dropdown">
+                <i class="fa fa-pencil fa-fw"/>Edit {{:: vm.getShortTypeName()}} Name / Icon
               </a>
-            </li>
-            <li ng-if="vm.isApp">
-              <a ng-click='vm.changeApplicationId()' id="change-app-id-link">
-                <i class="fa fa-random fa-fw"/><span>Change App ID</span>
+              <a ng-if="vm.isApp"
+                 ng-click='vm.changeApplicationId()'
+                 id="change-app-id-link"
+                 class="btn iq-btn--dropdown">
+                <i class="fa fa-random fa-fw"/>Change App ID
               </a>
-            </li>
-            <li>
-              <a id="import-policies-link" ng-click='vm.importPolicy()'>
-                <i class="fa fa-download fa-fw"/><span>Import Policies</span>
+              <a id="import-policies-link" ng-click='vm.importPolicy()' class="btn iq-btn--dropdown">
+                <i class="fa fa-download fa-fw"/>Import Policies
               </a>
-            </li>
-            <li ng-show="vm.isApp">
-              <a ng-click='vm.moveApplication()' id="app-move-link">
-                <i class="fa fa-arrows fa-fw"/><span>Move {{vm.owner.name}}</span>
+              <a ng-show="vm.isApp" ng-click='vm.moveApplication()' id="app-move-link" class="btn iq-btn--dropdown">
+                <i class="fa fa-arrows fa-fw"/>Move {{vm.owner.name}}
               </a>
-            </li>
-            <li ng-if="::!vm.isRootOrg">
-              <a id="delete-owner-link" ng-click='vm.deleteOwner()'>
-                <i class="fa fa-trash fa-fw"/><span>Delete {{vm.owner.name}}</span>
+              <a ng-if="::!vm.isRootOrg" id="delete-owner-link" ng-click='vm.deleteOwner()' class="btn iq-btn--dropdown">
+                <i class="fa fa-trash fa-fw"/>Delete {{vm.owner.name}}
               </a>
-            </li>
-            <li ng-if="vm.isApp" class="divider"></li>
-            <li ng-if="vm.isApp">
-              <a id="eval-binary-link" ng-click="vm.evaluateApp()">
-                <i class="fa fa-upload fa-fw"/><span>Evaluate Binary</span>
+              <div ng-if="vm.isApp" class="divider"></div>
+              <a ng-if="vm.isApp" id="eval-binary-link" ng-click="vm.evaluateApp()" class="btn iq-btn--dropdown">
+                <i class="fa fa-upload fa-fw"/>Evaluate Binary
               </a>
-            </li>
-            <li ng-repeat="stage in ::vm.stages">
-              <a id="app-report-link" class="link"
-                 ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
-                 ng-click="vm.openReport(stage)">
-                <i class="fa fa-external-link fa-fw"/><span>View {{::stage.shortName | lowercase}} report</span>
-              </a>
-            </li>
-          </ul>
+              <div ng-repeat="stage in ::vm.stages">
+                <a id="app-report-link" class="link iq-dropdown-menu__link"
+                   ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
+                   ng-click="vm.openReport(stage)">
+                  <i class="fa fa-external-link fa-fw"/>View {{::stage.shortName | lowercase}} report
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="iq-tile-header"> 

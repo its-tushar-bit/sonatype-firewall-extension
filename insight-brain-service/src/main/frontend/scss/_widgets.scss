@@ -6,11 +6,11 @@
  #Dropdown menus
 */
 .iq-dropdown-menu {
-  background: #fefefe;
-  border: 1px solid #cacaca;
+  background: $iq-off-white;
+  border: 1px solid $iq-grey-4;
   border-radius: 4px;
-  box-shadow: -4px 4px 10px 0px #575757;
-  color: #575757;
+  box-shadow: -4px 4px 10px 0 $iq-slate;
+  color: $iq-slate;
   float: left;
   margin: 2px 0 0;
   list-style: none;
@@ -18,7 +18,7 @@
   position: absolute;
   top: 100%;
   left: 0;
-  max-width: 260px;
+  min-width: 200px;
   z-index: 1000;
   
   > :first-child {
@@ -38,6 +38,24 @@
 
 .iq-dropdown-menu--manage-filters {
   width: 254px;
+}
+
+.iq-dropdown-menu__link {
+  height: 32px;
+  line-height: 32px;
+  
+  .fa {
+    margin-right: 8px;
+  }
+  
+  &.disabled {
+    color: $iq-link-color-disabled;
+    cursor: default;
+    
+    &:hover {      
+      text-decoration: none;
+    }
+  }
 }
 
 /*
@@ -110,7 +128,7 @@
   border-top: 1px solid transparent;
   border-bottom: 1px solid $iq-grey-1;
   color: $iq-grey-4;
-  cursor: not-allowed;
+  cursor: default;
   display: block;
   height: 38px;
   line-height: 38px;

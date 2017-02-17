@@ -32,53 +32,69 @@ At Sonatype we value the stability and maintainability of the code base while st
 * We use the IIFE design pattern
   * This allows for a defined execution context for each code block
   * This ensures privacy of code blocks
-* We declare globals as parameters for our IIFE
-  * This clearly identifies the globals that will be used
-  * This ensures that globals in the context of the IIFE are as expected
-```javascript
-  (function(angular) {
-    /* code block */
-  }(angular));
-```
 * We use strict mode for all javascript execution
   * We value failing fast and encourage all errors to be thrown
   * We value security and the enhancements enforced by strict more
 * We prefer descriptive names for functions and variables rather than commenting
   * Of course, sometimes that may not be enough, and a comment would aide in understanding, left to developer's discretion
 
+## Component-based application architecture
+See "Component-based application architecture" in https://docs.angularjs.org/guide/component
+
+> An application is a tree of components: Ideally, the whole application should be a tree of components that implement clearly defined inputs and outputs, and minimize two-way data binding. That way, it's easier to predict when data changes and what the state of a component is.
+
+We follow "Component-based application architecture" while developing new functionality (and gradually refactoring existing code).
+
+See `frontend/mainHeader` for an example of component-based approach, file structure and naming convention.
+
+## File structure
+Since application is a component tree, the directory structure should reflect the component tree, where each component is hosted in its directory with the same name.
+Also there are top level directories for reusable components, directives and services (stores)
+
+Here is the desired file structure
+```
+/directives
+/services
+/components
+../module.js
+../checkbox
+../../checkbox.js
+../../checkbox.html
+../../_checkbox.scss
+/rootComponent
+../module.js
+../rootComponent.js
+../rootComponent.html
+../_rootComponent.scss
+../mainHeader
+../../module.js
+../../mainHeader.js
+../../mainHeader.html
+../../_mainHeader.scss
+```
+
 ## AngularJS Naming Standards
-* Modules should be defined in a parent folder with granular division of Angular component files in individual folders divided by business value
-  * This follows concepts used by Java packages
-  * This seperates file groups by business value and concern
-```
-  /Stores
-  ../Configuration
-  ../../application.store.service.js
-  ../../organization.store.service.js
-  /Configuration
-  ../Owner
-  ../../owner.editor.directive.js
-  ../../owner.editor.directive.html
-  ../Label
-  ../../label.controller.js
-  ../../label.view.html
-```
-* Files should be named after their contents and suffixed by the type of Angular component
-  * This allows developers to easily find code
-  * foo.controller.js
-```javascript
-  angular.controller('foo.controller', FooController);
-```
-* Angular component names, except for directives and modules, should be suffixed by their type
+* The ultimate goal is to use the same name for 
+  * angular entity name (component, directive, service etc)
+  * file name
+  * directory containing the component
+  * component template file
+  * component scss partial file (prefixed with `_`)
+
+* Since Angular directives and component names can only be camelCase (lower camel case), we follow this as a lowest common denominator, and use camelCase naming convention for:
+  * all angular DI names (modules, directives, components, services, filters)
+  * files
+  * directories
+  * modules
+
+* Angular entities, except for Directives and Components, should be suffixed by their type
   * Appending the component type to its name allows the consumer to easily understand its type and function
-  * Directives are not suffixed to prevent the extra HTML markup required to reference them
-  * qux.directive.js
+  * Directives and Components are not suffixed to prevent the extra HTML markup required to reference them
+  * quxService.js
 ```javascript
-  angular.directive('qux', QuxDirective);
+  angular.service('quxService', QuxService);
 ```
-* Angular templates should share the name of their directive or view
-  * qux.directive.html <-> qux.directive.js
-  * baz.view.html <-> baz.controller.js
+
 
 ## AngularJS Development
 * Each Angular Component should exist in it's own file, if it is injectable
@@ -112,6 +128,20 @@ At Sonatype we value the stability and maintainability of the code base while st
 ```
 
 ### AngularJS Development - Controllers
+
+* **NOTE: as we are migrating towards component-based architecture, there are not going to be any stand-alone Angular controllers.**
+As you can see in the example below, route configuration doesn't specify FooBar controller directly, its part of `fooBar` component implementation.
+```javascript
+  angular.component('fooBar', {
+    controller: FooBar
+  });
+  
+  $stateProvider.state('foo', {
+    url: '/foo',
+    template: '<foo-bar></foo-bar>'
+  });
+```
+
 * We utilize the controllerAs syntax
   * This isolates the view model to the controller or directive
   * This prevents the temptation to walk through the scope hierarchy
@@ -125,8 +155,8 @@ At Sonatype we value the stability and maintainability of the code base while st
   $stateProvider.state('foo', {
     url: '/foo',
     controller: FooController,
-    controllerAs: 'foo',
-    template: '<div>{{ foo.var }}</div>'
+    controllerAs: 'vm',
+    template: '<div>{{vm.var}}</div>'
   });
 ```
 * We place bindable members on the top of Angular controllers
@@ -190,6 +220,22 @@ At Sonatype we value the stability and maintainability of the code base while st
 * There should be a single jasmine file for each Angular component
   * This mirrors the file structure of the source code
   * This enforces smaller test files for easy consumption
+  
+# HTML guidelines
+* If all tag attributes fit in one line - they can be inline. Otherwise each attribute should be in its own line:
+```html
+<element attr1
+         attr2
+         attr3>
+</element>
+```
+
+* If opening tag, HTML content (inner HTML)  and closing tag fit in one line - they can be inline. Otherwise opening and closing tags should be in their own line:
+```html
+<element>
+    really long inner html
+</element>
+```
 
 # Style guidelines
 * One-off styles should be referenced by ID and do not neeed a styleguide example

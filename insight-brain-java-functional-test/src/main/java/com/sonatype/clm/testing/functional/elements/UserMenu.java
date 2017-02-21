@@ -13,7 +13,7 @@ public class UserMenu
 {
 
   public static SelenideElement root() {
-    return $("#user-menu ul");
+    return $("#user-menu div");
   }
 
   public static SelenideElement changePassword() {

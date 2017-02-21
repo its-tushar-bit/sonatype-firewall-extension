@@ -27,6 +27,12 @@ a {
   color: $iq-fail-color;
 }
 
+.iq-scrollable {
+  height: auto;
+  max-height: 400px; // default value - magic number
+  overflow-x: hidden;
+}
+
 /*
  #Placeholder classes
 */

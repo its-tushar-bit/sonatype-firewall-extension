@@ -1,32 +1,22 @@
-<div id="help-menu" class="iq-dropdown iq-dropdown--help-menu">
-  <div class="dropdown iq-pull-right">
-    <a id="help-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
-      <i class="glyphicons-sonatype medium help"></i>
+<div id="help-menu" class="dropdown iq-dropdown iq-dropdown--help-menu iq-pull-right">
+  <a id="help-menu-dropdown-toggle" class="iq-dropdown-toggle iq-dropdown-toggle--main-header" data-toggle="dropdown">
+    <i class="glyphicons-sonatype medium help"></i>
+  </a>
+  <div class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--main-header">
+    <h4 class="iq-dropdown-menu__title">SUPPORT&nbsp;OPTIONS</h4>
+    <a id="documentation-link"
+       href="http://links.sonatype.com/products/clm/doc/{{::vm.majorMinorVersion}}"
+       title="Go to Online Help"
+       target="_blank"
+       class="iq-dropdown-menu__link--main-header">
+      Online Help
     </a>
-    <ul class="dropdown-menu dropdown-menu-arrow">
-      <li class="iq-dropdown-menu__title">SUPPORT&nbsp;OPTIONS</li>
-      <li>
-        <ul class="dropdown-contents">
-          <li>
-            <a id="documentation-link"
-               href="http://links.sonatype.com/products/clm/doc/{{::vm.majorMinorVersion}}"
-               title="Go to Online Help"
-               target="_blank"
-               class="iq-dropdown__link">
-              Online Help
-            </a>
-          </li>
-          <li>
-            <a id="support-link"
-               href="http://links.sonatype.com/products/clm/support"
-               title="Submit a request to Sonatype support"
-               target="_blank"
-               class="iq-dropdown__link">
-              Request Support
-            </a>
-          </li>
-        </ul>
-      </li>
-    </ul>
+    <a id="support-link"
+       href="http://links.sonatype.com/products/clm/support"
+       title="Submit a request to Sonatype support"
+       target="_blank"
+       class="iq-dropdown-menu__link--main-header">
+      Request Support
+    </a>
   </div>
 </div>

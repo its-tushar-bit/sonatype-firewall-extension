@@ -1,44 +1,40 @@
-<div id="system-configuration-menu" class="iq-dropdown iq-dropdown--system-configuration-menu">
-  <div class="dropdown iq-pull-right">
-    <a id="system-configuration-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
-      <i class="glyphicons-sonatype medium cogwheel"></i>
-    </a>
-    <ul class="dropdown-menu dropdown-menu-arrow">
-      <li class="iq-dropdown-menu__title">SYSTEM&nbsp;PREFERENCES</li>
-      <li>
-        <ul class="dropdown-contents">
-          <li id="system-configuration-users"
-              ng-if="vm.permissions.CONFIGURE_SYSTEM"
-              ng-class="{'active': vm.state.is('users') }">
-            <a ui-sref="users" class="iq-dropdown__link">Users</a>
-          </li>
-          <li id="system-configuration-roles"
-              ng-if="vm.permissions.VIEW_ROLES"
-              ng-class="{'active': vm.state.is('roles') }">
-            <a ui-sref="roles" class="iq-dropdown__link">Roles</a>
-          </li>
-          <li id="system-configuration-administrators"
-              ng-if="vm.permissions.CONFIGURE_SYSTEM"
-              ng-class="{'active': vm.state.is('administrators') }">
-            <a ui-sref="administrators" class="iq-dropdown__link">Administrators</a>
-          </li>
-          <li id="system-configuration-product-license"
-              ng-if="vm.permissions.CONFIGURE_SYSTEM"
-              ng-class="{'active': vm.state.is('productlicense') }">
-            <a ui-sref="productlicense" class="iq-dropdown__link">Product License</a>
-          </li>
-          <li id="system-configuration-ldap"
-              ng-if="vm.permissions.CONFIGURE_SYSTEM"
-              ng-class="{'active': vm.state.includes('ldap') }">
-            <a ui-sref="ldap-servers" class="iq-dropdown__link">LDAP</a>
-          </li>
-          <li id="system-configuration-webhooks"
-              ng-if="vm.permissions.CONFIGURE_SYSTEM"
-              ng-class="{'active': vm.state.includes('webhooks.list') }">
-            <a ui-sref="webhooks.list" class="iq-dropdown__link">Webhooks</a>
-          </li>
-        </ul>
-      </li>
-    </ul>
+<div id="system-configuration-menu" class="iq-dropdown iq-dropdown--system-configuration-menu iq-pull-right">
+  <a id="system-configuration-menu-dropdown-toggle"
+     class="iq-dropdown-toggle iq-dropdown-toggle--main-header"
+     data-toggle="dropdown">
+    <i class="glyphicons-sonatype medium cogwheel"></i>
+  </a>
+  <div class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--main-header">
+    <h4 class="iq-dropdown-menu__title">SYSTEM&nbsp;PREFERENCES</h4>
+    <div id="system-configuration-users"
+        ng-if="vm.permissions.CONFIGURE_SYSTEM"
+        ng-class="{'active': vm.state.is('users')}">
+      <a ui-sref="users" class="iq-dropdown-menu__link--main-header">Users</a>
+    </div>
+    <div id="system-configuration-roles"
+        ng-if="vm.permissions.VIEW_ROLES"
+        ng-class="{'active': vm.state.is('roles')}">
+      <a ui-sref="roles" class="iq-dropdown-menu__link--main-header">Roles</a>
+    </div>
+    <div id="system-configuration-administrators"
+        ng-if="vm.permissions.CONFIGURE_SYSTEM"
+        ng-class="{'active': vm.state.is('administrators')}">
+      <a ui-sref="administrators" class="iq-dropdown-menu__link--main-header">Administrators</a>
+    </div>
+    <div id="system-configuration-product-license"
+        ng-if="vm.permissions.CONFIGURE_SYSTEM"
+        ng-class="{'active': vm.state.is('productlicense')}">
+      <a ui-sref="productlicense" class="iq-dropdown-menu__link--main-header">Product License</a>
+    </div>
+    <div id="system-configuration-ldap"
+        ng-if="vm.permissions.CONFIGURE_SYSTEM"
+        ng-class="{'active': vm.state.includes('ldap')}">
+      <a ui-sref="ldap-servers" class="iq-dropdown-menu__link--main-header">LDAP</a>
+    </div>
+    <div id="system-configuration-webhooks"
+        ng-if="vm.permissions.CONFIGURE_SYSTEM"
+        ng-class="{'active': vm.state.includes('webhooks.list')}">
+      <a ui-sref="webhooks.list" class="iq-dropdown-menu__link--main-header">Webhooks</a>
+    </div>
   </div>
 </div>

@@ -19,7 +19,7 @@ public class SystemConfigMenu
   }
 
   public SelenideElement menu() {
-    return child(".dropdown-toggle");
+    return child(".iq-dropdown-toggle");
   }
 
   public SelenideElement users() {

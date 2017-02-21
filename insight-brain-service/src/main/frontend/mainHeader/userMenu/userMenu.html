@@ -51,25 +51,26 @@
       </form>
     </div>
   </script>
-  <div id="user-menu" class="iq-dropdown iq-dropdown--user-menu">
-    <div class="dropdown">
-      <a id="user-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
-        <i class="glyphicons-sonatype medium user"></i>
-        <span id="user-name">{{vm.currentUser.displayName }} <i class="fa fa-caret-down"></i></span>
-      </a>
-      <ul class="dropdown-menu dropdown-menu-arrow">
-        <li class="iq-dropdown-menu__title">CURRENT&nbsp;USER</li>
-        <li>
-          <ul class="dropdown-contents">
-            <li ng-show="vm.canChangePassword()">
-              <a id="change-password" ng-click="vm.changePassword()" class="iq-dropdown__link">Change Password</a>
-            </li>
-            <li>
-              <a id="logout" ng-click="vm.logout()" class="iq-dropdown__link">Logout</a>
-            </li>
-          </ul>
-        </li>
-      </ul>
+  <div id="user-menu" class="dropdown iq-dropdown iq-dropdown--user-menu">
+    <a id="user-menu-dropdown-toggle"
+       class="iq-dropdown-toggle iq-dropdown-toggle--main-header iq-dropdown-toggle--user-menu"
+       data-toggle="dropdown">
+      <i class="glyphicons-sonatype medium user"></i>
+      <span id="user-name">
+        {{vm.currentUser.displayName }}
+        <i class="fa fa-caret-down"></i>
+      </span>
+    </a>
+    <div class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--main-header">
+      <h4 class="iq-dropdown-menu__title">CURRENT&nbsp;USER</h4>
+      <div ng-show="vm.canChangePassword()">
+        <a id="change-password"
+           ng-click="vm.changePassword()"
+           class="iq-dropdown-menu__link--main-header">
+          Change Password
+        </a>
+      </div>
+      <a id="logout" ng-click="vm.logout()" class="iq-dropdown-menu__link--main-header">Logout</a>
     </div>
   </div>
 </div>

@@ -402,6 +402,11 @@
       </dependency>
 
       <dependency>
+        <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-test-reverse-proxy</artifactId>
+        <version>${insight-scanner.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>

@@ -68,8 +68,9 @@ public class HdsIdeResourcePerformanceUtils
   static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
     config.setHdsUrl(hdsUrl);
-    return new HdsClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(),
-        new TestLicenseFingerprinter()), new VersionService(), Mockito.mock(IdleConnectionReaper.class));
+    return new HdsClient(new InsightProxy(config),
+        new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter()), config,
+        new VersionService(), Mockito.mock(IdleConnectionReaper.class));
   }
 
   static InsightWork createInsightWork() throws IOException {

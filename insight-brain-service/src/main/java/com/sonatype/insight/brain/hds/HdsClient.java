@@ -25,6 +25,7 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils;
@@ -84,6 +85,8 @@ public class HdsClient
 
   public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
 
+  private final String rutHeader;
+
   static final String OWNER_TYPE_HEADER = "X-CLM-Owner-Type";
 
   static final String OWNER_ID_HEADER = "X-CLM-Owner-Id";
@@ -91,14 +94,16 @@ public class HdsClient
   @Inject
   public HdsClient(final InsightProxy proxy,
                    final CLMLicenseManager licenseManager,
+                   InsightConfig insightConfig,
                    VersionService versionService,
                    IdleConnectionReaper idleConnectionReaper)
   {
-    this(proxy, licenseManager, versionService, idleConnectionReaper, 20);
+    this(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, 20);
   }
 
   protected HdsClient(final InsightProxy proxy,
                       final CLMLicenseManager licenseManager,
+                      InsightConfig insightConfig,
                       VersionService versionService,
                       IdleConnectionReaper idleConnectionReaper,
                       int poolSize)
@@ -111,6 +116,8 @@ public class HdsClient
     clientBuilder.setConnectionManager(connectionManager);
     client = clientBuilder.build();
     this.versionService = versionService;
+    rutHeader = insightConfig.getReverseProxyAuthentication().isEnabled()
+        ? insightConfig.getReverseProxyAuthentication().getUsernameHeader() : null;
     // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
   }
@@ -428,7 +435,9 @@ public class HdsClient
             && !HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(headerName)
             && !HttpHeaders.CONTENT_ENCODING.equalsIgnoreCase(headerName)
             && !HttpHeaders.AUTHORIZATION.equalsIgnoreCase(headerName)
-            && !HttpHeaders.PROXY_AUTHORIZATION.equalsIgnoreCase(headerName) && !"COOKIE".equalsIgnoreCase(headerName)) {
+            && !HttpHeaders.PROXY_AUTHORIZATION.equalsIgnoreCase(headerName) && !"COOKIE".equalsIgnoreCase(headerName)
+            && !"COOKIE2".equalsIgnoreCase(headerName) && !headerName.equalsIgnoreCase(rutHeader)
+            && !headerName.startsWith("X-Forward")) {
           req.setHeader(headerName, orig.getHeader(headerName));
         }
       }

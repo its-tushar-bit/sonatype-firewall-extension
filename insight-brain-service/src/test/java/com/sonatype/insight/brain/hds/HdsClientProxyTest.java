@@ -16,15 +16,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.PortAllocator;
 import com.sonatype.insight.brain.service.ProxyConfig;
-import com.sonatype.insight.test.SslProperties;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
+import com.sonatype.insight.test.SslProperties;
 
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.Request;
@@ -86,7 +85,7 @@ public class HdsClientProxyTest
   private void initClient() {
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
-    client = new HdsClient(new InsightProxy(config), licenseManager, new VersionService(),
+    client = new HdsClient(new InsightProxy(config), licenseManager, config, new VersionService(),
         mock(IdleConnectionReaper.class));
   }
 

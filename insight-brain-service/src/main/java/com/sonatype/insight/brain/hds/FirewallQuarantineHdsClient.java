@@ -10,6 +10,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 
@@ -26,9 +27,10 @@ public class FirewallQuarantineHdsClient
   @Inject
   public FirewallQuarantineHdsClient(final InsightProxy proxy,
                                      final CLMLicenseManager licenseManager,
+                                     InsightConfig insightConfig,
                                      VersionService versionService,
                                      IdleConnectionReaper idleConnectionReaper)
   {
-    super(proxy, licenseManager, versionService, idleConnectionReaper, 20);
+    super(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, 20);
   }
 }

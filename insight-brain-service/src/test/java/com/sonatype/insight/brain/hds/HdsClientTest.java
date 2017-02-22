@@ -25,10 +25,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.test.SslProperties;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.test.SslProperties;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -98,7 +98,7 @@ public class HdsClientTest
   private void initClient() {
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
-    client = new HdsClient(new InsightProxy(config), licenseManager, new VersionService(),
+    client = new HdsClient(new InsightProxy(config), licenseManager, config, new VersionService(),
         mock(IdleConnectionReaper.class));
   }
 
@@ -204,6 +204,11 @@ public class HdsClientTest
 
   @Test
   public void testDoNotLeakUserCredentialsToHds() throws Exception {
+    String usernameHeader = "My-User-Header";
+    config.getReverseProxyAuthentication().setUsernameHeader(usernameHeader);
+    config.getReverseProxyAuthentication().setEnabled(true);
+    initClient();
+
     final Set<String> headers = new HashSet<>();
     handler = new AbstractHandler()
     {
@@ -222,7 +227,7 @@ public class HdsClientTest
     HttpServletRequest request = mock(HttpServletRequest.class);
     when(request.getHeaderNames()).thenReturn(
         Collections.enumeration(Arrays.asList(HttpHeaders.AUTHORIZATION, HttpHeaders.PROXY_AUTHORIZATION,
-            HttpHeaders.COOKIE)));
+            HttpHeaders.COOKIE, "Cookie2", usernameHeader)));
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
@@ -231,6 +236,39 @@ public class HdsClientTest
     assertThat(HttpHeaders.AUTHORIZATION.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat(HttpHeaders.PROXY_AUTHORIZATION.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat(HttpHeaders.COOKIE.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
+    assertThat("Cookie2".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
+    assertThat(usernameHeader.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
+    assertThat(headers, not(empty()));
+  }
+
+  @Test
+  public void testRemoveXForwarded() throws Exception {
+    final Set<String> headers = new HashSet<>();
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
+          headers.add(en.nextElement().toLowerCase(Locale.ENGLISH));
+        }
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(
+        Collections.enumeration(Arrays.asList("X-Forwarded-Host", "X-Forwarded-Server", "X-Forwarded-For")));
+    when(request.getHeader(any(String.class))).thenReturn("header-value");
+    when(request.getMethod()).thenReturn("GET");
+
+    client.doProxy(request, "/rest/test");
+
+    assertThat("X-Forwarded-Host".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
+    assertThat("X-Forwarded-Server".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
+    assertThat("X-Forwarded-For".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat(headers, not(empty()));
   }
 

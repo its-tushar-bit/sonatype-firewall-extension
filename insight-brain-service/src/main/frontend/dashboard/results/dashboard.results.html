@@ -106,26 +106,24 @@
     <!-- TODO load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()"-->
     <div class="iq-tile iq-tile--top-tile iq-tile--dashboard">
       <div class="iq-tile__actions">
-        <div class="clm-dropdown pull-right">
-          <button class="btn btn-default dropdown-toggle btn-tertiary"
+        <div class="iq-dropdown">
+          <button class="btn btn-tertiary"
                   type="button"
                   data-toggle="dropdown"
                   id="view-dropdown">
             View
             <span class="caret"></span>
           </button>
-          <ul class="dropdown-menu dropdown-menu-left">
-            <li>
-              <a id="show-trend-dialog" ng-click="showTrendDialog()">
+          <div class="dropdown-menu iq-dropdown-menu">
+            <div class="iq-dropdown-menu__actions">
+              <a id="show-trend-dialog" ng-click="showTrendDialog()" class="btn iq-btn--dropdown">
                 <i class="fa fa-calculator"></i>Calculate Trends
               </a>
-            </li>
-            <li>
-              <a id="export-results" onclick="document.forms['export-results'].submit();">
+              <a id="export-results" onclick="document.forms['export-results'].submit();" class="btn iq-btn--dropdown">
                 <i class="fa fa-file-o"></i>Export {{getViewTitle()}} Data
               </a>
-            </li>
-          </ul>
+            </div>
+          </div>
         </div>
       </div>
       <div class="iq-tile-header">

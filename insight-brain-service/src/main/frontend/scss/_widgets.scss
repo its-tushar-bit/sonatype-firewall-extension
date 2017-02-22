@@ -55,6 +55,12 @@
     margin-bottom: 0;
     padding: 8px;
   }
+
+  // for tile header dropdowns at the right edge of the screen
+  .iq-tile__actions & {
+    right: 0;
+    left: auto;
+  }
 }
 
 .iq-dropdown-menu__title {

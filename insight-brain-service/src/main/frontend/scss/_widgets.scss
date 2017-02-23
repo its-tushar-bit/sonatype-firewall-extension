@@ -112,10 +112,17 @@
   word-wrap: break-word;
 
   &:hover {
-    background-color: $iq-grey-1;
+    background: $iq-grey-1;
     color: $iq-off-black;
     cursor: pointer;
     text-decoration: none;
+  }
+
+  // Necessary to override Bootstrap styles
+  .dropdown-menu > .active > &,
+  .dropdown-menu > .active > &:hover {
+    background: $iq-grey-1;
+    color: $iq-off-black;
   }
 }
 

@@ -118,80 +118,14 @@
     margin-right: -8px;
   }
 
-  .dropdown-toggle {
+  .iq-dropdown-toggle {
     margin-top: -4px;
   }
 
-  .dropdown-menu {
+  .iq-dropdown-menu {
     top: inherit;
     right: inherit;
     width: 254px;
-
-    .btn {
-      margin-top: 0;
-    }
-
-    .menu-sub-header {
-      border-bottom: 1px solid $iq-grey-4;
-      color: $iq-off-black;
-      margin: 0 8px 0 0;
-      padding: 12px;
-    }
-
-    .empty-list {
-      line-height: 40px;
-      text-align: center;
-    }
-
-    .disabled {
-      color: $iq-grey-4;
-      cursor: not-allowed;
-    }
-
-    ul.iq-manage-filters-menu {
-      list-style: none;
-      margin-bottom: 0;
-      margin-left: 0;
-    }
-
-    .dropdown-contents {
-      height: auto;
-      max-height: 568px;
-      list-style: none;
-      margin-left: 0;
-      overflow-x: hidden;
-      white-space: nowrap;
-      
-      .filter-item {
-        border-bottom: 1px solid $iq-grey-1;
-        border-top: 1px solid transparent;
-        line-height: 40px;
-        margin-right: 8px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        
-        &:hover {
-          border-top: 1px solid $iq-grey-4;
-          border-bottom: 1px solid $iq-grey-4;
-          color: $iq-off-black;
-        }
-        
-        &:hover:first-child {
-          border-top: 1px solid transparent;
-        }
-        
-        &:active {
-          background: $iq-grey-1;
-          border-top: 1px solid $iq-grey-4;
-          border-bottom: 1px solid $iq-grey-4;
-          color: $iq-off-black;
-        }
-        
-        &:focus {
-          outline: 0;
-        }
-      }
-    }
 
     .error {
       background-color: $iq-fail-color-bg;

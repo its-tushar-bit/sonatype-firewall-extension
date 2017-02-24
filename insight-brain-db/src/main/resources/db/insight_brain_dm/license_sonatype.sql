@@ -8,7 +8,7 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('GPL
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('LGPL-UNSPECIFIED','LGPL','LGPL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('AFL-UNSPECIFIED','AFL','AFL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('AGPL-UNSPECIFIED','AGPL','AGPL-Style License Not Identifiable by Sonatype');
-INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('Artistic-UNSPECIFIED','Artistic','AGPL-Style License Not Identifiable by Sonatype');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('Artistic-UNSPECIFIED','Artistic','Artistic-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CC-BY-SA-UNSPECIFIED','CC-BY-SA','CC-BY-SA-Style License Not Identifiable by Sonatyp');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CC-BY-UNSPECIFIED','CC-BY','CC-BY-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CDDL-UNSPECIFIED','CDDL','CDDL-Style License Not Identifiable by Sonatype');

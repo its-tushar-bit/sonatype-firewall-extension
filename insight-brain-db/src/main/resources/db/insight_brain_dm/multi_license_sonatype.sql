@@ -10,7 +10,7 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('AFL-UNSPECIFIED','AFL','AFL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('AGPL-3.0+','AGPL-3.0+','GNU Affero General Public License v3 or later');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('AGPL-UNSPECIFIED','AGPL','AGPL-Style License Not Identifiable by Sonatype');
-INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Artistic-UNSPECIFIED','Artistic','AGPL-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Artistic-UNSPECIFIED','Artistic','Artistic-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CC-BY-SA-UNSPECIFIED','CC-BY-SA','CC-BY-SA-Style License Not Identifiable by Sonatyp');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CC-BY-UNSPECIFIED','CC-BY','CC-BY-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CDDL-UNSPECIFIED','CDDL','CDDL-Style License Not Identifiable by Sonatype');

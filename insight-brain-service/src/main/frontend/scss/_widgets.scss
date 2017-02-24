@@ -113,6 +113,7 @@
 
   &:hover {
     background: $iq-grey-1;
+    filter: none;
     color: $iq-off-black;
     cursor: pointer;
     text-decoration: none;
@@ -122,6 +123,7 @@
   .dropdown-menu > .active > &,
   .dropdown-menu > .active > &:hover {
     background: $iq-grey-1;
+    filter: none;
     color: $iq-off-black;
   }
 }

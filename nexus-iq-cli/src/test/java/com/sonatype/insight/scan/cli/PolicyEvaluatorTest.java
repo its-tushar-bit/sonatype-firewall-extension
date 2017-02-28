@@ -68,7 +68,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The IQ Server is down for maintenance, please try again later.");
+      logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
       assertEquals("http://localhost:8070/", httpConfig.getValue().getServerUrl());
       assertEquals("localhost", httpConfig.getValue().getProxyHost());
       assertEquals(8888, httpConfig.getValue().getProxyPort());
@@ -87,7 +87,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The application ID the-app-id is invalid.");
+      logOutput.assertError("The application ID the-app-id is invalid.");
     }
   }
 
@@ -101,7 +101,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The IQ Server http://localhost:8070/ rejected the supplied credentials.");
+      logOutput.assertError("The IQ Server http://localhost:8070/ rejected the supplied credentials.");
     }
   }
 
@@ -115,7 +115,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The IQ Server http://localhost:8070/ rejected the supplied credentials.");
+      logOutput.assertError("The IQ Server http://localhost:8070/ rejected the supplied credentials.");
     }
   }
 
@@ -128,7 +128,8 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] Only one mode of authentication can be enabled at a time, --authentication and --pki-authentication are mutually exclusive.");
+      logOutput.assertError(
+          "Only one mode of authentication can be enabled at a time, --authentication and --pki-authentication are mutually exclusive.");
     }
   }
 
@@ -142,7 +143,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The IQ Server http://localhost:8070/ rejected the supplied credentials.");
+      logOutput.assertError("The IQ Server http://localhost:8070/ rejected the supplied credentials.");
       // verify that basic auth credentials are not set
       assertNull(httpConfig.getValue().getServerAuth());
     }
@@ -158,7 +159,7 @@ public class PolicyEvaluatorTest
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertLog("[INFO] Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+    logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
   }
 
   @Test
@@ -178,9 +179,9 @@ public class PolicyEvaluatorTest
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertLog("[INFO] Policy Action: Warning");
-    assertLog("[INFO] Summary of policy violations: 1 critical, 2 severe, 3 moderate");
-    assertLog("[WARN] The IQ Server reports policy warning due to ");
+    logOutput.assertInfo("Policy Action: Warning");
+    logOutput.assertInfo("Summary of policy violations: 1 critical, 2 severe, 3 moderate");
+    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy Name) null");
   }
 
   @Test
@@ -211,10 +212,11 @@ public class PolicyEvaluatorTest
     catch (ExitException ex) {
       assertEquals(1, ex.getExitCode());
     }
-    assertLog("[INFO] Policy Action: Failure");
-    assertLog("[INFO] Summary of policy violations: 1 critical, 2 severe, 3 moderate");
-    assertLog("[ERROR] The IQ Server reports policy failing due to ");
-    assertLog("[WARN] The IQ Server reports policy warning due to ");
+    logOutput.assertInfo("Policy Action: Failure");
+    logOutput.assertInfo("Summary of policy violations: 1 critical, 2 severe, 3 moderate");
+    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 1) null");
+    logOutput.assertError("The IQ Server reports policy failing due to \nPolicy(Policy 2) null");
+    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 3) null");
   }
 
   @Test
@@ -234,9 +236,9 @@ public class PolicyEvaluatorTest
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
 
     evaluator.run(params);
-    assertLog("[INFO] Policy Action: Warning");
-    assertLog("[INFO] Summary of policy violations: 1 critical, 0 severe, 0 moderate");
-    assertLog("[WARN] The IQ Server reports policy warning due to ");
+    logOutput.assertInfo("Policy Action: Warning");
+    logOutput.assertInfo("Summary of policy violations: 1 critical, 0 severe, 0 moderate");
+    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 1) null");
 
     params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar", "-w",
         "true");
@@ -248,9 +250,9 @@ public class PolicyEvaluatorTest
     catch (ExitException ex) {
       assertEquals(1, ex.getExitCode());
     }
-    assertLog("[INFO] Policy Action: Warning");
-    assertLog("[INFO] Summary of policy violations: 1 critical, 0 severe, 0 moderate");
-    assertLog("[WARN] The IQ Server reports policy warning due to ");
+    logOutput.assertInfo("Policy Action: Warning");
+    logOutput.assertInfo("Summary of policy violations: 1 critical, 0 severe, 0 moderate");
+    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 1) null");
   }
 
   @Test
@@ -267,7 +269,7 @@ public class PolicyEvaluatorTest
       assertEquals(1, ex.getExitCode());
     }
 
-    assertLog("[ERROR] The IQ Server is down for maintenance, please try again later.");
+    logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
 
     params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar", "-e",
         "true");
@@ -282,7 +284,7 @@ public class PolicyEvaluatorTest
       assertEquals(0, ex.getExitCode());
     }
 
-    assertLog("[ERROR] The IQ Server is down for maintenance, please try again later.");
+    logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
   }
 
   @Test
@@ -295,7 +297,7 @@ public class PolicyEvaluatorTest
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertLog("[INFO] The detailed report can be viewed online at http://localhost:8070/the-report-url");
+    logOutput.assertInfo("The detailed report can be viewed online at http://localhost:8070/the-report-url");
   }
 
   @Test
@@ -416,7 +418,7 @@ public class PolicyEvaluatorTest
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertLog("[WARN] The IQ Server is outdated and does not provide configuration for proprietary components");
+    logOutput.assertWarn("The IQ Server is outdated and does not provide configuration for proprietary components");
     assertNotNull(scanFile.getValue());
     Scan scan = scanReader.read(scanFile.getValue());
     assertNotNull(scan);
@@ -426,15 +428,16 @@ public class PolicyEvaluatorTest
   public void testGlobalProprietaryConfigFailure() throws Exception {
     when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
         newApplicationSummaryList("the-app-id", "My App"));
-    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id"))
-        .thenThrow(new HttpResponseException(500, "error"));
+    HttpResponseException expectedException = new HttpResponseException(500, "error");
+    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenThrow(expectedException);
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] Could not retrieve configuration for proprietary components from the IQ Server");
+      logOutput.assertError("Could not retrieve configuration for proprietary components from the IQ Server",
+          expectedException);
     }
   }
 

@@ -71,8 +71,8 @@ public class PolicyEvaluatorReverseProxyAuthTest
     testCLMServer.getInsightServer().setResponseForURI("rest/application/analysis/SCAN-ID",
         new File("src/test/resources/PolicyEvaluatorReverseProxyAuthTest/small-report.zip"), 200);
 
-    // undo DropWizard logging setup
-    resetLogback();
+    // Setup the log capture after dropwizard's logging setup
+    logOutput.before();
 
     createAppAndAuthorizedUser("the-app-id", "mmurdock", "pa55word");
   }
@@ -90,7 +90,7 @@ public class PolicyEvaluatorReverseProxyAuthTest
 
     if (rutEnabled || anonymousAllowed) {
       evaluator.run(params);
-      assertLog("[INFO] Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+      logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
     }
     else {
       try {
@@ -124,7 +124,7 @@ public class PolicyEvaluatorReverseProxyAuthTest
     createAppAndAuthorizedUser("another_app", "mrbasic", "secret");
 
     evaluator.run(params);
-    assertLog("[INFO] Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+    logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
   }
 
   @Test
@@ -135,7 +135,7 @@ public class PolicyEvaluatorReverseProxyAuthTest
         "src/test/data/artifact.jar");
     if (anonymousAllowed) {
       evaluator.run(params);
-      assertLog("[INFO] Summary of policy violations: 0 critical, 0 severe, 0 moderate");
+      logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
     }
     else {
       try {

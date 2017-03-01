@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -270,6 +272,40 @@ public class HdsClientTest
     assertThat("X-Forwarded-Server".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat("X-Forwarded-For".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat(headers, not(empty()));
+  }
+
+  @Test
+  public void testRequestUsesProperContentLength() throws Exception {
+    final Map<String, String> headers = new HashMap<>();
+    byte[] test = "test".getBytes();
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        headers.clear();
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
+          String headerName = en.nextElement();
+          headers.put(headerName, request.getHeader(headerName));
+        }
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+
+    when(request.getInputStream()).thenReturn(new ServletInputStreamImpl(test));
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    // Use a smaller content-length than the actual incoming request (simulate gzip entity) 
+    when(request.getContentLength()).thenReturn(1);
+    when(request.getMethod()).thenReturn("POST");
+
+    client.doProxy(request, "/rest/test");
+
+    assertThat(request.getContentLength(), not(Integer.parseInt(headers.get(HttpHeaders.CONTENT_LENGTH))));
+    assertThat(headers.get(HttpHeaders.CONTENT_LENGTH), is(Integer.toString(test.length)));
   }
 
   @Test
@@ -540,6 +576,22 @@ public class HdsClientTest
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), is("The Sonatype HDS returned error 500, please retry in a bit."));
+    }
+  }
+
+  private static class ServletInputStreamImpl
+      extends ServletInputStream
+  {
+    // ByteArrayInputStream.close is a noop, so we don't need to close this stream
+    private ByteArrayInputStream wrappedInputStream;
+
+    public ServletInputStreamImpl(byte[] data) {
+      wrappedInputStream = new ByteArrayInputStream(data);
+    }
+
+    @Override
+    public int read() throws IOException {
+      return wrappedInputStream.read();
     }
   }
 }

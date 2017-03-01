@@ -422,7 +422,7 @@ public class HdsClient
       return new FileEntity(uploadFile, contentType);
     }
 
-    return new InputStreamEntity(request.getInputStream(), request.getContentLength());
+    return new InputStreamEntity(request.getInputStream());
   }
 
   private void populateRequest(final HttpServletRequest orig, HttpUriRequest req, HdsClientAnalytics analytics) {

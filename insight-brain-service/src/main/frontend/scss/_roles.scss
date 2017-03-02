@@ -1,6 +1,18 @@
 /*
   Role list
 */
+
+.iq-tile-content--roles {
+  table {
+    margin-bottom: 36px
+  }
+
+  .toggle-off.btn {
+    padding-left: 20px;
+  }
+}
+
+// DELETE BELOW WHEN REFACTORING ON ROLES PAGES (LIST AND EDIT) IS DONE - GH  
 //Note this is the requested width of the role summary text, plus 22px for the button width and padding
 $role-list-width: 606px;
 

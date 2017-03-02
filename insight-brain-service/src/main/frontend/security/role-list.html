@@ -1,13 +1,18 @@
 <div class='scrollable-root-container' maximize-container-height>
   <div load-wrapper="error" reload="doLoad()" ng-if="$state.is('roles')">
-    <div authorization-wrapper="isAuthorized">
-      <h1 class='page-title'>
-        <div class='container roles'>
+    <div authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
+      
+      <div class="iq-tile-header iq-tile-header--sys-prefs">
+        <div class="iq-tile__actions">
           <button class='btn pull-right' ng-click="newRole()" id='create-role' ng-disabled='readOnly'><i class='icon icon-plus'></i> Create Role</button>
-          Roles
+        </div>  
+        <div class="iq-tile-header__title">
+          <h1>
+              Roles
+          </h1>
         </div>
-      </h1>
-      <div class='container roles'>
+      </div>
+      <div class='iq-tile-content iq-tile-content--roles'>
         <div class="role-items">
           <h5 ng-hide='roles'>
             <i class='icon-time'></i> Loading...

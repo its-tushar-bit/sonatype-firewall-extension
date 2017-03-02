@@ -104,6 +104,19 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   padding-bottom: 0;
 }
 
+// System Preference Tiles
+// Because there's no sidebar tiles are centred and limited to 1024px in width
+.iq-tile--sys-prefs {
+  margin-right: auto;
+  margin-left: auto;
+  width: 100%;
+  max-width: 1024px;
+}
+
+.iq-tile-header--sys-prefs {
+  border-bottom: 1px solid $iq-grey-2;
+}
+
 /*
   #Tile System
 */

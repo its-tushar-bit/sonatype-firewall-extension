@@ -21,7 +21,7 @@ public class WebhookEditPage
   }
 
   public SelenideElement title() {
-    return child(".title");
+    return child(".iq-tile-header__title");
   }
 
   public SelenideElement url() {

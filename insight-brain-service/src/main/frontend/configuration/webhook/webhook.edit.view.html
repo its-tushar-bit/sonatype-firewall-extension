@@ -1,11 +1,15 @@
 <div id="webhook-editor" class="tile-editor-container">
-  <div class="container tile" load-wrapper="error" reload="doLoad()">
-    <div class="webhooks">
-      <h2 class="title"><img src="img/webhooks_20px.png" class="pull-left webhook-icon" alt="Webhooks">{{::vm.dirtyWebhook.id ?
-        'Edit' : 'Create'}} Webhook</h2>
+  <div class="iq-tile iq-tile--sys-prefs" load-wrapper="error" reload="doLoad()">
+    <div class="iq-tile-header iq-tile-header--sys-prefs webhooks">
+      <div class="iq-tile-header__icon">
+        <img src="img/webhooks_20px.png" class="pull-left webhook-icon" alt="Webhooks">
+      </div>
+      <div class="iq-tile-header__title">
+        <h1>{{::vm.dirtyWebhook.id ? 'Edit' : 'Create'}} Webhook</h1>
+      </div>
     </div>
 
-    <div class="webhooks">
+    <div class="iq-tile-content">
 
       <form name="vm.webhookEditor" class="clm-form" role="form"
             ng-submit="vm.webhookEditor.$valid && vm.dirtyWebhook.isDirty() && vm.saveWebhook()" novalidate

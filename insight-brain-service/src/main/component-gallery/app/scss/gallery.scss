@@ -1,0 +1,83 @@
+@import "iq-tree-view";
+@import "highlight";
+@import "markdown";
+
+// Content
+
+.iq-content-wrapper {
+  align-items: stretch;
+  display: flex;
+  height: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  width: 100%;
+  max-width: 1366px;
+  min-width: 1024px;
+}
+
+.iq-body-container {
+  background-color: #fefefe;  
+  background-image: url("/img/tile_bg_@2X.jpg");
+  background-size: 150px 150px;
+  display: block;
+  flex: 1 0 auto;
+  white-space: normal;
+  max-width: 1066px;
+  min-width: 809px;
+  
+  .iq-scrollable {
+    max-height: calc(100vh - 40px); // 40px = height of header
+  }
+}
+
+.iq-sidebar {
+  background-color: #eaeaea;
+  border-right: 1px solid #dedede;
+  display: block;
+  flex: 0 1 auto;
+  padding: 8px;
+  white-space: normal;
+  width: 300px;
+  min-width: 215px;
+}
+
+// Global
+
+.iq-error {
+  background-color: #fce2e2;
+  border-color: #831d1d;
+  color: #831d1d;
+}
+
+.iq-alert {
+  border: 1px solid #333;
+  margin-top: 8px;
+  padding: 8px;
+}
+
+.iq-alert__message {
+  margin-bottom: 8px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  i {
+    margin-right: 8px;
+  }
+}
+
+// CUSTOM STYLES FOR GALLERY
+
+.iq-title__brand {
+  a, a:hover {
+    color: #fff;
+    text-decoration: none;
+  }
+}
+
+.iq-tile {
+  h1 {
+    margin: 6px 0 0 0;
+  }
+}

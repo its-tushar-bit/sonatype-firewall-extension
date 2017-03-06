@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<html  ng-app="galleryApp">
+<head>
+  <title>IQ Server component gallery</title>
+
+  <link href="lib/components-font-awesome/css/font-awesome.min.css" rel="stylesheet">
+  <link href="lib/glyphicon/glyphicons.css" rel="stylesheet">
+
+  <link href="bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="scss.css" rel="stylesheet" type="text/css">
+  <link href="app/lib/highlightjs/styles/github.css" rel="stylesheet" type="text/css">
+  <link href="gallery.css" rel="stylesheet" type="text/css">
+
+  <script src='lib/jquery/dist/jquery.js'></script>
+  <script src="lib/bootstrap/bootstrap-2.3.1.min.js"></script>
+  <script src="lib/angular/angular.js"></script>
+  <script src="lib/angular-ui-router-0.2.15.min.js"></script>
+
+  <!-- Gallery specific libs -->
+  <script src="app/lib/highlightjs/highlight.pack.js"></script>
+  <script src="app/lib/angular-highlightjs/build/angular-highlightjs.js"></script>
+  <script src="app/lib/marked/lib/marked.js"></script>
+  <script src="app/lib/angular-marked/dist/angular-marked.js"></script>
+
+  <script>
+    var clmBuildTimestamp = '1';
+  </script>
+</head>
+<body>
+  <gallery></gallery>
+  <script src="/assets/app-bundle.js"></script>
+</body>
+</html>

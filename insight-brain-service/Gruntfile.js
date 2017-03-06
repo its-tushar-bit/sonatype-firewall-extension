@@ -29,6 +29,7 @@
         angularDebug: false,
         buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
+        gallery: 'src/main/component-gallery/app',
         generated: 'target/classes/assets',
         temp: '.tmp',
         templates: '**/*.tpl.html'
@@ -202,6 +203,11 @@
             '<%= config.temp %>/scss/bootstrap.css': '<%= config.frontend %>/lib/bootstrap/bootstrap.scss',
             '<%= config.temp %>/scss/scss.css': '<%= config.frontend %>/scss/scss.scss'
           }
+        },
+        gallery: {
+          files: {
+            '<%= config.temp %>/scss/gallery.css': '<%= config.gallery %>/scss/gallery.scss'
+          }
         }
       },
       watch: {
@@ -226,6 +232,40 @@
             'sass:build',
             'copy:develop_sass'
           ]
+        },
+        compile_styles: {
+          files: [
+            '<%= config.frontend %>/**/*.{css,scss}'
+          ],
+          tasks: [
+            'sass:build',
+          ]
+        },
+        gallery_styles: {
+          files: [
+            '<%= config.gallery %>/scss/*.{css,scss}'
+          ],
+          tasks: [
+            'sass:gallery',
+          ]
+        }
+      },
+      focus: {
+        dev: {
+          include: ['develop', 'develop_styles']
+        },
+        gallery: {
+          include: ['compile_styles', 'gallery_styles']
+        }
+      },
+      express: {
+        options: {
+          // Override defaults here
+        },
+        gallery: {
+          options: {
+            script: 'gallery.js'
+          }
         }
       }
     });
@@ -247,7 +287,7 @@
       'jscs:check',
       'clean',
       'copy:build',
-      'sass',
+      'sass:build',
       'html2js:build',
       'useminPrepare',
       'concat:generated',
@@ -272,7 +312,7 @@
 
       'clean:temp',
       'copy:develop',
-      'sass',
+      'sass:build',
       'copy:develop_sass',
       'template:dev',
       'clean:temp'
@@ -286,13 +326,15 @@
       'bower:install',
       'clean:temp',
       'copy:develop',
-      'sass',
+      'sass:build',
       'copy:develop_sass',
       'template:dev',
-      'watch',
+      'focus:dev',
       'clean:temp'
     ]);
 
     grunt.registerTask('fix', ['jscs:fix']);
+
+    grunt.registerTask('gallery', ['sass:build', 'sass:gallery', 'express', 'focus:gallery']);
   };
 }());

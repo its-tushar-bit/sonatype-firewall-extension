@@ -1,0 +1,31 @@
+<item-description>
+  <marked>
+    Custom checkbox input
+
+    Arguments:
+
+    Params| Type | Details|
+    :--- | :--- | :---
+    is-checked | boolean |
+    on-click | expression |
+    label | string | optional
+    is-disabled | boolean | optional - default is false
+    input-id | string | optional - will be used as 'id' of checkbox input element
+
+  </marked>
+</item-description>
+
+<item-example-html>
+  <p>Subscribed: {{!!isSubscribed}}</p>
+  <div>
+    <iq-checkbox label="Subscribe" on-click="isSubscribed = !isSubscribed" is-checked="isSubscribed"></iq-checkbox>
+  </div>
+  <div>
+    <iq-checkbox label="disabled" is-disabled="true" on-click="isSubscribed = !isSubscribed" is-checked="isSubscribed">
+    </iq-checkbox>
+  </div>
+  No label:
+  <div>
+    <iq-checkbox on-click="isSubscribed = !isSubscribed" is-checked="isSubscribed"></iq-checkbox>
+  </div>
+</item-example-html>

@@ -66,11 +66,13 @@
     </div>
   </script>
   <div class='scrollable-root-container' authorization-wrapper="isAuthorized" maximize-container-height>
-    <div id='license'>
-      <h1 class='page-title'>
-        <div class='container config'>Product License</div>
-      </h1>
-      <div class='container config'>
+    <div id='license' class="iq-tile iq-tile--sys-prefs">
+      <div class='iq-tile-header iq-tile-header--sys-prefs'>
+        <div class='iq-tile-header__title'>
+          <h2>Product License</h2>
+        </div>
+      </div>
+      <div class='iq-tile-content'>
         <div load-error='error' reload='doLoad()'></div>
         <div ng-show='!error && !isLoaded()'>
             <h5><i class="fa fa-spin fa-circle-o-notch loading-spinner"></i> Loading...</h5>

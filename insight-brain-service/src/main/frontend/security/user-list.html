@@ -104,12 +104,14 @@
 </div>
 </script>
   <div load-wrapper="error" reload="doLoad()">
-    <div authorization-wrapper="isAuthorized">
+    <div authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
       <div expand-user-on-event='userEditClick'></div>
-      <h1 class='page-title'>
-        <div class='container config'>Users</div>
-      </h1>
-      <div class='container config'>
+      <div class="iq-tile-header iq-tile-header--sys-prefs">
+        <div class="iq-tile-header__title">
+          <h2>Users</h2>
+        </div>
+      </div>
+      <div class='iq-tile-content'>
         <h5 ng-hide='context.users'>
           <i class='icon-time'></i> Loading...
         </h5>

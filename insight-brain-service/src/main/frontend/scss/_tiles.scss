@@ -87,6 +87,13 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   margin-bottom: 8px;
 }
 
+.iq-tile-content {
+  > :last-child {
+    margin-bottom: 8px;
+    padding-bottom: 0;
+  }
+}
+
 // Summary Tile
 
 .iq-tile--top-tile {
@@ -111,6 +118,10 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   margin-left: auto;
   width: 100%;
   max-width: 1024px;
+}
+
+.iq-tile-header--sys-prefs {
+  margin-bottom: 0;
 }
 
 /*

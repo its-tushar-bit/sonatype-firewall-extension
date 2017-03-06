@@ -1,58 +1,45 @@
 <div class='scrollable-root-container' maximize-container-height>
   <div load-wrapper="error" reload="doLoad()" ng-if="$state.is('roles')">
     <div authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
-      
       <div class="iq-tile-header iq-tile-header--sys-prefs">
         <div class="iq-tile__actions">
-          <button class='btn pull-right' ng-click="newRole()" id='create-role' ng-disabled='readOnly'><i class='icon icon-plus'></i> Create Role</button>
+          <button class='btn pull-right' ng-click="newRole()" id='create-role' ng-disabled='readOnly'>
+            <i class='icon icon-plus'></i> Create Role
+          </button>
         </div>  
         <div class="iq-tile-header__title">
-          <h1>
-              Roles
-          </h1>
+          <h2>Roles</h2>
         </div>
       </div>
-      <div class='iq-tile-content iq-tile-content--roles'>
-        <div class="role-items">
-          <h5 ng-hide='roles'>
-            <i class='icon-time'></i> Loading...
-          </h5>
-          <div ng-show='roles'>
-            <h2>Built-In</h2>
-            <table id='builtin-roles'>
-              <tbody>
-                <tr ng-repeat="role in roles | filter:{ builtIn : true }" class="role-item" ui-sref="roles.editor({roleId: role.id})">
-                  <td class="role-summary">
-                    <h3>{{role.name}}</h3>
-                    <div>{{role.description}}</div>
-                  </td>
-                  <td>
-                    <div class="role-detail-button">
-                      <i class="icon-chevron-right"></i>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <h2>Custom</h2>
-            <p ng-if='(roles | filter:{ builtIn : false }).length === 0'>No custom roles defined. Click "Create Role" in the upper right to add one.</p>
-            <table ng-if='(roles | filter:{ builtIn : false }).length > 0' id='custom-roles'>
-              <tbody>
-                <tr ng-repeat="role in roles | filter:{ builtIn : false }" class="role-item" ui-sref="roles.editor({roleId: role.id})">
-                  <td class="role-summary">
-                    <h3>{{role.name}}</h3>
-                    <div>{{role.description}}</div>
-                  </td>
-                  <td>
-                    <div class="role-detail-button">
-                      <i class="icon-chevron-right"></i>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div class='iq-tile-content iq-tile-content--roles' ng-hide='roles'>
+        <h5>
+          <i class='icon-time'></i> Loading...
+        </h5>
+      </div>
+      <div class="iq-tile-content" ng-show='roles'>
+        <h4 class="iq-action-list__title">Built-In</h4>       
+        <ul class="iq-action-list" id='builtin-roles'>
+          <li ng-repeat="role in roles | filter:{ builtIn : true }"
+              ui-sref="roles.editor({roleId: role.id})"
+              class="iq-action-list__item iq-action-list__item--tall">
+            <i class="fa fa-chevron-right iq-pull-right"></i>
+            <p class="iq-action-list__text">{{role.name}}</p>
+            <p class="iq-action-list__subtext">{{role.description}}</p>
+          </li>
+        </ul>
+        <h4 class="iq-action-list__title">Custom</h4>
+        <p ng-if='(roles | filter:{ builtIn : false }).length === 0'>
+          No custom roles defined. Click "Create Role" in the upper right to add one.
+        </p>
+        <ul ng-if='(roles | filter:{ builtIn : false }).length > 0' id='custom-roles' class="iq-action-list">
+          <li ng-repeat="role in roles | filter:{ builtIn : false }"
+              ui-sref="roles.editor({roleId: role.id})"
+              class="iq-action-list__item iq-action-list__item--tall">
+            <i class="fa fa-chevron-right iq-pull-right"></i>
+            <p class="iq-action-list__text">{{role.name}}</p>
+            <p class="iq-action-list__subtext">{{role.description}}</p>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

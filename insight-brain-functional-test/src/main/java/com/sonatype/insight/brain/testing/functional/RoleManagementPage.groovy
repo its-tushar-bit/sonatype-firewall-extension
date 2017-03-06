@@ -14,16 +14,16 @@ extends BasePage {
   static at = { builtinRoles.size() > 0 }
 
   static content = {
-    pageTitle { $('h1.page-title') }
-    builtinRoles(wait: true) { moduleList RoleSummary, $('#builtin-roles .role-item') }
-    customRoles(required: false) { moduleList RoleSummary, $('#custom-roles .role-item') }
+    pageTitle { $('.iq-tile-header__title h2') }
+    builtinRoles(wait: true) { moduleList RoleSummary, $('#builtin-roles .iq-action-list__item') }
+    customRoles(required: false) { moduleList RoleSummary, $('#custom-roles .iq-action-list__item') }
     createRole(required:true) { $('#create-role') }
   }
 }
 
 class RoleSummary extends Module {
   static content = {
-    name { $('.role-summary h3') }
-    description { $('.role-summary div') }
+    name { $('.iq-action-list__text') }
+    description { $('.iq-action-list__subtext') }
   }
 }

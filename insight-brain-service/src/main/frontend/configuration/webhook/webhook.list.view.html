@@ -1,21 +1,24 @@
-<div class="scrollable-root-container config tile" maximize-container-height>
+<div class="scrollable-root-container" maximize-container-height>
   <div load-wrapper="error" reload="doLoad()">
-    <div class="container">
-      <div id="webhooks-list" class="tile">
-
-        <div class="tile-header webhooks">
-          <h2><img src="img/webhooks_20px.png" class="pull-left webhooks-icon" alt="Webhooks">Webhooks</h2>
-          <div class="sub-header">
-            IQ Server will send a POST request to the specified URL when the associated events occur.
-          </div>
+    <div id="webhooks-list" class="iq-tile iq-tile--sys-prefs tile">
+      <div class="iq-tile-header iq-tile-header--sys-prefs">
+        <div class="iq-tile__actions">
+          <button class="btn btn-tertiary" ng-click="vm.newWebhook()" id="create-webhook">
+            <i class="icon icon-plus"></i> Add a Webhook
+          </button>
         </div>
-
+        <div class="iq-tile-header__title">
+          <div class="iq-tile-header__icon">
+            <img src="img/webhooks_20px.png" class="webhooks-icon" alt="Webhooks">
+          </div>
+          <h1>Webhooks</h1>
+        </div>
+        <div class="iq-tile-header__subtitle">
+          IQ Server will send a POST request to the specified URL when the associated events occur.
+        </div>
+      </div>
+      <div class="iq-tile-content">
         <div class="simple-list">
-          <h4 class="subsection-header">
-            <button class="btn btn-tertiary" ng-click="vm.newWebhook()" id="create-webhook">
-              <i class="icon icon-plus"></i> Add a Webhook
-            </button>
-          </h4>
           <ul>
             <li class="clickable with-subtitle webhook-item" ng-repeat="webhook in vm.webhooks"
                 ui-sref="webhooks.edit({webhookId: webhook.id})">

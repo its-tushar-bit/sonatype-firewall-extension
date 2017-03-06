@@ -70,7 +70,7 @@ public class ApplicationPolicyEditorTest
   @Test
   public void testInheritedPolicyWithoutParentalPermission() {
     try {
-      hardreset();
+      logout();
 
       // Create a policy with a tag
       Policy policy = tempEntity.newPolicy(application.getParentOwnerId(), "policyName");
@@ -97,8 +97,7 @@ public class ApplicationPolicyEditorTest
       assertCategory(categoryEditor.item(1, 0), "Unchecked Tag", false);
     }
     finally {
-      // logout
-      hardreset();
+      logout();
       refresh();
       // login
       loginAsAdmin();

@@ -81,7 +81,7 @@
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
           if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-            LoginModalService.show();
+            LoginModalService.show($rootScope.username);
           }
         }
       });

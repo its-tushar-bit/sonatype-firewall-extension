@@ -11,12 +11,24 @@
       show: LoginModal
     };
 
-    function LoginModal() {
+    /**
+     * Present the login modal
+     *
+     * @param [username] (String) A username to pre-fill the login form with.  If this value is specified it will
+     * be automatically filled into the form and user editing of the username field will be disabled.  If unspecified,
+     * the user will be free to enter a username in the form field
+     */
+    function LoginModal(username) {
       return $modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
         controller: 'login.modal.controller as vm',
+        resolve: {
+          username: function() {
+            return username;
+          }
+        },
         //note that we have to use inline html here.  This module is used in the cip in app reports, and in the audit
         //reports, should a 401 be received in either of these areas, retrieval of the template html will also fail
         //as authz is required to download
@@ -28,7 +40,7 @@
         '<label class="control-label" for="login-username">Username</label>' +
         '<div class="controls">' +
         '<input id="login-username" type="text" name="username" ng-model="vm.username" ng-required="true" ' +
-        'autofill focus-input="true" autofocus>' +
+        'autofill focus-input="true" autofocus ng-disabled="vm.isUsernameDisabled()">' +
         '</div></div>' +
         '<div class="control-group">' +
         '<label class="control-label" for="login-password">Password</label>' +

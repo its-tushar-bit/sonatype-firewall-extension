@@ -7,10 +7,19 @@
 (function(angular) {
   'use strict';
 
-  function LoginModalController($scope, $http, CLMLocations, $q, Messages, UnauthenticatedRequestQueueService) {
+  function LoginModalController($scope, $http, CLMLocations, $q, Messages, UnauthenticatedRequestQueueService,
+                                username) {
     var vm = this;
 
-    vm.username = undefined;
+    username = username || undefined;
+
+    // username may optionally be specified programmatically using `resolve` or some other method of injection.
+    // If the username is specified in this way then it will not be editable in the UI.  This facilitates
+    // safe re-login after the session expires
+    vm.username = username;
+    vm.isUsernameDisabled = function() {
+      return angular.isDefined(username);
+    };
     vm.password = undefined;
     vm.error = undefined;
     vm.loginMask = undefined;
@@ -44,7 +53,7 @@
   }
 
   LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', '$q', 'Messages',
-                                  'UnauthenticatedRequestQueueService'];
+                                  'UnauthenticatedRequestQueueService', 'username'];
 
   angular //
       .module('utility.services') //

@@ -10,9 +10,19 @@ import com.sonatype.insight.license.model.ProductLicenseDetails
 class MainHeaderSpec
     extends BaseSpec
 {
+  def setupSpec() {
+    // ensure that an actual page is loaded.  Without this the call to `refresh()` in the setup method will
+    // fail
+    via ReportViolationsPage
+  }
+
   def setup() {
     productLicenseManager.reset()
     clmLicenseManager.installLicense(null)
+
+    // The session gets reset between each test. We therefore need to refresh before we can cleanly log in again
+    // (otherwise we'd get the login modal with the username preset and uneditable).
+    driver.navigate().refresh()
     loginAsAdminVia()
   }
 

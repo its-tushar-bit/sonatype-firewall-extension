@@ -11,7 +11,8 @@ describe('HttpInterceptors.js', function() {
         };
         inject(function($controller) {
           $controller(config.controller, {
-            $scope: scope
+            $scope: scope,
+            username: undefined
           });
         });
         return {

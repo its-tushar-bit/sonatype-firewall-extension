@@ -17,7 +17,7 @@ import static com.codeborne.selenide.Condition.visible;
 public class LdapServerListPage 
     extends BasicElement<LdapServerListPage>
 {
-  private static final String ROOT_SELECTOR = ".ldap-server-list";
+  private static final String ROOT_SELECTOR = "#ldap-server-list";
 
   public static String URL = BaseUrl.uriBuilder().fragment("/ldap-servers").build().toString();
 
@@ -30,7 +30,7 @@ public class LdapServerListPage
   }
 
   public SelenideElement subHeader() {
-    return child(".sub-header");
+    return child(".iq-tile-header__sub-title");
   }
 
   public SelenideElement newServerButton() {

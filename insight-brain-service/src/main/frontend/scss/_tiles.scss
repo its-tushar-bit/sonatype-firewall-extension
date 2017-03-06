@@ -73,7 +73,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .iq-tile-header__subtitle {
   line-height: 16px;
-  margin: -1px 0 6px 0;
+  margin: -16px 0 6px 0;
   max-width: 520px;
   
   &:last-child {
@@ -111,10 +111,6 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   margin-left: auto;
   width: 100%;
   max-width: 1024px;
-}
-
-.iq-tile-header--sys-prefs {
-  border-bottom: 1px solid $iq-grey-2;
 }
 
 /*

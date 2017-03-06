@@ -1,18 +1,24 @@
 <div class='scrollable-root-container' authorization-wrapper="vm.isAuthorized" maximize-container-height>
-  <div class="tile container config ldap-server-list">
+  <div id="ldap-server-list" class="tile iq-tile iq-tile--sys-prefs">
     <div load-wrapper='vm.error' loading='!vm.ldapList' reload='vm.doLoad()'>
-      <h2>LDAP Servers</h2>
-      <div class="sub-header">
-          <div class="pull-right">
-            <button class="btn btn-tertiary" ng-click="vm.reorder()" ng-disabled="vm.ldapList.length <= 1">
-              <i class="fa fa-pencil"></i>Reorder List
-            </button>
-            <button class="btn btn-tertiary" ui-sref="create-ldap">
-              <i class="fa fa-plus"></i>Add a Server
-            </button>
-          </div>
-          will be queried in the order listed
+      <div class="iq-tile-header iq-tile-header--sys-prefs">
+        <div class="iq-tile__actions">
+          <button class="btn btn-tertiary" ng-click="vm.reorder()" ng-disabled="vm.ldapList.length <= 1">
+            <i class="fa fa-pencil"></i>Reorder List
+          </button>
+          <button class="btn btn-tertiary" ui-sref="create-ldap">
+            <i class="fa fa-plus"></i>Add a Server
+          </button>
+        </div>
+        <div class="iq-tile-header__title">
+          <h2>LDAP Servers</h2>
+        </div>
+        <div class="iq-tile-header__subtitle">
+            will be queried in the order listed
+        </div>
       </div>
+    </div>
+    <div class="iq-tile-content">
       <div class="simple-list">
         <h4 class="subsection-header"></h4>
         <div class="empty-list" ng-if="vm.ldapList.length <= 0">

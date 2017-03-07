@@ -20,4 +20,8 @@ public class ApplicationReportContainerPage
   public static SelenideElement getReportTitle() {
     return $("#report-title");
   }
+
+  public static SelenideElement getIframe() {
+    return $("#evaluationReportContainer > iframe");
+  }
 }

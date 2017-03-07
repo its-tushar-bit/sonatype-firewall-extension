@@ -40,13 +40,14 @@
         '<label class="control-label" for="login-username">Username</label>' +
         '<div class="controls">' +
         '<input id="login-username" type="text" name="username" ng-model="vm.username" ng-required="true" ' +
-        'autofill focus-input="true" autofocus ng-disabled="vm.isUsernameDisabled()">' +
+        'autofill focus-input="true" ng-attr-autofocus="{{ vm.isUsernameDisabled() ? undefined : \'autofocus\' }}" ' +
+        'ng-disabled="vm.isUsernameDisabled()">' +
         '</div></div>' +
         '<div class="control-group">' +
         '<label class="control-label" for="login-password">Password</label>' +
         '<div class="controls">' +
         '<input id="login-password" type="password" name="password" ng-model="vm.password" ng-required="true" ' +
-        'autofill>' +
+        'autofill ng-attr-autofocus="{{ vm.isUsernameDisabled() ? \'autofocus\' : undefined }}">' +
         '</div></div></div>' +
         '<div class="clm-modal-footer" ng-class="{error: vm.error}">' +
         '<div id="login-error" ng-if="vm.error" class="section with-icon">' +

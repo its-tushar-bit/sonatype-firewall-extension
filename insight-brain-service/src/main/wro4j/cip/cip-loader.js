@@ -122,41 +122,11 @@
                     });
                   });
 
-                  if (!modalDiv) {
-                    modalDiv = $(
-                            '<div class="modal" id="loginModal">'
-                                    + '<form name="loginForm" class="form-horizontal" style="margin-bottom:0px;">'
-                                    + '<div class="modal-header">' + '<h3>User Login</h3>' + '</div>'
-                                    + '<div class="modal-body">' + '<div class="control-group">'
-                                    + '<label class="control-label" for="login-username">Username</label>'
-                                    + '<div class="controls">' + '<input type="text" id="login-username">' + '</div>'
-                                    + '</div>' + '<div class="control-group">'
-                                    + '<label class="control-label" for="login-password">Password</label>'
-                                    + '<div class="controls">' + '<input type="password" id="login-password">'
-                                    + '</div>' + '</div>' + '</div>' + '<div class="modal-footer">'
-                                    + '<span id="login-error" class="alert alert-error" '
-                                    + 'style="margin-right: 10px; display: none;"/>'
-                                    + '<button id="login-action" class="btn btn-primary">Sign in</button>' + '</div>'
-                                    + '</form>' + '</div>').appendTo('body');
-                    modalDiv.modal({
-                      backdrop: 'static',
-                      keyboard: false
-                    });
-                  } else {
-                    modalDiv.modal('show');
-                  }
+                  // prevent multiple requests from popping up the login modal simultaneously
+                  if (requestQueue.length === 1) {
 
-                  $('#login-action').on('click', function(event) {
-                    event.preventDefault();
-                    $('#login-error').hide();
-                    // do the login with the original ajax, so we don't hit our code here
-                    oldAjax({
-                      url: CLM.path + 'rest/user/session',
-                      type: 'POST',
-                      headers: {
-                        'Authorization': 'Basic ' + Base64.encode($('#login-username').val() + ':' + $('#login-password').val())
-                      }
-                    }).then(function() {
+                    // reauthenticate using parent frame's login box
+                    window.parent.triggerUserReauthentication().then(function() {
                       // login success, go ahead and resend each of the requests
                       $.each(requestQueue, function(index, requestFn) {
                         requestFn();
@@ -164,14 +134,8 @@
 
                       // clean up
                       requestQueue = [];
-                      modalDiv.modal('hide');
-                      $('#login-username').val('');
-                      $('#login-password').val('');
-                    }, function() {
-                      $('#login-error').text('Invalid credentials. Please try again.');
-                      $('#login-error').show();
                     });
-                  });
+                  }
                 } else {
                   // non auth error, again nothing funky, just reject
                   deferred.rejectWith(context, Array.prototype.slice.apply(arguments));

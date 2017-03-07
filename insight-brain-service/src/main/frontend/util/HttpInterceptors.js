@@ -63,6 +63,10 @@
     'LoginModalService',
     'UnauthenticatedRequestQueueService',
     function($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
+      function reauthenticate() {
+        return LoginModalService.show($rootScope.username);
+      }
+
       $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
         // if user is already processing login, this will be a login failure response so reject and let them try
         // again
@@ -81,10 +85,14 @@
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
           if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-            LoginModalService.show($rootScope.username);
+            reauthenticate();
           }
         }
       });
+
+      // Expose reauthentication function to global code so that it can be used from outside of angular, particularly
+      // from same-domain child iframes
+      window.triggerUserReauthentication = reauthenticate;
     }
   ]);
 }());

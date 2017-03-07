@@ -13,8 +13,6 @@ It picks up changes to IQ source automatically so it can be used for development
 Simply change IQ source code and refresh the Component Gallery in the browser.
  
 ## Setup
-Run ```bower install``` from ```component-gallery/app``` directory
-
 Run `npm install` in case you didn't run `mvn install`.
 
 ## Run gallery app

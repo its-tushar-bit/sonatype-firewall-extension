@@ -280,6 +280,11 @@
       grunt.task.run('usemin');
     });
 
+    grunt.registerTask('bower-gallery', 'install bower dependencies in component gallery', function() {
+      var execSync = require('child_process').execSync;
+      execSync('bower install', {cwd: './src/main/component-gallery/app'});
+    });
+
     grunt.registerTask('build', [
       'configure_override:build',
 
@@ -335,6 +340,12 @@
 
     grunt.registerTask('fix', ['jscs:fix']);
 
-    grunt.registerTask('gallery', ['sass:build', 'sass:gallery', 'express', 'focus:gallery']);
+    grunt.registerTask('gallery', [
+      'bower-gallery',
+      'sass:build',
+      'sass:gallery',
+      'express',
+      'focus:gallery'
+    ]);
   };
 }());

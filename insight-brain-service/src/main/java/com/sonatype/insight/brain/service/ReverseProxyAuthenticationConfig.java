@@ -22,6 +22,13 @@ public class ReverseProxyAuthenticationConfig
   @JsonProperty
   private String usernameHeader = "REMOTE_USER";
 
+  /**
+   * @since version 1.26.0
+   */
+  @NotNull
+  @JsonProperty
+  private boolean csrfProtectionDisabled;
+
   public boolean isEnabled() {
     return enabled;
   }
@@ -36,5 +43,13 @@ public class ReverseProxyAuthenticationConfig
 
   public void setUsernameHeader(String usernameHeader) {
     this.usernameHeader = usernameHeader;
+  }
+
+  public boolean isCsrfProtectionDisabled() {
+    return csrfProtectionDisabled;
+  }
+
+  public void setCsrfProtectionDisabled(final boolean csrfProtectionDisabled) {
+    this.csrfProtectionDisabled = csrfProtectionDisabled;
   }
 }

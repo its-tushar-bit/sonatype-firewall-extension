@@ -73,7 +73,7 @@ public class SecurityModule
   }
 
   private void configureFilters(DefaultFilterChainManager manager) {
-    AntiCsrfFilter antiCsrfFilter = new AntiCsrfFilter(csrfProtection);
+    AntiCsrfFilter antiCsrfFilter = new AntiCsrfFilter(csrfProtection, reverseProxyAuthentication);
     bind(AntiCsrfFilter.class).toInstance(antiCsrfFilter);
     expose(AntiCsrfFilter.class);
     manager.addFilter("authcBasic", new UserFriendlyBasicHttpAuthenticationFilter());

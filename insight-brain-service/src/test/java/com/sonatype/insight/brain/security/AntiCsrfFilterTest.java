@@ -1,0 +1,160 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
+@RunWith(Parameterized.class)
+public class AntiCsrfFilterTest
+    extends AbstractBrainServiceTest
+{
+
+  // a known rest endpoint defined from SecurityModule for AntiCsrfFilter for integrations that also allows anon access
+  private static final String REST_PATH = "rest/ci/scan/testApp";
+
+  private boolean anonymousAccessAllowed;
+
+  private final Configurator configurator = new Configurator()
+  {
+    @Override
+    public void configure(InsightConfig config) {
+      config.getReverseProxyAuthentication().setEnabled(true);
+      config.setAnonymousClientAccessAllowed(anonymousAccessAllowed);
+    }
+  };
+
+  public AntiCsrfFilterTest(boolean anonymousAccessAllowed) {
+    this.anonymousAccessAllowed = anonymousAccessAllowed;
+  }
+
+  @Parameterized.Parameters(name = "anonymousAccessAllowed={0}")
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][]{
+        {false},
+        {true},
+        });
+  }
+
+  @Override
+  public void initTest() throws Exception {
+    initServer(configurator);
+  }
+
+  @Test
+  public void testRequestWithBasicAuthWithCsrfCookieAndHeader_Allowed() throws Exception {
+    HttpResponse response = restRequest().auth().csrfToken("nonce", "nonce").put();
+    assertAccessIsAllowed(response);
+  }
+
+  @Test
+  public void testRequestWithBasicAuthWithMismatchCsrfCookieAndHeader_Allowed() throws Exception {
+    HttpResponse response = restRequest().auth().csrfToken("WRONG", "nonce").put();
+    assertAccessIsAllowed(response);
+  }
+
+  @Test
+  public void testRequestWithBasicAuthWithoutCsrfCookieAndHeader_Allowed() throws Exception {
+    HttpResponse response = restRequest().auth().noCsrfToken().put();
+    assertAccessIsAllowed(response);
+  }
+
+  @Test
+  public void testRequestWithRUTWithoutCsrfCookieAndHeader_NotAllowed() throws Exception {
+    HttpResponse response = restRequest().header("REMOTE_USER", "admin").noCsrfToken().put();
+    assertCrossSiteRequestForgery(response);
+  }
+
+  @Test
+  public void testRequestWithRUTWithoutCsrfCookie_NotAllowed() throws Exception {
+    HttpResponse response = restRequest().header("REMOTE_USER", "admin").csrfToken(null, "nonce").put();
+    assertCrossSiteRequestForgery(response);
+  }
+
+  @Test
+  public void testRequestWithRUTWithoutCsrfHeader_NotAllowed() throws Exception {
+    HttpResponse response = restRequest().header("REMOTE_USER", "admin").csrfToken("nonce", null).put();
+    assertCrossSiteRequestForgery(response);
+  }
+
+  @Test
+  public void testRequestWithRUTWithCsrfCookieAndHeader_Allowed() throws Exception {
+    HttpResponse response = restRequest().header("REMOTE_USER", "admin").csrfToken("nonce", "nonce").put();
+    assertAccessIsAllowed(response);
+  }
+
+  @Test
+  public void testRequestWithRUTWithCsrfCookieAndHeaderAndDisabledCsrfProtection_Allowed() throws Exception {
+    getCLMServer().getConfiguration().getReverseProxyAuthentication().setCsrfProtectionDisabled(true);
+    HttpResponse response = restRequest().header("REMOTE_USER", "admin").csrfToken("nonce", "nonce").put();
+    assertAccessIsAllowed(response);
+  }
+
+  @Test
+  public void testRequestWithRUTWithoutCsrfCookieAndHeaderAndDisabledCsrfProtection_Allowed() throws Exception {
+    getCLMServer().getConfiguration().getReverseProxyAuthentication().setCsrfProtectionDisabled(true);
+    HttpResponse response = restRequest().header("REMOTE_USER", "admin").noCsrfToken().put();
+    assertAccessIsAllowed(response);
+  }
+
+  @Test
+  public void testRequestWithAnonymousWithCsrfCookieAndHeader() throws Exception {
+    HttpResponse response = restRequest().csrfToken("nonce", "nonce").put();
+    if (anonymousAccessAllowed) {
+      assertAccessIsAllowed(response);
+    }
+    else {
+      assertLoginFailure(response);
+    }
+  }
+
+  @Test
+  public void testRequestWithAnonymousWithoutCsrfCookieAndHeader() throws Exception {
+    HttpResponse response = restRequest().noCsrfToken().put();
+    if (anonymousAccessAllowed) {
+      assertAccessIsAllowed(response);
+    }
+    else {
+      assertLoginFailure(response);
+    }
+  }
+
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(REST_PATH).anon();
+  }
+
+  private void assertAccessIsAllowed(HttpResponse response) {
+    // since we aren't providing a proper app id, we will get an error message back from the DAO, which means the
+    // request filter passed and endpoint mapping worked.
+    assertThat(response.getBodyText(), is("Could not find an application with public ID testApp."));
+    assertResponseStatus(404, response);  // 404 since we are providing an app id that can't be found.
+  }
+
+  private void assertCrossSiteRequestForgery(HttpResponse response) {
+    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
+    assertResponseStatus(401, response);
+  }
+
+  private void assertLoginFailure(final HttpResponse response) {
+    assertThat(response.getBodyText(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
+    assertResponseStatus(401, response);
+  }
+}

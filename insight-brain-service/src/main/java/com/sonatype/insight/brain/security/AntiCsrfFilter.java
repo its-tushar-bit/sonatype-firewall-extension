@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
+
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.util.StringUtils;
 import org.apache.shiro.web.filter.authc.AuthenticationFilter;
@@ -43,6 +45,8 @@ public class AntiCsrfFilter
 
   public static final String FORM_POST_ALLOWED = "formPostAllowed";
 
+  private final ReverseProxyAuthenticationConfig reverseProxyAuthenticationConfig;
+
   private static class PathConfig
   {
     // allow requests that don't use session cookie for auth without CSRF token
@@ -58,8 +62,9 @@ public class AntiCsrfFilter
     }
   }
 
-  public AntiCsrfFilter(boolean enabled) {
+  public AntiCsrfFilter(boolean enabled, ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
     setEnabled(enabled);
+    this.reverseProxyAuthenticationConfig = reverseProxyAuthentication;
   }
 
   @Override
@@ -85,7 +90,8 @@ public class AntiCsrfFilter
     if (pathConfig.formPostAllowed && isFormPost(httpRequest)) {
       return true;
     }
-    if (pathConfig.explicitAuthAllowed && !getSubject(request, response).isAuthenticated()) {
+    if (pathConfig.explicitAuthAllowed && !getSubject(request, response).isAuthenticated()
+        && !isReverseProxyAuthenticationWithCsrf(httpRequest)) {
       return true;
     }
 
@@ -159,5 +165,11 @@ public class AntiCsrfFilter
     if (csrfHeader == null || csrfCookie == null || !csrfHeader.equals(csrfCookie.getValue())) {
       throw new UnauthenticatedException(ERROR_MSG);
     }
+  }
+
+  private boolean isReverseProxyAuthenticationWithCsrf(final HttpServletRequest httpRequest) {
+    return reverseProxyAuthenticationConfig.isEnabled()
+        && httpRequest.getHeader(reverseProxyAuthenticationConfig.getUsernameHeader()) != null
+        && !reverseProxyAuthenticationConfig.isCsrfProtectionDisabled();
   }
 }

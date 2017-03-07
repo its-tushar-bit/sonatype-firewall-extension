@@ -282,7 +282,8 @@
 
     grunt.registerTask('bower-gallery', 'install bower dependencies in component gallery', function() {
       var execSync = require('child_process').execSync;
-      execSync('bower install', {cwd: './src/main/component-gallery/app'});
+      var bowerCmd = path.join(__dirname, 'node_modules/.bin/bower') + ' install';
+      execSync(bowerCmd, {cwd: './src/main/component-gallery/app'});
     });
 
     grunt.registerTask('build', [

@@ -17,7 +17,7 @@ import org.apache.shiro.web.filter.PathMatchingFilter;
 /**
  * Filter that prevents the use of session cookies. To be used for the public REST API (stateless).
  *
- * @since 1.25.0
+ * @since 1.26
  */
 public class NoSessionAllowedFilter
     extends PathMatchingFilter

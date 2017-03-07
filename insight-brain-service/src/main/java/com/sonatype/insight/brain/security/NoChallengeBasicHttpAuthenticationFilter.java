@@ -16,7 +16,7 @@ import com.sonatype.insight.jaxrs.error.ErrorResponse;
  * Specialized BASIC auth filter that does not send the challenge response.
  * To be used for the public REST API (stateless).
  * 
- * @since 1.25.0
+ * @since 1.26
  */
 public class NoChallengeBasicHttpAuthenticationFilter
     extends UserFriendlyBasicHttpAuthenticationFilter

@@ -17,6 +17,10 @@ public class VersionsCIP
     return $("#version-graph");
   }
 
+  public static SelenideElement error() {
+    return root().find(".alert-error");
+  }
+
   public static SelenideElement versionGraph() {
     return root().find("svg");
   }

@@ -7,8 +7,7 @@
 (function(angular) {
   'use strict';
 
-  function LoginModalController($scope, $http, CLMLocations, $q, Messages, UnauthenticatedRequestQueueService,
-                                username) {
+  function LoginModalController($scope, $http, CLMLocations, Messages, username) {
     var vm = this;
 
     username = username || undefined;
@@ -41,19 +40,14 @@
           'Authorization': 'Basic ' + Base64.encode(vm.username + ':' + vm.password)
         }
       })).then(function() {
-        // blow through each failed request and resolve them
-        $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {
-          $scope.$close();
-          UnauthenticatedRequestQueueService.clearRequests();
-        });
+        $scope.$close();
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
       });
     };
   }
 
-  LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', '$q', 'Messages',
-                                  'UnauthenticatedRequestQueueService', 'username'];
+  LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages', 'username'];
 
   angular //
       .module('utility.services') //

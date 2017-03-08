@@ -25,6 +25,10 @@ public class RepositoryReportContainerPage
     return $("#report-title .last-eval");
   }
 
+  public static SelenideElement getIframe() {
+    return $("#evaluation-report-container > iframe");
+  }
+
   public static class ReEvaluateModal
   {
     public static SelenideElement root() {

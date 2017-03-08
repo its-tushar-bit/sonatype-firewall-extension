@@ -1,5 +1,6 @@
 describe('HttpInterceptors.js', function() {
-  var scope;
+  var scope,
+      modalSuccess;
   
   beforeEach(module('UnauthenticatedResponseHttpInterceptor', function($provide) {
     $provide.value('$modalInstance', {
@@ -18,7 +19,7 @@ describe('HttpInterceptors.js', function() {
         return {
           result: {
             then: function(success, failure) {
-              success();
+              modalSuccess = success;
             }
           }
         };
@@ -78,4 +79,31 @@ describe('HttpInterceptors.js', function() {
     
     $httpBackend.flush();
   }));
+
+  it('Validate that failed requests are retried and cleared out of the queue after the modal promise fires success',
+      inject(function($q, $http, $httpBackend, UnauthenticatedRequestQueueService) {
+        $httpBackend.expectPOST('test').respond(401);
+
+        var success = false;
+        var error = false;
+        $http.post('test').success(function(){
+          success = true;
+        }).error(function(){
+          error = true;
+        });
+
+        $httpBackend.flush();
+
+        expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(1);
+
+        $httpBackend.expectPOST('test').respond(200);
+
+        // trigger the retry
+        modalSuccess();
+
+        $httpBackend.flush();
+
+        expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
+        expect(success).toEqual(true);
+      }));
 });

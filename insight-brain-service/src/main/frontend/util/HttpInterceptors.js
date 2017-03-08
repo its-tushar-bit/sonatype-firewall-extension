@@ -68,6 +68,8 @@
       }
 
       $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
+        var promise;
+
         // if user is already processing login, this will be a login failure response so reject and let them try
         // again
         if (response.config && response.config.clmLogin) {
@@ -85,7 +87,21 @@
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
           if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-            reauthenticate();
+            // if we are currently running in an iframe within IQ, delegate to the top frame
+            // for the reauthentication
+            if (window.top !== window && window.top.triggerUserReauthentication) {
+              promise = window.top.triggerUserReauthentication();
+            }
+            else {
+              promise = reauthenticate();
+            }
+
+            promise.then(function() {
+              // retry failed requests and then clear the queue
+              $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {
+                UnauthenticatedRequestQueueService.clearRequests();
+              });
+            });
           }
         }
       });

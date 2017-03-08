@@ -10,14 +10,18 @@ import java.io.IOException;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginDialog;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
+import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportPolicyPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Configuration;
@@ -53,12 +57,16 @@ public class SessionTimeoutTest
    */
   @Test
   public void testReloginPromptOnSessionExpiration() {
+    SystemConfigMenu systemConfigMenu = new SystemConfigMenu();
+
     loginAsAdmin();
+
+    // wait for login to finish
+    systemConfigMenu.menu().shouldBe(visible);
     hardreset();
 
     // try to open the Webhooks page. Since the session cookie has been deleted this should trigger the session
     // timeout detection
-    SystemConfigMenu systemConfigMenu = new SystemConfigMenu();
     systemConfigMenu.menu().click();
     systemConfigMenu.webhooks().click();
 
@@ -99,16 +107,7 @@ public class SessionTimeoutTest
     refreshOrOpen(ApplicationReportContainerPage.url(app.getPublicId(), scanId));
 
     driver.switchTo().frame(ApplicationReportContainerPage.getIframe());
-
-    // expire the session, but only after the iframe document has fully loaded. Otherwise there is a race condition
-    // where some of the css and js for the iframe won't load. To determine when the scripts have executed, we
-    // wait until jquery ($) is defined
-    Selenide.Wait() //
-        .withTimeout(2, SECONDS) //
-        .pollingEvery(100, MILLISECONDS) //
-        .withMessage("jQuery failed to load") //
-        .until((Predicate<WebDriver>) (d -> !((JavascriptExecutor) d).executeScript("return typeof $;")
-            .equals("undefined")));
+    waitForScriptsToLoad();
 
     hardreset();
 
@@ -127,8 +126,54 @@ public class SessionTimeoutTest
     ReportPolicyPage.summaryView().shouldBe(visible);
     ReportPolicyPage.row(0).coordinates().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
 
+    // expire the session again in order to test the relogin for the CIP itself
+    hardreset();
+
+    // click a row. This triggers the re-login using different logic so it needs to be tested separately
+    ReportPolicyPage.row(0).openCip();
+
+    driver.switchTo().defaultContent();
+    assertReloginDialog();
+    logBackIn();
+
+    // ensure that CIP content loading got past the authentication error. In this test, the component details
+    // endpoint isn't set up so we still expect a "Not Found" error message
+    driver.switchTo().frame(ApplicationReportContainerPage.getIframe());
+    VersionsCIP.error().shouldHave(text("Not Found"));
+
     // cleanup
     driver.switchTo().defaultContent();
+    logout();
+  }
+
+  @Test
+  public void testReloginPromptInRepositoryReport() {
+    WebDriver driver = WebDriverRunner.getWebDriver();
+
+    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "central");
+    tempEntity.newRepositoryComponent(repo.getId());
+
+    loginAsAdmin();
+
+    refreshOrOpen(RepositoryReportContainerPage.url(repo.getId()));
+
+    driver.switchTo().frame(RepositoryReportContainerPage.getIframe());
+    waitForScriptsToLoad();
+
+    hardreset();
+
+    RepositoryReportPage.Table.row(0).component().click();
+
+    driver.switchTo().defaultContent();
+    assertReloginDialog();
+    logBackIn();
+
+    driver.switchTo().frame(RepositoryReportContainerPage.getIframe());
+    VersionsCIP.error().shouldHave(text("Not Found"));
+
+    // cleanup
+    driver.switchTo().defaultContent();
+    logout();
   }
 
   private void assertReloginDialog() {
@@ -144,5 +189,17 @@ public class SessionTimeoutTest
     LoginDialog.password().setValue("admin123");
     LoginDialog.loginButton().click();
     LoginDialog.root().shouldNotBe(visible);
+  }
+
+  private void waitForScriptsToLoad() {
+    // wait until the iframe document has fully loaded. Otherwise there is a race condition
+    // where some of the css and js for the iframe won't load. To determine when the scripts have executed, we
+    // wait until jquery ($) is defined
+    Selenide.Wait() //
+        .withTimeout(2, SECONDS) //
+        .pollingEvery(100, MILLISECONDS) //
+        .withMessage("jQuery failed to load") //
+        .until((Predicate<WebDriver>) (d -> !((JavascriptExecutor) d).executeScript("return typeof $;")
+            .equals("undefined")));
   }
 }

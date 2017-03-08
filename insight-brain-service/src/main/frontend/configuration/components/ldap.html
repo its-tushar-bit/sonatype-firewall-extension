@@ -1,15 +1,21 @@
-<div class="ldap-configuration-editor scrollable-root-container" authorization-wrapper="isAuthorized"
+<div id="ldap-configuration-editor"
+     class="scrollable-root-container"
+     authorization-wrapper="isAuthorized"
      maximize-container-height>
   <div load-wrapper="loadError" reload="doLoad()" loading="!ldap">
-    <div class="container config">
-      <div class="fixed-width-small-form" id="ldapName">
-        <div class="nav-crumb"><a ui-sref="ldap-servers">LDAP Servers</a> / {{:: ldap.id ? 'Edit' : 'Create'}} Configuration</div>
-        <div style="float:right; margin:10px;" class="btn-group" ng-show="ldap.id">
-          <button id="ldap-connection-delete" class="btn btn-icon-only" title="Remove Configuration" 
-                  ng-click="confirmDeleteConfiguration(ldap)">
-            <i class="fa fa-trash"></i>
-          </button>
-        </div>
+    <div class="iq-tile iq-tile--sys-prefs iq-tile-breadcrumb">
+      <a ui-sref="ldap-servers">LDAP Servers</a> / {{:: ldap.id ? 'Edit' : 'Create'}} Configuration
+    </div>
+    <div id="ldap-name" class="iq-tile iq-tile--sys-prefs">
+      <div class="iq-tile__actions" ng-show="ldap.id">
+        <button id="ldap-connection-delete"
+                class="btn"
+                title="Remove Configuration"
+                ng-click="confirmDeleteConfiguration(ldap)">
+          <i class="fa fa-trash"></i>Remove configuration
+        </button>
+      </div>
+      <div class="iq-tile-content">
         <div class="inline-editor head"
              clm-editable
              e-form="$parent.$parent.$parent.$parent.$parent.$parent.ldapNameForm"
@@ -19,28 +25,25 @@
              empty-text="Enter Server Name"
              whitespace-check="true">
         </div>
-        <div id="ldap-name-edit-btns" ng-show="!saving && (ldap.id == null || isDirty()) || ldapNameForm.$visible" 
+        <div id="ldap-name-edit-btns"
+             ng-show="!saving && (ldap.id == null || isDirty()) || ldapNameForm.$visible" 
              style="padding-bottom:10px">
           <button type="button" class="btn" ng-click="ldap.$revert()">Cancel</button>
           <button type="button" class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
         </div>
         <div ng-show="saving" style="height:30px"><i class="icon-time"></i> Saving</div>
       </div>
-    </div>
-    <div ng-if="ldap.id" style="margin-top:10px">
-      <div class="underline">
-        <div class="container config" style="margin-bottom:0px">
-          <ul class="tri-pane left">
-            <li ng-class="{ active : $state.includes('edit-ldap.connection') }">
-              <a ng-click="setCurrentTab('connection')">CONNECTION</a>
-            </li>
-            <li ng-class="{ active : $state.includes('edit-ldap.usermapping') }">
-              <a ng-click="setCurrentTab('usermapping')">USER &amp; GROUP SETTINGS</a>
-            </li>
-          </ul>
-        </div>
+      <div class="iq-tile-content" ng-if="ldap.id">
+        <ul class="tri-pane left">
+          <li ng-class="{ active : $state.includes('edit-ldap.connection') }">
+            <a ng-click="setCurrentTab('connection')">CONNECTION</a>
+          </li>
+          <li ng-class="{ active : $state.includes('edit-ldap.usermapping') }">
+            <a ng-click="setCurrentTab('usermapping')">USER &amp; GROUP SETTINGS</a>
+          </li>
+        </ul>
+        <div class="iq-tile-content" ui-view></div>
       </div>
-      <div class="container config" ui-view></div>
     </div>
   </div>
 </div>

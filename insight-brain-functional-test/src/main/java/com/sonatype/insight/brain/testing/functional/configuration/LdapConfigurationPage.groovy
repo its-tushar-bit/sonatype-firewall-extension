@@ -19,10 +19,10 @@ class LdapConfigurationPage
 
   static content = {
     // name editor
-    inlineEditorSpan(wait: true) { $('#ldapName .editable') }
-    inlineEditor(required: false) { $('#ldapName input') }
-    save(required: false) { $('#ldapName button.btn-primary') }
-    cancel(required: false) { $('#ldapName button:first-child') }
+    inlineEditorSpan(wait: true) { $('#ldap-name .editable') }
+    inlineEditor(required: false) { $('#ldap-name input') }
+    save(required: false) { $('#ldap-name button.btn-primary') }
+    cancel(required: false) { $('#ldap-name button:first-child') }
 
     //requires confirmation to delete
     delete(required: false) { $('a[title="Remove Configuration"]') }

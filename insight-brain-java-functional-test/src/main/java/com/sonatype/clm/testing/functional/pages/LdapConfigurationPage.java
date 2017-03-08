@@ -17,7 +17,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class LdapConfigurationPage
 {
-  private static final String ROOT_SELECTOR = ".ldap-configuration-editor";
+  private static final String ROOT_SELECTOR = "#ldap-configuration-editor";
 
   public static String editLdapUrl(String ldapId) {
     return BaseUrl.uriBuilder().fragment("/ldap/edit/{ldapId}").build(ldapId).toString();
@@ -32,7 +32,7 @@ public class LdapConfigurationPage
   }
 
   public static SelenideElement breadCrumb() {
-    return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".nav-crumb"));
+    return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".iq-tile-breadcrumb"));
   }
 
   public static SelenideElement connectionTab() {
@@ -51,14 +51,14 @@ public class LdapConfigurationPage
     return new LdapUserAndGroupSettingsForm(ROOT_SELECTOR, "#user-group-mapping-form");
   }
 
-  public static LdapNameEditor ldapNameEditor() {return new LdapNameEditor("#ldapName");}
+  public static LdapNameEditor ldapNameEditor() {return new LdapNameEditor("#ldap-name");}
 
   public static SelenideElement discardChangesModalButton() {
     return $("#ldap-unsaved-changes button.btn-primary");
   }
 
   public static SelenideElement deleteButton() {
-    return $("#ldapName #ldap-connection-delete");
+    return $("#ldap-name #ldap-connection-delete");
   }
 
   public static SelenideElement deleteConfirmationButton() {

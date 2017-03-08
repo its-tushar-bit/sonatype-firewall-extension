@@ -75,13 +75,14 @@ public class WebhookConfigurationTest
 
     newWebhook.click();
     webhookEditPage.should(appear);
-    webhookEditPage.title().should(text("Create Webhook"));
+    webhookEditPage.title().shouldHave(text("Create Webhook"));
 
     webhookEditPage.url().val("http://foo.bar");
 
     webhookEditPage.secretKey().val("sooper sekrit");
     webhookEditPage.applicationEvaluation().click();
 
+    webhookEditPage.save().shouldHave(text("Create"));
     webhookEditPage.save().shouldBe(enabled).click();
 
     webhookConfigurationPage.should(appear);
@@ -100,6 +101,7 @@ public class WebhookConfigurationTest
 
     webhookEditPage.should(appear);
     webhookEditPage.url().shouldHave(value("http://localhost0"));
+    webhookEditPage.title().shouldHave(text("Edit Webhook"));
     webhookEditPage.secretKey().shouldHave(value("#~FAKE~SECRET~KEY~#"));
     webhookEditPage.management().shouldBe(selected);
     webhookEditPage.component().shouldNotBe(selected);
@@ -112,6 +114,7 @@ public class WebhookConfigurationTest
     webhookEditPage.management().click();
     webhookEditPage.component().click();
 
+    webhookEditPage.save().shouldHave(text("Update"));
     webhookEditPage.save().shouldBe(enabled).click();
 
     webhookConfigurationPage.should(appear);

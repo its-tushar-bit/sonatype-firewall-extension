@@ -135,6 +135,7 @@ public abstract class AbstractFunctionalTest
 
   @After
   public void reset() {
+    testCLMServer.getInsightServer().reset();
     open("about"); // so we aren't on app between page loads
     clearAlerts();
   }

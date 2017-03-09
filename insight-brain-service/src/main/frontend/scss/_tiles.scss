@@ -92,6 +92,11 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
     margin-bottom: 0;
     padding-bottom: 0;
   }
+  
+  // for pages with tab systems inside iq-content
+  .well:last-child {
+    padding-bottom: 19px;
+  }
 }
 
 // Summary Tile

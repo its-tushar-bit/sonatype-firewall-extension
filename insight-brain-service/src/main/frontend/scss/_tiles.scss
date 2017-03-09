@@ -89,7 +89,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .iq-tile-content {
   > :last-child {
-    margin-bottom: 8px;
+    margin-bottom: 0;
     padding-bottom: 0;
   }
 }
@@ -122,11 +122,6 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .iq-tile-header--sys-prefs {
   margin-bottom: 0;
-}
-
-.iq-tile-breadcrumb {
-  border: none;
-  padding-bottom: 0;
 }
 
 /*

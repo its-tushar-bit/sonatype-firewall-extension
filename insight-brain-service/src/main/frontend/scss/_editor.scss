@@ -37,7 +37,8 @@
     padding-left: 4px;
 
     // Space out buttons
-    .btn + .btn {
+    .btn + .btn,
+    .btn + .tooltip + .btn {
       margin-bottom: 0;
       margin-left: 12px;
     }

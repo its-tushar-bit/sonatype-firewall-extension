@@ -17,7 +17,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class AdministratorsPage
     extends BasicElement<AdministratorsPage>
 {
-  private static final String ROOT_SELECTOR = ".container.administrators";
+  private static final String ROOT_SELECTOR = ".iq-tile__content";
 
   public static String URL = BaseUrl.uriBuilder().fragment("/administrators").build().toString();
 

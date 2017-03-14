@@ -12,12 +12,16 @@
         $stateProvider.state('administrators', {
           url: '/administrators',
           template : '<div authorization-wrapper="isAuthorized">' +
-                      '<div class="scrollable-root-container" maximize-container-height>' +
-                        '<h1 class="page-title">' +
-                          '<div class="container administrators">Administrators</div>' +
-                        '</h1>' +
-                        '<div class="container administrators" ng-include="\'policy/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
-                      '</div>' +
+                       '<div class="scrollable-root-container" maximize-container-height>' +
+                         '<div class="iq-tile iq-tile--sys-prefs">' +
+                           '<div class="iq-tile-header iq-tile-header--sys-prefs">' +
+                             '<div class="iq-tile-header__title">' +
+                               '<h2>Administrators</h2>' +
+                             '</div>' +
+                           '</div>' +
+                           '<div class="iq-tile__content" ng-include="\'policy/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
+                         '</div>' +
+                       '</div>' +
                      '</div>',
           data : {
             title : 'Administrators'

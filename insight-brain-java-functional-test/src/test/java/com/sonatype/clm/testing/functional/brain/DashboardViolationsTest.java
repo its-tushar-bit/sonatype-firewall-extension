@@ -76,9 +76,9 @@ public class DashboardViolationsTest
 
   private final Date now = new Date();
 
-  private final Date twoDaysAgo = now().minusDays(2).toDate();
+  private final Date twoDaysAgo = now().minusDays(2).minusHours(4).toDate();
 
-  private final Date oneWeekAgo = now().minusWeeks(1).toDate();
+  private final Date oneWeekAgo = now().minusWeeks(1).minusHours(4).toDate();
 
   private Application app1, app2;
 

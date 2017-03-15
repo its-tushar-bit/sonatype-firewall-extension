@@ -6,9 +6,9 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.ActionList;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 public class WebhookConfigurationPage
@@ -26,31 +26,7 @@ public class WebhookConfigurationPage
     return child("#create-webhook");
   }
 
-  public ElementsCollection webhooksList() {
-    return children(".webhook-item");
-  }
-
-  public WebhookSummary webhook(int row) {
-    return new WebhookSummary(webhooksList().get(row));
-  }
-
-  public static class WebhookSummary {
-    private SelenideElement element;
-
-    WebhookSummary(SelenideElement element) {
-      this.element = element;
-    }
-
-    public SelenideElement title() {
-      return element.find(".title");
-    }
-
-    public ElementsCollection webhookEvents() {
-      return element.findAll("li");
-    }
-
-    public void click() {
-      element.click();
-    }
+  public ActionList webhooksList() {
+    return new ActionList(".iq-action-list");
   }
 }

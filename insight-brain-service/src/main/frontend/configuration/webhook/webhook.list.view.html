@@ -1,6 +1,6 @@
 <div class="scrollable-root-container" maximize-container-height>
   <div load-wrapper="error" reload="doLoad()">
-    <div id="webhooks-list" class="iq-tile iq-tile--sys-prefs tile">
+    <div id="webhooks-list" class="iq-tile iq-tile--sys-prefs">
       <div class="iq-tile-header iq-tile-header--sys-prefs">
         <div class="iq-tile__actions">
           <button class="btn btn-tertiary" ng-click="vm.newWebhook()" id="create-webhook">
@@ -18,24 +18,24 @@
         </div>
       </div>
       <div class="iq-tile-content">
-        <div class="simple-list">
-          <ul>
-            <li class="clickable with-subtitle webhook-item" ng-repeat="webhook in vm.webhooks"
-                ui-sref="webhooks.edit({webhookId: webhook.id})">
-              <div class="title">
-                <img src="img/webhooks_16px.png" class="pull-left webhook-icon" alt="Webhooks">
-                {{::webhook.url}}
-              </div>
-              <ul id="webhook-event-type-list">
-                <li ng-repeat="eventType in webhook.eventTypes">
-                  <i class="fa fa-circle" title="{{::eventType}}"></i>{{::eventType}}
-                </li>
-              </ul>
-
-              <i class="fa fa-chevron-right"></i>
-            </li>
-          </ul>
-        </div>
+        <ul class="iq-action-list">
+          <li class="iq-action-list__item iq-action-list__item--empty" ng-if="vm.webhooks.length <= 0">
+            No webhooks are defined
+          </li>
+          <li class="iq-action-list__item iq-action-list__item--tall"
+              ng-repeat="webhook in vm.webhooks"
+              ui-sref="webhooks.edit({webhookId: webhook.id})">
+            <i class="fa fa-chevron-right iq-pull-right"></i>
+            <p class="iq-action-list__text">
+              <img src="img/webhooks_16px.png" class="webhook-icon" alt="Webhooks">{{::webhook.url}}
+            </p>
+            <p class="iq-action-list__subtext">
+              <span ng-repeat="eventType in webhook.eventTypes">
+                <i class="fa fa-circle size-10px" title="{{::eventType}}"/>{{::eventType}}
+              </span>
+            </p>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

@@ -193,6 +193,13 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
     line-height: 12px;
   }
 
+  &.size-10px {
+    font-size: 10px;
+    line-height: 10px;
+    margin-top: -4px;
+    vertical-align: middle;
+  }
+
   &.outline {
     // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
     text-shadow: $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px;

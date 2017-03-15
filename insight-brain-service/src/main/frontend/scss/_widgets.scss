@@ -225,7 +225,11 @@
 
   .iq-action-list__subtext {
     line-height: 23px;
-  }  
+
+    > span {
+      padding-right: 16px;
+    }
+  }
 }
 
 .iq-action-list__text {
@@ -248,11 +252,6 @@
   padding: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.iq-action-list__item--expanding {
-  height: auto;
-  min-height: 38px;
 }
 
 /*
@@ -1476,29 +1475,6 @@ root-organization-migrate {
         height: 16px !important;
         width: 16px;
       }
-    }
-  }
-}
-
-/*
-  # Webhook event types in webhook list
-*/
-
-#webhook-event-type-list {
-  clear: both;
-
-  > li {
-    display: inline;
-    padding-right: 24px;
-    padding-left: 0;
-    border-bottom: none;
-    border-top: none;
-
-    > i {
-      font-size: 75%;
-      top: -1px;
-      position: relative;
-      padding-right: 5px;
     }
   }
 }

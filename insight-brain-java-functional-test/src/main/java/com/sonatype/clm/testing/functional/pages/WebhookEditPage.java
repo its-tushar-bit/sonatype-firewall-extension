@@ -51,4 +51,8 @@ public class WebhookEditPage
   public SelenideElement save() {
     return child(".btn-primary");
   }
+
+  public SelenideElement remove() {
+    return child(".btn-tertiary");
+  }
 }

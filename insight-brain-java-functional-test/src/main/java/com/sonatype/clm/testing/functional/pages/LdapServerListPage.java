@@ -6,7 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList;
+import com.sonatype.clm.testing.functional.elements.ActionList;
 import com.sonatype.clm.testing.functional.ldap.ReorderLdapModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -50,8 +50,8 @@ public class LdapServerListPage
     return child("button:first-child");
   }
 
-  public TileSimpleList ldapServerList() {
-    return new TileSimpleList(child(".simple-list"));
+  public ActionList ldapServerList() {
+    return new ActionList(childSelector(".iq-action-list"));
   }
 
 }

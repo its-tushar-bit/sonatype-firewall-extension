@@ -148,6 +148,7 @@ public class LdapConfigurationTest
 
     waitUntilUrl(LdapServerListPage.URL);
     serverListPage.ldapServerList().elements().shouldHaveSize(0);
+    serverListPage.ldapServerList().emptyDescriptor().shouldBe(visible);
     assertThat(new LdapServerDAO().getById(server.getId()), is(nullValue()));
   }
 

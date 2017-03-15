@@ -1,5 +1,5 @@
 <div class='scrollable-root-container' authorization-wrapper="vm.isAuthorized" maximize-container-height>
-  <div id="ldap-server-list" class="tile iq-tile iq-tile--sys-prefs">
+  <div id="ldap-server-list" class="iq-tile iq-tile--sys-prefs">
     <div load-wrapper='vm.error' loading='!vm.ldapList' reload='vm.doLoad()'>
       <div class="iq-tile-header iq-tile-header--sys-prefs">
         <div class="iq-tile__actions">
@@ -19,20 +19,17 @@
       </div>
     </div>
     <div class="iq-tile-content">
-      <div class="simple-list">
-        <h4 class="subsection-header"></h4>
-        <div class="empty-list" ng-if="vm.ldapList.length <= 0">
+      <ul class="iq-action-list">
+        <li class="iq-action-list__item iq-action-list__item--empty" ng-if="vm.ldapList.length <= 0">
           No LDAP servers are defined
-        </div>
-        <ul>
-          <li class="clickable" ng-repeat="ldap in vm.ldapList | orderBy:priority" ui-sref="edit-ldap({ldapId: ldap.id})">
-            <div class="title single-row-text">
-              {{::ldap.name}}
-            </div>
-            <i class="fa fa-chevron-right"></i>
-          </li>
-        </ul>
-      </div>
+        </li>
+        <li class="iq-action-list__item"
+            ng-repeat="ldap in vm.ldapList | orderBy:priority"
+            ui-sref="edit-ldap({ldapId: ldap.id})">
+          <i class="fa fa-chevron-right iq-pull-right"></i>
+          {{::ldap.name}}
+        </li>
+      </ul>
     </div>
   </div>
 </div>

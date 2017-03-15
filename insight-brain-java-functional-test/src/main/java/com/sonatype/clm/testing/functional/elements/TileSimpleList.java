@@ -20,9 +20,13 @@ public class TileSimpleList
   }
 
   public ElementsCollection elements() {
-    return root.$$("li");
+    return root.$$("li:not(.iq-action-list__item--empty)");
   }
 
+  public SelenideElement noElementsMessage() {
+    return root.$("li.iq-action-list__item--empty");
+  }
+ 
   public TileSimpleListElement element(int num) {
     return new TileSimpleListElement(elements().get(num));
   }

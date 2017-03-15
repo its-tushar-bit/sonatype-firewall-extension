@@ -201,16 +201,6 @@
 .container.config {
   width: 520px !important;
   min-width: 520px !important;
-  
-  &.ldap-server-list {
-    margin-top: 8px;
-    width: 800px !important;
-    min-width: 800px !important;
-   
-   .subsection-header {
-      clear: both;
-    }
-  }
 }
 
 .ldap-configuration-editor {

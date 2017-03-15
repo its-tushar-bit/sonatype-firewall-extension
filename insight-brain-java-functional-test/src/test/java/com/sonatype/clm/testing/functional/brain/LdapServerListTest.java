@@ -8,8 +8,8 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
+import com.sonatype.clm.testing.functional.elements.ActionList;
+import com.sonatype.clm.testing.functional.elements.ActionList.ActionListElement;
 import com.sonatype.clm.testing.functional.ldap.ReorderLdapModal;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -58,25 +58,25 @@ public class LdapServerListTest
     LdapServerListPage ldapServerListPage = new LdapServerListPage();
     ldapServerListPage.shouldBe(visible);
 
-    ldapServerListPage.ldapServerList().elements().shouldHaveSize(0);
-    ldapServerListPage.ldapServerList().emptyDescriptor().shouldBe(visible);
-    
+    ActionList serverList = ldapServerListPage.ldapServerList();
+
+    serverList.elements().shouldHaveSize(0);
+    serverList.emptyDescriptor().shouldBe(visible);
+
     tempEntity.newLdapServer("IQ Ldap Server");
     tempEntity.newLdapServer("Another Ldap Server");
 
     refresh();
 
-    ldapServerListPage.ldapServerList().emptyDescriptor().shouldNotBe(visible);
+    serverList.emptyDescriptor().shouldNotBe(visible);
+    serverList.elements().shouldHaveSize(2);
 
-    TileSimpleList list = ldapServerListPage.ldapServerList();
-    list.elements().shouldHaveSize(2);
-
-    TileSimpleListElement row = list.element(0);
+    ActionListElement row = serverList.element(0);
     row.chevron().shouldBe(visible);
-    row.name().shouldBe(visible).shouldHave(text("IQ Ldap Server"));
-    TileSimpleListElement row2 = list.element(1);
+    row.shouldBe(visible).shouldHave(text("IQ Ldap Server"));
+    ActionListElement row2 = serverList.element(1);
     row2.chevron().shouldBe(visible);
-    row2.name().shouldBe(visible).shouldHave(text("Another Ldap Server"));
+    row2.shouldBe(visible).shouldHave(text("Another Ldap Server"));
   }
 
   @Test

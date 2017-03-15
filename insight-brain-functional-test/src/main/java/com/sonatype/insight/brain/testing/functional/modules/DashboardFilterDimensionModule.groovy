@@ -13,7 +13,7 @@ public class DashboardFilterDimensionModule
   static content = {
     twisty { $('.tree-view-item') }
     counter { $('.dashboard-filter-counter') }
-    multiSelectList(required: false) { moduleList FilterCheckboxRow, $('.clm-form .tree-view-item.checkbox') }
+    multiSelectList(required: false) { moduleList FilterCheckboxRow, $('.clm-form iq-checkbox') }
     tooltip { module TooltipModule }
   }
 

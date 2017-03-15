@@ -19,6 +19,7 @@
     vm.unsavedModalVisible = false;
     vm.isLoading = false;
     vm.isArray = angular.isArray;
+    vm.toggleSelected = toggleSelected;
 
     $scope.$on('pageChangeStarted', function(event) {
       if (vm.isDirty()) {
@@ -81,6 +82,10 @@
       }).finally(function() {
         vm.isLoading = false;
       });
+    }
+
+    function toggleSelected(filter) {
+      vm.filters[filter] = !vm.filters[filter];
     }
   }
 

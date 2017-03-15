@@ -6,7 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.Checkbox;
+import com.sonatype.clm.testing.functional.elements.IqCheckbox;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -33,19 +33,19 @@ public class WebhookEditPage
   }
 
   public ElementsCollection eventTypes() {
-    return children(".checkbox");
+    return children("iq-checkbox");
   }
 
-  public Checkbox management() {
-    return new Checkbox(eventTypes().get(0));
+  public IqCheckbox management() {
+    return new IqCheckbox(eventTypes().get(0));
   }
 
-  public Checkbox applicationEvaluation() {
-    return new Checkbox(eventTypes().get(1));
+  public IqCheckbox applicationEvaluation() {
+    return new IqCheckbox(eventTypes().get(1));
   }
 
-  public Checkbox component() {
-    return new Checkbox(eventTypes().get(2));
+  public IqCheckbox component() {
+    return new IqCheckbox(eventTypes().get(2));
   }
 
   public SelenideElement save() {

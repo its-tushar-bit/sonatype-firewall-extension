@@ -165,11 +165,11 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
     public ElementsCollection filters() {
-      return children(".clm-form .checkbox");
+      return children(".clm-form iq-checkbox");
     }
 
-    public Checkbox checkboxItem(int index) {
-      return new Checkbox(child(".clm-form .checkbox", nthChild(index)));
+    public IqCheckbox checkboxItem(int index) {
+      return new IqCheckbox(child(".clm-form iq-checkbox", nthChild(index)));
     }
   }
 
@@ -205,14 +205,14 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
     public ElementsCollection multiSelectList() {
-      return children(".clm-form .tree-view-item.checkbox");
+      return children(".clm-form iq-checkbox");
     }
 
-    public Checkbox checkboxItem(int index) {
-      return new Checkbox(child(".clm-form .tree-view-item.checkbox", nthChild(index)));
+    public IqCheckbox checkboxItem(int index) {
+      return new IqCheckbox(child(".clm-form iq-checkbox", nthChild(index)));
     }
 
-    public Checkbox allItems() {
+    public IqCheckbox allItems() {
       return checkboxItem(1);
     }
 
@@ -235,19 +235,19 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       super(selector);
     }
 
-    public Checkbox security() {
+    public IqCheckbox security() {
       return super.checkboxItem(2);
     }
 
-    public Checkbox license() {
+    public IqCheckbox license() {
       return super.checkboxItem(3);
     }
 
-    public Checkbox quality() {
+    public IqCheckbox quality() {
       return super.checkboxItem(4);
     }
 
-    public Checkbox other() {
+    public IqCheckbox other() {
       return super.checkboxItem(5);
     }
   }
@@ -269,19 +269,19 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       super(selector);
     }
 
-    public Checkbox build() {
+    public IqCheckbox build() {
       return checkboxItem(2);
     }
 
-    public Checkbox stageRelase() {
+    public IqCheckbox stageRelase() {
       return checkboxItem(3);
     }
 
-    public Checkbox release() {
+    public IqCheckbox release() {
       return checkboxItem(4);
     }
 
-    public Checkbox operate() {
+    public IqCheckbox operate() {
       return checkboxItem(5);
     }
 

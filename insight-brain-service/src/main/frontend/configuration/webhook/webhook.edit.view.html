@@ -41,11 +41,10 @@
             <label>Event Types</label>
             <div class="sub-label">which trigger this Webhook</div>
             <div ng-repeat="eventType in ::vm.webhookEventTypes">
-              <label class="checkbox">
-                <input type="checkbox" ng-checked="vm.hasEventTypeSelected(eventType)"
-                       ng-click="vm.toggleEventTypeSelected(eventType)">
-                <span>{{::eventType}}</span>
-              </label>
+              <iq-checkbox label="{{::eventType}}"
+                           on-click="vm.toggleEventTypeSelected(eventType)"
+                           is-checked="vm.hasEventTypeSelected(eventType)">
+              </iq-checkbox>
             </div>
           </div>
         </div>

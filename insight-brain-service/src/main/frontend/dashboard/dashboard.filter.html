@@ -28,19 +28,21 @@
             <input type="text" ng-model="vm.filter" autocomplete="off" placeholder="{{shortName}} Name">
           </div>
           <div class="clm-form">
-            <label class="tree-view-item checkbox" ng-click="$event.stopPropagation();">
-              <input type="checkbox" name="all" ng-click="vm.toggleSelectAll()" ng-checked="vm.allSelected()"><!--
-              --><span>all {{!vm.filter ? longName : 'matches'}}</span>
-            </label>
-            <label class="tree-view-item checkbox"
-               tooltip="{{::(tooltipField ? 'in ' + entity[tooltipField] : '')}}" tooltip-append-to-body="true"
-               data-tooltip-popup-delay="200" data-tooltip-placement="top-left" tooltip-class="filter-item-tooltip"
-               ng-repeat="entity in available | fuzzy:vm.filter:nameField | orderBy: sortEntities ? [nameField] : []"
-               ng-click="$event.stopPropagation()">
-                <input type="checkbox" name="{{::entity.id}}" ng-model="selected[entity[idField]]"
-                       ng-change="vm.clearIfUnselected(entity[idField]); vm.notifySelectionChanged()"><!--
-                --><span>{{::entity[nameField]}}</span>
-            </label>
+            <iq-checkbox class="tree-view-item"
+                         label="all {{!vm.filter ? longName : 'matches'}}"
+                         on-click="vm.toggleSelectAll()"
+                         is-checked="vm.allSelected()">
+            </iq-checkbox>
+            <iq-checkbox class="tree-view-item"
+                         tooltip="{{::(tooltipField ? 'in ' + entity[tooltipField] : '')}}"
+                         tooltip-append-to-body="true"
+                         data-tooltip-popup-delay="200" data-tooltip-placement="top-left"
+                         tooltip-class="filter-item-tooltip"
+                         ng-repeat="entity in available | fuzzy:vm.filter:nameField | orderBy: sortEntities ? [nameField] : []"
+                         label="{{::entity[nameField]}}"
+                         on-click="vm.toggle(entity[idField])"
+                         is-checked="selected[entity[idField]]">
+            </iq-checkbox>
           </div>
         </div>
       </div>

@@ -44,32 +44,32 @@ public class NotificationsSection
       this.ROOT_SELECTOR = createSelector(NotificationsSection.ROOT_SELECTOR, "tr[data-recipient=\"" + recipient + "\"]");
     }
 
-    public Checkbox proxy() {
-      return new Checkbox($(createSelector(ROOT_SELECTOR, "td", nthChild(2))));
+    public IqCheckbox proxy() {
+      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(2), "iq-checkbox")));
     }
 
-    public Checkbox develop() {
-      return new Checkbox($(createSelector(ROOT_SELECTOR, "td", nthChild(3))));
+    public IqCheckbox develop() {
+      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(3), "iq-checkbox")));
     }
 
-    public Checkbox build() {
-      return new Checkbox($(createSelector(ROOT_SELECTOR, "td", nthChild(4))));
+    public IqCheckbox build() {
+      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(4), "iq-checkbox")));
     }
 
-    public Checkbox stageRelease() {
-      return new Checkbox($(createSelector(ROOT_SELECTOR, "td", nthChild(5))));
+    public IqCheckbox stageRelease() {
+      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(5), "iq-checkbox")));
     }
 
-    public Checkbox release() {
-      return new Checkbox($(createSelector(ROOT_SELECTOR, "td", nthChild(6))));
+    public IqCheckbox release() {
+      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(6), "iq-checkbox")));
     }
 
-    public Checkbox operate() {
-      return new Checkbox($(createSelector(ROOT_SELECTOR, "td", nthChild(7))));
+    public IqCheckbox operate() {
+      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td", nthChild(7), "iq-checkbox")));
     }
 
-    public Checkbox continuousMonitoring() {
-      return new Checkbox($(createSelector(ROOT_SELECTOR, "td:nth-last-child(2) label.checkbox")));
+    public IqCheckbox continuousMonitoring() {
+      return new IqCheckbox($(createSelector(ROOT_SELECTOR, "td:nth-last-child(2) iq-checkbox")));
     }
 
     public SelenideElement deleteButton() {

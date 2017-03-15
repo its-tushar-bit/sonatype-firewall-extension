@@ -33,23 +33,19 @@
         </span>
       </td>
       <td ng-repeat="stage in vm.actionStages">
-        <label class="checkbox no-text"
-               ng-class="{disabled: vm.disabled  || !vm.isStageApplicable(recipient, stage.stageTypeId)}"
-               tooltip="{{ !vm.isStageApplicable(recipient, stage.stageTypeId) ? 'Notifications for this type and stage are not available' : '' }}">
-          <input type="checkbox" ng-checked="vm.hasStage(recipient, stage.stageTypeId)"
-                 ng-disabled="vm.disabled || !vm.isStageApplicable(recipient, stage.stageTypeId)"
-                 ng-click="vm.toggleStage(recipient, stage.stageTypeId)">
-          <span></span>
-        </label>
+        <iq-checkbox on-click="vm.toggleStage(recipient, stage.stageTypeId)"
+                     is-checked="vm.hasStage(recipient, stage.stageTypeId)"
+                     is-disabled="vm.disabled || !vm.isStageApplicable(recipient, stage.stageTypeId)"
+                     tooltip="{{ !vm.isStageApplicable(recipient, stage.stageTypeId) ? 'Notifications for this type and stage are not available' : '' }}">
+        </iq-checkbox>
       </td>
       <td>
-        <label class="checkbox no-text" ng-class="{disabled: vm.disabled || !vm.isMonitoringSupported}"
-               data-tooltip="{{:: vm.isMonitoringSupported ? '' : 'Policy Monitoring is not supported by your license'}}"
-               data-tooltip-placement="top" data-tooltip-append-to-body="true">
-          <input type="checkbox" ng-checked="vm.hasStage(recipient, 'continuous-monitoring')" ng-disabled="vm.disabled || !vm.isMonitoringSupported"
-                 ng-click="vm.toggleStage(recipient, 'continuous-monitoring')">
-          <span></span>
-        </label>
+        <iq-checkbox on-click="vm.toggleStage(recipient, 'continuous-monitoring')"
+                     is-checked="vm.hasStage(recipient, 'continuous-monitoring')"
+                     is-disabled="vm.disabled || !vm.isMonitoringSupported"
+                     data-tooltip="{{:: vm.isMonitoringSupported ? '' : 'Policy Monitoring is not supported by your license'}}"
+                     data-tooltip-placement="top" data-tooltip-append-to-body="true">
+        </iq-checkbox>
       </td>
       <td class="delete">
         <button class="btn btn-tertiary btn-icon-only" type="button"

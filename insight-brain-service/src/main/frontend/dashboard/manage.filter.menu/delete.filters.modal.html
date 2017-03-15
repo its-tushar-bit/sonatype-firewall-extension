@@ -8,12 +8,11 @@
     <div class="clm-modal-body" load-wrapper loading="vm.isLoading">
       <div class="section">
         <div class="field" ng-class="{ 'error' : vm.deleteError }">
-          <label class="checkbox"
-                 ng-repeat="(deleteFilter, selected) in vm.filters"
-                 ng-click="$event.stopPropagation()">
-            <input type="checkbox" name="{{::deleteFilter}}" ng-model="vm.filters[deleteFilter]"><!--
-                --><span>{{::deleteFilter}}</span>
-          </label>
+          <iq-checkbox ng-repeat="(deleteFilter, selected) in vm.filters"
+                       label="{{::deleteFilter}}"
+                       is-checked="vm.filters[deleteFilter]"
+                       on-click="vm.toggleSelected(deleteFilter)">
+          </iq-checkbox>
         </div>
       </div>
     </div>

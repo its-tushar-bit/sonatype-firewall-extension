@@ -17,6 +17,7 @@
 
     var angularVersion = extractFromPom('angularjs.version');
     var path = require('path');
+    var rollupCmd = path.join('node_modules', '.bin', 'rollup');
     require('load-grunt-tasks')(grunt);
     require('time-grunt')(grunt);
 
@@ -268,17 +269,17 @@
         }
       },
       exec: {
-        'cip-loader': 'node_modules/.bin/rollup -c rollup/cip-loader.js --environment BUILD:production',
-        'cip-loader-watch': 'node_modules/.bin/rollup -c rollup/cip-loader.js -w',
-        'cip': 'node_modules/.bin/rollup -c rollup/css-cip.js --environment BUILD:production',
-        'cip-watch': 'node_modules/.bin/rollup -c rollup/css-cip.js -w',
-        'external': 'node_modules/.bin/rollup -c rollup/external.js --environment BUILD:production',
-        'audit-report': 'node_modules/.bin/rollup -c rollup/audit-report.js --environment BUILD:production',
-        'audit-report-watch': 'node_modules/.bin/rollup -c rollup/audit-report.js -w',
-        'version-graph': 'node_modules/.bin/rollup -c rollup/version-graph-app.js --environment BUILD:production',
-        'version-graph-watch': 'node_modules/.bin/rollup -c rollup/version-graph-app.js -w',
-        'view-details': 'node_modules/.bin/rollup -c rollup/view-details.js --environment BUILD:production',
-        'view-details-watch': 'node_modules/.bin/rollup -c rollup/view-details.js -w',
+        'cip-loader': rollupCmd + ' -c rollup/cip-loader.js --environment BUILD:production',
+        'cip-loader-watch': rollupCmd + ' -c rollup/cip-loader.js -w',
+        'cip': rollupCmd + ' -c rollup/css-cip.js --environment BUILD:production',
+        'cip-watch': rollupCmd + ' -c rollup/css-cip.js -w',
+        'external': rollupCmd + ' -c rollup/external.js --environment BUILD:production',
+        'audit-report': rollupCmd + ' -c rollup/audit-report.js --environment BUILD:production',
+        'audit-report-watch': rollupCmd + ' -c rollup/audit-report.js -w',
+        'version-graph': rollupCmd + ' -c rollup/version-graph-app.js --environment BUILD:production',
+        'version-graph-watch': rollupCmd + ' -c rollup/version-graph-app.js -w',
+        'view-details': rollupCmd + ' -c rollup/view-details.js --environment BUILD:production',
+        'view-details-watch': rollupCmd + ' -c rollup/view-details.js -w',
       }
     });
 

@@ -115,11 +115,11 @@
         <h5 ng-hide='context.users'>
           <i class='icon-time'></i> Loading...
         </h5>
-        <div style='margin-left:-15px'>
-          <div ng-show='context.users' class="accordion users">
-            <div user-item context="context" user="user"></div>
-          </div>
-          <div class="accordion-group users" ng-class="{'white': isCurrentUser(user) }" ng-repeat='user in context.users'>
+        <div ng-show='context.users' class="accordion users">
+          <div user-item context="context" user="user"></div>
+        </div>
+        <ul class="iq-action-list">
+          <li class="iq-action-list__item iq-action-list__item--expanding" ng-repeat='user in context.users'>
             <div class="accordion-heading">
               <div class='btn-group floatRight'>
                 <button type='button' class="btn btn-mini user-button hover-buttons" title="Edit User" ng-disabled='context.userEditMap[user.id]' ng-click="editClick(user)">
@@ -157,8 +157,8 @@
                 <div user-item user='user' context='context'></div>
               </div>
             </div>
-          </div>
-        </div>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

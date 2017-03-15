@@ -250,6 +250,11 @@
   white-space: nowrap;
 }
 
+.iq-action-list__item--expanding {
+  height: auto;
+  min-height: 38px;
+}
+
 /*
   ## Alerts
 */
@@ -1671,7 +1676,7 @@ root-organization-migrate {
   }
 
   > .floatRight {
-    padding-top: 5px;
+    padding-top: 6px;
     padding-right: 5px;
   }
 }

@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.elements.AssociationEditor.Associatio
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -103,6 +104,7 @@ public class ApplicationCategoryEditorTest
     category1Item.checkBox().click();
 
     ApplicationCategoryEditorPage.updateButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
 
     // Refresh page to ensure values are propagated to server
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
@@ -159,6 +161,7 @@ public class ApplicationCategoryEditorTest
     category6Item.checkBox().shouldBe(visible).click();
 
     ApplicationCategoryEditorPage.updateButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
 
     // Refresh page to ensure values are propagated to server
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));

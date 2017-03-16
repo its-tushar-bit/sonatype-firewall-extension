@@ -254,6 +254,11 @@
   white-space: nowrap;
 }
 
+.iq-action-list__item--expanding {
+  height: auto;
+  min-height: 38px;
+}
+
 /*
   ## Alerts
 */

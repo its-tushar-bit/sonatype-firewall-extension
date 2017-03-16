@@ -245,3 +245,4 @@ As you can see in the example below, route configuration doesn't specify FooBar 
   * Replace root.$(".someclass") with $("#someid .someclass") to save roundtrips
 * Rather than query for a list of elements and grab a certain one, tighten up the css selector to get the desired item back directly
   * Replace $$(".someclass").get(0) with $(".someclass:first-child") or $(".someclass:nth-child(7)") for example
+* Use `#id` instead of `.class` selectors when possible to minimize dependency on class names. (which means adding new ids to HTML if needed)

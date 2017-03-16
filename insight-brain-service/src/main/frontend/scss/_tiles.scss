@@ -28,15 +28,17 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   display: inline-block;
   height: $iq-tile-header-height-actions;
 
-  h1 {
+  h1, h2 {
     display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  h1 {
     font-size: 26px;
     line-height: $iq-tile-header-height-actions;
     margin: 0;
     margin-left: -1px; // Magic number b/c H1 has mysterious 1px to the left
     padding: 1px 0 0 0;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 
     .iq-tile-header__description {
       @include regular();

@@ -212,7 +212,7 @@ public class DashboardFilterTest
     // assert stored filter
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO()
         .getByUsername("admin");
-    assertThat(filter.get(0).getFilter(), is("{\n" +
+    assertThat(filter.get(0).getFilter().replace("\r\n", "\n"), is("{\n" +
         "  \"minPolicyThreatLevel\" : 2,\n" +
         "  \"maxPolicyThreatLevel\" : 7,\n" +
         "  \"applicationFilters\" : [ \"" + firstApp.getId() + "\" ],\n" +

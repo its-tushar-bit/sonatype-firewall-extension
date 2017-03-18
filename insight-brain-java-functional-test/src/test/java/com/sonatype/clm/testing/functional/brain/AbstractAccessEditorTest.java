@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.security.User;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -171,6 +172,7 @@ public abstract class AbstractAccessEditorTest
     picker.pickedItems().shouldHaveSize(1);
 
     AccessEditorPage.title().hover(); // hide the tooltip
+    OwnerDetailTreeView.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
     int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
 
     picker.checkAllRight().click();
@@ -191,7 +193,8 @@ public abstract class AbstractAccessEditorTest
   public void testRemove() {
     Role role = APPLICATION_ROLES.get(2);
     open(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
-    AccessEditorPage.title().hover(); // hide the tooltip
+    AccessEditorPage.title().shouldBe(visible).hover(); // hide the tooltip
+    OwnerDetailTreeView.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
     int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
     AccessEditorPage.removeRoleButton().click();
     DeleteModal.body().shouldBe(visible)

@@ -261,6 +261,7 @@ public class LdapConfigurationTest
     connectionForm.authenticationMethod().shouldHave(value("SIMPLE")).selectOption("NONE");
     connectionForm.saveButton().shouldBe(enabled).click();
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
+    connectionForm.saveButton().shouldBe(disabled);
   }
 
   private void testUserMapping() {
@@ -326,6 +327,7 @@ public class LdapConfigurationTest
     // Save and ensure persistence of the user mapping
     userAndGroupSettingsForm.saveButton().shouldBe(enabled).click();
     userAndGroupSettingsForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
+    userAndGroupSettingsForm.saveButton().shouldBe(disabled);
 
     LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(server.getId());
 

@@ -8,7 +8,7 @@
   'use strict';
 
   function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope, DeleteModalService,
-          $modal, $q, isAuthorized) {
+          $modal, $q, isAuthorized, $state) {
     var username = null;
 
     $scope.context = {
@@ -83,11 +83,36 @@
       DeleteModalService.deleteResource('User', user.username, user);
     };
 
+    $scope.newUserClick = function() {
+      $state.go('users.create');
+    };
+
+    $scope.closeUserCreateForm = function() {
+      $scope.context.users.sort(function(a, b) {
+        if (a.usernameLowercase < b.usernameLowercase) {
+          return -1;
+        }
+        else if (a.usernameLowercase > b.usernameLowercase) {
+          return 1;
+        }
+        else {
+          return 0;
+        }
+      });
+
+      // when a user is added by the user-create page, change the state back to the user list page
+      $state.go('users');
+    };
+
+    $scope.closeUserEditForm = function(user) {
+      $scope.context.userEditMap[user.id] = null;
+    };
+
     $scope.doLoad();
   }
 
   UserListController.$inject = ['$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-                                'DeleteModalService', '$modal', '$q', 'isAuthorized'];
+                                'DeleteModalService', '$modal', '$q', 'isAuthorized', '$state'];
 
   angular.module('UserModule').controller('UserListController', UserListController);
 }());

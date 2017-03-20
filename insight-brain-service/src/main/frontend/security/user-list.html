@@ -45,68 +45,15 @@
   </div>
 </div>
   </script>
-  <script type='text/ng-template' id='user-item'>
-<div ng-show='context.users' class="accordion users">
-  <button id='user-new' ng-if='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
-    <i class='icon icon-plus'></i> New User
-  </button>
-  <div ng-if='user'>
-    <ul ng-show="!user.id" class="tri-pane" style="min-width:0px;margin-top:10px;">
-      <li class="active">
-        <a style="text-transform:none;">Add New User</a>
-      </li>
-    </ul>
-    <form id='{{user.id}}user-form' name="userForm" class='clm-form well clm-well' ng-submit="saveClick(user)" novalidate autocomplete="off">
-      <div>
-        <div clm-control-group for="firstName" label="First Name">
-          <input clm-input id="firstName" name="firstName" type="text" ng-required="true" valid-name-characters
-                 placeholder="ex. Isaac" ng-model="user.firstName" focus-input="user"
-                 has-whitespace-validator ng-trim="false">
-        </div>
-        <div clm-control-group for="lastName" label="Last Name">
-          <input clm-input id="lastName" name="lastName" type="text" ng-required="true" valid-name-characters
-                 placeholder="ex. Asimov" ng-model="user.lastName" has-whitespace-validator ng-trim="false">
-        </div>
-        <div clm-control-group for="email" label="Email">
-          <input clm-input id='email' name="email" type="email" ng-required="true" placeholder="ex. iasimov@sonatype.com"
-                 ng-model="user.email">
-        </div>
-        <div ng-if="!user.id">
-          <div clm-control-group for="username" label="Username">
-            <input clm-input id="username" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/"
-                   valid-name-characters is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id"
-                   is-duplicate-case-sensitive="false" placeholder="ex. iasimov" ng-model="user.username"
-                   messages="{pattern: 'Must not contain spaces', duplicate: 'Username already taken'}">
-          </div>
-          <div clm-control-group for="password" label="Password">
-            <input clm-input id='password' name="password" type="password" ng-required="!user.id"
-                   placeholder="ex. correcthorsebatterystaple" ng-model="user.password">
-          </div>
-          <div clm-control-group for="passwordValidate" label="Validate Password">
-            <input clm-input id="passwordValidate" name="passwordValidate" type="password" ng-required="!user.id"
-                   placeholder="ex. correcthorsebatterystaple" ng-model="user.passwordValidate"
-                   clm-match="user.password"
-                   messages="{ match : 'Passwords must match!'}">
-          </div>
-        </div>
-      </div>
-      <div clm-alerts="alerts" no-close="true"></div>
-      <button id='{{user.id}}user-form-cancel' type="button" class='btn btn-link btn-cancel' type='button'
-              ng-click='cancelClick(user)'>Cancel
-      </button>
-      <div class="pull-right clm-primary-buttons">
-        <button id='{{user.id}}user-form-save' class='btn btn-primary' type='button' ng-click='saveClick(user)'
-                ng-disabled='userForm.$invalid || userForm.$pristine || saving'>Save
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-</script>
   <div load-wrapper="error" reload="doLoad()">
-    <div authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
+    <div ng-if="$state.is('users')" authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
       <div expand-user-on-event='userEditClick'></div>
       <div class="iq-tile-header iq-tile-header--sys-prefs">
+        <div class="iq-tile__actions">
+          <button id='user-new' type='button' class='btn add-new pull-right' ng-click='newUserClick()'>
+            <i class='icon icon-plus'></i> Create User
+          </button>
+        </div>
         <div class="iq-tile-header__title">
           <h2>Users</h2>
         </div>
@@ -115,25 +62,40 @@
         <h5 ng-hide='context.users'>
           <i class='icon-time'></i> Loading...
         </h5>
-        <div ng-show='context.users' class="accordion users">
-          <div user-item context="context" user="user"></div>
-        </div>
         <ul class="iq-action-list">
           <li class="iq-action-list__item iq-action-list__item--expanding" ng-repeat='user in context.users'>
             <div class="accordion-heading">
               <div class='btn-group floatRight'>
-                <button type='button' class="btn btn-mini user-button hover-buttons" title="Edit User" ng-disabled='context.userEditMap[user.id]' ng-click="editClick(user)">
-                  <i class="icon-pencil"></i>
+                <button type='button'
+                        class="btn btn-mini user-button hover-buttons"
+                        title="Edit User"
+                        ng-disabled='context.userEditMap[user.id]'
+                        ng-click="editClick(user)">
+                    <i class="icon-pencil"></i>
                 </button>
-                <button type='button' class="btn btn-mini user-button hover-buttons" title="Reset Password" ng-click="resetPasswordClick(user)">
+                <button type='button'
+                        class="btn btn-mini user-button hover-buttons"
+                        title="Reset Password"
+                        ng-click="resetPasswordClick(user)">
                   <i class="icon-reset-pw"></i>
                 </button>
-                <button type='button' class="btn btn-mini user-button hover-buttons" title="Remove User" ng-click="removeClick(user)">
+                <button type='button'
+                        class="btn btn-mini user-button hover-buttons"
+                        title="Remove User"
+                        ng-click="removeClick(user)">
                   <i class="icon-trash"></i>
                 </button>
               </div>
-              <a class="accordion-toggle user-top collapsed" style="padding-bottom:4px;" data-toggle="collapse" data-target="#collapse{{user.id}}">
-                <h4 style="display:inline;margin-top:0px;margin-bottom:4px;">{{user.username}} ({{user.firstName}} {{user.lastName}})</h4><span ng-if="isCurrentUser(user)" style="margin-left:5px;font-size:10px;color:darkgreen;">Current User</span>
+              <a class="accordion-toggle user-top collapsed"
+                 style="padding-bottom:4px;"
+                 data-toggle="collapse"
+                 data-target="#collapse{{user.id}}">
+                <h4 style="display:inline;margin-top:0px;margin-bottom:4px;">
+                  {{user.username}} ({{user.firstName}} {{user.lastName}})
+                </h4>
+                <span ng-if="isCurrentUser(user)" style="margin-left:5px;font-size:10px;color:darkgreen;">
+                  Current User
+                </span>
               </a>
             </div>
             <div id="collapse{{user.id}}" class="accordion-body collapse">
@@ -154,12 +116,17 @@
                 </table>
               </div>
               <div class="accordion-inner" style="padding:0px;" ng-if="context.userEditMap[user.id]">
-                <div user-item user='user' context='context'></div>
+                <user-form user="user"
+                           existing-users="context.users"
+                           on-cancel="closeUserEditForm(user)"
+                           on-save="closeUserEditForm(user)">
+                </user-form>
               </div>
             </div>
           </li>
         </ul>
       </div>
     </div>
+    <div ui-view></div>
   </div>
 </div>

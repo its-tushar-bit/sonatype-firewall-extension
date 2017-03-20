@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, AngularUtils, ZeroClipboard, clmBuildTimestamp, $ */
+/* global angular, ZeroClipboard, clmBuildTimestamp, $ */
 (function() {
   'use strict';
 
@@ -46,12 +46,22 @@
               controller: 'UserListController',
               templateUrl: 'security/user-list.html?' + clmBuildTimestamp,
               data : {
-                title : 'Users'
+                title : 'Users',
+                crumb: 'Users'
               },
               resolve : {
                 'isAuthorized' : ['PermissionService', function (PermissionService) {
                   return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
                 }]
+              }
+            }).state('users.create', {
+              // NOTE This is currently only used for adding new users - editing users is done using an inline form
+              url: '/_new_',
+              parent: 'users',
+              templateUrl: 'security/user-create.html?' + clmBuildTimestamp,
+              data: {
+                title: 'New User',
+                crumb: 'New User'
               }
             });
           }]);
@@ -72,93 +82,6 @@
 
     return store;
   }]);
-
-  module.controller('UserController', ['$scope', 'UserStore', 'Dialog', function($scope, UserStore, Dialog) {
-    function isDirty() {
-      return $scope.user && $scope.user.isDirty();
-    }
-    $scope.saveClick = function(user) {
-      if (!$scope.saving) {
-        $scope.alerts = null;
-        $scope.saving = true;
-        $scope.user.$save().then(function() {
-          if ($scope.context.userEditMap[user.id]) {
-            $scope.context.userEditMap[user.id] = null;
-          } else {
-            $scope.user = null;
-          }
-          $scope.context.users.sort(function(a, b) {
-            if (a.usernameLowercase < b.usernameLowercase) {
-              return -1;
-            } else if (a.usernameLowercase > b.usernameLowercase) {
-              return 1;
-            } else {
-              return 0;
-            }
-          });
-          $scope.saving = false;
-        }, function(error) {
-          $scope.alerts = [AngularUtils.toAlert(error.data)];
-          $scope.saving = false;
-        });
-      }
-    };
-    $scope.cancelClick = function(user) {
-      function doCancel() {
-        if ($scope.context.userEditMap[user.id]) {
-          $scope.context.userEditMap[user.id] = null;
-        }
-        else {
-          $scope.user = null;
-        }
-      }
-      if (isDirty()) {
-        Dialog.open({
-          title : 'Unsaved Changes',
-          body : 'The current user has unsaved changes, continuing will lose them.',
-          id : 'dirty-user-confirmation',
-          buttons : [{
-            name : 'Continue',
-            type : 'primary',
-            click : doCancel
-          }, {
-            name : 'Cancel',
-            type: 'cancel'
-          }]
-        });
-      }
-      else {
-        doCancel();
-      }
-    };
-    $scope.newUserClick = function() {
-      $scope.user = UserStore.create();
-    };
-    // make sure user is aware they are about to lose changes
-    $scope.$on('pageChangeStarted', function(event) {
-      if (isDirty()) {
-        event.preventDefault();
-      }
-    });
-  }]);
-
-  module.directive('userItem', function() {
-    return {
-      restrict: 'A',
-      templateUrl: 'user-item',
-      scope: {
-        user: '=',
-        context: '='
-      },
-      controller: 'UserController',
-      link: function(scope) {
-        // so data changes dont affect orig
-        if (scope.user && scope.user.id) {
-          scope.user = scope.user.$clone();
-        }
-      }
-    };
-  });
 
   module.directive('clmMatch', function () {
     return {

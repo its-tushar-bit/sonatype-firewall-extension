@@ -48,6 +48,6 @@ class UserManagementPage
     editFirstNameInput(required: false) { index -> editPanelForm(index).find('input[name=firstName]') }
     editLastNameInput(required: false) { index -> editPanelForm(index).find('input[name=lastName]') }
     editEmailInput(required: false) { index -> editPanelForm(index).find('input[name=email]') }
-    editSave(required: false) { index -> editPanelForm(index).find('button[ng-click="saveClick(user)"]') }
+    editSave(required: false) { index -> editPanelForm(index).find('button[ng-click="vm.saveClick(vm.user)"]') }
   }
 }

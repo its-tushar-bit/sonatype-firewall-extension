@@ -35,7 +35,7 @@ public class AntiCsrfFilter
 {
   private static final Logger log = LoggerFactory.getLogger(AntiCsrfFilter.class);
 
-  private static final String ERROR_MSG = "Invalid cross-site request forgery token";
+  static final String ERROR_MSG = "Invalid cross-site request forgery token";
 
   public static final String CSRF_COOKIE_NAME = "CLM-CSRF-TOKEN";
 

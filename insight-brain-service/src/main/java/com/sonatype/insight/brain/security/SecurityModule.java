@@ -102,7 +102,8 @@ public class SecurityModule
     manager.createChain("/ui/links/**", "anon"); // only redirects
 
     // public REST API, no sessions supported/allowed
-    manager.createChain("/api/**", "noSessionAllowed, noSessionCreation, noSessionReverseProxy, authcNoChallengeBasic");
+    manager.createChain("/api/**", "noSessionAllowed, noSessionCreation, antiCsrf["
+        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], noSessionReverseProxy, authcNoChallengeBasic");
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED

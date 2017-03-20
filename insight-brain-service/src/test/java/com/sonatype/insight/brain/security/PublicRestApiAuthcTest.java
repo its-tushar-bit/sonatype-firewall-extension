@@ -93,7 +93,7 @@ public class PublicRestApiAuthcTest
 
   @Test
   public void testExplicitCredentialsSufficientForAuthentication() throws Exception {
-    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing");
+    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").noCsrfToken();
     assertResponses(request, 404);
   }
 
@@ -191,5 +191,24 @@ public class PublicRestApiAuthcTest
 
     response = request.delete();
     assertResponseStatus(status, response);
+  }
+
+  @Test
+  public void testReverseProxyAuthenticationRequiresCsrfTokenForUnsafeRequests() throws Exception {
+    initServer(REVERSE_PROXY_ENABLED);
+    HttpRequest request = restRequest().header("REMOTE_USER", "admin").anon().noCsrfToken();
+    request.path(PublicApiPaths.BASE_PATH, "any/thing");
+
+    HttpResponse response = request.get();
+    assertResponseStatus(404, response);
+
+    response = request.put();
+    assertResponse401(response, AntiCsrfFilter.ERROR_MSG);
+
+    response = request.post();
+    assertResponse401(response, AntiCsrfFilter.ERROR_MSG);
+
+    response = request.delete();
+    assertResponse401(response, AntiCsrfFilter.ERROR_MSG);
   }
 }

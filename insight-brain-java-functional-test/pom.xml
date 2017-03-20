@@ -35,6 +35,7 @@
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>
             <phantomjs.binary.path>${phantomjs.binary}</phantomjs.binary.path>
+            <browser>phantomjs</browser>
           </systemPropertyVariables>
         </configuration>
       </plugin>

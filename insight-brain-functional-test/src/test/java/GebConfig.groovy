@@ -60,7 +60,27 @@ if (sauceBrowser) {
   }
 }
 else {
-  driver = { configure(new FirefoxDriver()) }
+  // see https://github.com/detro/ghostdriver
+
+  String phantomJsBinary = System.getProperty("phantomjs.binary", null)
+
+  driver = {
+    DesiredCapabilities capabilities = DesiredCapabilities.phantomjs()
+    if (phantomJsBinary) {
+      capabilities.setCapability('phantomjs.binary.path', phantomJsBinary)
+    }
+    capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ['--webdriver-loglevel=DEBUG'] as String[]);
+    capabilities.
+        setCapability(PhantomJSDriverService.PHANTOMJS_GHOSTDRIVER_CLI_ARGS, ["--logLevel=DEBUG"] as String[])
+    RemoteWebDriver webDriver = new PhantomJSDriver(capabilities)
+    webDriver.setLogLevel(Level.ALL)
+    return configure(webDriver)
+  }
+
+  // increase default timeout to account for slower CI server
+  waiting {
+    timeout = 15
+  }
 }
 
 Platform current = Platform.current
@@ -92,27 +112,8 @@ environments {
     }
   }
 
-  // see https://github.com/detro/ghostdriver
-  phantom {
-    String phantomJsBinary = System.getProperty("phantomjs.binary", null)
-
-    driver = {
-      DesiredCapabilities capabilities = DesiredCapabilities.phantomjs()
-      if (phantomJsBinary) {
-        capabilities.setCapability('phantomjs.binary.path', phantomJsBinary)
-      }
-      capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ['--webdriver-loglevel=DEBUG'] as String[]);
-      capabilities.
-          setCapability(PhantomJSDriverService.PHANTOMJS_GHOSTDRIVER_CLI_ARGS, ["--logLevel=DEBUG"] as String[])
-      RemoteWebDriver webDriver = new PhantomJSDriver(capabilities)
-      webDriver.setLogLevel(Level.ALL)
-      return configure(webDriver)
-    }
-
-    // increase default timeout to account for slower CI server
-    waiting {
-      timeout = 15
-    }
+  firefox {
+    driver = { configure(new FirefoxDriver()) }
   }
 }
 

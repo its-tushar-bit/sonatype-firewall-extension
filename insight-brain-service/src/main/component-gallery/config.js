@@ -18,4 +18,5 @@ export default angular.module('config', ['components'])
     .constant('stylesConfig', {
       'iq-action-list': 'styles/iq-action-list.html',
       'iq-dropdown': 'styles/iq-dropdown.html',
+      'iq-scrollable': 'styles/iq-scrollable.html',
     });

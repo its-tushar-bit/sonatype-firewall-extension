@@ -76,11 +76,6 @@ else {
     webDriver.setLogLevel(Level.ALL)
     return configure(webDriver)
   }
-
-  // increase default timeout to account for slower CI server
-  waiting {
-    timeout = 15
-  }
 }
 
 Platform current = Platform.current
@@ -114,6 +109,13 @@ environments {
 
   firefox {
     driver = { configure(new FirefoxDriver()) }
+  }
+
+  ci {
+    // increase default timeout to account for slower CI server
+    waiting {
+      timeout = 15
+    }
   }
 }
 

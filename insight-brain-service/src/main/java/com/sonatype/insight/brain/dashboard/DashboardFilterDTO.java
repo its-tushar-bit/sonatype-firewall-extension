@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
@@ -14,6 +15,8 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
  */
 public class DashboardFilterDTO
 {
+  public static final Integer DEFAULT_MAX_DAYS_OLD = 30;
+
   public int minPolicyThreatLevel;
 
   public int maxPolicyThreatLevel;
@@ -27,6 +30,13 @@ public class DashboardFilterDTO
   public List<PolicyThreatCategory> policyThreatCategoryFilters;
 
   public List<String> stageTypeFilters;
+
+  /**
+   * The maximum age of risks that pass the filter, in days. When null, no age-based filtering is applied. Note that it
+   * is not null by default however, so a null value must be set explicitly if desired.
+   * @since 1.27.0
+   */
+  public Integer maxDaysOld = DEFAULT_MAX_DAYS_OLD;
 
   @Override
   public boolean equals(final Object o) {
@@ -57,6 +67,9 @@ public class DashboardFilterDTO
     if (!policyThreatCategoryFilters.equals(that.policyThreatCategoryFilters)) {
       return false;
     }
+    if (!Objects.equals(maxDaysOld, that.maxDaysOld)) {
+      return false;
+    }
     return stageTypeFilters.equals(that.stageTypeFilters);
   }
 
@@ -69,6 +82,7 @@ public class DashboardFilterDTO
     result = 31 * result + tagFilters.hashCode();
     result = 31 * result + policyThreatCategoryFilters.hashCode();
     result = 31 * result + stageTypeFilters.hashCode();
+    result = 31 * result + Objects.hashCode(maxDaysOld);
     return result;
   }
 }

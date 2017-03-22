@@ -43,8 +43,6 @@ public class NewestRiskService
 {
   private static final Logger log = LoggerFactory.getLogger(NewestRiskService.class);
 
-  static final int NEWEST_RISK_TIME_RANGE_IN_DAYS = 30;
-
   private final ApplicationService applicationService;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
@@ -91,6 +89,7 @@ public class NewestRiskService
                                             Set<String> tagIds,
                                             PolicyThreatCategoryFilter policyThreatCategoryFilter,
                                             PolicyThreatLevelFilter policyThreatLevelFilter,
+                                            Integer maxDaysOld,
                                             int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
@@ -161,7 +160,10 @@ public class NewestRiskService
       }
     }
 
-    result = filter(result);
+    if (maxDaysOld != null) {
+      result = filter(result, maxDaysOld.intValue());
+    }
+
     Collections.sort(result, NewestRiskDTOComparator.INSTANCE);
     result.subList(Math.min(result.size(), maxResults), result.size()).clear();
     log.debug("getNewestRisks: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
@@ -244,11 +246,15 @@ public class NewestRiskService
   }
 
   /**
-   * Filters the given newestRiskDTOs to those that are newer than NEWEST_RISK_TIME_RANGE_IN_DAYS
+   * Filters the given newestRiskDTOs to those that are newer than maxDaysOld
    */
-  private static List<NewestRiskDTO> filter(List<NewestRiskDTO> newestRiskDTOs) {
+  private static List<NewestRiskDTO> filter(List<NewestRiskDTO> newestRiskDTOs, int maxDaysOld) {
+    if (maxDaysOld < 1) {
+      throw new IllegalArgumentException("Max Days Old must be a positive integer");
+    }
+
     List<NewestRiskDTO> filtered = new ArrayList<>();
-    long filterFromTime = new DateTime().minusDays(NEWEST_RISK_TIME_RANGE_IN_DAYS).getMillis();
+    long filterFromTime = new DateTime().minusDays(maxDaysOld).getMillis();
     for (NewestRiskDTO newestRiskDTO : newestRiskDTOs) {
       if (newestRiskDTO.time > filterFromTime) {
         filtered.add(newestRiskDTO);

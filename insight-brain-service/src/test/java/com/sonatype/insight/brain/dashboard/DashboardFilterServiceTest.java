@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -56,6 +57,9 @@ import static org.mockito.Mockito.when;
 public class DashboardFilterServiceTest
     extends AbstractComponentTest
 {
+  private static final String FILTER_WITHOUT_MAX_DAYS_OLD_PATH =
+      "/DashboardFilterServiceTest/DashboardFilterWithoutMaxDaysOld.json";
+
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
   @Inject
@@ -186,6 +190,7 @@ public class DashboardFilterServiceTest
     assertThat(actual.filter.tagFilters, hasSize(0));
     assertThat(actual.filter.policyThreatCategoryFilters, hasSize(0));
     assertThat(actual.filter.stageTypeFilters, hasSize(0));
+    assertThat(actual.filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
     assertThat(actual.name, is(""));
     assertThat(actual.basedOnFilterName, is(nullValue()));
   }
@@ -211,6 +216,19 @@ public class DashboardFilterServiceTest
 
     assertThat(actual.get(1).name, is(filterName2));
     assertFilterEmptyState(actual.get(1).filter, 3, 9);
+  }
+
+  @Test
+  public void testGetNamedDashboardFilterForCurrentUser_DefaultMaxDaysOld() throws Exception {
+    String filterName = "Filter1";
+
+    String filterJsonWithoutMaxDaysOld = IOUtils.toString(getClass().getResource(FILTER_WITHOUT_MAX_DAYS_OLD_PATH),
+        "UTF-8");
+    tempEntity.newDashboardFilter(USERNAME, filterName, filterJsonWithoutMaxDaysOld);
+
+    List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+    assertThat(actual, hasSize(1));
+    assertThat(actual.get(0).filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
   }
 
   @Test
@@ -291,6 +309,16 @@ public class DashboardFilterServiceTest
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
     assertThat(actual, notNullValue());
     assertFilterEmptyState(actual.filter, 5, 7);
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_DefaultMaxDaysOld() throws Exception {
+    String filterJsonWithoutMaxDaysOld = IOUtils.toString(getClass().getResource(FILTER_WITHOUT_MAX_DAYS_OLD_PATH),
+        "UTF-8");
+    tempEntity.newDashboardFilter(USERNAME, "", filterJsonWithoutMaxDaysOld);
+
+    NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertThat(actual.filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
   }
 
   @Test

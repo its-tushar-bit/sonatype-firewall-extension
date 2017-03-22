@@ -18,6 +18,6 @@ public class NewestRiskServiceNotLicensedTest
 
   @Test(expected = InvalidLicenseException.class)
   public void testGetNewestRisks_Unlicensed() throws Exception {
-    newestRiskService.getNewestRisks(null, null, null, null, null, null, 0);
+    newestRiskService.getNewestRisks(null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0);
   }
 }

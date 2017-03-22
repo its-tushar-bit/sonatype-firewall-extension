@@ -17,6 +17,7 @@ public class IqCheckbox extends Checkbox
     super(iqCheckboxElement.$("label"));
   }
 
+  @Override
   public SelenideElement label() {
     return super.element;
   }

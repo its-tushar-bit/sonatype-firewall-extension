@@ -88,7 +88,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.back;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.ActionsSection.activeClass;
 import static com.sonatype.clm.testing.functional.elements.ActionsSection.warnClass;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -138,7 +137,7 @@ public abstract class AbstractPolicyEditorTest
 
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
-    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
 
   @Test
@@ -148,7 +147,7 @@ public abstract class AbstractPolicyEditorTest
     }
     Label sampleLabel = tempEntity.newLabel(currentOwner.getId(), "Sample Label");
 
-    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     SummaryTile.addPolicyButton().click();
 
     assertNewPolicyStateIsCorrect();
@@ -263,7 +262,7 @@ public abstract class AbstractPolicyEditorTest
   public void testJIRA() throws IOException {
     setupJiraService();
 
-    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     SummaryTile.addPolicyButton().click();
 
     PolicyEditorPage.summarySection().policyName().val("New Policy");
@@ -309,7 +308,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(notifications.get(0).getProjectKey(), is("key1"));
     assertThat(notifications.get(0).getIssueTypeId(), is(1L));
 
-    open(PolicyEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), policy.getId()));
+    refreshOrOpen(PolicyEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), policy.getId()));
 
     NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
     NotificationsSection.notifications().shouldHaveSize(1).get(0).shouldHave(text("No notifications configured"));

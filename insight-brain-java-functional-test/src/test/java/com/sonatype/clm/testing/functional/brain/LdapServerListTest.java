@@ -25,7 +25,6 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -36,7 +35,7 @@ public class LdapServerListTest
 
   @BeforeClass
   public static void startup() {
-    open(LdapServerListPage.URL);
+    refreshOrOpen(LdapServerListPage.URL);
     loginAsAdmin();
   }
 

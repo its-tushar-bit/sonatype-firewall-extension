@@ -29,7 +29,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement.CLICKABLE;
 
@@ -54,7 +53,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
     this.parentOrg = orgDao.getById(currentOwner.getParentOwnerId());
-    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
 
@@ -80,11 +79,11 @@ public abstract class AbstractPolicyMonitoringEditorTest
     SummaryTile.monitoredStage().shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
 
     // if the user gets there manually, show a warning
-    open(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     MonitoredStageEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
 
     // disable the owner detail tree view item
-    open(PolicyEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
+    refreshOrOpen(PolicyEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
     OwnerDetailTreeView.policyGroup().item(2).shouldBe(DISABLED).hover();
     int cmIndex = OwnerDetailTreeView.policyGroup().items().size() - 2;
     OwnerDetailTreeView.policyGroup().item(cmIndex).shouldBe(DISABLED).hover();

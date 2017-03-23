@@ -9,7 +9,6 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 
-import com.codeborne.selenide.Selenide;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -21,7 +20,7 @@ public class SystemConfigurationMenuTest
 {
   @BeforeClass
   public static void startup() {
-    Selenide.open(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.URL);
     loginAsAdmin();
   }
 

@@ -40,7 +40,6 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
-import static com.codeborne.selenide.Selenide.open;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
@@ -61,7 +60,7 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @BeforeClass
   public static void boot() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 
@@ -83,7 +82,7 @@ public abstract class AbstractOwnerDetailsEditingTest
 
     tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(0).getId(), "admin");
 
-    open(OwnerDetailsEditingPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerDetailsEditingPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
 
   @Test

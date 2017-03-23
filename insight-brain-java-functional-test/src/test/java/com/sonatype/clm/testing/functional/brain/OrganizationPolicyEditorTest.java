@@ -24,7 +24,6 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.ALL_TEXT_ROOT_ORG;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.allRadioText;
@@ -130,7 +129,7 @@ public class OrganizationPolicyEditorTest
 
   @Test
   public void testRootOrgPolicyHasProperInheritedText() {
-    open(OwnerSummaryPage.url(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID));
+    refreshOrOpen(OwnerSummaryPage.url(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID));
 
     SummaryTile.addPolicyButton().click();
 

@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Selenide.open;
 
 public class UnknownJsTest
     extends AbstractFunctionalTest
@@ -48,7 +47,7 @@ public class UnknownJsTest
 
   @BeforeClass
   public static void startup() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 

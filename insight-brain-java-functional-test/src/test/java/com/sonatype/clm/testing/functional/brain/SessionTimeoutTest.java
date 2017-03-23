@@ -48,7 +48,7 @@ public class SessionTimeoutTest
 
   @Before
   public void before() {
-    Selenide.open(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.URL);
   }
 
   /**

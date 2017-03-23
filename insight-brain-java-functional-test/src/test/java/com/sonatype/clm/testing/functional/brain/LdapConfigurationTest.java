@@ -36,8 +36,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -55,7 +62,7 @@ public class LdapConfigurationTest
 
   @BeforeClass
   public static void startup() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 

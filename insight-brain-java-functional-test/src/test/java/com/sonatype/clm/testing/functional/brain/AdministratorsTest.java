@@ -14,17 +14,15 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 
+import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.codeborne.selenide.SelenideElement;
-
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.codeborne.selenide.Selenide.$;
 
 public class AdministratorsTest
@@ -33,7 +31,7 @@ public class AdministratorsTest
 
   @BeforeClass
   public static void initialLogin() {
-    open(AdministratorsPage.URL);
+    refreshOrOpen(AdministratorsPage.URL);
     loginAsAdmin();
   }
 

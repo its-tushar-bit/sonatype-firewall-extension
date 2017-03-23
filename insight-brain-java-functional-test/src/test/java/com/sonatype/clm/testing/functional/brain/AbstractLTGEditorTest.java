@@ -37,7 +37,6 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -65,7 +64,7 @@ public abstract class AbstractLTGEditorTest
 
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
-    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
 
   @Test

@@ -28,7 +28,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.junit.Assert.assertEquals;
 
@@ -54,7 +53,7 @@ public class MoveApplicationTest
 
   @BeforeClass
   public static void beforeClass() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 
@@ -63,7 +62,7 @@ public class MoveApplicationTest
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
 
-    open(OwnerSummaryPage.url(application.getType().toString(), application.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(application.getType().toString(), application.getPublicId()));
     OwnerSummaryPage.SummaryTile.name().shouldHave(text(application.getName()));
   }
 

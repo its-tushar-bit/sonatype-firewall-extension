@@ -53,7 +53,6 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.INACTIVE;
@@ -77,13 +76,13 @@ public class DashboardFilterTest
   @BeforeClass
   public static void beforeClass() throws Exception {
     setupData();
-    open(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
     loginAsAdmin();
   }
 
   @Before
   public void before() {
-    open(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
   }
 
   @After

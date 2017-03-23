@@ -38,7 +38,6 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.DISABLED_ICON;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.ENABLED_ICON;
@@ -58,13 +57,13 @@ public class RepositoriesSummaryPageTest
 
   @BeforeClass
   public static void startup() {
-    open(RepositoriesSummaryPage.URL);
+    refreshOrOpen(RepositoriesSummaryPage.URL);
     loginAsAdmin();
   }
 
   @Before
   public void init() {
-    open(RepositoriesSummaryPage.URL);
+    refreshOrOpen(RepositoriesSummaryPage.URL);
   }
 
   @Test

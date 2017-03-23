@@ -31,7 +31,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 
 public class OwnerTreeViewTest
     extends AbstractFunctionalTest
@@ -41,7 +40,7 @@ public class OwnerTreeViewTest
 
   @BeforeClass
   public static void startup() {
-    open(OrganizationManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
   }
 

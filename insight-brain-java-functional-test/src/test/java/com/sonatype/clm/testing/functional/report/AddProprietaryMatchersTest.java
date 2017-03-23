@@ -36,7 +36,6 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -64,7 +63,7 @@ public class AddProprietaryMatchersTest
 
   @BeforeClass
   public static void startup() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 

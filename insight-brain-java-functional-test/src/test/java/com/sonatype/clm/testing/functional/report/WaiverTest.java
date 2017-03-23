@@ -39,7 +39,6 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 
 public class WaiverTest
     extends AbstractFunctionalTest
@@ -60,7 +59,7 @@ public class WaiverTest
 
   @BeforeClass
   public static void startup() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 

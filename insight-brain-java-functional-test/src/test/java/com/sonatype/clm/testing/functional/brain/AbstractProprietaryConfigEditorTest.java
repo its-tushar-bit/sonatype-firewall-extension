@@ -33,7 +33,6 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.PACKAGE;
 import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.REGEX;
@@ -66,7 +65,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
     this.currentOwner = currentOwner;
 
-    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
 
   @Test

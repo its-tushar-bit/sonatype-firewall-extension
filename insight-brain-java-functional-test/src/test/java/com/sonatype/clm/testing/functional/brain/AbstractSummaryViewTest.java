@@ -66,7 +66,6 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.COLUMN_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.DOWN_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.UP_SELECTED;
@@ -86,7 +85,7 @@ public abstract class AbstractSummaryViewTest
 
   @BeforeClass
   public static void boot() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 
@@ -100,7 +99,7 @@ public abstract class AbstractSummaryViewTest
 
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
-    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     OwnerSummaryPage.SummaryTile.name().shouldHave(text(currentOwner.getName()));
   }
 
@@ -119,7 +118,7 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testSummaryTile_missing() {
-    open(OwnerSummaryPage.url(currentOwner.getType().toString(), "fakeid"));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), "fakeid"));
 
     ErrorBox error = OwnerSummaryPage.SummaryTile.error();
     error.shouldBe(visible);

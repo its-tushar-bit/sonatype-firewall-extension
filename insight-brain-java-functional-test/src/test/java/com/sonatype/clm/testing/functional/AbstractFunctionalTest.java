@@ -52,7 +52,6 @@ import org.slf4j.LoggerFactory;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
 
 public abstract class AbstractFunctionalTest
 {
@@ -136,7 +135,7 @@ public abstract class AbstractFunctionalTest
   @After
   public void reset() {
     testCLMServer.getInsightServer().reset();
-    open("about"); // so we aren't on app between page loads
+    refreshOrOpen("about"); // so we aren't on app between page loads
     clearAlerts();
   }
 

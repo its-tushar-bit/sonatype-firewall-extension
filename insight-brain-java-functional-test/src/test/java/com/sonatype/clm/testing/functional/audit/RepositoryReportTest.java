@@ -81,7 +81,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
@@ -106,7 +105,7 @@ public class RepositoryReportTest
 
   @BeforeClass
   public static void startup() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 
@@ -139,7 +138,7 @@ public class RepositoryReportTest
     tempEntity.newRepositoryComponent(repo.getId(), "quarantined1", new Date(), null);
     tempEntity.newRepositoryComponent(repo.getId(), "quarantined2", new Date(), null);
 
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     RepositoryReportPage.Summary.root().shouldBe(visible);
 
@@ -155,7 +154,7 @@ public class RepositoryReportTest
 
   @Test
   public void testSummary_Empty() throws Exception {
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     RepositoryReportPage.Summary.root().shouldBe(visible);
 
@@ -176,7 +175,7 @@ public class RepositoryReportTest
     tempEntity.newRepositoryPolicyViolation(component, 3, false, "Whatever", null);
     setupHDSFirewallResponse(component.getHash());
 
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     // Components with violations cannot be unquarantined
     openCip(0, "Policy");
@@ -239,7 +238,7 @@ public class RepositoryReportTest
     // setup HDS
     setupHdsFirewallResponse();
 
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     testReportSummary();
 
@@ -293,7 +292,7 @@ public class RepositoryReportTest
   @Test
   public void testUnknownComponentCip() throws Exception {
     tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     // Open CIP for unknown component
     RepositoryReportPage.Table.row(0).component().click();
@@ -312,7 +311,7 @@ public class RepositoryReportTest
   @Test
   public void testLicenseCip() throws Exception {
     cipSetup();
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
     tempEntity.newLicenseOverride(RepositoryContainer.REPOSITORY_CONTAINER_ID, CRITICAL_IDENTIFIER,
         LicenseOverrideStatus.ACKNOWLEDGED, (Set<String>) null);
 
@@ -379,7 +378,7 @@ public class RepositoryReportTest
   @Test
   public void testVersionGraphCip() throws Exception {
     cipSetup();
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     // open CIP
     RepositoryReportPage.Table.row(0).component().click();
@@ -406,7 +405,7 @@ public class RepositoryReportTest
   @Test
   public void testLabelsCip() throws Exception {
     cipSetup();
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.dark_blue);
     Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.dark_red);
@@ -469,7 +468,7 @@ public class RepositoryReportTest
   @Test
   public void testPolicyCip() throws Exception {
     cipSetup();
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     openCip(0, "Policy");
 
@@ -571,7 +570,7 @@ public class RepositoryReportTest
   @Test
   public void testVulnerabilityCip() throws Exception {
     cipSetup();
-    open(RepositoryReportPage.url(repo.getId()));
+    refreshOrOpen(RepositoryReportPage.url(repo.getId()));
     // PhantomJS for some reason renders the % based width as 10001px which makes some elements non-visible.
     Selenide.executeJavaScript(
         "$('head').append($('<style/>').text('#vulnerability-editor-table-wrapper .topBorder, #vulnerability-editor-table-wrapper .well { width: 435px !important; }'));");

@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 
 import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -48,7 +47,7 @@ public class WebhookConfigurationTest
 
   @BeforeClass
   public static void startup() {
-    Selenide.open(WebhookConfigurationPage.URL);
+    refreshOrOpen(WebhookConfigurationPage.URL);
     loginAsAdmin();
   }
 

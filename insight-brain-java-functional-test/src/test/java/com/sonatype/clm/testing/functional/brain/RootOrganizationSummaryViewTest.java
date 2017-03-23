@@ -18,21 +18,20 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selenide.open;
 
 public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
 {
 
   @BeforeClass
   public static void boot() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 
   @Before
   public void init() {
     Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
-    open(OwnerSummaryPage.url(rootOrg.getType().toString(), rootOrg.getId()));
+    refreshOrOpen(OwnerSummaryPage.url(rootOrg.getType().toString(), rootOrg.getId()));
     OwnerSummaryPage.SummaryTile.name().shouldHave(text(rootOrg.getName()));
   }
 

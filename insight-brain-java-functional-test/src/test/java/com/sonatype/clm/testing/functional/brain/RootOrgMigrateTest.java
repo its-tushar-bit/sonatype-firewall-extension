@@ -20,7 +20,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 
 public class RootOrgMigrateTest
     extends AbstractFunctionalTest
@@ -34,7 +33,7 @@ public class RootOrgMigrateTest
     org = tempEntity.newOrganization(ORG_NAME);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
-    open(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.URL);
     loginAsAdmin();
     testBanner();
     testModal();

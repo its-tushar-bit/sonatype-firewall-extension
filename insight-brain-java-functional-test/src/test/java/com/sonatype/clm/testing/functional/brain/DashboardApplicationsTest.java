@@ -42,7 +42,6 @@ import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.allHaveClass;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
 import static org.junit.Assert.assertArrayEquals;
@@ -63,7 +62,7 @@ public class DashboardApplicationsTest
 
   @BeforeClass
   public static void beforeClass() {
-    open(DashboardPage.APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.APPLICATIONS_URL);
     loginAsAdmin();
   }
 
@@ -72,7 +71,7 @@ public class DashboardApplicationsTest
     componentCounter = 0;
     org = tempEntity.newOrganization("DashboardApplicationsTest");
     policy = tempEntity.newPolicy(org.getId(), "DashboardApplicationsTestPolicy");
-    open(DashboardPage.APPLICATIONS_URL);
+    refreshOrOpen(DashboardPage.APPLICATIONS_URL);
   }
 
   @After

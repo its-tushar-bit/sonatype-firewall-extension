@@ -30,7 +30,6 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.light_green;
@@ -51,7 +50,7 @@ public class ApplicationCategoryEditorTest
 
   @BeforeClass
   public static void boot() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 

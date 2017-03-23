@@ -52,7 +52,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.uriBuilder;
@@ -90,7 +89,7 @@ public class DashboardViolationsTest
 
   @BeforeClass
   public static void beforeClass() {
-    open(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.URL);
     loginAsAdmin();
   }
 
@@ -125,7 +124,7 @@ public class DashboardViolationsTest
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportZip = work.getReportFile(buildEvalNow.getApplicationId(), buildEvalNow.getScanId());
     FileUtils.copyURLToFile(getClass().getResource("/canned-reports/small-report.zip"), reportZip);
-    open(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
   }
 
   @Test

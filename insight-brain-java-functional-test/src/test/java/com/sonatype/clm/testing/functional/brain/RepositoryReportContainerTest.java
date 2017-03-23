@@ -25,7 +25,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -41,7 +40,7 @@ public class RepositoryReportContainerTest
 
   @BeforeClass
   public static void beforeAll() {
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
   }
 
@@ -56,7 +55,7 @@ public class RepositoryReportContainerTest
 
   @Test
   public void testReportContainer() throws Exception {
-    open(RepositoryReportContainerPage.url(repository.getId()));
+    refreshOrOpen(RepositoryReportContainerPage.url(repository.getId()));
 
     Date oldest = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
     assertThat(oldest, is(repositoryComponent.getLastEvaluationTime()));

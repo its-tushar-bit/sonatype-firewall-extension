@@ -17,8 +17,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Selenide.open;
-
 public class RoutingErrorTest
     extends AbstractFunctionalTest
 {
@@ -26,7 +24,7 @@ public class RoutingErrorTest
 
   @BeforeClass
   public static void startup() {
-    open(OrganizationManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.URL);
     loginAsAdmin();
   }
 
@@ -43,21 +41,21 @@ public class RoutingErrorTest
 
   @Test
   public void invalidRoutesShowErrorThenHiddenOnOriginalValidRoute() {
-    open(INVALID_URL);
+    refreshOrOpen(INVALID_URL);
     RoutingErrorBox.errorBox().shouldBe(Condition.visible);
     RoutingErrorBox.errorMessage().shouldHave(RoutingErrorBox.errorText("Unknown Address"));
 
-    open(OrganizationManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.URL);
     RoutingErrorBox.errorBox().shouldNotBe(Condition.visible);
   }
 
   @Test
   public void invalidRoutesShowErrorThenHiddenOnNewValidRoute() {
-    open(INVALID_URL);
+    refreshOrOpen(INVALID_URL);
     RoutingErrorBox.errorBox().shouldBe(Condition.visible);
     RoutingErrorBox.errorMessage().shouldHave(RoutingErrorBox.errorText("Unknown Address"));
 
-    open(ReportListPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     RoutingErrorBox.errorBox().shouldNotBe(Condition.visible);
   }
 }

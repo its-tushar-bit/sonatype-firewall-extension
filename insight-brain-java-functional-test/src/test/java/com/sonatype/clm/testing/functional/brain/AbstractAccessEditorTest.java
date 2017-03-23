@@ -40,7 +40,6 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.INITIAL_VALUE;
 import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.MIXED_GROUP_SEARCH_WARNING;
@@ -81,7 +80,7 @@ public abstract class AbstractAccessEditorTest
     role = APPLICATION_ROLES.get(2);
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
 
-    open(OwnerSummaryPage.url(owner.getType().toString(), owner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(owner.getType().toString(), owner.getPublicId()));
   }
 
   @Test
@@ -192,7 +191,7 @@ public abstract class AbstractAccessEditorTest
   @Test
   public void testRemove() {
     Role role = APPLICATION_ROLES.get(2);
-    open(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
+    refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
     AccessEditorPage.title().shouldBe(visible).hover(); // hide the tooltip
     OwnerDetailTreeView.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
     int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();

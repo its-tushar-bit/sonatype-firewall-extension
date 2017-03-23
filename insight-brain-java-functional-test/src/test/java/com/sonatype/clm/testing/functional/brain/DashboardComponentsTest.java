@@ -36,7 +36,6 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -56,7 +55,7 @@ public class DashboardComponentsTest
 
   @BeforeClass
   public static void beforeClass() {
-    open(DashboardPage.URL);
+    refreshOrOpen(DashboardPage.URL);
     loginAsAdmin();
   }
 
@@ -72,7 +71,7 @@ public class DashboardComponentsTest
     policy = tempEntity.newPolicy(app.getParentOwnerId(), "DashboardComponentsTestPolicy");
     policyEvaluation = tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "DashboardComponentsTestFirstEval", new Date());
-    open(DashboardPage.COMPONENTS_URL);
+    refreshOrOpen(DashboardPage.COMPONENTS_URL);
   }
 
   @Test

@@ -141,6 +141,15 @@
   margin: 0;
   padding: 0 0 15px 0;
   width: 100%;
+  
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.iq-action-list--header {
+  padding-bottom: 0;
 }
 
 .iq-action-list__title {
@@ -202,6 +211,34 @@
   }
 }
 
+// This chunk is all Bootstrap over-rides so it's been kept separate so if we ditch Bootstrap we can delete easily
+.iq-action-list__item {
+  .row {
+    margin: 0;
+  }
+  
+  &.accordion-group {
+    border: none;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid $iq-grey-1;
+    border-radius: 0;
+    margin: 0;
+    
+    &:first-of-type {
+      border-top: 1px solid $iq-grey-3;
+    }
+    
+    &:hover {
+      border: none;
+    }
+  }
+  
+  td {
+    line-height: 100%;
+  }
+}
+// End Bootstrap specific styles
+
 .iq-action-list__item--empty {
   border-top: 1px solid $iq-grey-3; // assume it's always the first item
 }
@@ -232,6 +269,20 @@
   }
 }
 
+.iq-action-list__item--expanding {
+  height: auto;
+  min-height: 38px;
+  
+  &:hover:not(.iq-disabled):not([disabled]),
+  &:focus:not(.iq-disabled):not([disabled]),
+  &:active:not(.iq-disabled):not([disabled]) {
+    background: none;
+    border-top: 1px solid $iq-grey-4;
+    border-bottom: 1px solid $iq-grey-4;
+    cursor: default;
+  }
+}
+
 .iq-action-list__text {
   @include semi-bold();
   
@@ -254,10 +305,50 @@
   white-space: nowrap;
 }
 
-.iq-action-list__item--expanding {
-  height: auto;
-  min-height: 38px;
+.iq-action-list__actions {
+  float: right;
 }
+
+// System Preferences Administrators Page
+.iq-action-list__title--admin-role, .iq-action-list__row--admin-role {
+  display: inline-block;
+  vertical-align: top;
+  width: 20%;
+}
+
+.iq-action-list__title--admin-member, .iq-action-list__row--admin-member {
+  display: inline-block;
+  width: 79%;
+}
+
+#security {
+  ul.iq-action-list {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .iq-action-list__actions {
+    margin-right: -8px;
+  }
+  
+  .role-membership {
+    form {
+      margin-bottom: 24px;
+      
+      &:last-child {
+        margin-bottom: 12px;
+      }
+    }
+  }
+  
+  .iq-action-list__item--expanding {
+    .row {
+      cursor: default;
+    }
+  }
+}
+  
+  
 
 /*
   ## Alerts

@@ -1,3 +1,9 @@
+.iq-action-list__item {
+  .role-membership {
+    margin-top: 8px;
+  }
+}
+
 // DELETE BELOW WHEN REFACTORING ON ROLES PAGES (LIST AND EDIT) IS DONE - GH  
 //Note this is the requested width of the role summary text, plus 22px for the button width and padding
 $role-list-width: 606px;

@@ -17,7 +17,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class AdministratorsPage
     extends BasicElement<AdministratorsPage>
 {
-  private static final String ROOT_SELECTOR = ".iq-tile__content";
+  private static final String ROOT_SELECTOR = ".iq-tile-content";
 
   public static String URL = BaseUrl.uriBuilder().fragment("/administrators").build().toString();
 
@@ -26,7 +26,7 @@ public class AdministratorsPage
   }
 
   public static AdministratorsRoleMappingList administratorsRoleMappingList() {
-    return new AdministratorsRoleMappingList(ROOT_SELECTOR, ".roles");
+    return new AdministratorsRoleMappingList(ROOT_SELECTOR, ".iq-action-list.accordion");
   }
 
   public static class AdministratorsRoleMappingList
@@ -52,7 +52,7 @@ public class AdministratorsPage
       }
 
       public Content content() {
-        return new Content(selector, ".member-content");
+        return new Content(selector, ".iq-action-list__row--admin-member");
       }
 
       public SelenideElement editButton() {

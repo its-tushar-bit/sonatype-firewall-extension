@@ -19,7 +19,7 @@
                                '<h2>Administrators</h2>' +
                              '</div>' +
                            '</div>' +
-                           '<div class="iq-tile__content" ng-include="\'policy/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
+                           '<div class="iq-tile-content" ng-include="\'policy/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
                          '</div>' +
                        '</div>' +
                      '</div>',

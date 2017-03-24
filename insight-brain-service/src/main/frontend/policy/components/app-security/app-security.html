@@ -1,82 +1,85 @@
-<div id="security" style='min-width:955px'>
-  <script type='text/ng-template' id='appSecurityEditor'>
+<div id="security">
+  <script type="text/ng-template" id="appSecurityEditor">
     <role-membership save="save" role="role" original-members="originalMembers"
                      get-current-members="getCurrentMembers" is-dirty="isDirty"
                      group-search-enabled="groupSearchEnabled"
                      has-mixed-group-search="hasMixedGroupSearch" ldap-realm="context.ldapRealm">
-      <div clm-alerts='alerts'></div>
+      <div clm-alerts="alerts"></div>
       <button class="btn btn-link btn-cancel" type="button" ng-click="cancel()">Cancel</button>
       <button class="btn btn-primary pull-right" type="submit">Save</button>
     </role-membership>
   </script>
-  <div load-error='error' reload='doLoad()'></div>
-  <div expand-role-on-event='roleEditClick'></div>
-  <div ng-show='!context && !error'>
+  <div load-error="error" reload="doLoad()"></div>
+  <div expand-role-on-event="roleEditClick"></div>
+  <div ng-show="!context && !error">
     <h5>
-      <i class='icon-time'></i> Loading...
+      <i class="icon-time"></i> Loading...
     </h5>
   </div>
-  <div class='fade' ng-class='{in : context && !error}'>
-    <div clm-alerts='alerts'></div>
-    <div class='role-header'>
-      <div class='row'>
-        <h4 class='role-content'>Role</h4>
-        <h4 class='member-content'>Members</h4>
-      </div>
-    </div>
-
-    <div class="accordion roles">
-      <div class="accordion-group" ng-repeat='role in context.roles'>
-        <div class="accordion-heading role">
-          <div class='row' ng-if="!editMode" ng-click="$parent.expanded = !$parent.expanded;">
-            <div class='role-content'>
-              <div class='expandable'>{{role.roleName}}</div>
-            </div>
-            <div class='member-content'>
-              <div class='hover-buttons floatRight'>
-                <button type='button' class="btn btn-mini btn-icon-only" title="Edit Role" ng-click='$parent.editMode = true;$parent.expanded = true;' ng-disabled='editMode'>
-                  <i class="fa fa-fw fa-pencil"></i>
-                </button>
-              </div>
-              <div class='expandable' ng-class='{"collapsed" : !expanded}'>
-                <div ng-repeat='grouping in groupings' ng-if='showGrouping(grouping, role.membersByOwner)' ng-class='{ "role-footer" : !$last }'>
-                  <div class='member-list' ng-repeat='mapping in role.membersByOwner' ng-if='mapping.members.length > 0'
-                       ng-class='{ "inherited inherited-section" : $last && role.membersByOwner.length > 1 }'
-                       ng-init="isLastMapping = $last">
-                    <span ng-if="$first">
-                      <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>
-                    </span>
-                    <span ng-if="$parent.expanded && $last && role.membersByOwner.length > 1 && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members)"
-                          tooltip='Inherited from parent' tooltip-placement='bottom'>
-                      <img src='img/icon-elbow-up-gray.png' class='inherited-icon' alt='Inherited'>
-                    </span>
-                    <span ng-repeat='member in mapping.members | filter: { type: grouping.type } | orderBy:"displayName"'>
-                      {{member.displayName}}<span ng-show="!$last || (!isLastMapping && !expanded && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members))">,</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <div class="iq-action-list iq-action-list--header fade" ng-class="{in : context && !error}">
+    <div clm-alerts="alerts"></div>
+    <h4 class="iq-action-list__title iq-action-list__title--admin-role">Role</h4>
+    <h4 class="iq-action-list__title iq-action-list__title--admin-member">Members</h4>
+  </div>
+  <ul class="iq-action-list accordion">
+    <li class="iq-action-list__item iq-action-list__item--expanding accordion-group" 
+        ng-repeat="role in context.roles">
+      <div class="accordion-heading">
+        <div ng-if="!editMode">
+          <div class="iq-action-list__row--admin-role">
+            {{role.roleName}}
           </div>
-          <div class='row' ng-if="editMode">
-            <div class='role-content'>
-              <div class='expandable'>{{role.roleName}}</div>
+          <div class="iq-action-list__row--admin-member expandable">
+            <div class="iq-action-list__actions">
+               <button type="button"
+                       class="btn btn-icon-only"
+                       title="Edit Role"
+                       ng-click="$parent.editMode = true;$parent.expanded = true;"
+                       ng-disabled="editMode">
+                <i class="fa fa-fw fa-pencil"></i>
+              </button>
             </div>
-            <div class='member-content'>
-              <div class='hover-buttons floatRight'>
-                <button type='button' class="btn btn-mini btn-icon-only" title="Edit Role" ng-disabled='true'>
-                  <i class="fa fa-fw fa-pencil"></i>
-                </button>
+            <div ng-repeat="grouping in groupings"
+                 ng-if="showGrouping(grouping, role.membersByOwner)"
+                 ng-class="{'role-footer' : !$last}">
+              <div class="member-list"
+                   ng-repeat="mapping in role.membersByOwner" 
+                   ng-if="mapping.members.length > 0"
+                   ng-class="{'inherited inherited-section' : $last && role.membersByOwner.length > 1 }"
+                   ng-init="isLastMapping = $last">
+                <span ng-if="$first">
+                  <i class="glyphicons-sonatype small" ng-class="grouping.icon"></i>
+                </span>
+                <span ng-if="$parent.expanded && $last && role.membersByOwner.length > 1 && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members)"
+                      tooltip="Inherited from parent"
+                      tooltip-placement="bottom">
+                  <img src="img/icon-elbow-up-gray.png" class="inherited-icon" alt="Inherited">
+                </span>
+                <span ng-repeat="member in mapping.members | filter: { type: grouping.type } | orderBy:'displayName'">
+                  {{member.displayName}}<span ng-show="!$last || (!isLastMapping && !expanded && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members))">,</span>
+                </span>
               </div>
-              <app-security-editor role='role' group-search-enabled='context.groupSearchEnabled'
-                                   hide="$parent.editMode = false"
-                                   has-mixed-group-search='context.hasMixedGroupSearch'>
-              </app-security-editor>
             </div>
           </div>
         </div>
+        <div class="row" ng-if="editMode">
+          <div class="iq-action-list__title--admin-role">
+            <div class="expandable">{{role.roleName}}</div>
+          </div>
+          <div class="iq-action-list__row--admin-member">
+            <div class="iq-action-list__actions">
+              <button type='button' class="btn btn-mini btn-icon-only" title="Edit Role" ng-disabled='true'>
+                <i class="fa fa-fw fa-pencil"></i>
+              </button>
+            </div>
+            <app-security-editor role="role" group-search-enabled="context.groupSearchEnabled"
+                                 hide="$parent.editMode = false"
+                                 has-mixed-group-search="context.hasMixedGroupSearch">
+            </app-security-editor>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+    </li>
+  </ul>
   <div error-Modal></div>
 </div>

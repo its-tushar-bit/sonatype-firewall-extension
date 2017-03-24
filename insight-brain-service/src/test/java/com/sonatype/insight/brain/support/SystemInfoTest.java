@@ -231,7 +231,7 @@ public class SystemInfoTest
     assertThat(entry.get("loopback"), notNullValue());
     assertThat(entry.get("ptp"), notNullValue());
     assertThat(entry.get("mtu"), notNullValue());
-    assertThat(((TreeSet<String>) entry.get("addresses")).size(), greaterThan(0));
+    assertThat(entry.get("addresses"), notNullValue());
     assertThat(entry + "", entry.size(), is(8));
   }
 

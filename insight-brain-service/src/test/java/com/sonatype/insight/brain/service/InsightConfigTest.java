@@ -89,4 +89,13 @@ public class InsightConfigTest
     config.setDbBackupDir(absolutePath);
     assertThat(config.getDbBackupDir(), is(new File(absolutePath)));
   }
+
+  @Test
+  public void testSupport() {
+    InsightConfig config = new InsightConfig();
+    assertThat(config.getSupportConfig().getReadLimitBytes(), is(SupportConfig.DEFAULT_READ_LIMIT_30MB));
+
+    config.getSupportConfig().setReadLimitBytes(-1);
+    assertThat(config.getSupportConfig().getReadLimitBytes(), is(-1L));
+  }
 }

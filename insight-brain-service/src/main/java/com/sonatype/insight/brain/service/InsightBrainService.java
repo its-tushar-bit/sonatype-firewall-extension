@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.sun.jersey.api.core.ResourceConfig;
@@ -68,6 +69,8 @@ public class InsightBrainService
   public static final String POLICY_ASSET_PATH = "/policy-assets/";
 
   private static final String INSTANCE_ID = UUID.randomUUID().toString();
+
+  private static volatile File configFile;
 
   public static void main(final String[] args) {
     try {
@@ -110,14 +113,25 @@ public class InsightBrainService
     {
       @Override
       protected void run(Environment environment, Namespace namespace, InsightConfig configuration) throws Exception {
-        String configFile = namespace.getString("file");
-        log.info("Configuration file: {}", configFile != null ? new File(configFile).getAbsolutePath() : "(none)");
+        String configArg = namespace.getString("file");
+        InsightBrainService.configFile = configArg != null ? new File(configArg) : null;
+        log.info("Configuration file: {}",
+            InsightBrainService.configFile != null ? InsightBrainService.configFile.getAbsolutePath() : "(none)");
         super.run(environment, namespace, configuration);
       }
     });
     initialize(bootstrap);
     final Cli cli = new Cli(this.getClass(), bootstrap);
     cli.run(arguments);
+  }
+
+  public static File getConfigFile() {
+    return configFile;
+  }
+
+  @VisibleForTesting
+  public static void setConfigFile(final File testConfigFile) {
+    configFile = testConfigFile;
   }
 
   @Override

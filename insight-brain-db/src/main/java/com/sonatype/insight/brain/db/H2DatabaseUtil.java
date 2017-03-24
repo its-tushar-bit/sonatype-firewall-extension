@@ -30,7 +30,7 @@ public class H2DatabaseUtil
     return new File(databaseDir);
   }
 
-  static File getDatabaseVersionFile(File databasePath) {
+  public static File getDatabaseVersionFile(File databasePath) {
     return new File(databasePath.getAbsolutePath() + ".ver");
   }
 }

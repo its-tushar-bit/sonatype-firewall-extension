@@ -62,6 +62,10 @@ public class InsightConfig
   @JsonProperty
   private String sonatypeWork = "sonatype-work/clm-server";
 
+  @NotNull
+  @JsonProperty
+  private SupportConfig support = new SupportConfig();
+
   /**
    * The directory where db backups are created. If set to a relative path, then it is considered relative to the
    * {@link sonatypeWork} directory.
@@ -434,5 +438,19 @@ public class InsightConfig
 
   public void setWebhookSecretPassphrase(final String webhookSecretPassphrase) {
     this.webhookSecretPassphrase = webhookSecretPassphrase;
+  }
+
+  /**
+   * @since 1.27
+   */
+  public void setSupportConfig(final SupportConfig supportConfig) {
+    this.support = supportConfig;
+  }
+
+  /**
+   * @since 1.27
+   */
+  public SupportConfig getSupportConfig() {
+    return support;
   }
 }

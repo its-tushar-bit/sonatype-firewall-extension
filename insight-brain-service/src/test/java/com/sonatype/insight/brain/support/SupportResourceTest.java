@@ -29,8 +29,6 @@ import static org.junit.Assert.assertThat;
 public class SupportResourceTest
     extends AbstractResourceTest
 {
-  private final String lineSeparator = System.lineSeparator();
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(SupportResource.RESOURCE_PATH);
@@ -48,20 +46,16 @@ public class SupportResourceTest
         assertThat(zipEntry.getName(), startsWith("support-"));
         assertThat(zipEntry.getName(), endsWith("/" + SupportFileType.CONFIG.dirName + "/filtered-config-test.yml"));
 
-        final String served = IOUtil.toString(zipInputStream, "UTF-8");
-        assertThat(served, is("showRootOrganization: true" + lineSeparator +
-            "logging:" + lineSeparator +
-            "  level: DEBUG" + lineSeparator +
-            "  loggers: {eu.medsea.mimeutil.MimeUtil2: INFO, org.apache.http: INFO, org.eclipse.jetty: INFO," +
-            lineSeparator +
-            "    com.ning.http.client: INFO, org.springframework.jdbc.datasource.init.ResourceDatabasePopulator: INFO," +
-            lineSeparator +
-            "    org.apache.directory: ERROR, com.sonatype.insight.error.ErrorResponseGenerator: TRACE," +
-            lineSeparator +
-            "    org.apache.shiro.realm.AuthenticatingRealm: INFO, org.springframework.jdbc.datasource.SimpleDriverDataSource: INFO," +
-            lineSeparator +
-            "    org.apache.commons.beanutils.converters: INFO}" + lineSeparator +
-            "  console: {logFormat: '%date %level [%thread%X{DC}] %logger - %msg%n'}" + lineSeparator));
+        final String served = IOUtil.toString(zipInputStream, "UTF-8").replace("\r\n", "\n");
+        assertThat(served, is("showRootOrganization: true\n" +
+            "logging:\n" +
+            "  level: DEBUG\n" +
+            "  loggers: {eu.medsea.mimeutil.MimeUtil2: INFO, org.apache.http: INFO, org.eclipse.jetty: INFO,\n" +
+            "    com.ning.http.client: INFO, org.springframework.jdbc.datasource.init.ResourceDatabasePopulator: INFO,\n" +
+            "    org.apache.directory: ERROR, com.sonatype.insight.error.ErrorResponseGenerator: TRACE,\n" +
+            "    org.apache.shiro.realm.AuthenticatingRealm: INFO, org.springframework.jdbc.datasource.SimpleDriverDataSource: INFO,\n" +
+            "    org.apache.commons.beanutils.converters: INFO}\n" +
+            "  console: {logFormat: '%date %level [%thread%X{DC}] %logger - %msg%n'}\n"));
       }
     }
   }

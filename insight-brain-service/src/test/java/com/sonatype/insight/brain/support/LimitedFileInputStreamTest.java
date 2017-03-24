@@ -121,6 +121,8 @@ public class LimitedFileInputStreamTest
     final byte[] buf = new byte[readLimit];
     assertThat(limitedInputStream.read(buf), is(readLimit));
     assertThat(limitedInputStream.isReadLimitMet(), is(true));
-    assertThat(new String(buf, "UTF-8"), is("son_seq-passwords: [3, 2, 1, \"takeoff\"]" + System.lineSeparator()));
+    String expected = "son_seq-passwords: [3, 2, 1, \"takeoff\"]" + System.lineSeparator();
+    expected = expected.substring(expected.length() - readLimit);
+    assertThat(new String(buf, "UTF-8"), is(expected));
   }
 }

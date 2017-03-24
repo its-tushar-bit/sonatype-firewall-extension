@@ -134,12 +134,10 @@ public class SystemInfoTest
     // validate obfuscation
     assertThat(obufscatedMap.get("testPassword"), Is.<Object>is(SystemInfo.MASK));
 
-    final Map<String, Map<String, Object>> entryPassphraseMap = (Map<String, Map<String, Object>>) obufscatedMap
-        .get("testphrase");
+    final Map<String, Object> entryPassphraseMap = (Map<String, Object>) obufscatedMap.get("testphrase");
     assertThat(entryPassphraseMap.get("mypassphrasearray"), Is.<Object>is(SystemInfo.MASK));
 
-    final Map<String, Map<String, Object>> entryTestMap = (Map<String, Map<String, Object>>) obufscatedMap
-        .get("testmap");
+    final Map<String, Object> entryTestMap = (Map<String, Object>) obufscatedMap.get("testmap");
     assertThat(entryTestMap.get("json_map-passwords"), Is.<Object>is(SystemInfo.MASK));
     assertThat(entryTestMap.get("json_seq-passwords"), Is.<Object>is(SystemInfo.MASK));
   }

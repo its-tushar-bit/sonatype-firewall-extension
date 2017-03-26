@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ActionsSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
@@ -13,7 +14,11 @@ import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.OwnerType;
 
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.google.common.base.Predicate;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.WebDriver;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -50,24 +55,24 @@ public class PolicyEditorPage
     return $("#delete-policy-button");
   }
 
-  public static SelenideElement constraintsPill() {
-    return $("#policy-constraints-button");
+  public static BasicElement<?> constraintsPill() {
+    return new Pill("#policy-constraints-button");
   }
 
-  public static SelenideElement actionsPill() {
-    return $("#policy-actions-button");
+  public static BasicElement<?> actionsPill() {
+    return new Pill("#policy-actions-button");
   }
 
-  public static SelenideElement notificationsPill() {
-    return $("#policy-notifications-button");
+  public static BasicElement<?> notificationsPill() {
+    return new Pill("#policy-notifications-button");
   }
 
-  public static SelenideElement inhertancePill() {
-    return $("#policy-inheritance-button");
+  public static BasicElement<?> inhertancePill() {
+    return new Pill("#policy-inheritance-button");
   }
 
-  public static SelenideElement endOfPagePill() {
-    return $("#policy-endofpage-button");
+  public static BasicElement<?> endOfPagePill() {
+    return new Pill("#policy-endofpage-button");
   }
 
   public static SummarySection summarySection() {
@@ -90,4 +95,29 @@ public class PolicyEditorPage
     return new NotificationsSection();
   }
 
+  private static class Pill
+      extends BasicElement<Pill>
+  {
+    public Pill(String selector) {
+      super(selector);
+    }
+
+    @Override
+    public void click() {
+      super.click();
+      // wait for the scrolling to finish to ensure later clicks don't miss their target
+      SelenideElement endOfPage = saveButton();
+      Selenide.Wait().until(new Predicate<WebDriver>()
+      {
+        Point location;
+
+        @Override
+        public boolean apply(WebDriver input) {
+          Point oldLocation = location;
+          location = endOfPage.getLocation();
+          return location.equals(oldLocation);
+        }
+      });
+    }
+  }
 }

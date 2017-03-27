@@ -281,7 +281,7 @@ class SystemInfo
     return JsonUtils.format(entries);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   static String getPropertiesJson(final Properties properties, final String parentObjectName)
   {
     final SortedMap<String, Object> entries = new TreeMap<>();

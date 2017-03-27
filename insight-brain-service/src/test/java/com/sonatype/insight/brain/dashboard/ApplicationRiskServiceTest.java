@@ -14,12 +14,15 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationState;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
@@ -87,14 +90,14 @@ public class ApplicationRiskServiceTest
         "g", "a", "v", "somehash");
 
     List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(null, null, null, null, null,
-        null, 100);
+        null, null, 100);
     assertThat(riskDTOs, hasSize(2));
     assertThat(riskDTOs.get(0).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
     assertThat(riskDTOs.get(1).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
 
     try {
       applicationRiskService.getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null,
-          null, 100);
+          null, null, 100);
       fail("Expected exception");
     }
     catch (BadRequestException e) {
@@ -114,7 +117,7 @@ public class ApplicationRiskServiceTest
     List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app1.getId()),
         new LinkedHashSet<>(Arrays.asList(ReleaseStageType.ID, OperateStageType.ID, BuildStageType.ID,
-            StageReleaseStageType.ID)), null, null, null, 100);
+            StageReleaseStageType.ID)), null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(1));
     ApplicationRiskScoreDTO appDTO = riskDTOs.get(0);
     assertThat(appDTO.stageRisks, hasSize(4));
@@ -129,9 +132,41 @@ public class ApplicationRiskServiceTest
     tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, null, null, null, null, "unknown");
 
     List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(null,
-        Collections.singleton(app1.getId()), null, null, null, null, 100);
+        Collections.singleton(app1.getId()), null, null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(1));
     ApplicationRiskScoreDTO appDTO = riskDTOs.get(0);
+    assertThat(appDTO.stageRisks, hasSize(1));
+    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk,
+        is(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2));
+  }
+
+  @Test
+  public void testGetApplicationRisks_FilterByPolicyViolationState() throws Exception {
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
+    tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy, "gid", "aid", "1", "hash1", policyWaiver);
+    List<ApplicationRiskScoreDTO> appDTOs = applicationRiskService
+        .getApplicationRisks(null, Collections.singleton(app1.getId()),
+            null, null, null, null, new PolicyViolationStateFilter(PolicyViolationState.WAIVED), 1000);
+    assertThat(appDTOs, hasSize(1));
+    ApplicationRiskScoreDTO appDTO = appDTOs.get(0);
+    assertThat(appDTO.stageRisks, hasSize(1));
+    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk, is(app1Policy.getThreatLevel()));
+
+    appDTOs = applicationRiskService.getApplicationRisks(null, Collections.singleton(app1.getId()),
+        null, null, null, null, new PolicyViolationStateFilter(PolicyViolationState.OPEN), 1000);
+    assertThat(appDTOs, hasSize(1));
+    appDTO = appDTOs.get(0);
+    assertThat(appDTO.stageRisks, hasSize(1));
+    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk, is(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel()));
+
+    appDTOs = applicationRiskService
+        .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), 1000);
+    assertThat(appDTOs, hasSize(1));
+    appDTO = appDTOs.get(0);
     assertThat(appDTO.stageRisks, hasSize(1));
     assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
     assertThat(appDTO.stageRisks.get(0).risk.totalRisk,

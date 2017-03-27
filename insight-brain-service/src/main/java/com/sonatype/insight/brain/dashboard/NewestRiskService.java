@@ -21,6 +21,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -89,6 +90,7 @@ public class NewestRiskService
                                             Set<String> tagIds,
                                             PolicyThreatCategoryFilter policyThreatCategoryFilter,
                                             PolicyThreatLevelFilter policyThreatLevelFilter,
+                                            PolicyViolationStateFilter policyViolationStateFilter,
                                             Integer maxDaysOld,
                                             int maxResults)
   {
@@ -103,7 +105,7 @@ public class NewestRiskService
 
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
-        policyThreatLevelFilter);
+        policyThreatLevelFilter, policyViolationStateFilter);
 
     Map<String, PolicyEvaluation> lastPolicyEvaluationsByAppIdAndStageTypeId = getLastPolicyEvaluationsByAppIdAndStageTypeId(
         applications, stageTypes);
@@ -124,7 +126,7 @@ public class NewestRiskService
         }
         policyEvaluationCount++;
 
-        List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
+        List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
         policyViolations = dashboardUtils.filter(policyViolations, filter);
         if (policyViolations.isEmpty()) {
           continue;

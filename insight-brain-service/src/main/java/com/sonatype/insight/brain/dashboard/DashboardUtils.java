@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -107,18 +109,23 @@ public class DashboardUtils
   }
 
   Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
-                                                  PolicyThreatLevelFilter threatLevelFilter)
+                                                  PolicyThreatLevelFilter threatLevelFilter,
+                                                  PolicyViolationStateFilter violationStatusFilter)
   {
-    if (threatCategoryFilter == null && threatLevelFilter == null) {
+    if (threatCategoryFilter == null && threatLevelFilter == null && violationStatusFilter == null) {
       return null;
     }
-    else if (threatCategoryFilter != null && threatLevelFilter != null) {
-      return Predicates.and(threatCategoryFilter.asPolicyViolationPredicate(),
-          threatLevelFilter.asPolicyViolationPredicate());
+    List<Predicate<PolicyViolation>> predicates = new ArrayList<>();
+    if (threatCategoryFilter != null) {
+      predicates.add(threatCategoryFilter.asPolicyViolationPredicate());
     }
-
-    return (threatCategoryFilter != null) ? threatCategoryFilter.asPolicyViolationPredicate() : threatLevelFilter
-        .asPolicyViolationPredicate();
+    if (threatLevelFilter != null) {
+      predicates.add(threatLevelFilter.asPolicyViolationPredicate());
+    }
+    if (violationStatusFilter != null) {
+      predicates.add(violationStatusFilter.asPolicyViolationPredicate());
+    }
+    return Predicates.and(predicates);
   }
 
   List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {

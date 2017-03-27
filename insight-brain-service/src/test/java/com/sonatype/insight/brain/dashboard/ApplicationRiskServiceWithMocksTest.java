@@ -205,9 +205,9 @@ public class ApplicationRiskServiceWithMocksTest
     when(applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, returnAppIds, null))
         .thenReturn(returnApps);
     when(policyEvaluationDAO.getLastByApplicationIdsAndStageIds(returnAppIds, stageIds)).thenReturn(policyEvals);
-    when(policyViolationDAO.getActiveByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
+    when(policyViolationDAO.getByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
 
-    return applicationRiskService.getApplicationRisks(null, returnAppIds, stageIds, null, null, null, limit);
+    return applicationRiskService.getApplicationRisks(null, returnAppIds, stageIds, null, null, null, null, limit);
   }
 
   @Test
@@ -445,11 +445,11 @@ public class ApplicationRiskServiceWithMocksTest
     when(
         policyEvaluationDAO.getLastByApplicationIdsAndStageIds(Sets.newHashSet(application99.getId()),
             Sets.newHashSet(buildStage.getId()))).thenReturn(Lists.newArrayList(policyEvaluation1));
-    when(policyViolationDAO.getActiveByEvaluationIds(Sets.newHashSet(policyEvaluation1.getId()))).thenReturn(
+    when(policyViolationDAO.getByEvaluationIds(Sets.newHashSet(policyEvaluation1.getId()))).thenReturn(
         Lists.newArrayList(vio1));
 
     List<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(
-        null, Sets.newHashSet(application99.getId()), null, null, null, null, Integer.MAX_VALUE);
+        null, Sets.newHashSet(application99.getId()), null, null, null, null, null, Integer.MAX_VALUE);
 
     assertThat(result, hasSize(1));
     ApplicationRiskScoreDTO result0 = result.get(0);

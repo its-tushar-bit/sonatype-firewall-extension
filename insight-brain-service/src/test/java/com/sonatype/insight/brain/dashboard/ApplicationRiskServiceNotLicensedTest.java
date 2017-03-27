@@ -22,6 +22,6 @@ public class ApplicationRiskServiceNotLicensedTest
   @Test(expected = InvalidLicenseException.class)
   public void testGetApplicationRisks_Unlicensed() {
     applicationRiskService.getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null, null,
-        0);
+        null, 0);
   }
 }

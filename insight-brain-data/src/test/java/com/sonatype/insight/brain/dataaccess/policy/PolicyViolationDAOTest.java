@@ -271,6 +271,31 @@ public class PolicyViolationDAOTest
   }
 
   @Test
+  public void testGetByEvaluationIds() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);
+
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyViolation activeViolation1 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1",
+        null);
+    WaivedPolicyViolation waivedPolicyViolation = tempEntity
+        .newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
+
+    PolicyEvaluation evaluation2 = tempEntity
+        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
+    PolicyViolation activeViolation2 = tempEntity
+        .newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2", null);
+
+    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByEvaluationIds(Sets.newHashSet(
+        evaluation1.getId(), evaluation2.getId()));
+    assertThat(policyViolations, hasSize(3));
+    List<String> foundViolationIds = Arrays
+        .asList(policyViolations.get(0).getId(), policyViolations.get(1).getId(), policyViolations.get(2).getId());
+    assertThat(foundViolationIds,
+        containsInAnyOrder(activeViolation1.getId(), activeViolation2.getId(), waivedPolicyViolation.getId()));
+  }
+
+  @Test
   public void testGetActiveByEvaluationIds_InOperatorOptimizationForH2() {
     Policy policy = tempEntity.newPolicy(applicationId, "name");
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);

@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 
 /**
  * @since 1.20.0
@@ -27,6 +28,8 @@ public class RisksFilterDTO
   public PolicyThreatCategoryFilter policyThreatCategories;
 
   public PolicyThreatLevelFilter policyThreatLevelRange;
+
+  public PolicyViolationStateFilter policyViolationStates;
 
   /**
    * The maximum age of risks that pass the filter, in days. When null, no age-based filtering is applied. Note that it

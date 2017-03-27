@@ -153,7 +153,7 @@ public class PolicySummaryService
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Set<String> stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
-        policyThreatLevelFilter);
+        policyThreatLevelFilter, null);
     Long now = System.currentTimeMillis();
 
     PolicySummaryDTO result = new PolicySummaryDTO();

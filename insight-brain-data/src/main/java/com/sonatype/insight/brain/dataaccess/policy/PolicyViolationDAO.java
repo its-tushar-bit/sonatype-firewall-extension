@@ -53,8 +53,16 @@ public class PolicyViolationDAO
   }
 
   public List<PolicyViolation> getActiveByEvaluationIds(Set<String> evaluationIds) {
+    return getByEvaluationIds(evaluationIds, true);
+  }
+
+  public List<PolicyViolation> getByEvaluationIds(Set<String> evaluationIds) {
+    return getByEvaluationIds(evaluationIds, false);
+  }
+
+  private List<PolicyViolation> getByEvaluationIds(Set<String> evaluationIds, boolean onlyActiveViolations) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyEvaluationId IN (?1) AND entity.isWaived=false";
+        " WHERE entity.policyEvaluationId IN (?1)" + (onlyActiveViolations ? " AND entity.isWaived=false" : "");
     if (evaluationIds.size() >= IN_OPERATOR_THRESHOLD) {
       // As measurements have shown (cf. CLM-6085), H2 doesn't handle an {@code IN} operator with a huge list of values
       // well and query time increases superlinear. Making multiple queries with smaller chunks of the input set keeps

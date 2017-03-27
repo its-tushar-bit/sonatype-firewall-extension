@@ -21,6 +21,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -74,6 +75,7 @@ public class ApplicationRiskService
                                                            final Set<String> tagIds,
                                                            final PolicyThreatCategoryFilter policyThreatCategoryFilter,
                                                            final PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                           final PolicyViolationStateFilter policyViolationStateFilter,
                                                            final int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
@@ -85,7 +87,7 @@ public class ApplicationRiskService
     log.debug("Loaded {} applications", appsToSearch.size());
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
-        policyThreatLevelFilter);
+        policyThreatLevelFilter, policyViolationStateFilter);
 
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
         dashboardUtils.getApplicationIds(appsToSearch), dashboardUtils.getStageTypeIds(stageTypes));
@@ -173,7 +175,7 @@ public class ApplicationRiskService
                                                     final Predicate<PolicyViolation> violationFilter)
   {
     Set<String> evaluationIds = Sets.newHashSet(Iterables.transform(evaluations, DashboardUtils.hasIdIdSelector));
-    List<PolicyViolation> violations = policyViolationDAO.getActiveByEvaluationIds(evaluationIds);
+    List<PolicyViolation> violations = policyViolationDAO.getByEvaluationIds(evaluationIds);
     log.debug("Loaded {} policy violations", violations.size());
     return dashboardUtils.filter(violations, violationFilter);
   }

@@ -21,6 +21,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -92,6 +93,7 @@ public class ComponentRiskService
                                                   Set<String> tagIds,
                                                   PolicyThreatCategoryFilter policyThreatCategoryFilter,
                                                   PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                  PolicyViolationStateFilter policyViolationStateFilter,
                                                   int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
@@ -105,7 +107,7 @@ public class ComponentRiskService
     internalApplicationIds.addAll(applicationService.getApplicationIdsByOrganizationIds(organizationIds));
 
     List<PolicyViolationDTO> violations = getPolicyViolations(internalApplicationIds, stageIds, tagIds,
-        policyThreatCategoryFilter, policyThreatLevelFilter);
+        policyThreatCategoryFilter, policyThreatLevelFilter, policyViolationStateFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
     for (PolicyViolationDTO violation : violations) {
       ComponentViolationRollUp component = componentsByHash.get(violation.hash);
@@ -167,10 +169,11 @@ public class ComponentRiskService
                                                        Set<String> stageIds,
                                                        Set<String> tagIds,
                                                        PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                                       PolicyThreatLevelFilter policyThreatLevelFilter)
+                                                       PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                       PolicyViolationStateFilter policyViolationStateFilter)
   {
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
-        policyThreatLevelFilter);
+        policyThreatLevelFilter, policyViolationStateFilter);
 
     if (applicationIds == null || applicationIds.isEmpty()) {
       return getPolicyViolations(stageIds, tagIds, filter);
@@ -208,7 +211,7 @@ public class ComponentRiskService
 
     final ImmutableMap<String, PolicyEvaluation> evaluationIdLookupMap = Maps.uniqueIndex(latestEvaluations,
         DashboardUtils.hasIdIdSelector);
-    final List<PolicyViolation> violations = dashboardUtils.filter(policyViolationDAO.getActiveByEvaluationIds(Sets
+    final List<PolicyViolation> violations = dashboardUtils.filter(policyViolationDAO.getByEvaluationIds(Sets
         .newHashSet(Lists.transform(latestEvaluations, DashboardUtils.hasIdIdSelector))), violationFilter);
 
     final List<PolicyViolationDTO> result = Lists.newArrayList(Lists.transform(violations,

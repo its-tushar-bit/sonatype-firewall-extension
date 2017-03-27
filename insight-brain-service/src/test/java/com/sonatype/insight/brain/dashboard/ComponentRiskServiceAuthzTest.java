@@ -93,56 +93,56 @@ public class ComponentRiskServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentRisks_ExplicitApplicationFilter_Unauthenticated() {
-    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, 1);
+    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, 1);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
-    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, 1);
+    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, 1);
   }
 
   @Test
   public void testGetComponentRisks_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
-    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, 1);
+    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, 1);
   }
 
   @Test
   public void testGetComponentRisks_ImplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId());
-    assertThat(componentRiskService.getComponentRisks(null, null, null, null, null, null, 1), hasSize(0));
+    assertThat(componentRiskService.getComponentRisks(null, null, null, null, null, null, null, 1), hasSize(0));
   }
 
   @Test
   public void testGetComponentRisks_ImplicitApplicationFilter_Unauthorized() {
     createPolicyViolation(app.getId());
     login();
-    assertThat(componentRiskService.getComponentRisks(null, null, null, null, null, null, 1), hasSize(0));
+    assertThat(componentRiskService.getComponentRisks(null, null, null, null, null, null, null, 1), hasSize(0));
   }
 
   @Test
   public void testGetComponentRisks_ImplicitApplicationFilter_Authorized() {
     createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
-    assertThat(componentRiskService.getComponentRisks(null, null, null, null, null, null, 1), hasSize(1));
+    assertThat(componentRiskService.getComponentRisks(null, null, null, null, null, null, null, 1), hasSize(1));
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentRisks_ExplicitOrganizationFilter_Unauthenticated() {
-    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, 1);
+    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, 1);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentRisks_ExplicitOrganizationFilter_Unauthorized() {
     login();
-    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, 1);
+    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, 1);
   }
 
   @Test
   public void testGetComponentRisks_ExplicitOrganizationFilter_Authorized() {
     grantReadPermission(org.getId());
-    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, 1);
+    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, 1);
   }
 
   private PolicyViolation createPolicyViolation(String appId) {

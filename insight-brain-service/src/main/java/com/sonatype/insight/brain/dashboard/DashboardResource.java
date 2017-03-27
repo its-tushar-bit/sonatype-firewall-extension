@@ -88,7 +88,8 @@ public class DashboardResource
   public List<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO) {
     return newestRiskService.getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxDaysOld, risksFilterDTO.maxResults);
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxDaysOld,
+        risksFilterDTO.maxResults);
   }
 
   @POST
@@ -100,7 +101,7 @@ public class DashboardResource
   public List<ApplicationRiskScoreDTO> getApplicationRisks(RisksFilterDTO risksFilterDTO) {
     return applicationRiskService.getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxResults);
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxResults);
   }
 
   @POST
@@ -112,7 +113,7 @@ public class DashboardResource
   public List<ComponentRiskDTO> getComponentRisks(RisksFilterDTO risksFilterDTO) {
     return componentRiskService.getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.maxResults);
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxResults);
   }
 
   /**
@@ -244,7 +245,7 @@ public class DashboardResource
     final List<NewestRiskDTO> results = newestRiskService
         .getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
-            risksFilterDTO.maxDaysOld, Integer.MAX_VALUE);
+            risksFilterDTO.policyViolationStates, risksFilterDTO.maxDaysOld, Integer.MAX_VALUE);
 
     String fileNamePrefix = calculateFileNamePrefixForView("violations");
     return Csv.generate(Response.ok(), fileNamePrefix, NewestRiskDTO.getCsvHeader(), results).build();
@@ -269,7 +270,7 @@ public class DashboardResource
     final List<ComponentRiskDTO> results = componentRiskService
         .getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
-            Integer.MAX_VALUE);
+            risksFilterDTO.policyViolationStates, Integer.MAX_VALUE);
 
     String fileNamePrefix = calculateFileNamePrefixForView("components");
     return Csv.generate(Response.ok(), fileNamePrefix, ComponentRiskDTO.getCsvHeader(), results).build();
@@ -294,7 +295,7 @@ public class DashboardResource
     final List<ApplicationRiskScoreDTO> results = applicationRiskService
         .getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
             risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-            risksFilterDTO.policyThreatLevelRange, Integer.MAX_VALUE);
+            risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, Integer.MAX_VALUE);
 
     String fileNamePrefix = calculateFileNamePrefixForView("applications");
     return Csv.generate(Response.ok(), fileNamePrefix, ApplicationRiskScoreDTO.getCsvHeader(), results).build();

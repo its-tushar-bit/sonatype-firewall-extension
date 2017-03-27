@@ -52,7 +52,7 @@ public class AdministratorsPage
       }
 
       public Content content() {
-        return new Content(selector, ".iq-action-list__row--admin-member");
+        return new Content(selector, ".iq-action-list__title--admin-member");
       }
 
       public SelenideElement editButton() {

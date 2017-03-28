@@ -21,23 +21,15 @@ describe('dashboard.results.controller.spec', function() {
     });
 
     it('listens to update filter event', function() {
-      var filterData = {
+      var filterJson = {
         organizationFilters: ['org1', 'org2'],
         applicationFilters: ['app1', 'app2'],
         policyThreatCategoryFilters: ['category1', 'category2'],
         stageTypeFilters: ['stage1'],
         tagFilters: ['tag1'],
+        policyViolationStates: ['OPEN', 'WAIVED'],
         minPolicyThreatLevel: 3,
         maxPolicyThreatLevel: 8
-      };
-
-      var initFilters = {
-        organizationIds: [],
-        applicationIds: [],
-        policyThreatTypes: [],
-        stageTypeIds: [],
-        applicationTagIds: [],
-        policyThreatLevel: [0, 10]
       };
 
       var expectedFilters = {
@@ -46,11 +38,12 @@ describe('dashboard.results.controller.spec', function() {
         policyThreatTypes: ['category1', 'category2'],
         stageTypeIds: ['stage1'],
         applicationTagIds: ['tag1'],
+        policyViolationStates: ['OPEN', 'WAIVED'],
         policyThreatLevel: [3, 8]
       };
 
-      expect(scope.filters).toEqual(initFilters);
-      scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, filterData);
+      expect(scope.filters).toBeUndefined();
+      scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, filterJson);
       expect(scope.filters).toEqual(expectedFilters);
     });
   });

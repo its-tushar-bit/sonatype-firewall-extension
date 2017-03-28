@@ -33,6 +33,15 @@
         name: 'Other'
       }
     ];
+    vm.policyViolationStates = [
+      {
+        id: 'OPEN',
+        name: 'Open'
+      }, {
+        id: 'WAIVED',
+        name: 'Waived'
+      }
+    ];
 
     // User selected
     vm.selected = undefined;
@@ -201,6 +210,7 @@
         categories: {},
         stages: {},
         policyTypes: {},
+        policyViolationStates: {OPEN: true},
         policyThreatLevels: [2, 10]
       };
     }
@@ -267,6 +277,14 @@
       (filterJson.policyThreatCategoryFilters || []).forEach(function(policyTypeId) {
         vm.selected.policyTypes[policyTypeId] = true;
       });
+
+      if (filterJson.policyViolationStates) {
+        vm.selected.policyViolationStates = {};
+        filterJson.policyViolationStates.forEach(function(statusId) {
+          vm.selected.policyViolationStates[statusId] = true;
+        });
+      }
+
       vm.selected.policyThreatLevels = [filterJson.minPolicyThreatLevel, filterJson.maxPolicyThreatLevel];
     }
 

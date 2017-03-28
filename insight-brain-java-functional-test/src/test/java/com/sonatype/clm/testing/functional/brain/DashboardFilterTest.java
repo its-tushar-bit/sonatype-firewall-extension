@@ -219,7 +219,8 @@ public class DashboardFilterTest
         "  \"tagFilters\" : [ \"" + firstAppCategory.getId() + "\" ],\n" +
         "  \"policyThreatCategoryFilters\" : [ \"QUALITY\" ],\n" +
         "  \"stageTypeFilters\" : [ \"release\" ],\n" +
-        "  \"maxDaysOld\" : 30\n" +
+        "  \"maxDaysOld\" : 30,\n" +
+        "  \"policyViolationStates\" : [ \"OPEN\" ]\n" +
         "}"));
 
     // assert applied filters

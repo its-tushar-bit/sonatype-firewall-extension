@@ -58,6 +58,7 @@ describe('dashboard.filter.service.spec', function() {
       stages: {'release': true, 'stage-release': true, 'build': true},
       categories: {'tagId1': true, 'tagId2': true},
       applications: {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true},
+      policyViolationStates: {'OPEN': true, 'WAIVED': true},
       policyThreatLevels: [3, 6]
     };
 
@@ -68,6 +69,7 @@ describe('dashboard.filter.service.spec', function() {
       expect(filterJson.stageTypeFilters).toEqual(['release', 'stage-release', 'build']);
       expect(filterJson.tagFilters).toEqual(['tagId1', 'tagId2']);
       expect(filterJson.applicationFilters).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']);
+      expect(filterJson.policyViolationStates).toEqual(['OPEN', 'WAIVED']);
       expect(filterJson.minPolicyThreatLevel).toEqual(3);
       expect(filterJson.maxPolicyThreatLevel).toEqual(6);
     });

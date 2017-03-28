@@ -60,6 +60,9 @@ public class DashboardFilterServiceTest
   private static final String FILTER_WITHOUT_MAX_DAYS_OLD_PATH =
       "/DashboardFilterServiceTest/DashboardFilterWithoutMaxDaysOld.json";
 
+  private static final String FILTER_WITHOUT_POLICY_VIOLATION_STATES =
+      "/DashboardFilterServiceTest/DashboardFilterWithoutPolicyViolationStatesProperty.json";
+
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
   @Inject
@@ -191,6 +194,8 @@ public class DashboardFilterServiceTest
     assertThat(actual.filter.policyThreatCategoryFilters, hasSize(0));
     assertThat(actual.filter.stageTypeFilters, hasSize(0));
     assertThat(actual.filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
+    assertThat(actual.filter.policyViolationStates, hasSize(1));
+    assertThat(actual.filter.policyViolationStates.get(0), is(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name()));
     assertThat(actual.name, is(""));
     assertThat(actual.basedOnFilterName, is(nullValue()));
   }
@@ -229,6 +234,24 @@ public class DashboardFilterServiceTest
     List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
     assertThat(actual, hasSize(1));
     assertThat(actual.get(0).filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
+  }
+
+  @Test
+  public void testGetNamedDashboardFilterForCurrentUser_DefaultPolicyViolationState() throws Exception {
+    String filterName = "Filter1";
+
+    String filterJsonWithoutPolicyViolationStates = IOUtils
+        .toString(getClass().getResource(FILTER_WITHOUT_POLICY_VIOLATION_STATES), "UTF-8");
+    tempEntity.newDashboardFilter(USERNAME, filterName, filterJsonWithoutPolicyViolationStates);
+
+    List<NamedDashboardFilterDTO> namedFilters = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
+    assertThat(namedFilters, hasSize(1));
+
+    NamedDashboardFilterDTO actual = namedFilters.get(0);
+
+    assertThat(actual.filter.policyViolationStates, hasSize(1));
+    assertThat(actual.filter.policyViolationStates.get(0),
+        is(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name()));
   }
 
   @Test
@@ -319,6 +342,19 @@ public class DashboardFilterServiceTest
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
     assertThat(actual.filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_DefaultPolicyViolationState() throws Exception {
+    String filterJsonWithoutPolicyViolationStates = IOUtils
+        .toString(getClass().getResource(FILTER_WITHOUT_POLICY_VIOLATION_STATES), "UTF-8");
+    tempEntity.newDashboardFilter(USERNAME, "", filterJsonWithoutPolicyViolationStates);
+
+    NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+
+    assertThat(actual.filter.policyViolationStates, hasSize(1));
+    assertThat(actual.filter.policyViolationStates.get(0),
+        is(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name()));
   }
 
   @Test

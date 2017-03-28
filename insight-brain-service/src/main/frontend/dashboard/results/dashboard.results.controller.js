@@ -13,14 +13,7 @@
     $scope.getExportUrl = getExportUrl;
     $scope.getFilterJson = getFilterJson;
 
-    $scope.filters = {
-      organizationIds: [],
-      applicationIds: [],
-      policyThreatTypes: [],
-      stageTypeIds: [],
-      applicationTagIds: [],
-      policyThreatLevel: [0, 10]
-    };
+    $scope.filters = undefined;
 
     $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS, function(e, newFilters) {
       $scope.filters = {
@@ -29,6 +22,7 @@
         policyThreatTypes: newFilters.policyThreatCategoryFilters,
         stageTypeIds: newFilters.stageTypeFilters,
         applicationTagIds: newFilters.tagFilters,
+        policyViolationStates: newFilters.policyViolationStates,
         policyThreatLevel: [newFilters.minPolicyThreatLevel, newFilters.maxPolicyThreatLevel]
       };
     });

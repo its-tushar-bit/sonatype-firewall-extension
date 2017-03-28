@@ -29,6 +29,7 @@
         policyThreatCategoryFilters: Object.keys(filter.policyTypes),
         stageTypeFilters: Object.keys(filter.stages),
         tagFilters: Object.keys(filter.categories),
+        policyViolationStates: Object.keys(filter.policyViolationStates),
         minPolicyThreatLevel: filter.policyThreatLevels[0],
         maxPolicyThreatLevel: filter.policyThreatLevels[1]
       };

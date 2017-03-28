@@ -42,7 +42,7 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
   }
 
   public static PolicyThreatLevelFilter policyThreatLevelFilter() {
-    return new PolicyThreatLevelFilter(".tree-view-group:nth-child(6)");
+    return new PolicyThreatLevelFilter(".tree-view-group:nth-child(7)");
   }
 
   public static Button applyButton() {

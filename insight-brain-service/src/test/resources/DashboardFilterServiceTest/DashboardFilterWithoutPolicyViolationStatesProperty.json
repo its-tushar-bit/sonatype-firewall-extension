@@ -1,0 +1,10 @@
+{
+  "minPolicyThreatLevel" : 2,
+  "maxPolicyThreatLevel" : 10,
+  "applicationFilters" : [ ],
+  "organizationFilters" : [ ],
+  "tagFilters" : [ ],
+  "policyThreatCategoryFilters" : [ ],
+  "stageTypeFilters" : [ ],
+  "maxDaysOld": 30
+}

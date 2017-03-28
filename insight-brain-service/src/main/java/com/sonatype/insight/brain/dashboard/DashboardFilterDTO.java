@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolationState;
 
 /**
  * @since 1.11.0
@@ -16,6 +18,8 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 public class DashboardFilterDTO
 {
   public static final Integer DEFAULT_MAX_DAYS_OLD = 30;
+
+  public static final PolicyViolationState DEFAULT_POLICY_VIOLATION_STATE = PolicyViolationState.OPEN;
 
   public int minPolicyThreatLevel;
 
@@ -37,6 +41,8 @@ public class DashboardFilterDTO
    * @since 1.27.0
    */
   public Integer maxDaysOld = DEFAULT_MAX_DAYS_OLD;
+
+  public List<String> policyViolationStates = Collections.singletonList(DEFAULT_POLICY_VIOLATION_STATE.name());
 
   @Override
   public boolean equals(final Object o) {
@@ -70,6 +76,9 @@ public class DashboardFilterDTO
     if (!Objects.equals(maxDaysOld, that.maxDaysOld)) {
       return false;
     }
+    if (!policyViolationStates.equals(that.policyViolationStates)) {
+      return false;
+    }
     return stageTypeFilters.equals(that.stageTypeFilters);
   }
 
@@ -83,6 +92,7 @@ public class DashboardFilterDTO
     result = 31 * result + policyThreatCategoryFilters.hashCode();
     result = 31 * result + stageTypeFilters.hashCode();
     result = 31 * result + Objects.hashCode(maxDaysOld);
+    result = 31 * result + policyViolationStates.hashCode();
     return result;
   }
 }

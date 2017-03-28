@@ -128,6 +128,14 @@
          --><div class="filter-label"><i class="tree-view-icon"></i>Policy Types</div>
       </dashboard-filter-dimension>
 
+      <dashboard-filter-dimension available="vm.policyViolationStates"
+                                  selected="vm.selected.policyViolationStates"
+                                  long-name="violation states"
+                                  short-name="Violation State"
+                                  class="tree-view-group">
+         <div class="filter-label"><i class="tree-view-icon"></i>Violation State</div>
+      </dashboard-filter-dimension>
+
       <div class="tree-view-group">
         <a class="tree-view-item" ng-click="vm.policyThreatLevelState.isExpanded = !vm.policyThreatLevelState.isExpanded">
           <div class="dashboard-filter-counter">{{vm.selected.policyThreatLevels[0]}} &ndash;

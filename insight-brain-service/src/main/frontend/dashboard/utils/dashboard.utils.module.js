@@ -24,6 +24,7 @@
           filter.policyThreatTypes.join(',') : undefined;
       params.stageIds = filter.stageTypeIds;
       params.tagIds = filter.applicationTagIds;
+      params.policyViolationStates = filter.policyViolationStates;
 
       var threatLvls = filter.policyThreatLevel;
       if (threatLvls) {

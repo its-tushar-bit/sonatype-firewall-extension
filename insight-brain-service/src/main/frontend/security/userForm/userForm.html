@@ -77,6 +77,13 @@
     </div>
   </div>
   <div clm-alerts="vm.alerts" no-close="true"></div>
+  <button id='{{vm.user.id}}user-form-save'
+          class='btn btn-primary'
+          type='button'
+          ng-click='vm.saveClick(vm.user)'
+          ng-disabled='userForm.$invalid || userForm.$pristine || vm.saving'>
+    Save
+  </button>
   <button id='{{vm.user.id}}user-form-cancel'
           type="button"
           class='btn btn-link btn-cancel'
@@ -84,13 +91,4 @@
           ng-click='vm.cancelClick(vm.user)'>
     Cancel
   </button>
-  <div class="pull-right clm-primary-buttons">
-    <button id='{{vm.user.id}}user-form-save'
-            class='btn btn-primary'
-            type='button'
-            ng-click='vm.saveClick(vm.user)'
-            ng-disabled='userForm.$invalid || userForm.$pristine || vm.saving'>
-      Save
-    </button>
-  </div>
 </form>

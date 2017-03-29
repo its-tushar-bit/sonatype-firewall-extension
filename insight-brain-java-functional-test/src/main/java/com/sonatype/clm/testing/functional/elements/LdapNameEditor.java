@@ -23,11 +23,11 @@ public class LdapNameEditor
   }
 
   public SelenideElement cancelButton() {
-    return child("#ldap-name-edit-btns > button:first-child");
+    return child("#ldap-name-edit-btns > button:last-child");
   }
 
   public SelenideElement saveButton() {
-    return child("#ldap-name-edit-btns > button:last-child");
+    return child("#ldap-name-edit-btns > button:first-child");
   }
 
   public static class NameEditor

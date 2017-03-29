@@ -48,14 +48,20 @@
             </div>
           </div>
         </div>
-        <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.saveWebhook()">
-          <button type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyWebhook.isDirty()"
+        <div submit-wrapper="vm.submitError" retry="vm.saveWebhook()">
+          <button type="submit"
+                  class="btn btn-primary"
+                  submit-validation
+                  submit-dirty="vm.dirtyWebhook.isDirty()"
                   submit-type="vm.dirtyWebhook.id ? 'update' : 'create'">
             {{::vm.dirtyWebhook.id ? 'Update' : 'Create'}}
           </button>
-          <button class="btn btn-link btn-cancel" type="button" ui-sref="webhooks.list">Cancel</button>
-          <button id="delete-webhook-button" class="btn btn-tertiary" type="button"
-                  ng-click="vm.deleteWebhook()" ng-if="vm.dirtyWebhook && vm.dirtyWebhook.id">
+          <button class="btn" type="button" ui-sref="webhooks.list">Cancel</button>
+          <button id="delete-webhook-button"
+                  class="btn btn-tertiary"
+                  type="button"
+                  ng-click="vm.deleteWebhook()"
+                  ng-if="vm.dirtyWebhook && vm.dirtyWebhook.id">
             <i class="fa fa-fw fa-trash"></i>Remove Webhook
           </button>
         </div>

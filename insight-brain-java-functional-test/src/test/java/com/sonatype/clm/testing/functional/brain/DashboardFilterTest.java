@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFilte
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyTypeFilter;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyViolationStateFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.SaveFilterDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.StageFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -163,6 +165,11 @@ public class DashboardFilterTest
     staticTempEntity
         .newFirstOccurrencePolicyViolation(secondViolation.getId(), secondPolicyEvaluation.getApplicationId(),
             secondPolicyEvaluation.getStageTypeId());
+
+    PolicyViolation waivedPolicyViolation = staticTempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 3,
+        PolicyThreatCategory.QUALITY, "Group2", "Artifact2", "Version2", "hash-waived");
+    PolicyWaiver policyWaiver = staticTempEntity.newWaiver("hash-waived", policy.getId(), secondApp.getId());
+    staticTempEntity.newWaivedPolicyViolation(waivedPolicyViolation, policyWaiver);
   }
 
   @Test
@@ -220,7 +227,7 @@ public class DashboardFilterTest
         "  \"policyThreatCategoryFilters\" : [ \"QUALITY\" ],\n" +
         "  \"stageTypeFilters\" : [ \"release\" ],\n" +
         "  \"maxDaysOld\" : 30,\n" +
-        "  \"policyViolationStates\" : [ \"OPEN\" ]\n" +
+        "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\" ]\n" +
         "}"));
 
     // assert applied filters
@@ -229,6 +236,70 @@ public class DashboardFilterTest
     violation.threatNumber().shouldHave(text("2"));
     violation.policy().shouldHave(text("DashboardTestPolicy"));
     violation.application().shouldHave(text("DashboardTestAppOne"));
+
+    // also show the waived violation from secondApp
+    DashboardFilters.toggleTwisties();
+    DashboardFilters.applicationFilter().checkboxItem(2).click();
+    DashboardFilters.applicationCategoryFilter().checkboxItem(2).click();
+    DashboardFilters.toggleTwisties();
+    DashboardFilters.applyButton().click();
+
+    DashboardPage.violationsView().results().violations().shouldHaveSize(2);
+    ViolationTile firstViolation = DashboardPage.violationsView().results().firstViolation();
+    firstViolation.threatNumber().shouldHave(text("3"));
+    firstViolation.policy().shouldHave(text("DashboardTestPolicy"));
+    firstViolation.application().shouldHave(text("DashboardTestAppTwo"));
+    firstViolation.component().shouldHave(text("Artifact2"));
+
+    ViolationTile secondViolation = DashboardPage.violationsView().results().lastViolation();
+    secondViolation.threatNumber().shouldHave(text("2"));
+    secondViolation.policy().shouldHave(text("DashboardTestPolicy"));
+    secondViolation.application().shouldHave(text("DashboardTestAppOne"));
+    secondViolation.component().shouldHave(text("Artifact1"));
+
+    // check other tabs
+    DashboardPage.componentsTab().click();
+    DashboardPage.componentsView().results().components().shouldHaveSize(2);
+    DashboardPage.applicationsTab().click();
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(2);
+
+    // unselect all policy violation statuses
+    DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardFilters.policyViolationStateFilter().allItems().shouldBe(selected).click();
+    DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardFilters.applyButton().click();
+
+    // check all tabs - should have the same results
+    DashboardPage.violationsTab().click();
+    DashboardPage.violationsView().results().violations().shouldHaveSize(2);
+    DashboardPage.violationsView().results().firstViolation().component().shouldHave(text("Artifact2"));
+    DashboardPage.violationsView().results().lastViolation().component().shouldHave(text("Artifact1"));
+    DashboardPage.componentsTab().click();
+    DashboardPage.componentsView().results().components().shouldHaveSize(2);
+    DashboardPage.applicationsTab().click();
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(2);
+
+    // filter WAIVED only
+    DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardFilters.policyViolationStateFilter().waived().click();
+    DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardFilters.applyButton().click();
+
+    // violations tab should have only waived violation
+    DashboardPage.violationsTab().click();
+    DashboardPage.violationsView().results().violations().shouldHaveSize(1);
+    ViolationTile waivedViolation = DashboardPage.violationsView().results().firstViolation();
+    waivedViolation.component().shouldHave(text("Artifact2"));
+
+    // components tab should have only waived component
+    DashboardPage.componentsTab().click();
+    DashboardPage.componentsView().results().components().shouldHaveSize(1);
+    DashboardPage.componentsView().results().firstComponent().shouldHave(text("Artifact2"));
+
+    // applications tab should have only waived violation app
+    DashboardPage.applicationsTab().click();
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
+    DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
 
     // check reset
     DashboardFilters.clearButton().click();
@@ -453,6 +524,7 @@ public class DashboardFilterTest
     DashboardFilters.policyTypeFilter().quality().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.applicationCategoryFilter().checkboxItem(2).click();
+    DashboardFilters.policyViolationStateFilter().waived().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 7);
     DashboardFilters.toggleTwisties();
   }
@@ -494,6 +566,7 @@ public class DashboardFilterTest
     assertStageFilterInitialState();
     assertPolicyTypeFilterInitialState();
     assertThreatLevelFilterInitialState();
+    assertPolicyViolationStateFilterInitialState();
   }
 
   private void assertThreatLevelFilterInitialState() {
@@ -533,11 +606,24 @@ public class DashboardFilterTest
     stageFilter.twisty().click();
   }
 
+  private void assertPolicyViolationStateFilterInitialState() {
+    PolicyViolationStateFilter policyViolationStateFilter = DashboardFilters.policyViolationStateFilter();
+    policyViolationStateFilter.counter().shouldBe(visible).shouldHave(text("1 of 2"));
+    policyViolationStateFilter.multiSelectList().shouldBe(empty);
+    policyViolationStateFilter.twisty().shouldBe(visible).click();
+    policyViolationStateFilter.multiSelectList().shouldHave(size(3));
+    policyViolationStateFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all violation states"));
+    policyViolationStateFilter.open().shouldBe(selected).label().shouldHave(text("Open"));
+    policyViolationStateFilter.waived().shouldNotBe(selected).label().shouldHave(text("Waived"));
+    policyViolationStateFilter.twisty().click();
+  }
+
   private void assertNewCounterState() {
     DashboardFilters.applicationFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 2"));
     DashboardFilters.applicationCategoryFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 1"));
     DashboardFilters.stageFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 4"));
     DashboardFilters.policyTypeFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 4"));
+    DashboardFilters.policyViolationStateFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("2 of 2"));
     DashboardFilters.policyThreatLevelFilter().counter().shouldHave(text("2 – 7"));
   }
 

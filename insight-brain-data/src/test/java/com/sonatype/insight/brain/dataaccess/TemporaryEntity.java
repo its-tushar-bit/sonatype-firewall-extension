@@ -958,8 +958,17 @@ public class TemporaryEntity
   {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
         policy.getThreatLevel(), policy.getThreatCategory(), hash, componentIdentifier, "[]", "unknown.jar");
-    policyViolation.setWaived(true);
+
     policyViolationDAO.insert(policyViolation);
+
+    return newWaivedPolicyViolation(policyViolation, policyWaiver);
+  }
+
+  public WaivedPolicyViolation newWaivedPolicyViolation(PolicyViolation policyViolation,
+                                                        PolicyWaiver policyWaiver)
+  {
+    policyViolation.setWaived(true);
+    policyViolationDAO.update(policyViolation);
 
     WaivedPolicyViolation waivedPolicyViolation = new WaivedPolicyViolation(policyViolation.getId(),
         policyWaiver.getId(), policyWaiver.getComment());

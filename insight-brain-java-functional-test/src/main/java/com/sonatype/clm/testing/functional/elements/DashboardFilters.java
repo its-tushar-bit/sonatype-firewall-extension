@@ -45,6 +45,10 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     return new PolicyThreatLevelFilter(".tree-view-group:nth-child(7)");
   }
 
+  public static PolicyViolationStateFilter policyViolationStateFilter() {
+    return new PolicyViolationStateFilter();
+  }
+
   public static Button applyButton() {
     return new Button("#dashboard-filter-apply");
   }
@@ -70,6 +74,7 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     applicationCategoryFilter().twisty().click();
     stageFilter().twisty().click();
     policyTypeFilter().twisty().click();
+    policyViolationStateFilter().twisty().click();
     policyThreatLevelFilter().twisty().click();
   }
 
@@ -286,5 +291,20 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
   }
-}
 
+  public static class PolicyViolationStateFilter
+      extends DashboardFilter
+  {
+    public PolicyViolationStateFilter() {
+      super("#policy-violation-state-filter");
+    }
+
+    public IqCheckbox open() {
+      return checkboxItem(2);
+    }
+
+    public IqCheckbox waived() {
+      return checkboxItem(3);
+    }
+  }
+}

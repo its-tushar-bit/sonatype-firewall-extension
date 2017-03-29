@@ -584,16 +584,16 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testCascadeDoesNotDeleteToPolicyViolations() {
+  public void testCascadeDoesNotDeletePolicyViolations() {
     Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDoesNotDeleteToPolicyViolations");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyEvaluationDAOTest");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    assertThat(policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId()), hasSize(1));
+    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
 
     policyDAO.delete(policy);
-    assertThat(policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId()), hasSize(1));
+    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
   }
 
   @Test

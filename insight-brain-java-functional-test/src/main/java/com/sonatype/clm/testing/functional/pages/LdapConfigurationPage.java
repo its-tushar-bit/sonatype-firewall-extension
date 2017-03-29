@@ -32,7 +32,7 @@ public class LdapConfigurationPage
   }
 
   public static SelenideElement breadCrumb() {
-    return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".iq-tile-breadcrumb"));
+    return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".iq-tile--breadcrumb"));
   }
 
   public static SelenideElement connectionTab() {

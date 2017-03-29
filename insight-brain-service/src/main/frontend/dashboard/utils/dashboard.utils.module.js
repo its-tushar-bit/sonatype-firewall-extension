@@ -25,6 +25,7 @@
       params.stageIds = filter.stageTypeIds;
       params.tagIds = filter.applicationTagIds;
       params.policyViolationStates = filter.policyViolationStates;
+      params.maxDaysOld = filter.maxDaysOld;
 
       var threatLvls = filter.policyThreatLevel;
       if (threatLvls) {

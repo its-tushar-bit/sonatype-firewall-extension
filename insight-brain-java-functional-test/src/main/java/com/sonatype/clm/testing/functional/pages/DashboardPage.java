@@ -25,6 +25,7 @@ public class DashboardPage
   public static final String COMPONENTS_URL = uriBuilder().fragment("/dashboard/components").build().toString();
   public static final String VIOLATIONS_URL = uriBuilder().fragment("/dashboard/violations").build().toString();
   public static final String APPLICATIONS_URL = uriBuilder().fragment("/dashboard/applications").build().toString();
+  public static final String AGE_FILTER_FEATURE_FLAG = "?timeFilterFeature=true";
 
   public static final String ROOT =  ".dashboard-container";
 

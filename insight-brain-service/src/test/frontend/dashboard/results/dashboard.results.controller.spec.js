@@ -16,8 +16,9 @@ describe('dashboard.results.controller.spec', function() {
   }));
 
   describe('initialisation', function() {
-    it('sets maxResults', function() {
+    it('sets maxResults and maxDaysOld', function() {
       expect(scope.maxResults).toBe(100);
+      expect(scope.maxDaysOld).toBe(30);
     });
 
     it('listens to update filter event', function() {
@@ -28,6 +29,7 @@ describe('dashboard.results.controller.spec', function() {
         stageTypeFilters: ['stage1'],
         tagFilters: ['tag1'],
         policyViolationStates: ['OPEN', 'WAIVED'],
+        maxDaysOld: 90,
         minPolicyThreatLevel: 3,
         maxPolicyThreatLevel: 8
       };
@@ -39,12 +41,14 @@ describe('dashboard.results.controller.spec', function() {
         stageTypeIds: ['stage1'],
         applicationTagIds: ['tag1'],
         policyViolationStates: ['OPEN', 'WAIVED'],
+        maxDaysOld: 90,
         policyThreatLevel: [3, 8]
       };
 
       expect(scope.filters).toBeUndefined();
       scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, filterJson);
       expect(scope.filters).toEqual(expectedFilters);
+      expect(scope.maxDaysOld).toEqual(filterJson.maxDaysOld);
     });
   });
 

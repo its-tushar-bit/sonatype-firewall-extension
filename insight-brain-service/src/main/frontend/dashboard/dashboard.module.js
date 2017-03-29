@@ -24,7 +24,7 @@
       }
     }).state('dashboard.overview', {
       parent: 'dashboard',
-      url: '',
+      url: '?timeFilterFeature', // query parameter feature flag for Time-based filter control
       abstract: true,
       views: {
         content: {

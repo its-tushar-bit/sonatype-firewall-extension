@@ -47,6 +47,32 @@
         </div>
       </div>
     </script>
+    <script type="text/ng-template" id="entity-filter-radio-template">
+      <div>
+        <a class="tree-view-item cannot-select"
+           ng-click="isExpanded = available.length && !readOnly && !isExpanded"
+           ng-class="{disabled: readOnly}">
+          <div class="dashboard-filter-counter">
+            {{selectedEntry[nameField]}}
+          </div>
+          <div class="twisty-container">
+            <span class="twisty" ng-class="{ expand: !isExpanded, collapse: isExpanded }"></span>
+          </div>
+          <span ng-transclude></span>
+        </a>
+        <div ng-if="isExpanded" class="tree-view-children">
+          <div class="clm-form">
+            <label class="radio tree-view-item" ng-repeat="entity in available">
+              <input type="radio"
+                     name="{{name}}"
+                     ng-checked="selectedEntry === entity"
+                     ng-click="vm.select(entity)">
+              <span>{{::entity[nameField]}}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </script>
 
     <div id="manage-filters-dropdown"
          class="iq-dropdown pull-right"
@@ -86,7 +112,8 @@
                                   long-name="organizations"
                                   short-name="Organization"
                                   sort-entities="true"
-                                  class="tree-view-group"><!--
+                                  class="tree-view-group"
+                                  id="org-filter"><!--
          --><div class="filter-label"><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i>Organizations</div>
       </dashboard-filter-dimension>
 
@@ -96,7 +123,8 @@
                                   short-name="Application"
                                   sort-entities="true"
                                   tooltip-field="organizationName"
-                                  class="tree-view-group"><!--
+                                  class="tree-view-group"
+                                  id="app-filter"><!--
          --><div class="filter-label"><i class="fa fa-terminal tree-view-icon icon-12px inverse"></i>Applications</div>
       </dashboard-filter-dimension>
 
@@ -106,7 +134,8 @@
                                   short-name="Category"
                                   sort-entities="true"
                                   tooltip-field="owner"
-                                  class="tree-view-group"><!--
+                                  class="tree-view-group"
+                                  id="category-filter"><!--
          --><div class="filter-label"><hexagon class="size-16px size-fw outline tree-view-icon"></hexagon>Application Categories</div>
       </dashboard-filter-dimension>
 
@@ -116,7 +145,8 @@
                                   name-field="stageName"
                                   long-name="stages"
                                   short-name="Stage"
-                                  class="tree-view-group"><!--
+                                  class="tree-view-group"
+                                  id="stage-filter"><!--
          --><div class="filter-label"><i class="tree-view-icon"></i>Stages</div>
       </dashboard-filter-dimension>
 
@@ -124,7 +154,8 @@
                                   selected="vm.selected.policyTypes"
                                   long-name="policy types"
                                   short-name="Policy Type"
-                                  class="tree-view-group"><!--
+                                  class="tree-view-group"
+                                  id="policy-type-filter"><!--
          --><div class="filter-label"><i class="tree-view-icon"></i>Policy Types</div>
       </dashboard-filter-dimension>
 
@@ -137,7 +168,18 @@
          <div class="filter-label"><i class="tree-view-icon"></i>Violation State</div>
       </dashboard-filter-dimension>
 
-      <div class="tree-view-group">
+      <dashboard-filter-radio-dimension available="vm.ages"
+                                        selected-entry="vm.selected.age"
+                                        id-field="maxDaysOld"
+                                        name="maxOldDays"
+                                        class="tree-view-group"
+                                        id="age-filter"
+                                        ng-if="vm.showAgeFilter"
+                                        read-only="vm.isAgeFilterReadOnly">
+        <div class="filter-label"><i class="tree-view-icon"></i>Age</div>
+      </dashboard-filter-radio-dimension>
+
+      <div class="tree-view-group" id="threat-level-filter">
         <a class="tree-view-item" ng-click="vm.policyThreatLevelState.isExpanded = !vm.policyThreatLevelState.isExpanded">
           <div class="dashboard-filter-counter">{{vm.selected.policyThreatLevels[0]}} &ndash;
             {{vm.selected.policyThreatLevels[1]}}

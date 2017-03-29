@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardComponentDetails;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
@@ -50,10 +51,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.AGE_FILTER_FEATURE_FLAG;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.uriBuilder;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
@@ -79,11 +83,13 @@ public class DashboardViolationsTest
 
   private final Date oneWeekAgo = now().minusWeeks(1).minusHours(4).toDate();
 
+  private final Date twoMonthsAgo = now().minusMonths(2).minusHours(4).toDate();
+
   private Application app1, app2;
 
   private Policy securityPolicy, licensePolicy;
 
-  private PolicyEvaluation buildEvalNow, releaseEval2DaysAgo, operateEval1WeekAgo;
+  private PolicyEvaluation buildEvalNow, buildEval2MonthsAgo, releaseEval2DaysAgo, operateEval1WeekAgo;
 
   private ApplicationComponent buildComponent, releaseComponent, operateComponent;
 
@@ -107,6 +113,8 @@ public class DashboardViolationsTest
     securityPolicy = tempEntity.newPolicy(app2.getParentOwnerId(), "DashboardViolationsTestSecurityPolicy");
     buildEvalNow = tempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "now", now);
+    buildEval2MonthsAgo = tempEntity
+        .newPolicyEvaluation(app2.getId(), BuildStageType.ID, "now", twoMonthsAgo);
     releaseEval2DaysAgo = tempEntity
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "2dAgo", twoDaysAgo);
     operateEval1WeekAgo = tempEntity
@@ -144,13 +152,33 @@ public class DashboardViolationsTest
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
     tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 7,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
+    tempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 7,
+        LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
 
     refresh();
-    showLowRiskViolations();
-
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.maxResultsMessage().shouldNotBe(visible);
+    table.violations().shouldHaveSize(3);
+    showLowRiskViolations();
+    table.violations().shouldHaveSize(4);
 
+    // age filter should not be displayed without url query parameter
+    AgeFilter ageFilter = DashboardFilters.ageFilter();
+    ageFilter.shouldNotBe(visible);
+    refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
+    ageFilter.shouldBe(visible).counter().shouldHave(text("past 30 days"));
+    ageFilter.twisty().click();
+    ageFilter.past90days().click();
+    ageFilter.past90days().shouldBe(selected);
+    ageFilter.counter().shouldHave(text("past 90 days"));
+    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    table.violations().shouldHaveSize(5);
+    ageFilter.past90days().shouldBe(selected);
+    ageFilter.past30days().shouldNotBe(selected).click();
+    ageFilter.past90days().shouldNotBe(selected);
+    ageFilter.past30days().shouldBe(selected);
+    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    refreshOrOpen(VIOLATIONS_URL);
     table.violations().shouldHaveSize(4);
 
     // check the tile details

@@ -55,6 +55,11 @@
         margin-bottom: 0;
         margin-left: 24px;
       }
+
+      &.radio span::before,
+      &.radio span::after {
+        top: -2px;
+      }
     }
 
     .tree-view-group:last-child {

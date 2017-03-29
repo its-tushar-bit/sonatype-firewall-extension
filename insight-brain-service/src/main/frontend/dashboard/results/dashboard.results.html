@@ -11,8 +11,12 @@
         <div ng-if="data.length === 0">
           <span class="clm-bar-text-offset">
             <em id="no-data">
-              <span ng-if="$state.is('dashboard.overview.violations')">No data available in the last 30 days given the applied filters and available permissions.</span>
-              <span ng-if="!$state.is('dashboard.overview.violations')">No data available given the applied filters and available permissions.</span>
+              <span ng-if="$state.is('dashboard.overview.violations')">
+                No data available {{maxDaysOld ? 'in the last ' + maxDaysOld + ' days' : ''}} given the applied filters and available permissions.
+              </span>
+              <span ng-if="!$state.is('dashboard.overview.violations')">
+                No data available given the applied filters and available permissions.
+              </span>
             </em>
           </span>
         </div>

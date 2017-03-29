@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DashboardFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFiltersDialog;
@@ -50,6 +51,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -59,6 +61,10 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMav
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.INACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.AGE_FILTER_FEATURE_FLAG;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.APPLICATIONS_URL;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.COMPONENTS_URL;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -78,13 +84,13 @@ public class DashboardFilterTest
   @BeforeClass
   public static void beforeClass() throws Exception {
     setupData();
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(VIOLATIONS_URL);
     loginAsAdmin();
   }
 
   @Before
   public void before() {
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(VIOLATIONS_URL);
   }
 
   @After
@@ -172,12 +178,58 @@ public class DashboardFilterTest
     staticTempEntity.newWaivedPolicyViolation(waivedPolicyViolation, policyWaiver);
   }
 
+  /**
+   * Age only applies to violations tab and defaults to 'past 30 days'. It is currently only displayed when either
+   * - URL query parameter 'timeFilterFeature' is used, or
+   * - the query parameter is not used, but a filter with non-default age is loaded.
+   */
+  @Test
+  public void testAgeFilter() {
+    refreshOrOpen(APPLICATIONS_URL + AGE_FILTER_FEATURE_FLAG);
+    AgeFilter ageFilter = DashboardFilters.ageFilter();
+    ageFilter.shouldNotBe(visible);
+    refreshOrOpen(APPLICATIONS_URL);
+    ageFilter.shouldNotBe(visible);
+
+    refreshOrOpen(COMPONENTS_URL + AGE_FILTER_FEATURE_FLAG);
+    ageFilter.shouldNotBe(visible);
+    refreshOrOpen(COMPONENTS_URL);
+    ageFilter.shouldNotBe(visible);
+
+    refreshOrOpen(VIOLATIONS_URL);
+    ageFilter.shouldNotBe(visible);
+    refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
+    ageFilter.shouldBe(visible).counter().shouldHave(text("past 30 days"));
+    ageFilter.twisty().click();
+    ageFilter.singleSelectList().shouldHaveSize(6)
+        .shouldHave(texts("past 24 hours", "past 7 days", "past 30 days", "past 90 days", "past 12 months", "all time"));
+    ageFilter.past30days().shouldBe(selected);
+    ageFilter.past90days().shouldNotBe(selected).click();
+    ageFilter.past90days().shouldBe(selected);
+    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    ageFilter.singleSelectList().shouldHaveSize(6);
+
+    // filter should be visible but readonly if the loaded filter has non-default age value, even without feature flag
+    refreshOrOpen(VIOLATIONS_URL);
+    ageFilter.shouldBe(visible).anchor().shouldBe(DISABLED);
+    ageFilter.twisty().click();
+    ageFilter.singleSelectList().shouldBe(empty);
+    ageFilter.counter().shouldHave(text("past 90 days"));
+
+    refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
+    ageFilter.twisty().click();
+    ageFilter.past30days().shouldNotBe(selected).click();
+    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    ageFilter.twisty().click();
+    ageFilter.singleSelectList().shouldBe(empty);
+  }
+
   @Test
   public void testFiltersWithNoPermissions() {
     createUser();
     logout();
     login();
-    refreshOrOpen(DashboardPage.VIOLATIONS_URL);
+    refreshOrOpen(VIOLATIONS_URL);
 
     assertFilterDisabled(DashboardFilters.applicationFilter(), "applications");
     assertFilterDisabled(DashboardFilters.applicationCategoryFilter(), "application categories");

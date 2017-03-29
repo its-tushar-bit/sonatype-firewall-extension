@@ -59,6 +59,7 @@ describe('dashboard.filter.service.spec', function() {
       categories: {'tagId1': true, 'tagId2': true},
       applications: {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true},
       policyViolationStates: {'OPEN': true, 'WAIVED': true},
+      age: {maxDaysOld: 90},
       policyThreatLevels: [3, 6]
     };
 
@@ -70,6 +71,7 @@ describe('dashboard.filter.service.spec', function() {
       expect(filterJson.tagFilters).toEqual(['tagId1', 'tagId2']);
       expect(filterJson.applicationFilters).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']);
       expect(filterJson.policyViolationStates).toEqual(['OPEN', 'WAIVED']);
+      expect(filterJson.maxDaysOld).toEqual(90);
       expect(filterJson.minPolicyThreatLevel).toEqual(3);
       expect(filterJson.maxPolicyThreatLevel).toEqual(6);
     });

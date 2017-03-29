@@ -7,7 +7,7 @@
   'use strict';
 
   function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
-                                     OrganizationStore, EventNameConstant, filterService)
+                                     OrganizationStore, EventNameConstant, filterService, $state)
   {
     var vm = this,
         appliedFilter,
@@ -42,6 +42,33 @@
         name: 'Waived'
       }
     ];
+    vm.ages = [
+      {
+        name: 'past 24 hours',
+        maxDaysOld: 1
+      },
+      {
+        name: 'past 7 days',
+        maxDaysOld: 7
+      },
+      {
+        name: 'past 30 days',
+        maxDaysOld: 30
+      },
+      {
+        name: 'past 90 days',
+        maxDaysOld: 90
+      },
+      {
+        name: 'past 12 months',
+        maxDaysOld: 365
+      },
+      {
+        name: 'all time',
+        maxDaysOld: null
+      }
+    ];
+    var defaultAge = vm.ages[2];
 
     // User selected
     vm.selected = undefined;
@@ -65,6 +92,25 @@
     vm.onFilterSaved = onFilterSaved;
     vm.toggleManageFiltersDropdown = toggleManageFiltersDropdown;
 
+    vm.showAgeFilter = undefined;
+    vm.isAgeFilterReadOnly = undefined;
+
+    function shouldShowAgeFilter() {
+      return ($state.$current.name === 'dashboard.overview.violations') &&
+          ($state.params.timeFilterFeature || (vm.selected && vm.selected.age !== defaultAge));
+    }
+
+    function shouldAgeFilterBeReadOnly() {
+      return !$state.params.timeFilterFeature;
+    }
+
+    function selectPredefinedAge(maxDaysOld) {
+      var filtered = vm.ages.filter(function(age) {
+        return age.maxDaysOld === maxDaysOld;
+      });
+      return filtered.length === 1 ? filtered[0] : defaultAge;
+    }
+
     function toggleManageFiltersDropdown(open) {
       vm.isManageFiltersDropdownOpen = open;
     }
@@ -73,6 +119,13 @@
 
     $scope.$on('reloadFilter', function() {
       vm.doLoad();
+    });
+
+    $scope.$watch(function() {
+      return $state.$current.name;
+    }, function() {
+      vm.showAgeFilter = shouldShowAgeFilter();
+      vm.isAgeFilterReadOnly = shouldAgeFilterBeReadOnly();
     });
 
     function doLoad() {
@@ -211,6 +264,7 @@
         stages: {},
         policyTypes: {},
         policyViolationStates: {OPEN: true},
+        age: selectPredefinedAge(),
         policyThreatLevels: [2, 10]
       };
     }
@@ -231,6 +285,7 @@
       applyFilter(namedFilter).then(function() {
         vm.showDirtyAsterisk = true;
         appliedFilter = angular.copy(vm.selected);
+        vm.showAgeFilter = shouldShowAgeFilter();
       }, function(error) {
         vm.saveError = error;
       });
@@ -285,6 +340,12 @@
         });
       }
 
+      vm.selected.age = selectPredefinedAge(filterJson.maxDaysOld);
+
+      vm.showAgeFilter = shouldShowAgeFilter();
+
+      vm.isAgeFilterReadOnly = shouldAgeFilterBeReadOnly();
+
       vm.selected.policyThreatLevels = [filterJson.minPolicyThreatLevel, filterJson.maxPolicyThreatLevel];
     }
 
@@ -332,7 +393,7 @@
 
   DashboardFilterController.$inject = [
     '$rootScope', '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
-    'event.name.constant', 'dashboard.filter.service'
+    'event.name.constant', 'dashboard.filter.service', '$state'
   ];
 
   angular.module('dashboard.module').controller('dashboard.filter.controller', DashboardFilterController);

@@ -26,23 +26,27 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
   public static DashboardFilter applicationFilter() {
-    return new DashboardFilter(".tree-view-group:nth-child(2)");
+    return new DashboardFilter("#app-filter");
   }
 
   public static DashboardFilter applicationCategoryFilter() {
-    return new DashboardFilter(".tree-view-group:nth-child(3)");
+    return new DashboardFilter("#category-filter");
   }
 
   public static StageFilter stageFilter() {
-    return new StageFilter(".tree-view-group:nth-child(4)");
+    return new StageFilter("#stage-filter");
   }
 
   public static PolicyTypeFilter policyTypeFilter() {
-    return new PolicyTypeFilter(".tree-view-group:nth-child(5)");
+    return new PolicyTypeFilter("#policy-type-filter");
+  }
+
+  public static AgeFilter ageFilter() {
+    return new AgeFilter("#age-filter");
   }
 
   public static PolicyThreatLevelFilter policyThreatLevelFilter() {
-    return new PolicyThreatLevelFilter(".tree-view-group:nth-child(7)");
+    return new PolicyThreatLevelFilter("#threat-level-filter");
   }
 
   public static PolicyViolationStateFilter policyViolationStateFilter() {
@@ -213,8 +217,16 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       return children(".clm-form iq-checkbox");
     }
 
+    public ElementsCollection singleSelectList() {
+      return children(".clm-form label.radio");
+    }
+
     public IqCheckbox checkboxItem(int index) {
       return new IqCheckbox(child(".clm-form iq-checkbox", nthChild(index)));
+    }
+
+    public Radio radioItem(int index) {
+      return new Radio(child(".clm-form label.radio", nthChild(index)));
     }
 
     public IqCheckbox allItems() {
@@ -254,6 +266,23 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
 
     public IqCheckbox other() {
       return super.checkboxItem(5);
+    }
+  }
+
+  public static class AgeFilter
+      extends DashboardFilter
+  {
+
+    public AgeFilter(final String selector) {
+      super(selector);
+    }
+
+    public Radio past30days() {
+      return super.radioItem(3);
+    }
+
+    public Radio past90days() {
+      return super.radioItem(4);
     }
   }
 

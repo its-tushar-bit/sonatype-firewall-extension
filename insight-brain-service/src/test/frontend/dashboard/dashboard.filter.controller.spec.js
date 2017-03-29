@@ -1,7 +1,7 @@
 describe('dashboard.filter.controller', function() {
   "use strict";
 
-  var $rootScope, $scope, $componentController, vm, $httpBackend, CLMLocations;
+  var $rootScope, $scope, $componentController, vm, $httpBackend, CLMLocations, mockState;
 
   beforeEach(module('dashboard.module'));
 
@@ -11,9 +11,14 @@ describe('dashboard.filter.controller', function() {
     $componentController = _$componentController_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
+    mockState = {
+      params: {},
+      $current: { name: ''}
+    };
 
     vm = $controller('dashboard.filter.controller', {
-      $scope: $scope
+      $scope: $scope,
+      $state: mockState
     });
     $scope.vm = vm; // needed to be able to test scope.$watch
 
@@ -87,6 +92,7 @@ describe('dashboard.filter.controller', function() {
         tagFilters: ['tagId1', 'tagId2'],
         applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
         policyViolationStates: ['OPEN', 'WAIVED'],
+        maxDaysOld: 90,
         minPolicyThreatLevel: 3,
         maxPolicyThreatLevel: 6
       },
@@ -122,6 +128,7 @@ describe('dashboard.filter.controller', function() {
       expect(vm.selected.applications).toEqual(
           {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true});
       expect(vm.selected.policyViolationStates).toEqual({'OPEN': true, 'WAIVED': true});
+      expect(vm.selected.age).toEqual({maxDaysOld: 90, name: 'past 90 days'});
       expect(vm.selected.policyThreatLevels).toEqual([3, 6]);
 
       expect(vm.applications.length).toBe(applicationData.length);
@@ -342,6 +349,7 @@ describe('dashboard.filter.controller', function() {
         expect(vm.selected.organizations).toEqual({});
         expect(vm.selected.applications).toEqual({});
         expect(vm.selected.policyViolationStates).toEqual({'OPEN': true});
+        expect(vm.selected.age).toEqual({maxDaysOld: 30, name: 'past 30 days'});
         expect(vm.selected.policyThreatLevels).toEqual([2, 10]);
       });
 
@@ -378,6 +386,7 @@ describe('dashboard.filter.controller', function() {
         delete vm.selected.categories.tagId1;
         delete vm.selected.policyTypes.QUALITY;
         delete vm.selected.policyViolationStates.OPEN;
+        delete vm.selected.age;
         vm.selected.policyThreatLevels[0] = 0;
         vm.revert();
         expect(vm.selected).toEqual(expected);
@@ -397,6 +406,7 @@ describe('dashboard.filter.controller', function() {
           expected.filter.applicationFilters.splice(0, 1); // remove applicationIdZ
           expected.filter.applicationFilters.push(applicationData[3].id); // pickup orgId2 application which wasn't in the original filter
           expected.filter.policyViolationStates.splice(0, 1); // remove OPEN
+          expected.filter.maxDaysOld = 7;
           expected.filter.minPolicyThreatLevel = 0;
           expected.basedOnFilterName = 'Test1';
           $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), expected).respond(expected);
@@ -406,6 +416,7 @@ describe('dashboard.filter.controller', function() {
           delete vm.selected.categories.tagId1;
           delete vm.selected.policyTypes.QUALITY;
           delete vm.selected.policyViolationStates.OPEN;
+          vm.selected.age = {maxDaysOld: 7, name: 'past 7 days'};
           vm.selected.policyThreatLevels[0] = 0;
 
           expect(vm.showDirtyAsterisk).toBe(false);
@@ -534,6 +545,7 @@ describe('dashboard.filter.controller', function() {
       expect(vm.selected.categories).toEqual({});
       expect(vm.selected.applications).toEqual({});
       expect(vm.selected.policyViolationStates).toEqual({'OPEN': true});
+      expect(vm.selected.age).toEqual({maxDaysOld: 30, name: 'past 30 days'});
       expect(vm.selected.policyThreatLevels).toEqual([2, 10]);
 
       vm.loadFilterFromJson(filterData);
@@ -545,7 +557,72 @@ describe('dashboard.filter.controller', function() {
       expect(vm.selected.policyViolationStates).toEqual({ 'OPEN': true, 'WAIVED': true });
       expect(vm.selected.applications).toEqual(
           {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true});
+      expect(vm.selected.age).toEqual({maxDaysOld: 90, name: 'past 90 days'});
       expect(vm.selected.policyThreatLevels).toEqual([3, 6]);
     });
+  });
+
+  describe('age filter', function() {
+
+    var controllerWithoutParam, controllerWithParam, controllerWithParamWrongState;
+
+    beforeEach(inject(function($controller) {
+      $httpBackend.whenGET(CLMLocations.getApplicationsUrl()).respond([]);
+      $httpBackend.whenGET(CLMLocations.getDashboardStageUrl()).respond([]);
+      $httpBackend.whenGET(CLMLocations.getOrganizationsUrl()).respond([]);
+      $httpBackend.whenGET(CLMLocations.getApplicationTagsUrl()).respond([]);
+      $httpBackend.whenGET(CLMLocations.getDashboardSavedFilters()).respond([]);
+
+      var mockViolationsStateWithoutParam = {
+            params: {timeFilterFeature: undefined},
+            $current: {name: 'dashboard.overview.violations'}
+          },
+          mockViolationsStateWithParam = {
+            params: {timeFilterFeature: 'true'},
+            $current: {name: 'dashboard.overview.violations'}
+          },
+          mockComponentsStateWithParam = {
+            params: {timeFilterFeature: 'true'},
+            $current: {name: 'dashboard.overview.components'}
+          };
+      controllerWithoutParam = $controller('dashboard.filter.controller', {
+        $state: mockViolationsStateWithoutParam,
+        $scope: $rootScope.$new()
+      });
+      controllerWithParam = $controller('dashboard.filter.controller', {
+        $state: mockViolationsStateWithParam,
+        $scope: $rootScope.$new()
+      });
+      controllerWithParamWrongState = $controller('dashboard.filter.controller', {
+        $state: mockComponentsStateWithParam,
+        $scope: $rootScope.$new()
+      });
+    }));
+
+
+    it('only shows the age filter when the flag is turned on', function() {
+      $httpBackend.whenGET(CLMLocations.getDashboardFilters()).respond({filter: {maxDaysOld: 30}});
+      $httpBackend.flush(15); // (3 controllers here + 1 at the top scope) * 3 endpoint calls + 3 store calls
+
+      expect(controllerWithoutParam.showAgeFilter).toBeFalsy();
+      expect(controllerWithoutParam.isAgeFilterReadOnly).toBeTruthy();
+      expect(controllerWithParam.showAgeFilter).toBeTruthy();
+      expect(controllerWithParam.isAgeFilterReadOnly).toBeFalsy();
+      expect(controllerWithParamWrongState.showAgeFilter).toBeFalsy();
+      expect(controllerWithParamWrongState.isAgeFilterReadOnly).toBeFalsy();
+    });
+
+    it('also shows read-only age filter when loading a filter with non-default age', function() {
+      $httpBackend.whenGET(CLMLocations.getDashboardFilters()).respond({filter: {maxDaysOld: 90}});
+      $httpBackend.flush(15); // (3 controllers here + 1 at the top scope) * 3 endpoint calls + 3 store calls
+
+      expect(controllerWithoutParam.showAgeFilter).toBeTruthy();
+      expect(controllerWithoutParam.isAgeFilterReadOnly).toBeTruthy();
+      expect(controllerWithParam.showAgeFilter).toBeTruthy();
+      expect(controllerWithParam.isAgeFilterReadOnly).toBeFalsy();
+      expect(controllerWithParamWrongState.showAgeFilter).toBeFalsy();
+      expect(controllerWithParamWrongState.isAgeFilterReadOnly).toBeFalsy();
+    });
+
   });
 });

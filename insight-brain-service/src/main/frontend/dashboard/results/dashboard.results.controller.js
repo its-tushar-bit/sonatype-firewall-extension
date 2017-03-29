@@ -8,6 +8,7 @@
 
   function DashboardResultsController($scope, $modal, EventNameConstant, $state, filterToParams, CLMLocations) {
     $scope.maxResults = 100;
+    $scope.maxDaysOld = 30;
     $scope.showTrendDialog = showTrendDialog;
     $scope.getViewTitle = getViewTitle;
     $scope.getExportUrl = getExportUrl;
@@ -23,8 +24,10 @@
         stageTypeIds: newFilters.stageTypeFilters,
         applicationTagIds: newFilters.tagFilters,
         policyViolationStates: newFilters.policyViolationStates,
+        maxDaysOld: newFilters.maxDaysOld,
         policyThreatLevel: [newFilters.minPolicyThreatLevel, newFilters.maxPolicyThreatLevel]
       };
+      $scope.maxDaysOld = newFilters.maxDaysOld;
     });
 
     function showTrendDialog() {

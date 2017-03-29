@@ -30,6 +30,7 @@
         stageTypeFilters: Object.keys(filter.stages),
         tagFilters: Object.keys(filter.categories),
         policyViolationStates: Object.keys(filter.policyViolationStates),
+        maxDaysOld: filter.age.maxDaysOld,
         minPolicyThreatLevel: filter.policyThreatLevels[0],
         maxPolicyThreatLevel: filter.policyThreatLevels[1]
       };

@@ -158,7 +158,7 @@ public class ComponentRiskService
       return Lists.newArrayList();
     }
 
-    return policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
+    return policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
   }
 
   /**

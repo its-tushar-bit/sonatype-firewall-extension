@@ -583,6 +583,47 @@ public class ComponentRiskServiceTest
   }
 
   @Test
+  public void testGetComponentRisks_FilterByApplicationAndPolicyViolationState() throws Exception {
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
+    WaivedPolicyViolation waivedViolation = tempEntity
+        .newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy, "gid", "aid", "1", "hash1", policyWaiver);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
+    List<ComponentRiskDTO> riskDTOs = componentRiskService
+        .getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), 1000);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(policyViolation.getHash()));
+    assertDisplayFieldValues(riskDTO.displayName.parts, policyViolation);
+    assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
+    assertThat(riskDTO.affectedApplications, is(1));
+
+    riskDTOs = componentRiskService.getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN), 1000);
+    assertThat(riskDTOs, hasSize(1));
+    riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(orgPolicyViolation.getHash()));
+    assertDisplayFieldValues(riskDTO.displayName.parts, orgPolicyViolation);
+    assertThat(riskDTO.score, is(orgPolicyViolation.getThreatLevel() + app1PolicyViolation.getThreatLevel()));
+    assertThat(riskDTO.affectedApplications, is(1));
+
+    riskDTOs = componentRiskService.getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), 1000);
+    assertThat(riskDTOs, hasSize(2));
+    riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(orgPolicyViolation.getHash()));
+    assertDisplayFieldValues(riskDTO.displayName.parts, orgPolicyViolation);
+    assertThat(riskDTO.score, is(orgPolicyViolation.getThreatLevel() + app1PolicyViolation.getThreatLevel()));
+    assertThat(riskDTO.affectedApplications, is(1));
+    riskDTO = riskDTOs.get(1);
+    assertThat(riskDTO.hash, is(policyViolation.getHash()));
+    assertDisplayFieldValues(riskDTO.displayName.parts, policyViolation);
+    assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
+    assertThat(riskDTO.affectedApplications, is(1));
+  }
+
+  @Test
   public void testGetComponentRisks_ScoreBreakdown() throws Exception {
     for (int i = 0; i <= 10; i++) {
       if (i == app2PolicyViolation.getThreatLevel()) {

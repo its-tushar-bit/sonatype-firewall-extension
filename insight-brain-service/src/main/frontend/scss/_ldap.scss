@@ -189,31 +189,3 @@
     box-shadow: none;
   }
 }
-
-.fixed-width-small-form {
-  margin-top: 10px;
-  margin-bottom: 0px;
-  margin-left: auto;
-  max-width: 550px;
-}
-
-/* center the config pages */
-.container.config {
-  width: 520px !important;
-  min-width: 520px !important;
-}
-
-.ldap-configuration-editor {
-  .group-search-warning {
-    color: #9d6800;
-  }
-
-  .toggle-checkbox {
-    margin-top: 12px;
-    padding-left: 0px;
-  }
-
-  .tri-pane a {
-    cursor: pointer;
-  }
-}

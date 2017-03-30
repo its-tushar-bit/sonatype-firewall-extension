@@ -8,150 +8,16 @@
 //Note this is the requested width of the role summary text, plus 22px for the button width and padding
 $role-list-width: 606px;
 
-.container.roles {
-  width: $role-list-width;
-  min-width: $role-list-width;
-
-  h2 {
-    margin-top: 15px;
-    margin-bottom: 0px;
-  }
-
-  form > h2 {
-    border-bottom: $iq-grey-border;
-    margin-bottom: 12px;
-  }
-
-  table {
-    margin-bottom: 36px
-  }
-
-  .toggle-off.btn {
-    padding-left: 20px;
-  }
-}
-
-.role-items {
-  margin: 0px;
-}
-
-.role-item {
-  cursor: pointer;
-}
 
 tr:first-child .role-summary {
   border-top: $iq-grey-border;
-}
-
-.role-summary {
-  border-bottom: $iq-grey-border;
-  padding-bottom: 8px;
-  vertical-align: middle;
-  width: 100%;
-
-  h3 {
-    line-height: initial;
-    margin: 12px 0px 6px 0px;
-  }
-
-  & > div {
-    margin-left: 24px;
-  }
-}
-
-.role-detail-button {
-  padding-left: 8px;
-  vertical-align: middle;
 }
 
 .group-search-warning > .fa {
   margin-right: 8px;
 }
 
-.container.administrators .group-search-warning {
-  margin-top: 8px;
-  margin-bottom: -8px;
-  > .fa {
-    color: #006bbf;
-    margin-right: 8px;
-  }
-}
-
 // Begin styles from app-security.css
-.roles {
-  width: 867px;
-  
-  > div.accordion-group:nth-child(odd) {
-    background-color: #f9f9f9;
-  }
-
-  .collapsed > div {
-    height: 20px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .member-list {
-    display: block;
-    text-indent: -24px;
-  }
-
-  .member-list .tooltip {
-    text-indent: 0px;
-  }
-
-  .collapsed .member-list {
-    display: inline;
-  }
-
-  .collapsed {
-    margin-left: -24px;
-  }
-
-  .expandable > div {
-    padding-bottom: 5px;
-    padding-left: 2px;
-  }
-  
-  .inherited {
-    color: #909090;
-  }
-
-  .inherited-section {
-    display: block;
-    padding-top: 5px;
-  }
-
-  .expandable {
-    cursor: pointer;
-    min-height: 24px;
-    padding: 5px;
-  }
-
-  .inherited-icon {
-    margin-left: -1px;
-    padding-right: 5px;
-    width: 16px;
-  }
-}
-
-.role-content {
-  float: left;
-  min-height: 1px;
-  margin-left: 30px;
-  width: 200px;
-}
-
-.role-header {
-  border-bottom: 1px solid rgba(0, 0, 0, .1);
-  margin-bottom: 10px;
-  
-  h4 {
-    box-sizing: border-box;
-    padding-left: 5px;
-  }
-}
 
 .role {
   .hover-buttons {
@@ -176,39 +42,6 @@ tr:first-child .role-summary {
   }
 }
 // End styles from app-security.css
-
-// Begin styles from management.css
-.container.administrators {
-  width: 955px !important;
-  min-width: 955px !important;
-}
-
-.licenseSelectListItem {
-  cursor: pointer;
-
-  &:hover {
-    background-color: #E8E8E8;
-  }
-}
-
-.large-select-list-header {
-  @include bold();
-
-  border-bottom: 1px solid #d8d8d8;
-  color: #909090;
-  font-size: 12px;
-  height: 25px;
-  padding-left: 7px;
-}
-
-.large-select-query-item {
-  @include bold();
-
-  font-size: 12px;
-  padding-top: 2px;
-  padding-left: 10px;
-}
-// End styles from management.css
 
 // Begin stles from /user/user.css
 .user-parent, .user-parent h4 {
@@ -256,45 +89,3 @@ tr:first-child .role-summary {
   text-align: center;
 }
 // End stles from /user/user.css
-
-// Begin CSS from insight.css
-.selectList, 
-.selectList-large {
-  display: inline-block;
-  vertical-align: top;
-  width: 49.5%;
-  > div {
-    background-color: white;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    height: 200px;
-    overflow: auto;
-    padding: 2px;
-  }
-  > div > div {
-    height: 100%;
-    overflow: auto;
-  }
-  > div > div > div {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-  .icon-plus-sign, .icon-minus-sign {
-    cursor: pointer;
-  }
-}
-
-.selectList-large {
-  > div {
-    height: 300px;
-  }
-}
-
-.fullWidthPrependedTextBox .icon-remove {
-  cursor: pointer;
-}
-// End CSS from insight.css

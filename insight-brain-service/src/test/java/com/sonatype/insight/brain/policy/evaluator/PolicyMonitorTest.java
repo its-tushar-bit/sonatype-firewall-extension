@@ -202,10 +202,28 @@ public class PolicyMonitorTest
 
   @Test
   public void testRun_NoShiroSubjectEmitsApplicationEvaluationEvent() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Stage stage = new Stage(ReleaseStageType.ID);
+
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    // Create the scan file
+    String scanId = "PolicyMonitorTest_scanId";
+    File scanFile = insightWork.getScanFile(app.getId(), scanId);
+    scanFile.delete();
+    URL testScanFileUrl = getClass().getResource("/PolicyMonitorTest/scan.xml.gz");
+    FileUtils.copyFile(new File(testScanFileUrl.getFile()), scanFile);
+
+    // Simulate that the report is available
+    mockReport(scanId, "/PolicyMonitorTest/report.zip");
+
+    evaluatePolicy(app.getPublicId(), scanId, stage);
+
     handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
-    testMonitored(OwnerType.APPLICATION);
+    policyMonitor.run();
 
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
     ApplicationEvaluationEvent event = handler.getEvent();

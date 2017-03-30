@@ -219,6 +219,10 @@ public class DashboardFilterTest
     refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
     ageFilter.twisty().click();
     ageFilter.past30days().shouldNotBe(selected).click();
+    // check that revert button restores previously applied value
+    DashboardFilters.revertButton().shouldNotBe(DISABLED).click();
+    ageFilter.past90days().shouldBe(selected);
+    ageFilter.past30days().shouldNotBe(selected).click();
     DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
     ageFilter.twisty().click();
     ageFilter.singleSelectList().shouldBe(empty);

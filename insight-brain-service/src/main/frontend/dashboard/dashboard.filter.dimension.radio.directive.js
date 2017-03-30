@@ -47,9 +47,14 @@
     var vm = this;
 
     vm.select = select;
+    vm.isChecked = isChecked;
 
     function select(item) {
       $scope.selectedEntry = item;
+    }
+
+    function isChecked(entity) {
+      return $scope.selectedEntry[$scope.idField] === entity[$scope.idField];
     }
   }
 

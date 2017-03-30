@@ -65,7 +65,7 @@
             <label class="radio tree-view-item" ng-repeat="entity in available">
               <input type="radio"
                      name="{{name}}"
-                     ng-checked="selectedEntry === entity"
+                     ng-checked="vm.isChecked(entity)"
                      ng-click="vm.select(entity)">
               <span>{{::entity[nameField]}}</span>
             </label>

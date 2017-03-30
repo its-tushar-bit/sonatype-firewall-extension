@@ -201,7 +201,7 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRun_NoShiroSubjectEmitsApplicationEvaluation() throws Exception {
+  public void testRun_NoShiroSubjectEmitsApplicationEvaluationEvent() throws Exception {
     handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 

@@ -13,7 +13,8 @@ It picks up changes to IQ source automatically so it can be used for development
 Simply change IQ source code and refresh the Component Gallery in the browser.
  
 ## Setup
-Run `npm install` in case you didn't run `mvn install`.
+- Make sure your node version is at least `v6.5.0`. To display your node version use `node -v` command.
+- Run `npm install` in case you didn't run `mvn install`.
 
 ## Run gallery app
 ```

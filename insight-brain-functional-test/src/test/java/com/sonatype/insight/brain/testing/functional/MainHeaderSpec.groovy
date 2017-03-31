@@ -33,13 +33,14 @@ class MainHeaderSpec
       waitFor { userOptions.displayName.text() == "Admin BuiltIn" }
   }
 
-  def "displays version in the header"() {
+  def "displays product edition and version in the header"() {
     given: "user has logged in"
       def props = new Properties()
       props.load(getClass().getResourceAsStream("/version.properties"));
 
     expect: "version is shown"
       waitFor { mainModule.version.displayed }
+      waitFor { mainModule.version.text().contains(clmLicenseManager.getLicenseSummary().productEdition)}
       waitFor { mainModule.version.text().contains(props["version"]) }
   }
 

@@ -7,10 +7,9 @@
 (function() {
   'use strict';
 
-  function MainHeaderController($rootScope, $state, ProductFeatures, PermissionService) {
+  function MainHeaderController($state, ProductFeatures, PermissionService) {
     var vm = this;
 
-    vm.productEdition = $rootScope.productEdition;
     vm.$state = $state;
     vm.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
     vm.permissions = {};
@@ -37,12 +36,15 @@
     }
   }
 
-  MainHeaderController.$inject = ['$rootScope', '$state', 'ProductFeatures', 'PermissionService'];
+  MainHeaderController.$inject = ['$state', 'ProductFeatures', 'PermissionService'];
 
   angular.module('mainHeader').component('mainHeader', {
     controller: MainHeaderController,
     controllerAs: 'vm',
-    templateUrl : 'mainHeader/mainHeader.html?' + clmBuildTimestamp
+    templateUrl : 'mainHeader/mainHeader.html?' + clmBuildTimestamp,
+    bindings: {
+      productEdition: '@'
+    }
   });
 
 }());

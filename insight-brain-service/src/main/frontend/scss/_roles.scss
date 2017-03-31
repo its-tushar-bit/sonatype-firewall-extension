@@ -5,6 +5,13 @@
 }
 
 // DELETE BELOW WHEN REFACTORING ON ROLES PAGES (LIST AND EDIT) IS DONE - GH  
+//Note this is the requested width of the role summary text, plus 22px for the button width and padding
+$role-list-width: 606px;
+
+
+tr:first-child .role-summary {
+  border-top: $iq-grey-border;
+}
 
 .group-search-warning > .fa {
   margin-right: 8px;
@@ -37,6 +44,12 @@
 // End styles from app-security.css
 
 // Begin stles from /user/user.css
+.user-parent, .user-parent h4 {
+  -moz-background-clip: padding; /* for Firefox */
+  -webkit-background-clip: padding-box; /* for Safari */
+  background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+}
+
 .users {
   max-width: 469px;
   min-width: 469px;

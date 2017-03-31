@@ -11,6 +11,7 @@ var rollup = require('rollup-endpoint');
 var html = require('rollup-plugin-html');
 var express = require('express');
 var app = express();
+var port = 4040;
 
 app.get('/assets/app-bundle.js', rollup.serve({
   entry: 'src/main/component-gallery/app/main.js',
@@ -23,7 +24,7 @@ app.use(express.static('src/main/component-gallery'));
 app.use(express.static('src/main/frontend'));
 app.use(express.static('.tmp/scss'));
 
-app.listen(4040);
-console.log("Listening on port 4040");
+app.listen(port);
+console.log('\x1b[35m%s\x1b[0m', 'Gallery is running at http://localhost:' + port);
 
 module.exports = app;

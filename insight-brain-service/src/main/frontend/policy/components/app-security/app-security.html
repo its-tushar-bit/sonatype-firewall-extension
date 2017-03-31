@@ -1,12 +1,15 @@
 <div id="security">
   <script type="text/ng-template" id="appSecurityEditor">
-    <role-membership save="save" role="role" original-members="originalMembers"
-                     get-current-members="getCurrentMembers" is-dirty="isDirty"
+    <role-membership save="save"
+                     role="role"
+                     original-members="originalMembers"
+                     get-current-members="getCurrentMembers"
+                     is-dirty="isDirty"
                      group-search-enabled="groupSearchEnabled"
                      has-mixed-group-search="hasMixedGroupSearch" ldap-realm="context.ldapRealm">
       <div clm-alerts="alerts"></div>
-      <button class="btn btn-link btn-cancel" type="button" ng-click="cancel()">Cancel</button>
-      <button class="btn btn-primary pull-right" type="submit">Save</button>
+      <button class="btn btn-primary" type="submit">Save</button>
+      <button class="btn" type="button" ng-click="cancel()">Cancel</button>
     </role-membership>
   </script>
   <div load-error="error" reload="doLoad()"></div>

@@ -78,7 +78,7 @@ public class AdministratorsPage
         }
 
         public SelenideElement cancelButton() {
-          return child(".btn-cancel");
+          return child("button[ng-click=\"cancel()\"]");
         }
 
         public SelenideElement queryInput() {

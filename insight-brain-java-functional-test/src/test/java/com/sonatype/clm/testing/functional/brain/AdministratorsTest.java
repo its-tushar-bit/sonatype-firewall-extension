@@ -53,7 +53,7 @@ public class AdministratorsTest
       cancelBtn.click();
 
       //dismiss unsaved changes
-      SelenideElement modalBtn = $(".modal .btn-primary");
+      SelenideElement modalBtn = $(".modal-dialog .btn-primary");
       if (modalBtn.exists()) {
         modalBtn.click();
       }

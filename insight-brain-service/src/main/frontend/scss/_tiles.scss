@@ -90,6 +90,8 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 }
 
 .iq-tile-content {
+  clear: both;
+  
   > :last-child {
     margin-bottom: 0;
     padding-bottom: 0;

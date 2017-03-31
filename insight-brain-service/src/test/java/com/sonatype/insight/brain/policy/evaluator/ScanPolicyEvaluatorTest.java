@@ -52,7 +52,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testPostEvent_EmitsScanPolicyEvent() throws IOException, InterruptedException {
+  public void testEvaluate_EmitsApplicationEvaluationEvent() throws IOException, InterruptedException {
     handler = new TestEventHandler<>(new CountDownLatch(1));
 
     String scanId = "scanId";

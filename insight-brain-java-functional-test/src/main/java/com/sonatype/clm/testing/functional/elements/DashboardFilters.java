@@ -16,6 +16,7 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardFilters extends BasicElement<DashboardFilters>
@@ -71,6 +72,12 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
 
   public static SelenideElement saveFilterDirtyAsterisk() {
     return $(".dashboard-filter-name .dashboard-filter-dirty-asterisk");
+  }
+
+  public static void apply() {
+    applyButton().shouldNotBe(DISABLED).click();
+    // wait for changes to be processed
+    applyButton().shouldBe(DISABLED);
   }
 
   public static void toggleTwisties() {

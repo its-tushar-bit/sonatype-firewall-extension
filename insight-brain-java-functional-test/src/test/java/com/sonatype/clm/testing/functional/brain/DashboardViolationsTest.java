@@ -171,13 +171,13 @@ public class DashboardViolationsTest
     ageFilter.past90days().click();
     ageFilter.past90days().shouldBe(selected);
     ageFilter.counter().shouldHave(text("past 90 days"));
-    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    DashboardFilters.apply();
     table.violations().shouldHaveSize(5);
     ageFilter.past90days().shouldBe(selected);
     ageFilter.past30days().shouldNotBe(selected).click();
     ageFilter.past90days().shouldNotBe(selected);
     ageFilter.past30days().shouldBe(selected);
-    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    DashboardFilters.apply();
     refreshOrOpen(VIOLATIONS_URL);
     table.violations().shouldHaveSize(4);
 
@@ -262,7 +262,7 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Violations Data")).click();
     DashboardPage.exportResultsLink().shouldNotBe(visible);
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
-    String exportCsv = new String(responseCopyHandler.getResponseCopy());
+    String exportCsv = new String(responseCopyHandler.consumeResponse());
     Map<String, Date> expectedResults = ImmutableMap.of(
         "1,DashboardViolationsTestLicensePolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo,   //
         "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
@@ -274,10 +274,10 @@ public class DashboardViolationsTest
     // CSV export - filter out threat level 1
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
         "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
         "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo,   //
@@ -289,10 +289,10 @@ public class DashboardViolationsTest
     DashboardFilters.stageFilter().twisty().click();
     DashboardFilters.stageFilter().allItems().click();
     DashboardFilters.stageFilter().build().click();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
         "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
         "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo    //
@@ -303,10 +303,10 @@ public class DashboardViolationsTest
     DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.policyTypeFilter().allItems().click();
     DashboardFilters.policyTypeFilter().security().click();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
         "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo
     );
@@ -316,10 +316,10 @@ public class DashboardViolationsTest
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     assertEquals("Expected empty export", CSV_HEADERS, exportCsv);
   }
 
@@ -393,7 +393,7 @@ public class DashboardViolationsTest
   private void showLowRiskViolations() {
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
   }
 

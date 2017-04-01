@@ -206,7 +206,7 @@ public class DashboardFilterTest
     ageFilter.past30days().shouldBe(selected);
     ageFilter.past90days().shouldNotBe(selected).click();
     ageFilter.past90days().shouldBe(selected);
-    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    DashboardFilters.apply();
     ageFilter.singleSelectList().shouldHaveSize(6);
 
     // filter should be visible but readonly if the loaded filter has non-default age value, even without feature flag
@@ -223,7 +223,7 @@ public class DashboardFilterTest
     DashboardFilters.revertButton().shouldNotBe(DISABLED).click();
     ageFilter.past90days().shouldBe(selected);
     ageFilter.past30days().shouldNotBe(selected).click();
-    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    DashboardFilters.apply();
     ageFilter.twisty().click();
     ageFilter.singleSelectList().shouldBe(empty);
   }
@@ -267,7 +267,7 @@ public class DashboardFilterTest
 
     // make sure changes persist after save + reload
     setSomeFilterValues();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     refresh();
     assertNewCounterState();
 
@@ -298,7 +298,7 @@ public class DashboardFilterTest
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.applicationCategoryFilter().checkboxItem(2).click();
     DashboardFilters.toggleTwisties();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
 
     DashboardPage.violationsView().results().violations().shouldHaveSize(2);
     ViolationTile firstViolation = DashboardPage.violationsView().results().firstViolation();
@@ -323,7 +323,7 @@ public class DashboardFilterTest
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().allItems().shouldBe(selected).click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
 
     // check all tabs - should have the same results
     DashboardPage.violationsTab().click();
@@ -339,7 +339,7 @@ public class DashboardFilterTest
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().waived().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
 
     // violations tab should have only waived violation
     DashboardPage.violationsTab().click();
@@ -368,7 +368,7 @@ public class DashboardFilterTest
     DashboardFilters.toggleTwisties();
     DashboardFilters.policyTypeFilter().security().click();
     DashboardFilters.toggleTwisties();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     refresh();
     // verify policy filter counter
     DashboardFilters.policyTypeFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 4"));
@@ -415,7 +415,7 @@ public class DashboardFilterTest
     manage.tooltip().shouldHave(text("Please apply filter before saving"));
 
     // apply new filter
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
     DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
 
@@ -524,7 +524,7 @@ public class DashboardFilterTest
     saveFilter(filter1, null);
     // modify, apply, but don't save
     setSomeFilterValues();
-    DashboardFilters.applyButton().shouldNotBe(DISABLED).click();
+    DashboardFilters.apply();
     DashboardFilters.saveFilterNameLabel().shouldHave(text("Applied Filter Is Based On Me"));
     DashboardFilters.saveFilterDirtyAsterisk().shouldBe(visible);
 

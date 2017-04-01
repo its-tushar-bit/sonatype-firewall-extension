@@ -209,7 +209,7 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Applications Data")).click();
     DashboardPage.exportResultsLink().shouldNotBe(visible);
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
-    String exportCsv = new String(responseCopyHandler.getResponseCopy());
+    String exportCsv = new String(responseCopyHandler.consumeResponse());
     String[] expectedResults = {
         "App1,1,0,0,0,1",   //
         "App2,3,0,0,3,0",   //
@@ -222,10 +222,10 @@ public class DashboardApplicationsTest
     // CSV export - filter out threat level 1
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
         "App2,3,0,0,3,0",   //
         "App3,7,0,7,0,0",   //
@@ -238,10 +238,10 @@ public class DashboardApplicationsTest
     DashboardFilters.stageFilter().twisty().click();
     DashboardFilters.stageFilter().allItems().click();
     DashboardFilters.stageFilter().release().click();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
         "App3,7,0,7,0,0",   //
         "App4,10,10,0,0,0", //
@@ -253,10 +253,10 @@ public class DashboardApplicationsTest
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(5).click();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
         "App3,7,0,7,0,0",   //
         "App5,10,8,0,2,0"   //
@@ -269,7 +269,7 @@ public class DashboardApplicationsTest
     assertEquals("Application Name,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
     String[] results = Arrays.copyOfRange(lines, 1, lines.length);
     Arrays.sort(results);
-    assertArrayEquals(expectedSortedResults, results);
+    assertArrayEquals(Arrays.toString(results), expectedSortedResults, results);
   }
 
   private Application createApp(int index) {
@@ -301,7 +301,7 @@ public class DashboardApplicationsTest
   private void showLowRiskViolations() {
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
   }
 

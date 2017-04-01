@@ -199,7 +199,7 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Components Data")).click();
     DashboardPage.exportResultsLink().shouldNotBe(visible);
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
-    String exportCsv = new String(responseCopyHandler.getResponseCopy());
+    String exportCsv = new String(responseCopyHandler.consumeResponse());
     String[] expectedResults = {
         "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
         "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
@@ -211,10 +211,10 @@ public class DashboardComponentsTest
     // CSV export - filter out threat level 1
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
         "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
         "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
@@ -224,10 +224,10 @@ public class DashboardComponentsTest
 
     // CSV export - filter out threat level 3
     DashboardFilters.policyThreatLevelFilter().slider().setValues(7, 10);
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
-    exportCsv = new String(responseCopyHandler.getResponseCopy());
+    exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
         "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
         "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
@@ -240,7 +240,7 @@ public class DashboardComponentsTest
     assertEquals("Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
     String[] results = Arrays.copyOfRange(lines, 1, lines.length);
     Arrays.sort(results);
-    assertArrayEquals(expectedSortedResults, results);
+    assertArrayEquals(Arrays.toString(results), expectedSortedResults, results);
   }
 
   private void addComponents(int numberOfComponents, int riskScore) {
@@ -263,7 +263,7 @@ public class DashboardComponentsTest
   private void showLowRiskViolations() {
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
   }
 

@@ -285,7 +285,7 @@ public class DashboardTabNavigationAndTrendsTest
   public void filteringAllDataOutShouldResultInEmptyTrendsModal() {
     DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.policyTypeFilter().license().click();
-    DashboardFilters.applyButton().click();
+    DashboardFilters.apply();
 
     DashboardPage.viewDropdown().click();
     DashboardPage.calculateTrendsLink().click();

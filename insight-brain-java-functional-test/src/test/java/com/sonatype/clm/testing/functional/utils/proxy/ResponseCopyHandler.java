@@ -27,15 +27,22 @@ public class ResponseCopyHandler
 
   private final ReverseProxyHandler reverseProxy;
 
-  private HttpServletResponseCopier responseCopier;
+  private volatile HttpServletResponseCopier responseCopier;
 
   public ResponseCopyHandler(String url, int brainPort) {
     this.url = url;
     this.reverseProxy = new ReverseProxyHandler(brainPort, URI.create(Configuration.baseUrl).getPath());
   }
 
-  public byte[] getResponseCopy() {
-    return responseCopier.getCopy();
+  public byte[] consumeResponse() {
+    for (long start = System.currentTimeMillis(); System.currentTimeMillis() - start <= Configuration.timeout;) {
+      if (responseCopier != null) {
+        byte[] response = responseCopier.getCopy();
+        responseCopier = null;
+        return response;
+      }
+    }
+    throw new IllegalStateException("Timeout waiting for response after " + Configuration.timeout + "ms");
   }
 
   @Override
@@ -45,9 +52,10 @@ public class ResponseCopyHandler
 
   @Override
   public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    this.responseCopier = new HttpServletResponseCopier(response);
-    reverseProxy.handle(request, responseCopier);
-    responseCopier.flushBuffer();
+    HttpServletResponseCopier copier = new HttpServletResponseCopier(response);
+    reverseProxy.handle(request, copier);
+    copier.flushBuffer();
+    responseCopier = copier;
   }
 }
 

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -177,10 +178,10 @@ public class ScanPolicyEvaluator
         boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null);
         PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
             forMonitoring);
+        PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
+            appId, stage.getStageTypeId());
         boolean isForLatestScan = true;
         if (isReevaluation) {
-          PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
-              tx, appId, stage.getStageTypeId());
           isForLatestScan = lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
           policyEvaluation.setForObsoleteScan(!isForLatestScan);
         }
@@ -250,12 +251,28 @@ public class ScanPolicyEvaluator
 
         tx.commit();
 
+        if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
+          String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
+          deletePreviousScanFile(appId, stage, previousScanId);
+        }
+
         log.debug(
             "Persisted policy evaluation results (active={}, waived={}) for application {} from stage {} in {} ms",
             policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
             stage.getStageTypeId(), System.currentTimeMillis() - start);
         return policyEvaluation;
       }
+    }
+  }
+
+  private void deletePreviousScanFile(String appId, Stage stage, String previousScanId) {
+    File previousScanFile = work.getScanFile(appId, previousScanId);
+    try {
+      Files.delete(previousScanFile.toPath());
+    }
+    catch (Exception e) {
+      log.error("Cannot delete previous scan file for app ID {} and stage {}: {}. Cause: {}", appId, stage,
+          previousScanFile.getAbsolutePath(), e.getMessage(), e);
     }
   }
 

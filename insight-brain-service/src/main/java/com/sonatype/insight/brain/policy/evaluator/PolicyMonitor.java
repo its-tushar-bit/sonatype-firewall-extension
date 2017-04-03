@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,7 +116,8 @@ public class PolicyMonitor
     log.info("Policy monitoring evaluated in {} ms", System.currentTimeMillis() - start);
   }
 
-  private void evaluate(Application app, PolicyMonitoring policyMonitoring) throws IOException, InterruptedException {
+  @VisibleForTesting
+  void evaluate(Application app, PolicyMonitoring policyMonitoring) throws IOException, InterruptedException {
     long start = System.currentTimeMillis();
 
     log.info("Policy monitoring is enabled for application '{}' and stage '{}'", app.getName(),
@@ -131,8 +133,29 @@ public class PolicyMonitor
     }
 
     String scanId = lastPrimaryPolicyEvaluation.getScanId();
-    File scanFile = work.getScanFile(app.getId(), scanId);
-    ScanReceipt scanReceipt = uploader.upload(scanFile, app);
+    ScanReceipt scanReceipt;
+    do {
+      File scanFile = work.getScanFile(app.getId(), scanId);
+      try {
+        scanReceipt = uploader.upload(scanFile, app);
+        break;
+      }
+      catch (Exception e) {
+        // Each policy evaluation deletes the scan file for the previous evaluation, which may cause this exception.
+        // If there is a newer scan file, try again.
+        PolicyEvaluation newLastPrimaryPolicyEvaluation = policyEvaluationDAO
+            .getLastPrimaryByApplicationIdAndStageId(app.getId(), policyMonitoring.getStageTypeId());
+        if (scanId.equals(newLastPrimaryPolicyEvaluation.getScanId())) {
+          // There's no newer scan file.
+          throw e;
+        }
+
+        // Try again with the new scan file.
+        scanId = newLastPrimaryPolicyEvaluation.getScanId();
+      }
+    }
+    while (true);
+
     scanReceipt.waitForReport();
 
     PolicyEvaluation lastMonitoringPolicyEvaluation = policyEvaluationDAO.getLastMonitoringByApplicationIdAndScanId(

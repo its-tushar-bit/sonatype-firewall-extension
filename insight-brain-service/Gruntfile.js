@@ -77,9 +77,10 @@
           src: [
             '**/*.{html,ttf,woff,woff2,png,gif,jpg,ico}',
             '!<%= config.templates %>',
-            '!lib/*',
-            'lib/**/*.{js,css,ttf,woff,woff2,swf}',
-            '!lib/**/test/*'
+            '!lib/**',
+            'lib/components-font-awesome/css/font-awesome.min.css',
+            'lib/components-font-awesome/fonts/*',
+            'lib/glyphicon/*',
           ],
           dest: '<%= config.generated %>'
         },

@@ -17,6 +17,7 @@ import '../lib/ngUpload/ng-upload';
 import '../lib/d3/d3';
 import '../lib/zeroclipboard/ZeroClipboard-1.3.2';
 import '../lib/fuse.js/src/fuse';
+import '../lib/protovis/protovis.min'
 
 import Base64 from '../lib/Base64';
 window.Base64 = Base64;

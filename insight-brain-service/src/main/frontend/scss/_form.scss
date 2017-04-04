@@ -441,8 +441,10 @@ td {
 }
 
 .toggle-checkbox .toggle-handle {
-  height: calc(100% - 8px);
-  padding: 4px 7px;
+  background: transparent;
+  height: calc(100% - 10px);
+  margin-top: -1px;
+  padding: 5px 8px;
 }
 
 .toggle-checkbox .btn {
@@ -460,12 +462,20 @@ td {
   }
 }
 
+.toggle.btn-primary {
+  .toggle-handle {
+    background-color: $iq-off-white;
+    margin-right: 8px;
+    padding-left: 0;
+  }
+}
+
 .toggle-checkbox .toggle:not([disabled='disabled']):hover {
   border-color: $iq-link-color-active;
 }
 
 .toggle-checkbox .btn-default {
-  background-color: $iq-off-white;
+  background-color: transparent;
   color: $iq-link-color;
 }
 

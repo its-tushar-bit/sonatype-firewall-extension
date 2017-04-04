@@ -34,20 +34,9 @@ describe('dashboard.results.controller.spec', function() {
         maxPolicyThreatLevel: 8
       };
 
-      var expectedFilters = {
-        organizationIds: ['org1', 'org2'],
-        applicationIds: ['app1', 'app2'],
-        policyThreatTypes: ['category1', 'category2'],
-        stageTypeIds: ['stage1'],
-        applicationTagIds: ['tag1'],
-        policyViolationStates: ['OPEN', 'WAIVED'],
-        maxDaysOld: 90,
-        policyThreatLevel: [3, 8]
-      };
-
       expect(scope.filters).toBeUndefined();
       scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, filterJson);
-      expect(scope.filters).toEqual(expectedFilters);
+      expect(scope.filters).toBe(filterJson);
       expect(scope.maxDaysOld).toEqual(filterJson.maxDaysOld);
     });
   });

@@ -11,7 +11,7 @@ describe('stageFilter.filter.spec', function () {
     expect(result).toEqual(stageList);
 
     // empty filter
-    result = $filter('stageFilter')(stageList, { stageTypeIds : [] });
+    result = $filter('stageFilter')(stageList, { stageTypeFilters : [] });
     expect(result).toEqual(stageList);
   }));
 
@@ -19,7 +19,7 @@ describe('stageFilter.filter.spec', function () {
     var stageList = [{ id : 'build' }, { id : 'stage-release' }, { id : 'release' }, { id : 'operate' }],
         result;
 
-    result = $filter('stageFilter')(stageList, { stageTypeIds : ['release', 'build'] });
+    result = $filter('stageFilter')(stageList, { stageTypeFilters : ['release', 'build'] });
     expect(result).toEqual([{ id : 'build' }, { id : 'release' }]);
   }));
 });

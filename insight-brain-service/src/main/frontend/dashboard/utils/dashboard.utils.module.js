@@ -18,18 +18,18 @@
       params.maxResults = maxResults + 1;
     }
     if (filter) {
-      params.applicationIds = filter.applicationIds;
-      params.policyThreatCategories = (filter.policyThreatTypes &&
-      filter.policyThreatTypes.length > 0) ?
-          filter.policyThreatTypes.join(',') : undefined;
-      params.stageIds = filter.stageTypeIds;
-      params.tagIds = filter.applicationTagIds;
+      params.applicationIds = filter.applicationFilters;
+      params.stageIds = filter.stageTypeFilters;
+      params.tagIds = filter.tagFilters;
       params.policyViolationStates = filter.policyViolationStates;
       params.maxDaysOld = filter.maxDaysOld;
 
-      var threatLvls = filter.policyThreatLevel;
-      if (threatLvls) {
-        params.policyThreatLevelRange = threatLvls.join();
+      if (filter.policyThreatCategoryFilters && filter.policyThreatCategoryFilters.length > 0) {
+        params.policyThreatCategories = filter.policyThreatCategoryFilters.join(',');
+      }
+
+      if (filter.minPolicyThreatLevel !== undefined && filter.maxPolicyThreatLevel !== undefined) {
+        params.policyThreatLevelRange = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel].join(',');
       }
     }
     return params;

@@ -13,9 +13,9 @@
    */
   dashboardUtilsModule.filter('stageFilter', function() {
     return function(input, filter) {
-      if (angular.isArray(input) && filter && filter.stageTypeIds.length > 0) {
+      if (angular.isArray(input) && filter && filter.stageTypeFilters.length > 0) {
         for (var i = 0; i < input.length; i++) {
-          if ($.inArray(input[i].id || input[i].stageTypeId, filter.stageTypeIds) === -1) {
+          if ($.inArray(input[i].id || input[i].stageTypeId, filter.stageTypeFilters) === -1) {
             input.splice(i, 1);
             --i;
           }

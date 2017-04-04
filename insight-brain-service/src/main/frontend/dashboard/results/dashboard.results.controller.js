@@ -17,16 +17,7 @@
     $scope.filters = undefined;
 
     $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS, function(e, newFilters) {
-      $scope.filters = {
-        organizationIds: newFilters.organizationFilters,
-        applicationIds: newFilters.applicationFilters,
-        policyThreatTypes: newFilters.policyThreatCategoryFilters,
-        stageTypeIds: newFilters.stageTypeFilters,
-        applicationTagIds: newFilters.tagFilters,
-        policyViolationStates: newFilters.policyViolationStates,
-        maxDaysOld: newFilters.maxDaysOld,
-        policyThreatLevel: [newFilters.minPolicyThreatLevel, newFilters.maxPolicyThreatLevel]
-      };
+      $scope.filters = newFilters;
       $scope.maxDaysOld = newFilters.maxDaysOld;
     });
 

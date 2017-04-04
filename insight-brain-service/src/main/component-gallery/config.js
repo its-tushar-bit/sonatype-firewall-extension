@@ -20,4 +20,5 @@ export default angular.module('config', ['components'])
       'iq-dropdown': 'styles/iq-dropdown.html',
       'iq-pull-right': 'styles/iq-pull-right.html',
       'iq-scrollable': 'styles/iq-scrollable.html',
+      'iq-radio': 'styles/iq-radio.html',
     });

@@ -66,19 +66,6 @@
       // margin bottom added to last element as FF, and other browsers don't consider padding for overflow
       margin-bottom: $tree-view-margin-bottom;
     }
-
-    .dashboard-filter-name {
-      border-bottom: 1px $iq-grey-4 solid;
-      color: $iq-slate;
-      margin-top: -8px;
-      margin-bottom: 7px; // assumes tree-view-item has padding of 7px
-      padding-bottom: 3px;
-
-      & .dashboard-filter-dirty-asterisk {
-        color: $iq-off-black;
-        font-size: 16px;
-      }
-    }
   }
 
   .dashboard-filter-footer {
@@ -104,6 +91,23 @@
 
   .clm-alert {
     margin: 0 0 8px;
+  }
+}
+
+.dashboard-filter-name {
+  border-bottom: 1px $iq-grey-4 solid;
+  color: $iq-slate;
+  margin-top: -8px;
+  margin-bottom: 7px; // assumes tree-view-item has padding of 7px
+  overflow-x: hidden;
+  padding-bottom: 3px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+
+  & .dashboard-filter-dirty-asterisk {
+    color: $iq-off-black;
+    font-size: 16px;
   }
 }
 

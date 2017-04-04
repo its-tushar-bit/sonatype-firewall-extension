@@ -16,7 +16,7 @@
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'delete-filters-modal clm-modal',
+        windowClass: 'delete-filters-modal iq-modal clm-modal',
         controller: 'delete.filters.modal.controller as vm',
         templateUrl: 'dashboard/manage.filter.menu/delete.filters.modal.html',
         resolve: {

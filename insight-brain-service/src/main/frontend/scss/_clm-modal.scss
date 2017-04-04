@@ -1,8 +1,40 @@
 /*
-  #Modals
+  #iq-modal
 */
 
- $iq-modal-hor-padding: 12px;
+$iq-modal-hor-padding: 12px;
+
+// Height of mainHeader + 8px margin
+$iq-modal-top-spacing: 48px;
+// Standard margin
+$iq-modal-bottom-spacing: 8px;
+// derived from clm-modal-header - refactor in CLM-7824
+$iq-modal-header-height: 39px;
+// derived from clm-modal-footer - refactor in CLM-7824
+$iq-modal-footer-height: 58px;
+
+.iq-modal {
+  height: auto;
+  max-height: calc(100vh - #{$iq-modal-top-spacing} - #{$iq-modal-bottom-spacing});
+  top: $iq-modal-top-spacing;
+}
+
+.delete-filters-modal {
+  .iq-scrollable {
+    height: 100%;
+    max-height: calc(100vh
+                - #{$iq-modal-header-height}
+                - #{$iq-modal-footer-height}
+                - #{$iq-modal-top-spacing}
+                - #{$iq-modal-bottom-spacing}
+                - 38px); // 38px is the padding on clm-modal-body, refactor out when iq-modal (CLM-7824) is done
+    overflow-y: auto;
+  }
+}
+
+/*
+  #Modals
+*/
 
 .modal-backdrop {
   background-color: rgba($iq-off-black, 0.4) !important;

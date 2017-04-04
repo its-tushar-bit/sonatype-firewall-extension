@@ -5,7 +5,7 @@
     </h2>
   </div>
   <form class="clm-form" role="form" name="deleteFilterForm" ng-submit="vm.deleteFilters()">
-    <div class="clm-modal-body" load-wrapper loading="vm.isLoading">
+    <div class="clm-modal-body iq-scrollable" load-wrapper loading="vm.isLoading">
       <div class="section">
         <div class="field" ng-class="{ 'error' : vm.deleteError }">
           <iq-checkbox ng-repeat="(deleteFilter, selected) in vm.filters"

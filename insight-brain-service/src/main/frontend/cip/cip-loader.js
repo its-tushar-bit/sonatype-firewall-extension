@@ -113,29 +113,8 @@
               function(jqXHR) {
                 // 401 error, time to force them to login
                 if (jqXHR.status === 401) {
-                  // put the request in the queue, as multiple requests may be sent simultaneously
-                  requestQueue.push(function() {
-                    oldAjax(options).then(function() {
-                      deferred.resolveWith(context, Array.prototype.slice.apply(arguments));
-                    }, function() {
-                      deferred.rejectWith(context, Array.prototype.slice.apply(arguments));
-                    });
-                  });
-
-                  // prevent multiple requests from popping up the login modal simultaneously
-                  if (requestQueue.length === 1) {
-
-                    // reauthenticate using parent frame's login box
-                    window.parent.triggerUserReauthentication().then(function() {
-                      // login success, go ahead and resend each of the requests
-                      $.each(requestQueue, function(index, requestFn) {
-                        requestFn();
-                      });
-
-                      // clean up
-                      requestQueue = [];
-                    });
-                  }
+                  // signal to the SessionSecurityService in the IQ UI that the session seems to have expired
+                  window.top.sessionExpired();
                 } else {
                   // non auth error, again nothing funky, just reject
                   deferred.rejectWith(context, Array.prototype.slice.apply(arguments));

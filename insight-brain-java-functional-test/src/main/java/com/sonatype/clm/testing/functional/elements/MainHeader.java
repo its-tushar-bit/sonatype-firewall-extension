@@ -21,4 +21,8 @@ public class MainHeader
   public static SelenideElement dashboardNavigationButton() {
     return $(createSelector(".iq-navigation-menu li", nthChild(1), "a"));
   }
+
+  public static SelenideElement userName() {
+    return $("#user-name");
+  }
 }

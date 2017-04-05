@@ -61,6 +61,45 @@ describe('HttpInterceptors.js', function() {
     
     $httpBackend.flush();
   }));
+
+  it('Validate that window.sessionExpired is called if a 401 happens when $rootScope.username is already defined',
+      inject(function($rootScope, $http, $httpBackend, UnauthenticatedRequestQueueService) {
+        var rootScopeHasUsername = $rootScope.hasOwnProperty('username'),
+            oldUsername = $rootScope.username,
+            windowHasSessionExpiredFn = window.hasOwnProperty('sessionExpired');
+
+        if (!windowHasSessionExpiredFn) {
+          // spyOn only works on functions that are already defined
+          window.sessionExpired = function() {};
+        }
+
+        spyOn(window, 'sessionExpired');
+        $rootScope.username = 'testUser';
+
+        $httpBackend.expectPOST('test').respond(401);
+
+        $http.post('test');
+
+        $httpBackend.flush();
+        $rootScope.$digest();
+
+        expect(window.sessionExpired).toHaveBeenCalled();
+        expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
+
+        // cleanup
+        if (rootScopeHasUsername) {
+          $rootScope.username = oldUsername;
+        }
+        else {
+          delete $rootScope.username;
+        }
+
+        if (!windowHasSessionExpiredFn) {
+          delete window.sessionExpired;
+        }
+        // else it is currently a spy wrapped around the original, and jasmine will automatically clean the spy
+      })
+  );
   
   it('Validate that /rest/ and .json paths contains cachebuster, others ignored', inject(function($http, $httpBackend){
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/test')).respond(200);

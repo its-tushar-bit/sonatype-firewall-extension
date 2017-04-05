@@ -22,7 +22,8 @@
   angular.module('InitModule', [
     'ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices', 'ngAria',
     'ReportModule', 'Report', 'mainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
-    'ProductFeaturesModule', 'HttpInterceptors', 'dashboard.module', 'FormsModule'
+    'ProductFeaturesModule', 'HttpInterceptors', 'IqHttpInterceptors', 'dashboard.module', 'FormsModule',
+    'SessionSecurityModule'
   ], [
     '$stateProvider', '$routeProvider', '$urlRouterProvider',
     function($stateProvider, $routeProvider, $urlRouterProvider) {
@@ -77,9 +78,9 @@
     }
   ]).service('initService', [
     'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
-    '$q', '$urlRouter', '$modal', '$timeout', 'state.history.service',
+    '$q', '$urlRouter', '$modal', '$timeout', 'state.history.service', 'SessionSecurityService',
     function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q,
-             $urlRouter, $modal, $timeout, StateHistoryService)
+             $urlRouter, $modal, $timeout, StateHistoryService, SessionSecurityService)
     {
       var savedState = null,
           stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
@@ -113,6 +114,8 @@
         else {
           $state.go('violations');
         }
+
+        SessionSecurityService.init();
       }
 
       function initFailure(data) {

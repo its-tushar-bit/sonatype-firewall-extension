@@ -83,6 +83,7 @@ public class SecurityModule
     manager.addFilter("reverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication));
     manager.addFilter("noSessionReverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication, false));
     manager.addFilter("authcNoChallengeBasic", new NoChallengeBasicHttpAuthenticationFilter());
+    manager.addFilter("sessionExpirationCookie", new SessionExpirationCookieFilter());
     // change the auth type so browsers don't prompt for login details
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme(AUTHC_SCHEME);
   }
@@ -90,34 +91,36 @@ public class SecurityModule
   private void configureFilterChains(DefaultFilterChainManager manager) {
     configureFilterChainsForIntegrations(manager);
 
-    manager.createChain("/*assets/**", "anon"); // assets for the web interface
-    manager.createChain("/favicon.ico", "anon"); // favicon for web interface
-    manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
-    manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
-    manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing
-                                                              // if not authenticated
-    manager.createChain("/rest/product/version", "anon"); // product version info
-    manager.createChain("/rest/version", "anon"); // product version info
-    manager.createChain("/tasks/**", "anon"); // DW tasks exposed on admin port
-    manager.createChain("/ui/links/**", "anon"); // only redirects
+    String anonFilters = "anon, sessionExpirationCookie";
+    manager.createChain("/*assets/**", anonFilters); // assets for the web interface
+    manager.createChain("/favicon.ico", anonFilters); // favicon for web interface
+    manager.createChain("/rest/ide/brain/**", anonFilters); // only redirects
+    manager.createChain("/rest/report/*/*/brain/**", anonFilters); // only redirects
+    manager.createChain("/rest/user/session/logout", anonFilters); // client logout requires no auth, will simply do
+                                                                   // nothing if not authenticated
+    manager.createChain("/rest/product/version", anonFilters); // product version info
+    manager.createChain("/rest/version", anonFilters); // product version info
+    manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port
+    manager.createChain("/ui/links/**", anonFilters); // only redirects
 
     // public REST API, no sessions supported/allowed
     manager.createChain("/api/**", "noSessionAllowed, noSessionCreation, antiCsrf["
         + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], noSessionReverseProxy, authcNoChallengeBasic");
 
     // login, only means to create sessions, also used by integrations for auth validation
-    manager.createChain("/rest/user/session", "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], reverseProxy, authcBasic, secureCookies");
+    manager.createChain("/rest/user/session", "sessionExpirationCookie, antiCsrf["
+        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, authcBasic, secureCookies");
 
     configureFilterChainsForNonAjaxFormSubmissions(manager);
 
     // internal REST API
-    manager.createChain("/**/*", "noSessionCreation, antiCsrf, reverseProxy, authcBasic");
+    manager.createChain("/**/*", "noSessionCreation, antiCsrf, reverseProxy, authcBasic, sessionExpirationCookie");
   }
 
   private void configureFilterChainsForNonAjaxFormSubmissions(DefaultFilterChainManager manager) {
     // old-school (i.e. non-AJAX) form submissions as done by IE9 can't use CSRF header
-    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED + "], reverseProxy, authcBasic";
+    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED
+        + "], reverseProxy, authcBasic, sessionExpirationCookie";
     manager.createChain("/rest/application/icon", filters);
     manager.createChain("/rest/application/icon/sync", filters);
     manager.createChain("/rest/organization/icon", filters);
@@ -134,7 +137,7 @@ public class SecurityModule
   private void configureFilterChainsForIntegrations(DefaultFilterChainManager manager) {
     // client integrations don't have CSRF tokens and need access via explicit auth
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], reverseProxy, authcBasic";
+        + "], reverseProxy, sessionExpirationCookie, authcBasic";
     manager.createChain("/rest/ide/scan/**", filters);
     manager.createChain("/rest/integration/repositories/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);
@@ -159,6 +162,7 @@ public class SecurityModule
     bind.to(WebSessionManager.class);
     bind(WebSessionManager.class).to(DefaultWebSessionManager.class);
     bind(DefaultWebSessionManager.class).in(Singleton.class);
+    expose(DefaultWebSessionManager.class);
     bind(SessionDAO.class).to(MemorySessionDAO.class).in(Singleton.class);
     expose(SessionDAO.class);
   }

@@ -11,25 +11,35 @@
 
   var httpInterceptors = angular.module('HttpInterceptors', []);
 
-  // This is our unauthenticated interceptor factory, will handle creating the interceptor when necessary
-  httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$q', '$rootScope', function($q, $rootScope) {
-    return {
-      responseError: function(response) {
-        // user is unauthenticated, so send out event to handle this state and create a new promise, that will be
-        // fulfilled once user properly logs in
-        if (response.status === 401) {
-          // new promise for each failure, that will be completed once login suceeds
-          var deferred = $q.defer();
-          // broadcast the authentication event.
-          $rootScope.$emit('userNeedsAuthentication', response, deferred);
-          return deferred.promise;
-        } else {
-          // some other general error, just reject it and move on
+  httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '$q', '$rootScope',
+    function($window, $q, $rootScope) {
+      return {
+        responseError: function(response) {
+          if (response.status === 401) {
+            // $rootScope.username will be present if this is the top frame and login had already succeeded previously.
+            // If we are in a child frame (for a report), the username won't be available but we can still detect that
+            // we are in a child frame.
+            if ($rootScope.username || window.top !== window) {
+              // session expired - tell SessionSecurityService of the main IQ UI, which resides in the top frame of
+              // the page.
+              $window.top.sessionExpired();
+            }
+            else {
+              // new promise for each failure, that will be completed once login suceeds
+              var deferred = $q.defer();
+
+              //fresh page load, not logged in yet
+              $rootScope.$emit('userNeedsAuthentication', response, deferred);
+
+              return deferred.promise;
+            }
+          }
+
           return $q.reject(response);
         }
-      }
-    };
-  }]);
+      };
+    }
+  ]);
 
   // This is the cache busting interceptor factory, which handles adding a timestamp query parameter to each request
   // note it's not currently in use, would need to be pushed into the interceptor list in the httpInterceptors.config
@@ -63,13 +73,11 @@
     'LoginModalService',
     'UnauthenticatedRequestQueueService',
     function($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
-      function reauthenticate() {
+      function authenticate() {
         return LoginModalService.show($rootScope.username);
       }
 
       $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
-        var promise;
-
         // if user is already processing login, this will be a login failure response so reject and let them try
         // again
         if (response.config && response.config.clmLogin) {
@@ -87,16 +95,7 @@
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
           if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-            // if we are currently running in an iframe within IQ, delegate to the top frame
-            // for the reauthentication
-            if (window.top !== window && window.top.triggerUserReauthentication) {
-              promise = window.top.triggerUserReauthentication();
-            }
-            else {
-              promise = reauthenticate();
-            }
-
-            promise.then(function() {
+            authenticate().then(function() {
               // retry failed requests and then clear the queue
               $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {
                 UnauthenticatedRequestQueueService.clearRequests();
@@ -105,10 +104,6 @@
           }
         }
       });
-
-      // Expose reauthentication function to global code so that it can be used from outside of angular, particularly
-      // from same-domain child iframes
-      window.triggerUserReauthentication = reauthenticate;
     }
   ]);
 }());

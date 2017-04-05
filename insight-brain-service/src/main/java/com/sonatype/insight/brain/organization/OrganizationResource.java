@@ -11,7 +11,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -26,7 +25,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
@@ -57,12 +55,12 @@ public class OrganizationResource
 
   @Inject
   public OrganizationResource(final InsightWork work,
-                              final HdsClient client,
+                              final RobotImageService robotImageService,
                               final BaseUrl baseUrl,
                               final OrganizationService organizationService,
                               final NgUploadResponseGenerator ngUploadResponseGenerator)
   {
-    super(client, baseUrl, ngUploadResponseGenerator);
+    super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
     this.organizationService = organizationService;
   }
@@ -108,10 +106,8 @@ public class OrganizationResource
   @GET
   @Path(GENERATE_ICON_PATH)
   @Produces("image/png")
-  public Response generateIcon(@PathParam("hashcode") final String hashcode, @Context final HttpServletRequest req)
-      throws IOException
-  {
-    return super.generateIcon(hashcode, req);
+  public Response generateIcon() {
+    return super.generateIcon();
   }
 
   /**
@@ -141,12 +137,11 @@ public class OrganizationResource
                           @Context HttpHeaders headers,
                           @FormDataParam("organizationId") @AuthzContext(Key.ORGANIZATION_ID) String organizationId,
                           @FormDataParam("hasRobotSource") boolean hasRobotSource,
-                          @FormDataParam("robotHash") String robotHash,
                           @FormDataParam("file") InputStream uploadedInputStream,
                           @FormDataParam("file") FormDataContentDisposition fileDetail,
                           @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    return super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, robotHash, uploadedInputStream,
+    return super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, uploadedInputStream,
         fileDetail, csrfToken, headers, noFormData);
   }
 

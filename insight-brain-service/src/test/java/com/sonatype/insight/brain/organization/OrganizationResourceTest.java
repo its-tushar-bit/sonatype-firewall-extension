@@ -159,10 +159,7 @@ public class OrganizationResourceTest
 
   @Test
   public void testGenerateIcon() throws Exception {
-    String hashcode = "abababababababababab";
-    String hdsUrl = "rest/application/icon/generate/" + hashcode;
-    setHdsResponseForURI(hdsUrl, loadDefaultIcon(), 200);
-    HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
+    HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).get();
     assertResponseStatus(200, response);
     Assert.assertNotNull(response.getBodyBytes());
   }

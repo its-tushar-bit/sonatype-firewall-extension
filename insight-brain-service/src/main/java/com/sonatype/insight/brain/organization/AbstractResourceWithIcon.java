@@ -10,80 +10,60 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.concurrent.Callable;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.IconDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
-import org.apache.http.HttpResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 abstract class AbstractResourceWithIcon
 {
-  public static final String GENERATE_ICON_PATH = "services/generateIcon/{hashcode}";
+  public static final String GENERATE_ICON_PATH = "services/generateIcon";
 
   public static final String ICON_PATH = "icon";
-
-  private static final Logger log = LoggerFactory.getLogger(AbstractResourceWithIcon.class);
-
-  private final HdsClient client;
 
   private final BaseUrl baseUrl;
 
   private final NgUploadResponseGenerator ngUploadResponseGenerator;
 
-  protected AbstractResourceWithIcon(HdsClient client,
-                                     BaseUrl baseUrl,
-                                     NgUploadResponseGenerator ngUploadResponseGenerator)
+  private final RobotImageService robotImageService;
+
+  protected AbstractResourceWithIcon(BaseUrl baseUrl,
+                                     NgUploadResponseGenerator ngUploadResponseGenerator,
+                                     RobotImageService robotImageService)
   {
-    this.client = client;
     this.baseUrl = baseUrl;
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
+    this.robotImageService = robotImageService;
   }
 
   private void setIcon(String ownerId,
                        File iconDir,
                        boolean hasRobotSource,
-                       String robotHash,
                        InputStream uploadedInputStream,
                        FormDataContentDisposition fileDetail) throws IOException
   {
     if (hasRobotSource) {
-      try {
-        HttpResponse iconResponse = client.getResponse(null, "rest/application/icon/generate/" + robotHash, null,
-            (String) null);
-        uploadedInputStream = iconResponse.getEntity().getContent();
-      }
-      catch (Exception e) {
-        log.error(e.getMessage(), e);
-        if (uploadedInputStream != null) {
-          uploadedInputStream.close();
-          uploadedInputStream = null;
-        }
+      try (InputStream robotStream = new ByteArrayInputStream(robotImageService.getImage())) {
+        // robot image is expected to be small, so avoid size check
+        new IconDAO().setIcon(ownerId, iconDir, robotStream);
+        return;
       }
     }
-
     byte[] imageByteArray = null;
     if (uploadedInputStream != null) {
       // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
       ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
       try {
-        for (int b = 0; (b = uploadedInputStream.read()) != -1;) {
+        for (int b = 0; (b = uploadedInputStream.read()) != -1; ) {
           if (imageOutputStream.size() > 5242880) {
             throw new BadRequestException("Icon file size must be smaller than 5 MB.");
           }
@@ -115,7 +95,6 @@ abstract class AbstractResourceWithIcon
   protected Response setIcon(final String ownerId,
                              final File iconDir,
                              final boolean hasRobotSource,
-                             final String robotHash,
                              final InputStream uploadedInputStream,
                              final FormDataContentDisposition fileDetail,
                              String csrfToken,
@@ -126,17 +105,14 @@ abstract class AbstractResourceWithIcon
     {
       @Override
       public Void call() throws Exception {
-        setIcon(ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail);
+        setIcon(ownerId, iconDir, hasRobotSource, uploadedInputStream, fileDetail);
         return null;
       }
     });
   }
 
-  protected Response generateIcon(final String hashcode, final HttpServletRequest req) throws IOException {
-    if (hashcode == null || hashcode.isEmpty()) {
-      throw new NotFoundException("Null or empty hashcode.");
-    }
-    return client.doProxy(req, "rest/application/icon/generate/" + hashcode);
+  protected Response generateIcon() {
+    return Response.ok(robotImageService.getImage()).build();
   }
 
   protected Response getIcon(final String ownerId, File iconDir) throws IOException {
@@ -150,14 +126,7 @@ abstract class AbstractResourceWithIcon
       return Response.temporaryRedirect(defaultIconUriBuilder.build()).build();
     }
     final byte[] imageOutputBytes = imageBytes;
-    StreamingOutput stream = new StreamingOutput()
-    {
-      @Override
-      public void write(OutputStream output) throws IOException, WebApplicationException {
-        output.write(imageOutputBytes);
-      }
-    };
-    return Response.ok(stream).build();
+    return Response.ok(imageOutputBytes).build();
   }
 
   protected abstract String getDefaultIconFilename(String ownerId);

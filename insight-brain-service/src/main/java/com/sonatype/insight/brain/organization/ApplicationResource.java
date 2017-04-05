@@ -17,7 +17,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -34,7 +33,6 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -87,13 +85,13 @@ public class ApplicationResource
   @Inject
   public ApplicationResource(final InsightWork work,
                              final BaseUrl baseUrl,
-                             final HdsClient client,
+                             final RobotImageService robotImageService,
                              final ScanPolicyEvaluator scanPolicyEvaluator,
                              final ApplicationAdapter applicationAdapter,
                              final ApplicationService applicationService,
                              final NgUploadResponseGenerator ngUploadResponseGenerator)
   {
-    super(client, baseUrl, ngUploadResponseGenerator);
+    super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.applicationAdapter = applicationAdapter;
@@ -169,7 +167,6 @@ public class ApplicationResource
 
   /**
    * Get an ApplicatinoManagementSummary containing only the information for a specific scan.
-   * 
    * @since 1.7
    */
   @GET
@@ -189,10 +186,8 @@ public class ApplicationResource
   @GET
   @Path(GENERATE_ICON_PATH)
   @Produces("image/png")
-  public Response generateIcon(@PathParam("hashcode") final String hashcode, @Context final HttpServletRequest req)
-      throws IOException
-  {
-    return super.generateIcon(hashcode, req);
+  public Response generateIcon() {
+    return super.generateIcon();
   }
 
   @GET
@@ -219,12 +214,11 @@ public class ApplicationResource
                           @Context HttpHeaders headers,
                           @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
                           @FormDataParam("hasRobotSource") boolean hasRobotSource,
-                          @FormDataParam("robotHash") String robotHash,
                           @FormDataParam("file") InputStream uploadedInputStream,
                           @FormDataParam("file") FormDataContentDisposition fileDetail,
                           @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    return super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash, uploadedInputStream,
+    return super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, uploadedInputStream,
         fileDetail, csrfToken, headers, noFormData);
   }
 

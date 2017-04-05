@@ -123,7 +123,7 @@
         },
 
         getRobotUrl: function (ownerType, robotHash) {
-          return baseUrl.get() + '/rest/' + ownerType + '/services/generateIcon/' + robotHash;
+          return baseUrl.get() + '/rest/' + ownerType + '/services/generateIcon?h=' + robotHash;
         },
 
         getRoleMappingUrl: function(roleId) {

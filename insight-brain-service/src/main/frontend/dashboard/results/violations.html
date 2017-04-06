@@ -58,12 +58,12 @@
               <div class="clm-bar" threat-class="risk.threatLevel">&nbsp;</div>
               <div class="reports-row">
                 <a ng-repeat="stageDetails in risk.stageDetails | stageTypeSort | stageFilter:filters"
-                   ng-class="{'disabled': !stageDetails.scanId}" class="link"
+                   ng-class="::{'disabled': !stageDetails.scanId}" class="link"
                    ng-click="vm.openReport(risk.applicationPublicId, stageDetails.scanId)"><!--
                --><i class="fa fa-external-link fa-fw"/><!--
-               --><i ng-class="{'fa fa-exclamation-triangle warn' : stageDetails.actionTypeId === 'warn',
+               --><i ng-class="::{'fa fa-exclamation-triangle warn' : stageDetails.actionTypeId === 'warn',
                     'fa fa-exclamation-circle fail' : stageDetails.actionTypeId === 'fail'}"></i><!--
-               --><span>{{vm.stageTypes[stageDetails.stageTypeId].shortName}} report{{stageDetails.time | terseAgo | wrapWith : " (" : ")"}}</span><!--
+               --><span>{{::vm.stageTypes[stageDetails.stageTypeId].shortName}} report{{::stageDetails.time | terseAgo | wrapWith : " (" : ")"}}</span><!--
              --></a>
               </div>
             </div>

@@ -19,7 +19,7 @@
       restrict: 'A',
       replace: true,
       scope: {
-        displayName : '=componentName'
+        displayName : '<componentName'
       },
       templateUrl: 'displayname'
     };
@@ -57,7 +57,7 @@
       restrict: 'A',
       replace: true,
       scope: {
-        component: '=',
+        component: '<',
         truncate: '@'
       },
       templateUrl: 'linked-component-display'

@@ -11,7 +11,7 @@
    * A service that keeps track of how long it has been since the session was refreshed, and if it has been too long,
    * assumes that the session has expired and refreshes the page for security
    */
-  function SessionSecurityService($cookies, $timeout, $window) {
+  function SessionSecurityService($cookies, $window) {
     /*
      * the approximate difference between the server's clock time and the time on the client.  This is necessary to
      * more reliably determine whether the server session has timed out.  Note that this value cannot be exact because
@@ -62,7 +62,12 @@
       var sessionTimeoutMillis = sessionExpirationTimestamp - new Date();
 
       if (!isNaN(sessionTimeoutMillis)) {
-        $timeout(checkSessionExpired, sessionTimeoutMillis, false);
+        // NOTE don't use $timeout here. Angular appears to have an issue where having more than one
+        // forever-repeating timeout/interval causes it to never consider the page to be "stable", which
+        // breaks everything that relies on our StableBodyService. By using setTimeout instead of $timeout, we
+        // avoid letting angular know about this timeout so that problem is avoided.
+        // Cleanup of the StableBodyService is in https://issues.sonatype.org/browse/CLM-7840
+        setTimeout(checkSessionExpired, sessionTimeoutMillis);
       }
       else {
         console.warn(COOKIE_NAME + ' cookie is missing. Session timeout detection will be disabled');
@@ -87,7 +92,7 @@
     };
   }
 
-  SessionSecurityService.$inject = ['$cookies', '$timeout', '$window'];
+  SessionSecurityService.$inject = ['$cookies', '$window'];
 
   angular.module('SessionSecurityModule', ['ngCookies']) //
       .service('SessionSecurityService', SessionSecurityService) //

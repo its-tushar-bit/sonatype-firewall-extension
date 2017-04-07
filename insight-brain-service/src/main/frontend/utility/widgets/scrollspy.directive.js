@@ -57,6 +57,7 @@
                 target: $scope.scrollspy,
                 offset: 10
               });
+              element.addClass('scroll-spy-initialized');
             }, 250);
           });
         }

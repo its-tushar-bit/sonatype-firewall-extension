@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage.SummaryTile;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -34,6 +35,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
@@ -41,6 +43,8 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.DISABLED_ICON;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.ENABLED_ICON;
+import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrolledOffTop;
+import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollSpyInitialized;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -239,5 +243,40 @@ public class RepositoriesSummaryPageTest
     writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
     writeOnly.userIcon().shouldBe(visible);
     writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
+  }
+
+  @Test
+  public void testScrollSpy() {
+    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.configTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+
+    // wait until the scroll spy code initializes. The scroll-spy-initialized class is a marker for that
+    RepositoriesSummaryPage.scrollContainer().shouldHave(scrollSpyInitialized);
+
+    RepositoriesSummaryPage.SummaryTile.accessButton().click();
+    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.configTile().shouldBe(scrolledOffTop);
+    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+
+    RepositoriesSummaryPage.SummaryTile.configButton().click();
+    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.configTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+
+    ScrollUtil.scrollToTop(RepositoriesSummaryPage.SummaryTile.accessTile());
+    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.configTile().shouldBe(scrolledOffTop);
+    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+
+    ScrollUtil.scrollToTop(RepositoriesSummaryPage.SummaryTile.configTile());
+    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.SummaryTile.configTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
   }
 }

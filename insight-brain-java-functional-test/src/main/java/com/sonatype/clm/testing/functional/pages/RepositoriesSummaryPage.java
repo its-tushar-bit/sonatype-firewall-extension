@@ -21,6 +21,10 @@ public class RepositoriesSummaryPage
 
   public static String URL = BaseUrl.uriBuilder().fragment("/management/view/repositories").build().toString();
 
+  public static SelenideElement scrollContainer() {
+    return $(".tile-scroll-container");
+  }
+
   public static class SummaryTile
   {
     public static SelenideElement name() {
@@ -41,6 +45,14 @@ public class RepositoriesSummaryPage
 
     public static SelenideElement localAccessRole(String roleName) {
       return $$("#repositories-pill-access table td.role").findBy(text(roleName));
+    }
+
+    public static SelenideElement configTile() {
+      return $("#repositories-pill-configuration");
+    }
+
+    public static SelenideElement accessTile() {
+      return $("#repositories-pill-access");
     }
   }
 }

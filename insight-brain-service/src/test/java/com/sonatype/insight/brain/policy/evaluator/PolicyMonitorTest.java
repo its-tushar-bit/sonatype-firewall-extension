@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.security.Permission;
 import java.util.Collection;
 import java.util.Date;
@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.mail.Message;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -54,14 +55,14 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
-import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -119,7 +120,7 @@ public class PolicyMonitorTest
     createScanFile(app, scanId);
 
     // Simulate that the report is available
-    mockReport(scanId, "/PolicyMonitorTest/report.zip");
+    mockScanReceiptAndReport(scanId);
 
     evaluatePolicy(app.getPublicId(), scanId, stage);
 
@@ -213,13 +214,15 @@ public class PolicyMonitorTest
     createScanFile(app, scanId);
 
     // Simulate that the report is available
-    mockReport(scanId, "/PolicyMonitorTest/report.zip");
+    mockScanReceiptAndReport(scanId);
 
     evaluatePolicy(app.getPublicId(), scanId, stage);
 
     handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
 
+    scanId = "PolicyMonitorTest_scanId1";
+    mockScanReceiptAndReport(scanId);
     policyMonitor.run();
 
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS), is(true));
@@ -253,7 +256,7 @@ public class PolicyMonitorTest
 
     String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
-    String scanId = "PolicyMonitorTest_scanId";
+    String scanId1 = "PolicyMonitorTest_scanId1";
 
     String notifyEmail = "developer@sonatype.com";
     String monitorNotifyEmail1 = "monitor1@sonatype.com";
@@ -264,10 +267,10 @@ public class PolicyMonitorTest
     Policy policy3 = createPolicy(app.getId(), "Policy3", stage, notifyEmail, null /* monitorNotifyEmail */);
     Policy policy4 = createPolicy(parentOrg.getId(), "Policy4", stage, notifyEmail, monitorNotifyEmail3);
 
-    File scanFile = createScanFile(app, scanId);
+    File scanFile1 = createScanFile(app, scanId1);
 
     // Simulate that the report is available
-    mockReport(scanId, "/PolicyMonitorTest/report.zip");
+    mockScanReceiptAndReport(scanId1);
 
     // Prepare to receive email notifications
     List<Message> notificationsDeveloper = Mailbox.get(notifyEmail);
@@ -280,7 +283,7 @@ public class PolicyMonitorTest
     notificationsMonitor3.clear();
 
     // Evaluate the policy. Only the developer should receive a notification.
-    evaluatePolicy(app.getPublicId(), scanId, stage);
+    evaluatePolicy(app.getPublicId(), scanId1, stage);
     assertNotifications(notificationsMonitor1, 0, 5000);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
@@ -294,13 +297,16 @@ public class PolicyMonitorTest
       assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
       assertThat(policyViolation.getNotificationsString(), is(notifyEmail));
     }
-    assertThat(scanFile.exists(), is(true));
+    assertThat(scanFile1.exists(), is(true));
 
     // Run the policy monitor. There should be a new policy evaluation, but no notifications because nothing changed.
+    String scanId2 = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(scanId2);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation2.getId(), not(is(policyEvaluation1.getId())));
+    assertThat(policyEvaluation2.getScanId(), is(scanId2));
     assertThat(policyEvaluation2.getTime(), is(greaterThan(policyEvaluation1.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation2.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
@@ -310,16 +316,21 @@ public class PolicyMonitorTest
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
-    assertThat(scanFile.exists(), is(true));
+    assertThat(scanFile1.exists(), is(false));
+    File scanFile2 = insightWork.getScanFile(app.getId(), scanId2);
+    assertThat(scanFile2.exists(), is(true));
 
     // Modify policy3 and run the monitor again. There should be a new policy evaluation, but no notifications
     // because policy3 does not have notifications for monitoring.
     policy3.setName(policy3.getName() + "Updated");
     updatePolicy(OwnerType.APPLICATION, app.getPublicId(), policy3);
+    String scanId3 = "PolicyMonitorTest_scanId3";
+    mockScanReceiptAndReport(scanId3);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation3 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation3.getId(), not(is(policyEvaluation2.getId())));
+    assertThat(policyEvaluation3.getScanId(), is(scanId3));
     assertThat(policyEvaluation3.getTime(), is(greaterThan(policyEvaluation2.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation3.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
@@ -329,15 +340,20 @@ public class PolicyMonitorTest
     assertNotifications(notificationsMonitor1, 0, 0);
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
-    assertThat(scanFile.exists(), is(true));
+    assertThat(scanFile2.exists(), is(false));
+    File scanFile3 = insightWork.getScanFile(app.getId(), scanId3);
+    assertThat(scanFile3.exists(), is(true));
 
     // Modify policy1 and run the monitor again. Only the first monitor email should receive a notification.
     policy1.setName(policy1.getName() + "Updated");
     updatePolicy(OwnerType.APPLICATION, app.getPublicId(), policy1);
+    String scanId4 = "PolicyMonitorTest_scanId4";
+    mockScanReceiptAndReport(scanId4);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation4 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation4.getId(), not(is(policyEvaluation3.getId())));
+    assertThat(policyEvaluation4.getScanId(), is(scanId4));
     assertThat(policyEvaluation4.getTime(), is(greaterThan(policyEvaluation3.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation4.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
@@ -353,15 +369,20 @@ public class PolicyMonitorTest
     assertNotifications(notificationsMonitor3, 0, 0);
     assertNotifications(notificationsMonitor1, 1, 0);
     notificationsMonitor1.clear();
-    assertThat(scanFile.exists(), is(true));
+    assertThat(scanFile3.exists(), is(false));
+    File scanFile4 = insightWork.getScanFile(app.getId(), scanId4);
+    assertThat(scanFile4.exists(), is(true));
 
     // Modify policy2 and run the monitor again. Only the second monitor email should receive a notification.
     policy2.setName(policy2.getName() + "Updated");
     updatePolicy(OwnerType.ORGANIZATION, org.getId(), policy2);
+    String scanId5 = "PolicyMonitorTest_scanId5";
+    mockScanReceiptAndReport(scanId5);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation5 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation5.getId(), not(is(policyEvaluation4.getId())));
+    assertThat(policyEvaluation5.getScanId(), is(scanId5));
     assertThat(policyEvaluation5.getTime(), is(greaterThan(policyEvaluation4.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation5.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
@@ -377,15 +398,20 @@ public class PolicyMonitorTest
     assertNotifications(notificationsMonitor2, 1, 0);
     assertNotifications(notificationsMonitor3, 0, 0);
     notificationsMonitor2.clear();
-    assertThat(scanFile.exists(), is(true));
+    assertThat(scanFile4.exists(), is(false));
+    File scanFile5 = insightWork.getScanFile(app.getId(), scanId5);
+    assertThat(scanFile5.exists(), is(true));
 
     // Modify policy4 and run the monitor again. Only the forth monitor email should receive a notification
     policy4.setName(policy4.getName() + "Updated");
     updatePolicy(OwnerType.ORGANIZATION, parentOrg.getId(), policy4);
+    String scanId6 = "PolicyMonitorTest_scanId6";
+    mockScanReceiptAndReport(scanId6);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation6 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation6.getId(), not(is(policyEvaluation5.getId())));
+    assertThat(policyEvaluation6.getScanId(), is(scanId6));
     assertThat(policyEvaluation6.getTime(), is(greaterThan(policyEvaluation5.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation6.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
@@ -401,7 +427,9 @@ public class PolicyMonitorTest
     assertNotifications(notificationsMonitor2, 0, 0);
     assertNotifications(notificationsMonitor3, 1, 0);
     notificationsMonitor3.clear();
-    assertThat(scanFile.exists(), is(true));
+    assertThat(scanFile5.exists(), is(false));
+    File scanFile6 = insightWork.getScanFile(app.getId(), scanId6);
+    assertThat(scanFile6.exists(), is(true));
   }
 
   private Policy createPolicy(String ownerId,
@@ -459,17 +487,17 @@ public class PolicyMonitorTest
     String scanId = "PolicyMonitorTest_scanId";
 
     // Simulate that the report is available and evaluate policies
-    mockReport(scanId, "/PolicyMonitorTest/report.zip");
+    mockScanReceiptAndReport(scanId);
     evaluatePolicy(app.getPublicId(), scanId, stage);
 
-    // The scan file does not exist, which will cause a FileNotFoundException in the policy monitoring.
+    // The scan file does not exist, which will cause an IOException in the policy monitoring.
     try {
       policyMonitor.evaluate(app, policyMonitoring);
       fail("Expected exception");
     }
-    catch (FileNotFoundException expected) {
+    catch (IOException expected) {
       File scanFile = insightWork.getScanFile(app.getId(), scanId);
-      assertThat(expected.getMessage(), endsWith(scanFile.getName()));
+      assertThat(expected.getMessage(), containsString(scanFile.getName()));
     }
   }
 
@@ -481,13 +509,14 @@ public class PolicyMonitorTest
     PolicyMonitoring policyMonitoring = tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
 
     String scanId1 = "PolicyMonitorTest_scanId1";
-    final File scanFile1 = createScanFile(app, scanId1);
+    final File scanFile1 = createScanFile(app, scanId1, "test1");
 
     // Simulate that the report is available and evaluate policies
-    mockReport(scanId1, "/PolicyMonitorTest/report.zip");
+    mockScanReceiptAndReport(scanId1);
     evaluatePolicy(app.getPublicId(), scanId1, stage);
 
     final String scanId2 = "PolicyMonitorTest_scanId2";
+    final String scanId3 = "PolicyMonitorTest_scanId3";
 
     // Simulate a race condition between monitoring and policy evaluation:
     // Plug in a SecurityManager that triggers a new policy evaluation with a new scan file when the first scan file is
@@ -503,9 +532,12 @@ public class PolicyMonitorTest
         public void checkRead(String file) {
           if (enabled && file.contains(scanFile1.getName())) {
             enabled = false;
-            createScanFile(app, scanId2);
-            mockReport(scanId2, "/PolicyMonitorTest/report.zip");
+            createScanFile(app, scanId2, "test2");
+            mockScanReceiptAndReport(scanId2);
             evaluatePolicy(app.getPublicId(), scanId2, stage);
+
+            // Prepare the HDS mock server to reply with scanId3 for the next uploaded scan.
+            mockScanReceiptAndReport(scanId3);
 
             throw new SecurityException("Read denied for " + file);
           }
@@ -526,20 +558,34 @@ public class PolicyMonitorTest
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation.isForMonitoring(), is(true));
-    assertThat(policyEvaluation.getScanId(), is(scanId2));
+    assertThat(policyEvaluation.getScanId(), is(scanId3));
+    File scanFile3 = insightWork.getScanFile(app.getId(), scanId3);
+    assertThat(FileUtils.readFileToString(scanFile3, "UTF-8"), is("test2"));
   }
 
   private File createScanFile(Application app, String scanId) {
+    return createScanFile(app, scanId, "test");
+  }
+
+  private File createScanFile(Application app, String scanId, String fileContent) {
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
-    scanFile.delete();
-    URL testScanFileUrl = getClass().getResource("/PolicyMonitorTest/scan.xml.gz");
+
     try {
-      FileUtils.copyFile(new File(testScanFileUrl.getFile()), scanFile);
+      Files.createDirectories(scanFile.getParentFile().toPath());
+      Files.write(scanFile.toPath(), fileContent.getBytes(Charset.forName("UTF-8")));
     }
     catch (IOException e) {
       throw new RuntimeException(e);
     }
 
     return scanFile;
+  }
+
+  private void mockScanReceiptAndReport(String scanId) {
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    scanReceipt.setTimeToReport(1L);
+    mockScanReceipt(scanReceipt);
+    mockReport(scanId, "/PolicyMonitorTest/report.zip");
   }
 }

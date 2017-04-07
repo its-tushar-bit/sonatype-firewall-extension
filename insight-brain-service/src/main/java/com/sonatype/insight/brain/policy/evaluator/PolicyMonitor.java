@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -132,12 +134,14 @@ public class PolicyMonitor
       return;
     }
 
-    String scanId = lastPrimaryPolicyEvaluation.getScanId();
+    // Copy the last scan file to a new scan file that will get a new scan id.
+    String lastScanId = lastPrimaryPolicyEvaluation.getScanId();
+    File tempScanFile = work.getScanFile(app.getId(), "tmp-" + UUID.randomUUID());
     ScanReceipt scanReceipt;
     do {
-      File scanFile = work.getScanFile(app.getId(), scanId);
+      File lastScanFile = work.getScanFile(app.getId(), lastScanId);
       try {
-        scanReceipt = uploader.upload(scanFile, app);
+        Files.copy(lastScanFile.toPath(), tempScanFile.toPath());
         break;
       }
       catch (Exception e) {
@@ -145,24 +149,28 @@ public class PolicyMonitor
         // If there is a newer scan file, try again.
         PolicyEvaluation newLastPrimaryPolicyEvaluation = policyEvaluationDAO
             .getLastPrimaryByApplicationIdAndStageId(app.getId(), policyMonitoring.getStageTypeId());
-        if (scanId.equals(newLastPrimaryPolicyEvaluation.getScanId())) {
+        if (lastScanId.equals(newLastPrimaryPolicyEvaluation.getScanId())) {
           // There's no newer scan file.
           throw e;
         }
 
         // Try again with the new scan file.
-        scanId = newLastPrimaryPolicyEvaluation.getScanId();
+        lastScanId = newLastPrimaryPolicyEvaluation.getScanId();
       }
     }
     while (true);
 
+    // Upload the scan and rename the new scan file using the new scan id.
+    scanReceipt = uploader.upload(tempScanFile, app);
     scanReceipt.waitForReport();
+    String newScanId = scanReceipt.getScanId();
+    Files.move(tempScanFile.toPath(), work.getScanFile(app.getId(), newScanId).toPath());
 
-    PolicyEvaluation lastMonitoringPolicyEvaluation = policyEvaluationDAO.getLastMonitoringByApplicationIdAndScanId(
-        app.getId(), scanId);
-
+    // Evaluate policies and send notifications
+    PolicyEvaluation lastMonitoringPolicyEvaluation = policyEvaluationDAO
+        .getLastMonitoringByApplicationIdAndScanId(app.getId(), lastScanId);
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluateForMonitoring(app.getPublicId(), scanId, stage);
+    PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluateForMonitoring(app.getPublicId(), newScanId, stage);
     policyAlertNotifier.sendNotifications(app, policyEvaluation,
         lastMonitoringPolicyEvaluation != null ? lastMonitoringPolicyEvaluation : lastPrimaryPolicyEvaluation);
 

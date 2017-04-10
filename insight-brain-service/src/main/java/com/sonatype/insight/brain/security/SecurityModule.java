@@ -92,7 +92,10 @@ public class SecurityModule
     configureFilterChainsForIntegrations(manager);
 
     String anonFilters = "anon, sessionExpirationCookie";
-    manager.createChain("/*assets/**", anonFilters); // assets for the web interface
+    // Activate the antiCsrf filter for static assets so that the first resource loaded for any given page sets the CSRF
+    // token cookie. We want the cookie to be available for the front-end code as soon as possible so that subsequent
+    // requests that are unsafe can access it.
+    manager.createChain("/*assets/**", anonFilters + ", antiCsrf"); // assets for the web interface
     manager.createChain("/favicon.ico", anonFilters); // favicon for web interface
     manager.createChain("/rest/ide/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", anonFilters); // only redirects

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.net.HttpCookie;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -21,6 +22,7 @@ import org.junit.runners.Parameterized;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(Parameterized.class)
 public class AntiCsrfFilterTest
@@ -123,6 +125,16 @@ public class AntiCsrfFilterTest
     else {
       assertLoginFailure(response);
     }
+  }
+
+  @Test
+  public void testRequestToIndexPageInitializesCsrfCookie() throws Exception {
+    HttpResponse response = super.restRequest().header("REMOTE_USER", "admin").noCsrfToken().path("/assets/index.html")
+        .get();
+
+    HttpCookie csrfCookie = response.getCookie(AntiCsrfFilter.CSRF_COOKIE_NAME);
+    assertThat(csrfCookie, notNullValue());
+    assertThat(csrfCookie.getValue(), notNullValue());
   }
 
   @Test

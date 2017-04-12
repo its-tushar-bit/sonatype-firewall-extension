@@ -6,7 +6,9 @@
 import '../frontend/components/module';
 import '../frontend/components/iqCheckbox/iqCheckbox';
 
-export default angular.module('config', ['components'])
+import charts from './charts/module';
+
+export default angular.module('config', ['components', charts.name])
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
     })

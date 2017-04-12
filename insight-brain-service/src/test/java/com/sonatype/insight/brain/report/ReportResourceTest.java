@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityOverrideResource;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -103,6 +104,7 @@ import static org.junit.Assert.fail;
 public class ReportResourceTest
     extends AbstractResourceTest
 {
+
   private HttpRequest restRequest(String appId, String scanId) {
     return restRequest().path(ReportResource.RESOURCE_PATH).parameter(appId, scanId);
   }
@@ -619,11 +621,8 @@ public class ReportResourceTest
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
-
+    createReportFile(appId, scanId);
     tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
-
-    mockReport(scanId, "/ReportResourceTest/report");
-
     final HttpResponse response;
     try {
       response = restRequest(applicationPublicId, scanId).path("printReport").get();
@@ -647,13 +646,10 @@ public class ReportResourceTest
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
-
+    createReportFile(appId, scanId);
     tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
 
     HttpRequest request = restRequest(applicationPublicId, scanId).path("printReport");
-
-    mockReport(scanId, "/ReportResourceTest/report");
-
     HttpResponse response;
     try {
       response = request.get();
@@ -1357,5 +1353,10 @@ public class ReportResourceTest
       }
     }
     return countNotZero;
+  }
+
+  private void createReportFile(String appId, String scanId) throws IOException {
+    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"),
+        new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId));
   }
 }

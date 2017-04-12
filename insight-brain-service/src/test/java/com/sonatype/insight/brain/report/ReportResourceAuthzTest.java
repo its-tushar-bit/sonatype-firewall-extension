@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.IOException;
+
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -12,13 +14,16 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 public class ReportResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(ReportResource.RESOURCE_PATH);
@@ -48,10 +53,8 @@ public class ReportResourceAuthzTest
   public void testPrintReport() throws Exception {
     String scanId = "scanId";
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
-    mockReport(scanId, "/ReportResourceTest/report");
-
+    createReportFile(app.getId(), scanId);
     grantReadPermission(app.getId());
-
     HttpRequest request = restRequest().path(ReportResource.PRINT_PATH).parameter(app.getPublicId(), "scanId");
     testAuthzGet(request);
   }
@@ -71,11 +74,9 @@ public class ReportResourceAuthzTest
   @Test
   public void testReevaluatePolicy() throws Exception {
     String scanId = "scanId";
-    mockReport(scanId, "/ReportResourceTest/report");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-
+    createReportFile(app.getId(), scanId);
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-
     HttpRequest request = restRequest().path("reevaluatePolicy").parameter(app.getPublicId(), "scanId");
     testAuthzPost(request);
   }
@@ -114,5 +115,10 @@ public class ReportResourceAuthzTest
     HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
     HttpResponse response = request.anon().get();
     assertResponseStatus(200, response);
+  }
+
+  private void createReportFile(String appId, String scanId) throws IOException {
+    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"),
+        new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId));
   }
 }

@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -22,9 +24,11 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
@@ -43,6 +47,8 @@ public class ReportServiceTest
 
   private String scanId = "ReportServiceTestScanId";
 
+  private PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+
   @Before
   public void before() throws Exception {
     app = tempEntity.newApplicationWithParent("testAppPublicId");
@@ -58,11 +64,27 @@ public class ReportServiceTest
   public void testFetchReport_Exists() throws Exception {
     createReportFile();
     ReportDownloader reportDownloader = null;
-    ReportService reportService = new ReportService(insightWork, reportDownloader);
+
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
     assertThat(report, notNullValue());
     assertThat(report.exists(), is(true));
     assertThat(report.getName(), is("report.zip"));
+  }
+
+  @Test
+  public void testFetchReport_DoesNotExistAndEvaluationExist() throws Exception {
+    ReportDownloader reportDownloader = mock(ReportDownloader.class);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
+    try {
+      reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
+      fail("IllegalStateException expected but not thrown");
+    }
+    catch (IllegalStateException e) {
+      assertThat(e.getMessage(),
+          equalTo("The report file does not exist for application ID " + app.getId() + " and scan ID " + scanId + "."));
+    }
   }
 
   @Test
@@ -78,7 +100,7 @@ public class ReportServiceTest
       }
     });
 
-    ReportService reportService = new ReportService(insightWork, reportDownloader);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
     assertThat(report, notNullValue());
     assertThat(report.exists(), is(true));
@@ -89,7 +111,7 @@ public class ReportServiceTest
   public void testGetReport_Exists() throws Exception {
     createReportFile();
     ReportDownloader reportDownloader = null;
-    ReportService reportService = new ReportService(insightWork, reportDownloader);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
     File report = reportService.getReport(insightWork, app.getId(), scanId);
     assertThat(report, notNullValue());
     assertThat(report.exists(), is(true));
@@ -99,7 +121,7 @@ public class ReportServiceTest
   @Test
   public void testGetReport_DoesNotExist() throws Exception {
     ReportDownloader reportDownloader = null;
-    ReportService reportService = new ReportService(insightWork, reportDownloader);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
     File report = reportService.getReport(insightWork, app.getId(), scanId);
     assertThat(report, nullValue());
   }

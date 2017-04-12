@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -36,10 +37,13 @@ public class ReportService
   private static final ConcurrentMap<String, Lock> LOCK_TABLE = CacheBuilder.newBuilder().weakValues()
       .<String, Lock> build().asMap();
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   @Inject
-  public ReportService(InsightWork work, ReportDownloader reportDownloader) {
+  public ReportService(InsightWork work, ReportDownloader reportDownloader, PolicyEvaluationDAO policyEvaluationDAO) {
     this.work = work;
     this.reportDownloader = reportDownloader;
+    this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
   public File fetchReport(final InsightWork work, final String appId, final String scanId, final boolean waitForReport)
@@ -56,6 +60,10 @@ public class ReportService
     }
     try {
       if (!reportFile.exists()) {
+        if (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null) {
+          throw new IllegalStateException(
+              "The report file does not exist for application ID " + appId + " and scan ID " + scanId + ".");
+        }
         int attempts = 0;
         int interval = 0;
 

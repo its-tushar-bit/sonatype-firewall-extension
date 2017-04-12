@@ -6,8 +6,8 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.Checkbox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.IqCheckbox;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
@@ -95,7 +95,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     notificationsSection.headers().get(cmIndex).shouldBe(DISABLED);
     NotificationsSection.addNotification().email().val("a@b");
     NotificationsSection.addNotification().addButton().shouldNotBe(DISABLED).click();
-    Checkbox monitoringCheckbox = NotificationsSection.notificationFor("a@b").continuousMonitoring();
+    IqCheckbox monitoringCheckbox = NotificationsSection.notificationFor("a@b").continuousMonitoring();
     monitoringCheckbox.input().shouldBe(disabled);
     monitoringCheckbox.hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));

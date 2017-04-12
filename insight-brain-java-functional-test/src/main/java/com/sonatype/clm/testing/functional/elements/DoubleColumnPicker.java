@@ -21,11 +21,11 @@ public class DoubleColumnPicker
 
   private static final String AVAILABLE_ITEM_LIST = ".list-row .available-list";
 
-  private static final String AVAILABLE_ITEM = createSelector(AVAILABLE_ITEM_LIST, "label");
+  private static final String AVAILABLE_ITEM = createSelector(AVAILABLE_ITEM_LIST, "iq-checkbox");
 
   private static final String PICKED_ITEM_LIST = ".list-row .picked-list";
 
-  private static final String PICKED_ITEM = createSelector(PICKED_ITEM_LIST, "label");
+  private static final String PICKED_ITEM = createSelector(PICKED_ITEM_LIST, "iq-checkbox");
 
   private static final String ROOT = "double-column-picker";
 
@@ -37,12 +37,12 @@ public class DoubleColumnPicker
     return child(".filter-row input");
   }
 
-  public Checkbox checkAllLeft() {
-    return new Checkbox(children(".info-row .tools label.checkbox").get(0));
+  public IqCheckbox checkAllLeft() {
+    return new IqCheckbox(children(".info-row .tools iq-checkbox").get(0));
   }
 
-  public Checkbox checkAllRight() {
-    return new Checkbox(children(".info-row .tools label.checkbox").get(1));
+  public IqCheckbox checkAllRight() {
+    return new IqCheckbox(children(".info-row .tools iq-checkbox").get(1));
   }
 
   public SelenideElement pickCheckedItemsButton() {
@@ -78,7 +78,7 @@ public class DoubleColumnPicker
   }
 
   public static class Item
-      extends Checkbox
+      extends IqCheckbox
   {
     public Item(String... selectors) {
       super($(createSelector(selectors)));

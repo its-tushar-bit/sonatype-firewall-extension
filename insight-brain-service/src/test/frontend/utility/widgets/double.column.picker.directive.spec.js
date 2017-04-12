@@ -94,11 +94,14 @@ describe('double.column.picker.directive.spec.js', function() {
 
     expect(vm.list).toBe(scope.list);
 
-    vm.checkAllLeft = true;
-    vm.checkAllRight = true;
+    vm.toggleLeftSelectAll(false);
+    vm.toggleRightSelectAll(true);
+
     vm.search = "random";
     isolatedScope.$apply();
 
+    expect(vm.checkAllRight).toBe(true);
+    expect(vm.checkAllLeft).toBe(true);
     expect(vm.checkAll).toHaveBeenCalledWith(false, true);
     expect(vm.checkAll).toHaveBeenCalledWith(true, true);
   });

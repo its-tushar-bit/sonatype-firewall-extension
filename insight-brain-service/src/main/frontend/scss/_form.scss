@@ -266,112 +266,6 @@
   }
 }
 
-/*
-  ##Checkbox inputs
-*/
-.clm-form {
-  label.checkbox {
-    display: block;
-    margin-bottom: 0px;
-    padding-left: 24px;
-    position: relative;
-
-    &:not(.disabled) {
-      cursor: pointer;
-    }
-
-    // Monochrome checkbox to override native implementation. Native is hidden and pseudo selectors on the label's
-    // text's span build a monochrome square
-    input[type=checkbox] {
-      border: 0;
-      clip: rect(0, 0, 0, 0);
-      height: 1px;
-      margin: -1px;
-      overflow: hidden;
-      padding: 0;
-      position: absolute;
-      width: 1px;
-
-      & + span {
-        color: $iq-off-black;
-        display: block;
-        position: relative;
-      }
-
-      & + span:before {
-        border-radius: 2px;
-        border: 1px solid $iq-slate;
-        content: '';
-        display: inline-block;
-        height: 14px;
-        margin-right: 8px;
-        vertical-align: -3px;
-        width: 14px;
-      }
-
-      &:checked + span:after {
-        color: $iq-slate;
-        content: "\f00c";
-        display: inline-block;
-        font: normal normal normal 14px/1 FontAwesome;
-        position: absolute;
-        left: 1px;
-        top: 2px;
-      }
-
-      // Implementations for focus marker on custom checkbox
-      &:focus + span:before {
-        // IE
-        outline: thin dotted invert;
-        // Webkit
-        outline: 4px auto -webkit-focus-ring-color;
-        outline-offset: -2px;
-      }
-
-      @-moz-document url-prefix() {
-        // Mozilla
-        &:focus + span:before {
-          outline: 4px solid transparentize($iq-light-blue, 0.5);
-          outline-offset: -2px;
-        }
-      }
-    }
-
-    &.disabled {
-      cursor: not-allowed;
-
-      input[type=checkbox] {
-        & + span:before {
-          border-color: $iq-grey-4;
-        }
-
-        &:checked + span:after {
-          color: $iq-grey-3;
-        }
-
-        & + span {
-          color: $iq-slate;
-        }
-      }
-    }
-
-    // For checkboxes that do not need label text and can be text-aligned
-    &.no-text {
-      padding-left: 0px;
-
-      input[type="checkbox"]:checked + span:after {
-        margin-left: -15px;
-        position: static;
-        width: 15px;
-      }
-
-      input[type="checkbox"] + span:before {
-        margin-right: 0px;
-      }
-    }
-  }
-}
-
 .field {
   .iq-checkbox__label {
     display: block;
@@ -381,15 +275,17 @@
 }
 
 // See policy editor > notifications for usage
-td {
-  .iq-checkbox__label--no-text {
-    margin-top: 8px;
-    margin-bottom: 0 !important; // this is to overwrite margin-bottom in label:not(.btn) defined above
-    width: 100%;
-    
-    .iq-checkbox__box {
-      display: inline-block;
-      float: none;
+#policy-edit-notifications {
+  td {
+    .iq-checkbox__label--no-text {
+      margin-top: 8px;
+      margin-bottom: 0 !important; // this is to overwrite margin-bottom in label:not(.btn) defined above
+      width: 100%;
+
+      .iq-checkbox__box {
+        display: inline-block;
+        float: none;
+      }
     }
   }
 }

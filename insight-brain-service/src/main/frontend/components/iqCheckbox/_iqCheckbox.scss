@@ -6,6 +6,10 @@
   font-size: 14px;
   line-height: 20px;
   overflow: hidden;
+
+  ng-transclude > * {
+    margin-left: 8px;
+  }
 }
 
 .iq-checkbox__input {

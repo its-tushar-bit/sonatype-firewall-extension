@@ -888,6 +888,14 @@
       td {
         white-space: nowrap;
 
+        .iq-checkbox__label {
+          margin-bottom: 0;
+        }
+
+        .iq-checkbox__box::before {
+          margin-top: 0;
+        }
+
         .description {
           display: inline-block;
           margin: 0px 0px 0px 8px;
@@ -985,7 +993,7 @@ double-column-picker {
             }
 
             .tools {
-              > label {
+              .iq-checkbox__label {
                 display: inline-block;
                 margin: 0;
                 padding: 0;
@@ -1009,6 +1017,7 @@ double-column-picker {
 
           .td-container {
             height: 10 * $list-item-height;
+            overflow-x: hidden;
             overflow-y: scroll;
             padding-top: 9px;
 
@@ -1021,20 +1030,27 @@ double-column-picker {
               }
             }
 
-            label {
+            .iq-checkbox__label {
               height: $list-item-height;
               margin: 0;
               padding-right: 8px;
               padding-left: 6px;
 
-              > span {
-                overflow-x: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+              .iq-checkbox__box::before {
+                margin-right: 8px;
+              }
 
-                .fa {
-                  color: $iq-slate;
-                  margin-right: 8px;
+              span {
+                &:not(.iq-checkbox__box) {
+                  display: block;
+                  overflow-x: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+
+                  .fa {
+                    color: $iq-slate;
+                    margin-right: 8px;
+                  }
                 }
               }
             }

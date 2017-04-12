@@ -117,12 +117,12 @@ public class OrganizationPolicyEditorTest
     inheritance.associationEditor().rows().shouldHaveSize(2);
     assertThat(inheritance.associationEditor().columnCount(), is(equalTo(1)));
     AssociationEditorElement category1Item = inheritance.associationEditor().item(0, 0);
-    category1Item.checkBox().input().shouldBe(visible, selected, isReadOnly ? disabled : enabled);
+    category1Item.checkBox().shouldBe(visible, selected, isReadOnly ? disabled : enabled);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
     category1Item.icon().shouldBe(visible).shouldHave(cssClass(category1.getColor().toValue()));
 
     AssociationEditorElement category2Item = inheritance.associationEditor().item(1, 0);
-    category2Item.checkBox().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
+    category2Item.checkBox().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
     category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));
   }

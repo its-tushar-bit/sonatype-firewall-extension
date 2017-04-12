@@ -6,5 +6,6 @@
          ng-disabled="vm.isDisabled"
          ng-checked="vm.isChecked"
          ng-click="vm.onClick()">
-  <span class="iq-checkbox__box"></span>{{vm.label}}
+  <span class="iq-checkbox__box"></span>{{vm.label}}<!--
+  --><ng-transclude></ng-transclude>
 </label>

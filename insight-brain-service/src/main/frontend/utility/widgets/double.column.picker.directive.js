@@ -30,11 +30,11 @@
 
     function DoubleColumnPickerLink(scope, element, attrs, formCtrl) {
       scope.$watch(function() {
-        return element.find('.available-list label').length;
+        return element.find('.available-list iq-checkbox').length;
       }, scope.vm.updateChecksOnFilterHandler(false));
 
       scope.$watch(function() {
-        return element.find('.picked-list label').length;
+        return element.find('.picked-list iq-checkbox').length;
       }, scope.vm.updateChecksOnFilterHandler(true));
 
       scope.$watch(function() {
@@ -63,7 +63,9 @@
     vm.areAnyItemsChecked = areAnyItemsChecked;
     vm.moveItems = moveItems;
     vm.search = undefined;
-    vm.uncheckTheAllCheckbox = uncheckTheAllCheckbox;
+    vm.toggleLeftSelectAll = toggleLeftSelectAll;
+    vm.toggleRightSelectAll = toggleRightSelectAll;
+    vm.toggleChecked = toggleChecked;
     vm.updateChecksOnFilterHandler = updateChecksOnFilterHandler;
 
     function checkAll(isPickedList, isChecked) {
@@ -103,6 +105,21 @@
       else {
         vm.checkAllLeft = false;
       }
+    }
+
+    function toggleLeftSelectAll(isPickedList) {
+      vm.checkAllLeft = !vm.checkAllLeft;
+      vm.checkAll(isPickedList, vm.checkAllLeft);
+    }
+
+    function toggleRightSelectAll(isPickedList) {
+      vm.checkAllRight = !vm.checkAllRight;
+      vm.checkAll(isPickedList, vm.checkAllRight);
+    }
+
+    function toggleChecked(item, uncheckAll) {
+      item.checked = !item.checked;
+      uncheckTheAllCheckbox(uncheckAll);
     }
 
     function uncheckTheAllCheckbox(isPickedList) {

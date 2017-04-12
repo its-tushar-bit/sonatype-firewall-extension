@@ -29,6 +29,11 @@
   function AssociationEditorController() {
     var vm = this;
     vm.ceil = Math.ceil;
+    vm.toggleSelected = toggleSelected;
+
+    function toggleSelected(item, checkboxParam) {
+      item[checkboxParam] = !item[checkboxParam];
+    }
   }
 
   angular.module('utility').directive('associationEditor', AssociationEditor);

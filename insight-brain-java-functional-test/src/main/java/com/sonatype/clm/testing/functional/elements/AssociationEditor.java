@@ -42,8 +42,8 @@ public class AssociationEditor
       this.root = column == 0 ? root.$("td:first-child") : root.$("td:last-child");
     }
 
-    public Checkbox checkBox() {
-      return new Checkbox(root.$("label"));
+    public IqCheckbox checkBox() {
+      return new IqCheckbox(root.$("iq-checkbox"));
     }
 
     public SelenideElement icon() {

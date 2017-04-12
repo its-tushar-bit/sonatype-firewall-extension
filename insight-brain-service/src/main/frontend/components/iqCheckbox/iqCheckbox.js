@@ -29,7 +29,8 @@
     },
     controller: IqCheckboxController,
     controllerAs: 'vm',
-    templateUrl: 'components/iqCheckbox/iqCheckbox.html?' + clmBuildTimestamp
+    templateUrl: 'components/iqCheckbox/iqCheckbox.html?' + clmBuildTimestamp,
+    transclude: true
   });
 
   function IqCheckboxController($scope) {

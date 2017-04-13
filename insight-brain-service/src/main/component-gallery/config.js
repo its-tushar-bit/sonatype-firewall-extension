@@ -5,12 +5,14 @@
  */
 import '../frontend/components/module';
 import '../frontend/components/iqCheckbox/iqCheckbox';
+import '../frontend/components/iqRadio/iqRadio';
 
 import charts from './charts/module';
 
 export default angular.module('config', ['components', charts.name])
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
+      'iq-radio': 'components/iq-radio.html',
     })
 
     .constant('directivesConfig', {
@@ -22,5 +24,4 @@ export default angular.module('config', ['components', charts.name])
       'iq-dropdown': 'styles/iq-dropdown.html',
       'iq-pull-right': 'styles/iq-pull-right.html',
       'iq-scrollable': 'styles/iq-scrollable.html',
-      'iq-radio': 'styles/iq-radio.html',
     });

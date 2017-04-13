@@ -8,12 +8,14 @@
   padding-left: 24px;
   position: relative;
   
-  &:last-child {
-    margin-bottom: 0;
-  }
-  
   &:hover:not(.iq-radio--disabled) {
     cursor: pointer;
+  }
+}
+
+iq-radio:last-child {
+  .iq-radio {
+    margin-bottom: 0;
   }
 }
   

@@ -9,7 +9,7 @@
 
   /**
    * "iq-radio" reusable component
-   * 
+   *
    * Attributes:
    * - model {expression}: Assignable AngularJS expression to data-bind to
    * - value {expression}: AngularJS expression to which ngModel will be be set when the radio is selected

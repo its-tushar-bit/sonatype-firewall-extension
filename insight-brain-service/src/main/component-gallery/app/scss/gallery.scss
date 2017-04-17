@@ -42,6 +42,22 @@
   min-width: 215px;
 }
 
+.ie9 {
+  .iq-content-wrapper {
+    display: block;
+    overflow: hidden;
+  }
+
+  .iq-body-container {
+    display: block;
+    float: right;
+  }
+
+  .iq-sidebar {
+    float: left;
+  }
+}
+
 // Global
 
 .iq-error {

@@ -469,6 +469,7 @@
               <exclude>**/src/main/wro4j/lib/**/*</exclude>
               <exclude>**/src/main/frontend/assets/lib/**/*</exclude>
               <exclude>**/src/test/resources/**/*</exclude>
+              <exclude>**/node_modules/**</exclude>
             </excludes>
           </configuration>
         </plugin>

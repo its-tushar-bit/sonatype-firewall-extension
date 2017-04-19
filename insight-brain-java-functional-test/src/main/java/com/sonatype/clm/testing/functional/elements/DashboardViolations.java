@@ -46,11 +46,11 @@ public class DashboardViolations
     }
 
     public ViolationTile firstViolation() {
-      return new ViolationTile(childSelector(".tile.violations-card:first-child"));
+      return new ViolationTile(childSelector("violations-table-row:first-child"));
     }
 
     public ViolationTile lastViolation() {
-      return new ViolationTile(childSelector(".tile.violations-card:last-child"));
+      return new ViolationTile(childSelector("violations-table-row:last-child"));
     }
 
     public SelenideElement maxResultsMessage() {
@@ -120,20 +120,8 @@ public class DashboardViolations
       return child(".age");
     }
 
-    public SelenideElement buildReport() {
-      return child(".reports-row a", nthChild(1));
-    }
-
-    public SelenideElement stageReport() {
-      return child(".reports-row a", nthChild(2));
-    }
-
-    public SelenideElement releaseReport() {
-      return child(".reports-row a", nthChild(3));
-    }
-
-    public SelenideElement operateReport() {
-      return child(".reports-row a", nthChild(4));
+    public SelenideElement latestReport() {
+      return child(".report a");
     }
   }
 }

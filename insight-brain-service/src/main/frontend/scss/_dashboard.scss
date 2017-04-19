@@ -12,6 +12,7 @@
   $threat-number-width: 30px;
   $threat-bar-width: 8px;
   $age-width: 67px;
+  $report-width: 107px;
   $scroll-bar-width: 14px;
   $chevron-width: 21px;
   $affected-apps-width: 109px;
@@ -88,13 +89,14 @@
   }
 
   [dashboard-tabs], .dashboard-headers {
-    a {
-      @include semi-bold();
+    @include semi-bold();
+    
+    font-size: 14px;
+    text-transform: uppercase;
 
+    a {
       color: $iq-slate;
-      font-size: 14px;
       line-height: 16px;
-      text-transform: uppercase;
     }
   }
 
@@ -296,12 +298,16 @@
   #dashboard-violations {
     .tile-scroll-container.scrollbar-present .violations-card .violations-row .column {
       &.width-third {
-        width: calc((100% - #{$threat-bar-width + $age-width + $scroll-bar-width / 3}) / 3 - 2px);
+        width: calc((100% - #{$threat-bar-width + $age-width + $report-width + $scroll-bar-width / 3}) / 3 - 2px);
       }
 
       &.age {
         padding-left: 5px;
-        width: $age-width + $scroll-bar-width;
+      }
+
+      &.report {
+        padding-left: 5px;
+        width: $report-width + $scroll-bar-width;
       }
     }
 
@@ -334,7 +340,7 @@
         }
 
         .column.width-third {
-          width: calc((100% - #{$threat-bar-width + $chevron-width + $age-width}) / 3 - 2px);
+          width: calc((100% - #{$threat-bar-width + $chevron-width + $age-width + $report-width}) / 3 - 2px);
 
           &:not(:first-of-type) {
             padding: 0 12px;
@@ -342,61 +348,41 @@
         }
 
         .column.fixed.age {
-          width: $age-width + $chevron-header-width;
+          width: $age-width;
+        }
+
+        .column.fixed.report {
+          width: $report-width + $chevron-header-width;
+          text-align: left;
+
+          a {
+            @include semi-bold();
+
+            &.link {
+              @extend %link;
+
+              &.disabled {
+                text-decoration: none;
+              }
+
+              .fa-external-link {
+                margin-bottom: 2px;
+                vertical-align: middle;
+              }
+            }
+
+            &:hover, &:focus {
+              filter: none; // bootstrap override
+            }
+
+            > .fa, span {
+              margin-right: 8px;
+            }
+          }
         }
       }
 
-      .reports-row {
-        box-sizing: border-box;
-        width: calc(100% - #{$threat-bar-width});
-
-        a {
-          @include semi-bold();
-
-          padding-right: 12px;
-          position: relative; // ie 11 workaround, see note above
-
-          &:first-child {
-            padding-left: 8px;
-          }
-
-          &.link {
-            @extend %link;
-
-            &.disabled {
-              text-decoration: none;
-            }
-
-            .fa-external-link {
-              margin-bottom: 2px;
-              vertical-align: middle;
-            }
-          }
-
-          &:hover, &:focus {
-            filter: none; // bootstrap override
-          }
-
-          .fa {
-            margin-right: 8px;
-          }
-        }
-
-        a:before {
-          // ie 11 workaround, see note above
-          content: "";
-          display: block;
-          position: absolute;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-        }
-
-        border-top: $dashboard-border;
-      }
-
-      .reports-row, .violations-row {
+      .violations-row {
         float: left;
         height: 40px;
         line-height: 40px;
@@ -418,7 +404,7 @@
     .dashboard-headers {
       .violations-row {
         .column.width-third {
-          width: calc((100% - #{$age-width + $chevron-header-width}) / 3);
+          width: calc((100% - #{$age-width + $report-width + $chevron-header-width}) / 3);
         }
 
         .column {
@@ -427,7 +413,11 @@
           }
 
           &.age {
-            width: $age-width + $chevron-header-width;
+            width: $age-width;
+          }
+
+          &.report {
+            width: $report-width + $chevron-header-width;
           }
 
           &.threat-and-policy-column-container {

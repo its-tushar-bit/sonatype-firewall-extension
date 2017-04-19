@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ViolationsTableController(StageTypeStore, $window, $state) {
+  function ViolationsTableRowController(StageTypeStore, $window, $state) {
     var vm = this;
 
     vm.doLoad = doLoad;
@@ -32,12 +32,22 @@
         }), '_blank');
       }
     }
+
+    vm.latestReport = vm.risk.stageDetails.reduce(function(latestReportSoFar, report) {
+      return latestReportSoFar && latestReportSoFar.time > report.time ? latestReportSoFar : report;
+    }, undefined);
   }
 
-  ViolationsTableController.$inject = ['StageTypeStore', '$window', '$state'];
+  ViolationsTableRowController.$inject = ['StageTypeStore', '$window', '$state'];
 
   angular //
       .module('dashboard.utils') //
-      .controller('violations.table.controller', ViolationsTableController);
-
+      .component('violationsTableRow', {
+        bindings: {
+          risk: '<'
+        },
+        controllerAs: 'vm',
+        controller: ViolationsTableRowController,
+        templateUrl: 'violations-table-row'
+      });
 }(angular));

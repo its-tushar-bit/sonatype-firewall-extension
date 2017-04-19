@@ -192,12 +192,9 @@ public class DashboardViolationsTest
     firstViolation.component().shouldHave(text("g1 : a1 : v1")).hover();
     DashboardPage.tooltip().shouldBe(visible).shouldHave(text("g1 : a1 : v1"));
     firstViolation.age().shouldHave(text("1min"));
-    firstViolation.stageReport().shouldBe(DISABLED).shouldHave(text("Stage report"));
-    firstViolation.releaseReport().shouldBe(DISABLED).shouldHave(text("Release report"));
-    firstViolation.operateReport().shouldBe(DISABLED).shouldHave(text("Operate report"));
 
     // check the report link - opens new window
-    firstViolation.buildReport().shouldNotBe(DISABLED).shouldHave(text("Build report (1min)")).click();
+    firstViolation.latestReport().shouldNotBe(DISABLED).shouldHave(text("Build")).click();
     switchToWindow(1);
     waitUntilUrl(ApplicationReportContainerPage.url(app1.getPublicId(), buildEvalNow.getScanId()));
     ApplicationReportContainerPage.getReportTitle()

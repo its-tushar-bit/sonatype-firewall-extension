@@ -62,13 +62,13 @@
         </a>
         <div ng-if="isExpanded" class="tree-view-children">
           <div class="clm-form">
-            <label class="radio tree-view-item" ng-repeat="entity in available">
-              <input type="radio"
-                     name="{{name}}"
-                     ng-checked="vm.isChecked(entity)"
-                     ng-click="vm.select(entity)">
-              <span>{{::entity[nameField]}}</span>
-            </label>
+            <iq-radio ng-repeat="entity in available"
+                      class="tree-view-item"
+                      model="vm.isChecked(entity)"
+                      value="true"
+                      on-click="vm.select(entity)"><!--
+              -->{{::entity[nameField]}}
+            </iq-radio>
           </div>
         </div>
       </div>

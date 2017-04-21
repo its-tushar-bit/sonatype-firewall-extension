@@ -3,7 +3,10 @@
 */
 
 .iq-radio {
+  @include regular();
+
   display: block;
+  font-size: 14px;
   margin-bottom: 8px;
   padding-left: 24px;
   position: relative;

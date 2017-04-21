@@ -50,14 +50,13 @@
         }
       }
       
-      .iq-checkbox__label {
+      .iq-checkbox__label, .iq-radio {
         display: block;
         margin-bottom: 0;
         margin-left: 24px;
       }
 
-      &.radio span::before,
-      &.radio span::after {
+      .iq-radio {
         top: -2px;
       }
     }

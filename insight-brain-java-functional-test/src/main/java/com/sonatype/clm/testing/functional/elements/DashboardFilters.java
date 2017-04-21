@@ -225,15 +225,15 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
     public ElementsCollection singleSelectList() {
-      return children(".clm-form label.radio");
+      return children(".clm-form iq-radio");
     }
 
     public IqCheckbox checkboxItem(int index) {
       return new IqCheckbox(child(".clm-form iq-checkbox", nthChild(index)));
     }
 
-    public Radio radioItem(int index) {
-      return new Radio(child(".clm-form label.radio", nthChild(index)));
+    public IqRadio radioItem(int index) {
+      return new IqRadio(child(".clm-form iq-radio", nthChild(index)));
     }
 
     public IqCheckbox allItems() {
@@ -284,11 +284,11 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       super(selector);
     }
 
-    public Radio past30days() {
+    public IqRadio past30days() {
       return super.radioItem(3);
     }
 
-    public Radio past90days() {
+    public IqRadio past90days() {
       return super.radioItem(4);
     }
   }

@@ -49,8 +49,7 @@ public class ScanClient
   private ScanReceipt handleUpload(String url, File scanFile, ClientScanType clientScanType) throws IOException {
     final Result result = path(url, appId).query("scanType", clientScanType.name())
         .put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
-    verifyStatusCode(result);
-    return JsonUtils.parse(result.text(), ScanReceipt.class);
+    return parseResult(result, ScanReceipt.class);
   }
 
   /**

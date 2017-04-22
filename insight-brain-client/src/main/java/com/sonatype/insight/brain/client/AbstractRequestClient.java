@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpResponseException;
@@ -57,6 +58,17 @@ public abstract class AbstractRequestClient
     if (status >= 300) {
       String msg = result.message();
       throw new HttpResponseException(status, msg);
+    }
+  }
+
+  protected <T> T parseResult(Result result, Class<T> type) throws IOException {
+    verifyStatusCode(result);
+    String json = result.text();
+    try {
+      return JsonUtils.parse(json, type);
+    }
+    catch (IOException e) {
+      throw new IOException("Could not parse: " + json, e);
     }
   }
 }

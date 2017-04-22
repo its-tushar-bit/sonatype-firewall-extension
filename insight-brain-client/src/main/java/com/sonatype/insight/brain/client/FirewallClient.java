@@ -91,42 +91,18 @@ public class FirewallClient
     Result result = postRequest(
         path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_WITH_QUARANTINE_PATH),
         entity);
-    verifyStatusCode(result);
-
-    final String jsonResult = result.text();
-    try {
-      return JsonUtils.parse(jsonResult, RepositoryComponentEvaluationDataList.class);
-    }
-    catch (final IOException e) {
-      throw new IOException("Could not parse: " + jsonResult, e);
-    }
+    return parseResult(result, RepositoryComponentEvaluationDataList.class);
   }
 
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
     Result result = getRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH));
-    verifyStatusCode(result);
-
-    final String jsonResult = result.text();
-    try {
-      return JsonUtils.parse(jsonResult, RepositoryPolicyEvaluationSummary.class);
-    }
-    catch (final IOException e) {
-      throw new IOException("Could not parse: " + jsonResult, e);
-    }
+    return parseResult(result, RepositoryPolicyEvaluationSummary.class);
   }
 
   public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {
     Result result = getRequest(
         path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, UNQUARANTINED_COMPONENTS_PATH)
             .query("sinceUtcTimestamp", Long.toString(sinceUtcTimestamp)));
-    verifyStatusCode(result);
-
-    final String jsonResult = result.text();
-    try {
-      return JsonUtils.parse(jsonResult, UnquarantinedComponentList.class);
-    }
-    catch (final IOException e) {
-      throw new IOException("Could not parse: " + jsonResult, e);
-    }
+    return parseResult(result, UnquarantinedComponentList.class);
   }
 }

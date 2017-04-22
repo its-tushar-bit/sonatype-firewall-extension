@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,12 +31,6 @@ public class ConfigurationClient
     super(config);
   }
 
-  private Result get(RequestBuilder builder) throws IOException {
-    final Result result = getRequest(builder);
-    verifyStatusCode(result);
-    return result;
-  }
-
   /**
    * @since 1.13
    */
@@ -47,13 +40,8 @@ public class ConfigurationClient
       throw new IllegalArgumentException("Context can not be null");
     }
     requestBuilder = requestBuilder.query("context", context.name().toLowerCase(Locale.ENGLISH));
-    Result result = get(requestBuilder);
-    final String jsonResult = result.text();
-    if (jsonResult == null) {
-      return Collections.emptyList();
-    }
-    Stage[] stageArray = JsonUtils.parse(jsonResult, Stage[].class);
-    return Arrays.asList(stageArray);
+    Result result = getRequest(requestBuilder);
+    return Arrays.asList(parseResult(result, Stage[].class));
   }
 
   /**
@@ -63,8 +51,8 @@ public class ConfigurationClient
    * @since 1.14.0
    */
   public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
-    Result result = get(path("rest/integration/applications?goal=EVALUATE_APPLICATION"));
-    return JsonUtils.parse(result.text(), ApplicationSummaryList.class);
+    Result result = getRequest(path("rest/integration/applications?goal=EVALUATE_APPLICATION"));
+    return parseResult(result, ApplicationSummaryList.class);
   }
 
   /**
@@ -74,12 +62,13 @@ public class ConfigurationClient
    * @since 1.14.0
    */
   public ApplicationSummaryList getApplicationsForEvaluationSummary() throws IOException {
-    Result result = get(path("rest/integration/applications?goal=SUMMARIZE_EVALUATION"));
-    return JsonUtils.parse(result.text(), ApplicationSummaryList.class);
+    Result result = getRequest(path("rest/integration/applications?goal=SUMMARIZE_EVALUATION"));
+    return parseResult(result, ApplicationSummaryList.class);
   }
 
   public void validateConfiguration() throws IOException {
-    final Result result = get(path("rest/config/proprietary"));
+    final Result result = getRequest(path("rest/config/proprietary"));
+    verifyStatusCode(result);
     final String text = result.text();
     // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server
     try {
@@ -92,7 +81,8 @@ public class ConfigurationClient
   }
 
   public void validateApplicationId(final String appId) throws IOException {
-    final Result result = get(path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)));
+    final Result result = getRequest(path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)));
+    verifyStatusCode(result);
     final String text = result.text();
     if (!"OK".equals(text)) {
       throw new IOException(text);
@@ -107,9 +97,9 @@ public class ConfigurationClient
   public ProprietaryConfig getProprietaryConfigForApplicationEvaluation(String applicationPublicId)
       throws IOException
   {
-    Result result = get(path("rest/config/proprietary").query("goal", "EVALUATE_APPLICATION", "applicationPublicId",
-        applicationPublicId));
-    return JsonUtils.parse(result.text(), ProprietaryConfig.class);
+    Result result = getRequest(path("rest/config/proprietary").query("goal", "EVALUATE_APPLICATION",
+        "applicationPublicId", applicationPublicId));
+    return parseResult(result, ProprietaryConfig.class);
   }
 
   /**
@@ -120,9 +110,9 @@ public class ConfigurationClient
   public ProprietaryConfig getProprietaryConfigForComponentEvaluation(String applicationPublicId)
       throws IOException
   {
-    Result result = get(path("rest/config/proprietary").query("goal", "EVALUATE_COMPONENT", "applicationPublicId",
-        applicationPublicId));
-    return JsonUtils.parse(result.text(), ProprietaryConfig.class);
+    Result result = getRequest(path("rest/config/proprietary").query("goal", "EVALUATE_COMPONENT",
+        "applicationPublicId", applicationPublicId));
+    return parseResult(result, ProprietaryConfig.class);
   }
 
   public void validateAuthentication() throws IOException {

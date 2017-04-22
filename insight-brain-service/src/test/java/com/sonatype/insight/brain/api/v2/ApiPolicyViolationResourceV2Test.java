@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.Date;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -40,8 +38,7 @@ public class ApiPolicyViolationResourceV2Test
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Policy orgPolicy = tempEntity.newPolicy(org.getId(), ORG_POLICY_NAME1);
-    PolicyEvaluation pe1App1 = tempEntity
-        .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", new Date());
+    PolicyEvaluation pe1App1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
     HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)

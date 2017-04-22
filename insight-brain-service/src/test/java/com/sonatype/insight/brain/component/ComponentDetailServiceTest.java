@@ -248,8 +248,7 @@ public class ComponentDetailServiceTest
     Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(app1.getId(), "policy2");
 
-    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
-        new Date());
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
         policy1.getThreatCategory(), component.getComponentIdentifier(), hash, WarnActionType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), app1.getId(), BuildStageType.ID);

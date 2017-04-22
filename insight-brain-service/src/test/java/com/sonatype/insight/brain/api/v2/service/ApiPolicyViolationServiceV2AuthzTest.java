@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Date;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -59,7 +58,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
     tempEntity.newPolicy(app.getId(), APP_POLICY_NAME1);
 
     // One policy violation for app1
-    pe1App1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", new Date());
+    pe1App1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
     pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
     Organization org2 = tempEntity.newOrganization();
@@ -69,8 +68,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
     Policy app2Policy = tempEntity.newPolicy(app2.getId(), APP_POLICY_NAME2);
 
     // One policy violation for app2
-    PolicyEvaluation pe1App2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1App2",
-        new Date());
+    PolicyEvaluation pe1App2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1App2");
     tempEntity.newPolicyViolation(pe1App2, app2Policy, "g2", "a2", "v2", "h2", "r2");
   }
 

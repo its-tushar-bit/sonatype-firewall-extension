@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -277,7 +276,7 @@ public class DashboardApplicationsTest
   }
 
   private PolicyEvaluation createEvaluation(Application app, String stageType) {
-    return tempEntity.newPolicyEvaluation(app.getId(), stageType, app.getName() + stageType, new Date());
+    return tempEntity.newPolicyEvaluation(app.getId(), stageType, app.getName() + stageType);
   }
 
   private PolicyViolation createViolation(Application app, String stageType, int threatLevel) {

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -31,7 +30,7 @@ public class ApplicationRiskServiceAuthzTest
   @Before
   public void setup() {
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(tempEntity
-        .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId", new Date(System.currentTimeMillis() - 1000)),
+        .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId"),
         tempEntity.newPolicy(org.getId(), "policy", 3));
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app.getId(), BuildStageType.ID);
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash",

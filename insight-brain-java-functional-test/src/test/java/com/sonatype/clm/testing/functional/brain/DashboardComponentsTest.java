@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -70,7 +69,7 @@ public class DashboardComponentsTest
     app = tempEntity.newApplicationWithParent(DashboardComponentsTest.class.getSimpleName());
     policy = tempEntity.newPolicy(app.getParentOwnerId(), "DashboardComponentsTestPolicy");
     policyEvaluation = tempEntity
-        .newPolicyEvaluation(app.getId(), BuildStageType.ID, "DashboardComponentsTestFirstEval", new Date());
+        .newPolicyEvaluation(app.getId(), BuildStageType.ID, "DashboardComponentsTestFirstEval");
     refreshOrOpen(DashboardPage.COMPONENTS_URL);
   }
 

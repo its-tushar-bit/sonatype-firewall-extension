@@ -13,6 +13,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.HttpResponseException;
 
 public abstract class AbstractRequestClient
     extends AbstractClient
@@ -48,6 +49,14 @@ public abstract class AbstractRequestClient
     catch (UnknownHostException e) {
       // improve error msg
       throw (IOException) new UnknownHostException("Unknown host: " + e.getMessage()).initCause(e);
+    }
+  }
+
+  protected void verifyStatusCode(Result result) throws IOException {
+    int status = result.status();
+    if (status >= 300) {
+      String msg = result.message();
+      throw new HttpResponseException(status, msg);
     }
   }
 }

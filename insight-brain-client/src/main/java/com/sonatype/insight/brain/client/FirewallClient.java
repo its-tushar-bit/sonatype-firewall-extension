@@ -15,7 +15,6 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 
@@ -56,32 +55,20 @@ public class FirewallClient
     Result result = postRequest(
         path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, ENABLE_PATH, Boolean.toString(enabled)),
         null);
-    int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
+    verifyStatusCode(result);
   }
 
   public void setQuarantine(final boolean enabled) throws IOException {
     Result result = postRequest(
         path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH, Boolean.toString(enabled)),
         null);
-    int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
+    verifyStatusCode(result);
   }
 
   public void removeComponent(String pathname) throws IOException {
     Result result = deleteRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, COMPONENTS_PATH,
         pathname));
-    int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
+    verifyStatusCode(result);
   }
 
   public void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
@@ -92,11 +79,7 @@ public class FirewallClient
 
     final Result result = postRequest(
         path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH), entity);
-    final int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
+    verifyStatusCode(result);
   }
 
   public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
@@ -108,11 +91,7 @@ public class FirewallClient
     Result result = postRequest(
         path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_WITH_QUARANTINE_PATH),
         entity);
-    int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
+    verifyStatusCode(result);
 
     final String jsonResult = result.text();
     try {
@@ -125,11 +104,7 @@ public class FirewallClient
 
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
     Result result = getRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH));
-    int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
+    verifyStatusCode(result);
 
     final String jsonResult = result.text();
     try {
@@ -144,11 +119,7 @@ public class FirewallClient
     Result result = getRequest(
         path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, UNQUARANTINED_COMPONENTS_PATH)
             .query("sinceUtcTimestamp", Long.toString(sinceUtcTimestamp)));
-    int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
+    verifyStatusCode(result);
 
     final String jsonResult = result.text();
     try {

@@ -20,8 +20,6 @@ import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.http.client.HttpResponseException;
-
 public class ConfigurationClient
     extends AbstractRequestClient
 {
@@ -36,11 +34,7 @@ public class ConfigurationClient
 
   private Result get(RequestBuilder builder) throws IOException {
     final Result result = getRequest(builder);
-    final int status = result.status();
-    if (status >= 300) {
-      String msg = result.message();
-      throw new HttpResponseException(status, msg);
-    }
+    verifyStatusCode(result);
     return result;
   }
 
@@ -132,10 +126,7 @@ public class ConfigurationClient
   }
 
   public void validateAuthentication() throws IOException {
-    final Result result = path("rest/user/session").post(null);
-    final int status = result.status();
-    if (status >= 300) {
-      throw new HttpResponseException(status, result.message());
-    }
+    final Result result = postRequest(path("rest/user/session"), null);
+    verifyStatusCode(result);
   }
 }

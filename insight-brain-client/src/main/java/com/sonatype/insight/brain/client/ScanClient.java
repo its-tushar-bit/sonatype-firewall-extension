@@ -9,19 +9,17 @@ import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 
 public class ScanClient
-    extends AbstractClient
+    extends AbstractRequestClient
 {
   private static final ContentType GZIP_CONTENT_TYPE = ContentType.create("application/x-gzip");
 
@@ -51,10 +49,7 @@ public class ScanClient
   private ScanReceipt handleUpload(String url, File scanFile, ClientScanType clientScanType) throws IOException {
     final Result result = path(url, appId).query("scanType", clientScanType.name())
         .put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
-    final int status = result.status();
-    if (status >= 300) {
-      throw new HttpResponseException(status, result.message());
-    }
+    verifyStatusCode(result);
     return JsonUtils.parse(result.text(), ScanReceipt.class);
   }
 

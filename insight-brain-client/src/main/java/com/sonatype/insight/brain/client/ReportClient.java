@@ -9,15 +9,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 
-import org.apache.http.client.HttpResponseException;
-
 public final class ReportClient
-    extends AbstractClient
+    extends AbstractRequestClient
 {
   private final String serverUrl;
 
@@ -46,12 +43,8 @@ public final class ReportClient
    * @since 1.10
    */
   public void downloadBundle(File bundleFile) throws IOException {
-
-    final Result result = path("rest/report", appId, scanId, "downloadBundle").get();
-    final int status = result.status();
-    if (status >= 300) {
-      throw new HttpResponseException(status, result.message());
-    }
+    final Result result = getRequest(path("rest/report", appId, scanId, "downloadBundle"));
+    verifyStatusCode(result);
 
     byte[] data = result.data();
     FileOutputStream fos = new FileOutputStream(bundleFile);

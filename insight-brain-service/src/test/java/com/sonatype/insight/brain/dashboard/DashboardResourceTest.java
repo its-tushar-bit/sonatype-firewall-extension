@@ -230,7 +230,8 @@ public class DashboardResourceTest
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     PolicyViolation v1 = createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
     Policy stagePolicy = tempEntity.newPolicy(app.getId(), "stage policy");
-    PolicyViolation v2 = createFirstOccurrencePolicyViolation(app, stagePolicy, StageReleaseStageType.ID);
+    PolicyViolation v2 = createFirstOccurrencePolicyViolation(app, stagePolicy, StageReleaseStageType.ID,
+        new Date(v1.getTime().getTime() + 10));
 
     RisksFilterDTO filter = new RisksFilterDTO();
     String filterJson = new String(JsonUtils.generate(filter));
@@ -417,7 +418,15 @@ public class DashboardResourceTest
   }
 
   private PolicyViolation createFirstOccurrencePolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id");
+    return createFirstOccurrencePolicyViolation(app, tempPolicy, stageTypeId, new Date());
+  }
+
+  private PolicyViolation createFirstOccurrencePolicyViolation(Application app,
+                                                               Policy tempPolicy,
+                                                               String stageTypeId,
+                                                               Date time)
+  {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id", time);
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, tempPolicy);
     tempEntity.newFirstOccurrencePolicyViolation(violation.getId(), app.getId(), stageTypeId);
     return violation;

@@ -71,14 +71,12 @@
           <div class="field">
             <label>Should notifications be sent if this application violates any policies?</label>
             <div>
-              <label class="radio">
-                <input type="radio" ng-model="vm.bundle.notify" value="true" name="notification-radio"/>
-                <span>Yes</span>
-              </label>
-              <label class="radio">
-                <input type="radio" ng-model="vm.bundle.notify" value="false" name="notification-radio"/>
-                <span>No</span>
-              </label>
+              <iq-radio model="vm.bundle.notify" value="'true'"><!--
+             -->Yes
+              </iq-radio>
+              <iq-radio model="vm.bundle.notify" value="'false'"><!--
+             -->No
+              </iq-radio>
             </div>
           </div>
         </div>

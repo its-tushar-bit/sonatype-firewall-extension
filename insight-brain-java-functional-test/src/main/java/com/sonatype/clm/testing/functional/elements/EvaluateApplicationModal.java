@@ -77,12 +77,12 @@ public class EvaluateApplicationModal
       this.root = root;
     }
 
-    public SelenideElement yes() {
-      return $(createSelector(root, "input", "[type='radio']", "[value='true']"));
+    public IqRadio yes() {
+      return new IqRadio($(createSelector(root, "iq-radio", "[value=\"'true'\"]")));
     }
 
-    public SelenideElement no() {
-      return $(createSelector(root, "input", "[type='radio']", "[value='false']"));
+    public IqRadio no() {
+      return new IqRadio($(createSelector(root, "iq-radio", "[value=\"'false'\"]")));
     }
   }
 }

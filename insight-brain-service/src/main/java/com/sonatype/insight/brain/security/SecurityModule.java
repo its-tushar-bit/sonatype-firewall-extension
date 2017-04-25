@@ -105,7 +105,7 @@ public class SecurityModule
     manager.createChain("/rest/version", anonFilters); // product version info
     manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", anonFilters); // only redirects
-    manager.createChain("/rest/config/systemnotice/fetch", anonFilters);
+    manager.createChain("/rest/config/systemNotice/fetch", anonFilters);
     // public REST API, no sessions supported/allowed
     manager.createChain("/api/**", "noSessionAllowed, noSessionCreation, antiCsrf["
         + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], noSessionReverseProxy, authcNoChallengeBasic");

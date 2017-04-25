@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.configuration.SystemNotice;
 @Path(SystemNoticeResource.RESOURCE_PATH)
 public class SystemNoticeResource
 {
-  public static final String RESOURCE_PATH = "rest/config/systemnotice";
+  public static final String RESOURCE_PATH = "rest/config/systemNotice";
 
   static final String FETCH_PATH = "fetch";
 

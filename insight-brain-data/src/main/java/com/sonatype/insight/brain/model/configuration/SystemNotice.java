@@ -12,6 +12,9 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+/**
+ * @since 1.28.0
+ */
 @Entity
 @Table(name = "system_notice")
 public class SystemNotice

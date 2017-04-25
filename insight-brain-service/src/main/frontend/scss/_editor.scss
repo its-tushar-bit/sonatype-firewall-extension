@@ -75,9 +75,10 @@
       color: $iq-slate;
     }
 
-    label.radio {
-      margin-bottom: 8px;
+    iq-radio > label {
+      margin-left: 24px;
     }
+
     .association-editor-wrapper {
       margin-left: 22px;
     }

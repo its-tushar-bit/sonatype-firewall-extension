@@ -133,10 +133,10 @@ public class ApplicationPolicyEditorTest
     if (isReadOnly) {
       PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
 
-      inheritance.allChildrenInheritRadio().input().shouldBe(visible, selected, disabled);
-      inheritance.allChildrenInheritRadio().label().shouldHave(allRadioText(YE_OLE_ORGANIZATION));
-      inheritance.specifiedChildrenInheritRadio().input().shouldBe(visible).shouldNotBe(selected);
-      inheritance.specifiedChildrenInheritRadio().label().shouldHave(specifiedRadioText(YE_OLE_ORGANIZATION));
+      inheritance.allChildrenInheritRadio().shouldBe(visible, selected, disabled);
+      inheritance.allChildrenInheritRadio().shouldHave(allRadioText(YE_OLE_ORGANIZATION));
+      inheritance.specifiedChildrenInheritRadio().shouldBe(visible).shouldNotBe(selected);
+      inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText(YE_OLE_ORGANIZATION));
       inheritance.associationEditor().shouldNotBe(visible);
     }
     else {

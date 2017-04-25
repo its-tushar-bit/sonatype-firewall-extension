@@ -106,11 +106,11 @@ public class OrganizationPolicyEditorTest
   protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2, boolean isReadOnly) {
     PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
 
-    inheritance.allChildrenInheritRadio().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
-    inheritance.allChildrenInheritRadio().label().shouldHave(
+    inheritance.allChildrenInheritRadio().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
+    inheritance.allChildrenInheritRadio().shouldHave(
         allRadioText(isReadOnly ? "Root Organization" : organization.getName()));
-    inheritance.specifiedChildrenInheritRadio().input().shouldBe(visible).shouldBe(selected);
-    inheritance.specifiedChildrenInheritRadio().label()
+    inheritance.specifiedChildrenInheritRadio().shouldBe(visible).shouldBe(selected);
+    inheritance.specifiedChildrenInheritRadio()
         .shouldHave(specifiedRadioText(isReadOnly ? "Root Organization" : organization.getName()));
     inheritance.associationEditor().shouldBe(visible);
 

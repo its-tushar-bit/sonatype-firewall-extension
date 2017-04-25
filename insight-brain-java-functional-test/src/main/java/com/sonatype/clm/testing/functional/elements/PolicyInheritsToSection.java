@@ -34,12 +34,12 @@ public class PolicyInheritsToSection
     return Condition.text("Applications of the specified Application Categories in " + ownerName);
   }
 
-  public Radio allChildrenInheritRadio() {
-    return new Radio(child("#editor-policy-inherit label", nthChild(1)));
+  public IqRadio allChildrenInheritRadio() {
+    return new IqRadio(child("#editor-policy-inherit iq-radio", nthChild(1)));
   }
 
-  public Radio specifiedChildrenInheritRadio() {
-    return new Radio(child("#editor-policy-inherit label", nthChild(2)));
+  public IqRadio specifiedChildrenInheritRadio() {
+    return new IqRadio(child("#editor-policy-inherit iq-radio", nthChild(2)));
   }
 
   public AssociationEditor associationEditor() {

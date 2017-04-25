@@ -520,3 +520,12 @@ CREATE TABLE webhook_event_type (
   CONSTRAINT webhook_event_type_pk PRIMARY KEY (webhook_id, event_type),
   CONSTRAINT webhook_event_type_fk FOREIGN KEY (webhook_id) REFERENCES webhook(webhook_id)
 );
+
+CREATE TABLE system_notice (
+  system_notice_id varchar(50) NOT NULL,
+  message varchar(500) NOT NULL,
+  enabled boolean NOT NULL,
+  CONSTRAINT system_notice_pk PRIMARY KEY (system_notice_id)
+);
+-- Add  default system notice
+INSERT INTO system_notice (system_notice_id, message, enabled) VALUES ('system-notice', '', false);

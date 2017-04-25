@@ -49,6 +49,7 @@
     <class>com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping</class>
     <class>com.sonatype.insight.brain.model.notification.UserViewedProductNotification</class>
     <class>com.sonatype.insight.brain.model.configuration.webhook.Webhook</class>
+    <class>com.sonatype.insight.brain.model.configuration.SystemNotice</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

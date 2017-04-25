@@ -24,19 +24,38 @@ public class RepositoryReportDetailTest
   private RepositoryReportDetail repositoryReportDetail;
 
   @Test
-  public void testBuildComponentDisplayText() {
-    final RepositoryComponent component = new RepositoryComponent();
+  public void testBuildComponentDisplayText_NullSafe() {
+    RepositoryComponent component = new RepositoryComponent();
     assertEquals(null, RepositoryReportDetail.buildComponentDisplayText(component));
+  }
 
-    component.setPathname("pathname");
-    assertEquals("pathname", RepositoryReportDetail.buildComponentDisplayText(component));
-
-    component.setComponentIdentifier(new ComponentIdentifier());
-    assertEquals("component.getComponentIdentifier() returns null if componentFormat == null", "pathname",
-        RepositoryReportDetail.buildComponentDisplayText(component));
-
+  @Test
+  public void testBuildComponentDisplayText_UseIdentifierWhenAvailable() {
+    RepositoryComponent component = new RepositoryComponent();
     component.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     assertEquals("g : a : v", RepositoryReportDetail.buildComponentDisplayText(component));
+  }
+
+  @Test
+  public void testBuildComponentDisplayText_UsePathnameWhenIdentifierLacksFormat() {
+    RepositoryComponent component = new RepositoryComponent();
+    component.setPathname("some/dir/test-1.2.zip");
+    component.setComponentIdentifier(new ComponentIdentifier());
+    assertEquals("test-1.2.zip (some/dir/test-1.2.zip)", RepositoryReportDetail.buildComponentDisplayText(component));
+  }
+
+  @Test
+  public void testBuildComponentDisplayText_UsePathnameWhenNoIdentifierAvailable() {
+    RepositoryComponent component = new RepositoryComponent();
+    component.setPathname("some/dir/test-1.2.zip");
+    assertEquals("test-1.2.zip (some/dir/test-1.2.zip)", RepositoryReportDetail.buildComponentDisplayText(component));
+  }
+
+  @Test
+  public void testBuildComponentDisplayText_UsePathnameWhenNoIdentifierAvailable_NoParentDir() {
+    RepositoryComponent component = new RepositoryComponent();
+    component.setPathname("test-1.2.zip");
+    assertEquals("test-1.2.zip (test-1.2.zip)", RepositoryReportDetail.buildComponentDisplayText(component));
   }
 
   @Test

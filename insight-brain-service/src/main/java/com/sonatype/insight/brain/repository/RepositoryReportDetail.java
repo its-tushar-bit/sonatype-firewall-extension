@@ -61,7 +61,11 @@ public class RepositoryReportDetail
       return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
     }
 
-    return component.getPathname();
+    String pathname = component.getPathname();
+    if (pathname == null) {
+      return null;
+    }
+    return pathname.substring(pathname.lastIndexOf('/') + 1) + " (" + pathname + ")";
   }
 
   public RepositoryReportDetail() {

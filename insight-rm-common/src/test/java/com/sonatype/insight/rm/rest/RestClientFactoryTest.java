@@ -309,14 +309,57 @@ public class RestClientFactoryTest
     final FirewallMigrationClient firewallClient = mock(FirewallMigrationClient.class);
 
     final RestClientFactory factory = spy(new RestClientFactory());
-    doReturn(firewallClient).when(factory)
-        .newFirewallMigrationClient(any(Configuration.class));
+    doReturn(firewallClient).when(factory).newFirewallMigrationClient(any(Configuration.class));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final FirewallMigration repository = client.forFirewallMigration();
     repository.verifyMigrationSupport("v1");
 
     verify(firewallClient).verifyMigrationSupport("v1");
+    verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
+  public void testRestClientFirewallMigration_migrateRepositoryHistory() throws Exception {
+    final FirewallMigrationClient firewallClient = mock(FirewallMigrationClient.class);
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallMigrationClient(any(Configuration.class));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final FirewallMigration repository = client.forFirewallMigration();
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+    final String sourceRepositoryManagerInstanceId = "sourceRepositoryManagerInstanceId";
+    final String sourceRepositoryPublicId = "sourceRepositoryPublicId";
+
+    repository
+        .migrateRepositoryHistory(repositoryManagerInstanceId, repositoryPublicId, sourceRepositoryManagerInstanceId,
+            sourceRepositoryPublicId, "last/migrated/asset/path");
+
+    verify(firewallClient)
+        .migrateRepositoryHistory(repositoryManagerInstanceId, repositoryPublicId, sourceRepositoryManagerInstanceId,
+            sourceRepositoryPublicId, "last/migrated/asset/path");
+    verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
+  public void testRestClientFirewallMigration_getRepositoryMigrationState() throws Exception {
+    final FirewallMigrationClient firewallClient = mock(FirewallMigrationClient.class);
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallMigrationClient(any(Configuration.class));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final FirewallMigration repository = client.forFirewallMigration();
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+
+    repository.getRepositoryMigrationState(repositoryManagerInstanceId, repositoryPublicId);
+
+    verify(firewallClient).getRepositoryMigrationState(repositoryManagerInstanceId, repositoryPublicId);
     verifyNoMoreInteractions(firewallClient);
   }
 }

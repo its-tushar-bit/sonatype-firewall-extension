@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 
 public interface RestClient
 {
@@ -93,5 +94,14 @@ public interface RestClient
     String PROTOCOL_V1 = "v1";
 
     void verifyMigrationSupport(final String protocolVersion) throws IOException;
+    
+    void migrateRepositoryHistory(final String repositoryManagerInstanceId,
+                                  final String repositoryPublicId,
+                                  final String sourceRepositoryManagerInstanceId,
+                                  final String sourceRepositoryPublicId,
+                                  final String lastMigratedPathname) throws IOException;
+
+    MigrationState getRepositoryMigrationState(final String repositoryManagerInstanceId,
+                                               final String repositoryPublicId) throws IOException;
   }
 }

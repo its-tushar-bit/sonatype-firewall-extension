@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
@@ -295,6 +296,26 @@ public class RestClientFactory
     @Override
     public void verifyMigrationSupport(final String protocolVersion) throws IOException {
       newFirewallMigrationClient(config).verifyMigrationSupport(protocolVersion);
+    }
+
+    @Override
+    public void migrateRepositoryHistory(final String repositoryManagerInstanceId,
+                                         final String repositoryPublicId,
+                                         final String sourceRepositoryManagerInstanceId,
+                                         final String sourceRepositoryPublicId,
+                                         final String lastMigratedPathname) throws IOException
+    {
+      newFirewallMigrationClient(config)
+          .migrateRepositoryHistory(repositoryManagerInstanceId, repositoryPublicId, sourceRepositoryManagerInstanceId,
+              sourceRepositoryPublicId, lastMigratedPathname);
+    }
+
+    @Override
+    public MigrationState getRepositoryMigrationState(final String repositoryManagerInstanceId,
+                                                      final String repositoryPublicId) throws IOException
+    {
+      return newFirewallMigrationClient(config)
+          .getRepositoryMigrationState(repositoryManagerInstanceId, repositoryPublicId);
     }
   }
 }

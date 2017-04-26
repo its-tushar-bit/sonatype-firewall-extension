@@ -15,8 +15,10 @@ import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
+import com.sonatype.insight.brain.client.FirewallMigrationClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.rm.rest.RestClient.FirewallMigration;
 import com.sonatype.insight.rm.rest.RestClient.Repository;
 
 import org.apache.http.client.HttpResponseException;
@@ -300,5 +302,21 @@ public class RestClientFactoryTest
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
     assertSame(policyEvaluationSummary, repository.getPolicyEvaluationSummary());
+  }
+
+  @Test
+  public void testRestClientFirewallMigration_verifyMigrationSupport() throws Exception {
+    final FirewallMigrationClient firewallClient = mock(FirewallMigrationClient.class);
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory)
+        .newFirewallMigrationClient(any(Configuration.class));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final FirewallMigration repository = client.forFirewallMigration();
+    repository.verifyMigrationSupport("v1");
+
+    verify(firewallClient).verifyMigrationSupport("v1");
+    verifyNoMoreInteractions(firewallClient);
   }
 }

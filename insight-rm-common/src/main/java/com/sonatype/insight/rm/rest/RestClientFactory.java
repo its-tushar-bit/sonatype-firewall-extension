@@ -24,11 +24,13 @@ import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
+import com.sonatype.insight.brain.client.FirewallMigrationClient;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ResourceClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.App;
+import com.sonatype.insight.rm.rest.RestClient.FirewallMigration;
 import com.sonatype.insight.rm.rest.RestClient.Repository;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
 
@@ -54,6 +56,11 @@ public class RestClientFactory
                                    final String repositoryPublicId)
   {
     return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId);
+  }
+
+  FirewallMigrationClient newFirewallMigrationClient(final Configuration config)
+  {
+    return new FirewallMigrationClient(config);
   }
 
   ScanClient newScanClient(final Configuration config, final String appId) {
@@ -125,6 +132,11 @@ public class RestClientFactory
     @Override
     public Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId) {
       return new RepositorySpecificClient(config, repositoryManagerInstanceId, repositoryPublicId);
+    }
+
+    @Override
+    public FirewallMigration forFirewallMigration() {
+      return new FirewallMigrationSpecificClient(config);
     }
 
     @Override
@@ -269,5 +281,20 @@ public class RestClientFactory
       return new PolicyClient(config, appId).evaluate(scanId, st);
     }
 
+  }
+
+  private class FirewallMigrationSpecificClient
+      extends BaseClient
+      implements RestClient.FirewallMigration
+  {
+    FirewallMigrationSpecificClient(final Configuration config)
+    {
+      super(config);
+    }
+
+    @Override
+    public void verifyMigrationSupport(final String protocolVersion) throws IOException {
+      newFirewallMigrationClient(config).verifyMigrationSupport(protocolVersion);
+    }
   }
 }

@@ -42,6 +42,11 @@ public interface RestClient
 
     Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId);
 
+    /**
+     * @since 1.28
+     */
+    FirewallMigration forFirewallMigration();
+
     Resource getResource(String path) throws IOException, URISyntaxException;
 
     Resource getResource(String path, Map<String, String[]> params) throws IOException, URISyntaxException;
@@ -81,5 +86,12 @@ public interface RestClient
     RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
 
     UnquarantinedComponentList getUnquarantinedComponents(long sinceUtcTimestamp) throws IOException;
+  }
+
+  interface FirewallMigration
+  {
+    String PROTOCOL_V1 = "v1";
+
+    void verifyMigrationSupport(final String protocolVersion) throws IOException;
   }
 }

@@ -56,18 +56,15 @@
           <div class="field-left">
             <label>Icon</label>
             <div>
-              <label id="owner-editor-icon-default" class="radio">
-                <input type="radio" name="iconType" ng-model="vm.icon.type" ng-value="null">
-                <span>Use a default icon</span>
-              </label>
-              <label id="owner-editor-icon-custom" class="radio">
-                <input type="radio" name="iconType" ng-model="vm.icon.type" value="custom">
-                <span>Upload a custom icon</span>
-              </label>
-              <label id="owner-editor-icon-robot" class="radio">
-                <input type="radio" name="iconType" ng-model="vm.icon.type" value="robot">
-                <span>Get a robot</span>
-              </label>
+              <iq-radio id="owner-editor-icon-default" model="vm.icon.type" value="null"><!--
+             -->Use a default icon
+              </iq-radio>
+              <iq-radio id="owner-editor-icon-custom" model="vm.icon.type" value="'custom'"><!--
+             -->Upload a custom icon
+              </iq-radio>
+              <iq-radio id="owner-editor-icon-robot" model="vm.icon.type" value="'robot'"><!--
+             -->Get a robot
+              </iq-radio>
             </div>
           </div>
           <div class="field-right">

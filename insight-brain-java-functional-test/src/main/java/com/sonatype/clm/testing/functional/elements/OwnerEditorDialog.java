@@ -35,15 +35,15 @@ public class OwnerEditorDialog
     return root().find(".clm-modal-footer button[type=button]");
   }
 
-  public static Radio defaultIcon() {
-    return new Radio($("#owner-editor-icon-default"));
+  public static IqRadio defaultIcon() {
+    return new IqRadio($("#owner-editor-icon-default"));
   }
 
-  public static Radio customIcon() {
-    return new Radio($("#owner-editor-icon-custom"));
+  public static IqRadio customIcon() {
+    return new IqRadio($("#owner-editor-icon-custom"));
   }
 
-  public static Radio robotIcon() {
-    return new Radio($("#owner-editor-icon-robot"));
+  public static IqRadio robotIcon() {
+    return new IqRadio($("#owner-editor-icon-robot"));
   }
 }

@@ -38,7 +38,7 @@ public class FirewallMigrationResourceTest
 
   @Test
   public void testVerifyMigrationSupported() throws Exception {
-    HttpResponse response = supportedRequest().parameter(PROTOCOL_V1).get();
+    HttpResponse response = supportedRequest().parameter(PROTOCOL_V1).post();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
   }
 

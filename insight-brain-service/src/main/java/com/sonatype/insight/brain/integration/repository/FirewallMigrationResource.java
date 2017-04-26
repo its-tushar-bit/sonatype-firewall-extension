@@ -39,7 +39,7 @@ public class FirewallMigrationResource
     this.firewallMigrationService = firewallMigrationService;
   }
 
-  @GET
+  @POST
   @Path(SUPPORTED_PATH)
   @Timed
   public void verifyMigrationSupport(@PathParam("protocolVersion") final String protocolVersion)

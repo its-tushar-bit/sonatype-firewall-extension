@@ -28,7 +28,7 @@ public class FirewallMigrationClient
   }
 
   public void verifyMigrationSupport(final String protocolVersion) throws IOException {
-    verifyStatusCode(getRequest(path(RESOURCE_PATH, SUPPORTED_PATH, protocolVersion)));
+    verifyStatusCode(postRequest(path(RESOURCE_PATH, SUPPORTED_PATH, protocolVersion), null));
   }
 
   public void migrateRepositoryHistory(String repositoryManagerInstanceId,

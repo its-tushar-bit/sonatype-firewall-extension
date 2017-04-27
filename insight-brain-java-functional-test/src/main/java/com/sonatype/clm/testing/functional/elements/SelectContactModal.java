@@ -57,10 +57,10 @@ public class SelectContactModal
     return $(ROOT + " .btn-tertiary");
   }
 
-  public static Radio userRadio(final String usersName) {
+  public static IqRadio userRadio(final String usersName) {
     SelenideElement td = $$(ROOT + " td").findBy(text(usersName));
     if (td != null) {
-      return new Radio(td.find("label.radio"));
+      return new IqRadio(td.find("iq-radio"));
     }
     return null;
   }

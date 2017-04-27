@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.Radio;
+import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
@@ -38,12 +38,12 @@ public class MonitoredStageEditorPage
     return $(ROOT + " h2");
   }
 
-  public static Radio selectedStage() {
-    return new Radio($(ROOT + " input:checked").parent());
+  public static IqRadio selectedStage() {
+    return new IqRadio($(ROOT + " iq-radio input:checked").parent().parent());
   }
 
-  public static Radio getStageByName(final String stageName) {
-    return new Radio($$(ROOT + " label.radio span p").findBy(text(stageName)).parent().parent());
+  public static IqRadio getStageByName(final String stageName) {
+    return new IqRadio($$(ROOT + " iq-radio p").findBy(text(stageName)).parent().parent().parent());
   }
 
   public static SelenideElement updateButton() {

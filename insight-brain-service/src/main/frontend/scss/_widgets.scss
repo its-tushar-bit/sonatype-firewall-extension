@@ -887,8 +887,9 @@
     .association-editor-row {
       td {
         white-space: nowrap;
+        height: 21px;
 
-        .iq-checkbox__label {
+        .iq-checkbox__label, .iq-radio {
           margin-bottom: 0;
         }
 

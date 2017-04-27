@@ -12,14 +12,11 @@
           --><p class="description">{{::item[vm.description] }}</p>
           </span>
         </iq-checkbox><!--
-     --><label ng-if="vm.isRadioButton" class="radio" ng-class="{disabled: vm.disabled}"><!--
-          --><input type="radio" name="items" ng-value="item" ng-model="vm.selected" ng-disabled="vm.disabled"/><!--
-          --><span><!--
-            --><hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon><!--
-            --><i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i><!--
-         --><p class="description">{{::item[vm.description] }}</p>
-          </span>
-        </label>
+     --><iq-radio ng-if="vm.isRadioButton" model="vm.selected" value="item" is-disabled="vm.disabled"><!--
+       --><hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon><!--
+       --><i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i><!--
+       --><p class="description">{{::item[vm.description]}}</p>
+        </iq-radio>
       </td>
     </tr>
     <tr class="association-editor-row" ng-repeat="item in vm.items"

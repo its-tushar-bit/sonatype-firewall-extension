@@ -19,9 +19,6 @@ import static com.sonatype.insight.brain.integration.repository.FirewallMigratio
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-/**
- * @since 1.28
- */
 public class FirewallMigrationResourceTest
     extends AbstractResourceTest
 {

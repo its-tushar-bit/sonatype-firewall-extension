@@ -10,7 +10,7 @@ import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
- * @since 1.28.0
+ * @since 1.29.0
  */
 public class SystemNoticeDAO
     extends AbstractOperationalSqlDAO<SystemNotice>

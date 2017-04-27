@@ -1,4 +1,4 @@
--- Since 1.28.0
+-- Since 1.29.0
 SET SCHEMA insight_brain_ods;
 
 CREATE TABLE system_notice (

@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 
 /**
- * @since 1.28.0
+ * @since 1.29.0
  */
 @Named
 public class SystemNoticeService
@@ -26,16 +26,10 @@ public class SystemNoticeService
     this.systemNoticeDAO = systemNoticeDAO;
   }
 
-  /**
-   * @since 1.28.0
-   */
   public SystemNotice getSystemNotice() {
     return systemNoticeDAO.get();
   }
 
-  /**
-   * @since 1.28.0
-   */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public SystemNotice updateSystemNotice(SystemNotice systemNotice) {
     systemNoticeDAO.update(systemNotice);

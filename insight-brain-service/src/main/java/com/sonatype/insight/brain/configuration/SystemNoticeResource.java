@@ -17,7 +17,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 
 /**
- * @since 1.28.0
+ * @since 1.29.0
  */
 @Named
 @Path(SystemNoticeResource.RESOURCE_PATH)

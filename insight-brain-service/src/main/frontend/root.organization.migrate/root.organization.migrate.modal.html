@@ -21,19 +21,21 @@
           <div class="control-group">
             <label class="control-label">Configure the Root Organization by:</label>
             <div class="controls">
-              <label class="radio">
-                <input id="select-organization-radio-button" type="radio" ng-model="vm.migrateSelection" value="selectOrganization"/>
-                Copying the configuration of an existing organization to the Root Organization. This includes policies, labels, license threat groups, tags, and policy monitoring but not security settings.
-              </label>
+              <iq-radio id="select-organization-radio-button" 
+                        model="vm.migrateSelection" 
+                        value="'selectOrganization'"><!--
+                -->Copying the configuration of an existing organization to the Root Organization. This includes 
+                policies, labels, license threat groups, tags, and policy monitoring but not security settings.
+              </iq-radio>
               <div id="migrate-organization-wrapper">
                 <select id="migrate-organization" ng-required="vm.migrateSelection == 'selectOrganization'" ng-model="vm.organization" ng-disabled="vm.migrateSelection !== 'selectOrganization'" ng-options="organization.name for organization in vm.organizations">
                   <option value="" selected>-- Select Organization --</option>
                 </select>
               </div>
-              <label class="radio">
-                <input id="empty-root-radio-button" type="radio" ng-model="vm.migrateSelection" value="none"/>
-                Creating an empty Root Organization. This choice is discouraged because once the Root Organization is created, moving policy from existing organizations or applications becomes a manual task.
-              </label>
+              <iq-radio id="empty-root-radio-button" model="vm.migrateSelection" value="'none'"><!--
+                -->Creating an empty Root Organization. This choice is discouraged because once the Root Organization is
+                created, moving policy from existing organizations or applications becomes a manual task.
+              </iq-radio>
             </div>
           </div>
         </div>

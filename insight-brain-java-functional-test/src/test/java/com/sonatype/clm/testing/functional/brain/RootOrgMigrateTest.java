@@ -66,7 +66,7 @@ public class RootOrgMigrateTest
     RootOrgMigrateModal.organizationSelect().shouldBe(Condition.enabled).selectOption(ORG_NAME);
     RootOrgMigrateModal.continueButton().shouldBe(Condition.enabled);
 
-    RootOrgMigrateModal.blankRootRadioButton().setSelected(true);
+    RootOrgMigrateModal.blankRootRadioButton().click();
     RootOrgMigrateModal.organizationSelect().shouldBe(Condition.disabled);
 
     RootOrgMigrateModal.cancelButton().click();
@@ -77,7 +77,7 @@ public class RootOrgMigrateTest
     RootOrgMigrate.startButton().shouldBe(visible).click();
 
     RootOrgMigrateModal.root().shouldBe(visible);
-    RootOrgMigrateModal.blankRootRadioButton().setSelected(true);
+    RootOrgMigrateModal.blankRootRadioButton().click();
 
     RootOrgMigrateModal.continueButton().shouldBe(Condition.enabled).click();
     RootOrgMigrateModal.reloadAppLink().shouldBe(visible);

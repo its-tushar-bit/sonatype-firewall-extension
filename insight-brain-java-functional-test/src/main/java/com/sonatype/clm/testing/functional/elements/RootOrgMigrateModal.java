@@ -15,12 +15,12 @@ public class RootOrgMigrateModal
     return $("#root-organization-migrate-modal");
   }
 
-  public static SelenideElement selectOrgRadioButton() {
-    return $("#select-organization-radio-button");
+  public static IqRadio selectOrgRadioButton() {
+    return new IqRadio($("#select-organization-radio-button"));
   }
 
-  public static SelenideElement blankRootRadioButton() {
-    return $("#empty-root-radio-button");
+  public static IqRadio blankRootRadioButton() {
+    return new IqRadio($("#empty-root-radio-button"));
   }
 
   public static SelenideElement organizationSelect() {

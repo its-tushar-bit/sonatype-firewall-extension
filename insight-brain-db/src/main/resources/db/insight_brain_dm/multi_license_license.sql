@@ -115,6 +115,18 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Motoso
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MPL-1.0','MPL-1.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MPL-1.1','MPL-1.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MPL-2.0','MPL-2.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-Web-Pages-2','MS-ASP.NET-Web-Pages-2');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-Web-Pages-2-Pre-Release','MS-ASP.NET-Web-Pages-2-Pre-Release');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-MSN-WEBGREASE','MS-MSN-WEBGREASE');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-.NET-Library','MS-.NET-Library');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-.NET-Library-JS','MS-.NET-Library-JS');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-MVC-4','MS-ASP.NET-MVC-4');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-MVC-4-Pre-Release','MS-ASP.NET-MVC-4-Pre-Release');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-MVC-4-Extensions-Pre-Release','MS-ASP.NET-MVC-4-Extensions-Pre-Release');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-WOF','MS-ASP.NET-WOF');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-WOF-Pre-Release','MS-ASP.NET-WOF-Pre-Release');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-Tools','MS-ASP.NET-Tools');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-ASP.NET-Universal-Providers','MS-ASP.NET-Universal-Providers');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-PL','MS-PL');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('MS-RL','MS-RL');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Multics','Multics');
@@ -378,3 +390,4 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CC-BY-
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CC-BY-SA-4.0','CC-BY-SA-4.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OPL-1.0','OPL-1.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('X11','X11');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('ServiceStack-License-Agreement','ServiceStack-License-Agreement');

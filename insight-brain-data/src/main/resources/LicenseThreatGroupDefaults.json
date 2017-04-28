@@ -921,6 +921,78 @@
       "licenseId": "MS-PL"
     },
     {
+      "id": "a00fae0faf5642d58fa471a3bf281e78",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-.NET-Library"
+    },
+    {
+      "id": "5f80d80d3a85431b8ac4e83d6748f56f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-.NET-Library-JS"
+    },
+    {
+      "id": "ba822b89f6324c249ee8f21fd6c3b0b8",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-4"
+    },
+    {
+      "id": "08ac06c565cb4ded9acec756dc341508",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-4-Extensions-Pre-Release"
+    },
+    {
+      "id": "c98660a1f1e54d2885f5a66a6a4aaff5",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-4-Pre-Release"
+    },
+    {
+      "id": "7b086dfb40764620895b8f9f73ee32f2",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Tools"
+    },
+    {
+      "id": "3f870959d67147c0bdaf1f07f0e29788",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Universal-Providers"
+    },
+    {
+      "id": "db989d7558d14ebd928e168aef864330",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-WOF"
+    },
+    {
+      "id": "bdbfc356b500492391c9249e0a3bb263",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-WOF-Pre-Release"
+    },
+    {
+      "id": "8ced290e89a64280aafe6ff3d70849ef",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Web-Pages-2"
+    },
+    {
+      "id": "1f299125ccd14a4e965c2ba07c2c0533",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Web-Pages-2-Pre-Release"
+    },
+    {
+      "id": "6ef570c510c243369876930114cb9e88",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-MSN-WEBGREASE"
+    },
+    {
       "id": "6050d028680a4513914a8ab787469631",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
@@ -1063,6 +1135,12 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
       "licenseId": "Ruby"
+    },
+    {
+      "id": "3ed8c4ef411e4f6e9a8756d268319414",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "ServiceStack-License-Agreement"
     },
     {
       "id": "81d42b0fc4764024b4a420c49135f90b",

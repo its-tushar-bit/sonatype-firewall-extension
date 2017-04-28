@@ -102,3 +102,16 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('InterbasePL-1.0','InterbasePL-1.0','InterBase Public License Version 1.0');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('JA-SIG-Collaborative','JA-SIG-Collaborative','The JA-SIG Collaborative License');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Spice-1.1','Spice-1.1','Spice Software License Version 1.1');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-Web-Pages-2','MS-ASP.NET-Web-Pages-2','Microsoft ASP.NET Web Pages 2');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-Web-Pages-2-Pre-Release','MS-ASP.NET-Web-Pages-2-Pre-Release','Microsoft ASP.NET Web Pages 2 - Pre-Release');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-MSN-WEBGREASE','MS-MSN-WEBGREASE','Microsoft MSN WebGrease');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-.NET-Library','MS-.NET-Library','Microsoft .NET Library');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-.NET-Library-JS','MS-.NET-Library-JS','Microsoft .NET Library JS');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-MVC-4','MS-ASP.NET-MVC-4','Microsoft ASP.NET Model View Controller 4');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-MVC-4-Pre-Release','MS-ASP.NET-MVC-4-Pre-Release','Microsoft ASP.NET Model View Controller 4 Pre-Release');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-MVC-4-Extensions-Pre-Release','MS-ASP.NET-MVC-4-Extensions-Pre-Release','Microsoft ASP.NET Model View Controller 4 Extensions Pre-Release');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-WOF','MS-ASP.NET-WOF','Microsoft ASP.NET Web Optimization Framework');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-WOF-Pre-Release','MS-ASP.NET-WOF-Pre-Release','Microsoft ASP.NET Web Optimization Framework Pre-Release');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-Tools','MS-ASP.NET-Tools','Microsoft ASP.NET Tools');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('MS-ASP.NET-Universal-Providers','MS-ASP.NET-Universal-Providers','Microsoft ASP.NET Universal Providers');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('ServiceStack-License-Agreement','ServiceStack-License-Agreement','ServiceStack License Agreement');

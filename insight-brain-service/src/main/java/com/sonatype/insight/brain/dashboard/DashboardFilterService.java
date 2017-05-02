@@ -166,16 +166,18 @@ public class DashboardFilterService
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
-    DashboardFilter dashboardFilter = new DashboardFilter();
-    dashboardFilter.setUsername(username);
-    dashboardFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
-    dashboardFilter.setName(namedDashboardFilterDTO.name);
-    dashboardFilter.setAcknowledged(insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
-
-    DashboardFilter existingDashboardFilter = dashboardFilterDAO
-        .getByUsernameAndName(username, namedDashboardFilterDTO.name);
 
     if (!ACTIVE_FILTER_NAME.equals(namedDashboardFilterDTO.name)) {
+      // Create or update the named filter
+      DashboardFilter dashboardFilter = new DashboardFilter();
+      dashboardFilter.setUsername(username);
+      dashboardFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
+      dashboardFilter.setName(namedDashboardFilterDTO.name);
+      dashboardFilter.setAcknowledged(insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
+
+      DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsernameAndName(username,
+          namedDashboardFilterDTO.name);
+
       if (existingDashboardFilter == null) {
         dashboardFilterDAO.insert(dashboardFilter);
       }
@@ -184,6 +186,7 @@ public class DashboardFilterService
         dashboardFilterDAO.update(dashboardFilter);
       }
     }
+
     createOrUpdateActiveFilter(namedDashboardFilterDTO, username);
     namedDashboardFilterDTO.needsAcknowledgement = false;
     return namedDashboardFilterDTO;

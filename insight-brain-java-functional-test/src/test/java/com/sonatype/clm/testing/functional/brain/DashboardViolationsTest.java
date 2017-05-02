@@ -73,7 +73,7 @@ public class DashboardViolationsTest
 
   private static final String MAX_RESULTS_MSG = "Newest 100 results shown";
 
-  private static final String CSV_HEADERS = "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Milliseconds Since First Seen";
+  private static final String CSV_HEADERS = "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
 
   private static final String NEWEST_RISK_URL = uriBuilder().fragment("/dashboard/newest-risk").build().toString();
 

@@ -45,7 +45,7 @@ public class NewestRiskDTO implements CsvWritable
   public List<StageDetailDTO> stageDetails = new ArrayList<>();
 
   public static String getCsvHeader() {
-    return "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Milliseconds Since First Seen";
+    return "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
   }
 
   @Override

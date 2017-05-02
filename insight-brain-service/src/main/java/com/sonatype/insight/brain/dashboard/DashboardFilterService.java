@@ -98,7 +98,7 @@ public class DashboardFilterService
     dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, "");
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, ACTIVE_FILTER_NAME);
     if (dashboardFilter == null) {
       return createDefaultNamedDashboardFilterDTO();
     }

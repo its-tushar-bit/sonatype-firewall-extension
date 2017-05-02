@@ -201,7 +201,7 @@ public class DashboardFilterServiceTest
     assertThat(actual.filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
     assertThat(actual.filter.policyViolationStates, hasSize(1));
     assertThat(actual.filter.policyViolationStates.get(0), is(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name()));
-    assertThat(actual.name, is(""));
+    assertThat(actual.name, is(ACTIVE_FILTER_NAME));
     assertThat(actual.basedOnFilterName, is(nullValue()));
   }
 
@@ -215,7 +215,7 @@ public class DashboardFilterServiceTest
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 3, 9);
     tempEntity.newDashboardFilter(USERNAME, filterName2, JsonUtils.format(dto2.filter));
 
-    String filterName3 = "";
+    String filterName3 = ACTIVE_FILTER_NAME;
     NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO(filterName3, 5, 9);
     tempEntity.newDashboardFilter(USERNAME, filterName3, JsonUtils.format(dto3.filter));
 
@@ -295,19 +295,19 @@ public class DashboardFilterServiceTest
         null /* basedOnFilterName */, needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(actualDto, 3, 9);
 
-    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, "");
-    assertDashboardFilter(activeFilter, filter1.getUsername(), "" /* name */, "" /* nameLowercaseNoWhitespace */,
-        "Filter1", needsAcknowledgementOfInitialDashboardFilter);
+    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
+    assertDashboardFilter(activeFilter, filter1.getUsername(), ACTIVE_FILTER_NAME /* name */,
+        ACTIVE_FILTER_NAME /* nameLowercaseNoWhitespace */, "Filter1", needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 3, 9);
 
     // check that we can update the active filter
-    NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO("", 7, 10);
+    NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 7, 10);
     dto3.basedOnFilterName = filterName1;
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto3);
 
-    activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, "");
-    assertDashboardFilter(activeFilter, filter1.getUsername(), "" /* name */, "" /* nameLowercaseNoWhitespace */,
-        "Filter1", needsAcknowledgementOfInitialDashboardFilter);
+    activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
+    assertDashboardFilter(activeFilter, filter1.getUsername(), ACTIVE_FILTER_NAME /* name */,
+        ACTIVE_FILTER_NAME /* nameLowercaseNoWhitespace */, "Filter1", needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 7, 10);
   }
 
@@ -338,8 +338,9 @@ public class DashboardFilterServiceTest
         needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(actualDto, 2, 10);
 
-    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, "");
-    assertDashboardFilter(activeFilter, USERNAME, "", "", "Filter1", needsAcknowledgementOfInitialDashboardFilter);
+    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
+    assertDashboardFilter(activeFilter, USERNAME, ACTIVE_FILTER_NAME, ACTIVE_FILTER_NAME, "Filter1",
+        needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 2, 10);
   }
 
@@ -432,7 +433,7 @@ public class DashboardFilterServiceTest
   public void testGetActiveDashboardFilterForCurrentUser_DefaultMaxDaysOld() throws Exception {
     String filterJsonWithoutMaxDaysOld = IOUtils.toString(getClass().getResource(FILTER_WITHOUT_MAX_DAYS_OLD_PATH),
         "UTF-8");
-    tempEntity.newDashboardFilter(USERNAME, "", filterJsonWithoutMaxDaysOld);
+    tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, filterJsonWithoutMaxDaysOld);
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
     assertThat(actual.filter.maxDaysOld, is(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD));
@@ -442,7 +443,7 @@ public class DashboardFilterServiceTest
   public void testGetActiveDashboardFilterForCurrentUser_DefaultPolicyViolationState() throws Exception {
     String filterJsonWithoutPolicyViolationStates = IOUtils
         .toString(getClass().getResource(FILTER_WITHOUT_POLICY_VIOLATION_STATES), "UTF-8");
-    tempEntity.newDashboardFilter(USERNAME, "", filterJsonWithoutPolicyViolationStates);
+    tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, filterJsonWithoutPolicyViolationStates);
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
 
@@ -462,7 +463,7 @@ public class DashboardFilterServiceTest
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName2, 4, 8);
     tempEntity.newDashboardFilter(USERNAME, dto2.name, JsonUtils.format(dto2.filter));
 
-    NamedDashboardFilterDTO activeDto = createNamedDashboardFilterDTO("", 6, 7);
+    NamedDashboardFilterDTO activeDto = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 6, 7);
     tempEntity.newDashboardFilter(USERNAME, activeDto.name, false, filterName1, JsonUtils.format(activeDto.filter));
 
     List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
@@ -471,7 +472,7 @@ public class DashboardFilterServiceTest
 
     List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsername(USERNAME);
     assertThat(actual, hasSize(0));
-    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, "");
+    DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME);
     assertThat(activeFilter.getBasedOnFilterName(), nullValue());
   }
 

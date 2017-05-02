@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -44,6 +45,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -67,6 +69,9 @@ public class DashboardFilterServiceTest
 
   @Inject
   private DashboardFilterService dashboardFilterService;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   private Organization org;
   private Application app1;
@@ -216,10 +221,12 @@ public class DashboardFilterServiceTest
 
     List<NamedDashboardFilterDTO> actual = dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
     assertThat(actual, hasSize(2));
-    assertThat(actual.get(0).name, is(filterName1));
+    assertNamedDashboardFilterDTO(actual.get(0), filterName1, null /* basedOnFilterName */,
+        false /* needsAcknowledgement */);
     assertFilterEmptyState(actual.get(0).filter, 2, 10);
 
-    assertThat(actual.get(1).name, is(filterName2));
+    assertNamedDashboardFilterDTO(actual.get(1), filterName2, null /* basedOnFilterName */,
+        false /* needsAcknowledgement */);
     assertFilterEmptyState(actual.get(1).filter, 3, 9);
   }
 
@@ -255,11 +262,26 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateDashboardFilterForCurrentUser_Update() throws IOException {
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Update() throws Exception {
+    testCreateOrUpdateDashboardFilterForCurrentUser_Update(false);
+  }
 
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Update_NeedsAcknowledgementOfInitialDashboardFilter()
+      throws Exception
+  {
+    testCreateOrUpdateDashboardFilterForCurrentUser_Update(true);
+  }
+
+  private void testCreateOrUpdateDashboardFilterForCurrentUser_Update(boolean needsAcknowledgementOfInitialDashboardFilter)
+      throws Exception
+  {
     String filterName1 = "Filter1";
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO(filterName1, 2, 10);
     DashboardFilter filter1 = tempEntity.newDashboardFilter(USERNAME, filterName1, JsonUtils.format(dto1.filter));
+    assertThat(filter1.isAcknowledged(), is(false));
+
+    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
 
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName1, 3, 9);
     //this should update the above filter
@@ -269,16 +291,14 @@ public class DashboardFilterServiceTest
     DashboardFilter actual = dashboardFilterDAO.getById(filter1.getId());
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
 
-    assertThat(actual, notNullValue());
-    assertThat(actual.getUsername(), is(filter1.getUsername()));
-    assertThat(actual.getNameLowercaseNoWhitespace(), is(filter1.getNameLowercaseNoWhitespace()));
-    assertThat(actual.getName(), is(filterName1));
+    assertDashboardFilter(actual, filter1.getUsername(), filterName1, filter1.getNameLowercaseNoWhitespace(),
+        null /* basedOnFilterName */, needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(actualDto, 3, 9);
 
     DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, "");
+    assertDashboardFilter(activeFilter, filter1.getUsername(), "" /* name */, "" /* nameLowercaseNoWhitespace */,
+        "Filter1", needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 3, 9);
-    assertThat(activeFilter.getName(), is(""));
-    assertThat(activeFilter.getBasedOnFilterName(), is("Filter1"));
 
     // check that we can update the active filter
     NamedDashboardFilterDTO dto3 = createNamedDashboardFilterDTO("", 7, 10);
@@ -286,29 +306,41 @@ public class DashboardFilterServiceTest
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto3);
 
     activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, "");
+    assertDashboardFilter(activeFilter, filter1.getUsername(), "" /* name */, "" /* nameLowercaseNoWhitespace */,
+        "Filter1", needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 7, 10);
-    assertThat(activeFilter.getName(), is(""));
-    assertThat(activeFilter.getBasedOnFilterName(), is("Filter1"));
   }
 
   @Test
-  public void testCreateOrUpdateDashboardFilterForCurrentUser_Insert() throws IOException {
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Insert() throws Exception {
+    testCreateOrUpdateDashboardFilterForCurrentUser_Insert(false);
+  }
+
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Insert_NeedsAcknowledgementOfInitialDashboardFilter()
+      throws Exception
+  {
+    testCreateOrUpdateDashboardFilterForCurrentUser_Insert(true);
+  }
+
+  private void testCreateOrUpdateDashboardFilterForCurrentUser_Insert(boolean needsAcknowledgementOfInitialDashboardFilter)
+      throws Exception
+  {
+    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
+
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO("Filter1", 2, 10);
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto1);
 
     List<DashboardFilter> actual = dashboardFilterDAO.getNamedFiltersByUsername(USERNAME);
     assertThat(actual, hasSize(1));
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.get(0).getFilter(), DashboardFilterDTO.class);
-    assertThat(actual.get(0).getId(), notNullValue());
-    assertThat(actual.get(0).getUsername(), is(USERNAME));
-    assertThat(actual.get(0).getName(), is("Filter1"));
-    assertThat(actual.get(0).getNameLowercaseNoWhitespace(), is("filter1"));
+    assertDashboardFilter(actual.get(0), USERNAME, "Filter1", "filter1", null /* basedOnFilterName */,
+        needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(actualDto, 2, 10);
 
     DashboardFilter activeFilter = dashboardFilterDAO.getByUsernameAndName(USERNAME, "");
+    assertDashboardFilter(activeFilter, USERNAME, "", "", "Filter1", needsAcknowledgementOfInitialDashboardFilter);
     assertFilterEmptyState(JsonUtils.parse(activeFilter.getFilter(), DashboardFilterDTO.class), 2, 10);
-    assertThat(activeFilter.getName(), is(""));
-    assertThat(activeFilter.getBasedOnFilterName(), is("Filter1"));
   }
 
   private void assertFilterEmptyState(DashboardFilterDTO actualDto,
@@ -325,13 +357,75 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testGetActiveDashboardFilterForCurrentUser() throws IOException {
-    NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO("", 5, 7);
-    tempEntity.newDashboardFilter(USERNAME, "", JsonUtils.format(dto1.filter));
+  public void testGetActiveDashboardFilterForCurrentUser_NewFilter() throws Exception {
+    testGetActiveDashboardFilterForCurrentUser_NewFilter(false);
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_NewFilter_NeedsAcknowledgementOfInitialDashboardFilter()
+      throws Exception
+  {
+    testGetActiveDashboardFilterForCurrentUser_NewFilter(true);
+  }
+
+  private void testGetActiveDashboardFilterForCurrentUser_NewFilter(boolean needsAcknowledgementOfInitialDashboardFilter)
+      throws Exception
+  {
+    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
+    NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertNamedDashboardFilterDTO(actual, ACTIVE_FILTER_NAME, null /* basedOnFilterName */,
+        needsAcknowledgementOfInitialDashboardFilter);
+    assertFilterEmptyState(actual.filter, 2, 10);
+
+    assertThat(dashboardFilterDAO.getByUsernameAndName(USERNAME, ACTIVE_FILTER_NAME), is(nullValue()));
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_ExistingFilter() throws Exception {
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 5, 7);
+    tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, false /* acknowledged */, null,
+        JsonUtils.format(namedDashboardFilterDTO.filter));
 
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
-    assertThat(actual, notNullValue());
+    assertNamedDashboardFilterDTO(actual, ACTIVE_FILTER_NAME, null /* basedOnFilterName */,
+        false /* needsAcknowledgement */);
     assertFilterEmptyState(actual.filter, 5, 7);
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUser_ExistingFilter_NeedsAcknowledgementOfInitialDashboardFilter()
+      throws Exception
+  {
+    // Create an unnamed active filter that was not acknowledged by the user.
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 5, 7);
+    DashboardFilter activeFilter = tempEntity.newDashboardFilter(USERNAME, ACTIVE_FILTER_NAME, false /* acknowledged */,
+        null, JsonUtils.format(namedDashboardFilterDTO.filter));
+
+    // Enable the needsAcknowledgementOfInitialDashboardFilter config option
+    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(true);
+
+    // The existing filter must be marked as needing acknowledgement.
+    NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertNamedDashboardFilterDTO(actual, ACTIVE_FILTER_NAME, null /* basedOnFilterName */,
+        true /* needsAcknowledgement */);
+    assertFilterEmptyState(actual.filter, 5, 7);
+
+    // Update the active filter to mark it as acknowledged.
+    // It should not need acknowledgement again.
+    activeFilter.setAcknowledged(true);
+    dashboardFilterDAO.update(activeFilter);
+    actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertNamedDashboardFilterDTO(actual, ACTIVE_FILTER_NAME, null /* basedOnFilterName */,
+        false /* needsAcknowledgement */);
+
+    // Update the active filter to mark it as not acknowledged, but based on a named filter.
+    // It should not need acknowledgement.
+    tempEntity.newDashboardFilter(USERNAME, "My Filter", JsonUtils.format(namedDashboardFilterDTO.filter));
+    activeFilter.setAcknowledged(false);
+    activeFilter.setBasedOnFilterName("My Filter");
+    dashboardFilterDAO.update(activeFilter);
+    actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertNamedDashboardFilterDTO(actual, ACTIVE_FILTER_NAME, "My Filter", false /* needsAcknowledgement */);
   }
 
   @Test
@@ -369,7 +463,7 @@ public class DashboardFilterServiceTest
     tempEntity.newDashboardFilter(USERNAME, dto2.name, JsonUtils.format(dto2.filter));
 
     NamedDashboardFilterDTO activeDto = createNamedDashboardFilterDTO("", 6, 7);
-    tempEntity.newDashboardFilter(USERNAME, activeDto.name, filterName1, JsonUtils.format(activeDto.filter));
+    tempEntity.newDashboardFilter(USERNAME, activeDto.name, false, filterName1, JsonUtils.format(activeDto.filter));
 
     List<String> filtersToDelete = Arrays.asList(filterName1, filterName2);
 
@@ -424,7 +518,7 @@ public class DashboardFilterServiceTest
     DashboardUtils dashboardUtilsMock = Mockito.mock(DashboardUtils.class);
 
     DashboardFilterService dashboardFilterService = new DashboardFilterService(null, null, null, null,
-        dashboardFilterDaoSpy, currentUserMock, dashboardUtilsMock, null);
+        dashboardFilterDaoSpy, currentUserMock, dashboardUtilsMock, null, insightConfig);
 
     when(currentUserMock.getUsername()).thenReturn(USERNAME);
     when(dashboardFilterDaoSpy.getByUsernameAndName(USERNAME, filterName1)).thenReturn(dashboardFilter1);
@@ -444,10 +538,7 @@ public class DashboardFilterServiceTest
     // verify that Filter 1 is present and Filter 2 got deleted
     List<DashboardFilter> actualFilters = dashboardFilterDao.getNamedFiltersByUsername(USERNAME);
     assertThat(actualFilters, hasSize(1));
-    assertThat(actualFilters.get(0), notNullValue());
-    assertThat(actualFilters.get(0).getUsername(), is(USERNAME));
-    assertThat(actualFilters.get(0).getNameLowercaseNoWhitespace(), is("filter1"));
-    assertThat(actualFilters.get(0).getName(), is("Filter 1"));
+    assertDashboardFilter(actualFilters.get(0), USERNAME, "Filter 1", "filter1", null, false);
   }
 
   @Test
@@ -490,5 +581,30 @@ public class DashboardFilterServiceTest
     dto.name = filterName;
     dto.filter = filter;
     return dto;
+  }
+
+  private void assertNamedDashboardFilterDTO(NamedDashboardFilterDTO actual,
+                                             String name,
+                                             String basedOnFilterName,
+                                             boolean needsAcknowledgement)
+  {
+    assertThat(actual.name, is(name));
+    assertThat(actual.basedOnFilterName, is(basedOnFilterName));
+    assertThat(actual.needsAcknowledgement, is(needsAcknowledgement));
+  }
+
+  private void assertDashboardFilter(DashboardFilter actual,
+                                     String username,
+                                     String name,
+                                     String nameLowercaseNoWhitespace,
+                                     String basedOnFilterName,
+                                     boolean acknowledged)
+  {
+    assertThat(actual.getId(), is(notNullValue()));
+    assertThat(actual.getUsername(), is(username));
+    assertThat(actual.getName(), is(name));
+    assertThat(actual.getNameLowercaseNoWhitespace(), is(nameLowercaseNoWhitespace));
+    assertThat(actual.getBasedOnFilterName(), is(basedOnFilterName));
+    assertThat(actual.isAcknowledged(), is(acknowledged));
   }
 }

@@ -371,15 +371,21 @@ public class TemporaryEntity
   }
 
   public DashboardFilter newDashboardFilter(String username, String filterName, String filter) {
-    return newDashboardFilter(username, filterName, null, filter);
+    return newDashboardFilter(username, filterName, false, null, filter);
   }
 
-  public DashboardFilter newDashboardFilter(String username, String filterName, String basedOn, String filter) {
+  public DashboardFilter newDashboardFilter(String username,
+                                            String filterName,
+                                            boolean acknowledged,
+                                            String basedOn,
+                                            String filter)
+  {
     DashboardFilter dashboardFilter = new DashboardFilter();
     dashboardFilter.setUsername(username);
     dashboardFilter.setFilter(filter);
     dashboardFilter.setName(filterName);
     dashboardFilter.setBasedOnFilterName(basedOn);
+    dashboardFilter.setAcknowledged(acknowledged);
     dashboardFilterDAO.insert(dashboardFilter);
     dashboardFilters.add(dashboardFilter);
     return dashboardFilter;

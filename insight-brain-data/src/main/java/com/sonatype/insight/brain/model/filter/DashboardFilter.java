@@ -41,6 +41,15 @@ public class DashboardFilter
   @Column(name = "based_on_filter_name")
   private String basedOnFilterName;
 
+  /**
+   * If true, the filter was acknowledged by the user while the needsAcknowledgementOfInitialDashboardFilter config
+   * option is enabled.
+   * 
+   * @since 1.29
+   */
+  @Column(name = "acknowledged")
+  private boolean acknowledged;
+
   public DashboardFilter() {
   }
 
@@ -105,5 +114,13 @@ public class DashboardFilter
 
   public void setBasedOnFilterName(final String basedOnFilterName) {
     this.basedOnFilterName = basedOnFilterName;
+  }
+
+  public boolean isAcknowledged() {
+    return acknowledged;
+  }
+
+  public void setAcknowledged(boolean acknowledged) {
+    this.acknowledged = acknowledged;
   }
 }

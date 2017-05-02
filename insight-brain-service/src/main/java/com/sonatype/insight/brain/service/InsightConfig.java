@@ -174,6 +174,15 @@ public class InsightConfig
   @JsonProperty
   private EventBusConfig eventBus = new EventBusConfig();
 
+  /**
+   * If true, users must configure and acknowledge a filter before being able to see any data in the dashboard.
+   * 
+   * @since 1.29
+   */
+  @NotNull
+  @JsonProperty
+  private boolean needsAcknowledgementOfInitialDashboardFilter = false;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -452,5 +461,21 @@ public class InsightConfig
    */
   public SupportConfig getSupportConfig() {
     return support;
+  }
+
+  /**
+   * If true, users must configure and acknowledge a filter before being able to see any data in the dashboard.
+   * 
+   * @since 1.29
+   */
+  public boolean isNeedsAcknowledgementOfInitialDashboardFilter() {
+    return needsAcknowledgementOfInitialDashboardFilter;
+  }
+
+  /**
+   * @since 1.29
+   */
+  public void setNeedsAcknowledgementOfInitialDashboardFilter(boolean needsAcknowledgementOfInitialDashboardFilter) {
+    this.needsAcknowledgementOfInitialDashboardFilter = needsAcknowledgementOfInitialDashboardFilter;
   }
 }

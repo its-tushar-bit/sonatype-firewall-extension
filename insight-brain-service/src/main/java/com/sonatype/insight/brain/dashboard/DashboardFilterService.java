@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -66,6 +67,8 @@ public class DashboardFilterService
 
   private final DashboardUtils dashboardUtils;
 
+  private final InsightConfig insightConfig;
+
   @Inject
   public DashboardFilterService(ApplicationDAO applicationDAO,
                                 ApplicationComponentDAO applicationComponentDAO,
@@ -74,7 +77,8 @@ public class DashboardFilterService
                                 DashboardFilterDAO dashboardFilterDAO,
                                 CurrentUser currentUser,
                                 DashboardUtils dashboardUtils,
-                                OwnerDAO ownerDAO)
+                                OwnerDAO ownerDAO,
+                                InsightConfig insightConfig)
   {
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
@@ -84,6 +88,7 @@ public class DashboardFilterService
     this.dashboardFilterDAO = dashboardFilterDAO;
     this.currentUser = currentUser;
     this.dashboardUtils = dashboardUtils;
+    this.insightConfig = insightConfig;
   }
 
   /**
@@ -95,7 +100,7 @@ public class DashboardFilterService
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsernameAndName(username, "");
     if (dashboardFilter == null) {
-      return createDefaultDashboardFilterForCurrentUser();
+      return createDefaultNamedDashboardFilterDTO();
     }
     DashboardFilterDTO dto = JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
 
@@ -103,6 +108,8 @@ public class DashboardFilterService
 
     NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO.name = ACTIVE_FILTER_NAME;
+    namedDashboardFilterDTO.needsAcknowledgement = insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter()
+        && !dashboardFilter.isAcknowledged() && dashboardFilter.getBasedOnFilterName() == null;
     namedDashboardFilterDTO.filter = dto;
     namedDashboardFilterDTO.basedOnFilterName = dashboardFilter.getBasedOnFilterName();
 
@@ -124,6 +131,7 @@ public class DashboardFilterService
 
       NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
       namedDashboardFilterDTO.name = dashboardFilter.getName();
+      namedDashboardFilterDTO.needsAcknowledgement = false;
       namedDashboardFilterDTO.filter = dto;
 
       pruneUnauthorizedApplicationIds(dto);
@@ -132,8 +140,7 @@ public class DashboardFilterService
     return namedDashboardFilterDTOs;
   }
 
-  private NamedDashboardFilterDTO createDefaultDashboardFilterForCurrentUser() {
-    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+  private NamedDashboardFilterDTO createDefaultNamedDashboardFilterDTO() {
     DashboardFilterDTO dashboardFilterDTO = new DashboardFilterDTO();
     dashboardFilterDTO.applicationFilters = new ArrayList<>();
     dashboardFilterDTO.organizationFilters = new ArrayList<>();
@@ -144,11 +151,12 @@ public class DashboardFilterService
     dashboardFilterDTO.stageTypeFilters = new ArrayList<>();
     dashboardFilterDTO.policyThreatCategoryFilters = new ArrayList<>();
     dashboardFilterDTO.tagFilters = new ArrayList<>();
-
+    
+    NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO.name = ACTIVE_FILTER_NAME;
+    namedDashboardFilterDTO.needsAcknowledgement = insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter();
     namedDashboardFilterDTO.filter = dashboardFilterDTO;
-
-    return createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO);
+    return namedDashboardFilterDTO;
   }
 
   /**
@@ -162,6 +170,7 @@ public class DashboardFilterService
     dashboardFilter.setUsername(username);
     dashboardFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
     dashboardFilter.setName(namedDashboardFilterDTO.name);
+    dashboardFilter.setAcknowledged(insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
 
     DashboardFilter existingDashboardFilter = dashboardFilterDAO
         .getByUsernameAndName(username, namedDashboardFilterDTO.name);
@@ -176,6 +185,7 @@ public class DashboardFilterService
       }
     }
     createOrUpdateActiveFilter(namedDashboardFilterDTO, username);
+    namedDashboardFilterDTO.needsAcknowledgement = false;
     return namedDashboardFilterDTO;
   }
 
@@ -184,6 +194,7 @@ public class DashboardFilterService
     newActiveFilter.setUsername(username);
     newActiveFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
     newActiveFilter.setName(ACTIVE_FILTER_NAME);
+    newActiveFilter.setAcknowledged(insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
 
     if (namedDashboardFilterDTO.basedOnFilterName != null) {
       newActiveFilter.setBasedOnFilterName(namedDashboardFilterDTO.basedOnFilterName);

@@ -1,6 +1,46 @@
 /*
   #Widgets
 */
+/*
+  #Alerts
+*/
+.iq-alert {
+  background-color: $iq-warn-color-bg;
+  border: 1px solid $iq-warn-color;
+  color: $iq-warn-color;
+  margin: 8px;
+  padding: 9px 8px 8px 8px;
+  
+  .fa {
+      margin-right: 8px;
+  }
+
+  :first-child {
+    margin-top: 0;
+  }
+
+  .iq-scrollable {
+    margin-top: -8px;
+    margin-right: -8px;
+  }
+}
+
+.iq-alert--error {
+  background-color: $iq-fail-color-bg;
+  border-color: $iq-fail-color;
+  color: $iq-fail-color;
+}
+
+.iq-alert--info {
+  background-color: $iq-off-white;
+  border-color: $iq-dark-blue;
+  color: $iq-off-black;
+
+  .fa {
+    color: $iq-dark-blue;
+    font-size: 16px;
+  }
+}
 
 /*
  #Dropdown menus

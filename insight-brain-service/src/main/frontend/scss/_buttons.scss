@@ -2,6 +2,18 @@
   ##Buttons
 */
 
+.iq-btn-bar {
+  margin: 8px 0 0 0;
+
+  .iq-btn {
+    margin-right: 8px;
+    
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
 .btn {
   @include semi-bold();
 

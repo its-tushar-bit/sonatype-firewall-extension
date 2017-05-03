@@ -24,4 +24,5 @@ export default angular.module('config', ['components', charts.name])
       'iq-dropdown': 'styles/iq-dropdown.html',
       'iq-pull-right': 'styles/iq-pull-right.html',
       'iq-scrollable': 'styles/iq-scrollable.html',
+      'iq-alerts': 'styles/iq-alerts.html',
     });

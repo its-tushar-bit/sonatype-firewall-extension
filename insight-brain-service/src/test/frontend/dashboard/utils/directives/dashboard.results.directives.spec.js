@@ -49,6 +49,7 @@ describe('dashboard.results.directives.spec', function() {
       it('Filter Set', function() {
         dashboardDataServiceMock[directive.serviceMethod].and.returnValue($q.resolve(['foo']));
         scope.$apply(function() {
+          scope.needsAcknowledgement = false;
           scope.filters = {
             applicationIds: ['foo'],
             policyThreatTypes: [],
@@ -116,6 +117,23 @@ describe('dashboard.results.directives.spec', function() {
       it('goToComponentDetails() uses proper sate and hash', function() {
         scope.goToComponentDetails({hash: 'test-hash'});
         expect($state.go).toHaveBeenCalledWith('dashboard.component', {hash: 'test-hash'});
+      });
+
+      it('Does not fetch data if acknowledgement is needed', function() {
+        dashboardDataServiceMock[directive.serviceMethod].and.returnValue($q.resolve(['foo']));
+        scope.$apply(function() {
+          scope.needsAcknowledgement = true;
+          scope.filters = {
+            applicationIds: ['foo'],
+            policyThreatTypes: [],
+            stageTypeIds: [],
+            applicationTagIds: [],
+            policyThreatLevel: [0, 10]
+          };
+        });
+
+        expect(dashboardDataServiceMock[directive.serviceMethod]).not.toHaveBeenCalled();
+        expect(directiveScope.data).toBeUndefined();
       });
     });
   });

@@ -16,9 +16,10 @@
 
     $scope.filters = undefined;
 
-    $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS, function(e, newFilters) {
+    $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS, function(e, newFilters, needsAcknowledgement) {
       $scope.filters = newFilters;
       $scope.maxDaysOld = newFilters.maxDaysOld;
+      $scope.needsAcknowledgement = needsAcknowledgement;
     });
 
     function showTrendDialog() {

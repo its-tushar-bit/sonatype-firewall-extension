@@ -11,7 +11,8 @@
   {
     var vm = this,
         appliedFilter,
-        appliedFilterName;
+        appliedFilterName,
+        needsAcknowledgement;
 
     // Available
     vm.organizations = undefined;
@@ -139,6 +140,8 @@
 
       $q.all(promises).then(function(data) {
         var activeFilter = data[4].data.filter;
+        needsAcknowledgement = data[4].data.needsAcknowledgement;
+
         vm.organizations = angular.copy(data[2]); // copied as we modify objects
         vm.applications = data[0];
         vm.stages = data[1];
@@ -238,7 +241,7 @@
         if (savedNamedFilter && !angular.equals(activeFilter, savedNamedFilter.filter)) {
           vm.showDirtyAsterisk = true;
         }
-        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter);
+        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter, needsAcknowledgement);
       }, function(error) {
         vm.loadError = error;
       });
@@ -381,13 +384,14 @@
     function applyFilter(filterJson) {
       return $http.put(CLMLocations.getDashboardFilters(), filterJson).then(function(activeFilter) {
         appliedFilterName = vm.activeFilterName;
-        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter.data);
+        needsAcknowledgement = false;
+        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter.data, needsAcknowledgement);
         return activeFilter.data;
       });
     }
 
     function isDirty() {
-      return !angular.equals(vm.selected, appliedFilter);
+      return !angular.equals(vm.selected, appliedFilter) || needsAcknowledgement;
     }
   }
 

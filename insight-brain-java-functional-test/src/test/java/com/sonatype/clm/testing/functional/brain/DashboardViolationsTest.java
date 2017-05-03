@@ -69,7 +69,7 @@ import static org.junit.Assert.fail;
 public class DashboardViolationsTest
     extends AbstractFunctionalTest
 {
-  private static final String NO_DATA_MSG = "No data available in the last 30 days given the applied filters and available permissions.";
+  private static final String NO_DATA_MSG = "No data available in the last 30 days given the applied filters and permissions.";
 
   private static final String MAX_RESULTS_MSG = "Newest 100 results shown";
 

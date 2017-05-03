@@ -20,7 +20,7 @@
       function(dashboardDataService, filterToParams) {
         function createFilterWatch($scope, $rootScope, Dialog, ApplicationStore) {
           return function(newFilter) {
-            if (newFilter) {
+            if (newFilter && !$scope.needsAcknowledgement) {
               $scope.error = $scope.data = null;
               var params = filterToParams($scope.filters, $scope.maxResults);
 

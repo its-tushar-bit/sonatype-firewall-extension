@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
 public class DashboardApplicationsTest
     extends AbstractFunctionalTest
 {
-  private static final String NO_DATA_MSG = "No data available given the applied filters and available permissions.";
+  private static final String NO_DATA_MSG = "No data available given the applied filters and permissions.";
 
   private static final String MAX_RESULTS_MSG = "First 100 results shown";
 

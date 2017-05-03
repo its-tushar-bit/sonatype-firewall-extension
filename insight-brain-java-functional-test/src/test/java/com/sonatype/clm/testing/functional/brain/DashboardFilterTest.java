@@ -94,6 +94,11 @@ public class DashboardFilterTest
   }
 
   @After
+  public void reset() {
+    testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(false);
+    clearFilters();
+  }
+
   public void clearFilters() {
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
@@ -376,7 +381,7 @@ public class DashboardFilterTest
     DashboardPage.violationsView().results().violations().shouldHaveSize(0);
     // verify no data message
     DashboardPage.violationsView().results().noDataMessage().shouldBe(visible)
-        .shouldHave(text("No data available in the last 30 days given the applied filters and available permissions."));
+        .shouldHave(text("No data available in the last 30 days given the applied filters and permissions."));
   }
 
   @Test
@@ -547,6 +552,78 @@ public class DashboardFilterTest
     com.sonatype.insight.brain.model.filter.DashboardFilter filter = dashboardFilterDAO
         .getByUsernameAndName("admin", "");
     assertThat(filter.getBasedOnFilterName(), is(nullValue()));
+  }
+
+  @Test
+  public void testNeedsAcknowledgement() {
+    testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
+    refreshOrOpen(VIOLATIONS_URL);
+
+    DashboardFilters.saveFilterNameLabel().shouldNotBe(visible);
+    DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
+        .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
+    DashboardPage.violationsView().results().violations().shouldHaveSize(0);
+
+    DashboardPage.componentsTab().click();
+    DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
+        .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
+    DashboardPage.componentsView().results().components().shouldHaveSize(0);
+
+    DashboardPage.applicationsTab().click();
+    DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
+        .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(0);
+
+    DashboardPage.violationsTab().click();
+
+    DashboardFilters.apply();
+
+    assertNeedsAcknowledgementPostFilterState(null);
+  }
+
+  @Test
+  public void testNeedsAcknowledgement_ExistingSavedFilter() {
+    String filterName = "Saved Filter";
+    saveFilter(filterName, null);
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
+    
+    assertThat(filters.size(), is(2)); // one for the active and named
+    assertThat(filters.get(0).isAcknowledged(), is(false)); 
+    assertThat(filters.get(1).isAcknowledged(), is(false));
+
+    testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
+    refreshOrOpen(VIOLATIONS_URL);
+
+    assertNeedsAcknowledgementPostFilterState(filterName);
+  }
+  
+  private void assertNeedsAcknowledgementPostFilterState(String filterName) {
+    if (filterName != null) {
+      DashboardFilters.saveFilterNameLabel().shouldBe(visible).shouldHave(text(filterName));
+    }
+    else {
+      DashboardFilters.saveFilterNameLabel().shouldNotBe(visible);
+    }
+    DashboardPage.needsAcknowledgementMessage().shouldNotBe(visible);
+    DashboardPage.violationsView().results().violations().shouldHaveSize(3);
+    ViolationTile violation = DashboardPage.violationsView().results().firstViolation();
+    violation.threatNumber().shouldHave(text("10"));
+    violation.policy().shouldHave(text("DashboardTestPolicy"));
+    violation.application().shouldHave(text("DashboardTestAppTwo"));
+
+    DashboardPage.componentsTab().click();
+    DashboardPage.needsAcknowledgementMessage().shouldNotBe(visible);
+    DashboardPage.componentsView().results().components().shouldHaveSize(1);
+    DashboardPage.componentsView().results().firstComponent().shouldHave(text("Artifact1"));
+
+    DashboardPage.applicationsTab().click();
+    DashboardPage.needsAcknowledgementMessage().shouldNotBe(visible);
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(2);
+    DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
+
+    // go back to violations so refreshOrOpen calls work properly
+    DashboardPage.violationsTab().click();
   }
   
   private void saveFilter(String filterName, String existingFilterName) {

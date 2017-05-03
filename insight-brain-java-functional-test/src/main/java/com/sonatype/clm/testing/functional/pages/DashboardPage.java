@@ -16,6 +16,7 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.uriBuilder;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class DashboardPage
 {
@@ -28,6 +29,9 @@ public class DashboardPage
   public static final String AGE_FILTER_FEATURE_FLAG = "?timeFilterFeature=true";
 
   public static final String ROOT =  ".dashboard-container";
+
+  public static final String NEEDS_ACKNOWLEDGEMENT_MESSAGE = "Select your filter criteria on the left, and click " +
+      "'apply' to see results.";
 
   public static SelenideElement dashboardContainer() {
     return $(ROOT);
@@ -76,5 +80,9 @@ public class DashboardPage
 
   public static SelenideElement tooltip() {
     return $(".tooltip.dashboard-tooltip");
+  }
+
+  public static SelenideElement needsAcknowledgementMessage() {
+    return $(createSelector(ROOT, "#needs-acknowledgement"));
   }
 }

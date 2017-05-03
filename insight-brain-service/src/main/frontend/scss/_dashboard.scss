@@ -25,6 +25,10 @@
   .tile-scroll-container {
     height: calc(100% - 16px);
     padding-top: 4px;
+
+    .iq-alert {
+      margin: 0px;
+    }
   }
 
   .tile {

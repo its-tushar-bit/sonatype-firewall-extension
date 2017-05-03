@@ -93,6 +93,7 @@ public class DashboardFilterTest
     refreshOrOpen(VIOLATIONS_URL);
   }
 
+  @Override
   @After
   public void reset() {
     testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(false);

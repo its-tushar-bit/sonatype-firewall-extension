@@ -638,11 +638,12 @@ describe('dashboard.filter.controller', function() {
       $httpBackend.flush();
       
       expect(vm.isDirty()).toBe(false);
+      expect(vm.needsAcknowledgement).toBe(false);
       delete vm.selected.organizations.orgId1;
       expect(vm.isDirty()).toBe(true);
     });
 
-    it('defaults to true for needsAcknowledgement and changes on apply', inject([
+    it('defaults to false for needsAcknowledgement and vm.needsAcknowledgement changes after apply', inject([
       'event.name.constant', function(EventNameConstant) {
         var needsAcknowledgementFilterData = angular.copy(appliedDirtyFilterData);
         needsAcknowledgementFilterData.needsAcknowledgement = true;
@@ -655,7 +656,8 @@ describe('dashboard.filter.controller', function() {
         $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
         $httpBackend.flush();
 
-        expect(vm.isDirty()).toBe(true);
+        expect(vm.isDirty()).toBe(false);
+        expect(vm.needsAcknowledgement).toBe(true);
 
         var savedFilter = {
           filter: {
@@ -674,6 +676,7 @@ describe('dashboard.filter.controller', function() {
         expect($rootScope.$broadcast).toHaveBeenCalledWith(EventNameConstant.UPDATE_DASHBOARD_FILTERS,
             savedFilter.filter, false);
         expect(vm.isDirty()).toBe(false);
+        expect(vm.needsAcknowledgement).toBe(false);
       }
     ]));
   });

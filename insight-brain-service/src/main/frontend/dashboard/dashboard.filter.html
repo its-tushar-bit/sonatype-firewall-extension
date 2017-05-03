@@ -200,8 +200,13 @@
     </div>
   </div>
   <div class="dashboard-filter-footer" submit-wrapper="vm.saveError" retry="vm.applyCurrentFilter()">
-    <button id="dashboard-filter-apply" class="btn" type="submit" submit-validation submit-dirty="vm.isDirty()"
-            submit-type="update" submit-tooltip-target='body'>Apply
+    <button id="dashboard-filter-apply"
+            class="btn"
+            type="submit"
+            submit-validation submit-dirty="vm.isDirty() || vm.needsAcknowledgement"
+            submit-type="update"
+            submit-tooltip-target='body'>
+      Apply
     </button>
     <button id="dashboard-filter-revert" class="btn btn-tertiary" ng-class="{disabled: !vm.isDirty()}" type="button"
             ng-click="vm.revert()">

@@ -11,8 +11,7 @@
   {
     var vm = this,
         appliedFilter,
-        appliedFilterName,
-        needsAcknowledgement;
+        appliedFilterName;
 
     // Available
     vm.organizations = undefined;
@@ -95,6 +94,7 @@
 
     vm.showAgeFilter = undefined;
     vm.isAgeFilterReadOnly = undefined;
+    vm.needsAcknowledgement = undefined;
 
     function shouldShowAgeFilter() {
       return ($state.$current.name === 'dashboard.overview.violations') &&
@@ -140,7 +140,7 @@
 
       $q.all(promises).then(function(data) {
         var activeFilter = data[4].data.filter;
-        needsAcknowledgement = data[4].data.needsAcknowledgement;
+        vm.needsAcknowledgement = data[4].data.needsAcknowledgement;
 
         vm.organizations = angular.copy(data[2]); // copied as we modify objects
         vm.applications = data[0];
@@ -241,7 +241,7 @@
         if (savedNamedFilter && !angular.equals(activeFilter, savedNamedFilter.filter)) {
           vm.showDirtyAsterisk = true;
         }
-        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter, needsAcknowledgement);
+        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter, vm.needsAcknowledgement);
       }, function(error) {
         vm.loadError = error;
       });
@@ -276,7 +276,7 @@
       delete vm.saveError;
       delete vm.loadErrorFilterName;
 
-      if (!vm.isDirty()) {
+      if (!vm.isDirty() && !vm.needsAcknowledgement) {
         return;
       }
 
@@ -384,14 +384,14 @@
     function applyFilter(filterJson) {
       return $http.put(CLMLocations.getDashboardFilters(), filterJson).then(function(activeFilter) {
         appliedFilterName = vm.activeFilterName;
-        needsAcknowledgement = false;
-        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter.data, needsAcknowledgement);
+        vm.needsAcknowledgement = false;
+        $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter.data, vm.needsAcknowledgement);
         return activeFilter.data;
       });
     }
 
     function isDirty() {
-      return !angular.equals(vm.selected, appliedFilter) || needsAcknowledgement;
+      return !angular.equals(vm.selected, appliedFilter);
     }
   }
 

@@ -577,6 +577,8 @@ public class DashboardFilterTest
 
     DashboardPage.violationsTab().click();
 
+    // even though the apply button is enabled the revert button should be disabled since the form isn't dirty
+    DashboardFilters.revertButton().shouldBe(visible, DISABLED);
     DashboardFilters.apply();
 
     assertNeedsAcknowledgementPostFilterState(null);

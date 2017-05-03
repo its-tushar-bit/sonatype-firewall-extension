@@ -44,7 +44,7 @@ public interface RestClient
     Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId);
 
     /**
-     * @since 1.29
+     * @since 1.30
      */
     FirewallMigration forFirewallMigration();
 

@@ -12,7 +12,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 
 /**
- * @since 1.29
+ * @since 1.30
  */
 public class FirewallMigrationClient
     extends AbstractRequestClient

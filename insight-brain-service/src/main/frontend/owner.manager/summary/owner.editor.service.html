@@ -11,7 +11,7 @@
     <input id="icon-file" type="file" name="file" accept="image/*" file-model="vm.icon.source" required>
     <input name="{{::vm.ownerType}}Id" value="{{vm.dirtyOwner.id}}" type="text"/>
     <input name="hasRobotSource" ng-model="vm.icon.hasRobotSource" type="text"/>
-    <input name="robotHash" ng-model="vm.icon.robotHash" type="text"/>
+    <input name="hashcode" ng-model="vm.icon.robotHash" type="text"/>
     <input name="{{::vm.csrfTokenName}}" value="{{::vm.csrfTokenValue}}" type="text"/>
   </form>
   <form name="vm.ownerEditor" role="form" ng-submit="vm.save()" class="clm-form" form-mask="vm.ownerEditorMask">

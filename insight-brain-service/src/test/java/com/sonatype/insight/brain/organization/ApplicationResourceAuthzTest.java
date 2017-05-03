@@ -51,7 +51,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testGenerateIcon() throws Exception {
-    HttpRequest request = restRequest().path(ApplicationResource.GENERATE_ICON_PATH);
+    HttpRequest request = restRequest().parameter("robohash").path(ApplicationResource.GENERATE_ICON_PATH);
     testAuthcGet(request);
   }
 

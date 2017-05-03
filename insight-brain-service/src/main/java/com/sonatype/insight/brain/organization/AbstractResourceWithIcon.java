@@ -26,7 +26,7 @@ import com.sun.jersey.core.header.FormDataContentDisposition;
 
 abstract class AbstractResourceWithIcon
 {
-  public static final String GENERATE_ICON_PATH = "services/generateIcon";
+  public static final String GENERATE_ICON_PATH = "services/generateIcon/{hashcode}";
 
   public static final String ICON_PATH = "icon";
 
@@ -48,11 +48,12 @@ abstract class AbstractResourceWithIcon
   private void setIcon(String ownerId,
                        File iconDir,
                        boolean hasRobotSource,
+                       String hashcode,
                        InputStream uploadedInputStream,
                        FormDataContentDisposition fileDetail) throws IOException
   {
     if (hasRobotSource) {
-      try (InputStream robotStream = new ByteArrayInputStream(robotImageService.getImage())) {
+      try (InputStream robotStream = new ByteArrayInputStream(robotImageService.getImage(hashcode))) {
         // robot image is expected to be small, so avoid size check
         new IconDAO().setIcon(ownerId, iconDir, robotStream);
         return;
@@ -95,6 +96,7 @@ abstract class AbstractResourceWithIcon
   protected Response setIcon(final String ownerId,
                              final File iconDir,
                              final boolean hasRobotSource,
+                             final String hashcode,
                              final InputStream uploadedInputStream,
                              final FormDataContentDisposition fileDetail,
                              String csrfToken,
@@ -105,14 +107,14 @@ abstract class AbstractResourceWithIcon
     {
       @Override
       public Void call() throws Exception {
-        setIcon(ownerId, iconDir, hasRobotSource, uploadedInputStream, fileDetail);
+        setIcon(ownerId, iconDir, hasRobotSource, hashcode, uploadedInputStream, fileDetail);
         return null;
       }
     });
   }
 
-  protected Response generateIcon() {
-    return Response.ok(robotImageService.getImage()).build();
+  protected Response generateIcon(final String hashcode) {
+    return Response.ok(robotImageService.getImage(hashcode)).build();
   }
 
   protected Response getIcon(final String ownerId, File iconDir) throws IOException {

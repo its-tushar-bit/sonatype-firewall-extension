@@ -606,7 +606,7 @@ public class ApplicationResourceTest
 
   @Test
   public void testGenerateIcon() throws Exception {
-    HttpResponse response = restRequest().path(ApplicationResource.GENERATE_ICON_PATH).get();
+    HttpResponse response = restRequest().path(ApplicationResource.GENERATE_ICON_PATH).parameter("hash").get();
     testValidIconResponse(response);
   }
 

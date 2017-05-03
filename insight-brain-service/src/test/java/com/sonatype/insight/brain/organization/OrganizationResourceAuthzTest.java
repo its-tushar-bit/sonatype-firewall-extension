@@ -20,7 +20,7 @@ public class OrganizationResourceAuthzTest
 
   @Test
   public void testGenerateIcon() throws Exception {
-    HttpRequest request = restRequest().path(OrganizationResource.GENERATE_ICON_PATH);
+    HttpRequest request = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter("hash");
     testAuthcGet(request);
   }
 

@@ -159,7 +159,7 @@ public class OrganizationResourceTest
 
   @Test
   public void testGenerateIcon() throws Exception {
-    HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).get();
+    HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter("hash").get();
     assertResponseStatus(200, response);
     Assert.assertNotNull(response.getBodyBytes());
   }

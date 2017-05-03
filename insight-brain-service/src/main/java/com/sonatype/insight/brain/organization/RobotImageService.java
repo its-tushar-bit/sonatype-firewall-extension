@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.InputStream;
-import java.util.concurrent.ThreadLocalRandom;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Gets images by randomly selecting images from the robot/images resource folder
+ * Select an image by mapping an input string to an image based on internal algorithm.
  */
 @Named
 @Singleton
@@ -26,11 +25,8 @@ public class RobotImageService
 
   public static final int IMAGE_NUMBER_MAX = 100;
 
-  public byte[] getImage() {
-    return doGetImage(ThreadLocalRandom.current().nextInt(1, IMAGE_NUMBER_MAX + 1));
-  }
-
-  byte[] doGetImage(int imageNumber) {
+  public byte[] getImage(String hashcode) {
+    int imageNumber = Math.abs(hashcode.hashCode()) % IMAGE_NUMBER_MAX + 1;
     log.debug("Loading image at next index {}", imageNumber);
     String resourceFileName = "robot_" + imageNumber + ".png";
     final String imageFile = "/com/sonatype/insight/brain/robot/images/" + resourceFileName;

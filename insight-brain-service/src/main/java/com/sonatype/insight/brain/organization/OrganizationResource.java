@@ -106,8 +106,8 @@ public class OrganizationResource
   @GET
   @Path(GENERATE_ICON_PATH)
   @Produces("image/png")
-  public Response generateIcon() {
-    return super.generateIcon();
+  public Response generateIcon(@PathParam("hashcode") final String hashcode) {
+    return super.generateIcon(hashcode);
   }
 
   /**
@@ -137,11 +137,12 @@ public class OrganizationResource
                           @Context HttpHeaders headers,
                           @FormDataParam("organizationId") @AuthzContext(Key.ORGANIZATION_ID) String organizationId,
                           @FormDataParam("hasRobotSource") boolean hasRobotSource,
+                          @FormDataParam("hashcode") String hashcode,
                           @FormDataParam("file") InputStream uploadedInputStream,
                           @FormDataParam("file") FormDataContentDisposition fileDetail,
                           @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    return super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, uploadedInputStream,
+    return super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, hashcode, uploadedInputStream,
         fileDetail, csrfToken, headers, noFormData);
   }
 

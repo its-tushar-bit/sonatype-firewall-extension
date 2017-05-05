@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -29,7 +28,6 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -286,13 +284,6 @@ public class ApplicationDAO
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, application.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
       policyWaiverDAO.delete(tx, policyWaiver);
-    }
-
-    // Cascade to license overrides
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(tx, application.getId());
-    for (LicenseOverride licenseOverride : licenseOverrides) {
-      licenseOverrideDAO.delete(tx, licenseOverride);
     }
 
     // Cascade to membership mappings

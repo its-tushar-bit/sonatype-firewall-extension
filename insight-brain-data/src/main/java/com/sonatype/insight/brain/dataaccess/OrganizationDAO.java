@@ -9,7 +9,6 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -21,7 +20,6 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -165,13 +163,6 @@ public class OrganizationDAO
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, organization.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
       policyWaiverDAO.delete(tx, policyWaiver);
-    }
-
-    // Cascade to license overrides
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(tx, organization.getId());
-    for (LicenseOverride licenseOverride : licenseOverrides) {
-      licenseOverrideDAO.delete(tx, licenseOverride);
     }
 
     // Cascade to membership mappings

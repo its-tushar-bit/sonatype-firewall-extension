@@ -10,9 +10,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -180,13 +178,6 @@ public class RepositoryDAO
   @Override
   public void delete(TransactionContext tx, Repository repository) {
     long start = System.currentTimeMillis();
-
-    // Cascade to license overrides
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(tx, repository.getId());
-    for (LicenseOverride licenseOverride : licenseOverrides) {
-      licenseOverrideDAO.delete(tx, licenseOverride);
-    }
 
     // Cascade to owned entities
     new OwnerDAO().cascadeDelete(tx, repository);

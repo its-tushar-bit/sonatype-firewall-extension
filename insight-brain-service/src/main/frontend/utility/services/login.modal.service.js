@@ -27,7 +27,9 @@
         '<div class="clm-modal-header" ><h2>User Login</h2></div>' +
         '<form name="loginForm" class="form-horizontal" ng-submit="vm.signIn()" form-mask="vm.loginMask" ' +
         'mask-message="Signing in">' +
-        '<div class="clm-modal-body"><div class="control-group">' +
+        '<div class="clm-modal-body">' +
+        '<system-notice></system-notice>' +
+        '<div class="control-group">' +
         '<label class="control-label" for="login-username">Username</label>' +
         '<div class="controls">' +
         '<input id="login-username" type="text" name="username" ng-model="vm.username" ng-required="true" ' +

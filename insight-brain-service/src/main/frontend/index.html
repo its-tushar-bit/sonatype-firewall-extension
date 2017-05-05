@@ -132,6 +132,8 @@
   <script src="configuration/webhook/webhook.edit.controller.js"></script>
   <script src="configuration/ProductLicenseController.js"></script>
   <script src="configuration/uninstall.license.controller.js"></script>
+  <script src="configuration/systemNoticeConfiguration/systemNoticeConfigurationModule.js"></script>
+  <script src="configuration/systemNoticeConfiguration/systemNoticeConfigurationController.js"></script>
   <script src="dashboard/ComponentController.js"></script>
   <script src="policy/AppSecurityController.js"></script>
   <script src="policy/LabelController.js"></script>
@@ -222,6 +224,9 @@
   <script src="root.organization.migrate/root.organization.migrate.modal.controller.js"></script>
   <script src="root.organization.migrate/root.organization.migrate.modal.service.js"></script>
 
+  <script src="systemNotice/systemNoticeModule.js"></script>
+  <script src="systemNotice/systemNoticeService.js"></script>
+  <script src="systemNotice/systemNotice.js"></script>
 
   <script src="utility/directives/utility.directives.module.js"></script>
   <script src="utility/directives/calc.tile.scroll.height.directive.js"></script>
@@ -269,6 +274,7 @@
 <body>
   <main-header product-edition="{{productEdition}}"></main-header>
   <div ng-show='!error' class="main-view">
+    <system-notice></system-notice>
     <div ui-view></div>
   </div>
   <div ng-cloak ng-if='error' class='alert alert-error' style='margin:86px auto;width:50%;max-width:400px'>

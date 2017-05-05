@@ -323,6 +323,14 @@
 
         getWebhookEventTypesUrl : function() {
           return baseUrl.get() + '/rest/config/webhook/eventTypes';
+        },
+
+        getSystemNoticeUrl : function() {
+          return baseUrl.get() + '/rest/config/systemNotice';
+        },
+
+        getSystemNoticeFetchUrl : function() {
+          return this.getSystemNoticeUrl() + '/fetch';
         }
       };
     }

@@ -433,6 +433,12 @@
   }
 }
 
+.clm-alert__system-notice {
+  border-style: solid;
+  border-width: 1px 0;
+  margin: 0;
+}
+
 #move-app-error-modal {
   .fa-warning {
     color: $iq-fail-color;

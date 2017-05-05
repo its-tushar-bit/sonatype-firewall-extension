@@ -78,6 +78,11 @@ $iq-modal-footer-height: 58px;
     &.no-padding {
       padding: 0px;
     }
+
+    .clm-alert__system-notice {
+      border-width: 1px;
+      margin: 8px 8px 30px 8px;
+    }
   }
 
   .clm-modal-footer {

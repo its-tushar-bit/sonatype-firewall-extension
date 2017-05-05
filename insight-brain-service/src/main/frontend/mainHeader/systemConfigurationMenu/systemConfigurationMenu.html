@@ -36,5 +36,10 @@
         ng-class="{'active': vm.state.includes('webhooks.list')}">
       <a ui-sref="webhooks.list" class="iq-dropdown-menu__link--main-header">Webhooks</a>
     </div>
+    <div id="system-configuration-system-notice"
+         ng-if="vm.permissions.CONFIGURE_SYSTEM"
+         ng-class="{'active': vm.state.includes('systemNotice')}">
+      <a ui-sref="systemNotice" class="iq-dropdown-menu__link--main-header">System Notice</a>
+    </div>
   </div>
 </div>

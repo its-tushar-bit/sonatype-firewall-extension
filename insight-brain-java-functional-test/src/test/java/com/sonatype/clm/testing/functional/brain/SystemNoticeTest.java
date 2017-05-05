@@ -1,0 +1,140 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain;
+
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.LoginDialog;
+import com.sonatype.clm.testing.functional.elements.SystemNotice;
+import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
+import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.SystemNoticeConfigurationPage;
+import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
+
+import com.codeborne.selenide.Condition;
+import org.junit.After;
+import org.junit.Test;
+
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.visible;
+
+public class SystemNoticeTest
+    extends AbstractFunctionalTest
+{
+  private static final String FIVE_HUNDRED_CHARACTERS = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+  private static final com.sonatype.insight.brain.model.configuration.SystemNotice EMPTY_DISABLED =
+      createSystemNotice("", false);
+
+  private static final com.sonatype.insight.brain.model.configuration.SystemNotice FILLED_DISABLED =
+      createSystemNotice(FIVE_HUNDRED_CHARACTERS, false);
+
+  private static final com.sonatype.insight.brain.model.configuration.SystemNotice EMPTY_ENABLED =
+      createSystemNotice("", true);
+
+  private static final com.sonatype.insight.brain.model.configuration.SystemNotice FILLED_ENABLED =
+      createSystemNotice(FIVE_HUNDRED_CHARACTERS, true);
+
+  private static final String[] PAGE_URLS = new String[]{
+      DashboardPage.URL,
+      ReportListPage.URL,
+      OrganizationManagementPage.URL,
+
+      BaseUrl.uriBuilder().fragment("/users").build().toString(),
+      BaseUrl.uriBuilder().fragment("/roles").build().toString(),
+      BaseUrl.uriBuilder().fragment("/productlicense").build().toString(),
+      AdministratorsPage.URL,
+      LdapServerListPage.URL,
+      WebhookConfigurationPage.URL,
+      SystemNoticeConfigurationPage.URL
+  };
+
+  private SystemNotice systemNotice = new SystemNotice();
+
+  private SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
+
+  @Test
+  public void systemNoticeTest() throws Exception {
+    disabledSystemNotice_NotShownOnLogin();
+    enabledSystemNotice_ShownOnLogin();
+
+    login(PAGE_URLS[0]);
+    disabledSystemNotice_NotShownOnPages();
+    enabledSystemNotice_ShownOnPages();
+  }
+
+  @After
+  public void after() {
+    systemNoticeDAO.update(EMPTY_DISABLED);
+  }
+
+  private void disabledSystemNotice_NotShownOnLogin() {
+    checkSystemNoticeVisibilityOnLogin(EMPTY_DISABLED, hidden);
+    checkSystemNoticeVisibilityOnLogin(FILLED_DISABLED, hidden);
+  }
+
+  private void enabledSystemNotice_ShownOnLogin() {
+    checkSystemNoticeVisibilityOnLogin(EMPTY_ENABLED, visible);
+    checkSystemNoticeVisibilityOnLogin(FILLED_ENABLED, visible);
+  }
+
+  private void disabledSystemNotice_NotShownOnPages() {
+    checkSystemNoticeVisibilityAfterLogin(EMPTY_DISABLED, hidden);
+    checkSystemNoticeVisibilityAfterLogin(FILLED_DISABLED, hidden);
+  }
+
+  private void enabledSystemNotice_ShownOnPages() {
+    checkSystemNoticeVisibilityAfterLogin(EMPTY_ENABLED, visible);
+    checkSystemNoticeVisibilityAfterLogin(FILLED_ENABLED, visible);
+  }
+
+  private void login(final String url) {
+    refreshOrOpen(url);
+    loginAsAdmin();
+  }
+
+  private void checkSystemNoticeVisibilityOnLogin(final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice,
+                                                  final Condition visibility)
+  {
+    systemNoticeDAO.update(systemNotice);
+    refreshOrOpen(DashboardPage.URL);
+    LoginDialog.root().find(SystemNotice.ROOT_SELECTOR).shouldBe(visibility);
+  }
+
+  private void checkSystemNoticeVisibilityAfterLogin(final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice,
+                                                     final Condition visibility)
+  {
+    systemNoticeDAO.update(systemNotice);
+    refresh();
+    for (String url : PAGE_URLS) {
+      refreshOrOpen(url);
+      this.systemNotice.root().shouldBe(visibility);
+    }
+  }
+
+  private static com.sonatype.insight.brain.model.configuration.SystemNotice createSystemNotice(final String message,
+                                                                                                final boolean enabled)
+  {
+    final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice =
+        new com.sonatype.insight.brain.model.configuration.SystemNotice();
+    systemNotice.setMessage(message);
+    systemNotice.setEnabled(enabled);
+    return systemNotice;
+  }
+}

@@ -58,7 +58,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   font-size: 30px;
   height: $iq-tile-header-height-actions;
   line-height: $iq-tile-header-height-actions;
-  margin-right: 8px; 
+  margin-right: 8px;
   vertical-align: middle;
 
   img {
@@ -81,10 +81,16 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   line-height: 16px;
   margin: -6px 0 6px 0;
   max-width: 520px;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
+}
+
+.iq-tile-header--hrule {
+  border: 0 solid $iq-grey-4;
+  border-bottom-width: 1px;
+  margin-bottom: 20px;
 }
 
 .iq-tile__actions {
@@ -95,16 +101,25 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .iq-tile-content {
   clear: both;
-  
+
   > :last-child {
     margin-bottom: 0;
     padding-bottom: 0;
   }
-  
+
   // for pages with tab systems inside iq-content
   .well:last-child {
     padding-bottom: 19px;
   }
+}
+
+.iq-tile-footer {
+  border: 0 solid $iq-grey-4;
+  border-top-width: 1px;
+  margin-top: 20px;
+  padding-bottom: 4px;
+  padding-left: 4px;
+  padding-top: 12px;
 }
 
 // Summary Tile
@@ -232,7 +247,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
       text-overflow: ellipsis;
       white-space: nowrap;
 
-      .minor-text{
+      .minor-text {
         @include regular();
       }
 
@@ -470,7 +485,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
       tr {
         td {
           @include semi-bold();
- 
+
           line-height: 16px;
         }
 
@@ -486,7 +501,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
           padding-top: 10.0px;
           vertical-align: bottom;
           width: 100%;
- 
+
           .list-within-list {
             display: inline-block;
             padding-bottom: 12px;

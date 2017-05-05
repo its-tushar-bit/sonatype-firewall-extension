@@ -9,6 +9,6 @@
   angular.module('managementApp',
       [
         'MainModule', 'UserModule', 'RoleModule', 'ldap.module', 'owner.manager.module',
-        'root.organization.migrate', 'ProductLicense', 'webhook.module', 'components'
+        'root.organization.migrate', 'ProductLicense', 'webhook.module', 'systemNoticeConfigurationModule', 'systemNoticeModule', 'components'
       ]);
 }());

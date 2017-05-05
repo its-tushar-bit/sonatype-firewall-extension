@@ -229,8 +229,19 @@
           text-align: left;
           padding: 0;
 
-          label {
-            padding-left: 32px;
+          .iq-radio {
+            height: 40px;
+            margin-left: 0;
+            padding-left: 56px;
+
+            .iq-radio__circle::before, .iq-radio__circle::after {
+              top: 10px;
+              left: 32px;
+            }
+
+            i.fa {
+              padding-top: 12px;
+            }
           }
         }
 

@@ -18,11 +18,7 @@
       <td ng-repeat="actionStage in vm.actionStages"
           class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
           ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-        <label class="radio" ng-class="{disabled: vm.disabled}">
-          <input type="radio" name="{{::actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
-                 ng-disabled="vm.disabled"/>
-          <span>&nbsp;</span>
-        </label>
+        <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled"></iq-radio>
       </td>
       <td /> <!--empty columns for alignment with notifications table-->
       <td class="delete" />
@@ -32,11 +28,9 @@
       <td ng-repeat="actionStage in vm.actionStages"
           class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
           ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-        <label class="radio" ng-class="{disabled: vm.disabled}">
-          <input type="radio" name="{{::actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
-                 value="warn" ng-disabled="vm.disabled"/>
-          <span><i ng-class="{'fa fa-exclamation-triangle warn size-16px' : vm.actions[actionStage.stageTypeId] === 'warn'}">&nbsp;</i></span>
-        </label>
+        <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled" value="'warn'"><!--
+          --><i ng-class="{'fa fa-exclamation-triangle warn size-16px' : vm.actions[actionStage.stageTypeId] === 'warn'}"></i>
+        </iq-radio>
       </td>
       <td />
       <td class="delete" />
@@ -46,11 +40,9 @@
       <td ng-repeat="actionStage in vm.actionStages"
           class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
           ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-        <label class="radio" ng-class="{disabled: vm.disabled}">
-          <input type="radio" name="{{::actionStage.stageTypeId}}" ng-model="vm.actions[actionStage.stageTypeId]"
-                 value="fail" ng-disabled="vm.disabled"/>
-          <span><i ng-class="{'fa fa-exclamation-circle fail size-16px' : vm.actions[actionStage.stageTypeId] === 'fail'}">&nbsp;</i></span>
-        </label>
+        <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled" value="'fail'"><!--
+          --><i ng-class="{'fa fa-exclamation-circle fail size-16px' : vm.actions[actionStage.stageTypeId] === 'fail'}"></i>
+        </iq-radio>
       </td>
       <td /> <!--empty columns for alignment with notifications table-->
       <td class="delete" />

@@ -66,16 +66,16 @@ public class ActionsSection
       this.stageName = stageName;
     }
 
-    public Radio noActionRadio() {
-      return new Radio($(createSelector(rootSelector, "tr", nthChild(1), "td.", stageName, ".radio")));
+    public IqRadio noActionRadio() {
+      return new IqRadio($(createSelector(rootSelector, "tr", nthChild(1), "td.", stageName, "iq-radio")));
     }
 
-    public Radio warnRadio() {
-      return new Radio($(createSelector(rootSelector, "tr", nthChild(2), "td.", stageName, ".radio")));
+    public IqRadio warnRadio() {
+      return new IqRadio($(createSelector(rootSelector, "tr", nthChild(2), "td.", stageName, "iq-radio")));
     }
 
-    public Radio failRadio() {
-      return new Radio($(createSelector(rootSelector, "tr", nthChild(3), "td.", stageName, ".radio")));
+    public IqRadio failRadio() {
+      return new IqRadio($(createSelector(rootSelector, "tr", nthChild(3), "td.", stageName, "iq-radio")));
     }
 
     public SelenideElement header() {

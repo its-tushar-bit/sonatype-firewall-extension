@@ -1029,9 +1029,9 @@ public abstract class AbstractPolicyEditorTest
 
     // Policy actions for Developer and Build are set to Warn and Fail, respectively.
     ActionsSection.Stage develop = actionsTable.develop();
-    develop.failRadio().input().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
-    develop.warnRadio().input().shouldBe(selected, visible, disabledOrEnabled);
-    develop.noActionRadio().input().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
+    develop.failRadio().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
+    develop.warnRadio().shouldBe(selected, visible, disabledOrEnabled);
+    develop.noActionRadio().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
 
     actionsTable.build().failRadio().shouldBe(selected);
 

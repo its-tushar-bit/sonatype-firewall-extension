@@ -83,12 +83,23 @@
   /*
     When we refactor this, please remove "!important" from "td .iq-checkbox__label--no-text" below
   */
-  label:not(.btn) {
-    color: $iq-off-black;
+  label {
+    &:not(.btn) {
+      color: $iq-off-black;
+      margin-bottom: 7px;
 
-    &.disabled {
-      color: $iq-grey-4;
-      cursor: not-allowed;
+      &.disabled {
+        color: $iq-grey-4;
+        cursor: not-allowed;
+      }
+    }
+
+    &.iq-radio {
+      margin-bottom: 0;
+    }
+
+    & + div > iq-radio:first-child {
+      margin-top: -5px;
     }
   }
 

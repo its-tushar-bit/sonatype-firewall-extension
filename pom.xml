@@ -468,7 +468,7 @@
               <exclude>**/*.js</exclude>
               <exclude>**/*.css</exclude>
               <exclude>**/*.html</exclude>
-              <exclude>**/src/main/frontend/assets/lib/**/*</exclude>
+              <exclude>**/src/main/frontend/lib/**/*</exclude>
               <exclude>**/src/test/resources/**/*</exclude>
               <exclude>**/node_modules/**</exclude>
             </excludes>

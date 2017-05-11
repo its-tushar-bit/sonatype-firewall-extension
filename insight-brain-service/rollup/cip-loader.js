@@ -8,7 +8,7 @@ var isProd = process.env.BUILD === 'production';
 var plugins = [
   scss({
     output: 'target/classes/assets/policy/css/cip-loader.css',
-    outputStyle: isProd? 'compressed' : 'nested'
+    outputStyle: isProd ? 'compressed' : 'nested'
   }),
   legacy({
     // add a default export, corresponding to `Base64`
@@ -21,7 +21,7 @@ var plugins = [
   })
 ];
 
-if(isProd) {
+if (isProd) {
   plugins.push(uglify({}, minify));
 }
 

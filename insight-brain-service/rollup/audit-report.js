@@ -6,11 +6,11 @@ var isProd = process.env.BUILD === 'production';
 
 var plugins = [
   scss({
-    outputStyle: isProd? 'compressed' : 'nested'
+    outputStyle: isProd ? 'compressed' : 'nested'
   })
 ];
 
-if(isProd) {
+if (isProd) {
   plugins.push(uglify({}, minify));
 }
 

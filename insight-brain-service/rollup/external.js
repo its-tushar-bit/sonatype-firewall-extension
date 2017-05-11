@@ -11,7 +11,7 @@ var plugins = [
   })
 ];
 
-if(isProd) {
+if (isProd) {
   plugins.push(uglify({}, minify));
 }
 

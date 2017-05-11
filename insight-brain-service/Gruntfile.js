@@ -26,7 +26,8 @@
       '!<%= config.frontend %>/lib/**/*',
       '!<%= config.frontend %>/cip/**/*',
       '!<%= config.frontend %>/audit-report/**/*',
-      '!<%= config.frontend %>/version-graph/**/*'
+      '!<%= config.frontend %>/version-graph/**/*',
+      'rollup/**/*.js'
     ];
 
     grunt.initConfig({

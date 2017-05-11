@@ -7,7 +7,7 @@ var isProd = process.env.BUILD === 'production';
 
 var plugins = [
   scss({
-    outputStyle: isProd? 'compressed' : 'nested'
+    outputStyle: isProd ? 'compressed' : 'nested'
   }),
   legacy({
     'src/main/frontend/util/AngularCommon.js': {
@@ -18,7 +18,7 @@ var plugins = [
   })
 ];
 
-if(isProd) {
+if (isProd) {
   plugins.push(uglify({}, minify));
 }
 

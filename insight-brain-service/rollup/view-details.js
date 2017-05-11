@@ -11,7 +11,7 @@ var plugins = [
 ];
 
 if(isProd) {
-  plugins.push(uglify({}, minify))
+  plugins.push(uglify({}, minify));
 }
 
 module.exports = {

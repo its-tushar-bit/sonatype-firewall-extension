@@ -10,7 +10,7 @@ var plugins = [
     outputStyle: isProd ? 'compressed' : 'nested'
   }),
   legacy({
-    'src/main/frontend/util/AngularCommon.js': {
+    'src/main/frontend/util/Globals.js': {
       messageTemplate: 'messageTemplate',
       AngularUtils: 'AngularUtils',
       AngularStateUtils: 'AngularStateUtils'

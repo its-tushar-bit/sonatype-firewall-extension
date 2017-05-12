@@ -630,19 +630,11 @@
                 <source>frontend/lib/d3/d3.js</source>
                 <source>frontend/lib/fuse.js/src/fuse.js</source>
                 <source>frontend/SpecUtil.js</source>
+                <source>root/target/classes/assets/bundle.js</source>
               </preloadSources>
               <sourceIncludes>
-                <include>frontend/**/*module.js</include>
-                <include>frontend/**/*Module.js</include>
-                <include>frontend/**/*.js</include>
               </sourceIncludes>
               <sourceExcludes>
-                <exclude>frontend/lib/**/*.js</exclude>
-                <exclude>frontend/brain-client/*.js</exclude>
-                <exclude>frontend/version-graph/**/*.js</exclude>
-                <exclude>frontend/cip/**/*.js</exclude>
-                <exclude>frontend/audit-report/**/*.js</exclude>
-                <exclude>frontend/policy/js/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
                 <include>frontend/**/*utils.js</include>

@@ -22,5 +22,6 @@
     "clmBuildTimestamp": false,
     "Fuse": false
   },
-  "validthis": true
+  "validthis": true,
+  "module": true
 }

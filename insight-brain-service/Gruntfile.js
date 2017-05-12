@@ -89,7 +89,7 @@
           expand: true,
           cwd: '<%= config.frontend %>',
           src: [
-            '**/*.{html,js,css,ttf,woff,woff2,png,gif,jpg,ico}',
+            '**/*.{html,css,ttf,woff,woff2,png,gif,jpg,ico}',
             '!lib/*',
             'lib/**/*.{js,css,ttf,woff,woff2,swf}',
             '!lib/**/test/*'
@@ -109,7 +109,8 @@
         build: {
           src: [
             '<%= config.generated %>/**/*.{js,css}',
-            '!<%= config.generated %>/lib/**/*'
+            '!<%= config.generated %>/lib/**/*',
+            '!<%= config.generated %>/bundle.js'
           ]
         }
       },
@@ -213,9 +214,12 @@
         }
       },
       watch: {
-        develop: {
+        options: {
+          cwd: '<%= config.frontend %>'
+        },
+        assets: {
           files: [
-            '<%= config.frontend %>/**/*.{html,eot,svg,ttf,woff,png,gif,js,jpg}'
+            '**/*.{html,css,eot,svg,ttf,woff,png,gif,jpg}'
           ],
           tasks: [
             'configure_override:develop',
@@ -223,14 +227,11 @@
             'template:dev'
           ]
         },
-        develop_styles: {
+        sass: {
           files: [
-            '<%= config.frontend %>/**/*.{css,scss}'
+            '**/*.scss'
           ],
           tasks: [
-            'configure_override:develop',
-            'copy:develop',
-            'template:dev',
             'sass:build',
             'copy:develop_sass'
           ]
@@ -254,7 +255,7 @@
       },
       focus: {
         dev: {
-          include: ['develop', 'develop_styles']
+          include: ['assets', 'sass']
         },
         gallery: {
           include: ['compile_styles', 'gallery_styles']
@@ -273,15 +274,31 @@
       exec: {
         'cip-loader': rollupCmd + ' -c rollup/cip-loader.js --environment BUILD:production',
         'cip-loader-watch': rollupCmd + ' -c rollup/cip-loader.js -w',
+
         'cip': rollupCmd + ' -c rollup/css-cip.js --environment BUILD:production',
         'cip-watch': rollupCmd + ' -c rollup/css-cip.js -w',
+
         'external': rollupCmd + ' -c rollup/external.js --environment BUILD:production',
+
         'audit-report': rollupCmd + ' -c rollup/audit-report.js --environment BUILD:production',
         'audit-report-watch': rollupCmd + ' -c rollup/audit-report.js -w',
+
         'version-graph': rollupCmd + ' -c rollup/version-graph-app.js --environment BUILD:production',
         'version-graph-watch': rollupCmd + ' -c rollup/version-graph-app.js -w',
+
         'view-details': rollupCmd + ' -c rollup/view-details.js --environment BUILD:production',
         'view-details-watch': rollupCmd + ' -c rollup/view-details.js -w',
+
+        'iq-bundle': rollupCmd + ' -c rollup/iq-brain.js --environment BUILD:production',
+        'iq-bundle-watch': rollupCmd + ' -c rollup/iq-brain.js -w'
+      },
+      concurrent: {
+        options: {
+          logConcurrentOutput: true
+        },
+        watch: {
+          tasks: ['focus:dev', 'exec:iq-bundle-watch']
+        }
       }
     });
 
@@ -307,6 +324,7 @@
       'jshint',
       'jscs:check',
       'clean',
+      'exec:iq-bundle',
       'copy:build',
       'sass:build',
       'html2js:build',
@@ -355,7 +373,7 @@
       'sass:build',
       'copy:develop_sass',
       'template:dev',
-      'focus:dev',
+      'concurrent:watch',
       'clean:temp'
     ]);
 
@@ -375,5 +393,7 @@
     grunt.registerTask('audit-report', ['exec:audit-report-watch']);
     grunt.registerTask('version-graph', ['exec:version-graph-watch']);
     grunt.registerTask('view-details', ['exec:view-details-watch']);
+
+    grunt.registerTask('default', ['develop']);
   };
 }());

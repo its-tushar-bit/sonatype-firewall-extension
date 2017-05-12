@@ -3,44 +3,38 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
 
-  function MoveApplicationErrorModalService($modal) {
-    return {
-      open: openModal
-    };
+export default
+function MoveApplicationErrorModalService($modal) {
+  return {
+    open: openModal
+  };
 
-    function openModal(messages) {
-      return $modal.open({
-        animation: false,
-        backdrop: 'static',
-        keyboard: false,
-        windowClass: 'clm-modal',
-        controller: MoveApplicationErrorModalController,
-        templateUrl: 'owner.manager/move.application/move.application.error.modal.html',
-        resolve: {
-          messages: function() {
-            return messages;
-          }
+  function openModal(messages) {
+    return $modal.open({
+      animation: false,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'clm-modal',
+      controller: MoveApplicationErrorModalController,
+      templateUrl: 'owner.manager/move.application/move.application.error.modal.html',
+      resolve: {
+        messages: function() {
+          return messages;
         }
-      }).result;
-    }
+      }
+    }).result;
   }
+}
 
-  function MoveApplicationErrorModalController($scope, messages) {
-    $scope.messages = messages;
-    $scope.$on('pageChangeAccepted', function() {
-      $scope.$close();
-    });
-  }
+function MoveApplicationErrorModalController($scope, messages) {
+  $scope.messages = messages;
+  $scope.$on('pageChangeAccepted', function() {
+    $scope.$close();
+  });
+}
 
-  MoveApplicationErrorModalController.$inject = ['$scope', 'messages'];
+MoveApplicationErrorModalController.$inject = ['$scope', 'messages'];
 
-  MoveApplicationErrorModalService.$inject = ['$modal'];
+MoveApplicationErrorModalService.$inject = ['$modal'];
 
-  angular //
-      .module('owner.manager.module') //
-      .service('move.application.error.modal.service', MoveApplicationErrorModalService);
-
-}(angular));

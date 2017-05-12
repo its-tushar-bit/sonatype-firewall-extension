@@ -21,13 +21,15 @@
         </div>
         <div id="system-notice-display-control-group" clm-control-group for="system-notice-display">
           <label for="system-notice-display">Notice Display</label>
-          <input id="system-notice-display"
-                 type="checkbox"
-                 toggle-checkbox
-                 data-on="Enabled"
-                 data-off="Disabled"
-                 ng-model="vm.systemNotice.enabled"
-                 ng-disabled="vm.hasError()">
+          <div class="toggle-checkbox">
+            <input id="system-notice-display"
+                   type="checkbox"
+                   toggle-checkbox
+                   data-on="Enabled"
+                   data-off="Disabled"
+                   ng-model="vm.systemNotice.enabled"
+                   ng-disabled="vm.hasError()">
+          </div>
         </div>
         <div class="iq-tile-footer">
           <button id="system-notice-update"

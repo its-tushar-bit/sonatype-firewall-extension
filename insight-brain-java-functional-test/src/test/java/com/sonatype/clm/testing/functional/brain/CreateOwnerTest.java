@@ -5,7 +5,17 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.imageio.ImageIO;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
@@ -16,11 +26,17 @@ import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
 import com.codeborne.selenide.WebDriverRunner;
+import com.sun.jersey.core.util.Base64;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,8 +51,10 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class CreateOwnerTest
     extends AbstractFunctionalTest
@@ -47,9 +65,15 @@ public class CreateOwnerTest
 
   private ApplicationDAO appDAO = new ApplicationDAO();
 
+  private IconDAO iconDAO = new IconDAO();
+
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private static Organization parentOrg;
+
+  private static final int IMAGE_RESIZE_WIDTH = 52;
+
+  private static final int IMAGE_RESIZE_HEIGHT = 52;
 
   @BeforeClass
   public static void beforeClass() {
@@ -139,6 +163,170 @@ public class CreateOwnerTest
   }
 
   @Test
+  public void testCreateAndEditApplication_withRobotIcon() throws Exception {
+    testCreateApplication_withRobotIcon();
+    testEditApplication_withRobotIcon();
+  }
+
+  private void testCreateApplication_withRobotIcon() throws Exception {
+    OwnerTreeView.organizationElements().shouldHaveSize(1);
+    OrganizationNode orgNode = OwnerTreeView.organization(0);
+    orgNode.treeViewElement().click();
+    orgNode.newApplicationButton().shouldBe(visible, enabled).click();
+    orgNode = OwnerTreeView.organization(0);
+    orgNode.newApplicationButton().shouldBe(visible, enabled).click();
+
+    // fill form
+    OwnerEditorDialog.name().val(NAME);
+    OwnerEditorDialog.publicId().val(APP_PUBLIC_ID);
+    OwnerEditorDialog.robotIcon().click();
+    OwnerEditorDialog.RobotIconSelector.button().click();
+
+    // ensure image is displayed
+    assertTrue(OwnerEditorDialog.RobotIconSelector.icon().isImage());
+    String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
+    BufferedImage userSelectedImage = ImageIO.read(fetchContent(userSelectedImageSrc));
+
+    // submit the form
+    OwnerEditorDialog.saveButton().shouldBe(enabled);
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // validate system is updated
+    Application app = appDAO.getByPublicId(APP_PUBLIC_ID);
+    assertNotNull(app);
+    assertEquals(APP_PUBLIC_ID, app.getPublicId());
+    assertEquals(parentOrg.getId(), app.getOrganizationId());
+    assertEquals(NAME, app.getName());
+
+    // validate the selected image is displayed
+    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
+    assertTrue(OwnerSummaryPage.SummaryTile.headerIcon().isImage());
+    orgNode.applicationElements().shouldHaveSize(1).get(0).shouldHave(text(NAME));
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
+    BufferedImage displayedImage = ImageIO.read(fetchContent(summaryTileHeaderIconSrc));
+
+    // validate image saved is the same as image that was selected and displayed
+    BufferedImage persistedImage = ImageIO.read(new ByteArrayInputStream(iconDAO
+        .getIcon(app.getId(), testCLMServer.getCLMServer().getApplicationIconDir())));
+    assertImageEquals(userSelectedImage, persistedImage);
+    assertImageEquals(displayedImage, persistedImage);
+  }
+
+  private void testEditApplication_withRobotIcon() throws Exception {
+    ActionDropDown.actionButton().click();
+    OwnerEditorDialog.root().shouldNotBe(visible);
+    ActionDropDown.editOwner().shouldHave(text("App")).click();
+    OwnerEditorDialog.root().shouldBe(visible);
+    OwnerEditorDialog.title().shouldHave(text("Application"));
+
+    // select a robot image
+    OwnerEditorDialog.robotIcon().click();
+    OwnerEditorDialog.RobotIconSelector.button().click();
+
+    // validate image is displayed
+    assertTrue(OwnerEditorDialog.RobotIconSelector.icon().isImage());
+    String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
+    BufferedImage userSelectedImage = ImageIO.read(fetchContent(userSelectedImageSrc));
+
+    // save the form with updated image
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // validate system is updated
+    Application app = appDAO.getByPublicId(APP_PUBLIC_ID);
+    assertNotNull(app);
+
+    // validate the selected image is displayed
+    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
+    assertTrue(OwnerSummaryPage.SummaryTile.headerIcon().isImage());
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
+    BufferedImage displayedImage = ImageIO.read(fetchContent(summaryTileHeaderIconSrc));
+
+    // validate image saved is the same as image that was selected and displayed
+    BufferedImage persistedImage = ImageIO.read(new ByteArrayInputStream(iconDAO
+        .getIcon(app.getId(), testCLMServer.getCLMServer().getApplicationIconDir())));
+    assertImageEquals(userSelectedImage, persistedImage);
+    assertImageEquals(displayedImage, persistedImage);
+  }
+
+  @Test
+  public void testCreateAndEditOrganization_withRobotIcon() throws Exception {
+    testCreateOrganization_withRobotIcon();
+    testEditOrganization_withRobotIcon();
+  }
+
+  private void testEditOrganization_withRobotIcon() throws Exception {
+    ActionDropDown.actionButton().click();
+    OwnerEditorDialog.root().shouldNotBe(visible);
+    ActionDropDown.editOwner().shouldHave(text("Org")).click();
+    OwnerEditorDialog.root().shouldBe(visible);
+    OwnerEditorDialog.title().shouldHave(text("Organization"));
+
+    // select a robot image
+    OwnerEditorDialog.robotIcon().click();
+    OwnerEditorDialog.RobotIconSelector.button().click();
+
+    // validate image is displayed
+    assertTrue(OwnerEditorDialog.RobotIconSelector.icon().isImage());
+    String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
+    BufferedImage userSelectedImage = ImageIO.read(fetchContent(userSelectedImageSrc));
+
+    // save the updated icon
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // check frontend
+    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
+    assertTrue(OwnerSummaryPage.SummaryTile.headerIcon().isImage());
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
+    BufferedImage displayedImage = ImageIO.read(fetchContent(summaryTileHeaderIconSrc));
+
+    // validate image persisted and displayed is same as image that was selected
+    Organization org = getOrgByName(NAME);
+    assertNotNull(org);
+
+    BufferedImage persistedImage = ImageIO.read(new ByteArrayInputStream(iconDAO
+        .getIcon(org.getId(), testCLMServer.getCLMServer().getOrganizationIconDir())));
+    assertImageEquals(userSelectedImage, persistedImage);
+    assertImageEquals(displayedImage, persistedImage);
+  }
+
+  private void testCreateOrganization_withRobotIcon() throws Exception {
+    RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
+
+    // select a robot image
+    OwnerEditorDialog.robotIcon().click();
+    OwnerEditorDialog.RobotIconSelector.button().click();
+
+    // validate image is displayed
+    assertTrue(OwnerEditorDialog.RobotIconSelector.icon().isImage());
+    String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
+    BufferedImage userSelectedImage = ImageIO.read(fetchContent(userSelectedImageSrc));
+
+    // fill in organization data
+    OwnerEditorDialog.name().val(NAME);
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // check backend
+    Organization org = getOrgByName(NAME);
+    assertNotNull(org);
+
+    // check frontend
+    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
+    assertTrue(OwnerSummaryPage.SummaryTile.headerIcon().isImage());
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
+    BufferedImage displayedImage = ImageIO.read(fetchContent(summaryTileHeaderIconSrc));
+
+    // validate image persisted is same as image that was selected
+    BufferedImage persistedImage = ImageIO.read(new ByteArrayInputStream(iconDAO
+        .getIcon(org.getId(), testCLMServer.getCLMServer().getOrganizationIconDir())));
+    assertImageEquals(userSelectedImage, persistedImage);
+    assertImageEquals(displayedImage, persistedImage);
+  }
+
+  @Test
   public void testCreateOrganization() throws Exception {
     RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
 
@@ -203,5 +391,37 @@ public class CreateOwnerTest
       }
     }
     return null;
+  }
+
+  private void assertImageEquals(BufferedImage image1, BufferedImage image2)
+      throws IOException, InterruptedException
+  {
+    BufferedImage resizedImage1 = resizeImage(image1, image1.getType());
+    byte[] resizedImage1Bytes = bufferedImageToBytesArray(resizedImage1);
+    BufferedImage resizedImage2 = resizeImage(image2, image2.getType());
+    byte[] resizedImage2Bytes = bufferedImageToBytesArray(resizedImage2);
+    assertArrayEquals(resizedImage1Bytes, resizedImage2Bytes);
+  }
+
+  private BufferedImage resizeImage(BufferedImage originalImage, int type) {
+    BufferedImage resizedImage = new BufferedImage(IMAGE_RESIZE_WIDTH, IMAGE_RESIZE_HEIGHT, type);
+    Graphics2D g = resizedImage.createGraphics();
+    g.drawImage(originalImage, 0, 0, IMAGE_RESIZE_WIDTH, IMAGE_RESIZE_HEIGHT, null);
+    g.dispose();
+    return resizedImage;
+  }
+
+  private byte[] bufferedImageToBytesArray(BufferedImage image) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ImageIO.write(image, "png", baos);
+    return baos.toByteArray();
+  }
+
+  private InputStream fetchContent(String urlString) throws IOException {
+    HttpClient client = HttpClientBuilder.create().build();
+    HttpGet get = new HttpGet(urlString);
+    get.setHeader("Authorization", "Basic " + new String(Base64.encode("admin:admin123")));
+    HttpResponse response = client.execute(get);
+    return response.getEntity().getContent();
   }
 }

@@ -118,6 +118,14 @@ public class TestInsightBrainServiceRule
     return brain.getDataDir();
   }
 
+  public File getOrganizationIconDir() {
+    return brain.getOrganizationIconDir();
+  }
+
+  public File getApplicationIconDir() {
+    return brain.getApplicationIconDir();
+  }
+
   public Injector getInjector() {
     return brain.getInjector();
   }

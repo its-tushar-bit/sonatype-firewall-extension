@@ -330,6 +330,14 @@ public class TestInsightBrainService
     return new File(new File(new File(getWorkDir(), "report"), applicationId), scanId);
   }
 
+  public File getOrganizationIconDir() {
+    return new File(getDataDir(),"organization");
+  }
+
+  public File getApplicationIconDir() {
+    return new File(getDataDir(),"application");
+  }
+
   public InsightConfig getConfiguration() {
     return insightConfig;
   }

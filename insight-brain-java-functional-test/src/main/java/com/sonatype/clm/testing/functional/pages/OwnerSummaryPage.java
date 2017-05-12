@@ -43,6 +43,10 @@ public class OwnerSummaryPage
       return $(SelectorUtils.createSelector(ROOT_ID, ".iq-tile-header__description"));
     }
 
+    public static SelenideElement headerIcon() {
+      return $(SelectorUtils.createSelector(ROOT_ID, ".iq-tile-header__icon", "img"));
+    }
+
     public static SelenideElement contact() {
       return root().find(".iq-tile-header__subtitle");
     }

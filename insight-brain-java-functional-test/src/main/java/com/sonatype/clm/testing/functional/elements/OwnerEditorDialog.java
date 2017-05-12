@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -45,5 +47,18 @@ public class OwnerEditorDialog
 
   public static IqRadio robotIcon() {
     return new IqRadio($("#owner-editor-icon-robot"));
+  }
+
+  public static class RobotIconSelector {
+
+    public static final String ROOT = "#robot-icon-selector";
+
+    public static SelenideElement button(){
+      return $(SelectorUtils.createSelector(ROOT, "button"));
+    }
+
+    public static SelenideElement icon() {
+      return $(SelectorUtils.createSelector(ROOT, ".owner-icon"));
+    }
   }
 }

@@ -11,7 +11,6 @@ import java.sql.Statement;
 import java.util.Collection;
 import java.util.TreeSet;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,11 +31,6 @@ public class LicenseDataTest
         }
       }
     }
-  }
-
-  @After
-  public void cleanup() {
-    DataSourceFactory.clear_ForTestsOnly();
   }
 
   @Test

@@ -165,6 +165,12 @@
       "licenseId": "Amazon"
     },
     {
+      "id": "92e2e855ee5e4d2fa1716bd5ec52e2cf",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Android-SDK"
+    },
+    {
       "id": "6df65093291840f0bd22c35a0d307c13",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",

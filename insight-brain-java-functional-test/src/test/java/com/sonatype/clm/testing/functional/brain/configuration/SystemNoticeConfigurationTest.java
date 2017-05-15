@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
@@ -52,6 +53,8 @@ public class SystemNoticeConfigurationTest
 
   @Test
   public void systemNoticeConfigurationTest() throws Exception {
+    explanationIsVisible();
+
     cannotUpdateWithoutChanges();
     cannotCancelWithoutChanges();
 
@@ -73,6 +76,12 @@ public class SystemNoticeConfigurationTest
   @After
   public void after() {
     systemNoticeDAO.update(DEFAULT_SYSTEM_NOTICE);
+  }
+
+  private void explanationIsVisible() {
+    init();
+    systemNoticeConfigurationPage.explanation().shouldBe(visible);
+    systemNoticeConfigurationPage.explanation().shouldNotBe(empty);
   }
 
   private void cannotUpdateWithoutChanges() throws Exception {

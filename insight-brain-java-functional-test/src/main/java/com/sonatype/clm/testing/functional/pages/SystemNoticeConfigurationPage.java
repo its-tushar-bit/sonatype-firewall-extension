@@ -34,6 +34,10 @@ public class SystemNoticeConfigurationPage
     return $(ROOT_SELECTOR);
   }
 
+  public SelenideElement explanation() {
+    return child("#system-notice-explanation");
+  }
+
   public SelenideElement text() {
     return child("#system-notice-text");
   }

@@ -393,9 +393,7 @@ public class CreateOwnerTest
     return null;
   }
 
-  private void assertImageEquals(BufferedImage image1, BufferedImage image2)
-      throws IOException, InterruptedException
-  {
+  private void assertImageEquals(BufferedImage image1, BufferedImage image2) throws IOException {
     BufferedImage resizedImage1 = resizeImage(image1, image1.getType());
     byte[] resizedImage1Bytes = bufferedImageToBytesArray(resizedImage1);
     BufferedImage resizedImage2 = resizeImage(image2, image2.getType());

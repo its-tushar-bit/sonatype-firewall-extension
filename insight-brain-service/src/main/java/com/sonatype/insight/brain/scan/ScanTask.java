@@ -184,7 +184,6 @@ class ScanTask
       state = State.SCANNING_COMPONENTS;
       File scanFile = scanner.scan(binFile, filename, work.getScanDir(app.getId()), app.getPublicId());
 
-      scanFile = new File("c:/temp/bbb/scan.xml.gz");
       // upload the scan
       state = State.UPLOADING_SCAN;
       ScanReceipt scanReceipt = uploader.upload(scanFile, app);

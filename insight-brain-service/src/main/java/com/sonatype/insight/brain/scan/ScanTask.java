@@ -95,7 +95,7 @@ class ScanTask
 
   private volatile State state = State.PENDING;
 
-  private volatile Throwable error;
+  private volatile Exception error;
 
   private volatile String errorId;
 
@@ -161,7 +161,7 @@ class ScanTask
     return ticket;
   }
 
-  public Throwable getError() {
+  public Exception getError() {
     return error;
   }
 
@@ -184,6 +184,7 @@ class ScanTask
       state = State.SCANNING_COMPONENTS;
       File scanFile = scanner.scan(binFile, filename, work.getScanDir(app.getId()), app.getPublicId());
 
+      scanFile = new File("c:/temp/bbb/scan.xml.gz");
       // upload the scan
       state = State.UPLOADING_SCAN;
       ScanReceipt scanReceipt = uploader.upload(scanFile, app);
@@ -209,12 +210,19 @@ class ScanTask
       // provide report/scanId once evaluation is completed successfully
       scanId = scanReceipt.getScanId();
     }
-    catch (Throwable e) {
+    catch (Exception e) {
       error = e;
       errorId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 
       log.error("Failed to evaluate policies on uploaded binary for application {} (Error ID {})", appPublicId,
           errorId, e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
+      // this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(2);
     }
     finally {
       state = State.DONE;

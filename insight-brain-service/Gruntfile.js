@@ -114,18 +114,6 @@
           ]
         }
       },
-      html2js: {
-        options: {
-          base: '<%= config.frontend %>',
-          quoteChar: '\'',
-          useStrict: true,
-          module: 'templates'
-        },
-        build: {
-          src: ['<%= config.frontend %>/<%= config.templates %>'],
-          dest: '<%= config.temp %>/js/templates.module.js'
-        }
-      },
       jshint: {
         options: {
           jshintrc: true
@@ -327,7 +315,6 @@
       'exec:iq-bundle',
       'copy:build',
       'sass:build',
-      'html2js:build',
       'useminPrepare',
       'concat:generated',
       'uglify:generated',

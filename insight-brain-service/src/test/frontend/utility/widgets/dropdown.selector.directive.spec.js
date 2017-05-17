@@ -1,20 +1,11 @@
 describe('dropdown.selector.directive.spec.js', function() {
-  var element,
-      $httpBackend;
+  var element;
 
   beforeEach(module('utility'));
 
-  afterEach(function() {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  });
-
   describe('with Object Options', function() {
-    beforeEach(inject(function($compile, $rootScope, _$httpBackend_) {
+    beforeEach(inject(function($compile, $rootScope) {
       var scope = $rootScope.$new();
-      $httpBackend = _$httpBackend_;
-
-      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.tpl.html');
 
       scope = angular.extend(scope, {
         form: null,
@@ -32,7 +23,7 @@ describe('dropdown.selector.directive.spec.js', function() {
           'option-name-param="{{optionNameParam}}" no-options-string="{{noOptionsString}}"></dropdown-selector>' +
           '</form>')(scope).children();
 
-      $httpBackend.flush();
+      scope.$digest();
     }));
 
     it('Directive creates full list of options', function() {
@@ -116,11 +107,8 @@ describe('dropdown.selector.directive.spec.js', function() {
   });
 
   describe('with String Options', function() {
-    beforeEach(inject(function($compile, $rootScope, _$httpBackend_) {
+    beforeEach(inject(function($compile, $rootScope) {
       var scope = $rootScope.$new();
-      $httpBackend = _$httpBackend_;
-
-      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.tpl.html');
 
       scope = angular.extend(scope, {
         testModel: null,
@@ -130,7 +118,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       element = $compile('<form><dropdown-selector ng-model="testModel" options="options"></dropdown-selector>' +
           '</form>')(scope).children();
 
-      $httpBackend.flush();
+      scope.$digest();
     }));
 
     it('Directive creates full list of string options', function() {
@@ -160,11 +148,8 @@ describe('dropdown.selector.directive.spec.js', function() {
   });
 
   describe('with Track By', function() {
-    beforeEach(inject(function($compile, $rootScope, _$httpBackend_) {
+    beforeEach(inject(function($compile, $rootScope) {
       var scope = $rootScope.$new();
-      $httpBackend = _$httpBackend_;
-
-      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.tpl.html');
 
       scope = angular.extend(scope, {
         testModel: 1,
@@ -176,7 +161,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       element = $compile('<form><dropdown-selector ng-model="testModel" options="options" option-value-param="{{optionValueParam}}" ' +
           'option-name-param="{{optionNameParam}}"></dropdown-selector></form>')(scope).children();
 
-      $httpBackend.flush();
+      scope.$digest();
     }));
 
     it('Directive set view Model, based on option value param', function() {

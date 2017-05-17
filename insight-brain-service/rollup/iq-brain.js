@@ -1,6 +1,7 @@
 var uglify = require('rollup-plugin-uglify');
 var minify = require('uglify-js').minify;
 var legacy = require('rollup-plugin-legacy');
+var html = require('rollup-plugin-html');
 
 var isProd = process.env.BUILD === 'production';
 
@@ -11,6 +12,9 @@ var plugins = [
       AngularUtils: 'AngularUtils',
       AngularStateUtils: 'AngularStateUtils'
     }
+  }),
+  html({
+    include: '**/*.html'
   })
 ];
 

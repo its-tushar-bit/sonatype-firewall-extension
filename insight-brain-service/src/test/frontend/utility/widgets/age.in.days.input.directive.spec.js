@@ -19,7 +19,6 @@ describe('age.in.days.input.directive.spec.js', function() {
     $compile = _$compile_;
 
     SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/age.in.days.input.directive.html');
-    SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.tpl.html');
 
     scope = angular.extend(scope, {
       ageModel: "3"

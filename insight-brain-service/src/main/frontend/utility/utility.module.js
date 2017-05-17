@@ -13,7 +13,4 @@
     }
   ]);
 
-  if (!angularDebug) {
-    utility.requires.push('templates');
-  }
 }(angular));

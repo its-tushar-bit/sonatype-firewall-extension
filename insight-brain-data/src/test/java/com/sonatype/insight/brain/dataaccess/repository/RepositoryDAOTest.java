@@ -11,11 +11,15 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -185,6 +189,19 @@ public class RepositoryDAOTest
     dao.delete(repository);
 
     assertThat(new SecurityVulnerabilityOverrideDAO().getById(securityVulnerabilityOverride.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testCascadeDeleteToPolicyWaivers() {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "testCascadeDeleteToPolicyWaivers");
+    PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), repository.getId(), "Comment");
+    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    policyWaiverDAO.insert(policyWaiver);
+
+    dao.delete(repository);
+
+    assertThat(policyWaiverDAO.getByOwnerId(repository.getId()), hasSize(0));
   }
 
   @Test

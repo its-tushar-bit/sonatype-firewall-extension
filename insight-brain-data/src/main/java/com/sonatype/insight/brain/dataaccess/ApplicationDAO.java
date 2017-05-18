@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -31,7 +30,6 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -278,13 +276,6 @@ public class ApplicationDAO
 
     // Cascade to policies
     new PolicyDAO().deleteByOwnerId(tx, application.getId());
-
-    // Cascade to policy waivers
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, application.getId());
-    for (PolicyWaiver policyWaiver : policyWaivers) {
-      policyWaiverDAO.delete(tx, policyWaiver);
-    }
 
     // Cascade to membership mappings
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();

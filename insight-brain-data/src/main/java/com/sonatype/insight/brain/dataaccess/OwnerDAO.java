@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -142,6 +144,13 @@ public class OwnerDAO
   }
 
   public void cascadeDelete(TransactionContext tx, Owner owner) {
+    // Cascade to policy waivers
+    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, owner.getId());
+    for (PolicyWaiver policyWaiver : policyWaivers) {
+      policyWaiverDAO.delete(tx, policyWaiver);
+    }
+
     // Cascade to license overrides
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(tx, owner.getId());

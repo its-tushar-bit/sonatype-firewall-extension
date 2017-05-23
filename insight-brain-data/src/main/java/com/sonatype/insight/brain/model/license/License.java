@@ -32,6 +32,15 @@ public class License
 
   public static final String NOT_SUPPORTED_ID = "Not-Supported";
 
+  public License() {
+  }
+
+  public License(String id, String shortDisplayName, String longDisplayName) {
+    this.id = id;
+    this.shortDisplayName = shortDisplayName;
+    this.longDisplayName = longDisplayName;
+  }
+
   @Id
   @Column(name = "license_id")
   private String id;

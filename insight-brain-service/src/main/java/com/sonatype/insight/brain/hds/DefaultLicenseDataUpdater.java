@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,18 +63,24 @@ public class DefaultLicenseDataUpdater
           }
         }
         for (MultiLicense multiLicense : licenseData.multiLicenses) {
+          Set<String> storedMappedLicenseIds = new HashSet<>();
+          Set<String> mappedLicenseIds = licenseData.multiLicenseMappings.get(multiLicense.getId());
+          if (mappedLicenseIds == null) {
+            mappedLicenseIds = new HashSet<>();
+          }
           if (multiLicenseDAO.getById(tx, multiLicense.getId()) == null) {
-            multiLicenseDAO.insert(tx, multiLicense);
-            for (String licenseId : licenseData.multiLicenseMappings.get(multiLicense.getId())) {
-              MultiLicenseLicenseInternal multiLicenseLicense = new MultiLicenseLicenseInternal();
-              multiLicenseLicense.setMultiLicenseId(multiLicense.getId());
-              multiLicenseLicense.setLicenseId(licenseId);
-              multiLicenseLicenseInternalDAO.insert(tx, multiLicenseLicense);
+            if (!mappedLicenseIds.isEmpty()) {
+              multiLicenseDAO.insert(tx, multiLicense);
             }
           }
           else {
             multiLicenseDAO.update(tx, multiLicense);
-            // Do not update the multi-license to license associations as those should never change.
+            for (License license : multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicense.getId())) {
+              storedMappedLicenseIds.add(license.getId());
+            }
+          }
+          for (String licenseId : getDifference(mappedLicenseIds, storedMappedLicenseIds)) {
+            multiLicenseLicenseInternalDAO.insert(tx, new MultiLicenseLicenseInternal(multiLicense.getId(), licenseId));
           }
         }
         tx.commit();
@@ -83,6 +90,13 @@ public class DefaultLicenseDataUpdater
       throw new RuntimeException("Could not retrieve license data from Sonatype HDS: " + e.getMessage(), e);
     }
     log.debug("Updated license data in {} ms.", System.currentTimeMillis() - start);
+  }
+
+  private Set<String> getDifference(final Set<String> setOne, final Set<String> setTwo)
+  {
+    final Set<String> difference = new HashSet<>(setOne);
+    difference.removeAll(setTwo);
+    return difference;
   }
 
   // TODO Move it to com.sonatype.clm.dto.model?

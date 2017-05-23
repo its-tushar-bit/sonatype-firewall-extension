@@ -33,6 +33,15 @@ public class MultiLicense
   @Column(name = "longDisplayName")
   private String longDisplayName;
 
+  public MultiLicense() {
+  }
+
+  public MultiLicense(String id, String shortDisplayName, String longDisplayName) {
+    this.id = id;
+    this.shortDisplayName = shortDisplayName;
+    this.longDisplayName = longDisplayName;
+  }
+
   @Override
   public String getId() {
     return id;

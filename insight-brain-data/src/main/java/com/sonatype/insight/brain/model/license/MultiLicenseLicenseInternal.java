@@ -35,6 +35,11 @@ public class MultiLicenseLicenseInternal
   public MultiLicenseLicenseInternal() {
   }
 
+  public MultiLicenseLicenseInternal(String multiLicenseId, String licenseId) {
+    this.multiLicenseId = multiLicenseId;
+    this.licenseId = licenseId;
+  }
+
   public static class ID
       implements Serializable
   {

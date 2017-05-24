@@ -75,8 +75,9 @@ public class DefaultLicenseDataUpdater
           }
           else {
             multiLicenseDAO.update(tx, multiLicense);
-            for (License license : multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicense.getId())) {
-              storedMappedLicenseIds.add(license.getId());
+            for (MultiLicenseLicenseInternal multiLicenseLicense : multiLicenseLicenseInternalDAO
+                .getByMultiLicenseId(tx, multiLicense.getId())) {
+              storedMappedLicenseIds.add(multiLicenseLicense.getLicenseId());
             }
           }
           for (String licenseId : getDifference(mappedLicenseIds, storedMappedLicenseIds)) {

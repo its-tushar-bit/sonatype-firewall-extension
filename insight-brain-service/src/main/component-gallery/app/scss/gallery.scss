@@ -88,7 +88,9 @@
 }
 
 .iq-tile__gallery {
-  h1 {
-    margin: 6px 0 0 0;
+  padding: 0 8px 0 8px;
+
+  .iq-tile-header {
+    margin-bottom: 0;
   }
 }

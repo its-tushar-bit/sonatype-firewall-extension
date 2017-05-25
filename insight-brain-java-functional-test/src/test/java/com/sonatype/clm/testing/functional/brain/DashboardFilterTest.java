@@ -486,7 +486,6 @@ public class DashboardFilterTest
     // delete filter
     deleteFiltersDialog.checkboxItem(1).click();
     deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
 
     // delete confirmation cancel
     deleteFiltersDialog.shouldNotBe(visible);
@@ -498,7 +497,6 @@ public class DashboardFilterTest
 
     //delete confirmation continue
     deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
 
     deleteDialog.shouldBe(visible);
     deleteDialog.continueButton().click();
@@ -540,7 +538,6 @@ public class DashboardFilterTest
     DeleteFiltersDialog deleteFiltersDialog = manage.deleteFiltersDialog();
     deleteFiltersDialog.checkboxItem(1).click();
     deleteFiltersDialog.deleteButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
     manage.deleteDialog().continueButton().click();
     FormMask.seeAndWaitForDismissal();
 

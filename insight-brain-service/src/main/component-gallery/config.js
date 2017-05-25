@@ -20,6 +20,7 @@ export default angular.module('config', ['components', charts.name])
     })
 
     .constant('stylesConfig', {
+      'iq-tile-header': 'styles/iq-tile-header.html',
       'iq-action-list': 'styles/iq-action-list.html',
       'iq-dropdown': 'styles/iq-dropdown.html',
       'iq-pull-right': 'styles/iq-pull-right.html',

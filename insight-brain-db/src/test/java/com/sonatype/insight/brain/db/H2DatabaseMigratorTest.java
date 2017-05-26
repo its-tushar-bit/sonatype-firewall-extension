@@ -14,6 +14,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -30,8 +31,9 @@ public class H2DatabaseMigratorTest
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+  @Before
   @After
-  public void cleanup() {
+  public void clearDataSources() {
     DataSourceFactory.clear_ForTestsOnly();
   }
 

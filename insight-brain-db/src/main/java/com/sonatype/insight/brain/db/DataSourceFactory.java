@@ -24,9 +24,9 @@ public class DataSourceFactory
 {
   private static final Logger log = LoggerFactory.getLogger(DataSourceFactory.class);
 
-  private static Map<String, DataSource> dataSources = new LinkedHashMap<>();
+  private static final Map<String, DataSource> dataSources = new LinkedHashMap<>();
 
-  private static Map<DataSource, Boolean> newDataSources = new LinkedHashMap<>();
+  private static final Map<DataSource, Boolean> newDataSources = new LinkedHashMap<>();
 
   public DataSourceFactory() {
     super(null, null);

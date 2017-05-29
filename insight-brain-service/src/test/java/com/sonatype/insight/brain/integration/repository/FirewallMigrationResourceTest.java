@@ -13,14 +13,12 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.http.HttpStatus;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.integration.repository.FirewallMigrationService.PROTOCOL_V1;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@Ignore("To be re-enabled by CLM-8048")
 public class FirewallMigrationResourceTest
     extends AbstractResourceTest
 {

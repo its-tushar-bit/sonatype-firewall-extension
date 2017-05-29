@@ -16,7 +16,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,7 +23,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-@Ignore("To be re-enabled by CLM-8048")
 public class FirewallMigrationClientTest
     extends AbstractBrainServiceTest
 {

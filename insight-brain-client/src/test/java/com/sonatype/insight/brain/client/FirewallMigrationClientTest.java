@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.client;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
@@ -80,17 +81,6 @@ public class FirewallMigrationClientTest
   @Test
   public void testGetRepositoryMigrationState() throws Exception {
     tempEntity.newRepository(targetRepositoryManager, TARGET_REPOSITORY_PUBLIC_ID);
-
-    try {
-      client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID);
-      fail("Expected exception");
-    }
-    catch (HttpResponseException e) {
-      assertEquals(HttpStatus.SC_BAD_REQUEST, e.getStatusCode());
-      assertEquals("Migration was not started for " + targetRepositoryManager.getInstanceId() + ":"
-          + TARGET_REPOSITORY_PUBLIC_ID + ".", e.getMessage());
-    }
-
     RepositoryManager sourceRepositoryManager = tempEntity.newRepositoryManager();
     Repository sourceRepository = tempEntity.newRepository(sourceRepositoryManager, "sourceRepository");
 
@@ -100,7 +90,7 @@ public class FirewallMigrationClientTest
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(new ThrowingRunnable()
     {
       @Override
-      public void run() throws Throwable {
+      public void run() throws IOException {
         assertEquals(
             client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID),
             MigrationState.COMPLETED);

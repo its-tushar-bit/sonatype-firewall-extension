@@ -165,12 +165,5 @@ public class OwnerDAO
     for (SecurityVulnerabilityOverride securityVulnerabilityOverride : securityVulnerabilityOverrides) {
       securityVulnerabilityOverrideDAO.delete(tx, securityVulnerabilityOverride);
     }
-
-    // Cascade to policy waivers
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, owner.getId());
-    for (PolicyWaiver waiver : policyWaivers) {
-      policyWaiverDAO.delete(tx, waiver);
-    }
   }
 }

@@ -8,7 +8,7 @@ var clmEndpointTemplate = {
   'use strict';
 
   describe('CIP Tests', function() {
-    beforeEach(module('version.graph.app', 'ComponentName'));
+    beforeEach(module('version.graph.app'));
 
     afterEach(function() {
       clmEndpoint = angular.copy(clmEndpointTemplate);

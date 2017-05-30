@@ -70,7 +70,7 @@ describe('violationsTableRow.spec', function() {
     ]
   };
 
-  beforeEach(module('dashboard.utils'));
+  beforeEach(module('dashboard.module'));
 
   afterEach(inject(function($httpBackend) {
     scope.$destroy();

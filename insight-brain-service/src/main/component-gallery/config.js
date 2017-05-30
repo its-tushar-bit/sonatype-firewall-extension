@@ -3,13 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import '../frontend/components/module';
-import '../frontend/components/iqCheckbox/iqCheckbox';
-import '../frontend/components/iqRadio/iqRadio';
-
+import componentsModule from '../frontend/components/module';
 import charts from './charts/module';
 
-export default angular.module('config', ['components', charts.name])
+export default angular.module('config', [componentsModule.name, charts.name])
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
       'iq-radio': 'components/iq-radio.html',

@@ -676,7 +676,6 @@
               </preloadSources>
               <sourceIncludes>
                 <include>brain-client/*.js</include>
-                <include>frontend/ComponentDisplayModule.js</include>
               </sourceIncludes>
               <specIncludes>
                 <include>frontend/**/lib/*.js</include>

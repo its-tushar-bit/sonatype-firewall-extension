@@ -3,15 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
 
-  var dashboardUtilsModule = angular.module('dashboard.utils');
-
-  dashboardUtilsModule.filter('removeDashes', function() {
-    return function(input) {
-      return input.replace('-', '');
-    };
-  });
-
-}());
+export default
+function removeDashesFilter() {
+  return function(input) {
+    return input.replace('-', '');
+  };
+}

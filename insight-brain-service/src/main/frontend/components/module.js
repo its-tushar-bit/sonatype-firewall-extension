@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
+import iqCheckbox from './iqCheckbox/iqCheckbox';
+import iqRadio from './iqRadio/iqRadio';
 
-  angular.module('components', []);
+export default angular.module('components', [])
+    .component('iqCheckbox', iqCheckbox)
+    .component('iqRadio', iqRadio);
 
-}());

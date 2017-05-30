@@ -3,26 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
 
-  var dashboardUtilsModule = angular.module('dashboard.utils');
-
-  /**
-   * Remove stages which are not part of the filter
-   */
-  dashboardUtilsModule.filter('stageFilter', function() {
-    return function(input, filter) {
-      if (angular.isArray(input) && filter && filter.stageTypeFilters.length > 0) {
-        for (var i = 0; i < input.length; i++) {
-          if ($.inArray(input[i].id || input[i].stageTypeId, filter.stageTypeFilters) === -1) {
-            input.splice(i, 1);
-            --i;
-          }
+/**
+ * Remove stages which are not part of the filter
+ */
+export default
+function stageFilter() {
+  return function(input, filter) {
+    if (angular.isArray(input) && filter && filter.stageTypeFilters.length > 0) {
+      for (var i = 0; i < input.length; i++) {
+        if ($.inArray(input[i].id || input[i].stageTypeId, filter.stageTypeFilters) === -1) {
+          input.splice(i, 1);
+          --i;
         }
       }
-      return input;
-    };
-  });
-
-}());
+    }
+    return input;
+  };
+}

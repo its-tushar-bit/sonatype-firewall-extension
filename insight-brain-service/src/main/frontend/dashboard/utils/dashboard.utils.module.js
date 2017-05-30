@@ -3,45 +3,66 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
 
-  var dashboardUtilsModule = angular.module('dashboard.utils',
-      ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay']);
+import ClassyBrew from './classybrew.factory';
+import windowEventsFactory from './windowEventsFactory';
+import getDashboardResultsDirective from './directives/dashboard.results.directives';
+import dashboardTabs from './directives/dashboardTabs.directive';
+import sparkline from './directives/sparkline.directive';
+import valueBars from './directives/valueBars.directive';
+import emptyToEnd from './filters/emptyToEnd.filter';
+import stageFilter from './filters/stageFilter.filter';
+import stageTypeSort from './filters/stageTypeSort.filter';
+import removeDashes from './filters/removeDashes.filter';
+import wrapWith from './filters/wrap.with.filter';
 
-  dashboardUtilsModule.value('filterToParams', filterToParams);
-  dashboardUtilsModule.value('extractColumn', extractColumn);
+export default angular.module('dashboard.utils',
+    ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay'])
+    .value('filterToParams', filterToParams)
+    .value('extractColumn', extractColumn)
+    .factory('ClassyBrew', ClassyBrew)
+    .factory('windowEventsFactory', windowEventsFactory)
+    .directive('violationsResults', getDashboardResultsDirective('getNewestRisks'))
+    .directive('applicationsResults', getDashboardResultsDirective('getApplicationRisks'))
+    .directive('componentsResults', getDashboardResultsDirective('getComponentRisks'))
+    .directive('dashboardTabs', dashboardTabs)
+    .directive('sparkline', sparkline)
+    .directive('valueBars', valueBars)
+    .filter('emptyToEnd', emptyToEnd)
+    .filter('stageFilter', stageFilter)
+    .filter('stageTypeSort', stageTypeSort)
+    .filter('removeDashes', removeDashes)
+    .filter('wrapWith', wrapWith)
+;
 
-  function filterToParams(filter, maxResults) {
-    var params = {};
-    if (maxResults) {
-      params.maxResults = maxResults + 1;
-    }
-    if (filter) {
-      params.applicationIds = filter.applicationFilters;
-      params.stageIds = filter.stageTypeFilters;
-      params.tagIds = filter.tagFilters;
-      params.policyViolationStates = filter.policyViolationStates;
-      params.maxDaysOld = filter.maxDaysOld;
-
-      if (filter.policyThreatCategoryFilters && filter.policyThreatCategoryFilters.length > 0) {
-        params.policyThreatCategories = filter.policyThreatCategoryFilters.join(',');
-      }
-
-      if (filter.minPolicyThreatLevel !== undefined && filter.maxPolicyThreatLevel !== undefined) {
-        params.policyThreatLevelRange = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel].join(',');
-      }
-    }
-    return params;
+function filterToParams(filter, maxResults) {
+  var params = {};
+  if (maxResults) {
+    params.maxResults = maxResults + 1;
   }
+  if (filter) {
+    params.applicationIds = filter.applicationFilters;
+    params.stageIds = filter.stageTypeFilters;
+    params.tagIds = filter.tagFilters;
+    params.policyViolationStates = filter.policyViolationStates;
+    params.maxDaysOld = filter.maxDaysOld;
 
-  function extractColumn(orderedColumn) {
-    if (orderedColumn.indexOf('-') === 0) {
-      return orderedColumn.substring(1);
+    if (filter.policyThreatCategoryFilters && filter.policyThreatCategoryFilters.length > 0) {
+      params.policyThreatCategories = filter.policyThreatCategoryFilters.join(',');
     }
-    else {
-      return orderedColumn;
+
+    if (filter.minPolicyThreatLevel !== undefined && filter.maxPolicyThreatLevel !== undefined) {
+      params.policyThreatLevelRange = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel].join(',');
     }
   }
+  return params;
+}
 
-}());
+function extractColumn(orderedColumn) {
+  if (orderedColumn.indexOf('-') === 0) {
+    return orderedColumn.substring(1);
+  }
+  else {
+    return orderedColumn;
+  }
+}

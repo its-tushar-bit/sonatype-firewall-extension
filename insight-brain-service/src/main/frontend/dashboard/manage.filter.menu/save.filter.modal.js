@@ -3,41 +3,33 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+export default
+function SaveFilterModal($modal) {
+  return {
+    open: openModal
+  };
 
-  function SaveFilterModal($modal) {
-    return {
-      open: openModal
-    };
-
-    function openModal(filterJson, name, existingFilters) {
-      return $modal.open({
-        animation: false,
-        backdrop: 'static',
-        keyboard: false,
-        windowClass: 'save-filter-modal clm-modal',
-        controller: 'save.filter.modal.controller as vm',
-        templateUrl: 'dashboard/manage.filter.menu/save.filter.modal.html',
-        resolve: {
-          filterJson: function() {
-            return filterJson;
-          },
-          filterName: function() {
-            return name || '';
-          },
-          existingFilters: function() {
-            return existingFilters;
-          }
+  function openModal(filterJson, name, existingFilters) {
+    return $modal.open({
+      animation: false,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'save-filter-modal clm-modal',
+      controller: 'save.filter.modal.controller as vm',
+      templateUrl: 'dashboard/manage.filter.menu/save.filter.modal.html',
+      resolve: {
+        filterJson: function() {
+          return filterJson;
+        },
+        filterName: function() {
+          return name || '';
+        },
+        existingFilters: function() {
+          return existingFilters;
         }
-      }).result;
-    }
+      }
+    }).result;
   }
+}
 
-  SaveFilterModal.$inject = ['$modal'];
-
-  angular //
-      .module('dashboard.module') //
-      .service('save.filter.modal', SaveFilterModal);
-
-}(angular));
+SaveFilterModal.$inject = ['$modal'];

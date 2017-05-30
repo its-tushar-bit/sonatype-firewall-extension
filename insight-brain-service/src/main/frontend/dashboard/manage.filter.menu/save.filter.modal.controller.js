@@ -3,60 +3,54 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
-
-  function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filterName, existingFilters, $timeout, Messages)
-  {
-    var vm = this,
-        confirmed = false;
-
-    vm.confirm = false;
-    vm.formMask = undefined;
-    vm.saveError = undefined;
-    vm.filterName = filterName;
-    vm.saveFilter = saveFilter;
-    vm.doSave = doSave;
-
-    $scope.$watch('vm.filterName', function() {
+export default
+function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filterName, existingFilters, $timeout, Messages)
+{
+  var vm = this,
       confirmed = false;
+
+  vm.confirm = false;
+  vm.formMask = undefined;
+  vm.saveError = undefined;
+  vm.filterName = filterName;
+  vm.saveFilter = saveFilter;
+  vm.doSave = doSave;
+
+  $scope.$watch('vm.filterName', function() {
+    confirmed = false;
+  });
+
+  function saveFilter(newConfirmed) {
+    var duplicate = existingFilters.some(function(filter) {
+      return vm.filterName === filter.name;
     });
 
-    function saveFilter(newConfirmed) {
-      var duplicate = existingFilters.some(function(filter) {
-        return vm.filterName === filter.name;
-      });
+    confirmed = confirmed || newConfirmed;
+    vm.confirm = false;
 
-      confirmed = confirmed || newConfirmed;
-      vm.confirm = false;
-
-      if (duplicate && !confirmed) {
-        vm.confirm = true;
-      }
-      else {
-        doSave();
-      }
+    if (duplicate && !confirmed) {
+      vm.confirm = true;
     }
-
-    function doSave() {
-      var namedFilter = {
-        name: vm.filterName,
-        filter: filterJson
-      };
-      // we do this asynchronously because the confirmation may have been displayed
-      $timeout(function() {
-        vm.formMask.wrap($http.put(CLMLocations.getDashboardSavedFilters(), namedFilter)).then(function() {
-          $scope.$close(namedFilter.name);
-        }, function(error) {
-          vm.saveError = Messages.getHttpErrorMessage(error);
-        });
-      }, 0);
+    else {
+      doSave();
     }
   }
 
-  SaveFilterModalController.$inject = ['$scope', '$http', 'CLMLocations', 'filterJson', 'filterName',
-      'existingFilters', '$timeout', 'Messages'];
+  function doSave() {
+    var namedFilter = {
+      name: vm.filterName,
+      filter: filterJson
+    };
+    // we do this asynchronously because the confirmation may have been displayed
+    $timeout(function() {
+      vm.formMask.wrap($http.put(CLMLocations.getDashboardSavedFilters(), namedFilter)).then(function() {
+        $scope.$close(namedFilter.name);
+      }, function(error) {
+        vm.saveError = Messages.getHttpErrorMessage(error);
+      });
+    }, 0);
+  }
+}
 
-  angular.module('dashboard.module').controller('save.filter.modal.controller', SaveFilterModalController);
-
-}(angular));
+SaveFilterModalController.$inject = ['$scope', '$http', 'CLMLocations', 'filterJson', 'filterName',
+    'existingFilters', '$timeout', 'Messages'];

@@ -1,7 +1,7 @@
 describe('ComponentDisplay', function() {
   var $compile, scope;
 
-  beforeEach(module('ComponentDisplay', 'ComponentName'));
+  beforeEach(module('ComponentDisplay'));
 
   beforeEach(inject(function(_$compile_, $rootScope) {
     $compile = _$compile_;

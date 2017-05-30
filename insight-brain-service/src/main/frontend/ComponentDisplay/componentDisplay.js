@@ -4,11 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-// placeholder - will retrieve tab counts when dashboard summary is fixed
 export default
-function dashboardTabs() {
+function componentDisplay() {
   return {
     restrict: 'A',
-    templateUrl: 'dashboard-tabs'
+    replace: true,
+    scope: {
+      component: '<',
+      truncate: '@'
+    },
+    templateUrl: 'linked-component-display'
   };
 }

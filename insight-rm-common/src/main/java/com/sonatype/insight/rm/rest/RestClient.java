@@ -95,13 +95,12 @@ public interface RestClient
 
     void verifyMigrationSupport(final String protocolVersion) throws IOException;
     
-    void migrateRepositoryHistory(final String repositoryManagerInstanceId,
-                                  final String repositoryPublicId,
-                                  final String sourceRepositoryManagerInstanceId,
+    void migrateRepositoryHistory(final String sourceRepositoryManagerInstanceId,
                                   final String sourceRepositoryPublicId,
-                                  final String lastMigratedPathname) throws IOException;
+                                  final String targetRepositoryManagerInstanceId,
+                                  final String targetRepositoryPublicId) throws IOException;
 
-    MigrationState getRepositoryMigrationState(final String repositoryManagerInstanceId,
-                                               final String repositoryPublicId) throws IOException;
+    MigrationState getRepositoryMigrationState(final String targetRepositoryManagerInstanceId,
+                                               final String targetRepositoryPublicId) throws IOException;
   }
 }

@@ -31,25 +31,25 @@ public class FirewallMigrationClient
     verifyStatusCode(postRequest(path(RESOURCE_PATH, SUPPORTED_PATH, protocolVersion), null));
   }
 
-  public void migrateRepositoryHistory(String repositoryManagerInstanceId,
-                                       String repositoryPublicId,
-                                       String sourceRepositoryManagerInstanceId,
+  public void migrateRepositoryHistory(String sourceRepositoryManagerInstanceId,
                                        String sourceRepositoryPublicId,
-                                       String lastMigratedPathname) throws IOException
+                                       String targetRepositoryManagerInstanceId,
+                                       String targetRepositoryPublicId) throws IOException
   {
     Result result = postRequest(
-        path(RESOURCE_PATH, HISTORY_PATH, repositoryManagerInstanceId, repositoryPublicId)
-            .query("sourceRepositoryManagerInstanceId", sourceRepositoryManagerInstanceId, "sourceRepositoryPublicId",
-                sourceRepositoryPublicId, "lastMigratedPathname", lastMigratedPathname), null);
+        path(RESOURCE_PATH, HISTORY_PATH, targetRepositoryManagerInstanceId, targetRepositoryPublicId).query(
+            "sourceRepositoryManagerInstanceId", sourceRepositoryManagerInstanceId, "sourceRepositoryPublicId",
+            sourceRepositoryPublicId),
+        null);
     verifyStatusCode(result);
   }
 
-
-  public MigrationState getRepositoryMigrationState(String repositoryManagerInstanceId, String repositoryPublicId)
+  public MigrationState getRepositoryMigrationState(String targetRepositoryManagerInstanceId,
+                                                    String targetRepositoryPublicId)
       throws IOException
   {
     Result result = getRequest(
-        path(RESOURCE_PATH, HISTORY_PATH, repositoryManagerInstanceId, repositoryPublicId));
+        path(RESOURCE_PATH, HISTORY_PATH, targetRepositoryManagerInstanceId, targetRepositoryPublicId));
     return parseResult(result, MigrationState.class);
   }
 }

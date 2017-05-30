@@ -19,57 +19,68 @@ import org.junit.Test;
 public class FirewallMigrationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-  private static final String REPOSITORY_MANAGER_INSTANCE_ID = "repositoryManagerInstanceId";
+  private static final String TARGET_REPOSITORY_MANAGER_INSTANCE_ID = "repositoryManagerInstanceId";
 
-  private static final String REPOSITORY_PUBLIC_ID = "publicId";
+  private static final String TARGET_REPOSITORY_PUBLIC_ID = "publicId";
 
   @Inject
   private FirewallMigrationService migrationService;
 
-  private Repository createRepository() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPOSITORY_MANAGER_INSTANCE_ID);
-    return tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+  private Repository createTargetRepository() {
+    return tempEntity.newRepository(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
   }
 
   @Test
   public void testMigrateRepositoryHistory_Authorized() {
-    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    testMigrateRepositoryHistory();
+    testMigrateRepositoryHistory(true, true);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testMigrateRepositoryHistory_Unauthenticated() {
-    testMigrateRepositoryHistory();
+    testMigrateRepositoryHistory(false, false);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testMigrateRepositoryHistory_Unauthorized() {
-    login();
-    testMigrateRepositoryHistory();
+  public void testMigrateRepositoryHistory_Unauthorized_Target() {
+    testMigrateRepositoryHistory(false, true);
   }
 
-  private void testMigrateRepositoryHistory() {
-    Repository repository = createRepository();
+  @Test(expected = UnauthorizedException.class)
+  public void testMigrateRepositoryHistory_Unauthorized_Source() {
+    testMigrateRepositoryHistory(true, false);
+  }
+
+  private void testMigrateRepositoryHistory(boolean grantTargetPermission, boolean grantSourcePermission) {
+    Repository targetRepository = createTargetRepository();
+    if (grantTargetPermission) {
+      grantEvaluateComponentPermission(targetRepository.getId());
+    }
     RepositoryManager sourceRepositoryManager = tempEntity.newRepositoryManager();
     Repository sourceRepository = tempEntity.newRepository(sourceRepositoryManager, "source-repo");
-    migrationService.migrateRepositoryHistory(REPOSITORY_MANAGER_INSTANCE_ID, repository.getPublicId(),
-        sourceRepositoryManager.getInstanceId(), sourceRepository.getPublicId(), "some/path");
+    if (grantSourcePermission) {
+      grantEvaluateComponentPermission(sourceRepository.getId());
+    }
+    migrationService.migrateRepositoryHistory(sourceRepositoryManager.getInstanceId(), sourceRepository.getPublicId(),
+        TARGET_REPOSITORY_MANAGER_INSTANCE_ID, targetRepository.getPublicId());
   }
 
   @Test
   public void testGetRepositoryMigrationState_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    migrationService.getRepositoryMigrationState(REPOSITORY_MANAGER_INSTANCE_ID, createRepository().getPublicId());
+    migrationService.getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID,
+        createTargetRepository().getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetRepositoryMigrationState_Unauthenticated() {
-    migrationService.getRepositoryMigrationState(REPOSITORY_MANAGER_INSTANCE_ID, createRepository().getPublicId());
+    migrationService.getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID,
+        createTargetRepository().getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetRepositoryMigrationState_Unauthorized() {
     login();
-    migrationService.getRepositoryMigrationState(REPOSITORY_MANAGER_INSTANCE_ID, createRepository().getPublicId());
+    migrationService.getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID,
+        createTargetRepository().getPublicId());
   }
 }

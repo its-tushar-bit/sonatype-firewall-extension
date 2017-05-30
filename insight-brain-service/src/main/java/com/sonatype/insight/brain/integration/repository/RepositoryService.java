@@ -546,7 +546,7 @@ public class RepositoryService
     }
   }
 
-  private String normalizePathname(String pathname) {
+  static String normalizePathname(String pathname) {
     if (pathname != null && pathname.startsWith("/")) {
       return pathname.substring(1);
     }

@@ -49,8 +49,7 @@ public class FirewallMigrationResourceTest
     HttpResponse response = restRequest().path(FirewallMigrationResource.HISTORY_PATH)
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
         .query("sourceRepositoryManagerInstanceId", sourceRepositoryManager.getInstanceId())
-        .query("sourceRepositoryPublicId", sourceRepository.getPublicId())
-        .query("lastMigratedPathname", "some/asset/path").post();
+        .query("sourceRepositoryPublicId", sourceRepository.getPublicId()).post();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
   }
 
@@ -63,6 +62,6 @@ public class FirewallMigrationResourceTest
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).get();
     assertResponseStatus(HttpStatus.SC_OK, response);
     MigrationState migrationState = response.getBody(MigrationState.class);
-    assertThat(migrationState, is(MigrationState.COMPLETED));
+    assertThat(migrationState, is(MigrationState.FAILED));
   }
 }

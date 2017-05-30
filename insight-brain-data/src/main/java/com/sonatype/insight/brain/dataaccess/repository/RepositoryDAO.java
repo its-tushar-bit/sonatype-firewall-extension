@@ -177,6 +177,20 @@ public class RepositoryDAO
 
   @Override
   public void delete(TransactionContext tx, Repository repository) {
+    cascadeDelete(tx, repository);
+
+    super.delete(tx, repository);
+  }
+
+  public void cascadeDelete(Repository repository) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      cascadeDelete(tx, repository);
+      tx.commit();
+    }
+  }
+
+  private void cascadeDelete(TransactionContext tx, Repository repository) {
     long start = System.currentTimeMillis();
 
     // Cascade to owned entities
@@ -201,11 +215,9 @@ public class RepositoryDAO
       repositoryComponentDAO.delete(repositoryComponent, false /* updatePolicyViolations */);
     }
 
-    super.delete(tx, repository);
-
     long duration = System.currentTimeMillis() - start;
     if (duration > 1000) {
-      log.debug("Deleted repository {} with id {} in {} ms.", repository.getName(), repository.getId(), duration);
+      log.debug("Deleted owned entities of repository {} with id {} in {} ms.", repository.getName(), repository.getId(), duration);
     }
   }
 

@@ -1,0 +1,183 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.integration.repository;
+
+import java.util.List;
+
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.model.HasStringId;
+
+import org.apache.openjpa.enhance.PersistenceCapable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @since 1.31
+ */
+public class FirewallMigrationWorker
+    implements Runnable
+{
+  private static final Logger log = LoggerFactory.getLogger(FirewallMigrationWorker.class);
+
+  private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
+
+  private static final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+
+  private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+
+  private static final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+
+  private static final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
+
+  private static final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+
+  private final Repository sourceRepository;
+
+  private final Repository targetRepository;
+
+  private final MigrationProgress migrationProgress;
+
+  FirewallMigrationWorker(Repository sourceRepository,
+                          Repository targetRepository,
+                          MigrationProgress migrationProgress)
+  {
+    this.sourceRepository = sourceRepository;
+    this.targetRepository = targetRepository;
+    this.migrationProgress = migrationProgress;
+  }
+
+  @Override
+  public void run() {
+    try {
+      log.info("Starting history migration for repository {}:{} ({})", targetRepository.getRepositoryManagerId(),
+          targetRepository.getPublicId(), targetRepository.getId());
+
+      repositoryDAO.cascadeDelete(targetRepository);
+      migrateRepositoryComponents();
+      migratePolicyViolations();
+      migrateLicenseOverrides();
+      migrateSecurityVulnerabilityOverrides();
+      migratePolicyWaivers();
+      migrationProgress.success();
+
+      log.info("History migration completed for repository {}:{} ({})", targetRepository.getRepositoryManagerId(),
+          targetRepository.getPublicId(), targetRepository.getId());
+    }
+    catch (Exception e) {
+      log.error("Failed to migrate repository history {}:{} ({}); {}", targetRepository.getRepositoryManagerId(),
+          targetRepository.getPublicId(), targetRepository.getId(), e.getMessage(), e);
+
+      migrationProgress.failure();
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
+      // this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(2);
+    }
+  }
+
+  private void migrateRepositoryComponents() {
+    long start = System.currentTimeMillis();
+
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(sourceRepository.getId());
+    log.info("Starting the migration of {} repository components for repository {}:{} ({})...",
+        repositoryComponents.size(), targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(),
+        targetRepository.getId());
+    for (RepositoryComponent repositoryComponent : repositoryComponents) {
+      log.trace("Migrating repository component {}", repositoryComponent.getPathname());
+      detachEntity(repositoryComponent);
+      repositoryComponent.setRepositoryId(targetRepository.getId());
+      repositoryComponentDAO.insert(repositoryComponent);
+    }
+
+    log.info("Migrated {} repository components in {} ms.", repositoryComponents.size(),
+        System.currentTimeMillis() - start);
+  }
+
+  private void migratePolicyViolations() {
+    long start = System.currentTimeMillis();
+
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
+        .getByRepositoryId(sourceRepository.getId());
+    log.info("Starting the migration of {} policy violations for repository {}:{} ({})...", policyViolations.size(),
+        targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
+    for (RepositoryPolicyViolation violation : policyViolations) {
+      detachEntity(violation);
+      violation.setRepositoryId(targetRepository.getId());
+      repositoryPolicyViolationDAO.insert(violation);
+    }
+
+    log.info("Migrated {} policy violations in {} ms.", policyViolations.size(), System.currentTimeMillis() - start);
+  }
+
+  private void migrateLicenseOverrides() {
+    long start = System.currentTimeMillis();
+
+    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(sourceRepository.getId());
+    log.info("Starting the migration of {} license overrides for repository {}:{} ({})...", licenseOverrides.size(),
+        targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
+    for (LicenseOverride licenseOverride : licenseOverrides) {
+      licenseOverride.setId(null);
+      licenseOverride.setOwnerId(targetRepository.getId());
+      licenseOverrideDAO.insert(licenseOverride);
+    }
+
+    log.info("Migrated {} license overrides in {} ms.", licenseOverrides.size(), System.currentTimeMillis() - start);
+  }
+
+  private void migrateSecurityVulnerabilityOverrides() {
+    long start = System.currentTimeMillis();
+
+    List<SecurityVulnerabilityOverride> securityVulnerabilityOverrides = securityVulnerabilityOverrideDAO
+        .getByOwnerId(sourceRepository.getId());
+    log.info("Starting the migration of {} security vulnerability overrides for repository {}:{} ({})...",
+        securityVulnerabilityOverrides.size(), targetRepository.getRepositoryManagerId(),
+        targetRepository.getPublicId(), targetRepository.getId());
+    for (SecurityVulnerabilityOverride securityVulnerabilityOverride : securityVulnerabilityOverrides) {
+      detachEntity(securityVulnerabilityOverride);
+      securityVulnerabilityOverride.setOwnerId(targetRepository.getId());
+      securityVulnerabilityOverrideDAO.insert(securityVulnerabilityOverride);
+    }
+
+    log.info("Migrated {} security vulnerability overrides in {} ms.", securityVulnerabilityOverrides.size(),
+        System.currentTimeMillis() - start);
+  }
+
+  private void migratePolicyWaivers() {
+    long start = System.currentTimeMillis();
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getByOwnerId(sourceRepository.getId());
+    log.info("Starting the migration of {} policy waivers for repository {}:{} ({})...", waivers.size(),
+        targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
+    for (PolicyWaiver waiver : waivers) {
+      detachEntity(waiver);
+      waiver.setOwnerId(targetRepository.getId());
+      policyWaiverDAO.insert(waiver);
+    }
+
+    log.info("Migrated {} policy waivers in {} ms.", waivers.size(), System.currentTimeMillis() - start);
+  }
+
+  private <E extends HasStringId> void detachEntity(E entity) {
+    PersistenceCapable pc = (PersistenceCapable) entity;
+    pc.pcSetDetachedState(null);
+    pc.pcReplaceStateManager(null);
+    entity.setId(null);
+  }
+}

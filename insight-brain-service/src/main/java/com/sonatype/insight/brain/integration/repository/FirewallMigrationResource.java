@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.yammer.metrics.annotation.Timed;
 
 /**
- * @since 1.30
+ * @since 1.31
  */
 @Named
 @Path(FirewallMigrationResource.RESOURCE_PATH)
@@ -30,7 +30,7 @@ public class FirewallMigrationResource
 
   static final String SUPPORTED_PATH = "supported/{protocolVersion}";
 
-  static final String HISTORY_PATH = "history/{repositoryManagerInstanceId}/{repositoryPublicId}";
+  static final String HISTORY_PATH = "history/{targetRepositoryManagerInstanceId}/{targetRepositoryPublicId}";
 
   private final FirewallMigrationService firewallMigrationService;
 
@@ -50,26 +50,24 @@ public class FirewallMigrationResource
   @POST
   @Path(HISTORY_PATH)
   @Timed
-  public void migrateRepositoryHistory(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-                                       @PathParam("repositoryPublicId") String repositoryPublicId,
+  public void migrateRepositoryHistory(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
+                                       @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId,
                                        @QueryParam("sourceRepositoryManagerInstanceId")
                                            String sourceRepositoryManagerInstanceId,
-                                       @QueryParam("sourceRepositoryPublicId") String sourceRepositoryPublicId,
-                                       @QueryParam("lastMigratedPathname") String lastMigratedPathname)
+                                       @QueryParam("sourceRepositoryPublicId") String sourceRepositoryPublicId)
   {
-    firewallMigrationService
-        .migrateRepositoryHistory(repositoryManagerInstanceId, repositoryPublicId, sourceRepositoryManagerInstanceId,
-            sourceRepositoryPublicId, lastMigratedPathname);
+    firewallMigrationService.migrateRepositoryHistory(sourceRepositoryManagerInstanceId, sourceRepositoryPublicId,
+        targetRepositoryManagerInstanceId, targetRepositoryPublicId);
   }
 
   @GET
   @Path(HISTORY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public MigrationState getRepositoryMigrationState(
-      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") String repositoryPublicId)
+  public MigrationState getRepositoryMigrationState(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
+                                                    @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId)
   {
-    return firewallMigrationService.getRepositoryMigrationState(repositoryManagerInstanceId, repositoryPublicId);
+    return firewallMigrationService.getRepositoryMigrationState(targetRepositoryManagerInstanceId,
+        targetRepositoryPublicId);
   }
 }

@@ -329,18 +329,16 @@ public class RestClientFactoryTest
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final FirewallMigration repository = client.forFirewallMigration();
 
-    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
-    final String repositoryPublicId = "repositoryPublicId";
+    final String targetRepositoryManagerInstanceId = "targetRepositoryManagerInstanceId";
+    final String targetRepositoryPublicId = "targetRepositoryPublicId";
     final String sourceRepositoryManagerInstanceId = "sourceRepositoryManagerInstanceId";
     final String sourceRepositoryPublicId = "sourceRepositoryPublicId";
 
-    repository
-        .migrateRepositoryHistory(repositoryManagerInstanceId, repositoryPublicId, sourceRepositoryManagerInstanceId,
-            sourceRepositoryPublicId, "last/migrated/asset/path");
+    repository.migrateRepositoryHistory(sourceRepositoryManagerInstanceId, sourceRepositoryPublicId,
+        targetRepositoryManagerInstanceId, targetRepositoryPublicId);
 
-    verify(firewallClient)
-        .migrateRepositoryHistory(repositoryManagerInstanceId, repositoryPublicId, sourceRepositoryManagerInstanceId,
-            sourceRepositoryPublicId, "last/migrated/asset/path");
+    verify(firewallClient).migrateRepositoryHistory(sourceRepositoryManagerInstanceId, sourceRepositoryPublicId,
+        targetRepositoryManagerInstanceId, targetRepositoryPublicId);
     verifyNoMoreInteractions(firewallClient);
   }
 

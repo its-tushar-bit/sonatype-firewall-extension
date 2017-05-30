@@ -132,7 +132,9 @@ public class PolicyWaiverDAO
       throw new BadRequestException("Comment length must not exceed 1000 characters.");
     }
 
-    entity.setCreateTime(new Date());
+    if (entity.getCreateTime() == null) {
+      entity.setCreateTime(new Date());
+    }
 
     super.insert(tx, entity);
   }

@@ -1253,7 +1253,22 @@ public class TemporaryEntity
                                                                 String policyName,
                                                                 ComponentIdentifier componentIdentifier)
   {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, new Date(),
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, isActive, actionId, policyId,
+        policyName, componentIdentifier, new Date());
+  }
+
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
+                                                                int threatLevel,
+                                                                String pathname,
+                                                                boolean isWaived,
+                                                                boolean isActive,
+                                                                String actionId,
+                                                                String policyId,
+                                                                String policyName,
+                                                                ComponentIdentifier componentIdentifier,
+                                                                Date time)
+  {
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time,
         policyId, policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
         "[{\"constraintId\":\"acdb7a00d0914415802b5faa131bc058\",\"constraintName\":\"aa c\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"summary\":\"Match State is exact\",\"reason\":\"Match State was exact\"}]}]" /* constraintFacts */);
     policyViolation.setWaived(isWaived);

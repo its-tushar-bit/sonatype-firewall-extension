@@ -299,23 +299,21 @@ public class RestClientFactory
     }
 
     @Override
-    public void migrateRepositoryHistory(final String repositoryManagerInstanceId,
-                                         final String repositoryPublicId,
-                                         final String sourceRepositoryManagerInstanceId,
+    public void migrateRepositoryHistory(final String sourceRepositoryManagerInstanceId,
                                          final String sourceRepositoryPublicId,
-                                         final String lastMigratedPathname) throws IOException
+                                         final String targetRepositoryManagerInstanceId,
+                                         final String targetRepositoryPublicId) throws IOException
     {
-      newFirewallMigrationClient(config)
-          .migrateRepositoryHistory(repositoryManagerInstanceId, repositoryPublicId, sourceRepositoryManagerInstanceId,
-              sourceRepositoryPublicId, lastMigratedPathname);
+      newFirewallMigrationClient(config).migrateRepositoryHistory(sourceRepositoryManagerInstanceId,
+          sourceRepositoryPublicId, targetRepositoryManagerInstanceId, targetRepositoryPublicId);
     }
 
     @Override
-    public MigrationState getRepositoryMigrationState(final String repositoryManagerInstanceId,
-                                                      final String repositoryPublicId) throws IOException
+    public MigrationState getRepositoryMigrationState(final String targetRepositoryManagerInstanceId,
+                                                      final String targetRepositoryPublicId) throws IOException
     {
-      return newFirewallMigrationClient(config)
-          .getRepositoryMigrationState(repositoryManagerInstanceId, repositoryPublicId);
+      return newFirewallMigrationClient(config).getRepositoryMigrationState(targetRepositoryManagerInstanceId,
+          targetRepositoryPublicId);
     }
   }
 }

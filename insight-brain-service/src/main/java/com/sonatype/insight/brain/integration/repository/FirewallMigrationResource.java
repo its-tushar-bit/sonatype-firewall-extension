@@ -15,7 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.clm.dto.model.repository.migration.MigrationState;
+import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 
 import com.yammer.metrics.annotation.Timed;
 
@@ -64,8 +64,8 @@ public class FirewallMigrationResource
   @Path(HISTORY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public MigrationState getRepositoryMigrationState(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
-                                                    @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId)
+  public MigrationDetails getRepositoryMigrationState(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
+                                                      @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId)
   {
     return firewallMigrationService.getRepositoryMigrationState(targetRepositoryManagerInstanceId,
         targetRepositoryPublicId);

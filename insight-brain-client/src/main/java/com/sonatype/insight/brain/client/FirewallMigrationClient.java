@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
 
-import com.sonatype.clm.dto.model.repository.migration.MigrationState;
+import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 
@@ -44,12 +44,11 @@ public class FirewallMigrationClient
     verifyStatusCode(result);
   }
 
-  public MigrationState getRepositoryMigrationState(String targetRepositoryManagerInstanceId,
-                                                    String targetRepositoryPublicId)
-      throws IOException
+  public MigrationDetails getRepositoryMigrationState(String targetRepositoryManagerInstanceId,
+                                                      String targetRepositoryPublicId) throws IOException
   {
     Result result = getRequest(
         path(RESOURCE_PATH, HISTORY_PATH, targetRepositoryManagerInstanceId, targetRepositoryPublicId));
-    return parseResult(result, MigrationState.class);
+    return parseResult(result, MigrationDetails.class);
   }
 }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -49,15 +50,12 @@ public class FirewallMigrationWorker
 
   private final Repository targetRepository;
 
-  private final MigrationProgress migrationProgress;
+  private final MigrationDetails migrationDetails;
 
-  FirewallMigrationWorker(Repository sourceRepository,
-                          Repository targetRepository,
-                          MigrationProgress migrationProgress)
-  {
+  FirewallMigrationWorker(Repository sourceRepository, Repository targetRepository, MigrationDetails migrationDetails) {
     this.sourceRepository = sourceRepository;
     this.targetRepository = targetRepository;
-    this.migrationProgress = migrationProgress;
+    this.migrationDetails = migrationDetails;
   }
 
   @Override
@@ -72,7 +70,7 @@ public class FirewallMigrationWorker
       migrateLicenseOverrides();
       migrateSecurityVulnerabilityOverrides();
       migratePolicyWaivers();
-      migrationProgress.success();
+      migrationDetails.success();
 
       log.info("History migration completed for repository {}:{} ({})", targetRepository.getRepositoryManagerId(),
           targetRepository.getPublicId(), targetRepository.getId());
@@ -81,7 +79,7 @@ public class FirewallMigrationWorker
       log.error("Failed to migrate repository history {}:{} ({}); {}", targetRepository.getRepositoryManagerId(),
           targetRepository.getPublicId(), targetRepository.getId(), e.getMessage(), e);
 
-      migrationProgress.failure();
+      migrationDetails.failure();
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at

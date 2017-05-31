@@ -22,7 +22,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.clm.dto.model.repository.migration.MigrationState;
+import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
@@ -309,8 +309,8 @@ public class RestClientFactory
     }
 
     @Override
-    public MigrationState getRepositoryMigrationState(final String targetRepositoryManagerInstanceId,
-                                                      final String targetRepositoryPublicId) throws IOException
+    public MigrationDetails getRepositoryMigrationState(final String targetRepositoryManagerInstanceId,
+                                                        final String targetRepositoryPublicId) throws IOException
     {
       return newFirewallMigrationClient(config).getRepositoryMigrationState(targetRepositoryManagerInstanceId,
           targetRepositoryPublicId);

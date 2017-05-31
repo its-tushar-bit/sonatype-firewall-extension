@@ -92,7 +92,8 @@ public class FirewallMigrationClientTest
       @Override
       public void run() throws IOException {
         assertEquals(
-            client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID),
+            client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID)
+                .getState(),
             MigrationState.COMPLETED);
       }
     });

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -61,7 +62,7 @@ public class FirewallMigrationResourceTest
     HttpResponse response = restRequest().path(FirewallMigrationResource.HISTORY_PATH)
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).get();
     assertResponseStatus(HttpStatus.SC_OK, response);
-    MigrationState migrationState = response.getBody(MigrationState.class);
-    assertThat(migrationState, is(MigrationState.FAILED));
+    MigrationDetails migrationDetails = response.getBody(MigrationDetails.class);
+    assertThat(migrationDetails.getState(), is(MigrationState.FAILED));
   }
 }

@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -176,28 +177,22 @@ public class FirewallMigrationServiceTest
 
   @Test
   public void testMigrateRepositoryHistory_Completed() throws Exception {
-    testMigrateRepositoryHistoryRerun(true /* success */);
+    testMigrateRepositoryHistoryRerun(MigrationState.COMPLETED);
   }
 
   @Test
   public void testMigrateRepositoryHistory_Failed() throws Exception {
-    testMigrateRepositoryHistoryRerun(false /* success */);
+    testMigrateRepositoryHistoryRerun(MigrationState.FAILED);
   }
 
-  private void testMigrateRepositoryHistoryRerun(boolean success) throws Exception {
+  private void testMigrateRepositoryHistoryRerun(MigrationState migrationState) throws Exception {
     Repository repository = createTargetRepository();
     GeneratedRepositoryData previousRunData = generateRepositoryData(repository);
     Repository sourceRepository = createSourceRepository();
     GeneratedRepositoryData data = generateRepositoryData(sourceRepository);
 
-    MigrationProgress progress = new MigrationProgress();
-    if (success) {
-      progress.success();
-    }
-    else {
-      progress.failure();
-    }
-    assertThat(migrationService.putIfAbsent(repository.getId(), progress), is(true));
+    MigrationDetails migrationDetails = new MigrationDetails(migrationState);
+    assertThat(migrationService.putIfAbsent(repository.getId(), migrationDetails), is(true));
 
     testMigrateRepositoryHistory(repository, previousRunData, sourceRepository, data);
   }
@@ -215,8 +210,9 @@ public class FirewallMigrationServiceTest
     {
       @Override
       public void run() {
-        assertThat(migrationService.getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID,
-            TARGET_REPOSITORY_PUBLIC_ID), is(MigrationState.COMPLETED));
+        assertThat(migrationService
+            .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID).getState(),
+            is(MigrationState.COMPLETED));
       }
     });
 
@@ -328,8 +324,8 @@ public class FirewallMigrationServiceTest
   public void testMigrateRepositoryHistory_AlreadyRunning() throws Exception {
     createSourceRepository();
     Repository targetRepository = createTargetRepository();
-    MigrationProgress progress = new MigrationProgress();
-    assertThat(migrationService.putIfAbsent(targetRepository.getId(), progress), is(true));
+    MigrationDetails migrationDetails = new MigrationDetails();
+    assertThat(migrationService.putIfAbsent(targetRepository.getId(), migrationDetails), is(true));
 
     // The migration request is ignored and the migration continues.
     migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,
@@ -353,10 +349,10 @@ public class FirewallMigrationServiceTest
   public void testGetRepositoryMigrationState_MigrationNotStarted() throws Exception {
     createTargetRepository();
 
-    MigrationState migrationState = migrationService.getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID,
-        TARGET_REPOSITORY_PUBLIC_ID);
+    MigrationDetails migrationDetails = migrationService
+        .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
 
-    assertThat(migrationState, is(MigrationState.FAILED));
+    assertThat(migrationDetails.getState(), is(MigrationState.FAILED));
   }
 
   private Repository createTargetRepository() {

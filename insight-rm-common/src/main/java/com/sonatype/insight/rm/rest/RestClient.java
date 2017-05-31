@@ -19,7 +19,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
-import com.sonatype.clm.dto.model.repository.migration.MigrationState;
+import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 
 public interface RestClient
 {
@@ -100,7 +100,7 @@ public interface RestClient
                                   final String targetRepositoryManagerInstanceId,
                                   final String targetRepositoryPublicId) throws IOException;
 
-    MigrationState getRepositoryMigrationState(final String targetRepositoryManagerInstanceId,
-                                               final String targetRepositoryPublicId) throws IOException;
+    MigrationDetails getRepositoryMigrationState(final String targetRepositoryManagerInstanceId,
+                                                 final String targetRepositoryPublicId) throws IOException;
   }
 }

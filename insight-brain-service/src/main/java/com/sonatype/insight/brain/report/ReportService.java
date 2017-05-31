@@ -68,8 +68,8 @@ public class ReportService
         int interval = 0;
 
         if (waitForReport) {
-          attempts = 30;
-          interval = 30;
+          attempts = 180;
+          interval = 5;
         }
         final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
         if (!reportDownloader.downloadReport(scanId, tempFile, attempts, interval)) {

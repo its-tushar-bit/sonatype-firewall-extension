@@ -17,8 +17,10 @@
       priority: 99,
       transclude: true,
       replace: true,
-      template: '<div>' +
-                  '<div ng-if="!vm.error && vm.isLoading()"><i class="fa fa-spin fa-circle-o-notch loading-spinner"></i>Loading</div>' +
+      template: '<div class="iq-load-wrapper">' +
+                  '<div class="iq-spinner__wrapper" ng-if="!vm.error && vm.isLoading()">' +
+                    '<i class="fa fa-spin fa-circle-o-notch iq-spinner__icon"></i>Loading' +
+                  '</div>' +
                   '<div ng-if="!vm.error && !vm.isLoading()">' + // ng-if is important for intial-value
                     '<div ng-transclude></div>' +
                   '</div>' +

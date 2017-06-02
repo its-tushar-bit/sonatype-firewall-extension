@@ -4,9 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, window, clmBuildTimestamp, jQuery, $ */
+import CommonServicesModule from './CommonServices';
 
 var angularCommon = angular.module('AngularCommon',
-    ['CommonServices', 'ui.bootstrap', 'ngSanitize', 'vs-repeat']);
+    [CommonServicesModule.name, 'ui.bootstrap', 'ngSanitize', 'vs-repeat']);
 
 angularCommon.controller('DeleteResourceController', ['$scope', '$http', 'CLMAppLocations', 'selected', function ($scope, $http, CLMAppLocations, selected) {
   $scope.deletedEnabled = true;

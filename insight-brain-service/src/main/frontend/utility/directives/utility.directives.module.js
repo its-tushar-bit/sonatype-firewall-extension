@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular*/
-(function(angular) {
-  'use strict';
 
-  angular.module('utility.directives', ['AngularCommon']);
-}(angular));
+import AngularCommonModule from '../../util/AngularCommon';
+
+export default angular.module('utility.directives', [AngularCommonModule.name]);

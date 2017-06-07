@@ -231,6 +231,6 @@ public class ArtifactCoordinate
 
   @Override
   public String toString() {
-    return componentIdentifier == null ? "null" : componentIdentifier.toString();
+    return String.valueOf(componentIdentifier);
   }
 }

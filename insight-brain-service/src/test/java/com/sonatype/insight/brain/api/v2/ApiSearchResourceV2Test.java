@@ -185,6 +185,28 @@ public class ApiSearchResourceV2Test
   }
 
   @Test
+  public void testSearchComponent_ByGav_WithEmptyCoordinates() throws Exception {
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("", "tomcat-util", "");
+    HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
+    assertThat(results, is(notNullValue()));
+    assertThat(results.results, is(notNullValue()));
+    assertThat(results.results, hasSize(4));
+    sortResultsByAppIdAndHash(results);
+    assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
+    assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "2aa135385b1f449292e8",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "zip"), 8);
+    assertSearchResult(results.results.get(2), "search-app-1", "SEARCH-APP-1", "a18da38b875b4658b4e9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "zip"), 8);
+    assertSearchResult(results.results.get(3), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
+  }
+
+  @Test
   public void testSearchComponent_ByGav() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));

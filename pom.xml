@@ -453,10 +453,10 @@
       </dependency>
 
       <dependency>
-        <!-- Avoid SV in 1.4.7 pulled in by insight-brain-data -->
+        <!-- Avoid SVs in earlier versions -->
         <groupId>com.thoughtworks.xstream</groupId>
         <artifactId>xstream</artifactId>
-        <version>1.4.9</version>
+        <version>1.4.10</version>
       </dependency>
       <dependency>
         <groupId>com.beust</groupId>

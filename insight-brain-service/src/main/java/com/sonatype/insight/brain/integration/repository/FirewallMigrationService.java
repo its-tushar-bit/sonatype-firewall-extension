@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.clm.dto.model.repository.migration.MigrationState.RUNNING;
 
 /**
- * @since 1.31
+ * @since 1.32
  */
 @Named
 @Singleton

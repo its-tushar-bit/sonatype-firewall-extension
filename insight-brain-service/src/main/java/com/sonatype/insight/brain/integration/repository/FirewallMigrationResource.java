@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.yammer.metrics.annotation.Timed;
 
 /**
- * @since 1.31
+ * @since 1.32
  */
 @Named
 @Path(FirewallMigrationResource.RESOURCE_PATH)

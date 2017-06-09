@@ -30,9 +30,11 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -472,7 +474,7 @@ public class PolicyEvaluatorTest
   public void testInvalidStage() throws Exception {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
         "src/test/data/artifact.jar", "-t", "invalid-stage-id");
-    assertNotNull("Invalid stage id was not detected", params.getError());
+    assertThat(params.getError().getMessage(), is("An invalid stage was specified: -t invalid-stage-id"));
   }
 
   @Test

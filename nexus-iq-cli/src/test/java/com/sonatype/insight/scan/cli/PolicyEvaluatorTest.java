@@ -6,7 +6,9 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -26,8 +28,11 @@ import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 
 import com.google.inject.Binder;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.client.HttpResponseException;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 
 import static org.hamcrest.Matchers.is;
@@ -46,6 +51,8 @@ import static org.mockito.Mockito.when;
 public class PolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
 {
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
 
   private RestClient restClient;
 
@@ -490,5 +497,41 @@ public class PolicyEvaluatorTest
         "src/test/data/artifact.jar", "-r", jsonFile.getAbsolutePath());
     evaluator.run(params);
     verify(restClient).saveResults(eq("the-app-id"), eq(jsonFile), eq(receipt));
+  }
+
+  @Test
+  public void testParametersFromFile() throws Exception {
+    // Verifies that (from the CLM-7494 user story):
+    // - The argument file must use the JVM's default character encoding.
+    // - The argument file can be mixed with explicit input file specifications on the CLI.
+    // - There can be any number of argument files on the CLI.
+    // - Arguments and their values must be on separate lines.
+    // - Both short and long argument names are supported.
+    // - File paths within the argument file are relative to the process' current directory, not the argument file.
+
+    when(restClient.getApplicationsForApplicationEvaluation())
+        .thenReturn(newApplicationSummaryList("the-app-id", "My App"));
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
+        .thenReturn(newReceipt());
+    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_RELEASE)))
+        .thenReturn(new PolicyEvaluationResult());
+
+    List<String> paramFileLines1 = new ArrayList<String>();
+    paramFileLines1.add("-i");
+    paramFileLines1.add("the-app-id");
+    File paramFile1 = tempDir.newFile();
+    List<String> paramFileLines2 = new ArrayList<String>();
+    paramFileLines2.add("--stage");
+    paramFileLines2.add(Stage.ID_RELEASE);
+    paramFileLines2.add("src/test/data/artifact.jar");
+    File paramFile2 = tempDir.newFile();
+    // We use the default character encoding to write the parameter files because JCommander uses the default character
+    // encoding to read the file.
+    FileUtils.writeLines(paramFile1, paramFileLines1, "\n");
+    FileUtils.writeLines(paramFile2, paramFileLines2, "\n");
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "@" + paramFile1.getAbsolutePath(),
+        "@" + paramFile2.getAbsolutePath());
+    evaluator.run(params);
+    logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
   }
 }

@@ -100,11 +100,12 @@ public class CoordinatesConditionType
   public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
       throws InvalidConditionException
   {
-    if (StringUtils.isBlank(condition.getValue())) {
+    String value = condition.getValue();
+    if (StringUtils.isBlank(value)) {
       throw new InvalidConditionException(condition, "Missing coordinates");
     }
 
-    String[] coordinates = condition.getValue().split(":");
+    String[] coordinates = value.split(":");
     String format = coordinates[0].trim();
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:

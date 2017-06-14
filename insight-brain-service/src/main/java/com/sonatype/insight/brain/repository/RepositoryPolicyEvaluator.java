@@ -133,15 +133,11 @@ public class RepositoryPolicyEvaluator
 
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       Component component = components.get(requestIndex);
-
-      boolean quarantine = withQuarantine && shouldQuarantine(policyResults.getActiveAlerts(), component);
-      Date quarantineTime = quarantine ? now : null;
-
-      persistEvaluationResults(repository, now, component, policyResults, withQuarantine, quarantineTime);
-
+      RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
+          policyResults, withQuarantine);
       RepositoryComponentEvaluationData repositoryComponentEvaluationResult = new RepositoryComponentEvaluationData();
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
-      repositoryComponentEvaluationResult.quarantine = quarantine;
+      repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
       componentEvaluationResultList.componentEvalResults.add(repositoryComponentEvaluationResult);
     }
 
@@ -155,34 +151,42 @@ public class RepositoryPolicyEvaluator
     return componentEvaluationResultList;
   }
 
-  private void persistEvaluationResults(Repository repository,
-                                        Date evaluationTime,
-                                        Component component,
-                                        PolicyResults policyResults,
-                                        boolean canBeQuarantined,
-                                        Date quarantineTime)
+  private RepositoryComponent persistEvaluationResults(Repository repository,
+                                                       Date evaluationTime,
+                                                       Component component,
+                                                       PolicyResults policyResults,
+                                                       boolean canBeQuarantined)
   {
+    RepositoryComponent repositoryComponent;
     try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
       tx.begin();
 
-      persistRepositoryComponent(tx, repository, evaluationTime, component, canBeQuarantined, quarantineTime);
+      repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
+          canBeQuarantined, policyResults);
       persistPolicyViolations(tx, repository, evaluationTime, component, policyResults);
 
       tx.commit();
     }
+    return repositoryComponent;
   }
 
-  private void persistRepositoryComponent(TransactionContext tx,
-                                          Repository repository,
-                                          Date evaluationTime,
-                                          Component component,
-                                          boolean canBeQuarantined,
-                                          Date quarantineTime)
+  private RepositoryComponent persistRepositoryComponent(TransactionContext tx,
+                                                         Repository repository,
+                                                         Date evaluationTime,
+                                                         Component component,
+                                                         boolean canBeQuarantined,
+                                                         PolicyResults policyResults)
   {
     String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
         repository.getId(), pathname);
+    if (repositoryComponent != null && !repositoryComponent.getHash().equals(component.getHash())) {
+      repositoryComponentDAO.delete(tx, repositoryComponent, false);
+      repositoryComponent = null;
+    }
     if (repositoryComponent == null) {
+      boolean quarantine = canBeQuarantined && shouldQuarantine(policyResults.getActiveAlerts(), component);
+      Date quarantineTime = quarantine ? evaluationTime : null;
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),
           component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
               .getId(), evaluationTime, canBeQuarantined);
@@ -195,13 +199,9 @@ public class RepositoryPolicyEvaluator
       repositoryComponent.setMatchStateId(component.getMatchState().getId());
       repositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
       repositoryComponent.setLastEvaluationTime(evaluationTime);
-      if (canBeQuarantined) {
-        repositoryComponent.setCanBeQuarantined(canBeQuarantined);
-        repositoryComponent.setQuarantineTime(quarantineTime);
-        repositoryComponent.setUnquarantineTime(null);
-      }
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
+    return repositoryComponent;
   }
 
   private void persistPolicyViolations(TransactionContext tx,

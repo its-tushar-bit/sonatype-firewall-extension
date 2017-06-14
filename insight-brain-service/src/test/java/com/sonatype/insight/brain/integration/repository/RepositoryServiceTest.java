@@ -637,6 +637,152 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponentWithQuarantine_thatQuarantinedUnchangedComponentRemainsQuarantined()
+      throws Exception
+  {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    Policy policy = createQuarantiningPolicy(repository);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    String pathname = "path";
+    String hash = "h";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
+    
+    // prepare hds response with violation
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
+        Collections.<License>emptySet(), Collections.<License>emptySet(), securityVulnerabilities, 0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    // call the service
+    Date timeBeforeEvaluation = new Date();
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    Date timeAfterEvaluation = new Date();
+    
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents, hasSize(1));
+
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
+        .getByRepositoryId(repository.getId());
+    assertThat(policyViolations, hasSize(1));
+
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+        pathname);
+    assertRepositoryComponent(repository.getId(), pathname, timeBeforeEvaluation, timeAfterEvaluation, hash,
+        componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), timeBeforeEvaluation,
+        timeAfterEvaluation, true, timeAfterEvaluation, repositoryComponent);
+    assertThat(repositoryComponent.isQuarantined(), is(true));
+
+    RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
+        repository.getId(), pathname).get(0);
+    assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
+        policy.getThreatCategory(), hash, componentIdentifier, timeBeforeEvaluation, timeAfterEvaluation,
+        policyViolation);
+
+    // prepare a hds request with no violations
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
+        Collections.<License>emptySet(), Collections.<License>emptySet(), Collections.<SecurityVulnerability>emptyList(), 0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    // evaluate and confirm quarantine state
+    repositoryComponentEvaluationResultList = repositoryService
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    
+    List<RepositoryPolicyViolation> currentRepositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+    assertThat(currentRepositoryPolicyViolations.isEmpty(), is(true));
+    repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
+    assertThat(repositoryComponent.isQuarantined(), is(true));
+  }
+
+  @Test
+  public void testEvaluateComponentWithQuarantine_thatNotQuarantinedUnchangedComponentRemainsNotQuarantined()
+      throws Exception
+  {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    Policy policy = createQuarantiningPolicy(repository);
+    
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    String pathname = "path";
+    String hash = "h";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
+
+    // prepare hds response with no violations
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
+        Collections.<License>emptySet(), Collections.<License>emptySet(), Collections.<SecurityVulnerability>emptyList(), 0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    // call to evaluate
+    Date timeBeforeEvaluation = new Date();
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+
+    List<RepositoryPolicyViolation> currentRepositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+    assertThat(currentRepositoryPolicyViolations.isEmpty(), is(true));
+
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+        pathname);
+    assertThat(repositoryComponent.isQuarantined(), is(false));
+
+    // prepare hds result with violations
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
+        Collections.<License>emptySet(), Collections.<License>emptySet(), securityVulnerabilities, 0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    // call to evaluate
+    repositoryComponentEvaluationResultList = repositoryService
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
+    Date after = new Date();
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).requestIndex, is(0));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents, hasSize(1));
+
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
+        .getId());
+    assertThat(policyViolations, hasSize(1));
+
+    repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
+    assertRepositoryComponent(repository.getId(), pathname, timeBeforeEvaluation, after, hash, componentIdentifier,
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), timeBeforeEvaluation, after, true, null,
+        repositoryComponent);
+    assertThat(repositoryComponent.isQuarantined(), is(false));
+
+    RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
+        repository.getId(), pathname).get(0);
+    assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
+        policy.getThreatCategory(), hash, componentIdentifier, timeBeforeEvaluation, after, policyViolation);
+  }
+
+  @Test
   public void testEvaluateComponentWithQuarantine_pathnameSlashPrefix() throws Exception {
     String pathname = "path";
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
@@ -824,12 +970,10 @@ public class RepositoryServiceTest
 
     // re-evaluation of component, this time with quarantine enabled
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
-    Date before = new Date();
     repositoryComponentEvaluationResultList = repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID,
         REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    Date after = new Date();
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
 
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled(), is(true));
@@ -838,9 +982,9 @@ public class RepositoryServiceTest
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents, hasSize(1));
     assertThat(repositoryComponents.get(0).getPathname(), is(pathname));
-    assertThat(repositoryComponents.get(0).isCanBeQuarantined(), is(true));
-    assertThat(repositoryComponents.get(0).getQuarantineTime(), is(greaterThanOrEqualTo(before)));
-    assertThat(repositoryComponents.get(0).getQuarantineTime(), is(lessThanOrEqualTo(after)));
+    assertThat(repositoryComponents.get(0).isCanBeQuarantined(), is(false));
+    assertThat(repositoryComponents.get(0).isQuarantined(), is(false));
+    assertThat(repositoryComponents.get(0).getQuarantineTime(), is(nullValue()));
   }
 
   @Test
@@ -865,6 +1009,7 @@ public class RepositoryServiceTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true /* quarantine */);
 
     // Initial evaluation of component, quarantine enabled
+    Date before = new Date();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true /* withQuarantine */,
             null);
@@ -884,12 +1029,11 @@ public class RepositoryServiceTest
 
     // Re-evaluation of component, quarantine enabled
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
-    Date before = new Date();
     repositoryComponentEvaluationResultList = repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID,
         REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
     Date after = new Date();
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
-    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
 
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled(), is(true));
@@ -902,7 +1046,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponent.isCanBeQuarantined(), is(true));
     assertThat(repositoryComponent.getQuarantineTime(), is(greaterThanOrEqualTo(before)));
     assertThat(repositoryComponent.getQuarantineTime(), is(lessThanOrEqualTo(after)));
-    assertThat(repositoryComponent.isQuarantined(), is(true));
+    assertThat(repositoryComponent.isQuarantined(), is(false));
   }
 
   @Test
@@ -1174,7 +1318,7 @@ public class RepositoryServiceTest
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents, hasSize(1));
     repositoryComponent = repositoryComponents.get(0);
-    assertRepositoryComponent(repository.getId(), "path", before1, after1, updatedHash, updatedComponentIdentifier,
+    assertRepositoryComponent(repository.getId(), "path", before2, after2, updatedHash, updatedComponentIdentifier,
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before2, after2, false /* canBeQuarantined */,
         null, repositoryComponent);
 

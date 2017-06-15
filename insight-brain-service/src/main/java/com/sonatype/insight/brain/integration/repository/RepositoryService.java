@@ -232,21 +232,25 @@ public class RepositoryService
                   @AuthzContext(Key.REPOSITORY) Repository repository,
                   boolean enable)
   {
-    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
-
-    if (repositoryManager == null) {
-      repositoryManager = new RepositoryManager(repositoryManagerInstanceId);
-      repositoryManagerDAO.insert(repositoryManager);
-    }
-
     repository.setEnabled(enable);
     if (repository.getId() == null) {
+      RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
       repository.setRepositoryManagerId(repositoryManager.getId());
       repositoryDAO.insert(repository);
     }
     else {
       repositoryDAO.update(repository);
     }
+  }
+
+  // synchronized to avoid race between enable requests from different repos of the same instance
+  private synchronized RepositoryManager getOrCreateRepositoryManager(String repositoryManagerInstanceId) {
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
+    if (repositoryManager == null) {
+      repositoryManager = new RepositoryManager(repositoryManagerInstanceId);
+      repositoryManagerDAO.insert(repositoryManager);
+    }
+    return repositoryManager;
   }
 
   public void setQuarantine(final String repositoryManagerInstanceId,

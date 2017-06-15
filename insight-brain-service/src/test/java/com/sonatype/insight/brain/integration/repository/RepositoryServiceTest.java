@@ -520,7 +520,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_RepositoryDoesNotExist() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_RepositoryDoesNotExist() throws Exception {
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null);
       fail("Expected NotFoundException");
@@ -531,7 +531,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_NullRequest() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_NullRequest() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataList componentEvaluationResultList = repositoryService.evaluateComponents(
         REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null);
@@ -539,7 +539,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_EmptyPathname() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_EmptyPathname() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest();
     repositoryComponentEvaluationDataRequest.format = "maven";
@@ -561,7 +561,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_EmptyHash() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_EmptyHash() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest();
     repositoryComponentEvaluationDataRequest.format = "maven";
@@ -582,7 +582,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine() throws Exception {
+  public void testEvaluateComponents_WithQuarantine() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     Policy policy = createQuarantiningPolicy(repository);
@@ -637,7 +637,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_thatQuarantinedUnchangedComponentRemainsQuarantined()
+  public void testEvaluateComponents_WithQuarantine_QuarantinedUnchangedComponentRemainsQuarantined()
       throws Exception
   {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
@@ -710,7 +710,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_thatNotQuarantinedUnchangedComponentRemainsNotQuarantined()
+  public void testEvaluateComponents_WithQuarantine_NotQuarantinedUnchangedComponentRemainsNotQuarantined()
       throws Exception
   {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
@@ -783,7 +783,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_pathnameSlashPrefix() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_PathnameSlashPrefix() throws Exception {
     String pathname = "path";
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
@@ -838,7 +838,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_NoViolations() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_NoViolations() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
@@ -882,7 +882,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_Waived() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_Waived() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     String hash = "h";
@@ -934,7 +934,9 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_QuarantineRequestAfterAuditWithoutExplicitRemoval() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_QuarantineRequestAfterAuditWithoutExplicitRemoval()
+      throws Exception
+  {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     createQuarantiningPolicy(repository);
 
@@ -988,7 +990,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_QuarantineRequestAfterUnquarantineWithoutExplicitRemoval()
+  public void testEvaluateComponents_WithQuarantine_QuarantineRequestAfterUnquarantineWithoutExplicitRemoval()
       throws Exception
   {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
@@ -2017,7 +2019,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testGetReportDetails_byHash() throws Exception {
+  public void testGetReportDetails_ByHash() throws Exception {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
@@ -2042,7 +2044,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testGetReportDetails_byPathname() throws Exception {
+  public void testGetReportDetails_ByPathname() throws Exception {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
@@ -2072,7 +2074,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testGetRepositoryById_noEvaluation() {
+  public void testGetRepositoryById_NoEvaluation() {
     Repository repository = tempEntity.newRepository();
 
     RepositoryDTO actual = repositoryService.getRepositoryById(repository.getId());
@@ -2082,7 +2084,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testGetRepositoryById_unknownId() throws Exception {
+  public void testGetRepositoryById_UnknownId() throws Exception {
     try {
       repositoryService.getRepositoryById("foobar");
       fail("Did not throw exception");
@@ -2093,7 +2095,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testReevaluateTest() throws Exception {
+  public void testReevaluateRepository() throws Exception {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
         DateUtils.addDays(new Date(), -1));
@@ -2125,7 +2127,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testReevaluateTest_unknownId() throws Exception {
+  public void testReevaluateRepository_UnknownId() throws Exception {
     try {
       repositoryService.reevaluateRepository("foobar");
       fail("Did not throw exception");
@@ -2143,7 +2145,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testDeleteRepository_unknownId() throws Exception {
+  public void testDeleteRepository_UnknownId() throws Exception {
     try {
       repositoryService.deleteRepository("foobar");
       fail("Did not throw exception");
@@ -2181,18 +2183,7 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testReevaluateComponent_unknownId() throws Exception {
-    try {
-      repositoryService.reevaluateRepository("foobar");
-      fail("Did not throw exception");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a repository with ID foobar."));
-    }
-  }
-
-  @Test
-  public void testReevaluateComponent_unknownComponentPath() throws Exception {
+  public void testReevaluateComponent_UnknownHash() throws Exception {
     Repository repo = tempEntity.newRepository();
     try {
       repositoryService.reevaluateComponent(repo.getId(), "missing-hash", null);

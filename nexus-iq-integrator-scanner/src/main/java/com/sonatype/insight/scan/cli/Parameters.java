@@ -18,7 +18,7 @@ public class Parameters
     extends AbstractParameters
 {
   @Parameter(description = "<Archives or directories to scan>", required = true)
-  private List<String> scanTargets = new ArrayList<String>();
+  private List<String> scanTargets = new ArrayList<>();
 
   @Parameter(names = { "-b", "--bundle-file" }, description = "Path to file where the report bundle ZIP file will be downloaded")
   private File reportBundleFile = new File("report.zip");

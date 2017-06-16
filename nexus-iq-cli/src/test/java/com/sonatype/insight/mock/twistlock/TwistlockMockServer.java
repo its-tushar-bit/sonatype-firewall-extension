@@ -49,7 +49,7 @@ public class TwistlockMockServer
 
   private Server server;
 
-  private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<RequestMatcher, ResponseProvider>();
+  private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<>();
 
   public void reset() {
     responseProviders.clear();

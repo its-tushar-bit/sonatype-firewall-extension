@@ -72,7 +72,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   protected void validateServerAccess(P params, RestClient restClient) throws ExitException {
     log.info("Validating application ID {} with the IQ Server {}...", params.getApplicationId(), params.getServerUrl());
-    Collection<String> appIds = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+    Collection<String> appIds = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
     try {
       ApplicationSummaryList list = restClient.getApplicationsForApplicationEvaluation();
       if (list != null) {
@@ -144,7 +144,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     try {
       params.getOutputDirectory().mkdirs();
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
-      List<File> files = new ArrayList<File>();
+      List<File> files = new ArrayList<>();
       for (String scanTarget : params.getScanTargets()) {
         files.add(new File(scanTarget));
       }

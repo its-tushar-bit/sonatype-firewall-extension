@@ -40,7 +40,7 @@ class SafeProxySelector
   }
 
   private static List<Proxy> fixProxies(List<Proxy> proxies) {
-    List<Proxy> result = new ArrayList<Proxy>();
+    List<Proxy> result = new ArrayList<>();
     if (proxies != null) {
       for (Proxy proxy : proxies) {
         if (isValid(proxy.address())) {

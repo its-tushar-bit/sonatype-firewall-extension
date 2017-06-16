@@ -83,7 +83,7 @@ public class TwistlockScanner
                                                     String twistlockConsolePassword,
                                                     String twistlockTlsverify)
   {
-    List<String> twistlockScannerCommand = new ArrayList<String>();
+    List<String> twistlockScannerCommand = new ArrayList<>();
     twistlockScannerCommand.addAll(Arrays.asList(twistlockScannerExecutable, //
         "-c", twistlockConsoleUrl, "-u", twistlockConsoleUsername, //
         "-i", imageId, //

@@ -516,11 +516,11 @@ public class PolicyEvaluatorTest
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_RELEASE)))
         .thenReturn(new PolicyEvaluationResult());
 
-    List<String> paramFileLines1 = new ArrayList<String>();
+    List<String> paramFileLines1 = new ArrayList<>();
     paramFileLines1.add("-i");
     paramFileLines1.add("the-app-id");
     File paramFile1 = tempDir.newFile();
-    List<String> paramFileLines2 = new ArrayList<String>();
+    List<String> paramFileLines2 = new ArrayList<>();
     paramFileLines2.add("--stage");
     paramFileLines2.add(Stage.ID_RELEASE);
     paramFileLines2.add("src/test/data/artifact.jar");

@@ -49,7 +49,7 @@ public abstract class AbstractParameters
   private Exception error;
 
   @Parameter(names = "-D", description = "Configuration properties, e.g. -D key=value", hidden = true)
-  private List<String> properties = new ArrayList<String>();
+  private List<String> properties = new ArrayList<>();
 
   @Parameter(names = { "-o", "--output-directory" }, description = "Path to output directory for scan results", hidden = true)
   private File outputDirectory = new File(System.getProperty("java.io.tmpdir", ""), "nexus-iq").getAbsoluteFile();

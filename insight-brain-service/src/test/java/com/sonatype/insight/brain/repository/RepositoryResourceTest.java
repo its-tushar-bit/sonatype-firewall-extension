@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.repository;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 
@@ -101,12 +100,12 @@ public class RepositoryResourceTest
 
     // Setup the mocked hds return
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
-    hdsResult.components = new ArrayList<ComponentEvaluationData>();
+    hdsResult.components = new ArrayList<>();
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.hash = component.getHash();
     componentEvaluationData.matchState = MatchState.EXACT.getId();
-    componentEvaluationData.declaredLicenses = new HashSet<License>();
-    componentEvaluationData.observedLicenses = new HashSet<License>();
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
     hdsResult.components.add(componentEvaluationData);
     getInsightServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
 

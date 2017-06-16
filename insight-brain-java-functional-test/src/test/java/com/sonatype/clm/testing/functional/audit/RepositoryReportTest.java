@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -258,12 +257,12 @@ public class RepositoryReportTest
 
   private void setupHDSFirewallResponse(String hash) {
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
-    hdsResult.components = new ArrayList<ComponentEvaluationData>();
+    hdsResult.components = new ArrayList<>();
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.hash = hash;
     componentEvaluationData.matchState = MatchState.EXACT.getId();
-    componentEvaluationData.declaredLicenses = new HashSet<License>();
-    componentEvaluationData.observedLicenses = new HashSet<License>();
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
     hdsResult.components.add(componentEvaluationData);
     testCLMServer.getInsightServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
   }

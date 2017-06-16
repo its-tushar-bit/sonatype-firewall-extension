@@ -72,11 +72,11 @@ class SimpleRequestMatcher
     public ParsedUri(String uri) {
       URI u = URI.create(uri);
       path = u.getPath();
-      query = new LinkedHashMap<String, Collection<Object>>();
+      query = new LinkedHashMap<>();
       if (u.getRawQuery() != null) {
         UrlEncoded urlEncoded = new UrlEncoded(u.getRawQuery());
         for (String key : (Collection<String>) urlEncoded.keySet()) {
-          Collection<Object> values = new LinkedHashSet<Object>();
+          Collection<Object> values = new LinkedHashSet<>();
           query.put(key, values);
           Collection<String> decodedValues = urlEncoded.getValues(key);
           for (String decodedValue : decodedValues) {

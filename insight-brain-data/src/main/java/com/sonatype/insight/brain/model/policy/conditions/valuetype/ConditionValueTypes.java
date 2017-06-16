@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 public class ConditionValueTypes
 {
   public static Collection<ConditionValueType<?>> getAll(String ownerId) {
-    List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<ConditionValueType<?>>();
+    List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<>();
     allConditionValueTypes.add(new AgeInDaysValueType());
     allConditionValueTypes.add(new CoordinatesValueType());
     allConditionValueTypes.add(new FloatValueType());

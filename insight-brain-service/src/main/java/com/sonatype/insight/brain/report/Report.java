@@ -176,8 +176,8 @@ public final class Report
     int policyComponentCount = 0;
     int insecureArtifactCount = 0;
 
-    final ArrayList<int[]> securityPunchCard = new ArrayList<int[]>();
-    final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
+    final ArrayList<int[]> securityPunchCard = new ArrayList<>();
+    final ArrayList<int[]> licensePunchCard = new ArrayList<>();
 
     if (policyReportEntry != null) {
       for (final JsonNode row : JsonUtils.parse(policyReportEntry.buf).get("aaData")) {

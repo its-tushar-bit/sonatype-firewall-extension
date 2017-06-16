@@ -719,7 +719,7 @@ public class ApplicationMoveService
 
     private void grantOwnerRoleIfNeeded() {
       UserPrincipal user = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
-      Set<String> newOwnerIds = new HashSet<String>();
+      Set<String> newOwnerIds = new HashSet<>();
       newOwnerIds.add(application.getId());
       newOwnerIds.addAll(newAncestorIds);
       for (String ownerId : newOwnerIds) {

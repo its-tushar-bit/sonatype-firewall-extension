@@ -78,8 +78,9 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     Policy coordPolicy = getPolicy("coord-policy");
     Policy vulnPolicy = getPolicy("vuln-policy");
 
+    String originalCoordPolicyValue = getFirstCondition(originalCoordPolicy);
     assertThat(getFirstCondition(coordPolicy),
-        is(ComponentIdentifier.FORMAT_MAVEN + ":" + getFirstCondition(originalCoordPolicy)));
+        is(ComponentIdentifier.FORMAT_MAVEN + ":" + originalCoordPolicyValue.substring(0, originalCoordPolicyValue.lastIndexOf(":"))));
     assertThat(getFirstCondition(vulnPolicy), is(getFirstCondition(originalVulnPolicy)));
 
     File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);

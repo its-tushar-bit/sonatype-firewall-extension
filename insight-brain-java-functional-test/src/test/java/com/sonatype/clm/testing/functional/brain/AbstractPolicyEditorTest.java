@@ -175,7 +175,7 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
-        "maven:org.apache:tomcat:5.0.28");
+        "maven:org.apache:tomcat:5.0.28:jar:javadoc");
     assertCondition(constraint.getConditions().get(2), CoordinatesConditionType.ID, "do not match",
         "a-name:jquery::1.0.28");
     assertCondition(constraint.getConditions().get(3), LabelConditionType.ID, "is", sampleLabel.getId());
@@ -561,6 +561,8 @@ public abstract class AbstractPolicyEditorTest
     coordConditionEditor.type().chooseOption(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     coordConditionEditor.setOperator("do not match");
     coordConditionEditor.groupId().val("com.eclipse.*");
+    coordConditionEditor.artifactId().val("*");
+    coordConditionEditor.version().val("*");
     PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
@@ -571,7 +573,7 @@ public abstract class AbstractPolicyEditorTest
 
     Condition coordinatesCondition = constraints.get(0).getConditions().get(2);
     assertThat(coordinatesCondition.getConditionTypeId(), is("Coordinates"));
-    assertThat(coordinatesCondition.getValue(), is("maven:com.eclipse.*"));
+    assertThat(coordinatesCondition.getValue(), is("maven:com.eclipse.*:*:*:*:*"));
     assertThat(coordinatesCondition.getOperator(), is("do not match"));
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
@@ -791,9 +793,43 @@ public abstract class AbstractPolicyEditorTest
     CoordinatesCondition coordsCondition = newConstraint.coordinatesCondition(1);
     coordsCondition.type().chooseOption(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     coordsCondition.format().selectedItem().shouldHave(text("maven"));
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    // Check initial values
+    coordsCondition.groupId().shouldHave(value(""));
+    coordsCondition.artifactId().shouldHave(value(""));
+    coordsCondition.version().shouldHave(value(""));
+    coordsCondition.extension().shouldHave(value("*"));
+    coordsCondition.classifier().shouldHave(value("*"));
+    // With everything set to wildcard, if we set any except classifier to empty we can't save
+    coordsCondition.groupId().val("*");
+    coordsCondition.artifactId().val("*");
+    coordsCondition.version().val("*");
+    toggleAndCheckSave(coordsCondition.groupId());
+    toggleAndCheckSave(coordsCondition.artifactId());
+    toggleAndCheckSave(coordsCondition.version());
+    toggleAndCheckSave(coordsCondition.extension());
+    // With everything set to wildcard, if we set classifier to empty we can still save
+    coordsCondition.classifier().val("");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to wildcard, if we set classifier back to a wildcard we can still save
+    coordsCondition.classifier().val("*");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to specific values, if we set any except classifier to empty we can't save
     coordsCondition.groupId().val("org.apache");
     coordsCondition.artifactId().val("tomcat");
     coordsCondition.version().val("5.0.28");
+    coordsCondition.extension().val("jar");
+    coordsCondition.classifier().val("javadoc");
+    toggleAndCheckSave(coordsCondition.groupId());
+    toggleAndCheckSave(coordsCondition.artifactId());
+    toggleAndCheckSave(coordsCondition.version());
+    toggleAndCheckSave(coordsCondition.extension());
+    // With everything set to specific values, if we set classifier to empty we can still save
+    coordsCondition.classifier().val("");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to specific values, if we set classifier back to a value we can still save
+    coordsCondition.classifier().val("javadoc");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     coordsCondition = newConstraint.coordinatesCondition(2);
@@ -804,7 +840,37 @@ public abstract class AbstractPolicyEditorTest
     format.selectedItem().click();
     format.listItem(1).click();
     format.selectedItem().shouldHave(text("a-name"));
+
+    // Check initial values
+    coordsCondition.name().shouldHave(value(""));
+    coordsCondition.qualifier().shouldHave(value("*"));
+    coordsCondition.version().shouldHave(value(""));
+    // With everything set to wildcard, if we set any except qualifier to empty we can't save
+    coordsCondition.name().val("*");
+    coordsCondition.qualifier().val("*");
+    coordsCondition.version().val("*");
+    toggleAndCheckSave(coordsCondition.name());
+    toggleAndCheckSave(coordsCondition.version());
+    // With everything set to wildcard, if we set qualifier to empty we can still save
+    coordsCondition.qualifier().val("");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to wildcard, if we set qualifier back to a wildcard we can still save
+    coordsCondition.qualifier().val("*");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to specific values, if we set any except classifier to empty we can't save
+    coordsCondition.name().val("log4net");
+    coordsCondition.qualifier().val("Framework 3.5");
+    coordsCondition.version().val("2.0.5");
+    toggleAndCheckSave(coordsCondition.name());
+    toggleAndCheckSave(coordsCondition.version());
+    // With everything set to specific values, if we set qualifier to empty we can still save
+    coordsCondition.qualifier().val("");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to specific values, if we set qualifier back to a specific value we can still save
+    coordsCondition.qualifier().val("Framework 3.5");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
     coordsCondition.name().val("jquery");
+    coordsCondition.qualifier().val("");
     coordsCondition.version().val("1.0.28");
 
     DropdownConditionEditSection labelCondition = addDropdownCondition(newConstraint, LabelConditionType.class, 3);
@@ -876,6 +942,15 @@ public abstract class AbstractPolicyEditorTest
     identificationSource.operator().listItem(1).shouldHave(text("is not")).click();
     identificationSource.value().selectedItem().shouldHave(text("Sonatype")).click();
     identificationSource.value().listItem(1).shouldHave(text("Manual")).click();
+  }
+
+  private void toggleAndCheckSave(final SelenideElement element) {
+    final String value = element.val();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    element.val("");
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    element.val(value);
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
   }
 
   private void testCreatePolicy_actionsSection() {

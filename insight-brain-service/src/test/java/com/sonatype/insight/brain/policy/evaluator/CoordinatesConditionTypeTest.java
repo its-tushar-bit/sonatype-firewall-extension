@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -24,6 +26,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -70,6 +75,163 @@ public class CoordinatesConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_Maven_MatchGavecNotGavce() throws Exception {
+    Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:c");
+
+    Component componentGavec = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+    Component componentGavce = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "c", "e");
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGavec, componentGavce));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_Maven_MatchGaveNotGavc() throws Exception {
+    Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:");
+
+    Component componentGave = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavc = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "e");
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavc));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_Maven_MatchGavAnyExtensionAnyClassifier() throws Exception {
+    Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v");
+
+    Component componentGav3 = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
+    Component componentGav5 = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "");
+    Component componentGave = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavc = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "c");
+    Component componentGavec = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+
+    List<PolicyAlert> policyAlerts = evaluate(policy,
+        Arrays.asList(componentGav3, componentGav5, componentGave, componentGavc, componentGavec));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 5, policyAlerts.get(0));
+    assertContainsPolicyAlert(componentGav3, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(componentGav5, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(componentGavc, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates() throws Exception {
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven:g");
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven::a");
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven:::v");
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven:g:a");
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven:g::v");
+    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven::a:v");
+  }
+
+  private void testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates(final String coordinatesValue) throws Exception {
+    Policy policy = createPolicy(coordinatesValue);
+
+    Component componentGav = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
+    Component componentGave = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavec = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGav, componentGave, componentGavec));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 3, policyAlerts.get(0));
+    assertContainsPolicyAlert(componentGav, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates() throws Exception {
+    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name:n");
+    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name::q");
+    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name::q:v");
+    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name:n:q");
+    testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates("a-name:n:q:v");
+  }
+
+  private void testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates(final String coordinatesValue) throws Exception {
+    Policy policy = createPolicy(coordinatesValue);
+    
+    Component componentNqv = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_ANAME, "n", "q", "v");
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(componentNqv));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(componentNqv, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_Maven_EmptyClassifierCoordinate_Matches_EmptyClassifierValue() throws Exception {
+    Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:");
+
+    Component componentGave = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavec = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+  }
+  
+  @Test
+  public void testEvaluate_Maven_WildcardClassifierCoordinate_Matches_AnyClassifierValue() throws Exception {
+    Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:*");
+
+    Component componentGave = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavec = ComponentFactory
+        .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 2, policyAlerts.get(0));
+    assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
+        CoordinatesConditionType.ID, policyAlerts);
+  }
+
+  private Policy createPolicy(final String constraintValue) {
+    final Policy policy = new Policy("policyId", "policyName");
+    policy.setConstraints(Collections.singletonList(createConstraint("match", constraintValue)));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+    return policy;
   }
 
   @Test
@@ -264,5 +426,39 @@ public class CoordinatesConditionTypeTest
       assertThat(expected.getMessage(),
           endsWith("Unsupported component identifier format for coordinates policy condition: 'nuget'"));
     }
+  }
+
+  @Test
+  public void testConvertIfNeeded_UnsupportedCoordinateFormat_DoesNotThrowNullPointerException() throws Exception {
+    new Condition(CoordinatesConditionType.ID, "match", "nuget::").getValue();
+    new Condition(CoordinatesConditionType.ID, "match", "unknown:").getValue();
+  }
+
+  @Test
+  public void testConvertIfNeeded() throws Exception {
+    assertConvertIfNeeded("maven:g", "maven:g:*:*:*:*");
+    assertConvertIfNeeded("maven::a", "maven:*:a:*:*:*");
+    assertConvertIfNeeded("maven:::v", "maven:*:*:v:*:*");
+    assertConvertIfNeeded("maven:g:a", "maven:g:a:*:*:*");
+    assertConvertIfNeeded("maven:g::v", "maven:g:*:v:*:*");
+    assertConvertIfNeeded("maven::a:v", "maven:*:a:v:*:*");
+    assertConvertIfNeeded("maven:g:a:v", "maven:g:a:v:*:*");
+    assertConvertIfNeeded("maven:g:a:v:e:", "maven:g:a:v:e:");
+    assertConvertIfNeeded("maven:g:a:v:e:c", "maven:g:a:v:e:c");
+
+    assertConvertIfNeeded("a-name:n", "a-name:n:*:*");
+    assertConvertIfNeeded("a-name::q", "a-name:*:q:*");
+    assertConvertIfNeeded("a-name:::v", "a-name:*::v");
+    assertConvertIfNeeded("a-name:n:q", "a-name:n:q:*");
+    assertConvertIfNeeded("a-name:n::v", "a-name:n::v");
+    assertConvertIfNeeded("a-name:n:q:v", "a-name:n:q:v");
+  }
+
+  private void assertConvertIfNeeded(final String value, final String expectedConvertedValue) {
+    assertThat(createCoordinateCondition(value).getValue(), is(equalTo(expectedConvertedValue)));
+  }
+
+  private Condition createCoordinateCondition(final String value) {
+    return new Condition(CoordinatesConditionType.ID, "match", value);
   }
 }

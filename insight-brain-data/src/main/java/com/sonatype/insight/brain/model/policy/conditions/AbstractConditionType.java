@@ -72,4 +72,12 @@ public abstract class AbstractConditionType
   public PolicyThreatCategory getThreatCategory() {
     return PolicyThreatCategory.OTHER;
   }
+
+  /**
+   * @since 1.32.0
+   */
+  @Override
+  public String convertIfNeeded(final String value) {
+    return value;
+  }
 }

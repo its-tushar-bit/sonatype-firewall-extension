@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -76,6 +79,8 @@ public class ApiSearchServiceV2
 
     ArtifactCoordinate coords = null;
     if (componentIdentifier != null) {
+      componentIdentifier = new ComponentIdentifier(componentIdentifier.getFormat(),
+          convertToWildcardWhereNeeded(componentIdentifier.getFormat(), componentIdentifier.getCoordinates()));
       coords = new ArtifactCoordinate(componentIdentifier);
     }
     else if (StringUtils.isEmpty(hash)) {
@@ -139,6 +144,29 @@ public class ApiSearchServiceV2
         componentIdentifier, System.currentTimeMillis() - start, results.results.size());
 
     return results;
+  }
+
+  /**
+   * Converts coordinates so that all values are explicitly set
+   */
+  private Map<String, String> convertToWildcardWhereNeeded(final String format, final Map<String, String> coordinates) {
+    final Map<String, String> convertedCoordinates = new LinkedHashMap<>(coordinates);
+    final Set<String> allCoordinateNames = ComponentIdentifier.getAllCoordinateNames(format);
+    final Set<String> requiredCoordinateNames = ComponentIdentifier.getAllRequiredCoordinateNames(format);
+    for (String coordinateName : allCoordinateNames) {
+      final String coordinateValue = coordinates.get(coordinateName);
+      if (requiredCoordinateNames.contains(coordinateName)) {
+        // a required coordinate must have a value, so null/empty implies it is a wildcard
+        convertedCoordinates.put(coordinateName,
+            StringUtils.isEmpty(coordinateValue) ? ArtifactCoordinate.PLACEHOLDER : coordinateValue);
+      }
+      else {
+        // an optional coordinate can have a value or be empty, so only null implies it is a wildcard
+        convertedCoordinates
+            .put(coordinateName, coordinateValue == null ? ArtifactCoordinate.PLACEHOLDER : coordinateValue);
+      }
+    }
+    return convertedCoordinates;
   }
 
   private Integer getMaxThreatLevel(final List<PolicyViolation> policyViolations) {

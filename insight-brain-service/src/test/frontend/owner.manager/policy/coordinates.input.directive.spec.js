@@ -25,48 +25,96 @@ describe('coordinates.input.directive.spec', function() {
   });
 
   describe('parses maven coordinates', function() {
-    it('groupId only', function() {
-      initialize('maven:com.apache.axis')
+    it('default', function() {
+      initialize('maven');
       expect(directiveScope.vm.coordinates.format).toEqual('maven');
-      expect(directiveScope.vm.coordinates.groupId).toEqual('com.apache.axis');
+      expect(directiveScope.vm.coordinates.groupId).toBeUndefined();
+      expect(directiveScope.vm.coordinates.artifactId).toBeUndefined();
+      expect(directiveScope.vm.coordinates.version).toBeUndefined();
+      expect(directiveScope.vm.coordinates.extension).toEqual('*');
+      expect(directiveScope.vm.coordinates.classifier).toEqual('*');
     });
 
-    it('groupId, artifactId', function() {
-      initialize('maven:com.apache.axis:axis')
-      expect(directiveScope.vm.coordinates.format).toEqual('maven');
-      expect(directiveScope.vm.coordinates.groupId).toEqual('com.apache.axis');
-      expect(directiveScope.vm.coordinates.artifactId).toEqual('axis');
-    });
-
-    it('groupId, artifactId, version', function() {
-      initialize('maven:com.apache.axis:axis:1.4')
+    it('groupId, artifactId, version, extension specific values', function() {
+      initialize('maven:com.apache.axis:axis:1.4:jar:');
       expect(directiveScope.vm.coordinates.format).toEqual('maven');
       expect(directiveScope.vm.coordinates.groupId).toEqual('com.apache.axis');
       expect(directiveScope.vm.coordinates.artifactId).toEqual('axis');
       expect(directiveScope.vm.coordinates.version).toEqual('1.4');
+      expect(directiveScope.vm.coordinates.extension).toEqual('jar');
+      expect(directiveScope.vm.coordinates.classifier).toEqual('');
+    });
+
+    it('groupId, artifactId, version, extension wildcard values', function() {
+      initialize('maven:*:*:*:*:');
+      expect(directiveScope.vm.coordinates.format).toEqual('maven');
+      expect(directiveScope.vm.coordinates.groupId).toEqual('*');
+      expect(directiveScope.vm.coordinates.artifactId).toEqual('*');
+      expect(directiveScope.vm.coordinates.version).toEqual('*');
+      expect(directiveScope.vm.coordinates.extension).toEqual('*');
+      expect(directiveScope.vm.coordinates.classifier).toEqual('');
+    });
+
+    it('groupId, artifactId, version, extension, classifier specific values', function() {
+      initialize('maven:com.apache.axis:axis:1.4:jar:docs');
+      expect(directiveScope.vm.coordinates.format).toEqual('maven');
+      expect(directiveScope.vm.coordinates.groupId).toEqual('com.apache.axis');
+      expect(directiveScope.vm.coordinates.artifactId).toEqual('axis');
+      expect(directiveScope.vm.coordinates.version).toEqual('1.4');
+      expect(directiveScope.vm.coordinates.extension).toEqual('jar');
+      expect(directiveScope.vm.coordinates.classifier).toEqual('docs');
+    });
+
+    it('groupId, artifactId, version, extension, classifier wildcard values', function() {
+      initialize('maven:*:*:*:*:*');
+      expect(directiveScope.vm.coordinates.format).toEqual('maven');
+      expect(directiveScope.vm.coordinates.groupId).toEqual('*');
+      expect(directiveScope.vm.coordinates.artifactId).toEqual('*');
+      expect(directiveScope.vm.coordinates.version).toEqual('*');
+      expect(directiveScope.vm.coordinates.extension).toEqual('*');
+      expect(directiveScope.vm.coordinates.classifier).toEqual('*');
     });
   });
 
   describe('parses a-name coordinates', function() {
-    it('name only', function() {
-      initialize('a-name:jquery')
+    it('default', function() {
+      initialize('a-name');
+      expect(directiveScope.vm.coordinates.format).toEqual('a-name');
+      expect(directiveScope.vm.coordinates.name).toBeUndefined();
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('*');
+      expect(directiveScope.vm.coordinates.version).toBeUndefined();
+    });
+    
+    it('name, version specific values', function() {
+      initialize('a-name:jquery::1.4');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toEqual('jquery');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('');
+      expect(directiveScope.vm.coordinates.version).toEqual('1.4');
     });
 
-    it('name, qualifier', function() {
-      initialize('a-name:jquery:min')
+    it('name, version wildcard values', function() {
+      initialize('a-name:*::*');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
-      expect(directiveScope.vm.coordinates.name).toEqual('jquery');
-      expect(directiveScope.vm.coordinates.qualifier).toEqual('min');
+      expect(directiveScope.vm.coordinates.name).toEqual('*');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('');
+      expect(directiveScope.vm.coordinates.version).toEqual('*');
     });
 
-    it('name, qualifier, version', function() {
+    it('name, qualifier, version specific values', function() {
       initialize('a-name:jquery:min:1.4')
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toEqual('jquery');
       expect(directiveScope.vm.coordinates.qualifier).toEqual('min');
       expect(directiveScope.vm.coordinates.version).toEqual('1.4');
+    });
+
+    it('name, qualifier, version wildcard values', function() {
+      initialize('a-name:*:*:*')
+      expect(directiveScope.vm.coordinates.format).toEqual('a-name');
+      expect(directiveScope.vm.coordinates.name).toEqual('*');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('*');
+      expect(directiveScope.vm.coordinates.version).toEqual('*');
     });
   });
 
@@ -76,22 +124,22 @@ describe('coordinates.input.directive.spec', function() {
 
       directiveScope.vm.coordinates.format = 'a-name';
       directiveScope.$apply();
-      expect(scope.value).toEqual(undefined);
+      expect(scope.value).toBeUndefined();
 
       // test that we don't simply serialize the format
       directiveScope.vm.coordinates.name = 'jquery';
       directiveScope.$apply();
       directiveScope.vm.coordinates.name = '';
       directiveScope.$apply();
-      expect(scope.value).toEqual(undefined);
+      expect(scope.value).toEqual('a-name::*:');
 
       directiveScope.vm.coordinates.name = 'jquery';
       directiveScope.$apply();
-      expect(scope.value).toEqual('a-name:jquery');
+      expect(scope.value).toEqual('a-name:jquery:*:');
 
       directiveScope.vm.coordinates.qualifier = 'min';
       directiveScope.$apply();
-      expect(scope.value).toEqual('a-name:jquery:min');
+      expect(scope.value).toEqual('a-name:jquery:min:');
 
       directiveScope.vm.coordinates.version = '1.4';
       directiveScope.$apply();
@@ -110,20 +158,20 @@ describe('coordinates.input.directive.spec', function() {
       directiveScope.$apply();
       directiveScope.vm.coordinates.groupId = '';
       directiveScope.$apply();
-      expect(scope.value).toEqual(undefined);
+      expect(scope.value).toEqual('maven::::*:*');
 
 
       directiveScope.vm.coordinates.groupId = 'org.apache.axis';
       directiveScope.$apply();
-      expect(scope.value).toEqual('maven:org.apache.axis');
+      expect(scope.value).toEqual('maven:org.apache.axis:::*:*');
 
       directiveScope.vm.coordinates.artifactId = 'axis';
       directiveScope.$apply();
-      expect(scope.value).toEqual('maven:org.apache.axis:axis');
+      expect(scope.value).toEqual('maven:org.apache.axis:axis::*:*');
 
       directiveScope.vm.coordinates.version = '1.4';
       directiveScope.$apply();
-      expect(scope.value).toEqual('maven:org.apache.axis:axis:1.4');
+      expect(scope.value).toEqual('maven:org.apache.axis:axis:1.4:*:*');
     });
   });
 });

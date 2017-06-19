@@ -40,7 +40,7 @@ public class Condition
   }
 
   public String getValue() {
-    return value;
+    return ConditionTypes.getById(conditionTypeId).convertIfNeeded(value);
   }
 
   public void setValue(final String value) {

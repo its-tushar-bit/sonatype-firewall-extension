@@ -9,6 +9,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -115,4 +117,67 @@ public class ArtifactCoordinateTest
     // assertTrue( "Should match!", coord2.matches( "/org/apache/maven/kuku/a/v/" ) );
   }
 
+  @Test
+  public void testMatches_EmptyClassifierCoordinate_DoesMatch_EmptyClassifierValue() throws Exception {
+    ArtifactCoordinate coordinateWithEmptyClassifier = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
+    ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e");
+    assertThat(coordinateWithEmptyClassifier.matches(valueWithEmptyClassifier), is(true));
+  }
+
+  @Test
+  public void testMatches_EmptyClassifierCoordinate_DoesNotMatch_NonEmptyClassifierValue() throws Exception {
+    ArtifactCoordinate coordinateWithEmptyClassifier = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
+    ComponentIdentifier valueWithClassifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    assertThat(coordinateWithEmptyClassifier.matches(valueWithClassifier), is(false));
+  }
+
+  @Test
+  public void testMatches_WildcardCoordinate_DoesMatch_EmptyClassifierValue() throws Exception {
+    ArtifactCoordinate coordinateWithWildcardClassifier = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "*", "e"));
+    ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier
+        .createMavenCoordinates("g", "a", "v", "", "e");
+    assertThat(coordinateWithWildcardClassifier.matches(valueWithEmptyClassifier), is(true));
+  }
+
+  @Test
+  public void testMatches_NonEmptyCoordinate_DoesNotMatch_EmptyClassifierValue() throws Exception {
+    ArtifactCoordinate coordinate = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("org.apache.commons", "commons-lang3", "3.5", "sources", "jar"));
+    ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier
+        .createMavenCoordinates("org.apache.commons", "commons-lang3", "3.5", "", "jar");
+    assertThat(coordinate.matches(valueWithEmptyClassifier), is(false));
+  }
+
+  @Test
+  public void testMatches_ValueWithNull_DoesNotThrowNullPointerException() throws Exception {
+    ArtifactCoordinate mavenCoordinate = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("g*", "a*", "v*", "c*", "e*"));
+    ComponentIdentifier mavenValueWithNullGroupId = ComponentIdentifier
+        .createMavenCoordinates(null, "a", "v", "c", "e");
+    assertThat(mavenCoordinate.matches(mavenValueWithNullGroupId), is(false));
+    ComponentIdentifier mavenValueWithNullArtifactId = ComponentIdentifier
+        .createMavenCoordinates("g", null, "v", "c", "e");
+    assertThat(mavenCoordinate.matches(mavenValueWithNullArtifactId), is(false));
+    ComponentIdentifier mavenValueWithNullVersion = ComponentIdentifier
+        .createMavenCoordinates("g", "a", null, "c", "e");
+    assertThat(mavenCoordinate.matches(mavenValueWithNullVersion), is(false));
+    ComponentIdentifier mavenValueWithNullClassifier = ComponentIdentifier
+        .createMavenCoordinates("g", "a", "v", null, "e");
+    assertThat(mavenCoordinate.matches(mavenValueWithNullClassifier), is(false));
+    ComponentIdentifier mavenValueWithNullExtension = ComponentIdentifier
+        .createMavenCoordinates("g", "a", "v", "c", null);
+    assertThat(mavenCoordinate.matches(mavenValueWithNullExtension), is(false));
+
+    ArtifactCoordinate anameCoordinate = new ArtifactCoordinate(
+        ComponentIdentifier.createAnameCoordinates("n*", "q*", "v*"));
+    ComponentIdentifier anameValueWithNullName = ComponentIdentifier.createAnameCoordinates(null, "q", "v");
+    assertThat(anameCoordinate.matches(anameValueWithNullName), is(false));
+    ComponentIdentifier anameValueWithNullQualifier = ComponentIdentifier.createAnameCoordinates("n", null, "v");
+    assertThat(anameCoordinate.matches(anameValueWithNullQualifier), is(false));
+    ComponentIdentifier anameValueWithNullVersion = ComponentIdentifier.createAnameCoordinates("n", "q", null);
+    assertThat(anameCoordinate.matches(anameValueWithNullVersion), is(false));
+  }
 }

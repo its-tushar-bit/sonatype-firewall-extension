@@ -121,7 +121,7 @@ coordinates-input {
       width: 120px;
     }
 
-    &[name*="version-"] {
+    &[name*="version-"], &[name*="extension-"], &[name*="classifier-"] {
       width: 80px;
     }
   }

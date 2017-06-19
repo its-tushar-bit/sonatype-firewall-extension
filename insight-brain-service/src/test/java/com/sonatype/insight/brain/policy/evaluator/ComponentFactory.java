@@ -27,7 +27,14 @@ public class ComponentFactory
     ComponentIdentifier componentIdentifier;
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:
-        componentIdentifier = ComponentIdentifier.createMavenCoordinates(coord[0], coord[1], coord[2]);
+        if (coord.length == 5) {
+          // this method takes maven coordinates in the order GAVCE, but we have them as GAVEC, so swap the last two
+          componentIdentifier = ComponentIdentifier
+              .createMavenCoordinates(coord[0], coord[1], coord[2], coord[4], coord[3]);
+        }
+        else {
+          componentIdentifier = ComponentIdentifier.createMavenCoordinates(coord[0], coord[1], coord[2]);
+        }
         break;
       case ComponentIdentifier.FORMAT_ANAME:
         componentIdentifier = ComponentIdentifier.createAnameCoordinates(coord[0], coord[1], coord[2]);

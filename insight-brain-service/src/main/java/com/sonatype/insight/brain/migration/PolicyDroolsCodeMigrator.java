@@ -38,7 +38,7 @@ public class PolicyDroolsCodeMigrator
 
   private final SchemaInfoDAO schemaInfoDAO;
 
-  static final int DROOLS_CODE_VERSION = 2;
+  static final int DROOLS_CODE_VERSION = 3;
 
   static final String MARKER_FILE_NAME = "policy-drools-code-migrated";
 

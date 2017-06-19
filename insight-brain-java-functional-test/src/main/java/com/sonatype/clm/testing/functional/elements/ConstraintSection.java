@@ -228,6 +228,14 @@ public class ConstraintSection
         return child(".condition-value", "input[name*=\"version\"]");
       }
 
+      public SelenideElement extension() {
+        return child(".condition-value", "input[name*=\"extension\"]");
+      }
+
+      public SelenideElement classifier() {
+        return child(".condition-value", "input[name*=\"classifier\"]");
+      }
+
       public SelenideElement value() {
         return child(".condition-value", ".condition-value input");
       }

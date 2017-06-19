@@ -38,7 +38,7 @@ import org.codehaus.plexus.util.StringUtils;
 public class ArtifactCoordinate
     implements Comparable<ArtifactCoordinate>
 {
-  private static final String PLACEHOLDER = "*";
+  public static final String PLACEHOLDER = "*";
 
   private ComponentIdentifier componentIdentifier;
 
@@ -150,7 +150,7 @@ public class ArtifactCoordinate
    * A utility method that handles group coordinates as matchable target. The meaning of them are:
    *
    * <pre>
-   * * (or null) - matches all
+   * * - matches all
    * some.value - matches exactly 'some.value'
    * some.value* - matches by prefix, so 'some.value', 'some.value.more' are all ok
    * some.value.* - matches only subgroups, so 'some.value.more1', 'some.value.more2' is ok only
@@ -161,12 +161,16 @@ public class ArtifactCoordinate
    * @return
    */
   private boolean matchesGroup(String coordinate, String value) {
-    if (StringUtils.isEmpty(coordinate) || PLACEHOLDER.equals(coordinate)) {
-      // empty: not specified, it matches all
+    if (StringUtils.isEmpty(coordinate)) {
+      // coordinate empty, only empty value matches
+      return StringUtils.isEmpty(value);
+    }
+    if (PLACEHOLDER.equals(coordinate)) {
+      // coordinate wildcard, it matches all
       return true;
     }
     else if (StringUtils.isEmpty(value)) {
-      // cordinate not empty, value empty, no match
+      // coordinate not empty and not wildcard, value empty, no match
       return false;
     }
     else if (coordinate.endsWith("." + PLACEHOLDER)) {
@@ -194,7 +198,8 @@ public class ArtifactCoordinate
    * coordinates! The meaning of them are:
    *
    * <pre>
-   * null - matches all
+   * null/empty - matches null/empty
+   * * - matches all
    * some.value - matches exactly 'some.value'
    * somevalue* - matches by prefix just before the '*'
    * </pre>
@@ -204,12 +209,16 @@ public class ArtifactCoordinate
    * @return
    */
   private boolean matches(String coordinate, String value) {
-    if (StringUtils.isEmpty(coordinate) || PLACEHOLDER.equals(coordinate)) {
-      // empty: not specified, it matches all
+    if (StringUtils.isEmpty(coordinate)) {
+      // coordinate empty, only empty value matches
+      return StringUtils.isEmpty(value);
+    }
+    else if (PLACEHOLDER.equals(coordinate)) {
+      // coordinate wildcard, it matches all
       return true;
     }
     else if (StringUtils.isEmpty(value)) {
-      // cordinate not empty, value empty, no match
+      // coordinate not empty and not wildcard, value empty, no match
       return false;
     }
     else if (coordinate.endsWith(PLACEHOLDER)) {

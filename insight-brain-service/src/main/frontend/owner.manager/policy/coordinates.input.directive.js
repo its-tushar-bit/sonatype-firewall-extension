@@ -7,7 +7,7 @@
   'use strict';
 
   var types = {
-    'maven': ['groupId', 'artifactId', 'version'],
+    'maven': ['groupId', 'artifactId', 'version', 'extension', 'classifier'],
     'a-name': ['name', 'qualifier', 'version']
   };
 
@@ -18,6 +18,12 @@
           format: parts.shift().trim()
         },
         fields = types[coordinates.format];
+
+    if (parts.length === 0) {
+      coordinates.extension = '*';
+      coordinates.classifier = '*';
+      coordinates.qualifier = '*';
+    }
 
     if (fields) {
       parts.forEach(function(part, partIndex) {
@@ -50,10 +56,6 @@
               values.push(vm.coordinates[field]);
             });
 
-            while (values.length > 0 && !values[values.length - 1]) {
-              values.pop();
-            }
-
             $scope.value = values.length > 1 ? values.join(':') : undefined;
           }
           else {
@@ -63,6 +65,7 @@
       }
     }, true);
   }
+
   CoordinatesInputController.$inject = ['$scope'];
 
   function CoordinatesInput() {

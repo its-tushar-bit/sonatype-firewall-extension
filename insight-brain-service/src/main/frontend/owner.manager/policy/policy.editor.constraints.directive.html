@@ -90,24 +90,44 @@
                         --><span ng-switch-when="maven"><!--
                            --><input type="text" placeholder="Group ID" name="groupid-{{::identifier}}"
                                      ng-model="vm.coordinates.groupId" ng-pattern="vm.invalidRegex"
-                                     ng-required="!(vm.coordinates.version || vm.coordinates.artifactId)"><!--
-                         --><input type="text" placeholder="Artifact ID" name="artifactid-{{::identifier}}"
+                                     ng-required="true"><!--
+                           --><input type="text" placeholder="Artifact ID" name="artifactid-{{::identifier}}"
                                      ng-model="vm.coordinates.artifactId" ng-pattern="vm.invalidRegex"
-                                     ng-required="!(vm.coordinates.version || vm.coordinates.groupId)"><!--
+                                     ng-required="true"><!--
+                           --><input type="text" 
+                                     placeholder="Version" 
+                                     name="version-{{::identifier}}" 
+                                     ng-model="vm.coordinates.version" 
+                                     ng-pattern="vm.invalidRegex" 
+                                     ng-required="true"><!--
+                           --><input type="text" 
+                                     placeholder="Extension" 
+                                     name="extension-{{::identifier}}" 
+                                     ng-model="vm.coordinates.extension" 
+                                     ng-pattern="vm.invalidRegex" 
+                                     ng-required="true"><!--
+                           --><input type="text"
+                                     placeholder="Classifier"
+                                     name="classifier-{{::identifier}}"
+                                     ng-model="vm.coordinates.classifier"
+                                     ng-pattern="vm.invalidRegex"
+                                     ng-required="false"><!--
                          --></span><!--
                          --><span ng-switch-when="a-name"><!--
                            --><input type="text" placeholder="Name" name="name-{{::identifier}}" 
                                      ng-model="vm.coordinates.name" ng-pattern="vm.invalidRegex"
-                                     ng-required="!(vm.coordinates.version || vm.coordinates.qualifier)"><!--
+                                     ng-required="true"><!--
                            --><input type="text" placeholder="Qualifier" name="qualifier-{{::identifier}}"
                                      ng-model="vm.coordinates.qualifier" ng-pattern="vm.invalidRegex"
-                                     ng-required="!(vm.coordinates.version || vm.coordinates.name)"><!--
+                                     ng-required="false"><!--
+                           --><input type="text" 
+                                     placeholder="Version" 
+                                     name="version-{{::identifier}}" 
+                                     ng-model="vm.coordinates.version" 
+                                     ng-pattern="vm.invalidRegex" 
+                                     ng-required="true"><!--
                         --></span><!--
                       --></ng-switch><!--
-                      --><input type="text" placeholder="Version"  name="version-{{::identifier}}"
-                                ng-model="vm.coordinates.version" ng-pattern="vm.invalidRegex"
-                                     ng-required="!(vm.coordinates.qualifier || vm.coordinates.name ||
-                                                    vm.coordinates.groupId || vm.coordinates.artifactId)"><!--
                     --></coordinates-input><!--
                   --></span>
 

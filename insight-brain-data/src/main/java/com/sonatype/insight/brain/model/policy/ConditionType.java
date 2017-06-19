@@ -35,4 +35,9 @@ public interface ConditionType
   String explainMatch(Condition condition, Component component);
 
   void validateCondition(TransactionContext tx, Condition condition, String ownerId) throws InvalidConditionException;
+
+  /**
+   * @since 1.32.0
+   */
+  String convertIfNeeded(String value);
 }

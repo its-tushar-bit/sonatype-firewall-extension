@@ -461,8 +461,8 @@
       <dependency>
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
-        <!-- 1.47 is the last version that works with Java 6 -->
-        <version>1.47</version>
+        <!-- 1.48 is the last version that works with Java 7 -->
+        <version>1.48</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

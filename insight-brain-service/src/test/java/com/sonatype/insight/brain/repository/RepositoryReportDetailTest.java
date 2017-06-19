@@ -70,7 +70,7 @@ public class RepositoryReportDetailTest
     final String policyName = "policyName";
 
     final RepositoryComponent component = new RepositoryComponent(null, pathname, null, hash, componentId,
-        matchStateId, null, null, false);
+        matchStateId, null, null);
     component.setQuarantineTime(quarantineTime);
 
     final RepositoryPolicyViolation violation = new RepositoryPolicyViolation(null, pathname, null, null, policyName,
@@ -100,7 +100,7 @@ public class RepositoryReportDetailTest
     final Date quarantineTime = new Date();
 
     final RepositoryComponent component = new RepositoryComponent(null, pathname, null, hash, componentId,
-        matchStateId, null, null, false);
+        matchStateId, null, null);
     component.setQuarantineTime(quarantineTime);
 
     repositoryReportDetail = RepositoryReportDetail.create(component);

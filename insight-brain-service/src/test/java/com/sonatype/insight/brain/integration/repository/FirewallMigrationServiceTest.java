@@ -489,10 +489,6 @@ public class FirewallMigrationServiceTest
         mismatchDescription.appendText("has lastEvaluationTime ").appendValue(item.getLastEvaluationTime());
         return false;
       }
-      else if (component.isCanBeQuarantined() != item.isCanBeQuarantined()) {
-        mismatchDescription.appendText("has canBeQuarantined ").appendValue(item.isCanBeQuarantined());
-        return false;
-      }
       else if (!Objects.equals(component.getQuarantineTime(), item.getQuarantineTime())) {
         mismatchDescription.appendText("has quarantineTime ").appendValue(item.getQuarantineTime());
         return false;

@@ -44,7 +44,7 @@ public class RepositoryComponentDAOTest
     // Create
     Date createTime = new Date();
     RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), "path", createTime, "hash",
-        componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime, true /* canBeQuarantined */);
+        componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
     dao.insert(repositoryComponent);
     assertThat(repositoryComponent.getId(), notNullValue());
 
@@ -52,8 +52,7 @@ public class RepositoryComponentDAOTest
     repositoryComponent = dao.getById(repositoryComponent.getId());
     assertThat(repositoryComponent, notNullValue());
     assertRepositoryComponent(repository.getId(), "path", createTime, "hash", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime, true /* canBeQuarantined */,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime, repositoryComponent);
 
     // Update
     Date updateTime = new Date();
@@ -62,8 +61,7 @@ public class RepositoryComponentDAOTest
     repositoryComponent = dao.getById(repositoryComponent.getId());
     assertThat(repositoryComponent, notNullValue());
     assertRepositoryComponent(repository.getId(), "path", createTime, "hash", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), updateTime, true /* canBeQuarantined */,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), updateTime, repositoryComponent);
 
     // Delete
     dao.delete(repositoryComponent);
@@ -112,7 +110,6 @@ public class RepositoryComponentDAOTest
                                          String matchStateId,
                                          String identificationSourceId,
                                          Date lastEvaluationTime,
-                                         boolean canBeQuarantined,
                                          RepositoryComponent actual)
   {
     assertThat(actual.getRepositoryId(), is(repositoryId));
@@ -123,7 +120,6 @@ public class RepositoryComponentDAOTest
     assertThat(actual.getMatchStateId(), is(matchStateId));
     assertThat(actual.getIdentificationSourceId(), is(identificationSourceId));
     assertThat(actual.getLastEvaluationTime(), is(lastEvaluationTime));
-    assertThat(actual.isCanBeQuarantined(), is(canBeQuarantined));
   }
 
   @Test

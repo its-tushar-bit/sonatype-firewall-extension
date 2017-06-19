@@ -1316,7 +1316,7 @@ public class TemporaryEntity
   {
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(), "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
-        IdentificationSource.SONATYPE.getId(), evalTime, true /* canBeQuarantined */);
+        IdentificationSource.SONATYPE.getId(), evalTime);
     repositoryComponent.setQuarantineTime(quarantineTime);
     repositoryComponent.setUnquarantineTime(unquarantineTime);
     repositoryComponentDAO.insert(repositoryComponent);
@@ -1326,7 +1326,7 @@ public class TemporaryEntity
   public RepositoryComponent newRepositoryComponent(Repository repository, String hash) {
     RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), uuid(), new Date(), hash,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
-        IdentificationSource.SONATYPE.getId(), new Date(), true /* canBeQuarantined */);
+        IdentificationSource.SONATYPE.getId(), new Date());
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;
   }
@@ -1345,8 +1345,7 @@ public class TemporaryEntity
   {
     String pathname = uuid();
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(),
-        pathname.substring(0, 20), identifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), new Date(),
-        true /* canBeQuarantined */);
+        pathname.substring(0, 20), identifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), new Date());
 
     if (quarantined) {
       repositoryComponent.setQuarantineTime(new Date());

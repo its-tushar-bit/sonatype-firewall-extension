@@ -189,7 +189,7 @@ public class RepositoryPolicyEvaluator
       Date quarantineTime = quarantine ? evaluationTime : null;
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),
           component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
-              .getId(), evaluationTime, canBeQuarantined);
+              .getId(), evaluationTime);
       repositoryComponent.setQuarantineTime(quarantineTime);
       repositoryComponentDAO.insert(tx, repositoryComponent);
     }

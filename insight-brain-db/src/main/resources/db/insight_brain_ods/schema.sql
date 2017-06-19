@@ -467,7 +467,6 @@ CREATE TABLE repository_component (
   match_state_id varchar(20) NOT NULL,
   identification_source_id varchar(20) NOT NULL,
   last_evaluation_time datetime NOT NULL,
-  can_be_quarantined bool DEFAULT false NOT NULL,
   quarantine_time datetime,
   unquarantine_time datetime,
   CONSTRAINT repository_component_pk PRIMARY KEY (repository_component_id),

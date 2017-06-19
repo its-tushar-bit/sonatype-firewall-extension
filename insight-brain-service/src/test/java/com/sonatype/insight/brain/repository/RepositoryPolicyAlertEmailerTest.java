@@ -124,7 +124,7 @@ public class RepositoryPolicyAlertEmailerTest
       policy.setThreatLevel(i);
       RepositoryComponent component = new RepositoryComponent(repository.getId(), "pathname" + i, new Date(),
           "hash" + i, ComponentIdentifier.createMavenCoordinates("g", "a", "" + i), MatchState.EXACT.getId(),
-          IdentificationSource.SONATYPE.getId(), new Date(), true);
+          IdentificationSource.SONATYPE.getId(), new Date());
 
       policyFacts.add(createPolicyFact(policy, component));
     }

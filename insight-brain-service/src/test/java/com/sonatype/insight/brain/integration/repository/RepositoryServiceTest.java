@@ -967,7 +967,6 @@ public class RepositoryServiceTest
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents, hasSize(1));
     assertThat(repositoryComponents.get(0).getPathname(), is(pathname));
-    assertThat(repositoryComponents.get(0).isCanBeQuarantined(), is(false));
     assertThat(repositoryComponents.get(0).getQuarantineTime(), is(nullValue()));
 
     // re-evaluation of component, this time with quarantine enabled
@@ -984,7 +983,6 @@ public class RepositoryServiceTest
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents, hasSize(1));
     assertThat(repositoryComponents.get(0).getPathname(), is(pathname));
-    assertThat(repositoryComponents.get(0).isCanBeQuarantined(), is(false));
     assertThat(repositoryComponents.get(0).isQuarantined(), is(false));
     assertThat(repositoryComponents.get(0).getQuarantineTime(), is(nullValue()));
   }
@@ -1045,7 +1043,6 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents, hasSize(1));
     repositoryComponent = repositoryComponents.get(0);
     assertThat(repositoryComponent.getPathname(), is(pathname));
-    assertThat(repositoryComponent.isCanBeQuarantined(), is(true));
     assertThat(repositoryComponent.getQuarantineTime(), is(greaterThanOrEqualTo(before)));
     assertThat(repositoryComponent.getQuarantineTime(), is(lessThanOrEqualTo(after)));
     assertThat(repositoryComponent.isQuarantined(), is(false));
@@ -1841,7 +1838,6 @@ public class RepositoryServiceTest
     assertThat(actual.getIdentificationSourceId(), is(identificationSourceId));
     assertThat(actual.getLastEvaluationTime(), greaterThanOrEqualTo(beforeLastEvaluation));
     assertThat(actual.getLastEvaluationTime(), lessThanOrEqualTo(afterLastEvaluation));
-    assertThat(actual.isCanBeQuarantined(), is(canBeQuarantined));
     if (afterQuarantineTime != null) {
       assertThat(actual.getQuarantineTime(), lessThanOrEqualTo(afterQuarantineTime));
     }
@@ -1958,21 +1954,21 @@ public class RepositoryServiceTest
   @Test
   public void testTHREAT_LEVEL_DESC_PATHNAME_ASC() throws Exception {
     final RepositoryReportDetail detail1 = RepositoryReportDetail.create(new RepositoryComponent(null, "z", null, null,
-        null, null, null, null, false));
+        null, null, null, null));
     final RepositoryReportDetail detail2 = RepositoryReportDetail.create(new RepositoryComponent(null, "a", null, null,
-        null, null, null, null, false), new RepositoryPolicyViolation(null, null, null, null, null, 9, null, null,
+        null, null, null, null), new RepositoryPolicyViolation(null, null, null, null, null, 9, null, null,
         null, "[]" /* constraintFacts */), false);
     assertTrue("Should sort ThreatLevel Descending",
         0 < RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail2));
 
     final RepositoryReportDetail detail3 = RepositoryReportDetail.create(new RepositoryComponent(null, "a", null, null,
-        null, null, null, null, false), new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null,
+        null, null, null, null), new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null,
         null, "[]" /* constraintFacts */), false);
     assertTrue("Should sort Pathname Ascending",
         0 < RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail3));
 
     final RepositoryReportDetail detail4 = RepositoryReportDetail.create(new RepositoryComponent(null, "z", null, null,
-        null, null, null, null, false), new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null,
+        null, null, null, null), new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null,
         null, "[]" /* constraintFacts */), false);
     assertEquals("Equal ThreatLevel and pathname", 0,
         RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail4));

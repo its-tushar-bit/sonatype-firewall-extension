@@ -53,9 +53,6 @@ public class RepositoryComponent
   @Column(name = "last_evaluation_time")
   private Date lastEvaluationTime;
 
-  @Column(name = "can_be_quarantined")
-  private boolean canBeQuarantined;
-
   @Column(name = "quarantine_time")
   private Date quarantineTime;
 
@@ -72,8 +69,7 @@ public class RepositoryComponent
                              ComponentIdentifier componentIdentifier,
                              String matchStateId,
                              String identificationSourceId,
-                             Date lastEvaluationTime,
-                             boolean canBeQuarantined)
+                             Date lastEvaluationTime)
   {
     this.repositoryId = repositoryId;
     this.pathname = pathname;
@@ -83,7 +79,6 @@ public class RepositoryComponent
     this.matchStateId = matchStateId;
     this.identificationSourceId = identificationSourceId;
     this.lastEvaluationTime = lastEvaluationTime;
-    this.canBeQuarantined = canBeQuarantined;
   }
 
   @Override
@@ -144,14 +139,6 @@ public class RepositoryComponent
     this.lastEvaluationTime = lastEvaluationTime;
   }
 
-  public boolean isCanBeQuarantined() {
-    return canBeQuarantined;
-  }
-
-  public void setCanBeQuarantined(boolean canBeQuarantined) {
-    this.canBeQuarantined = canBeQuarantined;
-  }
-
   public Date getQuarantineTime() {
     return quarantineTime;
   }
@@ -177,7 +164,7 @@ public class RepositoryComponent
   public String toString() {
     return "RepositoryComponent [id=" + id + ", repositoryId=" + repositoryId + ", time=" + time + ", hash=" + hash
         + ", matchStateId=" + matchStateId + ", identificationSourceId=" + identificationSourceId
-        + ", lastEvaluationTime=" + lastEvaluationTime + ", canBeQuarantined=" + canBeQuarantined + ", quarantineTime="
+        + ", lastEvaluationTime=" + lastEvaluationTime + ", quarantineTime="
         + quarantineTime + ", unquarantineTime=" + unquarantineTime + ", isQuarantined=" + isQuarantined() + "]";
   }
 

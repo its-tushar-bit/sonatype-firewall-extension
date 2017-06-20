@@ -1,8 +1,8 @@
 import './bootstrap-css-index';
 
 import '../scss/_variables.scss';
-import '../scss/_global.scss';
 import '../scss/_typography.scss';
+import '../scss/_global.scss';
 import '../scss/_threatBars.scss';
 import './viewdetails.css';
 

@@ -3,8 +3,8 @@ import '../lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixi
 import '../lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_component-animations.scss';
 import '../lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tooltip.scss';
 import '../scss/_variables.scss';
-import '../scss/_global.scss';
 import '../scss/_typography.scss';
+import '../scss/_global.scss';
 import '../scss/_clm-modal.scss';
 import '../scss/_mask.scss';
 

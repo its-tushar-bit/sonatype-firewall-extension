@@ -85,8 +85,8 @@ public class DashboardResourceTest
         .body(new RisksFilterDTO()).post();
 
     assertResponseStatus(200, response);
-    NewestRiskDTO[] dtos = response.getBody(NewestRiskDTO[].class);
-    assertThat(dtos, arrayWithSize(1));
+    DashboardResultsDTO<NewestRiskDTO> dto = response.getBody(DashboardResultsDTO.class);
+    assertThat(dto.dashboardResults, hasSize(1));
   }
 
   @Test

@@ -89,17 +89,26 @@
       <ul>
         <li class="tab" ui-sref-active="active">
           <a id="tab-button-newest" ui-sref=".violations">
-            <i class="fa fa-exclamation"></i>Violations
+            <i class="fa fa-exclamation"></i>Violations<!--
+         --><span class="iq-counter" ng-if="vm.latestResultCounts.newestRisk !== undefined">
+              {{vm.latestResultCounts.newestRisk}}
+            </span>
           </a>
         </li>
         <li class="tab" ui-sref-active="active">
           <a id="tab-button-component" ui-sref=".components">
-            <i class="fa fa-cube size-16px"></i>Components
+            <i class="fa fa-cube size-16px"></i>Components<!--
+         --><span class="iq-counter" ng-if="vm.latestResultCounts.componentRisk !== undefined">
+              {{vm.latestResultCounts.componentRisk}}
+            </span>
           </a>
         </li>
         <li class="tab" ui-sref-active="active">
           <a id="tab-button-application" ui-sref=".applications">
-            <i class="fa fa-terminal inverse"></i>Applications
+            <i class="fa fa-terminal inverse"></i>Applications<!--
+         --><span class="iq-counter" ng-if="vm.latestResultCounts.applicationRisk !== undefined">
+              {{vm.latestResultCounts.applicationRisk}}
+            </span>
           </a>
         </li>
       </ul>
@@ -136,7 +145,7 @@
           <h1>Results</h1>
         </div>
       </div>
-      <div dashboard-tabs></div>
+      <dashboard-tabs></dashboard-tabs>
     </div>
   </div>
   <div ui-view="dashboard-results"></div>

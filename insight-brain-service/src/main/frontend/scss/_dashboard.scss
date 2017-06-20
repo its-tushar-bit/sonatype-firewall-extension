@@ -92,7 +92,7 @@
     }
   }
 
-  [dashboard-tabs], .dashboard-headers {
+  dashboard-tabs, .dashboard-headers {
     @include semi-bold();
     
     font-size: 14px;

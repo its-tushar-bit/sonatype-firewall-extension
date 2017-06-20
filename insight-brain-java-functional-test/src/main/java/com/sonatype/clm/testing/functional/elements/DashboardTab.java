@@ -31,6 +31,10 @@ public class DashboardTab
     return this;
   }
 
+  public SelenideElement counter() {
+    return link.$(".iq-counter");
+  }
+
   public void click() {
     link.click();
   }

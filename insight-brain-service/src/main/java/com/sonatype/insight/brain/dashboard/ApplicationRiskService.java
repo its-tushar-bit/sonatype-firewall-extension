@@ -69,14 +69,14 @@ public class ApplicationRiskService
   /**
    * @since 1.11.0
    */
-  public List<ApplicationRiskScoreDTO> getApplicationRisks(final Set<String> organizationIds,
-                                                           final Set<String> applicationIds,
-                                                           final Set<String> stageIds,
-                                                           final Set<String> tagIds,
-                                                           final PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                                           final PolicyThreatLevelFilter policyThreatLevelFilter,
-                                                           final PolicyViolationStateFilter policyViolationStateFilter,
-                                                           final int maxResults)
+  public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(final Set<String> organizationIds,
+                                                                          final Set<String> applicationIds,
+                                                                          final Set<String> stageIds,
+                                                                          final Set<String> tagIds,
+                                                                          final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                                          final PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                                          final PolicyViolationStateFilter policyViolationStateFilter,
+                                                                          final int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
@@ -102,8 +102,9 @@ public class ApplicationRiskService
 
     List<ApplicationRiskScoreDTO> sortedApplicationRisks = sortAndFilterApplicationRiskScore(applicationRisks);
 
-    List<ApplicationRiskScoreDTO> result = sortedApplicationRisks.subList(0,
-        Math.min(sortedApplicationRisks.size(), maxResults));
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
+    result.numResults = sortedApplicationRisks.size();
+    result.dashboardResults = sortedApplicationRisks.subList(0, Math.min(sortedApplicationRisks.size(), maxResults));
 
     log.debug("getApplicationRisks finished in {} ms", System.currentTimeMillis() - start);
 

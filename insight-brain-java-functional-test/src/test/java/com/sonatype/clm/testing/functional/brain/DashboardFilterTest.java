@@ -53,13 +53,15 @@ import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.DashboardFilters.INACTIVE;
+import static com.sonatype.clm.testing.functional.elements.DashboardFilters.ACTIVE;
 import static com.sonatype.clm.testing.functional.elements.DashboardFilters.NO_CHANGES_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.AGE_FILTER_FEATURE_FLAG;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.APPLICATIONS_URL;
@@ -257,7 +259,10 @@ public class DashboardFilterTest
 
     // assert no filtering is done
     DashboardPage.violationsView().results().violations().shouldHaveSize(3);
-
+    DashboardPage.violationsTab().counter().shouldHave(text("3"));
+    DashboardPage.componentsTab().counter().shouldNot(exist);
+    DashboardPage.applicationsTab().counter().shouldNot(exist);
+    
     DashboardFilters.applyButton().shouldBe(DISABLED).hover().tooltip().shouldHave(NO_CHANGES_MESSAGE);
 
     // check that counters get updated
@@ -294,6 +299,7 @@ public class DashboardFilterTest
 
     // assert applied filters
     DashboardPage.violationsView().results().violations().shouldHaveSize(1);
+    DashboardPage.violationsTab().counter().shouldHave(text("1"));
     ViolationTile violation = DashboardPage.violationsView().results().firstViolation();
     violation.threatNumber().shouldHave(text("2"));
     violation.policy().shouldHave(text("DashboardTestPolicy"));
@@ -307,6 +313,7 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     DashboardPage.violationsView().results().violations().shouldHaveSize(2);
+    DashboardPage.violationsTab().counter().shouldHave(text("2"));
     ViolationTile firstViolation = DashboardPage.violationsView().results().firstViolation();
     firstViolation.threatNumber().shouldHave(text("3"));
     firstViolation.policy().shouldHave(text("DashboardTestPolicy"));
@@ -322,8 +329,14 @@ public class DashboardFilterTest
     // check other tabs
     DashboardPage.componentsTab().click();
     DashboardPage.componentsView().results().components().shouldHaveSize(2);
+    DashboardPage.violationsTab().counter().shouldHave(text("2"));
+    DashboardPage.componentsTab().counter().shouldHave(text("2"));
+    DashboardPage.applicationsTab().counter().shouldNot(exist);
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHaveSize(2);
+    DashboardPage.violationsTab().counter().shouldHave(text("2"));
+    DashboardPage.componentsTab().counter().shouldHave(text("2"));
+    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
 
     // unselect all policy violation statuses
     DashboardFilters.policyViolationStateFilter().twisty().click();
@@ -332,14 +345,26 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     // check all tabs - should have the same results
+    DashboardPage.violationsTab().counter().shouldNot(exist);
+    DashboardPage.componentsTab().counter().shouldNot(exist);
+    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
     DashboardPage.violationsTab().click();
     DashboardPage.violationsView().results().violations().shouldHaveSize(2);
+    DashboardPage.violationsTab().counter().shouldHave(text("2"));
+    DashboardPage.componentsTab().counter().shouldNot(exist);
+    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
     DashboardPage.violationsView().results().firstViolation().component().shouldHave(text("Artifact2"));
     DashboardPage.violationsView().results().lastViolation().component().shouldHave(text("Artifact1"));
     DashboardPage.componentsTab().click();
     DashboardPage.componentsView().results().components().shouldHaveSize(2);
+    DashboardPage.violationsTab().counter().shouldHave(text("2"));
+    DashboardPage.componentsTab().counter().shouldHave(text("2"));
+    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHaveSize(2);
+    DashboardPage.violationsTab().counter().shouldHave(text("2"));
+    DashboardPage.componentsTab().counter().shouldHave(text("2"));
+    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
 
     // filter WAIVED only
     DashboardFilters.policyViolationStateFilter().twisty().click();
@@ -377,9 +402,12 @@ public class DashboardFilterTest
     DashboardFilters.apply();
     refresh();
     // verify policy filter counter
-    DashboardFilters.policyTypeFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 4"));
+    DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     // verify no violations row shown
     DashboardPage.violationsView().results().violations().shouldHaveSize(0);
+    DashboardPage.violationsTab().counter().shouldHave(text("0"));
+    DashboardPage.componentsTab().counter().shouldNot(exist);
+    DashboardPage.applicationsTab().counter().shouldNot(exist);
     // verify no data message
     DashboardPage.violationsView().results().noDataMessage().shouldBe(visible)
         .shouldHave(text("No data available in the last 30 days given the applied filters and permissions."));
@@ -669,7 +697,7 @@ public class DashboardFilterTest
   private void assertInitialFilterState(final String savedFilterName) {
     DashboardFilter appFilter = DashboardFilters.applicationFilter();
 
-    appFilter.counter().shouldBe(visible, INACTIVE).shouldHave(text("2"));
+    appFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("2"));
     appFilter.multiSelectList().shouldBe(empty);
     appFilter.twisty().shouldBe(visible).click();
     appFilter.multiSelectList().shouldHave(size(3));
@@ -679,7 +707,7 @@ public class DashboardFilterTest
     appFilter.twisty().click();
 
     DashboardFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
-    categoryFilter.counter().shouldBe(visible, INACTIVE).shouldHave(text("1"));
+    categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("1"));
     categoryFilter.multiSelectList().shouldBe(empty);
     categoryFilter.twisty().shouldBe(visible).click();
     categoryFilter.multiSelectList().shouldHave(size(2));
@@ -704,7 +732,7 @@ public class DashboardFilterTest
 
   private void assertThreatLevelFilterInitialState() {
     PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
-    threatLevelFilter.counter().shouldBe(visible).shouldNotBe(INACTIVE).shouldHave(text("2 – 10"));
+    threatLevelFilter.counter().shouldBe(visible).shouldBe(ACTIVE).shouldHave(text("2 – 10"));
     threatLevelFilter.slider().shouldNotBe(visible);
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().shouldBe(visible);
@@ -713,7 +741,7 @@ public class DashboardFilterTest
 
   private void assertPolicyTypeFilterInitialState() {
     PolicyTypeFilter policyTypeFilter = DashboardFilters.policyTypeFilter();
-    policyTypeFilter.counter().shouldBe(visible, INACTIVE).shouldHave(text("4"));
+    policyTypeFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("4"));
     policyTypeFilter.multiSelectList().shouldBe(empty);
     policyTypeFilter.twisty().shouldBe(visible).click();
     policyTypeFilter.multiSelectList().shouldHave(size(5));
@@ -727,7 +755,7 @@ public class DashboardFilterTest
 
   private void assertStageFilterInitialState() {
     StageFilter stageFilter = DashboardFilters.stageFilter();
-    stageFilter.counter().shouldBe(visible, INACTIVE).shouldHave(text("4"));
+    stageFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("4"));
     stageFilter.multiSelectList().shouldBe(empty);
     stageFilter.twisty().shouldBe(visible).click();
     stageFilter.multiSelectList().shouldHave(size(5));
@@ -752,16 +780,16 @@ public class DashboardFilterTest
   }
 
   private void assertNewCounterState() {
-    DashboardFilters.applicationFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 2"));
-    DashboardFilters.applicationCategoryFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 1"));
-    DashboardFilters.stageFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 4"));
-    DashboardFilters.policyTypeFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("1 of 4"));
-    DashboardFilters.policyViolationStateFilter().counter().shouldNotBe(INACTIVE).shouldHave(text("2 of 2"));
+    DashboardFilters.applicationFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 2"));
+    DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 1"));
+    DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
+    DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
+    DashboardFilters.policyViolationStateFilter().counter().shouldBe(ACTIVE).shouldHave(text("2 of 2"));
     DashboardFilters.policyThreatLevelFilter().counter().shouldHave(text("2 – 7"));
   }
 
   private void assertFilterDisabled(DashboardFilter filter, String filterType) {
-    filter.counter().shouldBe(visible, INACTIVE).shouldHave(text("0"));
+    filter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("0"));
 
     filter.anchor().shouldBe(DISABLED);
     filter.multiSelectList().shouldBe(empty);

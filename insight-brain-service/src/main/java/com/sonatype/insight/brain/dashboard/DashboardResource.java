@@ -85,7 +85,7 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getNewestRisksExceptionMeter")
-  public List<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO) {
+  public DashboardResultsDTO<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO) {
     return newestRiskService.getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
         risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxDaysOld,
@@ -98,7 +98,7 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getApplicationRisksExceptionMeter")
-  public List<ApplicationRiskScoreDTO> getApplicationRisks(RisksFilterDTO risksFilterDTO) {
+  public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(RisksFilterDTO risksFilterDTO) {
     return applicationRiskService.getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
         risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxResults);
@@ -110,7 +110,7 @@ public class DashboardResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   @ExceptionMetered(name = "getComponentRisksExceptionMeter")
-  public List<ComponentRiskDTO> getComponentRisks(RisksFilterDTO risksFilterDTO) {
+  public DashboardResultsDTO<ComponentRiskDTO> getComponentRisks(RisksFilterDTO risksFilterDTO) {
     return componentRiskService.getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
         risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxResults);
@@ -245,7 +245,7 @@ public class DashboardResource
     final List<NewestRiskDTO> results = newestRiskService
         .getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
-            risksFilterDTO.policyViolationStates, risksFilterDTO.maxDaysOld, Integer.MAX_VALUE);
+            risksFilterDTO.policyViolationStates, risksFilterDTO.maxDaysOld, Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("violations");
     return Csv.generate(Response.ok(), fileNamePrefix, NewestRiskDTO.getCsvHeader(), results).build();
@@ -270,7 +270,7 @@ public class DashboardResource
     final List<ComponentRiskDTO> results = componentRiskService
         .getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
-            risksFilterDTO.policyViolationStates, Integer.MAX_VALUE);
+            risksFilterDTO.policyViolationStates, Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("components");
     return Csv.generate(Response.ok(), fileNamePrefix, ComponentRiskDTO.getCsvHeader(), results).build();
@@ -295,7 +295,8 @@ public class DashboardResource
     final List<ApplicationRiskScoreDTO> results = applicationRiskService
         .getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
             risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-            risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, Integer.MAX_VALUE);
+            risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates,
+            Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("applications");
     return Csv.generate(Response.ok(), fileNamePrefix, ApplicationRiskScoreDTO.getCsvHeader(), results).build();

@@ -84,15 +84,15 @@ public class NewestRiskService
    * Gets the "newest" risk matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
    */
-  public List<NewestRiskDTO> getNewestRisks(Set<String> organizationIds,
-                                            Set<String> applicationIds,
-                                            Set<String> stageIds,
-                                            Set<String> tagIds,
-                                            PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                            PolicyThreatLevelFilter policyThreatLevelFilter,
-                                            PolicyViolationStateFilter policyViolationStateFilter,
-                                            Integer maxDaysOld,
-                                            int maxResults)
+  public DashboardResultsDTO<NewestRiskDTO> getNewestRisks(Set<String> organizationIds,
+                                                           Set<String> applicationIds,
+                                                           Set<String> stageIds,
+                                                           Set<String> tagIds,
+                                                           PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                           PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                           PolicyViolationStateFilter policyViolationStateFilter,
+                                                           Integer maxDaysOld,
+                                                           int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
@@ -110,7 +110,8 @@ public class NewestRiskService
     Map<String, PolicyEvaluation> lastPolicyEvaluationsByAppIdAndStageTypeId = getLastPolicyEvaluationsByAppIdAndStageTypeId(
         applications, stageTypes);
 
-    List<NewestRiskDTO> result = new ArrayList<>();
+    List<NewestRiskDTO> riskDTOs = new ArrayList<>();
+
     int policyEvaluationCount = 0;
     int policyViolationCount = 0;
 
@@ -144,7 +145,7 @@ public class NewestRiskService
           NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, stageType, policyViolation,
               firstOccurrencePolicyViolation.getTime().getTime(), policyEvaluation.getScanId());
           newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
-          result.add(newestRiskDTO);
+          riskDTOs.add(newestRiskDTO);
         }
         for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
           NewestRiskDTO newestRiskDTO = newestRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
@@ -163,11 +164,14 @@ public class NewestRiskService
     }
 
     if (maxDaysOld != null) {
-      result = filter(result, maxDaysOld.intValue());
+      riskDTOs = filter(riskDTOs, maxDaysOld.intValue());
     }
 
-    Collections.sort(result, NewestRiskDTOComparator.INSTANCE);
-    result.subList(Math.min(result.size(), maxResults), result.size()).clear();
+    Collections.sort(riskDTOs, NewestRiskDTOComparator.INSTANCE);
+    DashboardResultsDTO<NewestRiskDTO> result = new DashboardResultsDTO<>();
+    result.numResults = riskDTOs.size();
+    riskDTOs.subList(Math.min(riskDTOs.size(), maxResults), riskDTOs.size()).clear();
+    result.dashboardResults = riskDTOs;
     log.debug("getNewestRisks: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
         policyViolationCount);
 

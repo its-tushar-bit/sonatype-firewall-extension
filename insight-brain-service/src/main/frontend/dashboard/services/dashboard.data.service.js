@@ -3,13 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+/* global angular */
 export default
 function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayNameUtil) {
 
+  var latestResultCounts = {
+        newestRisk: undefined,
+        applicationRisk: undefined,
+        componentRisk: undefined
+      },
+      lastAppliedFilter;
+
   function getNewestRisks(filter) {
-    return getData(CLMLocations.getNewestRisksUrl(), filter).then(function(risks) {
-      risks.forEach(function(risk) {
+    return getData(CLMLocations.getNewestRisksUrl(), filter).then(function(resultsWrapper) {
+      resetCountsIfFilterChanged(filter);
+      latestResultCounts.newestRisk = resultsWrapper.numResults;
+      resultsWrapper.dashboardResults.forEach(function(risk) {
         risk.gavName = ComponentDisplayNameUtil.deriveComponentName(risk);
         // to aid sortability:
         // - copy the times from each stage to a property on the row
@@ -21,17 +30,18 @@ function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayName
           });
         }
       });
-      return [risks];
+      return [resultsWrapper.dashboardResults];
     });
   }
 
   function getApplicationRisks(filter) {
     var scoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
 
-    return getData(CLMLocations.getApplicationRisksUrl(), filter).then(function(data) {
+    return getData(CLMLocations.getApplicationRisksUrl(), filter).then(function(resultsWrapper) {
       var series = {};
-
-      data.forEach(function(application) {
+      resetCountsIfFilterChanged(filter);
+      latestResultCounts.applicationRisk = resultsWrapper.numResults;
+      resultsWrapper.dashboardResults.forEach(function(application) {
         scoreFields.forEach(function(scoreField) {
           if (application.totalApplicationRisk[scoreField]) {
             series[application.totalApplicationRisk[scoreField]] = true;
@@ -39,7 +49,7 @@ function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayName
         });
       });
 
-      return [data, Object.keys(series).map(function(x) {
+      return [resultsWrapper.dashboardResults, Object.keys(series).map(function(x) {
         return parseInt(x, 10);
       })];
     });
@@ -47,8 +57,10 @@ function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayName
 
   function getComponentRisks(filter) {
     var series = [];
-    return getData(CLMLocations.getComponentRisksUrl(), filter).then(function(components) {
-      components.forEach(function(component) {
+    return getData(CLMLocations.getComponentRisksUrl(), filter).then(function(resultsWrapper) {
+      resetCountsIfFilterChanged(filter);
+      latestResultCounts.componentRisk = resultsWrapper.numResults;
+      resultsWrapper.dashboardResults.forEach(function(component) {
         component.name = ComponentDisplayNameUtil.deriveComponentName(component);
         ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'].forEach(function(scoreField) {
           if (component[scoreField] && series.lastIndexOf(component[scoreField]) === -1) {
@@ -56,8 +68,17 @@ function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayName
           }
         });
       });
-      return [components, series];
+      return [resultsWrapper.dashboardResults, series];
     });
+  }
+
+  function resetCountsIfFilterChanged(filter) {
+    if (!angular.equals(lastAppliedFilter, filter)) {
+      lastAppliedFilter = filter;
+      latestResultCounts.newestRisk = undefined;
+      latestResultCounts.componentRisk = undefined;
+      latestResultCounts.applicationRisk = undefined;
+    }
   }
 
   function getData(url, filter) {
@@ -69,7 +90,8 @@ function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayName
   return {
     getNewestRisks: getNewestRisks,
     getApplicationRisks: getApplicationRisks,
-    getComponentRisks: getComponentRisks
+    getComponentRisks: getComponentRisks,
+    latestResultCounts: latestResultCounts
   };
 }
 

@@ -87,14 +87,14 @@ public class ComponentRiskService
    * null filter criteria generally mean "all available" violations for that aspect. The results are sorted by
    * descending component risk scores.
    */
-  public List<ComponentRiskDTO> getComponentRisks(Set<String> organizationIds,
-                                                  Set<String> applicationIds,
-                                                  Set<String> stageIds,
-                                                  Set<String> tagIds,
-                                                  PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                                  PolicyThreatLevelFilter policyThreatLevelFilter,
-                                                  PolicyViolationStateFilter policyViolationStateFilter,
-                                                  int maxResults)
+  public DashboardResultsDTO<ComponentRiskDTO> getComponentRisks(Set<String> organizationIds,
+                                                                 Set<String> applicationIds,
+                                                                 Set<String> stageIds,
+                                                                 Set<String> tagIds,
+                                                                 PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                                 PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                                 PolicyViolationStateFilter policyViolationStateFilter,
+                                                                 int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
@@ -123,11 +123,14 @@ public class ComponentRiskService
       dtos.add(component.toDTO());
     }
     Collections.sort(dtos, ComponentRiskDTOComparator.INSTANCE);
-    dtos.subList(Math.min(dtos.size(), maxResults), dtos.size()).clear();
+    DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
+    result.numResults = dtos.size();
+    result.dashboardResults = dtos;
+    result.dashboardResults.subList(Math.min(dtos.size(), maxResults), dtos.size()).clear();
 
     log.debug("getComponentRisks finished in {} ms", System.currentTimeMillis() - start);
 
-    return dtos;
+    return result;
   }
 
   @Authorize(permission = Permission.READ)

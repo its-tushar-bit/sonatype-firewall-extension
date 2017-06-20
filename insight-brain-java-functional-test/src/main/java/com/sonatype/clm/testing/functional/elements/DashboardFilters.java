@@ -22,7 +22,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class DashboardFilters extends BasicElement<DashboardFilters>
 {
 
-  public static final Condition INACTIVE = cssClass("inactive");
+  public static final Condition ACTIVE = cssClass("iq-counter--active");
 
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
@@ -241,7 +241,7 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
     public SelenideElement counter() {
-      return child(".dashboard-filter-counter");
+      return child(".iq-counter");
     }
 
     public SelenideElement anchor() {

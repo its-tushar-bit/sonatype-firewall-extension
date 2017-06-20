@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -19,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class ApplicationRiskServiceAuthzTest
@@ -39,47 +39,53 @@ public class ApplicationRiskServiceAuthzTest
 
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthenticated() {
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, 1);
-    assertThat(applicationRiskScoreDTOs, hasSize(0));
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService.getApplicationRisks(null,
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app.getId()), null, null, null, null, null, 1);
-    assertThat(applicationRiskScoreDTOs, hasSize(0));
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService.getApplicationRisks(null,
-        Collections.singleton(app.getId()), null, null, null, null, null, 1);
-    assertThat(applicationRiskScoreDTOs, hasSize(1));
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
+        .getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, 1);
+    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.numResults, is(1));
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitOrganizationFilter_Unauthenticated() {
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null, 1);
-    assertThat(applicationRiskScoreDTOs, hasSize(0));
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitOrganizationFilter_Unauthorized() {
     login();
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null, 1);
-    assertThat(applicationRiskScoreDTOs, hasSize(0));
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitOrganizationFilter_Authorized() {
     grantReadPermission(app.getParentOwnerId());
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = applicationRiskService.getApplicationRisks(
-        Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null, 1);
-    assertThat(applicationRiskScoreDTOs, hasSize(1));
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
+        .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null, 1);
+    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.numResults, is(1));
   }
 }

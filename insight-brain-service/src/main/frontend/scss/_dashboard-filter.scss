@@ -28,26 +28,9 @@
         }
       }
 
-      .dashboard-filter-counter {
-        @include semi-bold();
-        
-        background-color: $iq-grey-1;
-        border: 1px $iq-grey-3 solid;
-        border-radius: 8px;
-        color: $iq-slate;
+      .iq-counter {
         float: right;
-        font-size: 11px;
-        height: 16px;
-        line-height: 18px; // used for vertical alignment
         margin-right: 8px;
-        padding: 0px 4px;
-        
-        &.inactive {
-          background-color: $iq-grey-3;
-          border-color: $iq-grey-4;
-          text-align: center;
-          min-width: 8px;
-        }
       }
       
       .iq-checkbox__label, .iq-radio {

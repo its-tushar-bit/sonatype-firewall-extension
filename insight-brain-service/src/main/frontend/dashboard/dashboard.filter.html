@@ -9,7 +9,7 @@
            data-tooltip-placement="top-left"
            data-tooltip-append-to-body="true"
            tooltip-class="filter-label-tooltip">
-          <div class="dashboard-filter-counter" ng-class="{inactive: vm.selectedCount === 0}">
+          <div class="iq-counter" ng-class="{'iq-counter--active': vm.selectedCount !== 0}">
             {{vm.selectedCount === 0 ? '' : vm.selectedCount + ' of '}}{{::available.length}}
           </div>
           <div class="twisty-container">
@@ -52,7 +52,7 @@
         <a class="tree-view-item cannot-select"
            ng-click="isExpanded = available.length && !readOnly && !isExpanded"
            ng-class="{disabled: readOnly}">
-          <div class="dashboard-filter-counter">
+          <div class="iq-counter">
             {{selectedEntry[nameField]}}
           </div>
           <div class="twisty-container">
@@ -181,7 +181,7 @@
 
       <div class="tree-view-group" id="threat-level-filter">
         <a class="tree-view-item" ng-click="vm.policyThreatLevelState.isExpanded = !vm.policyThreatLevelState.isExpanded">
-          <div class="dashboard-filter-counter">{{vm.selected.policyThreatLevels[0]}} &ndash;
+          <div class="iq-counter iq-counter--active">{{vm.selected.policyThreatLevels[0]}} &ndash;
             {{vm.selected.policyThreatLevels[1]}}
           </div>
           <div class="twisty-container">

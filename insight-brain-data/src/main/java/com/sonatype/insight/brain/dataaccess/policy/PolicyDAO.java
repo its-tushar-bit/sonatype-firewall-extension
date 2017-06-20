@@ -122,19 +122,29 @@ public class PolicyDAO
   }
 
   public void update(Policy policy) {
+    update(policy, true);
+  }
+
+  public void update(Policy policy, boolean validate) {
     try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
       tx.begin();
-      update(tx, policy);
+      update(tx, policy, validate);
       tx.commit();
     }
   }
 
   public void update(TransactionContext tx, Policy policy) {
+    update(tx, policy, true);
+  }
+
+  private void update(TransactionContext tx, Policy policy, boolean validate) {
     String ownerId = policy.getOwnerId();
 
-    ValidationResult validationResult = policy.validate(tx, ownerId);
-    if (validationResult != null && !validationResult.isValid()) {
-      throw new InvalidPolicyException(validationResult);
+    if (validate) {
+      ValidationResult validationResult = policy.validate(tx, ownerId);
+      if (validationResult != null && !validationResult.isValid()) {
+        throw new InvalidPolicyException(validationResult);
+      }
     }
 
     PolicyInternal existingPolicyByName = policyInternalDAO.getByOwnerIdAndName(tx, ownerId, policy.getName());

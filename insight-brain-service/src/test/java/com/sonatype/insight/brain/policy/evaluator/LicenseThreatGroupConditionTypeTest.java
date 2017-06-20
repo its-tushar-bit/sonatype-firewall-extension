@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -36,6 +37,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class LicenseThreatGroupConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -446,5 +448,21 @@ public class LicenseThreatGroupConditionTypeTest
         FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
     assertThat(conditionFact.getReason(), is("Did not find a License that is not assigned to any License Threat Group"));
     assertThat(conditionFact.getSummary(), is("License Threat Group is not '[unassigned]'"));
+  }
+
+  @Test
+  public void testExplainCondition_MissingLTG() {
+    Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "id-of-missing-ltg");
+    LicenseThreatGroupConditionType conditionType = new LicenseThreatGroupConditionType();
+    assertThat(conditionType.explainCondition(condition), is(conditionType.getName() + " is '[deleted]'"));
+  }
+
+  @Test
+  public void testGenerateDroolsConditionValue_MissingLTG() {
+    Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "id-of-missing-ltg");
+    LicenseThreatGroupConditionType conditionType = new LicenseThreatGroupConditionType();
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      assertThat(conditionType.generateDroolsCode(tx, condition), is(notNullValue()));
+    }
   }
 }

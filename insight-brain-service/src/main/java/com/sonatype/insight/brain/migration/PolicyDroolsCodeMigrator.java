@@ -70,7 +70,8 @@ public class PolicyDroolsCodeMigrator
     log.info("Found {} policies.", policies.size());
     for (Policy policy : policies) {
       DroolsGenerator.generate(policy);
-      policyDAO.update(policy);
+      // NOTE: Due to CLM-8176, we skip validation and focus on just updating the Drools code
+      policyDAO.update(policy, false);
     }
 
     schemaInfo.setDroolsCodeVersion(DROOLS_CODE_VERSION);

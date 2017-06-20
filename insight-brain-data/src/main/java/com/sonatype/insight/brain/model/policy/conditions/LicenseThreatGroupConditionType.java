@@ -85,7 +85,8 @@ public class LicenseThreatGroupConditionType
 
     LicenseThreatGroup licenseThreatGroup = tx != null ? licenseThreatGroupDAO.getById(tx, licenseThreatGroupId)
         : licenseThreatGroupDAO.getById(licenseThreatGroupId);
-    return licenseThreatGroup.getName();
+    // NOTE: Due to CLM-8176, it's possible to reference a missing LTG, unfortunate but not appropriate to crash here
+    return licenseThreatGroup != null ? licenseThreatGroup.getName() : "[deleted]";
   }
 
   @Override

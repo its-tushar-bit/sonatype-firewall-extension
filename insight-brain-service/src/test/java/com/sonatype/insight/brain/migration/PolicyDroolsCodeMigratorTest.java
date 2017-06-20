@@ -10,12 +10,20 @@ import java.io.File;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.H2DatabaseMigrator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SchemaInfo;
+import com.sonatype.insight.brain.model.ValidationResult;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -122,5 +130,29 @@ public class PolicyDroolsCodeMigratorTest
     assertThat(policyApp.getDroolsCode(), is(notNullValue()));
     policyOrg = policyDAO.getById(policyOrg.getId());
     assertThat(policyOrg.getDroolsCode(), is(notNullValue()));
+  }
+
+  @Test
+  public void testMigrate_GracefullyHandleInvalidPolicy() throws Exception {
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID);
+    Organization org = tempEntity.newOrganization();
+    Policy policy = new Policy(null, "Test Policy");
+    policy.setOwnerId(org.getId());
+    Constraint constraint = new Constraint(null, "Test Constrainst", LogicalOperator.OR);
+    constraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", ltg.getId()));
+    policy.addConstraint(constraint);
+    policyDAO.insert(policy);
+
+    new LicenseThreatGroupDAO().delete(ltg);
+    ValidationResult validationResult = policy.validate(null, policy.getOwnerId());
+    assertThat(validationResult.isValid(), is(false));
+
+    SchemaInfo schemaInfo = schemaInfoDAO.get();
+    schemaInfo.setDroolsCodeVersion(2);
+    schemaInfoDAO.update(schemaInfo);
+
+    migrator.migrate();
+
+    assertThat(schemaInfoDAO.get().getDroolsCodeVersion(), is(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION));
   }
 }

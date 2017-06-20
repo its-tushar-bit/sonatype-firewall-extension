@@ -29,5 +29,6 @@ export default angular.module('config', [componentsModule.name, charts.name, uti
       'iq-pull-right': 'styles/iq-pull-right.html',
       'iq-scrollable': 'styles/iq-scrollable.html',
       'iq-alerts': 'styles/iq-alerts.html',
+      'iq-modal': 'styles/iq-modal.html',
       'iq-table': 'styles/iq-table.html'
     });

@@ -139,15 +139,13 @@ public class TwistlockPolicyEvaluator
   }
 
   private void writeScan(Scan scan, Writer writer) throws IOException {
-    // The ScanWriter should not be closed here because we don't want to close the passed in Writer
-    @SuppressWarnings("resource")
-    ScanWriter scanWriter = writerFactory.newWriter(writer);
-    scanWriter.openScan(scan);
-    scanWriter.writeConfiguration(scan.getConfiguration());
-    clientScanner.scan(new ClientScanRequest(scan));
-    scanWriter.writeSummary(scan.getSummary());
-    scanWriter.closeScan();
-    scanWriter.close();
+    try (ScanWriter scanWriter = writerFactory.newWriter(writer)) {
+      scanWriter.openScan(scan);
+      scanWriter.writeConfiguration(scan.getConfiguration());
+      clientScanner.scan(new ClientScanRequest(scan));
+      scanWriter.writeSummary(scan.getSummary());
+      scanWriter.closeScan();
+    }
   }
 
   private String getTwistlockScanFilename(String scanResultUrl) {

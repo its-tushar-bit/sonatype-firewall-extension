@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -307,7 +306,6 @@ public class NewestRiskServiceTest
 
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, maxDaysOld, 100);
-    List<NewestRiskDTO> riskDTOs;
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
 

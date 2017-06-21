@@ -58,8 +58,7 @@ public class Scanner
 
     Scan scan = new Scan();
     scan.setConfiguration(new ScanConfiguration(getScanConfigProps(config)));
-    ScanWriter writer = writerFactory.newWriter(scanFile);
-    try {
+    try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
       writer.openScan(scan);
       writer.writeConfiguration(scan.getConfiguration());
       scan.getSummary().setStartTime();
@@ -70,14 +69,6 @@ public class Scanner
       writer.writeSummary(scan.getSummary());
       writer.closeScan();
       writer.close();
-    }
-    finally {
-      try {
-        writer.close();
-      }
-      catch (IOException e) {
-        // don't suppress primary exception
-      }
     }
   }
 

@@ -112,12 +112,8 @@ final class Pdf
     {
       @Override
       public void write(final OutputStream os) throws IOException {
-        final FileInputStream fis = new FileInputStream(pdfFile);
-        try {
+        try (final FileInputStream fis = new FileInputStream(pdfFile)) {
           IOUtil.copy(fis, os);
-        }
-        finally {
-          fis.close();
         }
       }
     });
@@ -131,8 +127,7 @@ final class Pdf
   {
     final File templateDir = new File(reportFile.getParentFile(), "pdf");
 
-    final ZipFile archive = new ZipFile(reportFile);
-    try {
+    try (final ZipFile archive = new ZipFile(reportFile)) {
       for (final Enumeration<? extends ZipEntry> en = archive.entries(); en.hasMoreElements();) {
         final ZipEntry entry = en.nextElement();
         if (entry.isDirectory()) {
@@ -147,12 +142,8 @@ final class Pdf
           }
           else {
             extractedFile.getParentFile().mkdirs();
-            final FileOutputStream fos = new FileOutputStream(extractedFile);
-            try {
+            try (final FileOutputStream fos = new FileOutputStream(extractedFile)) {
               IOUtil.copy(archive.getInputStream(entry), fos);
-            }
-            finally {
-              fos.close();
             }
           }
           if ("summary.json".equals(name)) {
@@ -166,9 +157,6 @@ final class Pdf
       if (policyAlerts.exists()) {
         FileUtils.copyFile(policyAlerts, new File(templateDir, policyAlerts.getName()));
       }
-    }
-    finally {
-      archive.close();
     }
 
     return templateDir;

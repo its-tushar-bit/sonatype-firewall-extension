@@ -47,18 +47,8 @@ public class UrlResponseProvider
   public void render(HttpServletResponse response) throws IOException {
     response.setStatus(status);
     response.setContentType(contentType);
-    OutputStream os = response.getOutputStream();
-    try {
-      InputStream is = body.openStream();
-      try {
-        IO.copy(is, os);
-      }
-      finally {
-        is.close();
-      }
-    }
-    finally {
-      os.close();
+    try (OutputStream os = response.getOutputStream(); InputStream is = body.openStream()) {
+      IO.copy(is, os);
     }
   }
 }

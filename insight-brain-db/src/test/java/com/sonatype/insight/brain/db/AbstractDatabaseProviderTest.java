@@ -15,12 +15,12 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import static org.hamcrest.Matchers.is;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 public abstract class AbstractDatabaseProviderTest
@@ -41,8 +41,7 @@ public abstract class AbstractDatabaseProviderTest
     OperationalDataStoreProvider.init(databaseConfig);
     DataSource dataSource = OperationalDataStoreProvider.getDataSource();
     Assert.assertNotNull(dataSource);
-    Connection conn = dataSource.getConnection();
-    try {
+    try (Connection conn = dataSource.getConnection()) {
       exec(conn, "SELECT * FROM test_table");
 
       String databaseURL = conn.getMetaData().getURL();
@@ -53,9 +52,6 @@ public abstract class AbstractDatabaseProviderTest
       else {
         Assert.assertEquals("jdbc:h2:mem:inMemoryDatabase", databaseURL);
       }
-    }
-    finally {
-      conn.close();
     }
 
     assertThat(OperationalDataStoreProvider.getDatabaseConfig(), is(databaseConfig));
@@ -79,14 +75,8 @@ public abstract class AbstractDatabaseProviderTest
   }
 
   private void exec(Connection conn, String sql) throws SQLException {
-    Statement stmt = conn.createStatement();
-    try {
+    try (Statement stmt = conn.createStatement()) {
       stmt.execute(sql);
-    }
-    finally {
-      if (stmt != null) {
-        stmt.close();
-      }
     }
   }
 }

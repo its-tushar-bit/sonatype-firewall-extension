@@ -62,8 +62,7 @@ abstract class AbstractResourceWithIcon
     byte[] imageByteArray = null;
     if (uploadedInputStream != null) {
       // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
-      ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
-      try {
+      try (ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream()) {
         for (int b = 0; (b = uploadedInputStream.read()) != -1; ) {
           if (imageOutputStream.size() > 5242880) {
             throw new BadRequestException("Icon file size must be smaller than 5 MB.");
@@ -73,21 +72,16 @@ abstract class AbstractResourceWithIcon
         imageByteArray = imageOutputStream.toByteArray();
       }
       finally {
-        imageOutputStream.close();
         uploadedInputStream.close();
       }
 
       if (imageByteArray != null && imageByteArray.length > 0) {
-        InputStream sizeCheckedInputStream = new ByteArrayInputStream(imageByteArray);
-        try {
+        try (InputStream sizeCheckedInputStream = new ByteArrayInputStream(imageByteArray)) {
           new IconDAO().setIcon(ownerId, iconDir, sizeCheckedInputStream);
         }
         catch (IllegalArgumentException | IOException | BadRequestException e) {
           throw new BadRequestException(fileDetail.getFileName()
               + " is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.", e);
-        }
-        finally {
-          sizeCheckedInputStream.close();
         }
       }
     }

@@ -82,16 +82,13 @@ public class TwistlockPolicyEvaluatorTest
         getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz"), 200);
 
     File scanFile = evaluator.scan(params, new ProprietaryConfig());
-    ZipFile scanFileZip = new ZipFile(scanFile);
-    try {
+    // scanFileZip.close() closes all InputStreams retrieved from this archive
+    try (ZipFile scanFileZip = new ZipFile(scanFile)) {
       // Verify the Twistlock scan in the scan zip file
       ZipEntry entry = scanFileZip.getEntry("twistlockScanFile.tar.gz");
-      InputStream expected = getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz").openStream();
-      try {
+      try (InputStream expected = getClass().getResource("/TwistlockPolicyEvaluatorTest/scan-results.tar.gz")
+          .openStream()) {
         assertThat(IOUtil.contentEquals(expected, scanFileZip.getInputStream(entry)), is(true));
-      }
-      finally {
-        expected.close();
       }
 
       // Verify the Sonatype scan in the scan zip file
@@ -103,7 +100,6 @@ public class TwistlockPolicyEvaluatorTest
       assertThat(scan.getSummary().getClientInfo().size(), greaterThan(0));
     }
     finally {
-      scanFileZip.close(); // closes all InputStreams retrieved from this archive
       scanFile.delete();
     }
   }

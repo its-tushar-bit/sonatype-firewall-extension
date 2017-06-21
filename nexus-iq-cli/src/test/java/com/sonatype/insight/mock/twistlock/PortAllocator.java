@@ -32,14 +32,8 @@ public class PortAllocator
   public static int findFreePort(final int defaultPort) {
     int port = defaultPort;
     for (int i = 0; i < 10; i++) {
-      try {
-        ServerSocket socket = new ServerSocket(0);
-        try {
-          port = socket.getLocalPort();
-        }
-        finally {
-          socket.close();
-        }
+      try (ServerSocket socket = new ServerSocket(0)) {
+        port = socket.getLocalPort();
       }
       catch (IOException e) {
         e.printStackTrace();

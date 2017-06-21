@@ -177,12 +177,12 @@ public class TwistlockMockServer
 
       response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
 
-      PrintWriter writer = response.getWriter();
-      writer.println("{");
-      writer.println("\"scanId\" : \"" + SCAN_ID + "\", ");
-      writer.println("\"timeToReport\" : " + 1);
-      writer.println("}");
-      writer.close();
+      try (PrintWriter writer = response.getWriter()) {
+        writer.println("{");
+        writer.println("\"scanId\" : \"" + SCAN_ID + "\", ");
+        writer.println("\"timeToReport\" : " + 1);
+        writer.println("}");
+      }
 
       baseRequest.setHandled(true);
     }

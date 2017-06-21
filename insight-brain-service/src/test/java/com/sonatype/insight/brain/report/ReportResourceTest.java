@@ -656,7 +656,7 @@ public class ReportResourceTest
       assertResponseStatus(200, response);
 
       // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
-      File pdfFile = new File(new File(new File(getCLMServer().getWorkDir(), "report/" + appId), scanId), "report.pdf");
+      File pdfFile = new File(getCLMServer().getReportDir(appId, scanId), "report.pdf");
       assertTrue(pdfFile.getPath(), pdfFile.isFile());
       new FileOutputStream(pdfFile).close();
 

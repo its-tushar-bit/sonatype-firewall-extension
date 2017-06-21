@@ -91,8 +91,7 @@ public class TwistlockPolicyEvaluator
   private File writeScanFile(File targetDir, File twistlockScanFile, Scan scan) {
     try {
       File scanFile = File.createTempFile("scan-", ".zip", targetDir);
-      ZipOutputStream scanFileStream = new ZipOutputStream(new FileOutputStream(scanFile));
-      try {
+      try (ZipOutputStream scanFileStream = new ZipOutputStream(new FileOutputStream(scanFile))) {
         ZipEntry zipEntry = new ZipEntry(ScanFileNames.TWISTLOCK_SCAN_FILENAME);
         scanFileStream.putNextEntry(zipEntry);
         FileUtils.copyFile(twistlockScanFile, scanFileStream);
@@ -101,9 +100,6 @@ public class TwistlockPolicyEvaluator
         zipEntry = new ZipEntry(ScanFileNames.SONATYPE_SCAN_FILENAME);
         scanFileStream.putNextEntry(zipEntry);
         writeScan(scan, new OutputStreamWriter(new GZIPOutputStream(scanFileStream), "UTF-8"));
-      }
-      finally {
-        scanFileStream.close();
       }
 
       return scanFile;
@@ -143,6 +139,8 @@ public class TwistlockPolicyEvaluator
   }
 
   private void writeScan(Scan scan, Writer writer) throws IOException {
+    // The ScanWriter should not be closed here because we don't want to close the passed in Writer
+    @SuppressWarnings("resource")
     ScanWriter scanWriter = writerFactory.newWriter(writer);
     scanWriter.openScan(scan);
     scanWriter.writeConfiguration(scan.getConfiguration());

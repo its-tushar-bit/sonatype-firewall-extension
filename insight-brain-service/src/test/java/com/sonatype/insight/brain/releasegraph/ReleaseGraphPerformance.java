@@ -234,16 +234,8 @@ public class ReleaseGraphPerformance
   }
 
   private List<ComponentPopularity> getComponents() throws ZipException, IOException {
-    ZipFile zf = null;
-    InputStream in = null;
-    try {
-      zf = new ZipFile(srcFile);
-      in = zf.getInputStream(zf.getEntry("popularity.json"));
+    try (ZipFile zf = new ZipFile(srcFile); InputStream in = zf.getInputStream(zf.getEntry("popularity.json"))) {
       return JsonUtils.parse(IOUtil.toByteArray(in), ReportPopularity.class).getPopularity();
-    }
-    finally {
-      IOUtil.close(in);
-      zf.close();
     }
   }
 

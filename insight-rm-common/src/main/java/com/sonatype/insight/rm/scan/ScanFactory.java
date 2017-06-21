@@ -63,15 +63,9 @@ public class ScanFactory
     }
 
     File scanFile = File.createTempFile("sonatype-clm-scan-", ".xml.gz", config.getWorkDir());
-    try {
-      Writer writer = new OutputStreamWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(
-          scanFile), 32 * 1024)), "UTF-8");
-      try {
-        scan(config, writer);
-      }
-      finally {
-        writer.close();
-      }
+    try (Writer writer = new OutputStreamWriter(
+        new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(scanFile), 32 * 1024)), "UTF-8")) {
+      scan(config, writer);
     }
     catch (RuntimeException | IOException e) {
       try {
@@ -103,12 +97,8 @@ public class ScanFactory
       moduleIds.add(item.getCoordinates().getModuleId());
       String sha1 = item.getSha1();
       if (sha1 == null || sha1.isEmpty()) {
-        InputStream is = item.newInputStream();
-        try {
+        try (InputStream is = item.newInputStream()) {
           sha1 = HashUtils.hash(is, HashUtils.SHA1);
-        }
-        finally {
-          is.close();
         }
         componentItems.set(i, new HashedRepositoryItem(item, sha1));
       }
@@ -132,8 +122,7 @@ public class ScanFactory
         continue;
       }
 
-      Reader reader = ReaderFactory.newXmlReader(new GZIPInputStream(item.newInputStream()));
-      try {
+      try (Reader reader = ReaderFactory.newXmlReader(new GZIPInputStream(item.newInputStream()))) {
         MXParser parser = new MXParser();
         parser.setInput(reader);
         for (int event = parser.getEventType(); event != XmlPullParser.END_DOCUMENT; event = parser.next()) {
@@ -204,9 +193,6 @@ public class ScanFactory
       catch (XmlPullParserException e) {
         throw new IOException("Could not read scan file " + item.getPath(), e);
       }
-      finally {
-        reader.close();
-      }
     }
     summary.setArchives(archives);
     summary.setFiles(files);
@@ -225,18 +211,8 @@ public class ScanFactory
           String ext = new File(item.getPath()).getName();
           ext = ext.substring(ext.indexOf('.') + 1);
           file = tmp = File.createTempFile("sonatype-clm-file-", "." + ext, config.getWorkDir());
-          InputStream is = item.newInputStream();
-          try {
-            FileOutputStream fos = new FileOutputStream(file);
-            try {
-              IOUtil.copy(is, fos);
-            }
-            finally {
-              fos.close();
-            }
-          }
-          finally {
-            is.close();
+          try (InputStream is = item.newInputStream(); FileOutputStream fos = new FileOutputStream(file)) {
+            IOUtil.copy(is, fos);
           }
         }
         FileScanRequest scanRequest = new FileScanRequest(scanSession);

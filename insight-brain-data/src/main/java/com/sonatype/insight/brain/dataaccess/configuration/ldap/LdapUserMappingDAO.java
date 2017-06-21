@@ -25,12 +25,8 @@ public class LdapUserMappingDAO
   }
 
   public LdapUserMapping getByServerId(String serverId) {
-    TransactionContext tx = createTransactionContext();
-    try {
+    try (TransactionContext tx = createTransactionContext()) {
       return getByServerId(tx, serverId);
-    }
-    finally {
-      tx.close();
     }
   }
 

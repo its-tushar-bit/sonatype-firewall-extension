@@ -111,12 +111,8 @@ public class TwistlockScanner
   }
 
   private String getStdOutContent(Process process) throws IOException {
-    InputStream stdOut = process.getInputStream();
-    try {
+    try (InputStream stdOut = process.getInputStream()) {
       return IOUtil.toString(stdOut, "UTF-8");
-    }
-    finally {
-      stdOut.close();
     }
   }
 }

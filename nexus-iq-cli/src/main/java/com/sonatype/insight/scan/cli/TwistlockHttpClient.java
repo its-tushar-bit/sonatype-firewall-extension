@@ -36,12 +36,8 @@ public final class TwistlockHttpClient
       }
 
       byte[] data = result.data();
-      OutputStream fos = new BufferedOutputStream(new FileOutputStream(resultsFile));
-      try {
+      try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(resultsFile))) {
         fos.write(data);
-      }
-      finally {
-        fos.close();
       }
     }
     catch (IOException e) {

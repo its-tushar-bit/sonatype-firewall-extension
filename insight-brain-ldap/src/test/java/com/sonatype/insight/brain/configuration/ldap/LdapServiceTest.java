@@ -124,8 +124,7 @@ public class LdapServiceTest
 
   @Test
   public void testTestConnection_Timeout() throws Exception {
-    ServerSocket socket = new ServerSocket(0);
-    try {
+    try (ServerSocket socket = new ServerSocket(0)) {
       long begin = 0, end = 0;
 
       LdapConnection ldapConnection = new LdapConnection();
@@ -162,15 +161,11 @@ public class LdapServiceTest
 
       assertThat(Double.valueOf(end - begin), is(closeTo(5300, 500)));
     }
-    finally {
-      socket.close();
-    }
   }
 
   @Test
   public void testAuthenticateUser_RetryDelay() throws Exception {
-    ServerSocket socket = new ServerSocket(0);
-    try {
+    try (ServerSocket socket = new ServerSocket(0)) {
       LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
 
       LdapConnection ldapConnection = createLdapConnection(ldapServer);
@@ -221,9 +216,6 @@ public class LdapServiceTest
       catch (NamingException expected) {
         assertThat(expected.getMessage(), containsString("read timed out"));
       }
-    }
-    finally {
-      socket.close();
     }
   }
 
@@ -394,8 +386,7 @@ public class LdapServiceTest
 
   @Test
   public void testAuthenticateUserForReverseProxy_RetryDelay() throws Exception {
-    ServerSocket socket = new ServerSocket(0);
-    try {
+    try (ServerSocket socket = new ServerSocket(0)) {
       LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
 
       LdapConnection ldapConnection = createLdapConnection(ldapServer);
@@ -446,9 +437,6 @@ public class LdapServiceTest
       catch (NamingException expected) {
         assertThat(expected.getMessage(), containsString("read timed out"));
       }
-    }
-    finally {
-      socket.close();
     }
   }
 

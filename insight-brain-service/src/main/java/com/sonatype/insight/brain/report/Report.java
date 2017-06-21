@@ -654,23 +654,19 @@ public final class Report
   }
 
   private static ReportEntry extractEntry(final File reportFile, final String name) throws IOException {
-    final ZipFile archive = new ZipFile(reportFile);
-    try {
+    // When the archive is closed, all InputStreams retrieved from this archive are also closed.
+    try (final ZipFile archive = new ZipFile(reportFile)) {
       final ZipEntry entry = archive.getEntry(name);
       if (entry != null) {
         final byte[] buf = IOUtil.toByteArray(archive.getInputStream(entry));
         return new ReportEntry(entry.getName(), entry.getTime(), buf);
       }
     }
-    finally {
-      archive.close(); // closes all InputStreams retrieved from this archive
-    }
     return null;
   }
 
   private static ReportType getType(final File reportFile) throws IOException {
-    final ZipFile archive = new ZipFile(reportFile);
-    try {
+    try (final ZipFile archive = new ZipFile(reportFile)) {
       if (archive.getEntry("sample.txt") != null) {
         return ReportType.SAMPLE;
       }
@@ -678,9 +674,6 @@ public final class Report
         return ReportType.ERROR;
       }
       return ReportType.FULL;
-    }
-    finally {
-      archive.close();
     }
   }
 

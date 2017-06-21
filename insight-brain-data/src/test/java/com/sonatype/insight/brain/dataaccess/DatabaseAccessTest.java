@@ -40,15 +40,11 @@ public class DatabaseAccessTest
 
   private void assertDataSource(DataSource dataSource, DatabaseConfig databaseConfig) throws SQLException {
     Assert.assertNotNull(dataSource);
-    Connection conn = dataSource.getConnection();
-    try {
+    try (Connection conn = dataSource.getConnection()) {
       String databaseURL = conn.getMetaData().getURL();
       Assert.assertNotNull(databaseURL);
       Assert.assertTrue("databaseConfig.url=" + databaseConfig.getUrl().toString() + " expected to start with "
           + databaseURL, databaseConfig.getUrl().startsWith(databaseURL + ";"));
-    }
-    finally {
-      conn.close();
     }
   }
 

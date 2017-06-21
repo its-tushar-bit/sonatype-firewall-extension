@@ -128,6 +128,44 @@
           <argLine>-XX:MaxPermSize=128m</argLine>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>verify-bytecode-version</id>
+            <phase>test</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <enforceBytecodeVersion>
+                  <maxJdkVersion>${maven.compiler.target}</maxJdkVersion>
+                  <ignoreClasses>
+                    <ignoreClass>com.thoughtworks.xstream.mapper.LambdaMapper</ignoreClass>
+                    <ignoreClass>com.thoughtworks.xstream.converters.reflection.LambdaConverter</ignoreClass>
+                    <ignoreClass>com.thoughtworks.xstream.converters.time.*</ignoreClass>
+                    <ignoreClass>com.thoughtworks.xstream.core.util.ISO8601JavaTimeConverter</ignoreClass>
+                  </ignoreClasses>
+                  <ignoredScopes>
+                    <ignoredScope>system</ignoredScope>
+                    <ignoredScope>provided</ignoredScope>
+                    <ignoredScope>test</ignoredScope>
+                  </ignoredScopes>
+                </enforceBytecodeVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>extra-enforcer-rules</artifactId>
+            <version>1.0-beta-3</version>
+          </dependency>
+        </dependencies>
+      </plugin>
     </plugins>
   </build>
 </project>

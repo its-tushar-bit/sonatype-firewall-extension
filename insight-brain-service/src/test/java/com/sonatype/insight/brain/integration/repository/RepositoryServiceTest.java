@@ -627,8 +627,7 @@ public class RepositoryServiceTest
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
     assertRepositoryComponent(repository.getId(), pathname, before, after, hash, componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, true, after,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, after, repositoryComponent);
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
         repository.getId(), pathname).get(0);
@@ -680,7 +679,7 @@ public class RepositoryServiceTest
         pathname);
     assertRepositoryComponent(repository.getId(), pathname, timeBeforeEvaluation, timeAfterEvaluation, hash,
         componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), timeBeforeEvaluation,
-        timeAfterEvaluation, true, timeAfterEvaluation, repositoryComponent);
+        timeAfterEvaluation, timeAfterEvaluation, repositoryComponent);
     assertThat(repositoryComponent.isQuarantined(), is(true));
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
@@ -772,7 +771,7 @@ public class RepositoryServiceTest
 
     repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
     assertRepositoryComponent(repository.getId(), pathname, timeBeforeEvaluation, after, hash, componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), timeBeforeEvaluation, after, true, null,
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), timeBeforeEvaluation, after, null,
         repositoryComponent);
     assertThat(repositoryComponent.isQuarantined(), is(false));
 
@@ -828,8 +827,7 @@ public class RepositoryServiceTest
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
     assertRepositoryComponent(repository.getId(), pathname, before, after, hash, componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, true, after,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, after, repositoryComponent);
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
         repository.getId(), pathname).get(0);
@@ -878,7 +876,7 @@ public class RepositoryServiceTest
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
     assertRepositoryComponent(repository.getId(), pathname, before, after, hash, componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), true, repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
   }
 
   @Test
@@ -930,7 +928,7 @@ public class RepositoryServiceTest
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
         pathname);
     assertRepositoryComponent(repository.getId(), pathname, before, after, hash, componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), true, repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
   }
 
   @Test
@@ -1148,8 +1146,7 @@ public class RepositoryServiceTest
       RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
           pathname);
       assertRepositoryComponent(repository.getId(), pathname, before, after, hash, componentIdentifier,
-          MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
-          repositoryComponent);
+          MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
       RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
           repository.getId(), pathname).get(0);
@@ -1289,8 +1286,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents, hasSize(1));
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before1, after1, hash, componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
@@ -1318,8 +1314,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents, hasSize(1));
     repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before2, after2, updatedHash, updatedComponentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before2, after2, false /* canBeQuarantined */,
-        null, repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before2, after2, null, repositoryComponent);
 
     policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations, hasSize(2));
@@ -1372,8 +1367,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents, hasSize(1));
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, "h", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
@@ -1423,8 +1417,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents, hasSize(1));
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
@@ -1471,8 +1464,7 @@ public class RepositoryServiceTest
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents, hasSize(1));
     assertRepositoryComponent(repository.getId(), "path", before, after, "h", claimedComponentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.MANUAL.getId(), false /* canBeQuarantined */,
-        repositoryComponents.get(0));
+        MatchState.EXACT.getId(), IdentificationSource.MANUAL.getId(), repositoryComponents.get(0));
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
@@ -1520,8 +1512,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents, hasSize(1));
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
@@ -1565,8 +1556,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents, hasSize(1));
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier,
-        MatchState.UNKNOWN.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
-        repositoryComponent);
+        MatchState.UNKNOWN.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
         .getId());
@@ -1604,8 +1594,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents, hasSize(1));
     RepositoryComponent repositoryComponent = repositoryComponents.get(0);
     assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier1,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
-        repositoryComponent);
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
   }
 
   @Test
@@ -1824,7 +1813,6 @@ public class RepositoryServiceTest
                                          String identificationSourceId,
                                          Date beforeLastEvaluation,
                                          Date afterLastEvaluation,
-                                         boolean canBeQuarantined,
                                          Date afterQuarantineTime,
                                          RepositoryComponent actual)
   {
@@ -1854,11 +1842,10 @@ public class RepositoryServiceTest
                                          ComponentIdentifier componentIdentifier,
                                          String matchStateId,
                                          String identificationSourceId,
-                                         boolean canBeQuarantined,
                                          RepositoryComponent actual)
   {
     assertRepositoryComponent(repositoryId, pathname, beforeCreate, afterCreate, hash, componentIdentifier,
-        matchStateId, identificationSourceId, beforeCreate, afterCreate, canBeQuarantined, null, actual);
+        matchStateId, identificationSourceId, beforeCreate, afterCreate, null, actual);
   }
 
   private void assertPolicyViolation(String repositoryId,

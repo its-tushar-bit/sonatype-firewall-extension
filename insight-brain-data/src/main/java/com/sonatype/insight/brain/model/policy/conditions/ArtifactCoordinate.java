@@ -11,8 +11,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import org.codehaus.plexus.util.StringUtils;
 
-//import org.springframework.util.AntPathMatcher;
-
 /**
  * Copied from com.sonatype.nexus.procurement.ArtifactCoordinate.
  * <p>
@@ -36,41 +34,16 @@ import org.codehaus.plexus.util.StringUtils;
  * @author cstamas
  */
 public class ArtifactCoordinate
-    implements Comparable<ArtifactCoordinate>
 {
   public static final String PLACEHOLDER = "*";
 
-  private ComponentIdentifier componentIdentifier;
-
-  // private transient AntPathMatcher pathMatcher = new AntPathMatcher();
-
-  /**
-   * Constructs an ArtifactCoordinate.
-   */
-  public ArtifactCoordinate() {
-  }
+  private final ComponentIdentifier componentIdentifier;
 
   /**
    * Constructs an ArtifactCoordinate.
    */
   public ArtifactCoordinate(ComponentIdentifier componentIdentifier) {
     this.componentIdentifier = componentIdentifier;
-  }
-
-  /**
-   * Returns true when all GAV coordinates are present, and none of them contains a '*' joker character.
-   * 
-   * @return
-   */
-  public boolean isFixed() {
-    // fixed is when all coordinates are given and none of those contains placeholder
-    // when fixed, it identifies exactly one artifact
-    for (String value : componentIdentifier.getCoordinates().values()) {
-      if (StringUtils.isEmpty(value) || value.contains(PLACEHOLDER)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   public boolean matches(final ComponentIdentifier otherComponentIdentifier) {
@@ -107,43 +80,8 @@ public class ArtifactCoordinate
     return true;
   }
 
-  /**
-   * Returns true if this ArtifactCoordinate matches the passed in fixed ArtifactCoordinate coordinates.
-   * 
-   * @param coordinate
-   * @return
-   */
-  public boolean matches(ArtifactCoordinate coordinate) {
-    return coordinate.isFixed() && matches(coordinate.getComponentIdentifier());
-  }
-
   public ComponentIdentifier getComponentIdentifier() {
     return componentIdentifier;
-  }
-
-  // internal
-
-  private int getMatchableCharacters() {
-    int count = 0;
-    for (String value : componentIdentifier.getCoordinates().values()) {
-      count += cleanseCoordinate(value).length();
-    }
-    return count;
-  }
-
-  private String cleanseCoordinate(String coordinate) {
-    if (coordinate.endsWith(PLACEHOLDER)) {
-      coordinate = coordinate.substring(0, coordinate.indexOf(PLACEHOLDER));
-
-      if (coordinate.endsWith(".")) {
-        return coordinate.substring(0, coordinate.length() - 1);
-      }
-      else {
-        return coordinate;
-      }
-    }
-
-    return coordinate;
   }
 
   /**
@@ -232,11 +170,6 @@ public class ArtifactCoordinate
   }
 
   // Object
-
-  @Override
-  public int compareTo(ArtifactCoordinate o) {
-    return getMatchableCharacters() - o.getMatchableCharacters();
-  }
 
   @Override
   public String toString() {

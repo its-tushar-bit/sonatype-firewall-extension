@@ -91,6 +91,7 @@ public class PolicyImportExportTest
   private TagDAO tagDAO = new TagDAO();
   private PolicyTagDAO policyTagDAO = new PolicyTagDAO();
   private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  private OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @Before
   public void setUp() {
@@ -346,9 +347,7 @@ public class PolicyImportExportTest
 
   @Test
   public void testImport_ToRootOrganizationDeletesAllLtgsWaiversPolicies() throws Exception {
-    final Organization rootOrganization = new Organization();
-    rootOrganization.setId(Organization.ROOT_ORGANIZATION_ID);
-    rootOrganization.setName("Root Organization");
+    final Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     final Policy rootOrganizationPolicy = tempEntity
         .newPolicy(rootOrganization.getId(), "rootOrganizationPolicyId", "rootOrganizationPolicyName");
     final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity
@@ -406,9 +405,7 @@ public class PolicyImportExportTest
 
   @Test
   public void testImport_ToChildOrganizationDoesNotDeleteAllLtgsWaiversPolicies() throws Exception {
-    final Organization rootOrganization = new Organization();
-    rootOrganization.setId(Organization.ROOT_ORGANIZATION_ID);
-    rootOrganization.setName("Root Organization");
+    final Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     final Policy rootOrganizationPolicy = tempEntity
         .newPolicy(rootOrganization.getId(), "rootOrganizationPolicyId", "rootOrganizationPolicyName");
     final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity

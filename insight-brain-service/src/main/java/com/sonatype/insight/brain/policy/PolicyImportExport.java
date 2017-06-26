@@ -17,6 +17,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -72,6 +74,8 @@ public class PolicyImportExport
   private final PolicyDAO policyDAO = new PolicyDAO();
 
   private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+  
+  private final OwnerDAO ownerDAO = new OwnerDAO();
 
   @Inject
   public PolicyImportExport() {
@@ -103,9 +107,7 @@ public class PolicyImportExport
 
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
-      deleteLicenseThreatGroups(tx, appId, null);
-      deletePolicyWaivers(tx, appId, null);
-      policyDAO.deleteByOwnerId(tx, appId);
+      deleteFromOwnerAndDescendants(tx, application);
       importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, appId), appId, orgId);
       importLicenseThreatGroups(tx, exportDTO, appId);
       // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
@@ -154,13 +156,7 @@ public class PolicyImportExport
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
 
-      deleteFromOwnedApplications(tx, orgId);
-      deletePolicyWaivers(tx, orgId, null);
-      deleteLicenseThreatGroups(tx, orgId, null);
-      policyDAO.deleteByOwnerId(tx, orgId);
-      for (Application application : applicationDAO.getByOrganizationId(tx, orgId)) {
-        policyDAO.deleteByOwnerId(tx, application.getId());
-      }
+      deleteFromOwnerAndDescendants(tx, organization);
       importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), null, orgId);
       importLicenseThreatGroups(tx, exportDTO, orgId);
       importAndMergeTags(tx, exportDTO, orgId);
@@ -188,23 +184,25 @@ public class PolicyImportExport
   }
 
   /**
-   * Delete all LTGs and waivers from an organization's child applications.
+   * Delete all policy waivers, LTGs, and policies from an owner's descendant owners and itself.
    */
-  private void deleteFromOwnedApplications(TransactionContext tx, String orgId) {
-    for (Application application : applicationDAO.getByOrganizationId(tx, orgId)) {
-      deleteLicenseThreatGroups(tx, application.getId(), orgId);
-      deletePolicyWaivers(tx, application.getId(), orgId);
+  private void deleteFromOwnerAndDescendants(TransactionContext tx, Owner owner) {
+    for (Owner childOwner : ownerDAO.getChildOwners(tx, owner)) {
+      deleteFromOwnerAndDescendants(tx, childOwner);
     }
+    deletePolicyWaivers(tx, owner.getId());
+    deleteLicenseThreatGroups(tx, owner.getId());
+    policyDAO.deleteByOwnerId(tx, owner.getId());
   }
 
   /**
    * Delete all LTGs from the specified owner.
    */
-  private void deleteLicenseThreatGroups(TransactionContext tx, String ownerId, String orgId) {
+  private void deleteLicenseThreatGroups(TransactionContext tx, String ownerId) {
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, ownerId);
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      log.debug("Deleting licenseThreatGroup: {} during import for ownerId: {}", licenseThreatGroup.getName(),
-          orgId != null ? orgId : ownerId);
+      log.debug("Deleting licenseThreatGroup: {} during import from ownerId: {}", licenseThreatGroup.getName(),
+          ownerId);
       licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
     }
   }
@@ -212,10 +210,9 @@ public class PolicyImportExport
   /**
    * Delete all PolicyWaivers from the specified owner.
    */
-  private void deletePolicyWaivers(TransactionContext tx, String ownerId, final String orgId) {
+  private void deletePolicyWaivers(TransactionContext tx, String ownerId) {
     for (PolicyWaiver policyWaiver : policyWaiverDAO.getByOwnerId(tx, ownerId)) {
-      log.debug("Deleting policyWaiver: {} during import for ownerId: {}", policyWaiver.getId(), orgId != null ? orgId
-          : ownerId);
+      log.debug("Deleting policyWaiver: {} during import from ownerId: {}", policyWaiver.getId(), ownerId);
       policyWaiverDAO.delete(tx, policyWaiver);
     }
   }

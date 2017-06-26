@@ -34,10 +34,12 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -88,6 +90,7 @@ public class PolicyImportExportTest
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
   private TagDAO tagDAO = new TagDAO();
   private PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
   @Before
   public void setUp() {
@@ -339,6 +342,132 @@ public class PolicyImportExportTest
     assertThat(condition.getConditionTypeId(), is(LicenseThreatGroupConditionType.ID));
     assertThat(condition.getOperator(), is("is"));
     assertThat(condition.getValue(), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID));
+  }
+
+  @Test
+  public void testImport_ToRootOrganizationDeletesAllLtgsWaiversPolicies() throws Exception {
+    final Organization rootOrganization = new Organization();
+    rootOrganization.setId(Organization.ROOT_ORGANIZATION_ID);
+    rootOrganization.setName("Root Organization");
+    final Policy rootOrganizationPolicy = tempEntity
+        .newPolicy(rootOrganization.getId(), "rootOrganizationPolicyId", "rootOrganizationPolicyName");
+    final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity
+        .newWaiver(rootOrganizationPolicy.getId(), rootOrganization.getId());
+    final LicenseThreatGroup rootOrganizationLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(rootOrganization.getId());
+
+    final Organization organizationOne = tempEntity.newOrganization("organizationOne");
+    final Policy organizationOnePolicy = tempEntity
+        .newPolicy(organizationOne.getId(), "organizationOnePolicyId", "organizationOnePolicyName");
+    final PolicyWaiver organizationOnePolicyWaiver = tempEntity
+        .newWaiver(rootOrganizationPolicy.getId(), organizationOne.getId());
+    final LicenseThreatGroup organizationOneLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(organizationOne.getId());
+    final Application applicationOne = tempEntity.newApplication(organizationOne.getId());
+    tempEntity.newPolicy(applicationOne.getId(), "applicationOnePolicyId", "applicationOnePolicyName");
+    final PolicyWaiver applicationOnePolicyWaiver = tempEntity
+        .newWaiver(organizationOnePolicy.getId(), applicationOne.getId());
+    final LicenseThreatGroup applicationOneLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(applicationOne.getId());
+
+    final Organization organizationTwo = tempEntity.newOrganization("organizationTwo");
+    final Policy organizationTwoPolicy = tempEntity
+        .newPolicy(organizationTwo.getId(), "organizationTwoPolicyId", "organizationTwoPolicyName");
+    final PolicyWaiver organizationTwoPolicyWaiver = tempEntity
+        .newWaiver(rootOrganizationPolicy.getId(), organizationTwo.getId());
+    final LicenseThreatGroup organizationTwoLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(organizationTwo.getId());
+    final Application applicationTwo = tempEntity.newApplication(organizationTwo.getId());
+    tempEntity.newPolicy(applicationTwo.getId(), "applicationTwoPolicyId", "applicationTwoPolicyName");
+    final PolicyWaiver applicationTwoPolicyWaiver = tempEntity
+        .newWaiver(organizationTwoPolicy.getId(), applicationTwo.getId());
+    final LicenseThreatGroup applicationTwoLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(applicationTwo.getId());
+
+    final Repository repository = tempEntity.newRepository();
+    final PolicyWaiver repositoryPolicyWaiver = tempEntity
+        .newWaiver(rootOrganizationPolicy.getId(), repository.getId());
+
+    policyImportExport.importOrganization(rootOrganization, new PolicyExportResult());
+
+    assertThat(policyDAO.getAll(), is(empty()));
+    assertThat(policyWaiverDAO.getById(rootOrganizationPolicyWaiver.getId()), is(nullValue()));
+    assertThat(policyWaiverDAO.getById(organizationOnePolicyWaiver.getId()), is(nullValue()));
+    assertThat(policyWaiverDAO.getById(organizationTwoPolicyWaiver.getId()), is(nullValue()));
+    assertThat(policyWaiverDAO.getById(applicationOnePolicyWaiver.getId()), is(nullValue()));
+    assertThat(policyWaiverDAO.getById(applicationTwoPolicyWaiver.getId()), is(nullValue()));
+    assertThat(policyWaiverDAO.getById(repositoryPolicyWaiver.getId()), is(nullValue()));
+    assertThat(licenseThreatGroupDAO.getById(rootOrganizationLicenseThreatGroup.getId()), is(nullValue()));
+    assertThat(licenseThreatGroupDAO.getById(organizationOneLicenseThreatGroup.getId()), is(nullValue()));
+    assertThat(licenseThreatGroupDAO.getById(organizationTwoLicenseThreatGroup.getId()), is(nullValue()));
+    assertThat(licenseThreatGroupDAO.getById(applicationOneLicenseThreatGroup.getId()), is(nullValue()));
+    assertThat(licenseThreatGroupDAO.getById(applicationTwoLicenseThreatGroup.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testImport_ToChildOrganizationDoesNotDeleteAllLtgsWaiversPolicies() throws Exception {
+    final Organization rootOrganization = new Organization();
+    rootOrganization.setId(Organization.ROOT_ORGANIZATION_ID);
+    rootOrganization.setName("Root Organization");
+    final Policy rootOrganizationPolicy = tempEntity
+        .newPolicy(rootOrganization.getId(), "rootOrganizationPolicyId", "rootOrganizationPolicyName");
+    final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity
+        .newWaiver(rootOrganizationPolicy.getId(), rootOrganization.getId());
+    final LicenseThreatGroup rootOrganizationLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(rootOrganization.getId());
+
+    final Organization organizationOne = tempEntity.newOrganization("organizationOne");
+    final Policy organizationOnePolicy = tempEntity
+        .newPolicy(organizationOne.getId(), "organizationOnePolicyId", "organizationOnePolicyName");
+    final PolicyWaiver organizationOnePolicyWaiver = tempEntity
+        .newWaiver(rootOrganizationPolicy.getId(), organizationOne.getId());
+    final LicenseThreatGroup organizationOneLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(organizationOne.getId());
+    final Application applicationOne = tempEntity.newApplication(organizationOne.getId());
+    final Policy applicationOnePolicy = tempEntity
+        .newPolicy(applicationOne.getId(), "applicationOnePolicyId", "applicationOnePolicyName");
+    final PolicyWaiver applicationOnePolicyWaiver = tempEntity
+        .newWaiver(organizationOnePolicy.getId(), applicationOne.getId());
+    final LicenseThreatGroup applicationOneLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(applicationOne.getId());
+
+    final Organization organizationTwo = tempEntity.newOrganization("organizationTwo");
+    final Policy organizationTwoPolicy = tempEntity
+        .newPolicy(organizationTwo.getId(), "organizationTwoPolicyId", "organizationTwoPolicyName");
+    final PolicyWaiver organizationTwoPolicyWaiver = tempEntity
+        .newWaiver(rootOrganizationPolicy.getId(), organizationTwo.getId());
+    final LicenseThreatGroup organizationTwoLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(organizationTwo.getId());
+    final Application applicationTwo = tempEntity.newApplication(organizationTwo.getId());
+    final Policy applicationTwoPolicy = tempEntity
+        .newPolicy(applicationTwo.getId(), "applicationTwoPolicyId", "applicationTwoPolicyName");
+    final PolicyWaiver applicationTwoPolicyWaiver = tempEntity
+        .newWaiver(organizationTwoPolicy.getId(), applicationTwo.getId());
+    final LicenseThreatGroup applicationTwoLicenseThreatGroup = tempEntity
+        .newLicenseThreatGroup(applicationTwo.getId());
+
+    final Repository repository = tempEntity.newRepository();
+    final PolicyWaiver repositoryPolicyWaiver = tempEntity
+        .newWaiver(rootOrganizationPolicy.getId(), repository.getId());
+
+    policyImportExport.importOrganization(organizationOne, new PolicyExportResult());
+
+    assertThat(policyDAO.getById(rootOrganizationPolicy.getId()), is(notNullValue()));
+    assertThat(policyDAO.getById(organizationOnePolicy.getId()), is(nullValue()));
+    assertThat(policyDAO.getById(organizationTwoPolicy.getId()), is(notNullValue()));
+    assertThat(policyDAO.getById(applicationOnePolicy.getId()), is(nullValue()));
+    assertThat(policyDAO.getById(applicationTwoPolicy.getId()), is(notNullValue()));
+    assertThat(policyWaiverDAO.getById(rootOrganizationPolicyWaiver.getId()), is(notNullValue()));
+    assertThat(policyWaiverDAO.getById(organizationOnePolicyWaiver.getId()), is(nullValue()));
+    assertThat(policyWaiverDAO.getById(organizationTwoPolicyWaiver.getId()), is(notNullValue()));
+    assertThat(policyWaiverDAO.getById(applicationOnePolicyWaiver.getId()), is(nullValue()));
+    assertThat(policyWaiverDAO.getById(applicationTwoPolicyWaiver.getId()), is(notNullValue()));
+    assertThat(policyWaiverDAO.getById(repositoryPolicyWaiver.getId()), is(notNullValue()));
+    assertThat(licenseThreatGroupDAO.getById(rootOrganizationLicenseThreatGroup.getId()), is(notNullValue()));
+    assertThat(licenseThreatGroupDAO.getById(organizationOneLicenseThreatGroup.getId()), is(nullValue()));
+    assertThat(licenseThreatGroupDAO.getById(organizationTwoLicenseThreatGroup.getId()), is(notNullValue()));
+    assertThat(licenseThreatGroupDAO.getById(applicationOneLicenseThreatGroup.getId()), is(nullValue()));
+    assertThat(licenseThreatGroupDAO.getById(applicationTwoLicenseThreatGroup.getId()), is(notNullValue()));
   }
 
   /**

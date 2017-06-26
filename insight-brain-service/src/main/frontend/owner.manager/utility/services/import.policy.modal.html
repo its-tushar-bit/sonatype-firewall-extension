@@ -13,8 +13,9 @@
       </div>
       <div ng-if="!vm.error" class="clm-alert alert">
         <i class="fa fa-warning"></i>
-        <span><strong>Note:</strong> Importing policies is <strong>destructive</strong> and will replace
-            existing policies and license threat groups</span>
+        <span><strong>Note:</strong> Importing policies is <strong>destructive</strong>, all existing policies, waivers,
+          and license threat groups belonging to this organization/application and any of its descendants will be
+          <strong>permanently deleted</strong> before importing</span>
       </div>
     </div>
     <div class='clm-modal-footer' ng-class="{error: vm.error}">

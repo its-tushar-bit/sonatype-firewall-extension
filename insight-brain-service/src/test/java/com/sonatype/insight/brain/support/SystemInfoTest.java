@@ -343,6 +343,8 @@ public class SystemInfoTest
     assertThat(mxProps.get("UsedPhysicalMemorySize"), is(notNullValue()));
     assertThat(mxProps.get("MaxFileDescriptorCount"), is(notNullValue()));
     assertThat(mxProps.get("OpenFileDescriptorCount"), is(notNullValue()));
-    assertThat(mxProps.size(), is(5));
+    assertThat(mxProps.get("ULimitSoft"), is(notNullValue()));
+    assertThat(mxProps.get("ULimitHard"), is(notNullValue()));
+    assertThat(mxProps.size(), is(7));
   }
 }

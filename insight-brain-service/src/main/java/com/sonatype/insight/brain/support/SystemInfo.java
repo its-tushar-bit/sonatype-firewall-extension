@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.yaml.snakeyaml.Yaml;
 import com.yammer.metrics.core.VirtualMachineMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import oshi.PlatformEnum;
 
 /**
  * @since 1.27
@@ -324,6 +325,9 @@ class SystemInfo
           info.getHardware().getMemory().getTotal() - info.getHardware().getMemory().getAvailable());
       entries.put("MaxFileDescriptorCount", info.getOperatingSystem().getFileSystem().getMaxFileDescriptors());
       entries.put("OpenFileDescriptorCount", info.getOperatingSystem().getFileSystem().getOpenFileDescriptors());
+
+      entries.put("ULimitSoft", getULimitSoft());
+      entries.put("ULimitHard", getULimitHard());
     }
     catch (Exception e) {
       log.warn("Ignoring error loading props.", e);
@@ -331,5 +335,28 @@ class SystemInfo
     final Map<String, SortedMap<String, Object>> mapEntry = new HashMap<>();
     mapEntry.put("system-extraprops", entries);
     return mapEntry;
+  }
+
+  private static String getULimitSoft() {
+    return getULimit("-Sn");
+  }
+
+  private static String getULimitHard() {
+    return getULimit("-Hn");
+  }
+
+  private static String getULimit(final String ulimitArgs) {
+    if (!PlatformEnum.WINDOWS.equals(oshi.SystemInfo.getCurrentPlatformEnum())) {
+      final List<String> cmdResult = oshi.util.ExecutingCommand.runNative("ulimit " + ulimitArgs);
+      if (!cmdResult.isEmpty()) {
+        return cmdResult.get(0);
+      }
+      else {
+        return "n/a";
+      }
+    }
+    else {
+      return "not supported";
+    }
   }
 }

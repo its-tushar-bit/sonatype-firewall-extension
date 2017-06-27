@@ -48,7 +48,7 @@ public class ReportDownloaderTest
   }
 
   @Test
-  public void testDownloadReportNonExistentScanId_DoesNotCreateParentDir() throws Exception {
+  public void testDownloadReport_NonExistentScanId_DoesNotCreateParentDir() throws Exception {
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "NonExistentScanId";
 

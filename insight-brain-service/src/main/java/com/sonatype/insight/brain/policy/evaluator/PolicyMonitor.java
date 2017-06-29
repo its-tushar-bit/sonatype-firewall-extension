@@ -108,6 +108,7 @@ public class PolicyMonitor
       }
       catch (InterruptedException e) {
         log.error(e.getMessage(), e);
+        Thread.currentThread().interrupt();
         return;
       }
       catch (IOException | RuntimeException e) {

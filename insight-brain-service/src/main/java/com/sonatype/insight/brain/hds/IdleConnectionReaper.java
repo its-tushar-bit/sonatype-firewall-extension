@@ -14,6 +14,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Background thread that evicts HTTP connections that have not been used for some time from their pool as recommended
@@ -26,6 +28,8 @@ import org.apache.http.conn.HttpClientConnectionManager;
 @Singleton
 public class IdleConnectionReaper
 {
+  private static final Logger log = LoggerFactory.getLogger(IdleConnectionReaper.class);
+
   private final Collection<SoftReference<HttpClientConnectionManager>> connectionManagerRefs = new CopyOnWriteArraySet<>();
 
   public IdleConnectionReaper() {
@@ -67,7 +71,8 @@ public class IdleConnectionReaper
           Thread.sleep(TimeUnit.SECONDS.toMillis(5));
         }
         catch (InterruptedException e) {
-          // ignored
+          log.error(e.getMessage(), e);
+          Thread.currentThread().interrupt();
         }
         IdleConnectionReaper reaper = reaperRef.get();
         if (reaper == null) {

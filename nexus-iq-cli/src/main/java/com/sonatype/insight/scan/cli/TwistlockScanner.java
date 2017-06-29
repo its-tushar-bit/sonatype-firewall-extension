@@ -71,6 +71,7 @@ public class TwistlockScanner
       throw new RuntimeException(e);
     }
     catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
 

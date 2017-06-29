@@ -51,6 +51,7 @@ class SlowMoFilter
       Thread.sleep(delay);
     }
     catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     }
     chain.doFilter(request, response);
   }

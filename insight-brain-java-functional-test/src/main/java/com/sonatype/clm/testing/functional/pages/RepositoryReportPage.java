@@ -42,6 +42,7 @@ public class RepositoryReportPage
         Thread.sleep(Configuration.pollingInterval);
       }
       catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         return;
       }
     }

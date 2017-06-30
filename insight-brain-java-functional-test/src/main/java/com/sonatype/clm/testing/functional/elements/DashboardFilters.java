@@ -30,8 +30,8 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     return new DashboardFilter("#app-filter");
   }
 
-  public static DashboardFilter applicationCategoryFilter() {
-    return new DashboardFilter("#category-filter");
+  public static CategoryFilter applicationCategoryFilter() {
+    return new CategoryFilter("#category-filter");
   }
 
   public static StageFilter stageFilter() {
@@ -250,6 +250,18 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
 
     public SelenideElement tooltip() {
       return $(".tooltip-inner");
+    }
+  }
+
+  public static class CategoryFilter
+      extends DashboardFilter
+  {
+    public CategoryFilter(final String selector) {
+      super(selector);
+    }
+
+    public IqCheckbox noCategory() {
+      return new IqCheckbox(child(".clm-form iq-checkbox:last-child"));
     }
   }
 

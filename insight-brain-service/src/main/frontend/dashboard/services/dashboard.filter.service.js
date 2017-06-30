@@ -27,7 +27,12 @@ function dashboardFilterService($http, $q, CLMLocations, Messages) {
       applicationFilters: Object.keys(filter.applications),
       policyThreatCategoryFilters: Object.keys(filter.policyTypes),
       stageTypeFilters: Object.keys(filter.stages),
-      tagFilters: Object.keys(filter.categories),
+
+      // the uncategorized filter uses null but since it's an object key it gets turned into a string; we need to
+      // fix that
+      tagFilters: Object.keys(filter.categories).map(function(cat) {
+        return cat === 'null' ? null : cat;
+      }),
       policyViolationStates: Object.keys(filter.policyViolationStates),
       maxDaysOld: filter.age.maxDaysOld,
       minPolicyThreatLevel: filter.policyThreatLevels[0],

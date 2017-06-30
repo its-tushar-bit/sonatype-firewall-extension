@@ -9,7 +9,13 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
 {
   var vm = this,
       appliedFilter,
-      appliedFilterName;
+      appliedFilterName,
+      uncategorizedCategory = {
+        description: 'uncategorized applications',
+        id: null, // NOTE that in this case null specifically means include uncategorized apps
+        name: 'No Category',
+        nameLowercaseNoWhitespace: 'nocategory'
+      };
 
   // Available
   vm.organizations = undefined;
@@ -155,6 +161,8 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
           }
         }
       });
+
+      vm.categories.push(uncategorizedCategory);
 
       vm.applications.forEach(function(application) {
         var orgExists = vm.organizations.some(function(organization) {

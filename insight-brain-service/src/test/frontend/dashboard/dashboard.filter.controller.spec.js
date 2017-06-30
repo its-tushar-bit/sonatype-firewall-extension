@@ -89,7 +89,7 @@ describe('dashboard.filter.controller', function() {
         organizationFilters: ['orgId1', 'orgId2'],
         policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
         stageTypeFilters: ['release', 'stage-release', 'build'],
-        tagFilters: ['tagId1', 'tagId2'],
+        tagFilters: ['tagId1', 'tagId2', null],
         applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
         policyViolationStates: ['OPEN', 'WAIVED'],
         maxDaysOld: 90,
@@ -124,7 +124,7 @@ describe('dashboard.filter.controller', function() {
     it('load populates state', function() {
       expect(vm.selected.policyTypes).toEqual({'QUALITY': true, 'OTHER': true, 'SECURITY': true});
       expect(vm.selected.stages).toEqual({'release': true, 'stage-release': true, 'build': true});
-      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true});
+      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true, 'null': true});
       expect(vm.selected.organizations).toEqual({'orgId1': true, 'orgId2': true});
       expect(vm.selected.applications).toEqual(
           {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true});
@@ -147,9 +147,11 @@ describe('dashboard.filter.controller', function() {
       expect(vm.stages.length).toBe(MockData.getDashboardStageData().length);
       expect(vm.stages[0].stageTypeId).toBe(MockData.getDashboardStageData()[0].stageTypeId);
       expect(vm.stages[1].stageTypeId).toBe(MockData.getDashboardStageData()[1].stageTypeId);
-      expect(vm.categories.length).toBe(tagData.length);
+      expect(vm.categories.length).toBe(tagData.length + 1); // one extra for No Category
       expect(vm.categories[0].id).toBe(tagData[0].id);
       expect(vm.categories[0].owner).toBe(organizationData[0].name);
+      expect(vm.categories[2].id).toBe(null);
+      expect(vm.categories[2].name).toBe('No Category');
 
       expect(vm.activeFilterName).toBe(appliedDirtyFilterData.basedOnFilterName);
       expect(vm.showDirtyAsterisk).toBe(false);
@@ -158,7 +160,7 @@ describe('dashboard.filter.controller', function() {
     it('watches organizations to update selected applications', function() {
       expect(vm.selected.policyTypes).toEqual({'QUALITY': true, 'OTHER': true, 'SECURITY': true});
       expect(vm.selected.stages).toEqual({'release': true, 'stage-release': true, 'build': true});
-      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true});
+      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true, 'null': true});
       expect(vm.selected.organizations).toEqual({'orgId1': true, 'orgId2': true});
       expect(vm.selected.applications).toEqual(
           {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true});
@@ -212,7 +214,7 @@ describe('dashboard.filter.controller', function() {
     it('watches applications to update selected organizations', function() {
       expect(vm.selected.policyTypes).toEqual({'QUALITY': true, 'OTHER': true, 'SECURITY': true});
       expect(vm.selected.stages).toEqual({'release': true, 'stage-release': true, 'build': true});
-      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true});
+      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true, 'null': true});
       expect(vm.selected.organizations).toEqual({'orgId1': true, 'orgId2': true});
       expect(vm.selected.applications).toEqual(
           {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true});
@@ -554,7 +556,7 @@ describe('dashboard.filter.controller', function() {
       expect(vm.selected.organizations).toEqual({'orgId1': true, 'orgId2': true});
       expect(vm.selected.policyTypes).toEqual({'QUALITY': true, 'OTHER': true, 'SECURITY': true});
       expect(vm.selected.stages).toEqual({'release': true, 'stage-release': true, 'build': true});
-      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true});
+      expect(vm.selected.categories).toEqual({'tagId1': true, 'tagId2': true, 'null': true});
       expect(vm.selected.policyViolationStates).toEqual({ 'OPEN': true, 'WAIVED': true });
       expect(vm.selected.applications).toEqual(
           {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true});

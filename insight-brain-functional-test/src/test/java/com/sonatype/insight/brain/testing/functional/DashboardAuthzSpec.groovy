@@ -76,16 +76,18 @@ extends BaseSpec {
     filters.applicationFilter.tooltip.getTooltipContent() == "There are no applications to filter."
   }
 
-  def 'Should have no application categories to choose from'() {
+  def 'Should have only the "No Categories" application category to choose from'() {
     setup: 'Logging in as a user without permission to any applications'
     loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available application category filters'
     waitFor { filters.applicationCategoryFilter.displayed }
+    filters.applicationCategoryFilter.twisty.click()
 
-    then: 'application categories filter is disabled with a tooltip on hover'
-    filters.applicationCategoryFilter.twisty.hasClass("disabled")
-    filters.applicationCategoryFilter.tooltip.getTooltipContent() ==
-        "There are no application categories to filter."
+    then: '"No Category" option and the "All" option should be the only options'
+    filters.applicationCategoryFilter.multiSelectList.size() == 2
+    filters.applicationCategoryFilter.counter.text() == '1'
+    filters.applicationCategoryFilter.multiSelectList.get(0).text() == 'all application categories'
+    filters.applicationCategoryFilter.multiSelectList.get(1).text() == 'No Category'
   }
 }

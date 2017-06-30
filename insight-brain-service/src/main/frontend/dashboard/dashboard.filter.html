@@ -34,7 +34,7 @@
                          is-checked="vm.allSelected()">
             </iq-checkbox>
             <iq-checkbox class="tree-view-item"
-                         tooltip="{{::(tooltipField ? 'in ' + entity[tooltipField] : '')}}"
+                         tooltip="{{::(tooltipGenerator({entity: entity}) )}}"
                          tooltip-append-to-body="true"
                          data-tooltip-popup-delay="200" data-tooltip-placement="top-left"
                          tooltip-class="filter-item-tooltip"
@@ -122,7 +122,7 @@
                                   long-name="applications"
                                   short-name="Application"
                                   sort-entities="true"
-                                  tooltip-field="organizationName"
+                                  tooltip-generator="'in ' + entity.organizationName"
                                   class="tree-view-group"
                                   id="app-filter"><!--
          --><div class="filter-label"><i class="fa fa-terminal tree-view-icon icon-12px inverse"></i>Applications</div>
@@ -133,7 +133,7 @@
                                   long-name="application categories"
                                   short-name="Category"
                                   sort-entities="true"
-                                  tooltip-field="owner"
+                                  tooltip-generator="entity.owner ? 'in ' + entity.owner : entity.description"
                                   class="tree-view-group"
                                   id="category-filter"><!--
          --><div class="filter-label"><hexagon class="size-16px size-fw outline tree-view-icon"></hexagon>Application Categories</div>

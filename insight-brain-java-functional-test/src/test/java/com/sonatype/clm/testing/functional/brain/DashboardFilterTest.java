@@ -11,6 +11,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.CategoryFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DashboardFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFiltersDialog;
@@ -244,8 +245,8 @@ public class DashboardFilterTest
     refreshOrOpen(VIOLATIONS_URL);
 
     assertFilterDisabled(DashboardFilters.applicationFilter(), "applications");
-    assertFilterDisabled(DashboardFilters.applicationCategoryFilter(), "application categories");
     assertStageFilterInitialState();
+    assertCategoryFilterInitialState();
     assertPolicyTypeFilterInitialState();
     assertThreatLevelFilterInitialState();
 
@@ -305,10 +306,22 @@ public class DashboardFilterTest
     violation.policy().shouldHave(text("DashboardTestPolicy"));
     violation.application().shouldHave(text("DashboardTestAppOne"));
 
-    // also show the waived violation from secondApp
+    // enable app 2, but don't enable apps with "No Categories".  Results should not change
     DashboardFilters.toggleTwisties();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
-    DashboardFilters.applicationCategoryFilter().checkboxItem(2).click();
+    DashboardFilters.toggleTwisties();
+    DashboardFilters.apply();
+
+    DashboardPage.violationsView().results().violations().shouldHaveSize(1);
+    DashboardPage.violationsTab().counter().shouldHave(text("1"));
+    violation = DashboardPage.violationsView().results().firstViolation();
+    violation.threatNumber().shouldHave(text("2"));
+    violation.policy().shouldHave(text("DashboardTestPolicy"));
+    violation.application().shouldHave(text("DashboardTestAppOne"));
+
+    // enable "No Categories" so that secondApp results show
+    DashboardFilters.toggleTwisties();
+    DashboardFilters.applicationCategoryFilter().noCategory().click();
     DashboardFilters.toggleTwisties();
     DashboardFilters.apply();
 
@@ -706,13 +719,14 @@ public class DashboardFilterTest
     appFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text(secondApp.getName()));
     appFilter.twisty().click();
 
-    DashboardFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
-    categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("1"));
+    CategoryFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
+    categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("2"));
     categoryFilter.multiSelectList().shouldBe(empty);
     categoryFilter.twisty().shouldBe(visible).click();
-    categoryFilter.multiSelectList().shouldHave(size(2));
+    categoryFilter.multiSelectList().shouldHave(size(3));
     categoryFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all application categories"));
     categoryFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstAppCategory.getName()));
+    categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("No Category"));
     categoryFilter.twisty().click();
 
     if (savedFilterName.isEmpty()) {
@@ -767,6 +781,17 @@ public class DashboardFilterTest
     stageFilter.twisty().click();
   }
 
+  private void assertCategoryFilterInitialState() {
+    CategoryFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
+    categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("1"));
+    categoryFilter.multiSelectList().shouldBe(empty);
+    categoryFilter.twisty().shouldBe(visible).click();
+    categoryFilter.multiSelectList().shouldHave(size(2));
+    categoryFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all application categories"));
+    categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("No Category"));
+    categoryFilter.twisty().click();
+  }
+
   private void assertPolicyViolationStateFilterInitialState() {
     PolicyViolationStateFilter policyViolationStateFilter = DashboardFilters.policyViolationStateFilter();
     policyViolationStateFilter.counter().shouldBe(visible).shouldHave(text("1 of 2"));
@@ -781,7 +806,7 @@ public class DashboardFilterTest
 
   private void assertNewCounterState() {
     DashboardFilters.applicationFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 2"));
-    DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 1"));
+    DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 2"));
     DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     DashboardFilters.policyViolationStateFilter().counter().shouldBe(ACTIVE).shouldHave(text("2 of 2"));

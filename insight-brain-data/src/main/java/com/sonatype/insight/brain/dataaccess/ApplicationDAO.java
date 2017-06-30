@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -149,14 +150,48 @@ public class ApplicationDAO
     String sQuery = "SELECT DISTINCT application FROM Application application, ApplicationTag applicationTag" + //
         " WHERE application.id = applicationTag.applicationId" + //
         " AND application.id IN (?1)" + " AND applicationTag.tagId IN (?2)";
-    return getList(sQuery, applicationIds, tagIds);
+
+    List<Application> sQueryApplications = getList(sQuery, applicationIds, tagIds);
+
+    if (tagIds.contains(null)) {
+      String untaggedQuery = "SELECT application FROM Application application" + //
+          " WHERE application.id IN (?1) AND NOT EXISTS (" + //
+          "  SELECT applicationTag FROM ApplicationTag applicationTag" + //
+          "   WHERE applicationTag.applicationId = application.id" + //
+          " )";
+
+      List<Application> untaggedApplications = getList(untaggedQuery, applicationIds);
+
+      List<Application> retval = new ArrayList<>(sQueryApplications);
+      retval.addAll(untaggedApplications);
+      return retval;
+    }
+
+    return sQueryApplications;
   }
 
   public List<Application> getByTagIds(Set<String> tagIds) {
     String sQuery = "SELECT application FROM Application application, ApplicationTag applicationTag" + //
         " WHERE application.id = applicationTag.applicationId" + //
         " AND applicationTag.tagId IN (?1)";
-    return getList(sQuery, tagIds);
+
+    List<Application> sQueryApplications = getList(sQuery, tagIds);
+
+    if (tagIds.contains(null)) {
+      String untaggedQuery = "SELECT application FROM Application application" + //
+          " WHERE NOT EXISTS (" + //
+          "  SELECT applicationTag FROM ApplicationTag applicationTag" + //
+          "   WHERE applicationTag.applicationId = application.id" + //
+          " )";
+
+      List<Application> untaggedApplications = getList(untaggedQuery);
+
+      List<Application> retval = new ArrayList<>(sQueryApplications);
+      retval.addAll(untaggedApplications);
+      return retval;
+    }
+
+    return sQueryApplications;
   }
 
   public List<Application> getByPublicIds(Set<String> applicationPublicIds) {

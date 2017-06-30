@@ -186,6 +186,76 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testGetApplicationsByTagIds_Untagged() {
+    String tagName = "foo";
+    Tag tag = tempEntity.newTag(organization.getId(), tagName);
+    Application taggedApplication = tempEntity.newApplication(organization.getId());
+    tempEntity.newApplicationTag(taggedApplication.getId(), tag.getId());
+
+    // NOTE: the application created in AbstractDbDAOTest has no tags
+    List<Application> allApplications = Lists.newArrayList(taggedApplication, application);
+
+    // find both apps with tag and null
+    List<Application> retrievedApplications = Lists
+        .newArrayList(applicationDAO.getByTagIds(Sets.newHashSet(tag.getId(), null)));
+    assertThat(retrievedApplications, hasSize(2));
+    assertApplications(retrievedApplications, allApplications);
+
+    // find just the untagged one with just null
+    retrievedApplications = Lists.newArrayList(applicationDAO.getByTagIds(Sets.newHashSet((String) null)));
+    assertThat(retrievedApplications, hasSize(1));
+    assertApplications(retrievedApplications, Lists.newArrayList(application));
+
+    // do not find the untagged one without null
+    retrievedApplications = Lists.newArrayList(applicationDAO.getByTagIds(Sets.newHashSet(tag.getId())));
+    assertThat(retrievedApplications, hasSize(1));
+    assertApplications(retrievedApplications, Lists.newArrayList(taggedApplication));
+  }
+
+  @Test
+  public void testGetApplicationsByIdsAndTagIds_Untagged() {
+    int numTaggedApplication = 2;
+    String tagName = "foo";
+    Tag tag = tempEntity.newTag(organization.getId(), tagName);
+    List<Application> taggedApplications = tempEntity.newApplications(organization.getId(), numTaggedApplication);
+    for (Application app : taggedApplications) {
+      tempEntity.newApplicationTag(app.getId(), tag.getId());
+    }
+
+    Application taggedApplication = taggedApplications.get(0);
+    Application untaggedApplication = application;
+
+    // this list will contain one of the two tagged apps and the untagged app
+    List<Application> applications = Lists.newArrayList(taggedApplication, untaggedApplication);
+
+    Set<String> applicationIdsToQuery = Sets.newHashSet(taggedApplication.getId(), untaggedApplication.getId());
+
+    // find the tagged one that we expected and the untagged one
+    List<Application> retrievedApplications = Lists
+        .newArrayList(applicationDAO.getByIdsAndTagIds(applicationIdsToQuery, Sets.newHashSet(tag.getId(), null)));
+    assertThat(retrievedApplications, hasSize(2));
+    assertApplications(retrievedApplications, applications);
+
+    // find just the untagged one with just null
+    retrievedApplications = Lists
+        .newArrayList(applicationDAO.getByIdsAndTagIds(applicationIdsToQuery, Sets.newHashSet((String) null)));
+    assertThat(retrievedApplications, hasSize(1));
+    assertApplications(retrievedApplications, Lists.newArrayList(untaggedApplication));
+
+    // do not find the untagged one without null
+    retrievedApplications = Lists
+        .newArrayList(applicationDAO.getByIdsAndTagIds(applicationIdsToQuery, Sets.newHashSet(tag.getId())));
+    assertThat(retrievedApplications, hasSize(1));
+    assertApplications(retrievedApplications, Lists.newArrayList(taggedApplication));
+
+    // do not find the untagged app if its id isn't in the app id list
+    retrievedApplications = Lists.newArrayList(applicationDAO
+        .getByIdsAndTagIds(Sets.newHashSet(taggedApplication.getId()), Sets.newHashSet(tag.getId(), null)));
+    assertThat(retrievedApplications, hasSize(1));
+    assertApplications(retrievedApplications, Lists.newArrayList(taggedApplication));
+  }
+
+  @Test
   public void testUpdateOrganizationId() {
     Organization organization1 = tempEntity.newOrganization("testUpdateOrganizationId 1");
 

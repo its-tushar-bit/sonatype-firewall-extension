@@ -33,7 +33,7 @@ function DashboardFilterDimension() {
       longName: '@',
       idField: '@?',
       nameField: '@?',
-      tooltipField: '@?',
+      tooltipGenerator: '&?',
       sortEntities: '=?'
     },
     controller: DashboardFilterDimensionController,

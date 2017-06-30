@@ -56,7 +56,7 @@ describe('dashboard.filter.service.spec', function() {
       organizations: {'orgId1': true, 'orgId2': true},
       policyTypes: {'QUALITY': true, 'OTHER': true, 'SECURITY': true},
       stages: {'release': true, 'stage-release': true, 'build': true},
-      categories: {'tagId1': true, 'tagId2': true},
+      categories: {'tagId1': true, 'tagId2': true, 'null': true},
       applications: {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true},
       policyViolationStates: {'OPEN': true, 'WAIVED': true},
       age: {maxDaysOld: 90},
@@ -68,7 +68,7 @@ describe('dashboard.filter.service.spec', function() {
       expect(filterJson.organizationFilters).toEqual(['orgId1', 'orgId2']);
       expect(filterJson.policyThreatCategoryFilters).toEqual(['QUALITY', 'OTHER', 'SECURITY']);
       expect(filterJson.stageTypeFilters).toEqual(['release', 'stage-release', 'build']);
-      expect(filterJson.tagFilters).toEqual(['tagId1', 'tagId2']);
+      expect(filterJson.tagFilters).toEqual(['tagId1', 'tagId2', null]);
       expect(filterJson.applicationFilters).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']);
       expect(filterJson.policyViolationStates).toEqual(['OPEN', 'WAIVED']);
       expect(filterJson.maxDaysOld).toEqual(90);

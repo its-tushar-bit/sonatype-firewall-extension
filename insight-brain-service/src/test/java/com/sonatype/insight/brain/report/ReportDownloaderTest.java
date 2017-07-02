@@ -22,8 +22,12 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ReportDownloaderTest
@@ -60,5 +64,41 @@ public class ReportDownloaderTest
     assertThat(rc, is(false));
     assertThat(reportFile.getParentFile().exists(), is(false));
     logOutput.assertError("test", expectedException);
+  }
+
+  @Test
+  public void testDownloadReport_ReportNotFoundWithNoReportTimeout_DoesNotRetry() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("dummyApp");
+    String scanId = "scanId";
+
+    NotFoundException expectedException = new NotFoundException("test");
+    when(mockHdsClient.get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId)).thenThrow(expectedException);
+
+    File reportFile = work.getReportFile(app.getId(), scanId);
+    boolean rc = reportDownloader.downloadReport(scanId, reportFile, 0, 0);
+    assertThat(rc, is(false));
+    // only the initial download request is made
+    verify(mockHdsClient).get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId);
+  }
+
+  @Test(timeout = 5000)
+  public void testDownloadReport_ReportNotFoundWithReportTimeout_Retries() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("dummyApp");
+    String scanId = "scanId";
+
+    NotFoundException expectedException = new NotFoundException("test");
+    when(mockHdsClient.get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId)).thenThrow(expectedException);
+
+    File reportFile = work.getReportFile(app.getId(), scanId);
+    long startTime = System.currentTimeMillis();
+    boolean rc = reportDownloader.downloadReport(scanId, reportFile, 3, 2);
+    long totalTime = System.currentTimeMillis() - startTime;
+    assertThat(rc, is(false));
+    // 1 initial download request + 2 retries = 3 download requests
+    verify(mockHdsClient, times(3)).get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId);
+    // since we 'sleep' 1 time at 2000ms and another time at 1000ms = total sleep of 3000ms,
+    // the test should not run quicker than 3000ms, but allow a variance in execution on the max
+    assertThat("Expected to 'sleep' for at least 3000ms", totalTime, is(greaterThanOrEqualTo(3000L)));
+    assertThat("Expected to 'sleep' for less than 3200ms", totalTime, is(lessThan(3200L)));
   }
 }

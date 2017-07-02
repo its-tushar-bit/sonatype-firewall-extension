@@ -17,6 +17,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -39,11 +40,18 @@ public class ReportService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final InsightConfig insightConfig;
+
   @Inject
-  public ReportService(InsightWork work, ReportDownloader reportDownloader, PolicyEvaluationDAO policyEvaluationDAO) {
+  public ReportService(InsightWork work,
+                       ReportDownloader reportDownloader,
+                       PolicyEvaluationDAO policyEvaluationDAO,
+                       InsightConfig insightConfig)
+  {
     this.work = work;
     this.reportDownloader = reportDownloader;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.insightConfig = insightConfig;
   }
 
   public File fetchReport(final InsightWork work, final String appId, final String scanId, final boolean waitForReport)
@@ -64,15 +72,13 @@ public class ReportService
           throw new IllegalStateException(
               "The report file does not exist for application ID " + appId + " and scan ID " + scanId + ".");
         }
-        int attempts = 0;
-        int interval = 0;
-
+        // 0 indicates no retries
+        int reportTimeoutInSeconds = 0;
         if (waitForReport) {
-          attempts = 180;
-          interval = 5;
+          reportTimeoutInSeconds = insightConfig.getReportTimeoutInSeconds();
         }
         final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
-        if (!reportDownloader.downloadReport(scanId, tempFile, attempts, interval)) {
+        if (!reportDownloader.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
           throw new NotFoundException("Could not download the report for scan ID " + scanId);
         }
         FileUtils.rename(tempFile, reportFile);

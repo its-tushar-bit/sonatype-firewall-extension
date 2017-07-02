@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +32,12 @@ public class ScanUploader
 
   private final HdsClient client;
 
+  private final InsightConfig insightConfig;
+
   @Inject
-  public ScanUploader(final HdsClient client) {
+  public ScanUploader(final HdsClient client, final InsightConfig insightConfig) {
     this.client = client;
+    this.insightConfig = insightConfig;
   }
 
   protected ScanReceipt upload(HttpServletRequest request, File scanFile, Application application)
@@ -72,5 +76,6 @@ public class ScanUploader
     receipt.setReportUrl(UserInterfaceLinksResource.getReportUrl(applicationPublicId, receipt.getScanId()));
     receipt.setPdfUrl(UserInterfaceLinksResource.getPdfUrl(applicationPublicId, receipt.getScanId()));
     receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
+    receipt.setReportTimeoutInSeconds(insightConfig.getReportTimeoutInSeconds());
   }
 }

@@ -42,13 +42,21 @@ public class ReportDownloader
     this.fileCleaner = fileCleaner;
   }
 
+  /**
+   * Downloads a report for a scan.
+   * @param scanId of the report
+   * @param reportFile to save report to
+   * @param reportTimeoutInSeconds time to wait before the report times out - 0 will not make retry attempts
+   * @return true if the report was downloaded, false otherwise.
+   */
   public boolean downloadReport(final String scanId,
                                 final File reportFile,
-                                final int retryAttempts,
+                                final int reportTimeoutInSeconds,
                                 final int retryIntervalInSeconds)
   {
+    final long endTime = System.currentTimeMillis() + reportTimeoutInSeconds * 1000;
     try {
-      for (int i = 0; i < (retryAttempts + 1); i++) {
+      do {
         InputStream is = null;
         OutputStream os = null;
 
@@ -62,18 +70,17 @@ public class ReportDownloader
           return true;
         }
         catch (NotFoundException e) {
-          if (retryAttempts == 0 || i >= retryAttempts) {
+          long currentTime = System.currentTimeMillis();
+          if (currentTime >= endTime) {
             throw e;
           }
-          if (retryIntervalInSeconds > 0) {
-            Thread.sleep(retryIntervalInSeconds * 1000);
-          }
+          Thread.sleep(Math.min(retryIntervalInSeconds * 1000, endTime - currentTime));
         }
         finally {
           IOUtil.close(is);
           IOUtil.close(os);
         }
-      }
+      } while (true);
     }
     catch (final Exception e) {
       // don't leave an incomplete file around

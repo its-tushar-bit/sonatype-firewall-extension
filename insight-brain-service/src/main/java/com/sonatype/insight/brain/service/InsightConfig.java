@@ -175,6 +175,15 @@ public class InsightConfig
   private EventBusConfig eventBus = new EventBusConfig();
 
   /**
+   * @since 1.32
+   */
+  @NotNull
+  @JsonProperty
+  @Min(30)
+  @Max(60 * 60)
+  private int reportTimeoutInSeconds = 15 * 60;
+
+  /**
    * If true, users must configure and acknowledge a filter before being able to see any data in the dashboard.
    * 
    * @since 1.29
@@ -477,5 +486,21 @@ public class InsightConfig
    */
   public void setNeedsAcknowledgementOfInitialDashboardFilter(boolean needsAcknowledgementOfInitialDashboardFilter) {
     this.needsAcknowledgementOfInitialDashboardFilter = needsAcknowledgementOfInitialDashboardFilter;
+  }
+
+  /**
+   * The time in seconds that IQ server is expected to wait for the report before timing out.
+   *
+   * @since 1.32
+   */
+  public int getReportTimeoutInSeconds() {
+    return reportTimeoutInSeconds;
+  }
+
+  /**
+   * @since 1.32
+   */
+  public void setReportTimeoutInSeconds(final int reportTimeoutInSeconds) {
+    this.reportTimeoutInSeconds = reportTimeoutInSeconds;
   }
 }

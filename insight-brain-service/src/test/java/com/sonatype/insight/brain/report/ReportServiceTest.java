@@ -33,6 +33,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ReportServiceTest
@@ -49,13 +50,14 @@ public class ReportServiceTest
 
   private PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
+  private InsightConfig insightConfig = new InsightConfig();
+
   @Before
   public void before() throws Exception {
     app = tempEntity.newApplicationWithParent("testAppPublicId");
 
     File sonatypeWork = temporaryFolder.newFolder();
     String tempFolderPath = sonatypeWork.getAbsolutePath();
-    InsightConfig insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(tempFolderPath);
     insightWork = new InsightWork(insightConfig);
   }
@@ -65,7 +67,7 @@ public class ReportServiceTest
     createReportFile();
     ReportDownloader reportDownloader = null;
 
-    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
     assertThat(report, notNullValue());
     assertThat(report.exists(), is(true));
@@ -76,7 +78,7 @@ public class ReportServiceTest
   public void testFetchReport_DoesNotExistAndEvaluationExist() throws Exception {
     ReportDownloader reportDownloader = mock(ReportDownloader.class);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
-    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig);
     try {
       reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
       fail("IllegalStateException expected but not thrown");
@@ -88,7 +90,7 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testFetchReport_DoesNotExist() throws Exception {
+  public void testFetchReport_WithWaitForReport_DoesNotExist() throws Exception {
     ReportDownloader reportDownloader = mock(ReportDownloader.class);
     when(reportDownloader.downloadReport(eq(scanId), (File) any(), anyInt(), anyInt())).then(new Answer<Boolean>()
     {
@@ -100,18 +102,40 @@ public class ReportServiceTest
       }
     });
 
-    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig);
     File report = reportService.fetchReport(insightWork, app.getId(), scanId, true /* waitForReport */);
     assertThat(report, notNullValue());
     assertThat(report.exists(), is(true));
     assertThat(report.getName(), is("report.zip"));
+    verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(900), eq(5));
+  }
+
+  @Test
+  public void testFetchReport_WithoutWaitingForReport_DoesNotExist() throws Exception {
+    ReportDownloader reportDownloader = mock(ReportDownloader.class);
+    when(reportDownloader.downloadReport(eq(scanId), (File) any(), anyInt(), anyInt())).then(new Answer<Boolean>()
+    {
+      @Override
+      public Boolean answer(InvocationOnMock invocation) throws Throwable {
+        File reportFile = (File) invocation.getArguments()[1];
+        FileUtils.copyURLToFile(getClass().getResource("/ReportServiceTest/report.zip"), reportFile);
+        return true;
+      }
+    });
+
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig);
+    File report = reportService.fetchReport(insightWork, app.getId(), scanId, false /* waitForReport */);
+    assertThat(report, notNullValue());
+    assertThat(report.exists(), is(true));
+    assertThat(report.getName(), is("report.zip"));
+    verify(reportDownloader).downloadReport(eq(scanId), any(File.class), eq(0), eq(5));
   }
 
   @Test
   public void testGetReport_Exists() throws Exception {
     createReportFile();
     ReportDownloader reportDownloader = null;
-    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig);
     File report = reportService.getReport(insightWork, app.getId(), scanId);
     assertThat(report, notNullValue());
     assertThat(report.exists(), is(true));
@@ -121,7 +145,7 @@ public class ReportServiceTest
   @Test
   public void testGetReport_DoesNotExist() throws Exception {
     ReportDownloader reportDownloader = null;
-    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO);
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig);
     File report = reportService.getReport(insightWork, app.getId(), scanId);
     assertThat(report, nullValue());
   }

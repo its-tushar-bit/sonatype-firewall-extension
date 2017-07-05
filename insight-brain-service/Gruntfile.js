@@ -367,6 +367,7 @@
     grunt.registerTask('fix', ['jscs:fix']);
 
     grunt.registerTask('gallery', [
+      'bower:install',
       'bower-gallery',
       'sass:build',
       'sass:gallery',

@@ -171,7 +171,7 @@ public class ApplicationDAO
   }
 
   public List<Application> getByTagIds(Set<String> tagIds) {
-    String sQuery = "SELECT application FROM Application application, ApplicationTag applicationTag" + //
+    String sQuery = "SELECT DISTINCT application FROM Application application, ApplicationTag applicationTag" + //
         " WHERE application.id = applicationTag.applicationId" + //
         " AND applicationTag.tagId IN (?1)";
 

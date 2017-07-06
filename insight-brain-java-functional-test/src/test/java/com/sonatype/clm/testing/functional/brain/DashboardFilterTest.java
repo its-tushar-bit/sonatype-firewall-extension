@@ -80,7 +80,8 @@ public class DashboardFilterTest
 
   private static Application firstApp;
 
-  private static Tag firstAppCategory;
+  private static Tag firstAppCategory1;
+  private static Tag firstAppCategory2;
 
   private static Application secondApp;
 
@@ -114,8 +115,10 @@ public class DashboardFilterTest
   private static void setupData() {
     Organization org = staticTempEntity.newOrganization("DashboardTest");
     firstApp = staticTempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
-    firstAppCategory = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory", Color.dark_blue);
-    staticTempEntity.newApplicationTag(firstApp.getId(), firstAppCategory.getId());
+    firstAppCategory1 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory1", Color.dark_blue);
+    firstAppCategory2 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory2", Color.dark_red);
+    staticTempEntity.newApplicationTag(firstApp.getId(), firstAppCategory1.getId());
+    staticTempEntity.newApplicationTag(firstApp.getId(), firstAppCategory2.getId());
 
     secondApp = staticTempEntity.newApplication("DashboardTestAppTwo", "DashboardTestAppTwo", org.getId());
 
@@ -291,7 +294,7 @@ public class DashboardFilterTest
         "  \"maxPolicyThreatLevel\" : 7,\n" +
         "  \"applicationFilters\" : [ \"" + firstApp.getId() + "\" ],\n" +
         "  \"organizationFilters\" : [ ],\n" +
-        "  \"tagFilters\" : [ \"" + firstAppCategory.getId() + "\" ],\n" +
+        "  \"tagFilters\" : [ \"" + firstAppCategory1.getId() + "\" ],\n" +
         "  \"policyThreatCategoryFilters\" : [ \"QUALITY\" ],\n" +
         "  \"stageTypeFilters\" : [ \"release\" ],\n" +
         "  \"maxDaysOld\" : 30,\n" +
@@ -404,6 +407,22 @@ public class DashboardFilterTest
     // check reset
     DashboardFilters.clearButton().click();
     assertInitialFilterState();
+  }
+
+  @Test
+  public void testFilterSingleAppWithMultipleCategories() {
+    CategoryFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
+    categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("3"));
+    categoryFilter.twisty().shouldBe(visible).click();
+    categoryFilter.multiSelectList().shouldHave(size(4));
+    categoryFilter.checkboxItem(2).shouldNotBe(selected).click();
+    categoryFilter.checkboxItem(3).shouldNotBe(selected).click();
+    categoryFilter.counter().shouldBe(ACTIVE).shouldHave(text("2 of 3"));
+
+    DashboardFilters.apply();
+    DashboardPage.applicationsTab().click();
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
+    categoryFilter.twisty().click();
   }
 
   @Test
@@ -720,12 +739,13 @@ public class DashboardFilterTest
     appFilter.twisty().click();
 
     CategoryFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
-    categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("2"));
+    categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("3"));
     categoryFilter.multiSelectList().shouldBe(empty);
     categoryFilter.twisty().shouldBe(visible).click();
-    categoryFilter.multiSelectList().shouldHave(size(3));
+    categoryFilter.multiSelectList().shouldHave(size(4));
     categoryFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all application categories"));
-    categoryFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstAppCategory.getName()));
+    categoryFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstAppCategory1.getName()));
+    categoryFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text(firstAppCategory2.getName()));
     categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("No Category"));
     categoryFilter.twisty().click();
 
@@ -806,7 +826,7 @@ public class DashboardFilterTest
 
   private void assertNewCounterState() {
     DashboardFilters.applicationFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 2"));
-    DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 2"));
+    DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 3"));
     DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     DashboardFilters.policyViolationStateFilter().counter().shouldBe(ACTIVE).shouldHave(text("2 of 2"));

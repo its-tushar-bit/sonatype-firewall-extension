@@ -167,17 +167,21 @@ public class ApplicationDAOTest
 
   @Test
   public void testGetApplicationsByTagIds() throws Exception {
-    int numApplication = 3;
-    String tagName = "foo";
-    Tag tag = tempEntity.newTag(organization.getId(), tagName);
-    List<Application> applications = tempEntity.newApplications(organization.getId(), numApplication);
+    int numApplications = 3;
+    Tag tag1 = tempEntity.newTag(organization.getId(), "foo");
+    Tag tag2 = tempEntity.newTag(organization.getId(), "bar");
+    List<Application> applications = tempEntity.newApplications(organization.getId(), numApplications);
     for (Application app : applications) {
-      tempEntity.newApplicationTag(app.getId(), tag.getId());
+      tempEntity.newApplicationTag(app.getId(), tag1.getId());
     }
-    // find all 3 with tag
+
+    // assign second tag to one of the apps
+    tempEntity.newApplicationTag(applications.get(0).getId(), tag2.getId());
+
+    // searching by both tags should result in 3 unique apps
     List<Application> retrievedApplications = Lists
-        .newArrayList(applicationDAO.getByTagIds(Sets.newHashSet(tag.getId())));
-    assertThat(retrievedApplications, hasSize(numApplication));
+        .newArrayList(applicationDAO.getByTagIds(Sets.newHashSet(tag1.getId(), tag2.getId())));
+    assertThat(retrievedApplications, hasSize(numApplications));
     assertApplications(retrievedApplications, applications);
 
     // find nothing without

@@ -330,8 +330,15 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
       vm.selected.applications[applicationId] = true;
     });
 
+    var existingCategoryIds = vm.categories.map(function(category) {
+      return category.id;
+    });
+
     (filterJson.tagFilters || []).forEach(function(categoryId) {
-      vm.selected.categories[categoryId] = true;
+      // avoid adding no-longer-existing category ids to vm.selected.categories
+      if (existingCategoryIds.indexOf(categoryId) !== -1) {
+        vm.selected.categories[categoryId] = true;
+      }
     });
 
     (filterJson.stageTypeFilters || []).forEach(function(stageId) {

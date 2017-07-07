@@ -269,6 +269,20 @@ describe('dashboard.filter.controller', function() {
     });
   });
 
+  it('skips selected category ids that do not exist in vm.categories', function() {
+    $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applicationData);
+    $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
+    $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
+
+    // note that we are not including the second tag in the tag data
+    $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData.slice(0,1));
+    $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(appliedDirtyFilterData);
+    $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
+    $httpBackend.flush();
+
+    expect(vm.selected.categories).toEqual({tagId1: true, 'null': true});
+  });
+
   describe('load errors', function() {
 
     function validateErrorRequest(actionResponse, appResponse, orgResponse, appTagResponse, filterResponse) {

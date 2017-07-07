@@ -28,7 +28,9 @@
               <a ng-if="vm.isApp"
                  ng-click='vm.changeApplicationId()'
                  id="change-app-id-link"
-                 class="btn iq-btn--dropdown">
+                 class="btn iq-btn--dropdown"
+                 tooltip="{{vm.hasPermissionToChangeAppId ? undefined : 'Insufficient permissions to change App ID'}}"
+                 ng-class="{'disabled': !vm.hasPermissionToChangeAppId}">
                 <i class="fa fa-random fa-fw"/>Change App ID
               </a>
               <a id="import-policies-link" ng-click='vm.importPolicy()' class="btn iq-btn--dropdown">

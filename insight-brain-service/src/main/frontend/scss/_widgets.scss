@@ -204,6 +204,13 @@
   margin: 4px 0 0 0;
   padding-right: 4px;
   padding-left: 4px;
+
+  .btn.disabled {
+    background-color: transparent;
+    border-color: transparent;
+    cursor: default;
+    text-decoration: none;
+  }
 }
 
 .iq-dropdown-menu__link {

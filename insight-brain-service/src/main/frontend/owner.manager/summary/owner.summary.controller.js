@@ -10,7 +10,7 @@
                                   OrganizationStore, CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
                                   SelectApplicationContactService, EvaluateApplicationModalService,
                                   ImportPolicyModalService, ownerConstant, MoveApplicationModal, EventNameConstant,
-                                  ChangeApplicationIdService)
+                                  ChangeApplicationIdService, PermissionService)
   {
     var vm = this;
 
@@ -31,6 +31,7 @@
     vm.goToParentView = goToParentView;
     vm.selectContact = selectContact;
     vm.changeApplicationId = changeApplicationId;
+    vm.hasPermissionToChangeAppId = undefined;
 
     var siblings,
         stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -67,12 +68,19 @@
         if (vm.isApp) {
           vm.stages = results[2];
           vm.applicationSummary = results[3].data;
+          getAppChangePermissions();
         }
       }, function(error) {
         vm.error = error;
       });
 
       delete vm.error;
+    }
+
+    function getAppChangePermissions() {
+      PermissionService.isContextAuthorized(['WRITE'], 'application', vm.owner.id).then(function(hasPermission) {
+        vm.hasPermissionToChangeAppId = hasPermission;
+      });
     }
 
     function edit() {
@@ -96,7 +104,9 @@
     }
 
     function changeApplicationId() {
-      ChangeApplicationIdService.open(vm.owner, siblings);
+      if (vm.hasPermissionToChangeAppId) {
+        ChangeApplicationIdService.open(vm.owner, siblings);
+      }
     }
 
     function deleteOwner() {
@@ -137,7 +147,8 @@
     '$state', '$scope', '$rootScope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore',
     'OrganizationStore', 'CLMLocations', 'CLMAppLocations', 'StageTypeStore', 'DeleteModalService',
     'SelectApplicationContactService', 'evaluate.application.modal.service', 'import.policy.modal.service',
-    'owner.constant', 'move.application.modal.service', 'event.name.constant', 'change.application.id.service'
+    'owner.constant', 'move.application.modal.service', 'event.name.constant', 'change.application.id.service',
+    'PermissionService'
   ];
 
   angular//

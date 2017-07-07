@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 
@@ -348,6 +349,24 @@ public class ApplicationSummaryViewTest
     waitUntilNotUrl(OwnerSummaryPage.url("application", "newAppId"));
     OrganizationNode.application(0).click();
     waitUntilUrl(OwnerSummaryPage.url("application", "newAppId"));
+
+    // log in as a user that doesn't have permission to change the id of this app
+    createUser();
+    grantPermissions(getUsername(), application.getId(), Permission.READ);
+
+    logout();
+    login();
+
+    try {
+      refreshOrOpen(OwnerSummaryPage.url("application", "newAppId"));
+      ActionDropDown.actionButton().click();
+      ActionDropDown.changeApplicationId().shouldBe(visible).shouldHave(cssClass("disabled")).click();
+      changeApplicationIdDialog.shouldNotBe(visible);
+    }
+    finally {
+      logout();
+      loginAsAdmin();
+    }
   }
 
   private void testEvaluateApplicationBinary() {

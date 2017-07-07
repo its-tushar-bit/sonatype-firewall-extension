@@ -17,7 +17,10 @@ describe('owner.summary.controller.js', function() {
         isApp = type === 'application',
         mockOwnerStore = StoreUtils().createMockStore(storeName),
         deleteOwnerDefer,
-        mockDeleteService;
+        mockDeleteService,
+        isContextAuthorizedDefer,
+        mockPermissionService,
+        mockChangeApplicationIdService;
 
     beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_, StageTypeStore) {
           $timeout = _$timeout_;
@@ -26,12 +29,17 @@ describe('owner.summary.controller.js', function() {
           CLMAppLocations = _CLMAppLocations_;
           stageTypeStoreDefer = $q.defer();
           deleteOwnerDefer = $q.defer();
+          isContextAuthorizedDefer = $q.defer();
           mockDeleteService = {
             deleteResource: function() {
               return deleteOwnerDefer.promise;
             }
-          }
-          
+          };
+          mockPermissionService = {
+            isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise)
+          };
+          mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
+
           spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
           spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
           spyOn(CLMAppLocations, 'isApplication').and.returnValue(isApp);
@@ -55,7 +63,9 @@ describe('owner.summary.controller.js', function() {
             $scope: {$on: angular.noop},
             $state: mockState,
             $window: mockWindow,
-            DeleteModalService: mockDeleteService
+            DeleteModalService: mockDeleteService,
+            PermissionService: mockPermissionService,
+            'change.application.id.service': mockChangeApplicationIdService
           });
         }
     ));
@@ -70,6 +80,7 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationWritePermission(true);
       $timeout.flush();
 
       expect(vm.owner).toEqual(owner);
@@ -77,6 +88,20 @@ describe('owner.summary.controller.js', function() {
       if (isApp) {
         expect(vm.stages).toEqual(MockData.getDashboardStageData());
         expect(vm.applicationSummary).toEqual(ApplicationResourceMockData.getApplicationSummaryUrl());
+        expect(vm.hasPermissionToChangeAppId).toEqual(true);
+      }
+    });
+
+    it('Properly loads hasPermissionToChangeAppId when it is false', function() {
+      mockOwnerStore.resolveGet([owner]);
+      mockOwnerStore.resolveGetById(owner);
+      resolveStageTypeStore(MockData.getDashboardStageData());
+      resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationWritePermission(false);
+      $timeout.flush();
+
+      if (isApp) {
+        expect(vm.hasPermissionToChangeAppId).toEqual(false);
       }
     });
 
@@ -85,6 +110,7 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationWritePermission(true);
       $timeout.flush();
 
       if (isApp) {
@@ -127,6 +153,7 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationWritePermission(true);
       $timeout.flush();
 
       expect(vm.owner).toEqual(owner);
@@ -168,6 +195,7 @@ describe('owner.summary.controller.js', function() {
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationWritePermission(true);
       $timeout.flush();
 
       if (isApp) {
@@ -185,6 +213,40 @@ describe('owner.summary.controller.js', function() {
       expect(mockState.go).toHaveBeenCalledWith('management.view.organization', {organizationId: owner.id});
     });
 
+    if (isApp) {
+      describe('changeApplicationId', function() {
+        it('calls ChangeApplicationIdService.open when hasPermissionToChangeAppId is true', function() {
+          mockOwnerStore.resolveGet([owner]);
+          mockOwnerStore.resolveGetById(owner);
+          resolveStageTypeStore(MockData.getDashboardStageData());
+          resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
+          resolveApplicationWritePermission(true);
+          $timeout.flush();
+
+          expect(mockChangeApplicationIdService.open).not.toHaveBeenCalled();
+
+          vm.changeApplicationId();
+
+          expect(mockChangeApplicationIdService.open).toHaveBeenCalledWith(owner, [owner]);
+        });
+
+        it('does not call ChangeApplicationIdService.open when hasPermissionToChangeAppId is false', function() {
+          mockOwnerStore.resolveGet([owner]);
+          mockOwnerStore.resolveGetById(owner);
+          resolveStageTypeStore(MockData.getDashboardStageData());
+          resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
+          resolveApplicationWritePermission(false);
+          $timeout.flush();
+
+          expect(mockChangeApplicationIdService.open).not.toHaveBeenCalled();
+
+          vm.changeApplicationId();
+
+          expect(mockChangeApplicationIdService.open).not.toHaveBeenCalled();
+        });
+      });
+    }
+
     function resolveApplicationSummary() {
       if (isApp) {
         $httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(owner.publicId)).respond.apply(null, arguments);
@@ -196,6 +258,13 @@ describe('owner.summary.controller.js', function() {
       if (isApp) {
         expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
         stageTypeStoreDefer.resolve(value);
+      }
+    }
+
+    function resolveApplicationWritePermission(hasPermission) {
+      if (isApp) {
+        expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(['WRITE'], type, owner.id);
+        isContextAuthorizedDefer.resolve(hasPermission);
       }
     }
   }

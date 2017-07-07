@@ -23,7 +23,7 @@ import com.yammer.metrics.annotation.Timed;
  * @since 1.32
  */
 @Named
-@Path(FirewallMigrationResource.RESOURCE_PATH)
+//To be re-enabled by CLM-8310 // @Path(FirewallMigrationResource.RESOURCE_PATH)
 public class FirewallMigrationResource
 {
   static final String RESOURCE_PATH = "rest/integration/repositories/migration";

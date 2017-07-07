@@ -26,6 +26,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+@org.junit.Ignore("To be re-enabled by CLM-8310")
 public class FirewallMigrationClientTest
     extends AbstractBrainServiceTest
 {

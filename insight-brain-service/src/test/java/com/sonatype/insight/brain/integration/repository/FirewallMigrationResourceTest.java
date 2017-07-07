@@ -20,6 +20,7 @@ import static com.sonatype.insight.brain.integration.repository.FirewallMigratio
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+@org.junit.Ignore("To be re-enabled by CLM-8310")
 public class FirewallMigrationResourceTest
     extends AbstractResourceTest
 {

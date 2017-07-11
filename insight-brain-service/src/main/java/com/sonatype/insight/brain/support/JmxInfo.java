@@ -54,7 +54,7 @@ public class JmxInfo
   SortedMap<String, Object> getJmxInfo() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
-    log.debug("Querying mbeans");
+    log.trace("Querying mbeans");
     final Set<ObjectName> objectNames;
     try {
       objectNames = server.queryNames(new ObjectName("*:*"), null);
@@ -64,11 +64,11 @@ public class JmxInfo
       return entries;
     }
 
-    log.debug("Building model");
+    log.trace("Building model");
     for (final ObjectName objectName : objectNames) {
       // normalize names, strip out quotes
       final String name = objectName.getCanonicalName().replace("\"", "").replace("'", "");
-      log.debug("Processing MBean: {}", name);
+      log.trace("Processing MBean: {}", name);
 
       final MBeanInfo info;
       try {
@@ -81,7 +81,7 @@ public class JmxInfo
       final SortedMap<String, Object> attrs = new TreeMap<>();
       for (final MBeanAttributeInfo attr : info.getAttributes()) {
         final String attrName = attr.getName();
-        log.debug("Processing MBean attribute: {}", attrName);
+        log.trace("Processing MBean attribute: {}", attrName);
         if (attr.isReadable() && !"ObjectName".equals(attrName)) {
           try {
             final Object value = server.getAttribute(objectName, attrName);

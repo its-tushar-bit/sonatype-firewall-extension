@@ -24,7 +24,7 @@ class DbDiagnostics
   private static final Logger log = LoggerFactory.getLogger(DbDiagnostics.class);
 
   static String getDBFileInfo() throws IOException {
-    log.debug("getting db file info");
+    log.trace("getting db file info");
     final StringBuilder result = new StringBuilder("");
 
     final DatabaseConfig databaseConfig = OperationalDataStoreProvider.getDatabaseConfig();

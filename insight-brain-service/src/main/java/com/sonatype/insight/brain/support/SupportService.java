@@ -162,6 +162,7 @@ class SupportService
                                final boolean isDeleteAfterZipped)
   {
     if (fileToAdd != null && fileToAdd.exists()) {
+      log.info("Generating support {} file: {}", supportFileType, fileToAdd.getName());
       files.add(new SupportFile(supportFileType, fileToAdd, isDeleteAfterZipped));
     }
     else {
@@ -187,7 +188,7 @@ class SupportService
 
     final String prefix = uniqueName("support-");
     final File supportZip = new File(workDir, prefix + ".zip").getCanonicalFile();
-    log.info("Creating support.zip: " + supportZip);
+    log.info("Creating support.zip: {}", supportZip);
     if (!supportZip.createNewFile()) {
       throw new IOException("Failed to create new support.zip: " + supportZip);
     }
@@ -236,6 +237,7 @@ class SupportService
         SupportFileType.INFO,
         true);
 
+    log.info("Populating support.zip: {}", supportZip);
     try (final ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(supportZip))) {
 
       boolean isTruncated = false;
@@ -268,7 +270,7 @@ class SupportService
         zos.close();
       }
     }
-    log.info("Created support.zip: " + supportZip);
+    log.info("Created support.zip: {}", supportZip);
     return supportZip;
   }
 

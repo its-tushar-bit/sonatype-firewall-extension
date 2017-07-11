@@ -66,16 +66,20 @@ class SupportService
 
   private final LdapService ldapService;
 
+  private final JmxInfo jmxInfo;
+
   @Inject
   public SupportService(final InsightConfig config,
                         final VersionService versionService,
                         final ProductLicenseService productLicenseService,
-                        final LdapService ldapService)
+                        final LdapService ldapService,
+                        final JmxInfo jmxInfo)
   {
     this.config = config;
     this.versionService = versionService;
     this.productLicenseService = productLicenseService;
     this.ldapService = ldapService;
+    this.jmxInfo = jmxInfo;
   }
 
   File getWorkDir() {
@@ -208,6 +212,10 @@ class SupportService
 
     addFileIfExists(filesToZip,
         writeTextToFile(SystemInfo.getThreadDump(), new File(workDir, "threads.txt")), "threads", SupportFileType.INFO,
+        true);
+
+    addFileIfExists(filesToZip,
+        writeTextToFile(jmxInfo.getJmxInfoJson(), new File(workDir, "jmx.json")), "jmx", SupportFileType.INFO,
         true);
 
     final List<LdapConfig> ldapServers = new ArrayList<>();

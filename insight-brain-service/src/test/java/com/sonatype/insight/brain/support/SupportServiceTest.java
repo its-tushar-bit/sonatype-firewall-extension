@@ -156,6 +156,8 @@ public class SupportServiceTest
     assertThat(entries.nextElement().getName(),
         is(zipFileBasename + "/" + SupportFileType.INFO.dirName + "/threads.txt"));
     assertThat(entries.nextElement().getName(),
+        is(zipFileBasename + "/" + SupportFileType.INFO.dirName + "/jmx.json"));
+    assertThat(entries.nextElement().getName(),
         is(zipFileBasename + "/" + SupportFileType.CONFIG.dirName + "/ldap.json"));
     assertThat(entries.nextElement().getName(),
         is(zipFileBasename + "/" + SupportFileType.INFO.dirName + "/dbFileInfo.txt"));

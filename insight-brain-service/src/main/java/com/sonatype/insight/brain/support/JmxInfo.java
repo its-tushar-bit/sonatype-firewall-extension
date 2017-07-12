@@ -9,7 +9,6 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -105,14 +104,13 @@ public class JmxInfo
       return null;
     }
 
-    final Class type = value.getClass();
+    final Class<?> type = value.getClass();
     log.trace("Rendering type: {}", type);
 
     if (value instanceof TabularData) {
       final TabularData valueTD = (TabularData) value;
       final Set<Object> result = new HashSet<>();
-      for (final Object key : valueTD.keySet()) {
-        final CompositeData row = valueTD.get(((List) key).toArray()); // composite-data
+      for (final Object row : valueTD.values()) {
         result.add(render(row));
       }
       return result;
@@ -129,7 +127,7 @@ public class JmxInfo
       return ((ObjectName) value).getCanonicalName();
     }
     else if (value instanceof Collection) {
-      final Collection valueCollection = (Collection) value;
+      final Collection<?> valueCollection = (Collection<?>) value;
       final ArrayList<Object> result = new ArrayList<>();
       for (final Object item : valueCollection) {
         result.add(render(item));
@@ -137,7 +135,7 @@ public class JmxInfo
       return result;
     }
     else if (type.isArray()) {
-      final Class componentType = type.getComponentType();
+      final Class<?> componentType = type.getComponentType();
       if (!componentType.isPrimitive()) {
         final Object[] valueArray = (Object[]) value;
         final ArrayList<Object> result = new ArrayList<>();
@@ -152,7 +150,7 @@ public class JmxInfo
       }
     }
     else if (value instanceof Map) {
-      final Map valueMap = (Map) value;
+      final Map<?, ?> valueMap = (Map<?, ?>) value;
       final SortedMap<Object, Object> result = new TreeMap<>();
       for (final Object k : valueMap.keySet()) {
         result.put(k, render(valueMap.get(k)));
@@ -181,7 +179,7 @@ public class JmxInfo
       return value;
     }
     else if (value instanceof Enum) {
-      final Enum valueEnum = (Enum) value;
+      final Enum<?> valueEnum = (Enum<?>) value;
       return valueEnum.name();
     }
     else {

@@ -30,6 +30,7 @@ public class JmxInfoTest
     final SortedMap<String, Object> entries = jmxInfo.getJmxInfo();
     assertThat(entries.size(), greaterThan(1));
 
+    @SuppressWarnings("unchecked")
     final SortedMap<String, Object> mapOS = (SortedMap<String, Object>) entries.get("java.lang:type=OperatingSystem");
     assertThat(mapOS.get("TotalPhysicalMemorySize"), notNullValue());
     assertThat(mapOS.get("FreePhysicalMemorySize"), notNullValue());

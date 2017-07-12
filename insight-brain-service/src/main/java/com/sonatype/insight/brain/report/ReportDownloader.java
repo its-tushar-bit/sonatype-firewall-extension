@@ -54,6 +54,7 @@ public class ReportDownloader
                                 final int reportTimeoutInSeconds,
                                 final int retryIntervalInSeconds)
   {
+    log.debug("Downloading report for scan {} with timeout {} s", scanId, reportTimeoutInSeconds);
     final long endTime = System.currentTimeMillis() + reportTimeoutInSeconds * 1000;
     try {
       do {

@@ -31,9 +31,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Adds JMX information (mbean+readable-attributes dump) to support bundle.
- * Ported from Nexus 3: https://github.com/sonatype/nexus-internal/blob/master/components/nexus-core/src/main/java/org/sonatype/nexus/internal/atlas/customizers/JmxCustomizer.groovy
+ * Ported from Nexus 3:
+ * https://github.com/sonatype/nexus-internal/blob/master/components/nexus-core/src/main/java/org/sonatype/nexus/
+ * internal/atlas/customizers/JmxCustomizer.groovy
  *
- * @since 1.32
+ * @since 1.33
  */
 @Named
 public class JmxInfo

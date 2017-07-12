@@ -16,9 +16,6 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-/**
- * @since 1.32
- */
 public class JmxInfoTest
     extends InjectedTest
 {

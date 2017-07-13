@@ -170,8 +170,7 @@ public class NewestRiskService
     Collections.sort(riskDTOs, NewestRiskDTOComparator.INSTANCE);
     DashboardResultsDTO<NewestRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = riskDTOs.size();
-    riskDTOs.subList(Math.min(riskDTOs.size(), maxResults), riskDTOs.size()).clear();
-    result.dashboardResults = riskDTOs;
+    result.dashboardResults = riskDTOs.subList(0, Math.min(riskDTOs.size(), maxResults));
     log.debug("getNewestRisks: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
         policyViolationCount);
 

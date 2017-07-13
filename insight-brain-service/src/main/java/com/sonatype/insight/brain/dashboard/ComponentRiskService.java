@@ -125,8 +125,7 @@ public class ComponentRiskService
     Collections.sort(dtos, ComponentRiskDTOComparator.INSTANCE);
     DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = dtos.size();
-    result.dashboardResults = dtos;
-    result.dashboardResults.subList(Math.min(dtos.size(), maxResults), dtos.size()).clear();
+    result.dashboardResults = dtos.subList(0, Math.min(dtos.size(), maxResults));
 
     log.debug("getComponentRisks finished in {} ms", System.currentTimeMillis() - start);
 

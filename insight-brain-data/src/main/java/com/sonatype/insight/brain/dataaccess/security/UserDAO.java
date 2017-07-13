@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
@@ -163,12 +162,8 @@ public class UserDAO
       membershipMappingDAO.delete(tx, membershipMapping);
     }
 
-    // Cascade to dashboard filter
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    List<DashboardFilter> dashboardFilters = dashboardFilterDAO.getByUsername(tx, entity.getUsername());
-    for (DashboardFilter dashboardFilter : dashboardFilters) {
-      dashboardFilterDAO.delete(tx, dashboardFilter);
-    }
+    // Cascade to dashboard filters
+    new DashboardFilterDAO().deleteByUsername(tx, entity.getUsername());
 
     // Cascade to user viewed notification mapping
     UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();

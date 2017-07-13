@@ -18,11 +18,11 @@ import com.sonatype.clm.testing.functional.pages.TrendsModal;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
@@ -333,11 +333,7 @@ public class DashboardTabNavigationAndTrendsTest
   }
 
   private void clearFilters() {
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    List<DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
-    for (DashboardFilter filter : filters) {
-      dashboardFilterDAO.delete(filter);
-    }
+    new DashboardFilterDAO().deleteByUsername(User.ADMIN_USERNAME);
   }
 
   private static class ComponentData

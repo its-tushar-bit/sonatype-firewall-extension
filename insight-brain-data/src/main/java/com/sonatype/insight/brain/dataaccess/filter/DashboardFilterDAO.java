@@ -105,4 +105,19 @@ public class DashboardFilterDAO
       }
     }
   }
+
+  public void deleteByUsername(String username) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deleteByUsername(tx, username);
+      tx.commit();
+    }
+  }
+
+  public void deleteByUsername(TransactionContext tx, String username) {
+    List<DashboardFilter> dashboardFilters = getByUsername(tx, username);
+    for (DashboardFilter dashboardFilter : dashboardFilters) {
+      delete(tx, dashboardFilter);
+    }
+  }
 }

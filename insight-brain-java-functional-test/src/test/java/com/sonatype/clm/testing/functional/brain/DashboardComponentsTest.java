@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.Arrays;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -18,12 +17,12 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
@@ -267,10 +266,6 @@ public class DashboardComponentsTest
   }
 
   private void clearFilters() {
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    List<DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
-    for (DashboardFilter filter : filters) {
-      dashboardFilterDAO.delete(filter);
-    }
+    new DashboardFilterDAO().deleteByUsername(User.ADMIN_USERNAME);
   }
 }

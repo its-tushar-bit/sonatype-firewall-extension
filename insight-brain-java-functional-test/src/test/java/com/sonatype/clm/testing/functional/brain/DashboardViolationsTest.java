@@ -12,7 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -32,13 +31,13 @@ import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Selenide;
@@ -395,10 +394,6 @@ public class DashboardViolationsTest
   }
 
   private void clearFilters() {
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    List<DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
-    for (DashboardFilter filter : filters) {
-      dashboardFilterDAO.delete(filter);
-    }
+    new DashboardFilterDAO().deleteByUsername(User.ADMIN_USERNAME);
   }
 }

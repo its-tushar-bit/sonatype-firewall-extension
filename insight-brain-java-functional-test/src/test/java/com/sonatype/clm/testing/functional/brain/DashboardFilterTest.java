@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.Condition;
@@ -105,11 +106,7 @@ public class DashboardFilterTest
   }
 
   public void clearFilters() {
-    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
-    for (com.sonatype.insight.brain.model.filter.DashboardFilter filter : filters) {
-      dashboardFilterDAO.delete(filter);
-    }
+    new DashboardFilterDAO().deleteByUsername(User.ADMIN_USERNAME);
   }
 
   private static void setupData() {

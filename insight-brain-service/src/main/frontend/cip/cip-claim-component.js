@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+import legacyConfigurationModule from '../LegacyConfigurationModule';
 /* global angular, $, window, CLM, setTimeout, InsightDatatable, Insight, applicationId */
 (function() {
   'use strict';
@@ -55,7 +57,8 @@
             createTime: component.lastModifiedEntryTime ? component.lastModifiedEntryTime : component.lastModifiedTime
           }, component);
         });
-        angular.bootstrap(container[0], ['ClaimComponent', 'claimComponent' + timestamp, 'AngularCommon']);
+        angular.bootstrap(container[0], ['ClaimComponent', 'claimComponent' + timestamp, 'AngularCommon',
+            legacyConfigurationModule.name]);
 
         applyFocus();
       }

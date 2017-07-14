@@ -22,7 +22,6 @@
       controllerAs: 'vm'
     }).state('webhooks.list', {
       url: '/list',
-      parent: 'webhooks',
       templateUrl: 'configuration/webhook/webhook.list.view.html?' + clmBuildTimestamp,
       controller: 'webhook.list.controller',
       controllerAs: 'vm',
@@ -31,7 +30,6 @@
       }
     }).state('webhooks.create', {
       url: '/create',
-      parent: 'webhooks',
       controller: 'webhook.edit.controller',
       controllerAs: 'vm',
       templateUrl: 'configuration/webhook/webhook.edit.view.html?' + clmBuildTimestamp,
@@ -40,7 +38,6 @@
       }
     }).state('webhooks.edit', {
       url: '/{webhookId}',
-      parent: 'webhooks',
       controller: 'webhook.edit.controller',
       controllerAs: 'vm',
       templateUrl: 'configuration/webhook/webhook.edit.view.html?' + clmBuildTimestamp,

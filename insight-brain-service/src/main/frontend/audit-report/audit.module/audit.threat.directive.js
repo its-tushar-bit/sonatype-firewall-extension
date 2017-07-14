@@ -236,8 +236,9 @@
           }
 
           promises.push($http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId, componentKey))
-            .success(function(data) {
-                var dataView = vm.grid.dataView,
+            .then(function(response) {
+                var data = response.data,
+                    dataView = vm.grid.dataView,
                     maxId = -1,
                     idsToRemove = [],
                     newItemMap = {},

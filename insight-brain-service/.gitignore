@@ -5,6 +5,7 @@ node_modules/
 
 #Bower Managed Assets
 src/main/frontend/lib/angular
+src/main/frontend/lib/angular-ui-router
 src/main/frontend/lib/bootstrap-sass-official
 src/main/frontend/lib/components-font-awesome
 src/main/frontend/lib/fuse.js

@@ -32,7 +32,6 @@
         }
       }).state('roles.editor', {
         url: '/{roleId}',
-        parent: 'roles',
         controller: 'RoleEditorController',
         templateUrl: 'security/role-editor.html?' + clmBuildTimestamp,
         data: {

@@ -57,7 +57,6 @@
             }).state('users.create', {
               // NOTE This is currently only used for adding new users - editing users is done using an inline form
               url: '/_new_',
-              parent: 'users',
               templateUrl: 'security/user-create.html?' + clmBuildTimestamp,
               data: {
                 title: 'New User',

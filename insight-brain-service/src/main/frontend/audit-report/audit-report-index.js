@@ -5,7 +5,8 @@ import './lib/slickgrid/slick.pager.css';
 import './jquery/tipsy.css';
 import './report.css';
 
-import '../lib/angular-ui-router-0.2.15.min';
+import '../lib/angular-ui-router/release/angular-ui-router';
+import '../lib/angular-ui-router/release/stateEvents';
 import '../lib/protovis/protovis-tipsy';
 import './lib/date.format';
 import './lib/jquery/jquery.tipsy';

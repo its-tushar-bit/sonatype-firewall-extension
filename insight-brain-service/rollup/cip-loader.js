@@ -2,6 +2,8 @@ var uglify = require('rollup-plugin-uglify');
 var minify = require('uglify-js').minify;
 var scss = require('rollup-plugin-scss');
 var legacy = require('rollup-plugin-legacy');
+var commonjs = require('rollup-plugin-commonjs');
+var alias = require('rollup-plugin-alias');
 
 var isProd = process.env.BUILD === 'production';
 
@@ -18,7 +20,11 @@ var plugins = [
       AngularUtils: 'AngularUtils',
       AngularStateUtils: 'AngularStateUtils'
     }
-  })
+  }),
+  commonjs({ include: 'src/main/frontend/lib/angular-ui-router/**' }),
+
+  // angular-ui-router depends on angular by name, so tell rollup where to find it
+  alias({ angular: __dirname + '/../src/main/frontend/lib/angular/angular.js' })
 ];
 
 if (isProd) {

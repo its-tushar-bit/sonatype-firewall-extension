@@ -8,7 +8,8 @@ import '../scss/_global.scss';
 import '../scss/_clm-modal.scss';
 import '../scss/_mask.scss';
 
-import '../lib/angular-ui-router-0.2.15.min';
+import '../lib/angular-ui-router/release/angular-ui-router';
+import '../lib/angular-ui-router/release/stateEvents';
 import '../lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap-tooltip';
 import '../utility/directives/utility.directives.module';
 import '../utility/directives/load.wrapper.directive';
@@ -24,7 +25,7 @@ import '../util/CommonServices';
 import '../util/CLMAppLocation';
 import '../util/CLMLocation';
 import '../util/HttpInterceptors';
-import '../lib/angular-1.5.8/angular-sanitize';
+import '../lib/angular-1.6.4/angular-sanitize';
 import '../lib/angular-vs-repeat/src/angular-vs-repeat';
 
 // vulnerability.details

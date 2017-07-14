@@ -34,7 +34,7 @@ describe('move.application.modal.controller.js', function() {
     }
   };
 
-  beforeEach(module('owner.manager.module'));
+  beforeEach(module('owner.manager.module', 'legacyConfiguration'));
 
   beforeEach(inject(function(_$rootScope_, $controller, _$q_, $injector) {
     $rootScope = _$rootScope_;
@@ -209,7 +209,7 @@ describe('move.application.modal.controller.js', function() {
       });
 
       it('refreshes nav tree and data, closes the modal and opens info modal', function() {
-        spyOn($rootScope, '$broadcast');
+        spyOn($rootScope, '$broadcast').and.callThrough();
         moveApplicationSuccessModal.open.and.returnValue($q.resolve());
         scope.$apply(); // resolve promises
         expect($rootScope.$broadcast).toHaveBeenCalledWith('reload.owner.tree.data');

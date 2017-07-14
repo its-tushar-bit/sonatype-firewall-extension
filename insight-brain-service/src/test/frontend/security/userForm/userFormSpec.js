@@ -16,7 +16,7 @@ describe('userForm', function() {
     }, bindings);
   }
 
-  beforeEach(module('UserModule'));
+  beforeEach(module('UserModule', 'legacyConfiguration'));
   beforeEach(inject(function(_$componentController_, _$rootScope_, _UserStore_, _Dialog_) {
     $componentController = _$componentController_;
     $rootScope = _$rootScope_;

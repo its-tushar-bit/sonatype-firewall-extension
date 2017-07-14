@@ -2,6 +2,7 @@ var uglify = require('rollup-plugin-uglify');
 var minify = require('uglify-js').minify;
 var scss = require('rollup-plugin-scss');
 var legacy = require('rollup-plugin-legacy');
+var commonjs = require('rollup-plugin-commonjs');
 
 var isProd = process.env.BUILD === 'production';
 
@@ -15,7 +16,8 @@ var plugins = [
       AngularUtils: 'AngularUtils',
       AngularStateUtils: 'AngularStateUtils'
     }
-  })
+  }),
+  commonjs({ include: 'src/main/frontend/lib/angular-ui-router/**' })
 ];
 
 if (isProd) {
@@ -26,5 +28,12 @@ module.exports = {
   entry: 'src/main/frontend/cip/cip-index.js',
   sourceMap: isProd ? false : 'inline',
   plugins: plugins,
-  dest: 'target/classes/assets/cip/cip.js'
+  dest: 'target/classes/assets/cip/cip.js',
+  format: 'iife',
+
+  // angular is included in another script loaded before this one, so just reference it via the global
+  external: ['angular'],
+  globals: {
+    angular: 'angular'
+  }
 };

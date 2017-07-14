@@ -4,6 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, angularDebug*/
+
+import legacyConfigurationModule from '../../LegacyConfigurationModule';
+
 window.CLM = {
   path: '../../',
   assetsPath : '../'
@@ -29,5 +32,5 @@ window.CLM = {
 
   angular.module('audit',
           ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
-              'component.information.panel']).run(init).config(config);
+              'component.information.panel', legacyConfigurationModule.name]).run(init).config(config);
 }());

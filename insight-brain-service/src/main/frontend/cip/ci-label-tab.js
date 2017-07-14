@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+import legacyConfigurationModule from '../LegacyConfigurationModule';
 /*global angular, $, CLM, Insight, applicationId */
 (function() {
   'use strict';
@@ -38,7 +40,8 @@
           ownerId: applicationId
         };
       });
-      angular.bootstrap(container[0], ['cip.label.editor', 'componentProvider' + timestamp, 'AngularCommon', 'ui.bootstrap']);
+      angular.bootstrap(container[0], ['cip.label.editor', 'componentProvider' + timestamp, 'AngularCommon', 
+          'ui.bootstrap', legacyConfigurationModule.name]);
     };
 
     LabelTab.prototype.destroy = function() {

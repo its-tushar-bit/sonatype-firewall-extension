@@ -1,5 +1,5 @@
 describe('owner.summary.controller.js', function() {
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(module('owner.manager.module', 'legacyConfiguration', function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

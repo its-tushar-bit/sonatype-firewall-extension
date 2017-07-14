@@ -3,12 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
+import legacyConfigurationModule from './LegacyConfigurationModule';
 
-  angular.module('managementApp',
-      [
-        'MainModule', 'UserModule', 'RoleModule', 'ldap.module', 'owner.manager.module',
-        'root.organization.migrate', 'ProductLicense', 'webhook.module', 'systemNoticeConfigurationModule', 'systemNoticeModule', 'components'
-      ]);
-}());
+export default angular.module('managementApp',
+    [
+      'MainModule', 'UserModule', 'RoleModule', 'ldap.module', 'owner.manager.module',
+      'root.organization.migrate', 'ProductLicense', 'webhook.module', 'systemNoticeConfigurationModule',
+      'systemNoticeModule', 'components', legacyConfigurationModule.name
+    ]);

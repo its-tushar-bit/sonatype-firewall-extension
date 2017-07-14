@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+import legacyConfigurationModule from '../LegacyConfigurationModule';
 /*global $, angular, applicationId, Insight, CLM */
 (function () {
   'use strict';
@@ -56,7 +58,7 @@
         };
       });
       angular.bootstrap(container[0], ['version.graph', 'componentProvider' + timestamp, 'HttpInterceptors',
-          'UnauthenticatedResponseHttpInterceptor', 'proprietary.matchers']);
+          'UnauthenticatedResponseHttpInterceptor', 'proprietary.matchers', legacyConfigurationModule.name]);
     };
     return VersionGraphTab;
   }

@@ -44,11 +44,9 @@
         }]
       }
     }).state('edit-ldap.connection', {
-      parent: 'edit-ldap',
       controller: 'LdapConnectionController',
       templateUrl: 'configuration/components/ldap-connection.html?' + clmBuildTimestamp
     }).state('edit-ldap.usermapping', {
-      parent: 'edit-ldap',
       controller: 'LdapUsermappingController',
       templateUrl: 'configuration/components/ldap-usermapping.html?' + clmBuildTimestamp
     });

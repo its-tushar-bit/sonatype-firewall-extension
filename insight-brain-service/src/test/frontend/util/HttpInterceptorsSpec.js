@@ -1,8 +1,8 @@
 describe('HttpInterceptors.js', function() {
   var scope,
       modalSuccess;
-  
-  beforeEach(module('UnauthenticatedResponseHttpInterceptor', function($provide) {
+
+  beforeEach(module('UnauthenticatedResponseHttpInterceptor', 'legacyConfiguration', function($provide) {
     $provide.value('$modalInstance', {
       close: function() {}
     });
@@ -37,9 +37,9 @@ describe('HttpInterceptors.js', function() {
     
     var success = false;
     var error = false;
-    $http.post('test').success(function(){
+    $http.post('test').then(function(){
       success = true;
-    }).error(function(){
+    }, function(){
       error = true;
     });
     
@@ -125,9 +125,9 @@ describe('HttpInterceptors.js', function() {
 
         var success = false;
         var error = false;
-        $http.post('test').success(function(){
+        $http.post('test').then(function(){
           success = true;
-        }).error(function(){
+        }, function(){
           error = true;
         });
 

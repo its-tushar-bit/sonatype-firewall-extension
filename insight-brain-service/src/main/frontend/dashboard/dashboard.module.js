@@ -60,7 +60,6 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
       crumb: 'Dashboard'
     }
   }).state('dashboard.overview', {
-    parent: 'dashboard',
     url: '?timeFilterFeature', // query parameter feature flag for Time-based filter control
     abstract: true,
     views: {
@@ -74,7 +73,6 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
       }
     }
   }).state('dashboard.overview.violations', {
-    parent: 'dashboard.overview',
     url: '/violations',
     views: {
       'dashboard-results': {
@@ -85,7 +83,6 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
       title: 'Violations'
     }
   }).state('dashboard.overview.components', {
-    parent: 'dashboard.overview',
     url: '/components',
     views: {
       'dashboard-results': {
@@ -96,7 +93,6 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
       title: 'Components'
     }
   }).state('dashboard.overview.applications', {
-    parent: 'dashboard.overview',
     url: '/applications',
     views: {
       'dashboard-results': {
@@ -107,7 +103,6 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
       title: 'Applications'
     }
   }).state('dashboard.component', {
-    parent: 'dashboard',
     url: '/component/{hash}',
     controller: 'componentController',
     templateUrl: 'dashboard/component.html?' + clmBuildTimestamp,

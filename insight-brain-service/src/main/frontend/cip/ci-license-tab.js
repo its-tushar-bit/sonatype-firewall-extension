@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+import legacyConfigurationModule from '../LegacyConfigurationModule';
 /*global angular, $, CLM, Insight, applicationId */
 (function() {
   'use strict';
@@ -58,7 +60,8 @@
         };
       });
 
-      angular.bootstrap(container[0], ['cip.license.editor', 'componentProvider' + timestamp]);
+      angular.bootstrap(container[0], ['cip.license.editor', 'componentProvider' + timestamp,
+          legacyConfigurationModule.name]);
     };
 
     return BrainLicenseEditorTab;

@@ -21,7 +21,7 @@
     <npm.version>3.10.10</npm.version>
     <freemarker.version>2.3.19</freemarker.version>
     <licensing.version>1.4</licensing.version>
-    <angularjs.version>1.5.8</angularjs.version>
+    <angularjs.version>1.6.4</angularjs.version>
     <jasmine.version>2.2</jasmine.version>
     <saga.version>1.5.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
@@ -549,7 +549,8 @@
                 <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</include>
-                <include>frontend/lib/angular-ui-router-0.2.15.min.js</include>
+                <include>frontend/lib/angular-ui-router/release/angular-ui-router.js</include>
+                <include>frontend/lib/angular-ui-router/release/stateEvents.js</include>
                 <source>root/target/classes/assets/policy/js/cip-loader.js</source>
               </preloadSources>
               <sourceIncludes>
@@ -590,7 +591,8 @@
                 <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</include>
-                <include>frontend/lib/angular-ui-router-0.2.15.min.js</include>
+                <include>frontend/lib/angular-ui-router/release/angular-ui-router.js</include>
+                <include>frontend/lib/angular-ui-router/release/stateEvents.js</include>
                 <include>frontend/lib/protovis/protovis.min.js</include>
                 <source>root/target/classes/assets/cip/cip.js</source>
                 <source>root/target/classes/assets/audit-report/audit-report.js</source>
@@ -631,7 +633,8 @@
                 <source>frontend/lib/angular-${angularjs.version}/angular-cookies.js</source>
                 <source>frontend/lib/angular-${angularjs.version}/angular-route.js</source>
                 <source>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</source>
-                <source>frontend/lib/angular-ui-router-0.2.15.min.js</source>
+                <source>frontend/lib/angular-ui-router/release/angular-ui-router.js</source>
+                <include>frontend/lib/angular-ui-router/release/stateEvents.js</include>
                 <source>frontend/lib/angular-ui-utils-0.0.3.js</source>
                 <source>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</source>
                 <source>frontend/lib/ui-bootstrap-tpls-0.13.4.min.js</source>

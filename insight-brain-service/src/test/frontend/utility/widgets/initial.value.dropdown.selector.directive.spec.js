@@ -1,7 +1,7 @@
 describe('initial.value.dropdown.selector.directive.spec.js', function() {
   var element;
 
-  beforeEach(module('utility'));
+  beforeEach(module('utility', 'legacyConfiguration'));
 
   beforeEach(inject(function($compile, $rootScope) {
     var scope = $rootScope.$new();

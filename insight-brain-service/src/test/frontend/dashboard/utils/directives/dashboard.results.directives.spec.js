@@ -15,7 +15,7 @@ describe('dashboard.results.directives.spec', function() {
 
   var dashboardDataServiceMock, $state;
 
-  beforeEach(module('dashboard.utils', function($provide) {
+  beforeEach(module('dashboard.utils', 'legacyConfiguration', function($provide) {
     $provide.service('dashboard.data.service', function() {
       return dashboardDataServiceMock;
     });

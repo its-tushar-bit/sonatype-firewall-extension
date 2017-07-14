@@ -1,7 +1,7 @@
 describe('policy.editor.controller.spec.js', function() {
   var $state;
 
-  beforeEach(module('ResourceModule', 'owner.manager.module', function($provide) {
+  beforeEach(module('ResourceModule', 'owner.manager.module', 'legacyConfiguration', function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

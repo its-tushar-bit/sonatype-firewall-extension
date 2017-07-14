@@ -8,7 +8,7 @@
   "license": "Commercial",
   "private": true,
   "dependencies": {
-    "angular": "=1.5.8",
+    "angular": "=1.6.4",
     "angular-vs-repeat": "~1.1.4",
     "bootstrap-sass-official": "https://github.com/twbs/bootstrap-sass.git#v2.3.2.0",
     "components-font-awesome": "=4.3.0",
@@ -16,10 +16,11 @@
     "jquery": "=2.2.4",
     "ngUpload": "=0.5.18",
     "jquery-ui": "=1.11.4",
-    "classybrew": "git://github.com/tannerjt/classybrew.git#0.1.0"
+    "classybrew": "git://github.com/tannerjt/classybrew.git#0.1.0",
+    "angular-ui-router": "=1.0.5"
   },
   "resolutions": {
-    "angular": "=1.5.8",
+    "angular": "=1.6.4",
     "jquery": "=2.2.4"
   }
 }

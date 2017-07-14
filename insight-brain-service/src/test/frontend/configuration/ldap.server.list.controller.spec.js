@@ -1,6 +1,6 @@
 describe('ldap.server.list.controller.spec.js', function() {
 
-  beforeEach(module('ldap.module'));
+  beforeEach(module('ldap.module', 'legacyConfiguration'));
 
   var vm,
       $httpBackend,

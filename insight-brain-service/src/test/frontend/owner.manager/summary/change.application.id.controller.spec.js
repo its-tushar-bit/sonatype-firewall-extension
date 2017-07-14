@@ -1,6 +1,6 @@
 describe('change.application.id.controller.spec.js', function() {
 
-  beforeEach(module('owner.manager.module'));
+  beforeEach(module('owner.manager.module', 'legacyConfiguration'));
 
   beforeEach(module('ResourceModule'));
 
@@ -16,7 +16,7 @@ describe('change.application.id.controller.spec.js', function() {
     mockState = jasmine.createSpyObj('state', ['go']);
     $rootScope = _$rootScope_;
     scope = $rootScope.$new();
-    $rootScope.$broadcast = jasmine.createSpy('$broadcast');
+    spyOn($rootScope, '$broadcast').and.callThrough();
     scope.$close = jasmine.createSpy('$close');
 
     vm = $controller('change.application.id.controller', {

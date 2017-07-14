@@ -70,7 +70,7 @@ describe('violationsTableRow.spec', function() {
     ]
   };
 
-  beforeEach(module('dashboard.module'));
+  beforeEach(module('dashboard.module', 'legacyConfiguration'));
 
   afterEach(inject(function($httpBackend) {
     scope.$destroy();

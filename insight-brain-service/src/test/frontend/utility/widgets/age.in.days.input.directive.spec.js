@@ -6,7 +6,7 @@ describe('age.in.days.input.directive.spec.js', function() {
       $compile,
       $httpBackend;
 
-  beforeEach(module('utility'));
+  beforeEach(module('utility', 'legacyConfiguration'));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();

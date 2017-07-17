@@ -61,8 +61,7 @@ public class DiagnosticsCli
     log.info("-- Database Diagnostics --");
     log.info("Total database size: {} bytes", h2.length());
 
-    String version = new String(Files.readAllBytes(new File(ods + ".ver").toPath()), "UTF-8");
-    log.info("Schema version: {}", version);
+    logSchemaVersion(ods);
 
     if (params.isRecover()) {
       recoverDatabase(ods);
@@ -92,6 +91,18 @@ public class DiagnosticsCli
         logDatabaseSettings(connection);
       }
     }
+  }
+
+  private void logSchemaVersion(File ods) throws Exception {
+    File versionFile = new File(ods + ".ver");
+    String version;
+    if (versionFile.isFile()) {
+      version = new String(Files.readAllBytes(versionFile.toPath()), "UTF-8");
+    }
+    else {
+      version = "(unknown - " + versionFile + " missing)";
+    }
+    log.info("Schema version: {}", version);
   }
 
   private void logDiskSpeed(File dbFile) throws Exception {

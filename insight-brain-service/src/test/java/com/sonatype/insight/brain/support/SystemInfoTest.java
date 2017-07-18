@@ -288,8 +288,7 @@ public class SystemInfoTest
     assertThat(list.get(3).keySet().iterator().next(), is("system-runtime"));
     assertThat(list.get(4).keySet().iterator().next(), is("system-network"));
     assertThat(list.get(5).keySet().iterator().next(), is("system-filestores"));
-    assertThat(list.get(6).keySet().iterator().next(), is("system-extraprops"));
-    assertThat(list.size(), is(7));
+    assertThat(list.size(), is(6));
   }
 
   @Test
@@ -331,18 +330,5 @@ public class SystemInfoTest
   public void testGetLdapConfigEmpty() throws Exception {
     final List<LdapConfig> ldapServers = new ArrayList<>();
     assertThat(SystemInfo.getLdapConfig(ldapServers), is("[ ]"));
-  }
-
-  @Test
-  public void testGetExtraProps() throws Exception {
-    final Map<String, SortedMap<String, Object>> map = SystemInfo.getExtraProps();
-    final SortedMap<String, Object> mxProps = map.get("system-extraprops");
-    assertThat(mxProps, is(notNullValue()));
-    assertThat(mxProps.get("TotalPhysicalMemorySize"), is(notNullValue()));
-    assertThat(mxProps.get("FreePhysicalMemorySize"), is(notNullValue()));
-    assertThat(mxProps.get("UsedPhysicalMemorySize"), is(notNullValue()));
-    assertThat(mxProps.get("MaxFileDescriptorCount"), is(notNullValue()));
-    assertThat(mxProps.get("OpenFileDescriptorCount"), is(notNullValue()));
-    assertThat(mxProps.size(), is(5));
   }
 }

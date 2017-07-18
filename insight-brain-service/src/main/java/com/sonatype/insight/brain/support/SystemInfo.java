@@ -272,7 +272,6 @@ class SystemInfo
     entries.add(getSystemRuntime());
     entries.add(getNetworkInterfaces());
     entries.add(getFileStores());
-    entries.add(getExtraProps());
 
     return entries;
   }
@@ -307,29 +306,5 @@ class SystemInfo
 
   static String getLdapConfig(final List<LdapConfig> ldapServers) {
     return JsonUtils.format(ldapServers);
-  }
-
-  /**
-   * @since 1.32
-   */
-  static Map<String, SortedMap<String, Object>> getExtraProps() {
-    final SortedMap<String, Object> entries = new TreeMap<>();
-    try {
-      // Note: oshi will create temp directory for jna dispatch native lib in java.io.tmpdir named: "jna-" + System.getProperty("user.name").hashCode()
-      // The dispatch native lib temp file will be deleted after loading. see: https://github.com/java-native-access/jna/blob/master/src/com/sun/jna/Native.java#L1217
-      oshi.SystemInfo info = new oshi.SystemInfo();
-      entries.put("TotalPhysicalMemorySize", info.getHardware().getMemory().getTotal());
-      entries.put("FreePhysicalMemorySize", info.getHardware().getMemory().getAvailable());
-      entries.put("UsedPhysicalMemorySize",
-          info.getHardware().getMemory().getTotal() - info.getHardware().getMemory().getAvailable());
-      entries.put("MaxFileDescriptorCount", info.getOperatingSystem().getFileSystem().getMaxFileDescriptors());
-      entries.put("OpenFileDescriptorCount", info.getOperatingSystem().getFileSystem().getOpenFileDescriptors());
-    }
-    catch (Exception e) {
-      log.warn("Ignoring error loading props.", e);
-    }
-    final Map<String, SortedMap<String, Object>> mapEntry = new HashMap<>();
-    mapEntry.put("system-extraprops", entries);
-    return mapEntry;
   }
 }

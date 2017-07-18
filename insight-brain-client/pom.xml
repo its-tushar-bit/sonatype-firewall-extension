@@ -16,14 +16,6 @@
   <artifactId>insight-brain-client</artifactId>
   <name>Insight Brain Client</name>
 
-  <properties>
-    <!-- PO has requested the clients still support 1.6 -->
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
-    <animal-sniffer-signature>java16</animal-sniffer-signature>
-    <animal-sniffer-signature-version>1.1</animal-sniffer-signature-version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>

@@ -37,7 +37,7 @@
     <!-- Logback >= 1.1.5 does not work with Dropwizard (at least 0.7.1). See https://issues.sonatype.org/browse/CLM-6469 for details. 
     At the time of this change, the latest logback version is 1.1.7 and it also does not work with Dropwizard. -->
     <logback.version>1.1.4</logback.version>
-    <jackson.version>2.1.2</jackson.version>
+    <jackson.version>2.8.9</jackson.version>
     <openjpa.version>2.4.2</openjpa.version>
     <shiro.version>1.4.0</shiro.version>
     <sisu-inject.version>0.3.3</sisu-inject.version>
@@ -343,6 +343,26 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-guava</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-joda</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
         <version>${jackson.version}</version>
       </dependency>
 

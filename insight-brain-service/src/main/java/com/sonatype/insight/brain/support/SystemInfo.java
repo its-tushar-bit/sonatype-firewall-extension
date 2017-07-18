@@ -32,10 +32,10 @@ import java.util.TreeSet;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.dataformat.yaml.snakeyaml.Yaml;
 import com.yammer.metrics.core.VirtualMachineMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * @since 1.27

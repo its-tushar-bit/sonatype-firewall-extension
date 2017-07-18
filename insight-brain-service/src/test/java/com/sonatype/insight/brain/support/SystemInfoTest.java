@@ -24,9 +24,9 @@ import java.util.TreeSet;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 
-import com.fasterxml.jackson.dataformat.yaml.snakeyaml.Yaml;
 import org.hamcrest.core.Is;
 import org.junit.Test;
+import org.yaml.snakeyaml.Yaml;
 
 import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONFIG_YML;
 import static org.hamcrest.MatcherAssert.assertThat;

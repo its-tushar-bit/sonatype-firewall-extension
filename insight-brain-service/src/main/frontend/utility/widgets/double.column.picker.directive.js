@@ -41,7 +41,7 @@
         return formCtrl.$pristine;
       }, function(isPristine) {
         if (isPristine) {
-          scope.vm.search = '';
+          scope.vm.search = {};
           scope.vm.checkAllRight = false;
           scope.vm.checkAllLeft = false;
 

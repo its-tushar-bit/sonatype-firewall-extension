@@ -85,6 +85,7 @@ public abstract class AbstractLTGEditorTest
 
     LTGEditorPage.ltgName().val("updated name");
     changeThreatLevel(6);
+    filterLicenses(picker);
     pickFirstThreeLicenses(picker);
     LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
 
@@ -167,6 +168,23 @@ public abstract class AbstractLTGEditorTest
     for (int i = 0; i < 3; i++) {
       picker.pickedItem(i).shouldBe(selected).label().shouldHave(text(pickedLicenseNames.get(i)));
     }
+  }
+
+  private void filterLicenses(DoubleColumnPicker picker) {
+    int initialSize = picker.availableItems().size();
+
+    String filterText = "Adobe";
+    picker.filter().val(filterText);
+    picker.availableItems().shouldHaveSize(3);
+
+    for (int i = 0; i < 3; i++) {
+      Item item = picker.availableItem(i);
+      item.label().shouldBe(visible).shouldHave(text(filterText));
+    }
+
+    // reset filter 
+    picker.filter().clear();
+    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(picker, initialSize);
   }
 
   protected abstract void assertNewLTGStateIsCorrect();

@@ -8,9 +8,10 @@
 
   function StateHistoryService($rootScope) {
     var service = {
-      register: angular.noop, // Fake function used to register this service on app init
-      getPreviousState: getPreviousState
-    }, states = [];
+          register: angular.noop, // Fake function used to register this service on app init
+          getPreviousState: getPreviousState
+        },
+        states = [];
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
       if (states.length === 0 || !angular.equals(states[states.length - 1], fromState)) {

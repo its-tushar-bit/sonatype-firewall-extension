@@ -32,21 +32,22 @@
 
   tagModule.service('PolicyTagStore', ['$http', 'CachedStore', 'CLMAppLocations', 'CLMLocations',
     function($http, CachedStore, CLMAppLocations, CLMLocations) {
-    var policyId, policyTagTemplate = {
-      getKey: function() { return policyId; },
-      getUrl: function() { return CLMAppLocations.getPolicyTagUrl(policyId); },
-      template: tagTemplate
-    };
-    var store = CachedStore.get(policyTagTemplate);
-    return {
-      getByPolicyId: function(id) {
-        policyId = id;
-        return store;
-      },
-      getApplied: function() {
-        return $http.get(CLMLocations.getOrganizationPolicyTagUrl(CLMAppLocations.getEntityId()));
-      }
-    };
-  }]);
+      var policyId, policyTagTemplate = {
+        getKey: function() { return policyId; },
+        getUrl: function() { return CLMAppLocations.getPolicyTagUrl(policyId); },
+        template: tagTemplate
+      };
+      var store = CachedStore.get(policyTagTemplate);
+      return {
+        getByPolicyId: function(id) {
+          policyId = id;
+          return store;
+        },
+        getApplied: function() {
+          return $http.get(CLMLocations.getOrganizationPolicyTagUrl(CLMAppLocations.getEntityId()));
+        }
+      };
+    }
+  ]);
 
 }());

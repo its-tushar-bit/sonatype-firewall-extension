@@ -12,7 +12,7 @@
     return {
       require: '^sortable',
       scope: {
-        field: '@sortColumns',     // comma separated list
+        field: '@sortColumns', // comma separated list
         inverted: '@?sortInverted', // is the data logically inverted, i.e. AGE vs TIME
         centered: '@?'
       },

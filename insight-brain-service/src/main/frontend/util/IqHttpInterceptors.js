@@ -12,23 +12,23 @@
 (function() {
   'use strict';
 
-  angular.module('IqHttpInterceptors', ['SessionSecurityModule']) //
-    .factory('serverDateInterceptor', ['SessionSecurityService', function(SessionSecurityService) {
-      return {
-        response: function(response) {
-          var dateString = response.headers('Date'),
-              // built-in date parsing on any modern browser should support HTTP date format
-              serverDate = dateString ? new Date(dateString) : undefined;
+  angular.module('IqHttpInterceptors', ['SessionSecurityModule'])
+      .factory('serverDateInterceptor', ['SessionSecurityService', function(SessionSecurityService) {
+        return {
+          response: function(response) {
+            var dateString = response.headers('Date'),
+                // built-in date parsing on any modern browser should support HTTP date format
+                serverDate = dateString ? new Date(dateString) : undefined;
 
-          if (serverDate) {
-            SessionSecurityService.setServerDate(serverDate);
+            if (serverDate) {
+              SessionSecurityService.setServerDate(serverDate);
+            }
+
+            return response;
           }
-
-          return response;
-        }
-      };
-    }]) //
-    .config(['$httpProvider', function($httpProvider) {
-      $httpProvider.interceptors.push('serverDateInterceptor');
-    }]);
+        };
+      }])
+      .config(['$httpProvider', function($httpProvider) {
+        $httpProvider.interceptors.push('serverDateInterceptor');
+      }]);
 }());

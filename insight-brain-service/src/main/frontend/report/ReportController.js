@@ -35,7 +35,7 @@
         $scope.error = null;
 
         var actionStagePromise = StageTypeStore.getActionStages(),
-        appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId));
+            appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId));
 
         $scope.reportUrl = clmLocations.getReportUrl($state.params.publicId, $state.params.scanId);
 

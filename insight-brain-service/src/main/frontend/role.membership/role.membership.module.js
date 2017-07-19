@@ -7,4 +7,4 @@
   'use strict';
 
   angular.module('role.membership.module', ['CLMAppLocation', 'CommonServices']);
-})(angular);
+}(angular));

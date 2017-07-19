@@ -54,6 +54,8 @@
 
   ldapModuleConfiguration.$inject = ['$stateProvider'];
 
-  angular.module('ldap.module', ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices',
-      'EditorTools'], ldapModuleConfiguration);
+  angular.module('ldap.module', [
+    'CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices',
+    'EditorTools'
+  ], ldapModuleConfiguration);
 }());

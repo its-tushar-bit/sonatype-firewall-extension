@@ -206,11 +206,10 @@
       };
 
       $scope.reset = resetDialog($modal, function() {
-          $scope.ldapConn = angular.copy(origLdapConn);
-          $scope.alerts.length = 0;
-          $scope.ldapConnectionEditor.$setPristine();
-        }
-      );
+        $scope.ldapConn = angular.copy(origLdapConn);
+        $scope.alerts.length = 0;
+        $scope.ldapConnectionEditor.$setPristine();
+      });
 
       $scope.save = function() {
         $scope.saving = true;

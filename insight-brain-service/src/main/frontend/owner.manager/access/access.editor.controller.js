@@ -86,8 +86,9 @@
 
     function removeRole(customMessage) {
       customMessage = customMessage ? ' ' + customMessage : '';
-      DeleteModalService.deleteCustom('Remove Role', 'You are about to remove the ' + vm.role.roleName + ' role from ' +
-          (ownerType === 'repository_container' ? 'all repositories' : 'this ' + ownerType) + '.' + customMessage,
+      var message = 'You are about to remove the ' + vm.role.roleName + ' role from ' +
+          (ownerType === 'repository_container' ? 'all repositories' : 'this ' + ownerType) + '.';
+      DeleteModalService.deleteCustom('Remove Role', message + customMessage,
           'Removing',
           function() {
             return RoleMappingService.put(vm.role.roleId, []);

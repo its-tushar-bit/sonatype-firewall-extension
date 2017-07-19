@@ -56,9 +56,10 @@
 
     function doLoad() {
       var promises = [
-        TagStore[vm.loadError ? 'refresh' : 'get'](), TagStore.getApplied(), ApplicationStore.get(),
-        PolicyHierarchyStore.get(), PolicyTagStore.getApplied()
-      ], policyMap = {};
+            TagStore[vm.loadError ? 'refresh' : 'get'](), TagStore.getApplied(), ApplicationStore.get(),
+            PolicyHierarchyStore.get(), PolicyTagStore.getApplied()
+          ],
+          policyMap = {};
 
       if ($stateParams.categoryId) {
         promises.push(TagStore.getById($stateParams.categoryId));

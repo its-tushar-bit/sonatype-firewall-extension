@@ -124,8 +124,8 @@
     function redirectIfNecessary(replaceLastHistoryRecord) {
       if ($state.is('management.view')) {
         var topOrganization = vm.rootOrganization || vm.organizations.filter(function(org) {
-              return !org.synthetic;
-            })[0] || vm.organizations[0];
+          return !org.synthetic;
+        })[0] || vm.organizations[0];
         if (topOrganization) {
           var options = {location: replaceLastHistoryRecord ? 'replace' : true};
           if (topOrganization.synthetic) {

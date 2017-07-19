@@ -131,25 +131,26 @@
     'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'StoreFactory', '$q',
     function(constraintStore, clmLocations, clmAppLocations, StoreFactory, $q) {
       var conditionTypes = null,
-      policyStoreTemplate = {
-        id: 'id',
-        template: function() {
-          var o = {
-            threatLevel: 5,
-            constraints: [
-              { conditions: [], operator: 'OR', id: '' + new Date().getTime() }
-            ],
-            actions: {}
-          }, conditionType = conditionTypes.AgeInDays;
-          o.constraints[0].conditions.push({
-            conditionTypeId: conditionType.id,
-            operator: conditionType.supportedOperators[0],
-            value: null
-          });
-          return o;
-        }
-      },
-      policyStores = {};
+          policyStoreTemplate = {
+            id: 'id',
+            template: function() {
+              var o = {
+                    threatLevel: 5,
+                    constraints: [
+                      { conditions: [], operator: 'OR', id: '' + new Date().getTime() }
+                    ],
+                    actions: {}
+                  },
+                  conditionType = conditionTypes.AgeInDays;
+              o.constraints[0].conditions.push({
+                conditionTypeId: conditionType.id,
+                operator: conditionType.supportedOperators[0],
+                value: null
+              });
+              return o;
+            }
+          },
+          policyStores = {};
 
       return {
         get: function() {
@@ -196,10 +197,10 @@
       return {
         'get': function() {
           var conditionValueTypeStore = StoreFactory.getStore({
-            id: 'id',
-            url: clmAppLocations.getConditionValueTypeUrl()
-          }),
-          conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
+                id: 'id',
+                url: clmAppLocations.getConditionValueTypeUrl()
+              }),
+              conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
           return conditionDeferred;
         }
       };

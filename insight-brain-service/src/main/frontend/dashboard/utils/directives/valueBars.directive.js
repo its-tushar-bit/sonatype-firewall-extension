@@ -57,8 +57,8 @@ function valueBarsDirective(windowEventsFactory) {
             })
             // tooltip to highlight actual figures involved
             .append('title').text(function(d) {
-          return d;
-        });
+              return d;
+            });
 
         chart.append('line')
             .attr('x1', x(0))

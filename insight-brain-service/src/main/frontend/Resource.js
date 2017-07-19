@@ -102,14 +102,14 @@
               var loadChildResource = function(parentResource, childResource, property) {
                 $http.get(childResource.config.url,
                     {params: childResource.config.params}).then(function(response) {
-                      childResource.$updateOriginal(response.data);
-                      $parse(property).assign(parentResource, childResource);
-                      relationsToLoad--;
-                      checkDeferredResolve(storeDeferred, store, relationsToLoad);
-                    }, function(errorResponse) {
-                      error = true;
-                      getErrorFn(storeDeferred)(errorResponse);
-                    });
+                  childResource.$updateOriginal(response.data);
+                  $parse(property).assign(parentResource, childResource);
+                  relationsToLoad--;
+                  checkDeferredResolve(storeDeferred, store, relationsToLoad);
+                }, function(errorResponse) {
+                  error = true;
+                  getErrorFn(storeDeferred)(errorResponse);
+                });
               };
 
               angular.forEach(data, function(obj) {

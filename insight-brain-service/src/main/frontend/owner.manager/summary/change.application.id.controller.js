@@ -56,8 +56,10 @@
     }
   }
 
-  ChangeApplicationIdController.$inject = ['$scope', '$rootScope', '$state', 'owner', 'siblings', 'Messages',
-                                           'ApplicationStore', 'owner.constant', 'event.name.constant'];
+  ChangeApplicationIdController.$inject = [
+    '$scope', '$rootScope', '$state', 'owner', 'siblings', 'Messages',
+    'ApplicationStore', 'owner.constant', 'event.name.constant'
+  ];
 
   angular //
       .module('owner.manager.module') //

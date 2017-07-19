@@ -30,7 +30,7 @@
 
       function getServicePath() {
         return isApplication() ? 'application' : isOrganization() ? 'organization' :
-            isRepositories() ? 'repository_container' : 'global';
+          isRepositories() ? 'repository_container' : 'global';
       }
 
       function getServicePathWithId() {
@@ -52,7 +52,7 @@
 
       var getId = function(raw) {
         return isApplication() ?
-            (raw ? appId.raw() : appId.encoded()) : isOrganization() ? (raw ? orgId.raw() : orgId.encoded()) : 'global';
+          (raw ? appId.raw() : appId.encoded()) : isOrganization() ? (raw ? orgId.raw() : orgId.encoded()) : 'global';
       };
 
       return {

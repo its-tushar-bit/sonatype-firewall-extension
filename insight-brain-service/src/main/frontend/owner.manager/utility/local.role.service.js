@@ -36,7 +36,7 @@
   }
 
   angular //
-    .module('owner.manager.module') //
-    .service('local.role.service', LocalRoleService);
+      .module('owner.manager.module') //
+      .service('local.role.service', LocalRoleService);
 
 }(angular));

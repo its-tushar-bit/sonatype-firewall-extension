@@ -51,7 +51,7 @@ angularCommon.directive('isDuplicate', [
       restrict: 'A',
       link: function(scope, elem, attr, ctrl) {
         var arrayNameParser = $parse(attr.isDuplicateArray),
-        // Pretty rigid implementation. Assumes that the model is an field on a selected item which is an item in an array of items (isDuplicateArray)
+            // Pretty rigid implementation. Assumes that the model is an field on a selected item which is an item in an array of items (isDuplicateArray)
             modelObject = attr.ngModel.substr(0, attr.ngModel.lastIndexOf('.')),
             modelFieldParser = $parse(attr.ngModel.substr(attr.ngModel.lastIndexOf('.') + 1)),
             idFieldParser = $parse(attr.isDuplicateIdField),
@@ -483,8 +483,7 @@ angularCommon.service('ErrorDialog', ['Dialog', 'Messages', function (Dialog, Me
 * Angular directive for bootstrap-multiselect. Does not do a collection watch for selected items so if this
 * collection is modified outside of the multi select control, update to use $watchCollection
 */
-angularCommon.directive('multiSelect', [
-  '$compile', '$timeout', function($compile, $timeout) {
+angularCommon.directive('multiSelect', ['$compile', '$timeout', function($compile, $timeout) {
   return {
     template : '<div class="btn-group" ng-class="{ open : open }">' +
                  '<button class="btn dropdown-toggle" ng-click="toggleDropdown()" ng-class="{ \'btn-small\': small }" type="button">' +
@@ -713,12 +712,12 @@ angularCommon.directive('maximizeContainerHeight', ['$timeout', '$window', 'maxi
         $timeout.cancel(timerId);
       }
       timerId = $timeout(function() {
-        timerId = maximizeHeightService.updateDimensions(element, {
-                  bottomPadding: 0,
-                  checkBodyScroll: true,
-                  minHeight: 0
-                }
-            ) || timerId;
+        var updateDimensionsTimerId = maximizeHeightService.updateDimensions(element, {
+          bottomPadding: 0,
+          checkBodyScroll: true,
+          minHeight: 0
+        });
+        timerId = updateDimensionsTimerId || timerId;
       }, 20);
     }
 

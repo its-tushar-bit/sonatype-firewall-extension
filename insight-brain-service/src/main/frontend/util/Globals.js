@@ -3,14 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, window, ActiveXObject, clmBuildTimestamp, jQuery, $ */
+/* global angular, window, ActiveXObject, clmBuildTimestamp, $ */
 
-/* jshint strict:false */
-var messageTemplate = {
+window.messageTemplate = {
   type: 'error',
   msg: 'Something bad happened!'
 };
-var AngularUtils = {
+window.AngularUtils = {
   alphaSort: function(array, descending, sortProperty) {
     if (array) {
       array.sort(function(a, b) {
@@ -51,11 +50,11 @@ var AngularUtils = {
    * @since 1.12
    */
   toAlert: function(msg, type) {
-    return angular.extend({}, messageTemplate, type ? {type: type, msg: msg} : {msg: msg});
+    return angular.extend({}, window.messageTemplate, type ? {type: type, msg: msg} : {msg: msg});
   }
 };
 
-var AngularStateUtils = {
+window.AngularStateUtils = {
   toParentStateIfNewItem: function(scope) {
     if (scope.$state.current.name.indexOf('.new') > -1) {
       scope.$state.go(scope.$state.current.parent);
@@ -72,7 +71,7 @@ var AngularStateUtils = {
     //if user clicks new while the new state is already active
     //(or multiple events are fired causing this method to be called multiple times)
     //it will now only act once, rather than generating multiple .new suffixes
-    if (scope.$state.current.name && !AngularUtils.endsWith(scope.$state.current.name, '.new')) {
+    if (scope.$state.current.name && !window.AngularUtils.endsWith(scope.$state.current.name, '.new')) {
       scope.$state.go(scope.$state.current.name + '.new');
     }
   }

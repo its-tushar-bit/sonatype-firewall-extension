@@ -52,5 +52,7 @@ function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filt
   }
 }
 
-SaveFilterModalController.$inject = ['$scope', '$http', 'CLMLocations', 'filterJson', 'filterName',
-    'existingFilters', '$timeout', 'Messages'];
+SaveFilterModalController.$inject = [
+  '$scope', '$http', 'CLMLocations', 'filterJson', 'filterName',
+  'existingFilters', '$timeout', 'Messages'
+];

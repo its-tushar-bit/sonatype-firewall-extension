@@ -66,12 +66,11 @@
           //first check any custom messages provided
           if (messages) {
             $.each(error, function(key, inError) {
-                  if (inError && messages[key]) {
-                    message = messages[key];
-                    return false;
-                  }
-                }
-            );
+              if (inError && messages[key]) {
+                message = messages[key];
+                return false;
+              }
+            });
           }
           if (message) {
             return message;
@@ -238,11 +237,10 @@
             });
           }
         };
-      }]
-  )
-  /**
-   * Template for common structure of form inputs and associated labels.
-   */
+      }])
+      /**
+       * Template for common structure of form inputs and associated labels.
+       */
       .directive('clmControlGroup', function() {
         return {
           restrict: 'A',

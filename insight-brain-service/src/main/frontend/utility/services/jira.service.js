@@ -49,4 +49,4 @@
   JiraService.$inject = ['$http', '$q', 'CLMLocations'];
 
   angular.module('utility.services').service('jira.service', JiraService);
-})(angular);
+}(angular));

@@ -57,9 +57,9 @@
         };
 
         scope.$watchGroup([scope.vm.isDown, scope.vm.isUp],
-          function() {
-            scope.vm.updateHeader();
-          }
+            function() {
+              scope.vm.updateHeader();
+            }
         );
 
       }

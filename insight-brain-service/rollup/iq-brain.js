@@ -1,6 +1,5 @@
 var uglify = require('rollup-plugin-uglify');
 var minify = require('uglify-js').minify;
-var legacy = require('rollup-plugin-legacy');
 var html = require('rollup-plugin-html');
 var commonjs = require('rollup-plugin-commonjs');
 var alias = require('rollup-plugin-alias');
@@ -8,13 +7,6 @@ var alias = require('rollup-plugin-alias');
 var isProd = process.env.BUILD === 'production';
 
 var plugins = [
-  legacy({
-    'src/main/frontend/util/Globals.js': {
-      messageTemplate: 'messageTemplate',
-      AngularUtils: 'AngularUtils',
-      AngularStateUtils: 'AngularStateUtils'
-    }
-  }),
   html({
     include: '**/*.html'
   }),

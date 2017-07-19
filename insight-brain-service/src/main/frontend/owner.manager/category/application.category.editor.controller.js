@@ -52,7 +52,8 @@
 
           organizationCategories.forEach(function(organizationCategory) {
             organizationCategory.isApplied = false;
-            if (applicationCategories.some(function(appliedCategory) {
+            if (applicationCategories.some(
+                function(appliedCategory) {
                   return appliedCategory.id === organizationCategory.id;
                 })) {
               organizationCategory.isApplied = true;

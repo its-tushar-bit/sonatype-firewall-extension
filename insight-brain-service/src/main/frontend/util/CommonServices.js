@@ -137,9 +137,9 @@ function ElapsedTimeFilterFactory(rules) {
 function ElapsedTimeFunctionFactory(rules) {
   return function(date) {
     var diff,
-      unit,
-      val,
-      localRules = rules;
+        unit,
+        val,
+        localRules = rules;
 
     if (!date) {
       return {
@@ -213,20 +213,20 @@ services.filter('agoLastDay', function() {
  * element should take into account the possibility of increased font sizes on client machines and prefer to specify
  * boundary sizes in em.
  */
-services.filter('truncate', function () {
-    return function (text, length) {
-      var end = '...';
-      if (isNaN(length)) {
-        length = 25;
-      }
-      if (text.length <= length) {
-        return text;
-      }
-      else {
-        return String(text).substring(0, length - end.length) + end;
-      }
-    };
-  });
+services.filter('truncate', function() {
+  return function(text, length) {
+    var end = '...';
+    if (isNaN(length)) {
+      length = 25;
+    }
+    if (text.length <= length) {
+      return text;
+    }
+    else {
+      return String(text).substring(0, length - end.length) + end;
+    }
+  };
+});
 
 services.service('BaseUrl', [
   function() {

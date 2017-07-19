@@ -14,12 +14,7 @@ var plugins = [
   }),
   legacy({
     // add a default export, corresponding to `Base64`
-    'src/main/frontend/lib/Base64.js': 'Base64',
-    'src/main/frontend/util/Globals.js': {
-      messageTemplate: 'messageTemplate',
-      AngularUtils: 'AngularUtils',
-      AngularStateUtils: 'AngularStateUtils'
-    }
+    'src/main/frontend/lib/Base64.js': 'Base64'
   }),
   commonjs({ include: 'src/main/frontend/lib/angular-ui-router/**' }),
 

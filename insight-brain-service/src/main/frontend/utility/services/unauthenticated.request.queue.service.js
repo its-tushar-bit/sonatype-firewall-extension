@@ -12,7 +12,8 @@
       clearRequests: clearRequests,
       getRequests: getRequests,
       getPromises: getPromises
-    }, requests = [], promises = [];
+    };
+    var requests = [], promises = [];
 
     function addRequest(request) {
       requests.push(request);

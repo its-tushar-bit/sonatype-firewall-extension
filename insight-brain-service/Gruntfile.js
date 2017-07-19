@@ -114,26 +114,8 @@
           ]
         }
       },
-      jshint: {
-        options: {
-          jshintrc: true
-        },
-        build: lintSrc
-      },
-      jscs: {
-        check: {
-          src: lintSrc,
-          options: {
-            config: ".jscsrc"
-          }
-        },
-        fix: {
-          src: lintSrc,
-          options: {
-            config: ".jscsrc",
-            fix: true // Autofix code style violations when possible.
-          }
-        }
+      eslint: {
+        target: lintSrc
       },
       template: {
         options: {
@@ -309,8 +291,7 @@
     grunt.registerTask('build', [
       'configure_override:build',
 
-      'jshint',
-      'jscs:check',
+      'eslint',
       'clean',
       'exec:iq-bundle',
       'copy:build',
@@ -352,8 +333,7 @@
     grunt.registerTask('develop', [
       'configure_override:develop',
 
-      'jshint',
-      'jscs:check',
+      'eslint',
       'bower:install',
       'clean:temp',
       'copy:develop',

@@ -47,7 +47,7 @@ import './security/RoleModule';
 import './security/UserModule';
 import './security/user.list.controller';
 import './security/userForm/userForm';
-import {messageTemplate, AngularUtils, AngularStateUtils} from './util/Globals';
+import './util/Globals';
 import './util/AngularCommon';
 import './util/CommonServices';
 import './util/BootstrapAddonsModule';
@@ -161,7 +161,3 @@ import './utility/widgets/dropdown.selector.directive';
 import './utility/widgets/initial.value.dropdown.selector.directive';
 import './utility/widgets/sort.column.directive';
 import './utility/widgets/age.in.days.input.directive';
-
-window.messageTemplate = messageTemplate;
-window.AngularUtils = AngularUtils;
-window.AngularStateUtils = AngularStateUtils;

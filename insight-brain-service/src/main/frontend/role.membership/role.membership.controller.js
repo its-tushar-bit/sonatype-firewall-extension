@@ -161,4 +161,4 @@
   angular //
       .module('role.membership.module') //
       .controller('role.membership.controller', RoleMembershipController);
-})(angular);
+}(angular));

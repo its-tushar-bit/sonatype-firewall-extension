@@ -126,15 +126,15 @@
         currentMembers = $scope.getCurrentMembers();
 
         return $http.put(clmAppLocations.getRoleMappingUrl(roleId), currentMembers)
-          .then(function () {
-            $scope.$emit('roleSaveComplete', roleId, currentMembers);
-            $scope.hide();
-          }, function (error) {
-            $scope.alerts.push({
-              type: 'error',
-              msg: Messages.getHttpErrorMessage(error)
+            .then(function() {
+              $scope.$emit('roleSaveComplete', roleId, currentMembers);
+              $scope.hide();
+            }, function(error) {
+              $scope.alerts.push({
+                type: 'error',
+                msg: Messages.getHttpErrorMessage(error)
+              });
             });
-          });
       } else {
         $scope.hide();
       }
@@ -160,7 +160,7 @@
 
   angular //
       .module('ApplicationSecurityModule', //
-        ['CommonServices', 'AngularCommon', 'CLMAppLocation', 'role.membership.module']) //
+          ['CommonServices', 'AngularCommon', 'CLMAppLocation', 'role.membership.module']) //
       .controller('AppSecurityController', AppSecurityController) //
       .controller('AppSecurityEditorController', AppSecurityEditorController) //
       .directive('appSecurityEditor', AppSecurityEditorDirective);

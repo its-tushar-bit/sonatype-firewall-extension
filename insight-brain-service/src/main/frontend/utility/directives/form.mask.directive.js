@@ -24,7 +24,7 @@
       maskController.showSuccessMask = showSuccessMask;
 
       if (!attrs.formMask.length) {
-        throw('Form Mask requires a name to bind the controller.');
+        throw ('Form Mask requires a name to bind the controller.');
       }
 
       $parse(attrs.formMask).assign(scope, maskController);

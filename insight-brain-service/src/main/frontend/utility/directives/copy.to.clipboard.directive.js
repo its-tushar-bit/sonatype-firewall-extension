@@ -65,7 +65,7 @@
         selection.removeAllRanges();
         node.select();
         if (!$window.document.execCommand('copy')) {
-          throw('failure copy');
+          throw ('failure copy');
         }
         selection.removeAllRanges();
       }

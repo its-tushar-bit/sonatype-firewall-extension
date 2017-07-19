@@ -19,7 +19,7 @@ import '../utility/services/utility.services.module';
 import '../utility/services/unauthenticated.request.queue.service';
 import '../utility/services/login.modal.controller';
 import '../utility/services/login.modal.service';
-import {messageTemplate, AngularUtils, AngularStateUtils} from '../util/Globals';
+import '../util/Globals';
 import '../util/AngularCommon';
 import '../util/CommonServices';
 import '../util/CLMAppLocation';
@@ -79,7 +79,3 @@ import '../lib/datepicker/datepicker.css';
 import '../lib/datepicker/bootstrap-datepicker';
 import './cip-claim-component.css';
 import './cip-claim-component';
-
-window.messageTemplate = messageTemplate;
-window.AngularUtils = AngularUtils;
-window.AngularStateUtils = AngularStateUtils;

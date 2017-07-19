@@ -29,4 +29,4 @@
   angular //
       .module('role.membership.module') //
       .directive('roleMembership', RoleMembershipDirective);
-})(angular);
+}(angular));

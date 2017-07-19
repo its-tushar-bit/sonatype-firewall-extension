@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, ZeroClipboard, clmBuildTimestamp, $ */
+/* eslint indent: "off"*/
 (function() {
   'use strict';
 

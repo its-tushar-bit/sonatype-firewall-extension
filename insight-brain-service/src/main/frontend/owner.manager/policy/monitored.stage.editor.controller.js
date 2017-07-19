@@ -49,9 +49,8 @@
 
     function save() {
       delete vm.submitError;
-
       vm.continuousMonitoringEditorMask.wrap(vm.monitoredStage.stageTypeId ?
-          PolicyMonitoringStore.save(vm.monitoredStage) : PolicyMonitoringStore.remove()).then(function() {
+        PolicyMonitoringStore.save(vm.monitoredStage) : PolicyMonitoringStore.remove()).then(function() {
         originalStage = angular.copy(vm.monitoredStage);
       }, function(error) {
         vm.submitError = Messages.getHttpErrorMessage(error);

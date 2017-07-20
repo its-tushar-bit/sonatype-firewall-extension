@@ -23,8 +23,6 @@
     <maven.compiler.target>1.7</maven.compiler.target>
     <animal-sniffer-signature>java17</animal-sniffer-signature>
     <animal-sniffer-signature-version>1.0</animal-sniffer-signature-version>
-
-    <jackson.version>2.3.3</jackson.version>
   </properties>
 
   <dependencies>

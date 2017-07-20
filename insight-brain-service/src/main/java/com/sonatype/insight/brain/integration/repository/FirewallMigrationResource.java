@@ -20,10 +20,10 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.yammer.metrics.annotation.Timed;
 
 /**
- * @since 1.32
+ * @since 1.33
  */
 @Named
-//To be re-enabled by CLM-8310 // @Path(FirewallMigrationResource.RESOURCE_PATH)
+@Path(FirewallMigrationResource.RESOURCE_PATH)
 public class FirewallMigrationResource
 {
   static final String RESOURCE_PATH = "rest/integration/repositories/migration";

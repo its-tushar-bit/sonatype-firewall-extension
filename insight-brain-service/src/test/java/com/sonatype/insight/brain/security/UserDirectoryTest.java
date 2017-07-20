@@ -837,7 +837,7 @@ public class UserDirectoryTest
     configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
-    // Should return all groups from all realms. When same group occurs in both realms a single occurence is retrieved.
+    // Should return all groups from all realms. When same group occurs in both realms a single occurrence is retrieved.
     List<Member> members = userDirectory.getMembersByQuery("Alpha*", true).get();
     assertThat(members, hasSize(3));
     assertTrue(containsDisplayName(members, "Alpha"));

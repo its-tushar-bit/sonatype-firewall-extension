@@ -188,8 +188,8 @@ public class PolicySummaryService
         policyViolationCount += policyViolations.size();
         policyViolations = dashboardUtils.filter(policyViolations, filter);
 
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(
-            policyViolationHistory.getPolicyViolations(), policyViolations);
+        PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
+            .digestPolicyViolations(policyViolationHistory.getPolicyViolations(), policyViolations);
         for (PolicyViolation policyViolation : diff.getAppeared()) {
           policyViolationHistory.addViolationWithStageType(policyViolation, policyEvaluation.getStageTypeId());
           result.totalNew++;

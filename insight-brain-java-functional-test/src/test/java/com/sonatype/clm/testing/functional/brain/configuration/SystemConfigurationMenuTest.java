@@ -36,5 +36,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.users().shouldBe(visible);
 
     systemConfigMenu.webhooks().shouldBe(visible);
+
+    systemConfigMenu.successMetrics().shouldBe(visible);
   }
 }

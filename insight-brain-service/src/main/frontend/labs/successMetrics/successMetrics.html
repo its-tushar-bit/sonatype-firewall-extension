@@ -1,0 +1,27 @@
+<div id="success-metrics-charts" class="tile-container tile-scroll-container">
+  <div class="iq-tile">
+    <div class="iq-tile-header">
+      <div class="iq-tile-header__title">
+        <i class="fa fa-flask slate iq-tile-header__icon"></i>
+        <h1>Success Metrics</h1>
+      </div>
+    </div>
+    <div class="iq-action-list" load-wrapper="vm.error" loading="!vm.loaded" reload="vm.$onInit()">
+      <ul>
+        <li id="root-org-success-metrics-action"
+            class="iq-action-list__item"
+            ng-class="{'iq-action-list__item--disabled iq-disabled': !vm.rootOrgAvailable}"
+            ng-click="vm.goToRootOrgSuccessMetrics()">
+          <i class="fa fa-chevron-right iq-pull-right"></i>
+          Root Organization
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div ng-if="!vm.rootOrgAvailable" class="iq-alert iq-alert--info" id="no-root-org-warning">
+    <i class="fa fa-info-circle"></i>Currently, Success Metrics only supports reporting from the Root Organization.
+    Since your instance of IQ Server does not have the Root Organization configured, Success Metrics is not available
+    at this time.
+  </div>
+</div>

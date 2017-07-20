@@ -1,0 +1,46 @@
+<h3 class="iq-chart-title">Applications</h3>
+<div class="application-counts" load-wrapper="vm.error" loading="!vm.isLoaded" reload="vm.doLoad()">
+  <p class="iq-chart__averages">
+    Of the <span class="iq-chart__display-number">{{::vm.applicationCount}}</span> applications evaluated,
+    <span class="iq-chart__display-number">{{::vm.applicationCountTotalViolating}}</span> contained violations,
+    <span class="iq-chart__display-number">{{::vm.applicationCountTotalViolatingCritical}}</span> of which were
+    <strong>critical</strong>.
+  </p>
+  <div class="iq-chart iq-chart--application-counts iq-chart--horizontal-bar">
+    <div class="iq-chart__labels--horizontal-bar">
+      <div class="iq-chart__bar-label">
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.applicationCountSecurity}}</strong>With Security Violations
+        </span>
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.applicationCountSecurityCritical}}</strong>Critical
+        </span>
+      </div>
+      <div class="iq-chart__bar-label">
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.applicationCountLicense}}</strong>With License Violations
+        </span>
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.applicationCountLicenseCritical}}</strong>Critical
+        </span>
+      </div>
+      <div class="iq-chart__bar-label">
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.applicationCountQuality}}</strong>With Quality Violations
+        </span>
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.applicationCountQualityCritical}}</strong>Critical
+        </span>
+      </div>
+      <div class="iq-chart__bar-label">
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.applicationCountOther}}</strong>With Other Violations
+        </span>
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.applicationCountOtherCritical}}</strong>Critical
+        </span>
+      </div>
+    </div>
+    <iq-render-plottable chart="vm.chart"></iq-render-plottable>
+  </div>
+</div>

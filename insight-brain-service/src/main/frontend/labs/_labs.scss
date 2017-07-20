@@ -1,0 +1,14 @@
+#labs {
+  .iq-back-button {
+    margin: 8px 8px 0 8px;
+  }
+}
+
+.body-container--labs {
+  width: 100%;
+}
+
+@import './successMetrics/charts';
+@import './successMetrics/applicationCountsChart/applicationCountsChart';
+@import './successMetrics/summaryStatementTile/summaryStatementTile';
+@import './successMetrics/mttrChart/mttrChart';

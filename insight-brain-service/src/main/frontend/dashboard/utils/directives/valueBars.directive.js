@@ -24,15 +24,16 @@ function valueBarsDirective(windowEventsFactory) {
             .append('svg')
             .attr('class', 'chart');
 
-        var width = $(chart[0]).width() || 100,
-            height = $(chart[0]).height() || 25;
+        var width = parseInt(chart.style('width'), 10) || 100;
+        var height = parseInt(chart.style('height'), 10) || 25;
 
-        var y = d3.scale.linear()
+        var y = d3.scaleLinear()
             .domain(d3.extent(data))
             .range([0, height]);
-        var x = d3.scale.ordinal()
+        var x = d3.scaleBand()
             .domain(d3.range(data.length))
-            .rangeRoundBands([0, width], 0.2);
+            .rangeRound([0, width])
+            .paddingInner(0.2);
 
         // baseline will render at bottom for positive data, somewhere in between for positive/negative data
         // Need to fudge a bit if we're drawing at the bottom of the container to account for the stroke-width
@@ -51,7 +52,7 @@ function valueBarsDirective(windowEventsFactory) {
             .attr('height', function(d) {
               return Math.abs(y(d) - y(0));
             })
-            .attr('width', x.rangeBand())
+            .attr('width', x.bandwidth())
             .attr('class', function(d) {
               return (d > 0) ? 'bar up' : 'bar down';
             })
@@ -62,7 +63,7 @@ function valueBarsDirective(windowEventsFactory) {
 
         chart.append('line')
             .attr('x1', x(0))
-            .attr('x2', x(data.length - 1) + x.rangeBand())
+            .attr('x2', x(data.length - 1) + x.bandwidth())
             .attr('y1', baseline)
             .attr('y2', baseline)
             .attr('stroke', '#777777')

@@ -1,0 +1,16 @@
+.iq-back-button {
+  font-family: Proxima Nova Semibold, sans-serif;
+  font-size: 18px;
+
+  a {
+    color: $iq-link-color;
+
+    &:hover {
+      text-decoration: none;
+    }
+
+    > .fa {
+      margin-right: 6px;
+    }
+  }
+}

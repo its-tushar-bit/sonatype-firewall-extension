@@ -331,6 +331,26 @@ angular.module('CLMLocation', ['CommonServices', 'ui.router']).factory('CLMLocat
 
       getSystemNoticeFetchUrl: function() {
         return this.getSystemNoticeUrl() + '/fetch';
+      },
+
+      getSystemConfigurationPropertyUrl: function(propertyName) {
+        return baseUrl.get() + '/rest/config/systemConfigurationProperty/' + encodeURIComponent(propertyName);
+      },
+
+      getSystemConfigurationPropertiesUrl: function() {
+        return baseUrl.get() + '/rest/config/systemConfigurationProperty';
+      },
+
+      getMttrUrl: function() {
+        return baseUrl.get() + '/rest/aggregation/policyViolation/mttr';
+      },
+
+      getViolationAveragesUrl: function() {
+        return baseUrl.get() + '/rest/aggregation/policyViolation/averages';
+      },
+
+      getSuccessMetricsApplicationCountsUrl: function() {
+        return baseUrl.get() + '/rest/aggregation/policyViolation/applicationCounts';
       }
     };
   }

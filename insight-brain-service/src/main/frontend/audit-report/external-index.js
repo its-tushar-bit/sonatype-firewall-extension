@@ -15,7 +15,6 @@ import '../lib/ui-bootstrap-tpls-0.13.4.min';
 import '../lib/bootstrap-toggle/bootstrap2-toggle-2.2.0';
 import '../lib/X-editable/xeditable-0.1.8.min';
 import '../lib/ngUpload/ng-upload';
-import '../lib/d3/d3';
 import '../lib/zeroclipboard/ZeroClipboard-1.3.2';
 import '../lib/fuse.js/src/fuse';
 import '../lib/protovis/protovis.min'

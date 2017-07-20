@@ -63,7 +63,7 @@ public class PolicyAlertNotifier
                                 final PolicyEvaluation currentEvaluation,
                                 final PolicyEvaluation previousEvaluation)
   {
-    PolicyViolationDiff diff = createPolicyViolationDiff(previousEvaluation, currentEvaluation);
+    PolicyViolationDiff<PolicyViolation> diff = createPolicyViolationDiff(previousEvaluation, currentEvaluation);
 
     if (diff.hasAppeared()) {
       List<PolicyNotification> policyNotifications = PolicyNotificationUtil
@@ -118,7 +118,7 @@ public class PolicyAlertNotifier
     return new Stage(stageTypeId, StageTypes.getById(stageTypeId).getName());
   }
 
-  private PolicyViolationDiff createPolicyViolationDiff(final PolicyEvaluation previousEvaluation,
+  private PolicyViolationDiff<PolicyViolation> createPolicyViolationDiff(final PolicyEvaluation previousEvaluation,
                                                         final PolicyEvaluation currentEvaluation)
   {
     List<PolicyViolation> currentViolations = policyViolationDAO.getActiveByEvaluationId(currentEvaluation.getId());

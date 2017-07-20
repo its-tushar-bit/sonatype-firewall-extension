@@ -1,0 +1,44 @@
+<div class="scrollable-root-container" authorization-wrapper="vm.isAuthorized" maximize-container-height>
+  <div id="success-metrics-configuration" class="iq-tile iq-tile--sys-prefs">
+    <div class="iq-tile-header iq-tile-header--hrule">
+      <div class="iq-tile-header__title">
+        <h2>Success Metrics</h2>
+      </div>
+    </div>
+    <div class="iq-tile-content"
+         load-wrapper="vm.error"
+         loading="vm.savedSuccessMetricsEnabled === undefined"
+         reload="vm.load()">
+      <p id="success-metrics-explanation" class="iq-system-notice">
+        Here you can enable or disable Success Metrics.
+      </p>
+      <form name="success-metrics-editor" class="clm-form">
+        <div id="success-metrics-display-control-group" clm-control-group for="success-metrics-display">
+          <div class="toggle-checkbox" id="success-metrics-toggle">
+            <input type="checkbox"
+                   toggle-checkbox
+                   data-on="Enabled"
+                   data-off="Disabled"
+                   ng-model="vm.successMetricsEnabled">
+          </div>
+        </div>
+        <div class="iq-tile-footer">
+          <button id="success-metrics-update"
+                  class="btn btn-primary"
+                  submit-validation
+                  submit-dirty="vm.isChanged()"
+                  submit-type="'update'"
+                  ng-click="vm.save()">
+            Update
+          </button>
+          <button id="success-metrics-cancel"
+                  class="btn btn-secondary"
+                  ng-disabled="!vm.isChanged()"
+                  ng-click="vm.cancel()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -31,6 +31,7 @@ import org.codehaus.plexus.util.StringUtils;
 @MappedSuperclass
 abstract class AbstractPolicyViolation
     extends HasComponentId
+    implements PolicyViolationComparable
 {
   static final char NOTIFICATIONS_DELIMITER_CHAR = '\n';
 
@@ -118,6 +119,7 @@ abstract class AbstractPolicyViolation
     setConstraintFacts(constraintFacts);
   }
 
+  @Override
   public String getPolicyId() {
     return policyId;
   }
@@ -126,6 +128,7 @@ abstract class AbstractPolicyViolation
     this.policyId = policyId;
   }
 
+  @Override
   public String getPolicyName() {
     return policyName;
   }
@@ -134,6 +137,7 @@ abstract class AbstractPolicyViolation
     this.policyName = policyName;
   }
 
+  @Override
   public int getThreatLevel() {
     return threatLevel;
   }
@@ -142,6 +146,7 @@ abstract class AbstractPolicyViolation
     this.threatLevel = threatLevel;
   }
 
+  @Override
   public String getHash() {
     return hash;
   }

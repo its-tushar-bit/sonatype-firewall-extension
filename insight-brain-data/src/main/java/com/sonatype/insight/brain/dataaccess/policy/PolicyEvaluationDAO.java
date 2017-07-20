@@ -203,6 +203,33 @@ public class PolicyEvaluationDAO
     return getList(sQuery, appId, stageTypeIds);
   }
 
+  /**
+   * @since 1.33
+   */
+  public List<PolicyEvaluation> getSinceDateByApplicationIdAndStageIds(Date date,
+                                                                       String appId,
+                                                                       Set<String> stageTypeIds)
+  {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2) AND entity.time >= ?3" + //
+        "   AND entity.isForObsoleteScan = false" + //
+        " ORDER BY entity.time";
+    return getList(sQuery, appId, stageTypeIds, date);
+  }
+
+  /**
+   * Get the oldest policy evaluation for a given application
+   *
+   * @since 1.33
+   */
+  public PolicyEvaluation getOldestByApplicationId(String applicationId) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId = ?1" + //
+        " ORDER BY entity.time";
+
+    return createQuery(sQuery, applicationId).forceSingleResult().get();
+  }
+
   @Override
   public void update(TransactionContext tx, PolicyEvaluation entity) {
     throw new UnsupportedOperationException("The PolicyEvaluation table does not support update operations");

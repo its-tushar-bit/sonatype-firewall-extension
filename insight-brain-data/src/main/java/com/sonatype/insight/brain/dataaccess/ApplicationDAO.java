@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO;
+import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -350,6 +352,18 @@ public class ApplicationDAO
     }
 
     super.delete(tx, application);
+
+    // Cascade to aggregation tables. These are in a separate database and therefore use a separate transaction.
+    PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
+    PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO = new PolicyViolationResolutionStateDAO();
+    try (TransactionContext aggregationTx = policyViolationAggregationDAO.createTransactionContext()) {
+      aggregationTx.begin();
+
+      policyViolationAggregationDAO.deleteByApplicationId(aggregationTx, application.getId());
+      policyViolationResolutionStateDAO.deleteByApplicationId(aggregationTx, application.getId());
+
+      aggregationTx.commit();
+    }
 
     long duration = System.currentTimeMillis() - start;
     if (duration > 500) {

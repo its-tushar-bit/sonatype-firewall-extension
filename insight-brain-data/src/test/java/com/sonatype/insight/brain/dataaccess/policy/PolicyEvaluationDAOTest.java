@@ -530,4 +530,52 @@ public class PolicyEvaluationDAOTest
     lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
     assertThat(lastPolicyEvaluation, is(nullValue()));
   }
+
+  @Test
+  public void testGetSinceDateByApplicationIdAndStageIds() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    Date date2 = new Date();
+    Date date1 = new Date(date2.getTime() - 1000);
+    Date date3 = new Date(date2.getTime() + 1000);
+
+    Application app = tempEntity.newApplicationWithParent("test");
+    Application otherApp = tempEntity.newApplicationWithParent("other");
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1", date1);
+
+    // insert these chronologically backwards to have extra assurance that the DAO deliberately sorts them
+    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan3", date3);
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan2", date2);
+
+    // an evaluation in another stage, and one in another app. These should not be returned
+    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan4", date3);
+    tempEntity.newPolicyEvaluation(otherApp.getId(), BuildStageType.ID, "scan5", date3);
+
+    List<PolicyEvaluation> results = dao.getSinceDateByApplicationIdAndStageIds(date2, app.getId(),
+        Collections.singleton(BuildStageType.ID));
+
+    assertThat(results, hasSize(2));
+    assertThat(results.get(0).getId(), is(eval2.getId()));
+    assertThat(results.get(1).getId(), is(eval3.getId()));
+  }
+
+  @Test
+  public void testGetOldestByApplicationId() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    Date date2 = new Date();
+    Date date1 = new Date(date2.getTime() - 1000);
+    Date date3 = new Date(date2.getTime() + 1000);
+
+    Application app = tempEntity.newApplicationWithParent("test");
+    Application otherApp = tempEntity.newApplicationWithParent("other");
+    tempEntity.newPolicyEvaluation(otherApp.getId(), BuildStageType.ID, "scan1", date1);
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan2", date2);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan3", date3);
+
+    PolicyEvaluation results = dao.getOldestByApplicationId(app.getId());
+
+    assertThat(results, is(notNullValue()));
+    assertThat(results.getId(), is(eval2.getId()));
+  }
 }

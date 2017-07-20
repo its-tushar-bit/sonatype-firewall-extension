@@ -11,41 +11,41 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 
-public class PolicyViolationDiff
+public class PolicyViolationDiff<T extends PolicyViolationComparable>
 {
-  private final List<PolicyViolation> appeared = new ArrayList<>();
+  private final List<T> appeared = new ArrayList<>();
 
-  private final Map<PolicyViolation, PolicyViolation> same = new LinkedHashMap<>();
+  private final Map<T, T> same = new LinkedHashMap<>();
 
-  private final List<PolicyViolation> cleared = new ArrayList<>();
+  private final List<T> cleared = new ArrayList<>();
 
-  public List<PolicyViolation> getAppeared() {
+  public List<T> getAppeared() {
     return appeared;
   }
 
-  public void addAppeared(PolicyViolation policyViolation) {
+  public void addAppeared(T policyViolation) {
     appeared.add(policyViolation);
   }
 
-  public void addAppeared(Collection<PolicyViolation> policyViolations) {
+  public void addAppeared(Collection<? extends T> policyViolations) {
     appeared.addAll(policyViolations);
   }
 
-  public List<PolicyViolation> getCleared() {
+  public List<T> getCleared() {
     return cleared;
   }
 
-  public void addCleared(PolicyViolation policyViolation) {
+  public void addCleared(T policyViolation) {
     cleared.add(policyViolation);
   }
 
-  public Map<PolicyViolation, PolicyViolation> getSame() {
+  public Map<T, T> getSame() {
     return same;
   }
 
-  public void addSame(PolicyViolation newPolicyViolation, PolicyViolation oldPolicyViolation) {
+  public void addSame(T newPolicyViolation, T oldPolicyViolation) {
     same.put(oldPolicyViolation, newPolicyViolation);
   }
 

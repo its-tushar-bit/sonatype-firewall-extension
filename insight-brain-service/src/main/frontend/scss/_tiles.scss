@@ -20,6 +20,10 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   }
 }
 
+.iq-tile--title-only {
+  padding-bottom: 0;
+}
+
 // Tile headers
 
 .iq-tile-header {
@@ -68,7 +72,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
     width: auto;
   }
 
-  &.fa {
+  &.fa-university, &.fa-database {
     font-size: 22px;
   }
 }

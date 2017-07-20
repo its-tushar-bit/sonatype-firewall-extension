@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
@@ -310,6 +311,11 @@ public class InsightBrainService
     DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseDir, "ods", dbCacheSizeInBytes,
         config.getAdditionalDBParams());
     OperationalDataStoreProvider.init(odsDatabaseConfig);
+
+    DatabaseConfig aggregationDatabaseConfig = getDatabaseConfig(databaseDir, "aggregation", null,
+        config.getAdditionalDBParams());
+    AggregationDataStoreProvider.init(aggregationDatabaseConfig);
+
     // Create the default LTGs on the root organization (must be called after the database is initialized)
     new LicenseThreatGroupDAO().createDefaultLicenseThreatGroups();
 

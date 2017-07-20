@@ -34,7 +34,7 @@ $notification-item-border: 1px solid $iq-grey-1;
   }
 }
 
-i.sonatype-icons, i.glyphicons-sonatype {
+i.sonatype-icons, i.glyphicons-sonatype, i.iq-navigation-menu__icon {
   vertical-align: middle;
 
   &::before {
@@ -43,6 +43,16 @@ i.sonatype-icons, i.glyphicons-sonatype {
 
   .active &::before {
     color: #fff;
+  }
+}
+
+i.iq-navigation-menu__icon {
+  display: inline-block;
+  padding-top: 3px;
+
+  &.fa {
+    font-size: 21px;
+    padding-top: 7px
   }
 }
 
@@ -84,9 +94,13 @@ i.sonatype-icons, i.glyphicons-sonatype {
 
 .iq-navigation-menu {
   margin: 0 0 0 25px;
+
+  li {
+    vertical-align: top;
+  }
 }
 
-.iq-navigation-menu__icon {
+.iq-navigation-menu__button {
   display: inline-block;
   list-style: none;
 
@@ -122,10 +136,7 @@ i.sonatype-icons, i.glyphicons-sonatype {
     margin-left: 9px;
   }
 
-  i.sonatype-icons {
-    display: inline-block;
-    padding-top: 3px;
-  }
+
 }
 
 /*

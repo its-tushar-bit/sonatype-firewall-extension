@@ -7,13 +7,16 @@
 (function() {
   'use strict';
 
-  function MainHeaderController($state, ProductFeatures, PermissionService) {
+  function MainHeaderController($state, $scope, ProductFeatures, PermissionService,
+                                systemConfigurationPropertyService)
+  {
     var vm = this;
 
     vm.$state = $state;
     vm.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
+    vm.isSuccessMetricsEnabled = false;
     vm.permissions = {};
-    vm.$onInit = loadPermissions;
+    vm.$onInit = doLoad;
     vm.getServerVersion = getServerVersion;
     vm.hasAnyPermission = hasAnyPermission;
 
@@ -25,18 +28,26 @@
       return !angular.equals({}, vm.permissions);
     }
 
-    function loadPermissions() {
-      PermissionService.getValidPermissions([
-        'CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES'
-      ]).then(function(permissions) {
-        angular.forEach(permissions, function(permission) {
-          vm.permissions[permission] = true;
-        });
+    function doLoad() {
+      PermissionService.getValidPermissions(['CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES']).then(
+          function(data) {
+            angular.forEach(data, function(permission) {
+              vm.permissions[permission] = true;
+            });
+          });
+      systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function(data) {
+        vm.isSuccessMetricsEnabled = data;
       });
     }
+
+    $scope.$on('successMetricsConfigurationUpdated', function(event, newValue) {
+      vm.isSuccessMetricsEnabled = newValue;
+    });
   }
 
-  MainHeaderController.$inject = ['$state', 'ProductFeatures', 'PermissionService'];
+  MainHeaderController.$inject = [
+    '$state', '$scope', 'ProductFeatures', 'PermissionService', 'systemConfigurationPropertyService'
+  ];
 
   angular.module('mainHeader').component('mainHeader', {
     controller: MainHeaderController,

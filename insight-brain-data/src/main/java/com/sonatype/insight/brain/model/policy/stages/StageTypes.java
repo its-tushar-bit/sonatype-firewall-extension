@@ -59,4 +59,8 @@ public class StageTypes
   public static boolean isIgnoredForDashboard(String stageTypeId) {
     return DevelopStageType.ID.equals(stageTypeId) || ProxyStageType.ID.equals(stageTypeId);
   }
+
+  public static boolean isIgnoredForPolicyViolationAggregation(String stageTypeId) {
+    return DevelopStageType.ID.equals(stageTypeId);
+  }
 }

@@ -17,6 +17,7 @@
     "ngUpload": "=0.5.18",
     "jquery-ui": "=1.11.4",
     "classybrew": "git://github.com/tannerjt/classybrew.git#0.1.0",
+    "d3": "git://github.com/mbostock-bower/d3-bower.git#4.8.0",
     "angular-ui-router": "=1.0.5"
   },
   "resolutions": {

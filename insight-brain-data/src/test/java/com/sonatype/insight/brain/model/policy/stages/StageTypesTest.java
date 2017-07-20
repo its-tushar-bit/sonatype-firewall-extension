@@ -26,6 +26,14 @@ public class StageTypesTest
   }
 
   @Test
+  public void testIsIgnoredForPolicyViolationAggregation() {
+    for (StageType stageType : StageTypes.getAll()) {
+      assertThat(StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId()),
+          is(DevelopStageType.ID.equals(stageType.getId())));
+    }
+  }
+
+  @Test
   public void testGetAll_ChronologicalOrdering() {
     assertThat(
         StageTypes.getAll(),

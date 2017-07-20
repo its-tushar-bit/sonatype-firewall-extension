@@ -465,7 +465,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
-      <version>3.3</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -638,6 +637,7 @@
                 <source>frontend/lib/d3/d3.js</source>
                 <source>frontend/lib/fuse.js/src/fuse.js</source>
                 <source>frontend/SpecUtil.js</source>
+                <source>frontend/lib/plottable/plottable.js</source>
                 <source>root/target/classes/assets/bundle.js</source>
               </preloadSources>
               <sourceIncludes>

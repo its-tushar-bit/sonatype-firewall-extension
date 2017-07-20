@@ -29,4 +29,8 @@ public class SystemConfigMenu
   public SelenideElement webhooks() {
     return child("#system-configuration-webhooks a");
   }
+
+  public SelenideElement successMetrics() {
+    return child("#system-configuration-success-metrics a");
+  }
 }

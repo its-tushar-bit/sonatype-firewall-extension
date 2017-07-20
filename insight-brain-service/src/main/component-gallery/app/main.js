@@ -32,7 +32,10 @@ module.config(function($stateProvider, $urlRouterProvider, markedProvider, hljsS
   $urlRouterProvider.otherwise('/home');
   $stateProvider.state('home', {
     url: '/home',
-    templateUrl: 'app/home.html'
+    templateUrl: 'app/home.html',
+    data: {
+      title: 'Gallery Home'
+    }
   });
 
   // add configured states

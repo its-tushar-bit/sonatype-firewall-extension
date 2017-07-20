@@ -56,6 +56,7 @@ public class DataSourceFactory
       dataSources.clear();
       DatamartProvider.clear_ForTestsOnly();
       OperationalDataStoreProvider.clear_ForTestsOnly();
+      AggregationDataStoreProvider.clear_ForTestsOnly();
     }
   }
 

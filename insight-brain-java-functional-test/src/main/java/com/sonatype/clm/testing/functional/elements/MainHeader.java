@@ -8,18 +8,19 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class MainHeader
 {
-
   public static SelenideElement userMenuToggle() {
     return $("#user-menu-dropdown-toggle");
   }
 
-  public static SelenideElement dashboardNavigationButton() {
-    return $(createSelector(".iq-navigation-menu li", nthChild(1), "a"));
+  public static MainHeaderNavigationButton dashboardNavigationButton() {
+    return new MainHeaderNavigationButton("#dashboard-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton labsNavigationButton() {
+    return new MainHeaderNavigationButton("#labs-navigation-button");
   }
 
   public static SelenideElement userName() {

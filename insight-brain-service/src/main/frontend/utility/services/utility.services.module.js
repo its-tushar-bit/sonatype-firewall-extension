@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular*/
-(function(angular) {
-  'use strict';
 
-  angular.module('utility.services', ['utility.directives', 'CLMLocation']);
-}(angular));
+import systemConfigurationPropertyService from './systemConfigurationPropertyService';
+
+export default angular.module('utility.services', ['utility.directives', 'CLMLocation'])
+    .service('systemConfigurationPropertyService', systemConfigurationPropertyService);

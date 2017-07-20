@@ -15,4 +15,5 @@ src/main/frontend/lib/classybrew
 src/main/frontend/lib/ngUpload
 src/main/frontend/lib/angular-vs-repeat
 src/main/frontend/lib/jquery-ui
+src/main/frontend/lib/d3/
 src/main/component-gallery/app/lib/

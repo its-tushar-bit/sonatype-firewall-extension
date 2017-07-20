@@ -46,51 +46,52 @@ function sparklineDirective() {
         }
 
         var svg = d3.select(element[0]).append('svg')
-            .attr('class', 'chart')
-            .append('g');
+            .attr('class', 'chart');
 
-        config.width = $(svg[0][0]).parent().width() || 100;
-        config.height = $(svg[0][0]).parent().height() || 25;
+        config.height = parseInt(svg.style('height'), 10) || 25;
+        config.width = parseInt(svg.style('width'), 10) || 100;
 
-        var yScale = d3.scale.linear().range([config.height - graphPadding, graphPadding]),
-            pastX = d3.scale.linear().range(
+        var group = svg.append('g');
+
+        var yScale = d3.scaleLinear().range([config.height - graphPadding, graphPadding]),
+            pastX = d3.scaleLinear().range(
                 [graphPadding, config.width - config.width / data.length - graphPadding]),
-            recentX = d3.scale.linear().range(
+            recentX = d3.scaleLinear().range(
                 [config.width - config.width / data.length - graphPadding, config.width - graphPadding]);
 
         pastX.domain([0, data.length - 2]);
         recentX.domain([0, 1]);
         yScale.domain([0, d3.max(data)]);
 
-        var area = d3.svg.area().x(function(d, index) {
+        var area = d3.area().x(function(d, index) {
           return pastX(index);
         }).y0(config.height).y1(function(d) {
           return yScale(d);
         });
 
-        var line = d3.svg.line().x(function(d, index) {
+        var line = d3.line().x(function(d, index) {
           return pastX(index);
         }).y(function(d) {
           return yScale(d);
         });
 
-        svg.append('path')
+        group.append('path')
             .datum(data.slice(0, data.length - 1))
             .attr('d', area)
             .attr('class', 'fill base');
 
-        svg.append('path')
+        group.append('path')
             .datum(data.slice(0, data.length - 1))
             .attr('d', line)
             .attr('class', 'line base');
 
-        area = d3.svg.area().x(function(d, index) {
+        area = d3.area().x(function(d, index) {
           return recentX(index);
         }).y0(config.height).y1(function(d) {
           return yScale(d);
         });
 
-        line = d3.svg.line().x(function(d, index) {
+        line = d3.line().x(function(d, index) {
           return recentX(index);
         }).y(function(d) {
           return yScale(d);
@@ -98,49 +99,48 @@ function sparklineDirective() {
 
         var trailingClass = (data[data.length - 1] - data[data.length - 2] > 0) ? 'up' : 'down';
 
-        svg.append('path')
+        group.append('path')
             .datum(data.slice(data.length - 2))
             .attr('d', area)
             .attr('class', 'fill ' + trailingClass);
 
-        svg.append('path')
+        group.append('path')
             .datum(data.slice(data.length - 2))
             .attr('d', line)
             .attr('class', 'line ' + trailingClass);
 
-        var guideLine = svg.append('line').attr({
-          opacity: 0,
-          x1: 0,
-          y1: 0,
-          x2: 0,
-          y2: config.height
-        }).attr('class', 'guideline');
+        var guideLine = group.append('line')
+            .attr('opacity', 0)
+            .attr('x1', 0)
+            .attr('y1', 0)
+            .attr('x2', 0)
+            .attr('y2', config.height)
+            .attr('class', 'guideline');
 
-        var circlePoint = svg.append('circle').attr({
-          opacity: 0,
-          r: 3
-        }).attr('class', 'guide-circle');
+        var circlePoint = group.append('circle')
+            .attr('opacity', 0)
+            .attr('r', 3)
+            .attr('class', 'guide-circle');
 
-        var guideRectangle = svg.append('rect').attr({
-          opacity: 0,
-          rx: 4,
-          ry: 4,
-          height: guideHeight
-        }).attr('class', 'guide-rect');
+        var guideRectangle = group.append('rect')
+            .attr('opacity', 0)
+            .attr('rx', 4)
+            .attr('ry', 4)
+            .attr('height', guideHeight)
+            .attr('class', 'guide-rect');
 
-        var guideText = svg.append('text').attr({
-          opacity: 0
-        }).attr('class', 'guide-text');
+        var guideText = group.append('text')
+            .attr('opacity', 0)
+            .attr('class', 'guide-text');
 
         var hoverElements = [guideLine, circlePoint, guideRectangle, guideText];
 
-        var guideSpace = svg.append('rect').attr({
-          w: 0,
-          h: 0,
-          width: config.width,
-          height: config.height,
-          fill: 'transparent'
-        });
+        var guideSpace = group.append('rect')
+            .attr('w', 0)
+            .attr('h', 0)
+            .attr('width', config.width)
+            .attr('height', config.height)
+            .attr('fill', 'transparent');
 
         guideSpace.on('mouseover', function() {
           angular.forEach(hoverElements, function(element) {
@@ -157,15 +157,15 @@ function sparklineDirective() {
           circlePoint.attr('cx', snapX).attr('cy', snapY);
 
           var guidePositions = getGuidePositions(snapX, snapY, yValue);
-          guideRectangle.attr({
-            width: guidePositions.width,
-            x: guidePositions.rect.x,
-            y: guidePositions.rect.y
-          });
-          guideText.attr({
-            x: guidePositions.text.x,
-            y: guidePositions.text.y
-          }).text(yValue);
+          guideRectangle
+              .attr('width', guidePositions.width)
+              .attr('x', guidePositions.rect.x)
+              .attr('y', guidePositions.rect.y);
+
+          guideText
+              .attr('x', guidePositions.text.x)
+              .attr('y', guidePositions.text.y)
+              .text(yValue);
 
           d3.select(element[0]).select('.guideline').attr('transform', function() {
             return 'translate(' + snapX + ',0)';

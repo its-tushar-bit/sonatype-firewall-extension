@@ -92,7 +92,7 @@ public class DashboardUtils
     return stages;
   }
 
-  Set<String> getStageTypeIds(final Collection<StageType> stageTypes) {
+  public Set<String> getStageTypeIds(final Collection<StageType> stageTypes) {
     Set<String> stageTypeIds = new HashSet<>();
     for (StageType stageType : stageTypes) {
       stageTypeIds.add(stageType.getId());

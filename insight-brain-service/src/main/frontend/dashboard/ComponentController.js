@@ -57,7 +57,7 @@
       },
       link: function(scope, element) {
         var radius = (Math.min(scope.width, scope.height) / 2) - 1;
-        var arc = d3.svg.arc()
+        var arc = d3.arc()
             .outerRadius(radius)
             .innerRadius(0);
 

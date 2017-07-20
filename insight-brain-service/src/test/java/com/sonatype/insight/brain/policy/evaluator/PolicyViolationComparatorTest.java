@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import com.google.common.collect.Lists;
@@ -20,7 +21,7 @@ import static org.junit.Assert.assertThat;
 
 public class PolicyViolationComparatorTest
 {
-  private Comparator<PolicyViolation> comparator = PolicyViolationComparator.COMPARATOR;
+  private Comparator<PolicyViolationComparable> comparator = PolicyViolationComparator.COMPARATOR;
 
   private ComponentIdentifier componentA = ComponentIdentifier.createMavenCoordinates("A", "A", "A");
   private ComponentIdentifier componentB = ComponentIdentifier.createMavenCoordinates("B", "B", "B");

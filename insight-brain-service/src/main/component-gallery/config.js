@@ -6,6 +6,7 @@
 import componentsModule from '../frontend/components/module';
 import '../frontend/components/iqCheckbox/iqCheckbox';
 import '../frontend/components/iqRadio/iqRadio';
+import '../frontend/components/iqBackButton/iqBackButton';
 
 import utilityDirectivesModule from '../frontend/utility/directives/utility.directives.module';
 import '../frontend/utility/directives/load.wrapper.directive';
@@ -16,6 +17,7 @@ export default angular.module('config', [componentsModule.name, charts.name, uti
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
       'iq-radio': 'components/iq-radio.html',
+      'iq-back-button': 'components/iq-back-button.html'
     })
 
     .constant('directivesConfig', {

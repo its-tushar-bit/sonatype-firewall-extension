@@ -8,15 +8,15 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.Comparator;
 
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 
 public class PolicyViolationComparator
-    implements Comparator<PolicyViolation>
+    implements Comparator<PolicyViolationComparable>
 {
-  public static final Comparator<PolicyViolation> COMPARATOR = new PolicyViolationComparator();
+  public static final Comparator<PolicyViolationComparable> COMPARATOR = new PolicyViolationComparator();
 
   @Override
-  public int compare(PolicyViolation v1, PolicyViolation v2) {
+  public int compare(PolicyViolationComparable v1, PolicyViolationComparable v2) {
     // Policy id
     int result = v1.getPolicyId().compareTo(v2.getPolicyId());
     if (result != 0) {

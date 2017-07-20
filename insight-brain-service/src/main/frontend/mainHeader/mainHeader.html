@@ -11,32 +11,45 @@
     </div>
     <div class="iq-navbar">
       <ul class="iq-navigation-menu iq-inline iq-pull-left">
-        <li class="iq-navigation-menu__icon"
+        <li id="dashboard-navigation-button"
+            class="iq-navigation-menu__button"
             ng-class="{ 'active' : vm.$state.includes('dashboard') }"
             tooltip="Dashboard"
             tooltip-placement="bottom"
             ng-if="vm.isDashboardLicensed()">
           <a ui-sref="dashboard.overview.violations" class="iq-navigation__link">
-            <span><i class="sonatype-icons medium dashboard"></i></span>
+            <span><i class="sonatype-icons medium dashboard iq-navigation-menu__icon"></i></span>
           </a>
         </li><!-- fix chrome bounce
-     --><li class="iq-navigation-menu__icon"
+     --><li id="reporting-navigation-button"
+            class="iq-navigation-menu__button"
             ng-class="{ 'active' : vm.$state.includes('violations') }"
             tooltip="Reporting"
             tooltip-placement="bottom">
           <a ui-sref="violations" class="iq-navigation__link">
-            <span><i class="sonatype-icons medium reporting"></i></span>
+            <span><i class="sonatype-icons medium reporting iq-navigation-menu__icon"></i></span>
           </a>
         </li><!-- fix chrome bounce
-     --><li class="iq-navigation-menu__icon"
+     --><li id="policies-navigation-button"
+            class="iq-navigation-menu__button"
             ng-class="{ 'active' : vm.$state.includes('management') }"
             tooltip="Organization & Policies"
             tooltip-placement="bottom">
           <a ui-sref="management.view" class="iq-navigation__link">
-            <span><i class="sonatype-icons medium organizational-design"></i></span>
+            <span><i class="sonatype-icons medium organizational-design iq-navigation-menu__icon"></i></span>
+          </a>
+        </li><!-- fix chrome bounce
+     --><li id="labs-navigation-button"
+            class="iq-navigation-menu__button"
+            ng-class="{ 'active' : vm.$state.includes('labs') }"
+            ng-if="vm.isSuccessMetricsEnabled"
+            tooltip="Success Metrics"
+            tooltip-placement="bottom">
+          <a ui-sref="labs.successMetrics" class="iq-navigation__link">
+            <span><i class="fa fa-flask iq-navigation-menu__icon"></i></span>
           </a>
         </li>
-        <li class="iq-navigation-menu__icon">
+        <li class="iq-navigation-menu__button">
           <!-- This div is here strictly to support dev and is not intended for client facing content -->
           <div id="functionalTestingSupport" style="color: red;"></div>
         </li>

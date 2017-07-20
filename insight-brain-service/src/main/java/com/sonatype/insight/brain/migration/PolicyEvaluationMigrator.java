@@ -235,8 +235,8 @@ public class PolicyEvaluationMigrator
         firstOccurrencePolicyViolationsByStageId.put(policyEvaluation.getStageTypeId(), policyViolations);
       }
       else {
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(firstOccurrencePolicyViolations,
-            policyViolations);
+        PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
+            .digestPolicyViolations(firstOccurrencePolicyViolations, policyViolations);
         firstOccurrencePolicyViolations.addAll(diff.getAppeared());
         firstOccurrencePolicyViolations.removeAll(diff.getCleared());
       }

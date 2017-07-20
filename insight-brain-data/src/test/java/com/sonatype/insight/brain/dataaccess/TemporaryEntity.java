@@ -16,6 +16,8 @@ import java.util.UUID;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO;
+import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -52,6 +54,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.aggregation.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.aggregation.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -103,8 +107,19 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.codehaus.plexus.util.StringUtils;
+import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
+
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
+import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
+import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
+import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
+import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
 
 /**
  * Like TemporaryFolder, just for apps and orgs etc.
@@ -190,6 +205,10 @@ public class TemporaryEntity
 
   private final WebhookDAO webhookDAO = new WebhookDAO();
 
+  private final PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
+
+  private final PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO = new PolicyViolationResolutionStateDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -228,6 +247,10 @@ public class TemporaryEntity
 
   private Collection<Webhook> webhooks;
 
+  private Collection<PolicyViolationAggregation> policyViolationAggregations;
+
+  private Collection<PolicyViolationResolutionState> policyViolationResolutionStates;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -249,6 +272,8 @@ public class TemporaryEntity
     securityVulnerabilityOverrides = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
+    policyViolationAggregations = new ArrayList<>();
+    policyViolationResolutionStates = new ArrayList<>();
   }
 
   @Override
@@ -362,6 +387,20 @@ public class TemporaryEntity
     for (Webhook webhook : webhooks) {
       if ((webhook = webhookDAO.getById(webhook.getId())) != null) {
         webhookDAO.delete(webhook);
+      }
+    }
+
+    for (PolicyViolationAggregation policyViolationAggregation : policyViolationAggregations) {
+      if ((policyViolationAggregation = policyViolationAggregationDAO
+          .getById(policyViolationAggregation.getId())) != null) {
+        policyViolationAggregationDAO.delete(policyViolationAggregation);
+      }
+    }
+
+    for (PolicyViolationResolutionState policyViolationResolutionState : policyViolationResolutionStates) {
+      if ((policyViolationResolutionState = policyViolationResolutionStateDAO
+          .getById(policyViolationResolutionState.getId())) != null) {
+        policyViolationResolutionStateDAO.delete(policyViolationResolutionState);
       }
     }
   }
@@ -1428,5 +1467,128 @@ public class TemporaryEntity
   public Webhook newWebhook(Set<WebhookEventType> events) {
     String uuid = uuid();
     return newWebhook("http://localhost/" + uuid, events);
+  }
+
+  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
+                                                                  Date timePeriodStart,
+                                                                  DescriptiveStatistics mttrLowThreatStats,
+                                                                  DescriptiveStatistics mttrModerateThreatStats,
+                                                                  DescriptiveStatistics mttrSevereThreatStats,
+                                                                  DescriptiveStatistics mttrCriticalThreatStats)
+  {
+    PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, timePeriodStart,
+        mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats);
+
+    policyViolationAggregationDAO.insert(aggregation);
+    policyViolationAggregations.add(aggregation);
+
+    return aggregation;
+  }
+
+  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
+                                                                  Date timePeriodStart,
+                                                                  DescriptiveStatistics mttrLowThreatStats,
+                                                                  DescriptiveStatistics mttrModerateThreatStats,
+                                                                  DescriptiveStatistics mttrSevereThreatStats,
+                                                                  DescriptiveStatistics mttrCriticalThreatStats,
+                                                                  int discoveredCountSecurityLowThreat,
+                                                                  int discoveredCountSecurityModerateThreat,
+                                                                  int discoveredCountSecuritySevereThreat,
+                                                                  int discoveredCountSecurityCriticalThreat,
+                                                                  int discoveredCountLicenseLowThreat,
+                                                                  int discoveredCountLicenseModerateThreat,
+                                                                  int discoveredCountLicenseSevereThreat,
+                                                                  int discoveredCountLicenseCriticalThreat,
+                                                                  int discoveredCountQualityLowThreat,
+                                                                  int discoveredCountQualityModerateThreat,
+                                                                  int discoveredCountQualitySevereThreat,
+                                                                  int discoveredCountQualityCriticalThreat,
+                                                                  int discoveredCountOtherLowThreat,
+                                                                  int discoveredCountOtherModerateThreat,
+                                                                  int discoveredCountOtherSevereThreat,
+                                                                  int discoveredCountOtherCriticalThreat,
+                                                                  int evaluationCount)
+  {
+    PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, timePeriodStart,
+        mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats, mttrCriticalThreatStats,
+        discoveredCountSecurityLowThreat, discoveredCountSecurityModerateThreat, discoveredCountSecuritySevereThreat,
+        discoveredCountSecurityCriticalThreat, discoveredCountLicenseLowThreat, discoveredCountLicenseModerateThreat,
+        discoveredCountLicenseSevereThreat, discoveredCountLicenseCriticalThreat, discoveredCountQualityLowThreat,
+        discoveredCountQualityModerateThreat, discoveredCountQualitySevereThreat, discoveredCountQualityCriticalThreat,
+        discoveredCountOtherLowThreat, discoveredCountOtherModerateThreat, discoveredCountOtherSevereThreat,
+        discoveredCountOtherCriticalThreat, evaluationCount);
+
+    policyViolationAggregationDAO.insert(aggregation);
+    policyViolationAggregations.add(aggregation);
+
+    return aggregation;
+  }
+
+  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId, Date timePeriodStart) {
+    PolicyViolationAggregation aggregation = new PolicyViolationAggregation();
+    aggregation.setApplicationId(applicationId);
+    aggregation.setTimePeriodStart(timePeriodStart);
+
+    policyViolationAggregationDAO.insert(aggregation);
+    policyViolationAggregations.add(aggregation);
+
+    return aggregation;
+  }
+
+  /**
+   * Persist and return a new PolicyViolationAggregation with supplied violation counts per threat category
+   *
+   * @param securityViolationCounts counts for low, moderate, severe and critical security violations
+   * @param licenseViolationCounts counts for low, moderate, severe and critical license violations
+   * @param qualityViolationCounts counts for low, moderate, severe and critical quality violations
+   * @param otherViolationCounts counts for low, moderate, severe and critical other violations
+   * @param evaluationCount number of evaluations
+   */
+  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
+                                                                  LocalDate timePeriodStart,
+                                                                  List<Integer> securityViolationCounts,
+                                                                  List<Integer> licenseViolationCounts,
+                                                                  List<Integer> qualityViolationCounts,
+                                                                  List<Integer> otherViolationCounts,
+                                                                  int evaluationCount)
+  {
+    PolicyViolationAggregation aggregation = new PolicyViolationAggregation();
+    aggregation.setApplicationId(applicationId);
+    aggregation.setTimePeriodStart(timePeriodStart.toDateTimeAtStartOfDay().toDate());
+    aggregation.setEvaluationCount(evaluationCount);
+    setPolicyViolationCounts(aggregation, SECURITY, securityViolationCounts);
+    setPolicyViolationCounts(aggregation, LICENSE, licenseViolationCounts);
+    setPolicyViolationCounts(aggregation, QUALITY, qualityViolationCounts);
+    setPolicyViolationCounts(aggregation, OTHER, otherViolationCounts);
+
+    policyViolationAggregationDAO.insert(aggregation);
+    policyViolationAggregations.add(aggregation);
+
+    return aggregation;
+  }
+
+  private void setPolicyViolationCounts(PolicyViolationAggregation aggregation,
+                                        PolicyThreatCategory threatCategory,
+                                        List<Integer> violationCounts)
+  {
+    aggregation.setDiscoveredCount(threatCategory, LOW, violationCounts.get(0));
+    aggregation.setDiscoveredCount(threatCategory, MODERATE, violationCounts.get(1));
+    aggregation.setDiscoveredCount(threatCategory, SEVERE, violationCounts.get(2));
+    aggregation.setDiscoveredCount(threatCategory, CRITICAL, violationCounts.get(3));
+  }
+
+  public PolicyViolationResolutionState newPolicyViolationResolutionState(String applicationId,
+                                                                          PolicyViolation policyViolation,
+                                                                          String stageTypeId)
+  {
+    PolicyViolationResolutionState resolutionState = new PolicyViolationResolutionState(applicationId, policyViolation);
+
+    // at least one stage type must be set
+    resolutionState.setStageTypeById(stageTypeId);
+
+    policyViolationResolutionStateDAO.insert(resolutionState);
+    policyViolationResolutionStates.add(resolutionState);
+
+    return resolutionState;
   }
 }

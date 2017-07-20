@@ -137,8 +137,8 @@ public class NewestRiskService
         Map<PolicyViolation, PolicyViolation> firstOccurrencePolicyViolationsByLastPolicyViolations = getFirstOccurrencePolicyViolationsForLastPolicyViolations(
             app.getId(), stageType.getId(), policyViolations);
 
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(allUniqueAppPolicyViolations,
-            policyViolations);
+        PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
+            .digestPolicyViolations(allUniqueAppPolicyViolations, policyViolations);
         for (PolicyViolation policyViolation : diff.getAppeared()) {
           PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
               .get(policyViolation);
@@ -187,7 +187,8 @@ public class NewestRiskService
 
     List<PolicyViolation> firstOccurrences = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(appId,
         stageTypeId);
-    PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(lastPolicyViolations, firstOccurrences);
+    PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester.digestPolicyViolations(lastPolicyViolations,
+        firstOccurrences);
     for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
       result.put(samePolicyViolationEntry.getKey(), samePolicyViolationEntry.getValue());
     }

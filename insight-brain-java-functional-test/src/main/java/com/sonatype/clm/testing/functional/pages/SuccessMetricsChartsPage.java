@@ -9,10 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-
-import static com.codeborne.selenide.Condition.cssClass;
 
 public class SuccessMetricsChartsPage
     extends BasicElement<SuccessMetricsChartsPage>

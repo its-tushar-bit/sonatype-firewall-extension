@@ -21,6 +21,7 @@ public class MainHeaderNavigationButton
     super(".iq-navigation-menu", selector);
   }
 
+  @Override
   public void click() {
     this.child("a").click();
   }

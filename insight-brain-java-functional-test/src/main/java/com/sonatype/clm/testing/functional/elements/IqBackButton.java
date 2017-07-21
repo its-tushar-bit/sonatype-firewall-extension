@@ -18,6 +18,7 @@ public class IqBackButton
     super(context, "iq-back-button");
   }
 
+  @Override
   public void click() {
     this.child("a").click();
   }

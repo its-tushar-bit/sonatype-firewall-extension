@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -219,12 +218,12 @@ public class FirewallClientTest
 
     // Setup the mocked hds return
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
-    hdsResult.components = new ArrayList<ComponentEvaluationData>();
+    hdsResult.components = new ArrayList<>();
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.hash = "hash";
     componentEvaluationData.matchState = MatchState.EXACT.getId();
-    componentEvaluationData.declaredLicenses = new HashSet<License>();
-    componentEvaluationData.observedLicenses = new HashSet<License>();
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
     hdsResult.components.add(componentEvaluationData);
     setHdsResponseForURI("/rest/component/details/firewall", hdsResult, 200);
 
@@ -233,7 +232,7 @@ public class FirewallClientTest
     repositoryComponentEvaluationDataRequest.pathname = "path";
     repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<RepositoryComponentEvaluationDataRequest>();
+    componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult = client
@@ -246,7 +245,7 @@ public class FirewallClientTest
   public void testEvaluateComponentWithQuarantine_Error() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<RepositoryComponentEvaluationDataRequest>();
+    componentEvaluationDataRequestList.components = new ArrayList<>();
 
     try {
       client.evaluateComponentWithQuarantine(componentEvaluationDataRequestList);

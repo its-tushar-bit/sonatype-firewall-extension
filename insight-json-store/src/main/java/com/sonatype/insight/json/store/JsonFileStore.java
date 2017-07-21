@@ -31,7 +31,7 @@ public final class JsonFileStore
 {
   private static final Logger log = LoggerFactory.getLogger(JsonFileStore.class);
 
-  private static final ConcurrentMap<String, CountingLock> LOCK_TABLE = new ConcurrentHashMap<String, CountingLock>();
+  private static final ConcurrentMap<String, CountingLock> LOCK_TABLE = new ConcurrentHashMap<>();
 
   private final File folder;
 
@@ -200,7 +200,7 @@ public final class JsonFileStore
 
   private static <T extends ContainerNode<?>> T augmentTable(final T table, final ArrayNode log) {
     // first aggregate all the changes found in the data log
-    final List<JsonNode> changes = new ArrayList<JsonNode>();
+    final List<JsonNode> changes = new ArrayList<>();
     for (int x = 0; x < log.size(); x++) {
       ContainerNode<?> data = (ContainerNode<?>) log.get(x);
       if (data != null && data.has("data")) // stamped data?

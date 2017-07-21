@@ -244,7 +244,7 @@ public final class JsonUtils
     if (jsonArray.size() == 0) {
       return null;
     }
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
     for (final JsonNode child : jsonArray) {
       result.add(child.asText());
     }

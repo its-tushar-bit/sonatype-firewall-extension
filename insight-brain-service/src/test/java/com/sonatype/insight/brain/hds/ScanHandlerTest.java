@@ -114,8 +114,7 @@ public class ScanHandlerTest
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId());
     assertThat(scanReceipt.getScanId(), is(scanId));
-    File scanDir = work.getScanDir(app.getId());
-    File scanFile = new File(scanDir, "scan-" + scanId + ".xml.gz");
+    File scanFile = work.getScanFile(app.getId(), scanId);
     assertThat(scanFile.exists(), is(true));
     assertThat(FileUtils.readFileToString(scanFile, "UTF-8"), is(scanFileContent));
   }
@@ -138,8 +137,7 @@ public class ScanHandlerTest
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
     assertThat(scanReceipt.getScanId(), is(scanId));
-    File scanDir = work.getScanDir(app.getId());
-    File scanFile = new File(scanDir, "scan-" + scanId + ".xml.gz");
+    File scanFile = work.getScanFile(app.getId(), scanId);
     assertThat(scanFile.exists(), is(true));
 
     Scan scan = scanReader.read(scanFile);
@@ -190,8 +188,7 @@ public class ScanHandlerTest
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
     assertThat(scanReceipt.getScanId(), is(scanId));
-    File scanDir = work.getScanDir(app.getId());
-    File scanFile = new File(scanDir, "scan-" + scanId + ".xml.gz");
+    File scanFile = work.getScanFile(app.getId(), scanId);
     assertThat(scanFile.exists(), is(true));
 
     Scan scan = scanReader.read(scanFile);

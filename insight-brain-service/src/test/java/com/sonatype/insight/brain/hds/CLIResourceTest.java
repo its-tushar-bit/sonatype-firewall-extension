@@ -30,6 +30,32 @@ public class CLIResourceTest
   }
 
   @Test
+  public void testPutScan_ExpandedCoverageScan() throws Exception {
+    String applicationPublicId = "TestAppId";
+    String licenseFingerprint = "TestLicenseFingerprint";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+    setLicenseFingerprint(licenseFingerprint);
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44a");
+    scanReceipt.setTimeToReport(30L);
+    mockScanReceipt(scanReceipt);
+
+    HttpResponse response = scanRequest(applicationPublicId).query("scanType", ClientScanType.EXPANDED_COVERAGE)
+        .body("test scan file content", MediaType.APPLICATION_OCTET_STREAM).put();
+    assertResponseStatus(200, response);
+
+    ScanReceipt receipt = response.getBody(ScanReceipt.class);
+    assertThat(receipt, is(notNullValue()));
+    assertThat(receipt.getScanId(), is(scanReceipt.getScanId()));
+    assertThat(receipt.getTimeToReport(), is(scanReceipt.getTimeToReport()));
+    assertThat(receipt.getReportUrl(),
+        is("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId()));
+    assertThat(receipt.getPdfUrl(),
+        is("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId() + "/pdf"));
+  }
+
+  @Test
   public void testPutScan_TwistlockScan() throws Exception {
     String applicationPublicId = "TestAppId";
     String licenseFingerprint = "TestLicenseFingerprint";

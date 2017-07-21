@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 
 import javax.inject.Inject;
@@ -102,13 +103,16 @@ public class ScanHandler
     }
 
     ScanReceipt scanReceipt = scanUploader.upload(httpRequest, tempScanFile, app);
-
-    File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
-    FileUtils.rename(tempScanFile, scanFile);
-    if (tempTwistlockScanFile != null) {
-      FileUtils.rename(tempTwistlockScanFile, toTwistlockScanFilename(scanFile));
+    if (ClientScanType.EXPANDED_COVERAGE.equals(clientScanType)) {
+      Files.delete(tempScanFile.toPath());
     }
-
+    else {
+      File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
+      FileUtils.rename(tempScanFile, scanFile);
+      if (tempTwistlockScanFile != null) {
+        FileUtils.rename(tempTwistlockScanFile, toTwistlockScanFilename(scanFile));
+      }
+    }
     log.debug("Handled {} scan id {} for application public id {} in {} ms.", clientScanType, scanReceipt.getScanId(),
         applicationPublicId, System.currentTimeMillis() - start);
 

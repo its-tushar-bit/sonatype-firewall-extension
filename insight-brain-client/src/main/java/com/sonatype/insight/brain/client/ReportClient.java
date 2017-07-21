@@ -47,12 +47,8 @@ public final class ReportClient
     verifyStatusCode(result);
 
     byte[] data = result.data();
-    FileOutputStream fos = new FileOutputStream(bundleFile);
-    try {
+    try (FileOutputStream fos = new FileOutputStream(bundleFile)) {
       fos.write(data);
-    }
-    finally {
-      fos.close();
     }
   }
 }

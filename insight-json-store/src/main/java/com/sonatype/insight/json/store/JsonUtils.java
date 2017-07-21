@@ -54,61 +54,40 @@ public final class JsonUtils
 
   @SuppressWarnings("unchecked")
   public static <T extends ContainerNode<?>> T read(final File file) throws IOException {
-    final JsonParser parser = JSON.createParser(file);
-    try {
+    try (final JsonParser parser = JSON.createParser(file)) {
       return (T) parser.readValueAsTree();
-    }
-    finally {
-      parser.close();
     }
   }
 
   public static <T> T read(final File file, final Class<? extends T> type) throws IOException {
-    final JsonParser parser = JSON.createParser(file);
-    try {
+    try (final JsonParser parser = JSON.createParser(file)) {
       return parser.readValueAs(type);
-    }
-    finally {
-      parser.close();
     }
   }
 
   public static void write(final File file, final JsonNode data) throws IOException {
     file.getAbsoluteFile().getParentFile().mkdirs();
-    final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8);
-    try {
+    try (final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8)) {
       generator.useDefaultPrettyPrinter().writeTree(data);
-    }
-    finally {
-      generator.close();
     }
   }
 
   public static void write(final File file, final Object pojo) throws IOException {
     file.getAbsoluteFile().getParentFile().mkdirs();
-    final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8);
-    try {
+    try (final JsonGenerator generator = JSON.createGenerator(file, JsonEncoding.UTF8)) {
       generator.useDefaultPrettyPrinter().writeObject(pojo);
-    }
-    finally {
-      generator.close();
     }
   }
 
   @SuppressWarnings("unchecked")
   public static <T extends ContainerNode<?>> T parse(final byte[] buf) throws IOException {
-    final JsonParser parser = JSON.createParser(buf);
-    try {
+    try (final JsonParser parser = JSON.createParser(buf)) {
       return (T) parser.readValueAsTree();
-    }
-    finally {
-      parser.close();
     }
   }
 
   public static <T> T parse(final byte[] buf, final Class<? extends T> type) throws IOException {
-    final JsonParser parser = JSON.createParser(buf);
-    try {
+    try (final JsonParser parser = JSON.createParser(buf)) {
       try {
         return parser.readValueAs(type);
       }
@@ -125,9 +104,6 @@ public final class JsonUtils
         throw e;
       }
     }
-    finally {
-      parser.close();
-    }
   }
 
   public static <T extends ContainerNode<?>> T parse(final String json) throws IOException {
@@ -139,35 +115,23 @@ public final class JsonUtils
   }
 
   public static <T> T parse(final InputStream stream, final Class<? extends T> type) throws IOException {
-    final JsonParser parser = JSON.createParser(stream);
-    try {
+    try (final JsonParser parser = JSON.createParser(stream)) {
       return parser.readValueAs(type);
-    }
-    finally {
-      parser.close();
     }
   }
 
   public static byte[] generate(final JsonNode data) throws IOException {
     final ByteArrayOutputStream os = new ByteArrayOutputStream();
-    final JsonGenerator generator = JSON.createGenerator(os, JsonEncoding.UTF8);
-    try {
+    try (final JsonGenerator generator = JSON.createGenerator(os, JsonEncoding.UTF8)) {
       generator.useDefaultPrettyPrinter().writeTree(data);
-    }
-    finally {
-      generator.close();
     }
     return os.toByteArray();
   }
 
   public static byte[] generate(final Object pojo) throws IOException {
     final ByteArrayOutputStream os = new ByteArrayOutputStream();
-    final JsonGenerator generator = JSON.createGenerator(os, JsonEncoding.UTF8);
-    try {
+    try (final JsonGenerator generator = JSON.createGenerator(os, JsonEncoding.UTF8)) {
       generator.useDefaultPrettyPrinter().writeObject(pojo);
-    }
-    finally {
-      generator.close();
     }
     return os.toByteArray();
   }

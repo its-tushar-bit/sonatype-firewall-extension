@@ -45,7 +45,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -267,14 +266,14 @@ public class ApplicationResource
 
   private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application, String scanId)
   {
-    final String applicationId = application.getId();
-
-    PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(applicationId, scanId);
-    if (evaluation == null) {
-      throw new NotFoundException("Unable to locate requested scan");
-    }
     ApplicationManagementSummaryDTO summary = applicationAdapter.createApplicationManagementSummary(application);
-    summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStageTypeId(), evaluation));
+
+    final String applicationId = application.getId();
+    PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(applicationId, scanId);
+    // The scans for expanded coverage don't have policy evaluations.
+    if (evaluation != null) {
+      summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStageTypeId(), evaluation));
+    }
     return summary;
   }
 

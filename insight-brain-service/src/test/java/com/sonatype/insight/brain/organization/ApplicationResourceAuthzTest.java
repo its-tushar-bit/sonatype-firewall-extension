@@ -29,7 +29,7 @@ public class ApplicationResourceAuthzTest
 
     HttpRequest request = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY).parameter(
         app.getPublicId(), "scan123");
-    testAuthzGet(request, 404);
+    testAuthzGet(request, 200);
   }
 
   @Test

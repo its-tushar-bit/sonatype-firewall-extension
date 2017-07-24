@@ -341,9 +341,8 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
     ApplicationManagementSummaryDTO summary = response.getBody(ApplicationManagementSummaryDTO.class);
 
-    Assert.assertEquals(application.getName(), summary.getName());
-    Assert.assertEquals(application.getId(), summary.getId());
-    Assert.assertEquals(1, summary.getPolicyEvaluations().size());
+    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "IQ Server");
+    assertApplicationManagementSummaryDTO(summary, application, organization, 1, expectedContact);
     Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_BUILD));
 
     PolicyEvaluation evaluation = summary.getPolicyEvaluations().get(Stage.ID_BUILD);
@@ -357,25 +356,34 @@ public class ApplicationResourceTest
 
     summary = response.getBody(ApplicationManagementSummaryDTO.class);
 
-    Assert.assertEquals(application.getName(), summary.getName());
-    Assert.assertEquals(application.getId(), summary.getId());
-    Assert.assertEquals(1, summary.getPolicyEvaluations().size());
+    assertApplicationManagementSummaryDTO(summary, application, organization, 1, expectedContact);
     Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_RELEASE));
-    Assert.assertEquals(organization.getName(), summary.getOrganizationName());
-
-    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "IQ Server");
-    ContactDTO summaryContact = summary.getContact();
-    assertContact(summaryContact, expectedContact);
 
     evaluation = summary.getPolicyEvaluations().get(Stage.ID_RELEASE);
     Assert.assertEquals(scanId2, evaluation.getScanId());
     Assert.assertTrue(evaluation.getTime().getTime() > startTime);
 
-    // 1-800-DIAL-A-SCAN
+    // Unknown scan id
     response = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
         .parameter(application.getPublicId(), "12345678").get();
-    assertResponseStatus(404, response);
-    Assert.assertEquals("Unable to locate requested scan", response.getBodyText());
+    assertResponseStatus(200, response);
+    summary = response.getBody(ApplicationManagementSummaryDTO.class);
+    assertApplicationManagementSummaryDTO(summary, application, organization, 0, expectedContact);
+  }
+
+  private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
+                                                     Application app,
+                                                     Organization org,
+                                                     int policyEvaluationCount,
+                                                     ContactDTO contact)
+  {
+    assertThat(actual.getId(), is(app.getId()));
+    assertThat(actual.getPublicId(), is(app.getPublicId()));
+    assertThat(actual.getName(), is(app.getName()));
+    assertThat(actual.getOrganizationId(), is(org.getId()));
+    assertThat(actual.getOrganizationName(), is(org.getName()));
+    assertThat(actual.getPolicyEvaluations().size(), is(policyEvaluationCount));
+    assertContact(actual.getContact(), contact);
   }
 
   @Test
@@ -415,13 +423,8 @@ public class ApplicationResourceTest
     Assert.assertNotNull(applications);
 
     Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
-    Assert.assertEquals(application.getId(), applications[0].getId());
-    Assert.assertEquals(application.getName(), applications[0].getName());
-    Assert.assertEquals(organization.getName(), applications[0].getOrganizationName());
-
     ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "IQ Server");
-    ContactDTO applicationContact = applications[0].getContact();
-    assertContact(applicationContact, expectedContact);
+    assertApplicationManagementSummaryDTO(applications[0], application, organization, 2, expectedContact);
 
     Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations = applications[0]
         .getPolicyEvaluations();
@@ -470,13 +473,7 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     ApplicationManagementSummaryDTO applicationSummary = response.getBody(ApplicationManagementSummaryDTO.class);
-    Assert.assertNotNull(applicationSummary);
-    Assert.assertEquals(application.getId(), applicationSummary.getId());
-    Assert.assertEquals(application.getName(), applicationSummary.getName());
-    Assert.assertEquals(organization.getName(), applicationSummary.getOrganizationName());
-
-    ContactDTO summaryContact = applicationSummary.getContact();
-    assertContact(summaryContact, expectedContact);
+    assertApplicationManagementSummaryDTO(applicationSummary, application, organization, 2, expectedContact);
 
     policyEvaluations = applicationSummary.getPolicyEvaluations();
     stageTypeIds = policyEvaluations.keySet().toArray(new String[0]);

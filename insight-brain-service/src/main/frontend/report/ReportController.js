@@ -48,10 +48,12 @@
             }
           });
 
-          for (var i = 0; i < results[0].length; i++) {
-            if (results[0][i].stageTypeId === $scope.policyEvaluation.stageTypeId) {
-              $scope.policyEvaluation.stageName = results[0][i].stageName;
-              break;
+          if ($scope.policyEvaluation) {
+            for (var i = 0; i < results[0].length; i++) {
+              if (results[0][i].stageTypeId === $scope.policyEvaluation.stageTypeId) {
+                $scope.policyEvaluation.stageName = results[0][i].stageName;
+                break;
+              }
             }
           }
         }, function() {

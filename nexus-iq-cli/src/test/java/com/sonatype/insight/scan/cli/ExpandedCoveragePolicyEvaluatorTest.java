@@ -16,6 +16,7 @@ import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.test.SslProperties;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -42,6 +43,10 @@ import static org.hamcrest.Matchers.notNullValue;
 public class ExpandedCoveragePolicyEvaluatorTest
     extends InjectedTest
 {
+  static {
+    SslProperties.use();
+  }
+  
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 

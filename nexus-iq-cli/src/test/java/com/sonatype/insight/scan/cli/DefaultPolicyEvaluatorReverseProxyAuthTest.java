@@ -6,11 +6,8 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
-
-import javax.net.ssl.SSLContext;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
@@ -21,7 +18,6 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.test.SslProperties;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 
 import org.apache.http.client.HttpResponseException;
@@ -41,16 +37,6 @@ import static org.junit.Assert.fail;
 public class DefaultPolicyEvaluatorReverseProxyAuthTest
     extends AbstractPolicyEvaluatorTest
 {
-  static {
-    try {
-      SslProperties.use();
-      SSLContext.setDefault(SSLContext.getInstance("Default"));
-    }
-    catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 

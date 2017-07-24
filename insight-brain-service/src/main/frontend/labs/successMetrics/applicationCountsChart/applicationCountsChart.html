@@ -2,9 +2,9 @@
 <div class="application-counts" load-wrapper="vm.error" loading="!vm.isLoaded" reload="vm.doLoad()">
   <p class="iq-chart__averages">
     Of the <span class="iq-chart__display-number">{{::vm.applicationCount}}</span> applications evaluated,
-    <span class="iq-chart__display-number">{{::vm.applicationCountTotalViolating}}</span> contained violations,
-    <span class="iq-chart__display-number">{{::vm.applicationCountTotalViolatingCritical}}</span> of which were
-    <strong>critical</strong>.
+    <span class="iq-chart__display-number">{{::vm.applicationCountTotalViolating}}</span> contained violations, and
+    <span class="iq-chart__display-number">{{::vm.applicationCountTotalViolatingCritical}}</span> of those contained
+    <strong>critical</strong> violations.
   </p>
   <div class="iq-chart iq-chart--application-counts iq-chart--horizontal-bar">
     <div class="iq-chart__labels--horizontal-bar">

@@ -65,6 +65,10 @@
           <groupId>com.sun.mail</groupId>
           <artifactId>mailapi</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>joda-time</groupId>
+          <artifactId>joda-time</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

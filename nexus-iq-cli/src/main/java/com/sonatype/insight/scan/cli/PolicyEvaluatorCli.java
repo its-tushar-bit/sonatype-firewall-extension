@@ -11,7 +11,9 @@ public class PolicyEvaluatorCli
   public static void main(String[] args) {
     Parameters params = new Parameters(args);
 
-    PolicyEvaluatorCli policyEvaluatorCli = new PolicyEvaluatorCli();
-    policyEvaluatorCli.run(PolicyEvaluator.class, params);
+    Class<? extends PolicyEvaluator<Parameters>> policyEvaluatorClass = params
+        .isExpandedCoverageMode() ? ExpandedCoveragePolicyEvaluator.class : DefaultPolicyEvaluator.class;
+
+    new PolicyEvaluatorCli().run(policyEvaluatorClass, params);
   }
 }

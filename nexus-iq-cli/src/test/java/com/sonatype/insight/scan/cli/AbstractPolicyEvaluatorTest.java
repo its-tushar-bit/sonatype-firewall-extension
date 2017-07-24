@@ -28,7 +28,7 @@ public abstract class AbstractPolicyEvaluatorTest
   public LogOutput logOutput = new LogOutput();
 
   @Inject
-  protected PolicyEvaluator<Parameters> evaluator;
+  protected DefaultPolicyEvaluator evaluator;
 
   @Inject
   protected ScanReader scanReader;

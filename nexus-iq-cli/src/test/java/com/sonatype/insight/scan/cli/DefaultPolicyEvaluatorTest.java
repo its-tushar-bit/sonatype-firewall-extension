@@ -48,7 +48,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PolicyEvaluatorTest
+public class DefaultPolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
 {
   @Rule

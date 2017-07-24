@@ -34,7 +34,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
-public class PolicyEvaluatorReverseProxyAuthTest
+public class DefaultPolicyEvaluatorReverseProxyAuthTest
     extends AbstractPolicyEvaluatorTest
 {
   @Rule
@@ -58,7 +58,7 @@ public class PolicyEvaluatorReverseProxyAuthTest
     });
   }
 
-  public PolicyEvaluatorReverseProxyAuthTest(boolean rutEnabled, boolean anonymousAllowed) {
+  public DefaultPolicyEvaluatorReverseProxyAuthTest(boolean rutEnabled, boolean anonymousAllowed) {
     this.rutEnabled = rutEnabled;
     this.anonymousAllowed = anonymousAllowed;
   }

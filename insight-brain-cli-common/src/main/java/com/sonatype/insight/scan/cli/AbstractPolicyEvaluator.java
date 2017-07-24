@@ -56,7 +56,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     File scanFile = scan(params, getProprietaryConfiguration(params, restClient));
 
-    evaluatePolicy(params, restClient, scanFile, getClientScanType());
+    ScanReceipt receipt = uploadScan(params, restClient, scanFile, getClientScanType());
+
+    evaluatePolicy(params, restClient, receipt);
   }
 
   protected abstract ClientScanType getClientScanType();
@@ -194,12 +196,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private PolicyEvaluationResult evaluatePolicy(P params,
-                                                RestClient restClient,
-                                                File scanFile,
-                                                ClientScanType clientScanType) throws ExitException
+  protected void evaluatePolicy(P params, RestClient restClient, ScanReceipt receipt) throws ExitException
   {
-    ScanReceipt receipt = uploadScan(params, restClient, scanFile, clientScanType);
     log.info("Fetching results of policy evaluation (ETA {}s)...", receipt.getTimeToReport());
     PolicyEvaluationResult eval;
     try {
@@ -248,8 +246,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
 
     processResults(params, receipt, eval, outcome, restClient);
-
-    return eval;
   }
 
   protected RestClient createClient(Configuration configuration) {

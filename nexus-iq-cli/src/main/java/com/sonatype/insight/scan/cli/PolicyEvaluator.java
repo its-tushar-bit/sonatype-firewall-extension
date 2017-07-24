@@ -7,9 +7,6 @@ package com.sonatype.insight.scan.cli;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.client.RestClientFactory;
@@ -20,15 +17,13 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Named
-public class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
+abstract class PolicyEvaluator<PARAMETERS extends AbstractCliParameters>
     extends AbstractPolicyEvaluator<PARAMETERS>
 {
 
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
 
-  @Inject
-  public PolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
+  PolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
     super(scanner, restClientFactory);
   }
 

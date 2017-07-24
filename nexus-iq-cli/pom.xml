@@ -25,6 +25,7 @@
     <maven.compiler.target>1.7</maven.compiler.target>
     <animal-sniffer-signature>java17</animal-sniffer-signature>
     <animal-sniffer-signature-version>1.0</animal-sniffer-signature-version>
+    <dependency-check-version>2.0.1-sonatype-1</dependency-check-version>
   </properties>
 
   <dependencies>
@@ -49,6 +50,27 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-cli-common</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.owasp</groupId>
+      <artifactId>dependency-check-core</artifactId>
+      <version>${dependency-check-version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.mail</groupId>
+          <artifactId>mailapi</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.owasp</groupId>
+      <artifactId>dependency-check-utils</artifactId>
+      <version>${dependency-check-version}</version>
     </dependency>
 
     <dependency>

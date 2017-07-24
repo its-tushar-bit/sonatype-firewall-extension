@@ -25,7 +25,7 @@
     <maven.compiler.target>1.7</maven.compiler.target>
     <animal-sniffer-signature>java17</animal-sniffer-signature>
     <animal-sniffer-signature-version>1.0</animal-sniffer-signature-version>
-    <dependency-check-version>2.0.1-sonatype-1</dependency-check-version>
+    <dependency-check-version>2.1.0</dependency-check-version>
   </properties>
 
   <dependencies>

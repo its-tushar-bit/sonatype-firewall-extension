@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ExpandedCoverage;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -160,5 +161,10 @@ public class ExpandedCoveragePolicyEvaluator
     objectMapper.setSerializationInclusion(Include.NON_EMPTY);
     objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     return objectMapper;
+  }
+
+  @Override
+  protected ClientScanType getClientScanType() {
+    return ClientScanType.EXPANDED_COVERAGE;
   }
 }

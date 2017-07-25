@@ -6,27 +6,29 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.insight.brain.client.RestClientFactory;
+import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.Scan;
-import com.sonatype.insight.scan.model.io.ScanReader;
-import com.sonatype.insight.test.InjectedTest;
-import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.test.SslProperties;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Binder;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.owasp.dependencycheck.dependency.Dependency;
 import org.owasp.dependencycheck.utils.Settings.KEYS;
 
@@ -39,25 +41,29 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ExpandedCoveragePolicyEvaluatorTest
-    extends InjectedTest
+    extends AbstractPolicyEvaluatorTest
 {
   static {
     SslProperties.use();
   }
-  
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
-  @Rule
-  public LogOutput logOutput = new LogOutput();
 
   @Inject
   private ExpandedCoveragePolicyEvaluator evaluator;
 
-  @Inject
-  private ScanReader scanReader;
+  private RestClientFactory restClientFactory = mock(RestClientFactory.class);
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(RestClientFactory.class).toInstance(restClientFactory);
+  }
 
   @Test
   public void testScan_Java() throws Exception {
@@ -93,6 +99,22 @@ public class ExpandedCoveragePolicyEvaluatorTest
         hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/org.apache.commons/commons-lang3/pom.xml")));
   }
 
+  @Test
+  public void testRun_withExpandedCoverage() throws IOException, ExitException {
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
+        "src/test/data/artifact.jar");
+    RestClient restClient = mock(RestClient.class);
+    when(restClientFactory.newRestCLIClient(any(Configuration.class))).thenReturn(restClient);
+    when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
+        newApplicationSummaryList("the-app-id", "My App"));
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
+        .thenReturn(newReceipt());
+    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString())).thenReturn(
+        new PolicyEvaluationResult());
+    evaluator.run(params);
+    verify(restClient).uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE));
+  }
+
   private Matcher<Dependency> dependencyWithName(final String name) {
     return new TypeSafeDiagnosingMatcher<Dependency>()
     {
@@ -113,7 +135,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
   }
 
   private List<Dependency> testScan(String scanTarget) throws Exception {
-    Parameters params = new Parameters("-o", tempDir.newFolder().getAbsolutePath(),
+    Parameters params = new Parameters("-o", tmpDir.newFolder().getAbsolutePath(),
         getClass().getResource("/" + getClass().getSimpleName() + "/" + scanTarget).getFile());
 
     File scanFile = evaluator.scan(params, new ProprietaryConfig());

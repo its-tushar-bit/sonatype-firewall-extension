@@ -7,15 +7,20 @@
 import successMetricsConfiguration from './successMetricsConfiguration';
 
 var successMetricsConfigurationModule = angular.module('successMetricsConfigurationModule',
-    ['ui.router', 'utility.services'])
+    ['ui.router', 'utility.services', 'PermissionServiceModule'])
     .component('successMetricsConfiguration', successMetricsConfiguration)
     .config([
       '$stateProvider', function($stateProvider) {
         $stateProvider.state('successMetricsConfiguration', {
           url: '/successMetricsConfiguration',
-          template: '<success-metrics-configuration></success-metrics-configuration>',
+          component: 'successMetricsConfiguration',
           data: {
             title: 'Success Metrics'
+          },
+          resolve: {
+            isAuthorized: ['PermissionService', function(PermissionService) {
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+            }]
           }
         });
       }

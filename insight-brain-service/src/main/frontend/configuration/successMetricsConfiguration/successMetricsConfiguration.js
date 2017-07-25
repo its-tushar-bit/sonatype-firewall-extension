@@ -7,15 +7,17 @@ import template from './successMetricsConfiguration.html';
 
 var successMetricsConfiguration = {
   controller: SuccessMetricsConfigurationController,
+  bindings: {
+    isAuthorized: '<'
+  },
   controllerAs: 'vm',
   template: template
 };
 
-function SuccessMetricsConfigurationController(PermissionService, systemConfigurationPropertyService) {
+function SuccessMetricsConfigurationController(systemConfigurationPropertyService) {
   var vm = this;
   vm.successMetricsEnabled = undefined;
   vm.savedSuccessMetricsEnabled = undefined;
-  vm.isAuthorized = undefined;
   vm.error = undefined;
   vm.load = load;
   vm.save = save;
@@ -26,9 +28,6 @@ function SuccessMetricsConfigurationController(PermissionService, systemConfigur
 
   function load() {
     vm.error = undefined;
-    PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true).then(function(response) {
-      vm.isAuthorized = response;
-    });
     systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function(response) {
       vm.savedSuccessMetricsEnabled = response;
       vm.successMetricsEnabled = response;
@@ -55,6 +54,6 @@ function SuccessMetricsConfigurationController(PermissionService, systemConfigur
   }
 }
 
-SuccessMetricsConfigurationController.$inject = ['PermissionService', 'systemConfigurationPropertyService'];
+SuccessMetricsConfigurationController.$inject = ['systemConfigurationPropertyService'];
 
 export default successMetricsConfiguration;

@@ -1,0 +1,59 @@
+<item-description>
+  <marked>
+    `.iq-tree-view` is used when you want a collapsing and expanding view with titles and children. Usually the children are a list with checkboxes or radio buttons, but the styles should be able accommodate anything reasonable in the expanded view.
+  </marked>
+</item-description>
+
+<item-example-html>
+  <!-- wrapping <div> is for clarity -->
+  <div style="background-color: #eaeaea; padding: 10px 0 20px 0; width: 300px;">
+    <div class="iq-tree-view">
+      <a class="iq-tree-view__trigger" ng-click="isExpanded1 = !isExpanded1">
+        <div class="iq-tree-view__twisty">
+          <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded1, collapse: isExpanded1 }"></span>
+        </div>
+        <div class="iq-tree-view__text">
+          <i class="fa fa-cube icon-12px"></i>Tree view group title
+        </div>
+      </a>
+      <div class="iq-tree-view__children" ng-if="isExpanded1">
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 1
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 2
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 3
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 4 - extra long to demonstrate overflow ellipsis
+        </div>
+      </div>
+    </div>
+    <div class="iq-tree-view">
+      <a class="iq-tree-view__trigger" ng-click="isExpanded2 = !isExpanded2">
+        <div class="iq-tree-view__twisty">
+          <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded2, collapse: isExpanded2 }"></span>
+        </div>
+        <div class="iq-tree-view__text">
+          <i class="fa fa-cube icon-12px"></i>Tree view group title
+        </div>
+      </a>
+      <div class="iq-tree-view__children" ng-if="isExpanded2">
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 1
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 2
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 3
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 4 - extra long to demonstrate overflow ellipsis
+        </div>
+      </div>
+    </div>
+  </div>
+</item-example-html>

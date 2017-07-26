@@ -3,6 +3,126 @@
 */
 
 /*
+  #Tree view
+*/
+.iq-tree-view {
+  @include semi-bold();
+  
+  box-sizing: border-box;
+  color: $iq-slate;
+  padding-right: 8px;
+  padding-left: 8px;
+  min-width: 250px;
+  max-width: 330px;  
+}
+
+.iq-tree-view__group {
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.iq-tree-view__trigger {
+  border: 1px solid transparent;
+  display: block;
+  font-size: 14px;
+  height: 30px;
+  line-height: 32px;
+  
+  &:hover, &:focus {
+    color: $iq-slate;
+    text-decoration: none;
+  }
+}
+
+.iq-tree-view__twisty {
+  display: inline-block;
+  height: 16px;
+  margin-right: 5px;
+  width: 16px;
+}
+
+.iq-tree-view__twisty-icon {
+  border-top: 5px solid $iq-slate;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  content: "";
+  display: inline-block;
+  margin: 6px 3px;
+  vertical-align: text-top;
+  width: 0;
+
+  &.expand {
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid $iq-slate;
+    margin: 3px 8px 3px 3px;
+  }
+}
+
+.iq-tree-view__text {
+  color: $iq-slate;
+  display: inline-block;
+  
+  .fa {
+    height: 16px;
+    margin-right: 5px;
+    width: 16px;
+  }
+}
+
+.iq-tree-view__counter {
+  background-color: $iq-grey-3;
+  border: 1px solid $iq-grey-4;
+  border-radius: 8px;
+  color: $iq-slate;
+  float: right;
+  font-size: 11px;
+  height: 16px;
+  line-height: 18px;
+  margin-top: 6px;
+  padding: 0 4px;
+  text-align: center;
+  min-width: 8px;
+}
+
+.iq-tree-view__children {
+  margin-bottom: 12px;
+}
+
+.iq-tree-view__child {
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  height: 30px;
+  line-height: 30px;
+  overflow: hidden;
+  padding-right: 8px;
+  padding-left: 46px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  
+  &.selected {
+    a {
+      color: $iq-off-black;
+      cursor: default;
+      text-decoration: none;
+    }
+  }
+
+  label {
+    line-height: 32px;
+    margin: 0;
+  }
+}
+
+.iq-tree-view--active {
+  background-color: $iq-off-white;
+  border-top-color: $iq-slate;
+  border-bottom-color: $iq-slate;
+}
+
+
+/*
   #Modals
 */
 

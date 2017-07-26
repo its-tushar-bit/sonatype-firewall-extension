@@ -32,5 +32,6 @@ export default angular.module('config', [componentsModule.name, charts.name, uti
       'iq-scrollable': 'styles/iq-scrollable.html',
       'iq-alerts': 'styles/iq-alerts.html',
       'iq-modal': 'styles/iq-modal.html',
-      'iq-table': 'styles/iq-table.html'
+      'iq-table': 'styles/iq-table.html',
+      'iq-tree-view': 'styles/iq-tree-view.html'
     });

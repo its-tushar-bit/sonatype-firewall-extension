@@ -48,7 +48,7 @@ public final class JsonUtils
     stampedData.put("user", user);
     stampedData.put("ip", ip);
     stampedData.put("where", where);
-    stampedData.put("data", data);
+    stampedData.set("data", data);
     return stampedData;
   }
 

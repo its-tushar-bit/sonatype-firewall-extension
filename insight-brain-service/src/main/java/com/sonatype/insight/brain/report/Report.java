@@ -345,10 +345,10 @@ public final class Report
           bomObjectNode.put("classifier", componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
         }
         // injectComponentIdentifier below is for legacy reports and does not help claimed components
-        bomObjectNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
+        bomObjectNode.set("componentIdentifier", JsonUtils.asTree(componentIdentifier));
         bomObjectNode.put("matchState", MatchState.EXACT.getId());
         bomObjectNode.put("createTime", hashComponentIdentifier.getCreateTimeLong());
-        bomObjectNode.put("relativePopularity", NullNode.getInstance());
+        bomObjectNode.set("relativePopularity", NullNode.getInstance());
         bomObjectNode.put("identificationSource", IdentificationSource.MANUAL.getId());
         bomObjectNode.put("comment", hashComponentIdentifier.getComment());
         claimedComponentsByHash.put(hash, hashComponentIdentifier);
@@ -497,7 +497,7 @@ public final class Report
         ObjectNode licenseJsonNode = licensesAaData.addObject();
         licenseJsonNode.put("hash", hashComponentIdentifier.getHash());
         ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
-        licenseJsonNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
+        licenseJsonNode.set("componentIdentifier", JsonUtils.asTree(componentIdentifier));
         if (componentIdentifier.isMaven()) {
           // reports generated before 1.13.0 still require separate GAV fields
           licenseJsonNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
@@ -627,7 +627,7 @@ public final class Report
           multiLicense.getId());
       licenseTable.put(multiLicense.getShortDisplayName(), threatLevel);
     }
-    licenseThreatsJson.put("aaData", licenseTable);
+    licenseThreatsJson.set("aaData", licenseTable);
     saveReportEntry(reportFile, "licensethreats.json", licenseThreatsJson);
   }
 

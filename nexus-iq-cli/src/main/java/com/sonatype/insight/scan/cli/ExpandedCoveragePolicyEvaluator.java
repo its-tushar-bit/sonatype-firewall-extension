@@ -155,9 +155,8 @@ public class ExpandedCoveragePolicyEvaluator
     // IMPORTANT:
     // The json serialization configuration used here MUST match the json de-serialization on the server side.
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.setVisibilityChecker(
-        objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY)
-            .withGetterVisibility(JsonAutoDetect.Visibility.NONE));
+    objectMapper.setVisibility(objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+        .withGetterVisibility(JsonAutoDetect.Visibility.NONE));
     objectMapper.setSerializationInclusion(Include.NON_EMPTY);
     objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     return objectMapper;

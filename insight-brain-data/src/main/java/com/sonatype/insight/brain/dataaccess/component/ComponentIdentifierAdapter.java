@@ -103,7 +103,7 @@ public class ComponentIdentifierAdapter
     if (!component.hasNonNull(COMPONENT_IDENTIFIER)) {
       ComponentIdentifier componentIdentifier = getComponentIdentifier(component);
       if (componentIdentifier != null) {
-        component.put(COMPONENT_IDENTIFIER, JsonUtils.asTree(componentIdentifier));
+        component.set(COMPONENT_IDENTIFIER, JsonUtils.asTree(componentIdentifier));
       }
     }
   }

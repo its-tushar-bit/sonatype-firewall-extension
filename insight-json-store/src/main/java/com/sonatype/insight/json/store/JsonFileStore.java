@@ -178,7 +178,7 @@ public final class JsonFileStore
       if (data instanceof ArrayNode) {
         for (int y = 0; y < data.size(); y++) {
           try {
-            filteredLog.add(augment(key, (ObjectNode) data.get(y)).putAll(entry));
+            filteredLog.add(augment(key, (ObjectNode) data.get(y)).setAll(entry));
           }
           catch (final JsonMappingException e) {
             // incompatible data, try next entry from audit log
@@ -187,7 +187,7 @@ public final class JsonFileStore
       }
       else {
         try {
-          filteredLog.add(augment(key, (ObjectNode) data).putAll(entry));
+          filteredLog.add(augment(key, (ObjectNode) data).setAll(entry));
         }
         catch (final JsonMappingException e) {
           // incompatible data, try next entry from audit log
@@ -261,16 +261,16 @@ public final class JsonFileStore
       final JsonNode primaryValue = primary.get(name);
       final JsonNode secondaryValue = field.getValue();
       if (primaryValue == null) {
-        mutate(result, primary).put(name, secondaryValue); // pure augmented data
+        mutate(result, primary).set(name, secondaryValue); // pure augmented data
       }
       else if (primaryValue.isObject() && secondaryValue != null && secondaryValue.isObject()) {
         final ObjectNode value = augment((ObjectNode) primaryValue, (ObjectNode) secondaryValue);
         if (primaryValue != value) {
-          mutate(result, primary).put(name, value); // patch in augmented result
+          mutate(result, primary).set(name, value); // patch in augmented result
         }
       }
       else if (!primaryValue.equals(secondaryValue)) {
-        throw new JsonMappingException("Inconsistent data");
+        throw new JsonMappingException(null, "Inconsistent data");
       }
     }
     return result[0];
@@ -279,7 +279,7 @@ public final class JsonFileStore
   private static ObjectNode mutate(final ObjectNode[] result, final ObjectNode original) {
     if (result[0] == original) {
       // perform shallow copy so we can patch in any augmented fields
-      result[0] = (ObjectNode) original.objectNode().putAll(original);
+      result[0] = (ObjectNode) original.objectNode().setAll(original);
     }
     return result[0];
   }

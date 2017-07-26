@@ -95,7 +95,7 @@ public class SecurityAuditMigratorTest
     for (SecurityVulnerability securityVulnerability : securityVulnerabilities) {
       ObjectNode svNode = svData.objectNode();
       svData.add(svNode);
-      svNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
+      svNode.set("componentIdentifier", JsonUtils.asTree(componentIdentifier));
       svNode.put("reference", securityVulnerability.getRefId());
       svNode.put("source", securityVulnerability.getSource());
     }

@@ -41,7 +41,7 @@ public class ComponentDisplayNameUtil
   public static void injectDisplayName(ObjectNode objectNode) {
     ComponentDisplayName displayFieldValues = fromJsonNode(objectNode);
     JsonNode displayNameNode = JsonUtils.asTree(displayFieldValues);
-    objectNode.put("displayName", displayNameNode);
+    objectNode.set("displayName", displayNameNode);
   }
 
   public static void injectDisplayName(ComponentFact componentFact) {

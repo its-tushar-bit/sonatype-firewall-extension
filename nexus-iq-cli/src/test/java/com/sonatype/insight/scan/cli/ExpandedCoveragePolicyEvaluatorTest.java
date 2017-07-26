@@ -162,7 +162,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
     assertThat(dependenciesJson, not(containsString("\"evidenceUsed\"")));
 
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.setVisibilityChecker(objectMapper.getDeserializationConfig().getDefaultVisibilityChecker()
+    objectMapper.setVisibility(objectMapper.getDeserializationConfig().getDefaultVisibilityChecker()
         .withFieldVisibility(JsonAutoDetect.Visibility.ANY).withGetterVisibility(JsonAutoDetect.Visibility.NONE));
     return objectMapper.readValue(dependenciesJson, new TypeReference<List<Dependency>>() { });
   }

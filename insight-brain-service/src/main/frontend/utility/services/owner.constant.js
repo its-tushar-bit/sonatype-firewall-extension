@@ -3,14 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+var ownerConstant = {
+  ROOT_ORGANIZATION_ID: 'ROOT_ORGANIZATION_ID',
+  APPLICATION_TYPE: 'application',
+  ORGANIZATION_TYPE: 'organization'
+};
 
-  var ownerConstant = {
-    ROOT_ORGANIZATION_ID: 'ROOT_ORGANIZATION_ID',
-    APPLICATION_TYPE: 'application',
-    ORGANIZATION_TYPE: 'organization'
-  };
-
-  angular.module('utility').constant('owner.constant', ownerConstant);
-}(angular));
+angular.module('utility').constant('owner.constant', ownerConstant);

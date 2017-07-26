@@ -3,12 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
+function StableBodyService() {
+  return angular.getTestability(angular.element('body'));
+}
 
-  function StableBodyService() {
-    return angular.getTestability(angular.element('body'));
-  }
-
-  angular.module('utility.services').service('stable.body.service', StableBodyService);
-}());
+angular.module('utility.services').service('stable.body.service', StableBodyService);

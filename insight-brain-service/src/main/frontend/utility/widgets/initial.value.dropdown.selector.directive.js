@@ -3,55 +3,50 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function InitialValueDropdownSelector() {
+  return {
+    restrict: 'E',
+    require: 'ngModel',
+    link: link
+  };
 
-  function InitialValueDropdownSelector() {
-    return {
-      restrict: 'E',
-      require: 'ngModel',
-      link: link
-    };
+  function link(scope, element, attrs, ngModelController) {
+    if (element.parents('.clm-form').length > 0) {
+      var initialValue;
+      element.addClass('initial-value');
 
-    function link(scope, element, attrs, ngModelController) {
-      if (element.parents('.clm-form').length > 0) {
-        var initialValue;
-        element.addClass('initial-value');
+      var initialValueWatch = scope.$watch(function() {
+        return ngModelController.$viewValue;
+      }, function(viewValue) {
+        // viewValue is properly initialized once it is no longer 'NaN'
+        // Source: https://github.com/angular/angular.js/blob/v1.0.6/src/ng/directive/input.js#L879
+        if (initialValue === undefined && !(angular.isNumber(viewValue) && isNaN(viewValue))) {
+          initialValue = viewValue || '';
+          initialValueWatch();
+        }
+      });
 
-        var initialValueWatch = scope.$watch(function() {
-          return ngModelController.$viewValue;
-        }, function(viewValue) {
-          // viewValue is properly initialized once it is no longer 'NaN'
-          // Source: https://github.com/angular/angular.js/blob/v1.0.6/src/ng/directive/input.js#L879
-          if (initialValue === undefined && !(angular.isNumber(viewValue) && isNaN(viewValue))) {
-            initialValue = viewValue || '';
-            initialValueWatch();
-          }
-        });
+      scope.$watch(function() {
+        return ngModelController.$pristine;
+      }, function(isPristine) {
+        if (isPristine) {
+          initialValue = ngModelController.$viewValue || '';
+          element.addClass('initial-value');
+        }
+      });
 
-        scope.$watch(function() {
-          return ngModelController.$pristine;
-        }, function(isPristine) {
-          if (isPristine) {
-            initialValue = ngModelController.$viewValue || '';
-            element.addClass('initial-value');
-          }
-        });
-
-        ngModelController.$viewChangeListeners.push(function() {
-          if (ngModelController.$viewValue === initialValue) {
-            element.addClass('initial-value');
-          }
-          else {
-            element.removeClass('initial-value');
-          }
-        });
-      }
+      ngModelController.$viewChangeListeners.push(function() {
+        if (ngModelController.$viewValue === initialValue) {
+          element.addClass('initial-value');
+        }
+        else {
+          element.removeClass('initial-value');
+        }
+      });
     }
   }
+}
 
-  angular //
-      .module('utility') //
-      .directive('dropdownSelector', InitialValueDropdownSelector);
-
-}(angular));
+angular //
+    .module('utility') //
+    .directive('dropdownSelector', InitialValueDropdownSelector);

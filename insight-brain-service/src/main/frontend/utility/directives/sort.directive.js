@@ -3,17 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function Sort() {
+  return {
+    restrict: 'A',
+    controller: 'sort.controller',
+    controllerAs: 'sortVm'
+  };
+}
 
-  function Sort() {
-    return {
-      restrict: 'A',
-      controller: 'sort.controller',
-      controllerAs: 'sortVm'
-    };
-  }
-
-  angular.module('utility.directives').directive('sort', Sort);
-
-}(angular));
+angular.module('utility.directives').directive('sort', Sort);

@@ -4,32 +4,27 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, clmBuildTimestamp*/
-(function() {
-  'use strict';
+function RootOrganizationMigrateModalService($modal) {
+  var service = {
+    openModal: openModal
+  };
 
-  function RootOrganizationMigrateModalService($modal) {
-    var service = {
-      openModal: openModal
-    };
-
-    function openModal() {
-      return $modal.open({
-        animation: false,
-        backdrop: 'static',
-        keyboard: false,
-        windowClass: 'clm-modal',
-        controller: 'RootOrganizationMigrateModalController as vm',
-        templateUrl: 'root.organization.migrate/root.organization.migrate.modal.html?' + clmBuildTimestamp
-      }).result;
-    }
-
-    return service;
+  function openModal() {
+    return $modal.open({
+      animation: false,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'clm-modal',
+      controller: 'RootOrganizationMigrateModalController as vm',
+      templateUrl: 'root.organization.migrate/root.organization.migrate.modal.html?' + clmBuildTimestamp
+    }).result;
   }
 
-  RootOrganizationMigrateModalService.$inject = ['$modal'];
+  return service;
+}
 
-  angular //
-      .module('root.organization.migrate') //
-      .service('RootOrganizationMigrateModalService', RootOrganizationMigrateModalService);
+RootOrganizationMigrateModalService.$inject = ['$modal'];
 
-}());
+angular //
+    .module('root.organization.migrate') //
+    .service('RootOrganizationMigrateModalService', RootOrganizationMigrateModalService);

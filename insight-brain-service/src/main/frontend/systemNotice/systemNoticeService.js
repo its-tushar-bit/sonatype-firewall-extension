@@ -3,39 +3,35 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+var DEFAULT_SYSTEM_NOTICE = {
+  message: 'Error: could not get the system notice from the server',
+  enabled: true
+};
 
-  var DEFAULT_SYSTEM_NOTICE = {
-    message: 'Error: could not get the system notice from the server',
-    enabled: true
+function systemNoticeService($http, $q, CLMLocations) {
+  return {
+    getSystemNotice: getSystemNotice,
+    getDefaultSystemNotice: getDefaultSystemNotice,
+    saveSystemNotice: saveSystemNotice
   };
 
-  function systemNoticeService($http, $q, CLMLocations) {
-    return {
-      getSystemNotice: getSystemNotice,
-      getDefaultSystemNotice: getDefaultSystemNotice,
-      saveSystemNotice: saveSystemNotice
-    };
-
-    function getSystemNotice() {
-      return $http.get(CLMLocations.getSystemNoticeFetchUrl()).then(function(response) {
-        return response.data;
-      });
-    }
-
-    function getDefaultSystemNotice() {
-      return DEFAULT_SYSTEM_NOTICE;
-    }
-
-    function saveSystemNotice(systemNotice) {
-      return $http.put(CLMLocations.getSystemNoticeUrl(), systemNotice).then(function(response) {
-        return response.data;
-      });
-    }
+  function getSystemNotice() {
+    return $http.get(CLMLocations.getSystemNoticeFetchUrl()).then(function(response) {
+      return response.data;
+    });
   }
 
-  systemNoticeService.$inject = ['$http', '$q', 'CLMLocations'];
+  function getDefaultSystemNotice() {
+    return DEFAULT_SYSTEM_NOTICE;
+  }
 
-  angular.module('systemNoticeModule').service('systemNoticeService', systemNoticeService);
-}(angular));
+  function saveSystemNotice(systemNotice) {
+    return $http.put(CLMLocations.getSystemNoticeUrl(), systemNotice).then(function(response) {
+      return response.data;
+    });
+  }
+}
+
+systemNoticeService.$inject = ['$http', '$q', 'CLMLocations'];
+
+angular.module('systemNoticeModule').service('systemNoticeService', systemNoticeService);

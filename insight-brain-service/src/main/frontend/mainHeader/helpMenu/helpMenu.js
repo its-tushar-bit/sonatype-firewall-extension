@@ -4,18 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, clmServerVersion */
-(function() {
-  'use strict';
+function HelpMenuController() {
+  var vm = this;
+  vm.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
+}
 
-  function HelpMenuController() {
-    var vm = this;
-    vm.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
-  }
-
-  angular.module('mainHeader').component('helpMenu', {
-    controller: HelpMenuController,
-    controllerAs: 'vm',
-    templateUrl: 'mainHeader/helpMenu/helpMenu.html?' + clmBuildTimestamp
-  });
-
-}());
+angular.module('mainHeader').component('helpMenu', {
+  controller: HelpMenuController,
+  controllerAs: 'vm',
+  templateUrl: 'mainHeader/helpMenu/helpMenu.html?' + clmBuildTimestamp
+});

@@ -3,24 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
-
-  function FormDataHttpInterceptor($window) {
-    return {
-      request: function(config) {
-        if (config.method === 'POST' && $window.FormData && config.data instanceof FormData) {
-          config.headers['Content-Type'] = undefined;
-          config.transformRequest = angular.identity;
-        }
-        return config;
+function FormDataHttpInterceptor($window) {
+  return {
+    request: function(config) {
+      if (config.method === 'POST' && $window.FormData && config.data instanceof FormData) {
+        config.headers['Content-Type'] = undefined;
+        config.transformRequest = angular.identity;
       }
-    };
-  }
+      return config;
+    }
+  };
+}
 
-  FormDataHttpInterceptor.$inject = ['$window'];
+FormDataHttpInterceptor.$inject = ['$window'];
 
-  angular //
-      .module('utility') //
-      .factory('form.data.http.interceptor', FormDataHttpInterceptor);
-}(angular));
+angular //
+    .module('utility') //
+    .factory('form.data.http.interceptor', FormDataHttpInterceptor);

@@ -3,53 +3,49 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
+function webhookModuleConfiguration($stateProvider) {
+  $stateProvider.state('webhooks', {
+    url: '/webhooks',
+    abstract: true,
+    templateUrl: 'configuration/webhook/webhook.view.html',
+    resolve: {
+      'isAuthorized': [
+        'PermissionService', function(PermissionService) {
+          return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+        }
+      ]
+    },
+    controller: 'webhook.view.controller',
+    controllerAs: 'vm'
+  }).state('webhooks.list', {
+    url: '/list',
+    templateUrl: 'configuration/webhook/webhook.list.view.html?' + clmBuildTimestamp,
+    controller: 'webhook.list.controller',
+    controllerAs: 'vm',
+    data: {
+      title: 'Webhook Configuration'
+    }
+  }).state('webhooks.create', {
+    url: '/create',
+    controller: 'webhook.edit.controller',
+    controllerAs: 'vm',
+    templateUrl: 'configuration/webhook/webhook.edit.view.html?' + clmBuildTimestamp,
+    data: {
+      title: 'Create Webhook'
+    }
+  }).state('webhooks.edit', {
+    url: '/{webhookId}',
+    controller: 'webhook.edit.controller',
+    controllerAs: 'vm',
+    templateUrl: 'configuration/webhook/webhook.edit.view.html?' + clmBuildTimestamp,
+    data: {
+      title: 'Edit Webhook'
+    }
+  });
+}
 
-  function webhookModuleConfiguration($stateProvider) {
-    $stateProvider.state('webhooks', {
-      url: '/webhooks',
-      abstract: true,
-      templateUrl: 'configuration/webhook/webhook.view.html',
-      resolve: {
-        'isAuthorized': [
-          'PermissionService', function(PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          }
-        ]
-      },
-      controller: 'webhook.view.controller',
-      controllerAs: 'vm'
-    }).state('webhooks.list', {
-      url: '/list',
-      templateUrl: 'configuration/webhook/webhook.list.view.html?' + clmBuildTimestamp,
-      controller: 'webhook.list.controller',
-      controllerAs: 'vm',
-      data: {
-        title: 'Webhook Configuration'
-      }
-    }).state('webhooks.create', {
-      url: '/create',
-      controller: 'webhook.edit.controller',
-      controllerAs: 'vm',
-      templateUrl: 'configuration/webhook/webhook.edit.view.html?' + clmBuildTimestamp,
-      data: {
-        title: 'Create Webhook'
-      }
-    }).state('webhooks.edit', {
-      url: '/{webhookId}',
-      controller: 'webhook.edit.controller',
-      controllerAs: 'vm',
-      templateUrl: 'configuration/webhook/webhook.edit.view.html?' + clmBuildTimestamp,
-      data: {
-        title: 'Edit Webhook'
-      }
-    });
-  }
+webhookModuleConfiguration.$inject = ['$stateProvider'];
 
-  webhookModuleConfiguration.$inject = ['$stateProvider'];
-
-  angular.module('webhook.module', [
-    'Stores', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'PermissionServiceModule'
-  ], webhookModuleConfiguration);
-}());
+angular.module('webhook.module', [
+  'Stores', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'PermissionServiceModule'
+], webhookModuleConfiguration);

@@ -3,38 +3,33 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function OwnerImageDirective(CLMAppLocations, EventNameConstant) {
+  return {
+    scope: {
+      owner: '=ownerImage'
+    },
+    template: '<img ng-src="{{ownerUrl}}" ng-if="ownerUrl">',
+    link: function(scope) {
+      scope.$watch('owner', function() {
+        if (scope.owner) {
+          scope.ownerUrl = CLMAppLocations.getOwnerImageUrl(scope.owner);
+        }
+      });
 
-  function OwnerImageDirective(CLMAppLocations, EventNameConstant) {
-    return {
-      scope: {
-        owner: '=ownerImage'
-      },
-      template: '<img ng-src="{{ownerUrl}}" ng-if="ownerUrl">',
-      link: function(scope) {
-        scope.$watch('owner', function() {
-          if (scope.owner) {
-            scope.ownerUrl = CLMAppLocations.getOwnerImageUrl(scope.owner);
+      scope.$on(EventNameConstant.OWNER_UPDATED, function(e, owner) {
+        if (angular.equals(scope.owner, owner) && scope.ownerUrl) {
+          if (scope.ownerUrl.indexOf('?') !== -1) {
+            scope.ownerUrl = scope.ownerUrl.substring(0, scope.ownerUrl.indexOf('?'));
           }
-        });
+          scope.ownerUrl += '?timestamp=' + Date.now();
+        }
+      });
+    }
+  };
+}
 
-        scope.$on(EventNameConstant.OWNER_UPDATED, function(e, owner) {
-          if (angular.equals(scope.owner, owner) && scope.ownerUrl) {
-            if (scope.ownerUrl.indexOf('?') !== -1) {
-              scope.ownerUrl = scope.ownerUrl.substring(0, scope.ownerUrl.indexOf('?'));
-            }
-            scope.ownerUrl += '?timestamp=' + Date.now();
-          }
-        });
-      }
-    };
-  }
+OwnerImageDirective.$inject = ['CLMAppLocations', 'event.name.constant'];
 
-  OwnerImageDirective.$inject = ['CLMAppLocations', 'event.name.constant'];
-
-  angular
-      .module('owner.manager.module')
-      .directive('ownerImage', OwnerImageDirective);
-
-}(angular));
+angular
+    .module('owner.manager.module')
+    .directive('ownerImage', OwnerImageDirective);

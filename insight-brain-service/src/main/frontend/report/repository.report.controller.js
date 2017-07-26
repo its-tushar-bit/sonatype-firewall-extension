@@ -4,35 +4,31 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function() {
-  'use strict';
+function RepositoryReportController($http, $stateParams, CLMLocations, ReEvaluateModal) {
+  var vm = this;
 
-  function RepositoryReportController($http, $stateParams, CLMLocations, ReEvaluateModal) {
-    var vm = this;
+  vm.doLoad = doLoad;
+  vm.error = undefined;
+  vm.repository = null;
+  vm.reportUrl = CLMLocations.getRepositoryReportUrl($stateParams.repositoryId);
+  vm.reEvaluatePolicy = reEvaluatePolicy;
 
-    vm.doLoad = doLoad;
-    vm.error = undefined;
-    vm.repository = null;
-    vm.reportUrl = CLMLocations.getRepositoryReportUrl($stateParams.repositoryId);
-    vm.reEvaluatePolicy = reEvaluatePolicy;
+  vm.doLoad();
 
-    vm.doLoad();
-
-    function doLoad() {
-      delete vm.error;
-      $http.get(CLMLocations.getRepositoryInfoUrl($stateParams.repositoryId)).then(function (response) {
-        vm.repository = response.data.repository;
-        vm.repository.oldestEvalTimestamp = response.data.oldestEvalTimestamp;
-      }, function (error) {
-        vm.error = error;
-      });
-    }
-
-    function reEvaluatePolicy() {
-      ReEvaluateModal.open();
-    }
+  function doLoad() {
+    delete vm.error;
+    $http.get(CLMLocations.getRepositoryInfoUrl($stateParams.repositoryId)).then(function (response) {
+      vm.repository = response.data.repository;
+      vm.repository.oldestEvalTimestamp = response.data.oldestEvalTimestamp;
+    }, function (error) {
+      vm.error = error;
+    });
   }
-  RepositoryReportController.$inject = ['$http', '$stateParams', 'CLMLocations', 'ReEvaluateModal'];
 
-  angular.module('Report').controller('repository.report.controller', RepositoryReportController);
-}());
+  function reEvaluatePolicy() {
+    ReEvaluateModal.open();
+  }
+}
+RepositoryReportController.$inject = ['$http', '$stateParams', 'CLMLocations', 'ReEvaluateModal'];
+
+angular.module('Report').controller('repository.report.controller', RepositoryReportController);

@@ -3,13 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+var storeObserveTypesConstant = {
+  UPDATE: 'update',
+  DELETE: 'delete'
+};
 
-  var storeObserveTypesConstant = {
-    UPDATE: 'update',
-    DELETE: 'delete'
-  };
-
-  angular.module('ResourceModule').constant('store.observe.type.constant', storeObserveTypesConstant);
-}(angular));
+angular.module('ResourceModule').constant('store.observe.type.constant', storeObserveTypesConstant);

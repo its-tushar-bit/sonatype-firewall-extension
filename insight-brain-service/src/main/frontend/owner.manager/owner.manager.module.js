@@ -34,8 +34,8 @@ angular.module('owner.manager.module',
           templateUrl: 'owner.manager/state/owner.manager.view.html?' + clmBuildTimestamp
         }).state('management.view', {
           url: '/view',
-          data : {
-            title : 'Management'
+          data: {
+            title: 'Management'
           },
           views: {
             'navigation@management': {
@@ -46,8 +46,8 @@ angular.module('owner.manager.module',
           abstract: true
         }).state('management.view.repositories', {
           url: '/repositories',
-          data : {
-            title : 'Repositories Management'
+          data: {
+            title: 'Repositories Management'
           },
           views: {
             '@management': {
@@ -56,8 +56,8 @@ angular.module('owner.manager.module',
           }
         }).state('management.edit.repositories', {
           url: '/edit/repositories',
-          data : {
-            title : 'Repositories Management'
+          data: {
+            title: 'Repositories Management'
           },
           views: {
             'navigation@management': {
@@ -87,8 +87,8 @@ angular.module('owner.manager.module',
         ownerTypes.forEach(function(ownerType) {
           $stateProvider.state('management.view.' + ownerType.type, {
             url: '/' + ownerType.type + '/{' + ownerType.id + '}',
-            data : {
-              title : ownerType.name + ' Management'
+            data: {
+              title: ownerType.name + ' Management'
             },
             views: {
               '@management': {
@@ -97,8 +97,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type, {
             url: '/edit/' + ownerType.type + '/{' + ownerType.id + '}',
-            data : {
-              title : ownerType.name + ' Management'
+            data: {
+              title: ownerType.name + ' Management'
             },
             views: {
               'navigation@management': {
@@ -107,8 +107,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.label', {
             url: '/label/{labelId}',
-            data : {
-              title : ownerType.name + ' Labels'
+            data: {
+              title: ownerType.name + ' Labels'
             },
             views: {
               '@management': {
@@ -119,8 +119,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.create-label', {
             url: '/label',
-            data : {
-              title : ownerType.name + ' Labels'
+            data: {
+              title: ownerType.name + ' Labels'
             },
             views: {
               '@management': {
@@ -131,8 +131,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.policy', {
             url: '/policy/{policyId}',
-            data : {
-              title : ownerType.name + ' Policy'
+            data: {
+              title: ownerType.name + ' Policy'
             },
             views: {
               '@management': {
@@ -143,8 +143,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.create-policy', {
             url: '/policy',
-            data : {
-              title : ownerType.name + ' Policy'
+            data: {
+              title: ownerType.name + ' Policy'
             },
             views: {
               '@management': {
@@ -155,8 +155,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.add-access', {
             url: '/access',
-            data : {
-              title : ownerType.name + ' Access'
+            data: {
+              title: ownerType.name + ' Access'
             },
             views: {
               '@management': {
@@ -167,8 +167,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.edit-access', {
             url: '/access/{roleId}',
-            data : {
-              title : ownerType.name + ' Access'
+            data: {
+              title: ownerType.name + ' Access'
             },
             views: {
               '@management': {
@@ -179,8 +179,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.monitor-policy', {
             url: '/monitoring',
-            data : {
-              title : ownerType.name + ' Continuous Monitoring'
+            data: {
+              title: ownerType.name + ' Continuous Monitoring'
             },
             views: {
               '@management': {
@@ -191,8 +191,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.proprietary-config-policy', {
             url: '/proprietary',
-            data : {
-              title : ownerType.name + ' Proprietary Components'
+            data: {
+              title: ownerType.name + ' Proprietary Components'
             },
             views: {
               '@management': {
@@ -203,8 +203,8 @@ angular.module('owner.manager.module',
             }
           }).state('management.edit.' + ownerType.type + '.edit-license-threat-group', {
             url: '/licenseThreatGroup/{licenseThreatGroupId}',
-            data : {
-              title : ownerType.name + ' License Threat Groups'
+            data: {
+              title: ownerType.name + ' License Threat Groups'
             },
             views: {
               '@management': {
@@ -219,8 +219,8 @@ angular.module('owner.manager.module',
 
         $stateProvider.state('management.edit.organization.category', {
           url: '/category/{categoryId}',
-          data : {
-            title : 'Organization Category'
+          data: {
+            title: 'Organization Category'
           },
           views: {
             '@management': {
@@ -231,8 +231,8 @@ angular.module('owner.manager.module',
           }
         }).state('management.edit.organization.create-category', {
           url: '/category',
-          data : {
-            title : 'Organization Category'
+          data: {
+            title: 'Organization Category'
           },
           views: {
             '@management': {
@@ -242,8 +242,8 @@ angular.module('owner.manager.module',
             }
           }
         }).state('management.edit.application.category', {
-          data : {
-            title : 'Application Categories'
+          data: {
+            title: 'Application Categories'
           },
           url: '/category',
           views: {
@@ -254,8 +254,8 @@ angular.module('owner.manager.module',
             }
           }
         }).state('management.edit.organization.create-license-threat-group', {
-          data : {
-            title : 'Organization License Threat Group'
+          data: {
+            title: 'Organization License Threat Group'
           },
           url: '/licenseThreatGroup',
           views: {

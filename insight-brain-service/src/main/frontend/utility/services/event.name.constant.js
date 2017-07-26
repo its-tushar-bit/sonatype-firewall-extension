@@ -3,16 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+var eventNameConstant = {
+  RELOAD_OWNER_SUMMARY_DATA: 'reload.owner.summary.data',
+  RELOAD_OWNER_TREE_DATA: 'reload.owner.tree.data',
+  OWNER_UPDATED: 'owner.updated',
+  UPDATE_SCROLLSPY: 'update.scrollspy',
+  UPDATE_DASHBOARD_FILTERS: 'update.dashboard.filters'
+};
 
-  var eventNameConstant = {
-    RELOAD_OWNER_SUMMARY_DATA: 'reload.owner.summary.data',
-    RELOAD_OWNER_TREE_DATA: 'reload.owner.tree.data',
-    OWNER_UPDATED: 'owner.updated',
-    UPDATE_SCROLLSPY: 'update.scrollspy',
-    UPDATE_DASHBOARD_FILTERS: 'update.dashboard.filters'
-  };
-
-  angular.module('utility').constant('event.name.constant', eventNameConstant);
-}(angular));
+angular.module('utility').constant('event.name.constant', eventNameConstant);

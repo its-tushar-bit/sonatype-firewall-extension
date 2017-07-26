@@ -3,86 +3,81 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMAppLocations, DeleteModalService,
+                               SameOwnerStateNavigationService)
+{
+  var vm = this;
 
-  function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMAppLocations, DeleteModalService,
-                                 SameOwnerStateNavigationService)
-  {
-    var vm = this;
+  vm.dirtyLabel = undefined;
+  vm.deleteLabel = deleteLabel;
+  vm.doLoad = doLoad;
+  vm.loadError = undefined;
+  vm.labelEditor = undefined;
+  vm.labelEditorMask = undefined;
+  vm.siblings = [];
+  vm.save = save;
+  vm.submitError = undefined;
 
-    vm.dirtyLabel = undefined;
-    vm.deleteLabel = deleteLabel;
-    vm.doLoad = doLoad;
-    vm.loadError = undefined;
-    vm.labelEditor = undefined;
-    vm.labelEditorMask = undefined;
-    vm.siblings = [];
-    vm.save = save;
-    vm.submitError = undefined;
+  vm.doLoad();
 
-    vm.doLoad();
+  $scope.$on('pageChangeStarted', function(event) {
+    if (vm.dirtyLabel.isDirty()) {
+      event.preventDefault();
+    }
+  });
 
-    $scope.$on('pageChangeStarted', function(event) {
-      if (vm.dirtyLabel.isDirty()) {
-        event.preventDefault();
-      }
+  function deleteLabel() {
+    DeleteModalService.deleteResource('Label', vm.dirtyLabel.label, vm.dirtyLabel).then(function() {
+      // Model needs to be clean in order to navigate
+      vm.dirtyLabel.$revert();
+      SameOwnerStateNavigationService.goEdit('create-label');
     });
-
-    function deleteLabel() {
-      DeleteModalService.deleteResource('Label', vm.dirtyLabel.label, vm.dirtyLabel).then(function() {
-        // Model needs to be clean in order to navigate
-        vm.dirtyLabel.$revert();
-        SameOwnerStateNavigationService.goEdit('create-label');
-      });
-    }
-
-    function doLoad() {
-      $q.all([LabelStore[vm.loadError ? 'refresh' : 'get'](), $http.get(CLMAppLocations.getApplicableLabelsUrl(CLMAppLocations.getEntityId()))]).then(function(results) {
-        results[1].data.labelsByOwner.forEach(function(owner) {
-          vm.siblings = vm.siblings.concat(owner.labels);
-        });
-
-        if (!$stateParams.labelId) {
-          vm.dirtyLabel = LabelStore.create();
-        } else {
-          results[0].forEach(function(labelCandidate) {
-            if (labelCandidate.id === $stateParams.labelId) {
-              vm.dirtyLabel = labelCandidate.$clone();
-              return true;
-            }
-          });
-        }
-        if (!vm.dirtyLabel) {
-          vm.loadError = 'Unable to locate label.';
-        }
-      }, function(error) {
-        vm.loadError = error;
-      });
-      delete vm.loadError;
-    }
-
-    function save() {
-      var isNew = vm.dirtyLabel.$new;
-      delete vm.submitError;
-
-      vm.labelEditorMask.wrap(vm.dirtyLabel.$save()).then(function() {
-        if (isNew) {
-          vm.siblings.push(vm.dirtyLabel);
-          vm.dirtyLabel = LabelStore.create();
-        }
-        vm.labelEditor.$setPristine();
-      }, function(error) {
-        vm.submitError = error;
-      });
-    }
   }
 
-  LabelEditorController.$inject = [
-    '$scope', '$q', '$http', '$stateParams', 'LabelStore', 'CLMAppLocations', 'DeleteModalService',
-    'SameOwnerStateNavigationService'
-  ];
+  function doLoad() {
+    $q.all([LabelStore[vm.loadError ? 'refresh' : 'get'](), $http.get(CLMAppLocations.getApplicableLabelsUrl(CLMAppLocations.getEntityId()))]).then(function(results) {
+      results[1].data.labelsByOwner.forEach(function(owner) {
+        vm.siblings = vm.siblings.concat(owner.labels);
+      });
 
-  angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);
+      if (!$stateParams.labelId) {
+        vm.dirtyLabel = LabelStore.create();
+      } else {
+        results[0].forEach(function(labelCandidate) {
+          if (labelCandidate.id === $stateParams.labelId) {
+            vm.dirtyLabel = labelCandidate.$clone();
+            return true;
+          }
+        });
+      }
+      if (!vm.dirtyLabel) {
+        vm.loadError = 'Unable to locate label.';
+      }
+    }, function(error) {
+      vm.loadError = error;
+    });
+    delete vm.loadError;
+  }
 
-}(angular));
+  function save() {
+    var isNew = vm.dirtyLabel.$new;
+    delete vm.submitError;
+
+    vm.labelEditorMask.wrap(vm.dirtyLabel.$save()).then(function() {
+      if (isNew) {
+        vm.siblings.push(vm.dirtyLabel);
+        vm.dirtyLabel = LabelStore.create();
+      }
+      vm.labelEditor.$setPristine();
+    }, function(error) {
+      vm.submitError = error;
+    });
+  }
+}
+
+LabelEditorController.$inject = [
+  '$scope', '$q', '$http', '$stateParams', 'LabelStore', 'CLMAppLocations', 'DeleteModalService',
+  'SameOwnerStateNavigationService'
+];
+
+angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);

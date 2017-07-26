@@ -3,91 +3,86 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+var types = {
+  'maven': ['groupId', 'artifactId', 'version', 'extension', 'classifier'],
+  'a-name': ['name', 'qualifier', 'version']
+};
 
-  var types = {
-    'maven': ['groupId', 'artifactId', 'version', 'extension', 'classifier'],
-    'a-name': ['name', 'qualifier', 'version']
-  };
+// colon separated to object
+function parse(input) {
+  var parts = (input || '').split(':'),
+      coordinates = {
+        format: parts.shift().trim()
+      },
+      fields = types[coordinates.format];
 
-  // colon separated to object
-  function parse(input) {
-    var parts = (input || '').split(':'),
-        coordinates = {
-          format: parts.shift().trim()
-        },
-        fields = types[coordinates.format];
-
-    if (parts.length === 0) {
-      coordinates.extension = '*';
-      coordinates.classifier = '*';
-      coordinates.qualifier = '*';
-    }
-
-    if (fields) {
-      parts.forEach(function(part, partIndex) {
-        coordinates[fields[partIndex]] = part.trim();
-      });
-    }
-    else {
-      coordinates.format = 'maven';
-    }
-    return coordinates;
+  if (parts.length === 0) {
+    coordinates.extension = '*';
+    coordinates.classifier = '*';
+    coordinates.qualifier = '*';
   }
 
-  function CoordinatesInputController($scope) {
-    var vm = this;
+  if (fields) {
+    parts.forEach(function(part, partIndex) {
+      coordinates[fields[partIndex]] = part.trim();
+    });
+  }
+  else {
+    coordinates.format = 'maven';
+  }
+  return coordinates;
+}
 
-    vm.coordinates = parse($scope.value);
-    vm.invalidRegex = '[^:]*';
+function CoordinatesInputController($scope) {
+  var vm = this;
 
-    $scope.$watch('vm.coordinates', function(newCoordinates, oldCoordinates) {
-      if (oldCoordinates !== newCoordinates) {
-        if (oldCoordinates.format !== newCoordinates.format) {
-          vm.coordinates = parse(newCoordinates.format);
-          $scope.value = undefined;
+  vm.coordinates = parse($scope.value);
+  vm.invalidRegex = '[^:]*';
+
+  $scope.$watch('vm.coordinates', function(newCoordinates, oldCoordinates) {
+    if (oldCoordinates !== newCoordinates) {
+      if (oldCoordinates.format !== newCoordinates.format) {
+        vm.coordinates = parse(newCoordinates.format);
+        $scope.value = undefined;
+      }
+      else {
+        var typeFields = types[vm.coordinates.format];
+        if (typeFields) {
+          var values = [vm.coordinates.format];
+          typeFields.forEach(function(field) {
+            values.push(vm.coordinates[field]);
+          });
+
+          $scope.value = values.length > 1 ? values.join(':') : undefined;
         }
         else {
-          var typeFields = types[vm.coordinates.format];
-          if (typeFields) {
-            var values = [vm.coordinates.format];
-            typeFields.forEach(function(field) {
-              values.push(vm.coordinates[field]);
-            });
-
-            $scope.value = values.length > 1 ? values.join(':') : undefined;
-          }
-          else {
-            $scope.value = undefined;
-          }
+          $scope.value = undefined;
         }
       }
-    }, true);
-  }
+    }
+  }, true);
+}
 
-  CoordinatesInputController.$inject = ['$scope'];
+CoordinatesInputController.$inject = ['$scope'];
 
-  function CoordinatesInput() {
-    return {
-      transclude: true,
-      restrict: 'E',
-      scope: {
-        value: '='
-      },
-      controller: CoordinatesInputController,
-      controllerAs: 'vm',
-      link: function(scope, element, attrs, ctrl, transclude) {
-        transclude(scope, function(clone) {
-          element.append(clone);
-        });
-        scope.identifier = Math.random();
-      }
-    };
-  }
+function CoordinatesInput() {
+  return {
+    transclude: true,
+    restrict: 'E',
+    scope: {
+      value: '='
+    },
+    controller: CoordinatesInputController,
+    controllerAs: 'vm',
+    link: function(scope, element, attrs, ctrl, transclude) {
+      transclude(scope, function(clone) {
+        element.append(clone);
+      });
+      scope.identifier = Math.random();
+    }
+  };
+}
 
-  angular //
-      .module('owner.manager.module') //
-      .directive('coordinatesInput', CoordinatesInput);
-
-}(angular));
+angular //
+    .module('owner.manager.module') //
+    .directive('coordinatesInput', CoordinatesInput);

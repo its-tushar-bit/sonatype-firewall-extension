@@ -3,78 +3,73 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
+function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoService, Messages) {
 
-  function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoService, Messages) {
+  var vm = this;
 
-    var vm = this;
+  vm.$onInit = getNotifications;
+  vm.openDetail = openDetail;
+  vm.clearSelected = clearSelected;
 
-    vm.$onInit = getNotifications;
-    vm.openDetail = openDetail;
-    vm.clearSelected = clearSelected;
-
-    function processNotifications(notifications) {
-      $scope.unreadNotificationCount = 0;
-      angular.forEach(notifications, function(notification) {
-        if (!notification.viewed) {
-          $scope.unreadNotificationCount++;
-        }
-        notification.detailHtml = $sce.trustAsHtml(notification.detailHtml);
-
-        var timeParts = timeAgoService.renderDate(notification.dateCreated);
-
-        notification.age = timeParts.age;
-        notification.ageQualifier = timeParts.qualifier;
-      });
-    }
-
-    function openDetail(notification) {
-      if ($scope.selectedNotification &&
-          $scope.selectedNotification === notification) {
-        $scope.selectedNotification = null;
+  function processNotifications(notifications) {
+    $scope.unreadNotificationCount = 0;
+    angular.forEach(notifications, function(notification) {
+      if (!notification.viewed) {
+        $scope.unreadNotificationCount++;
       }
-      else {
-        $scope.selectedNotification = notification;
-        if (!notification.viewed) {
-          $http.post(CLMLocations.getNotificationViewedUrl(), {
-            id: notification.id
-          }).then(function() {
-            notification.viewed = true;
-            $scope.unreadNotificationCount--;
-          });
-        }
-      }
+      notification.detailHtml = $sce.trustAsHtml(notification.detailHtml);
 
-      return false;
-    }
+      var timeParts = timeAgoService.renderDate(notification.dateCreated);
 
-    function clearSelected() {
-      $scope.selectedNotification = null;
-    }
-
-    function getNotifications() {
-      $scope.loading = true;
-
-      $http.get(CLMLocations.getNotificationUrl()).then(function(response) {
-        $scope.loading = false;
-        $scope.notifications = response.data.notifications;
-        processNotifications($scope.notifications);
-      }, function(error) {
-        $scope.loading = false;
-        $scope.errorText = 'An error occurred while loading notifications. (' +
-            Messages.getHttpErrorMessage(error) + ')';
-        $scope.unreadNotificationCount = '!';
-      });
-    }
+      notification.age = timeParts.age;
+      notification.ageQualifier = timeParts.qualifier;
+    });
   }
 
-  NotificationsController.$inject = ['$scope', '$http', '$sce', 'CLMLocations', 'timeAgoService', 'Messages'];
+  function openDetail(notification) {
+    if ($scope.selectedNotification &&
+        $scope.selectedNotification === notification) {
+      $scope.selectedNotification = null;
+    }
+    else {
+      $scope.selectedNotification = notification;
+      if (!notification.viewed) {
+        $http.post(CLMLocations.getNotificationViewedUrl(), {
+          id: notification.id
+        }).then(function() {
+          notification.viewed = true;
+          $scope.unreadNotificationCount--;
+        });
+      }
+    }
 
-  angular.module('mainHeader').component('notificationsMenu', {
-    controller: NotificationsController,
-    controllerAs: 'vm',
-    templateUrl: 'mainHeader/notificationsMenu/notificationsMenu.html?' + clmBuildTimestamp
-  });
+    return false;
+  }
 
-}());
+  function clearSelected() {
+    $scope.selectedNotification = null;
+  }
+
+  function getNotifications() {
+    $scope.loading = true;
+
+    $http.get(CLMLocations.getNotificationUrl()).then(function(response) {
+      $scope.loading = false;
+      $scope.notifications = response.data.notifications;
+      processNotifications($scope.notifications);
+    }, function(error) {
+      $scope.loading = false;
+      $scope.errorText = 'An error occurred while loading notifications. (' +
+          Messages.getHttpErrorMessage(error) + ')';
+      $scope.unreadNotificationCount = '!';
+    });
+  }
+}
+
+NotificationsController.$inject = ['$scope', '$http', '$sce', 'CLMLocations', 'timeAgoService', 'Messages'];
+
+angular.module('mainHeader').component('notificationsMenu', {
+  controller: NotificationsController,
+  controllerAs: 'vm',
+  templateUrl: 'mainHeader/notificationsMenu/notificationsMenu.html?' + clmBuildTimestamp
+});

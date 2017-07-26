@@ -3,47 +3,42 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function UnauthenticatedRequestQueueService() {
+  var service = {
+    addRequest: addRequest,
+    clearRequests: clearRequests,
+    getRequests: getRequests,
+    getPromises: getPromises
+  };
+  var requests = [], promises = [];
 
-  function UnauthenticatedRequestQueueService() {
-    var service = {
-      addRequest: addRequest,
-      clearRequests: clearRequests,
-      getRequests: getRequests,
-      getPromises: getPromises
-    };
-    var requests = [], promises = [];
+  function addRequest(request) {
+    requests.push(request);
+  }
 
-    function addRequest(request) {
-      requests.push(request);
-    }
+  function clearRequests() {
+    requests.length = 0;
+    promises.length = 0;
+  }
 
-    function clearRequests() {
-      requests.length = 0;
-      promises.length = 0;
-    }
+  function getRequests() {
+    return requests;
+  }
 
-    function getRequests() {
-      return requests;
-    }
-
-    function getPromises() {
-      if (promises.length) {
-        return promises;
-      }
-
-      requests.forEach(function(request) {
-        promises.push(request());
-      });
+  function getPromises() {
+    if (promises.length) {
       return promises;
     }
 
-    return service;
+    requests.forEach(function(request) {
+      promises.push(request());
+    });
+    return promises;
   }
 
-  angular //
-      .module('utility.services') //
-      .service('UnauthenticatedRequestQueueService', UnauthenticatedRequestQueueService);
+  return service;
+}
 
-}(angular));
+angular //
+    .module('utility.services') //
+    .service('UnauthenticatedRequestQueueService', UnauthenticatedRequestQueueService);

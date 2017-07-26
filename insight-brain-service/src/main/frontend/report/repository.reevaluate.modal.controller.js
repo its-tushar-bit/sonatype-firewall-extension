@@ -4,26 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function() {
-  'use strict';
+function RepositoryReEvaluateModalController($scope, $http, $stateParams, CLMLocations, Messages) {
+  var vm = this;
+  vm.error = undefined;
+  vm.reEvaluatePolicy = reEvaluatePolicy;
+  vm.reEvaluatePolicyMask = undefined;
 
-  function RepositoryReEvaluateModalController($scope, $http, $stateParams, CLMLocations, Messages) {
-    var vm = this;
-    vm.error = undefined;
-    vm.reEvaluatePolicy = reEvaluatePolicy;
-    vm.reEvaluatePolicyMask = undefined;
-
-    function reEvaluatePolicy() {
-      delete vm.error;
-      vm.reEvaluatePolicyMask.wrap($http.post(CLMLocations.getRepositoryEvaluateUrl($stateParams.repositoryId))).then(function() {
-        $scope.$close();
-      }, function(error) {
-        vm.error = Messages.getHttpErrorMessage(error);
-      });
-    }
+  function reEvaluatePolicy() {
+    delete vm.error;
+    vm.reEvaluatePolicyMask.wrap($http.post(CLMLocations.getRepositoryEvaluateUrl($stateParams.repositoryId))).then(function() {
+      $scope.$close();
+    }, function(error) {
+      vm.error = Messages.getHttpErrorMessage(error);
+    });
   }
+}
 
-  RepositoryReEvaluateModalController.$inject = ['$scope', '$http', '$stateParams', 'CLMLocations', 'Messages'];
+RepositoryReEvaluateModalController.$inject = ['$scope', '$http', '$stateParams', 'CLMLocations', 'Messages'];
 
-  angular.module('Report').controller('repository.reevaluate.modal.controller', RepositoryReEvaluateModalController);
-}());
+angular.module('Report').controller('repository.reevaluate.modal.controller', RepositoryReEvaluateModalController);

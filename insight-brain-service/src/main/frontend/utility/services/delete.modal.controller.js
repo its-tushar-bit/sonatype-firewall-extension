@@ -3,48 +3,43 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function DeleteModalController($scope, Messages, resourceType, resourceName, resource, headerText, bodyText, maskText,
+                               continueAction, dismissOnError)
+{
+  var vm = this;
 
-  function DeleteModalController($scope, Messages, resourceType, resourceName, resource, headerText, bodyText, maskText,
-                                 continueAction, dismissOnError)
-  {
-    var vm = this;
+  vm.deleteResource = deleteResource;
+  vm.deleteResourceMask = undefined;
+  vm.error = undefined;
+  vm.resourceName = resourceName;
+  vm.resourceType = resourceType;
+  vm.headerText = headerText;
+  vm.bodyText = bodyText;
+  vm.maskText = maskText;
 
-    vm.deleteResource = deleteResource;
-    vm.deleteResourceMask = undefined;
-    vm.error = undefined;
-    vm.resourceName = resourceName;
-    vm.resourceType = resourceType;
-    vm.headerText = headerText;
-    vm.bodyText = bodyText;
-    vm.maskText = maskText;
+  $scope.$on('pageChangeAccepted', function () {
+    $scope.$dismiss();
+  });
 
-    $scope.$on('pageChangeAccepted', function () {
-      $scope.$dismiss();
+  function deleteResource() {
+    vm.deleteResourceMask.wrap(continueAction ? continueAction() : resource.$delete()).then(function() {
+      $scope.$close();
+    }, function(error) {
+      if (dismissOnError === true) {
+        $scope.$dismiss(error);
+      }
+      else {
+        vm.error = Messages.getHttpErrorMessage(error);
+      }
     });
-
-    function deleteResource() {
-      vm.deleteResourceMask.wrap(continueAction ? continueAction() : resource.$delete()).then(function() {
-        $scope.$close();
-      }, function(error) {
-        if (dismissOnError === true) {
-          $scope.$dismiss(error);
-        }
-        else {
-          vm.error = Messages.getHttpErrorMessage(error);
-        }
-      });
-    }
   }
+}
 
-  DeleteModalController.$inject = [
-    '$scope', 'Messages', 'resourceType', 'resourceName', 'resource', 'headerText', 'bodyText', 'maskText',
-    'continueAction', 'dismissOnError'
-  ];
+DeleteModalController.$inject = [
+  '$scope', 'Messages', 'resourceType', 'resourceName', 'resource', 'headerText', 'bodyText', 'maskText',
+  'continueAction', 'dismissOnError'
+];
 
-  angular //
-      .module('utility') //
-      .controller('DeleteModalController', DeleteModalController);
-
-}(angular));
+angular //
+    .module('utility') //
+    .controller('DeleteModalController', DeleteModalController);

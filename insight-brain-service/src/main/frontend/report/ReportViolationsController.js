@@ -4,37 +4,33 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-(function() {
-  'use strict';
+var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation', 'vs-repeat']);
 
-  var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation', 'vs-repeat']);
+reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',
+  function($scope, $http, $q, clmLocations) {
 
-  reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',
-    function($scope, $http, $q, clmLocations) {
+    $scope.isVisible = function (item) {
+      return !$scope.appFilter ||
+            item.name.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1 ||
+            item.organizationName.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1;
+    };
 
-      $scope.isVisible = function (item) {
-        return !$scope.appFilter ||
-              item.name.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1 ||
-              item.organizationName.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1;
-      };
+    $scope.encodeURIComponent = window.encodeURIComponent;
 
-      $scope.encodeURIComponent = window.encodeURIComponent;
+    $scope.doLoad = function() {
+      $scope.error = null;
 
-      $scope.doLoad = function() {
-        $scope.error = null;
+      var promises = [];
 
-        var promises = [];
+      promises.push($http.get(clmLocations.getActionStageUrl()));
+      promises.push($http.get(clmLocations.getApplicationSummariesUrl()));
 
-        promises.push($http.get(clmLocations.getActionStageUrl()));
-        promises.push($http.get(clmLocations.getApplicationSummariesUrl()));
-
-        $q.all(promises).then(function(results) {
-          $scope.stages = results[0].data;
-          $scope.applications = results[1].data;
-        }, function() {
-          $scope.error = arguments[0];
-        });
-      };
-      $scope.doLoad();
-    }]);
-}());
+      $q.all(promises).then(function(results) {
+        $scope.stages = results[0].data;
+        $scope.applications = results[1].data;
+      }, function() {
+        $scope.error = arguments[0];
+      });
+    };
+    $scope.doLoad();
+  }]);

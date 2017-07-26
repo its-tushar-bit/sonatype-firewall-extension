@@ -4,46 +4,42 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, clmBuildTimestamp, clmServerVersion*/
-(function() {
-  'use strict';
+function RootOrganizationMigrateDirective() {
+  return {
+    templateUrl: 'root.organization.migrate/root.organization.migrate.directive.html?' + clmBuildTimestamp,
+    scope: {},
+    controllerAs: 'vm',
+    controller: [
+      'ProductFeatures', 'RootOrganizationMigrateModalService', 'PermissionService',
+      function(ProductFeatures, RootOrganizationMigrateModalService, PermissionService) {
+        var vm = this;
 
-  function RootOrganizationMigrateDirective() {
-    return {
-      templateUrl: 'root.organization.migrate/root.organization.migrate.directive.html?' + clmBuildTimestamp,
-      scope: {},
-      controllerAs: 'vm',
-      controller: [
-        'ProductFeatures', 'RootOrganizationMigrateModalService', 'PermissionService',
-        function(ProductFeatures, RootOrganizationMigrateModalService, PermissionService) {
-          var vm = this;
+        vm.doMigrate = doMigrate;
+        vm.migrationDone = undefined;
+        vm.migrationNeeded = undefined;
+        vm.permitted = undefined;
+        vm.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
 
-          vm.doMigrate = doMigrate;
-          vm.migrationDone = undefined;
-          vm.migrationNeeded = undefined;
-          vm.permitted = undefined;
-          vm.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
-
-          function doLoad() {
-            vm.migrationDone = ProductFeatures.isAvailable('root-org');
-            vm.migrationNeeded = ProductFeatures.isAvailable('root-org-migrate');
-            PermissionService.isAuthorized(['WRITE'], true).then(function(permitted) {
-              vm.permitted = permitted;
-            });
-          }
-
-          function doMigrate() {
-            RootOrganizationMigrateModalService.openModal().then(function() {
-              ProductFeatures.load(true).then(function() {
-                doLoad();
-              });
-            });
-          }
-
-          doLoad();
+        function doLoad() {
+          vm.migrationDone = ProductFeatures.isAvailable('root-org');
+          vm.migrationNeeded = ProductFeatures.isAvailable('root-org-migrate');
+          PermissionService.isAuthorized(['WRITE'], true).then(function(permitted) {
+            vm.permitted = permitted;
+          });
         }
-      ]
-    };
-  }
 
-  angular.module('root.organization.migrate').directive('rootOrganizationMigrate', RootOrganizationMigrateDirective);
-}());
+        function doMigrate() {
+          RootOrganizationMigrateModalService.openModal().then(function() {
+            ProductFeatures.load(true).then(function() {
+              doLoad();
+            });
+          });
+        }
+
+        doLoad();
+      }
+    ]
+  };
+}
+
+angular.module('root.organization.migrate').directive('rootOrganizationMigrate', RootOrganizationMigrateDirective);

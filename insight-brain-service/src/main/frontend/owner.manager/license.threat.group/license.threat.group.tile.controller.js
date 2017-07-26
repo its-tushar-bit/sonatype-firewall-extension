@@ -3,55 +3,50 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function LicenseThreatGroupTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService,
+                                          EventNameConstant)
+{
+  var vm = this;
+  vm.ownerName = undefined;
+  vm.applicableLicenseGroups = undefined;
+  vm.editLTG = editLTG;
+  vm.error = undefined;
+  vm.doLoad = doLoad;
 
-  function LicenseThreatGroupTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService,
-                                            EventNameConstant)
-  {
-    var vm = this;
-    vm.ownerName = undefined;
-    vm.applicableLicenseGroups = undefined;
-    vm.editLTG = editLTG;
-    vm.error = undefined;
-    vm.doLoad = doLoad;
+  vm.doLoad();
 
-    vm.doLoad();
+  $scope.$on('policy.imported', doLoad);
+  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
+  $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
-    $scope.$on('policy.imported', doLoad);
-    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
-    $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
-
-    function doLoad() {
-      $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl()).then(function(results) {
-        vm.applicableLicenseGroups = results.data.licenseThreatGroupsByOwner;
-        vm.applicableLicenseGroups.forEach(function(applicableLicenseGroup, index) {
-          applicableLicenseGroup.inherited = index > 0;
-        });
-
-        vm.ownerName = vm.applicableLicenseGroups[0].ownerName;
-      }, function(error) {
-        vm.error = error;
+  function doLoad() {
+    $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl()).then(function(results) {
+      vm.applicableLicenseGroups = results.data.licenseThreatGroupsByOwner;
+      vm.applicableLicenseGroups.forEach(function(applicableLicenseGroup, index) {
+        applicableLicenseGroup.inherited = index > 0;
       });
 
-      delete vm.error;
-    }
+      vm.ownerName = vm.applicableLicenseGroups[0].ownerName;
+    }, function(error) {
+      vm.error = error;
+    });
 
-    function editLTG(licenseThreatGroupId, isInherited) {
-      if (!isInherited) {
-        SameOwnerStateNavigationService.goEdit('edit-license-threat-group', {licenseThreatGroupId: licenseThreatGroupId});
-      }
-    }
+    delete vm.error;
+  }
 
-    function updatedOwnerHandler(event, newOwner) {
-      vm.ownerName = newOwner.name;
+  function editLTG(licenseThreatGroupId, isInherited) {
+    if (!isInherited) {
+      SameOwnerStateNavigationService.goEdit('edit-license-threat-group', {licenseThreatGroupId: licenseThreatGroupId});
     }
   }
 
-  LicenseThreatGroupTileController.$inject = [
-    '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
-  ];
+  function updatedOwnerHandler(event, newOwner) {
+    vm.ownerName = newOwner.name;
+  }
+}
 
-  angular.module('owner.manager.module').controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController);
+LicenseThreatGroupTileController.$inject = [
+  '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
+];
 
-}(angular));
+angular.module('owner.manager.module').controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController);

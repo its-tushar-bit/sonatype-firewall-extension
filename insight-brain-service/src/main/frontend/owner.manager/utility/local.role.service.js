@@ -3,40 +3,35 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function LocalRoleService() {
+  return {
+    getRolesWithLocalMembers: getRolesWithLocalMembers,
+    getRolesWithoutLocalMembers: getRolesWithoutLocalMembers
+  };
 
-  function LocalRoleService() {
-    return {
-      getRolesWithLocalMembers: getRolesWithLocalMembers,
-      getRolesWithoutLocalMembers: getRolesWithoutLocalMembers
-    };
-
-    function getRolesWithLocalMembers(membersByRoles) {
-      if (membersByRoles) {
-        return membersByRoles.filter(function(membersByRole) {
-          return membersByRole.membersByOwner[0].members.length > 0;
-        });
-      }
-      else {
-        return [];
-      }
+  function getRolesWithLocalMembers(membersByRoles) {
+    if (membersByRoles) {
+      return membersByRoles.filter(function(membersByRole) {
+        return membersByRole.membersByOwner[0].members.length > 0;
+      });
     }
-
-    function getRolesWithoutLocalMembers(membersByRoles) {
-      if (membersByRoles) {
-        return membersByRoles.filter(function(membersByRole) {
-          return membersByRole.membersByOwner[0].members.length === 0;
-        });
-      }
-      else {
-        return [];
-      }
+    else {
+      return [];
     }
   }
 
-  angular //
-      .module('owner.manager.module') //
-      .service('local.role.service', LocalRoleService);
+  function getRolesWithoutLocalMembers(membersByRoles) {
+    if (membersByRoles) {
+      return membersByRoles.filter(function(membersByRole) {
+        return membersByRole.membersByOwner[0].members.length === 0;
+      });
+    }
+    else {
+      return [];
+    }
+  }
+}
 
-}(angular));
+angular //
+    .module('owner.manager.module') //
+    .service('local.role.service', LocalRoleService);

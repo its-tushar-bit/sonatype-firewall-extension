@@ -3,8 +3,4 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function() {
-  'use strict';
-
-  angular.module('systemNoticeModule', []);
-}());
+angular.module('systemNoticeModule', []);

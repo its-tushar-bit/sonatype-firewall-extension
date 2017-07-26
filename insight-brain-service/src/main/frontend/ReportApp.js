@@ -4,20 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, clmBuildTimestamp */
-(function() {
-  'use strict';
-
-  angular.module('ReportModule',
-      ['ui.router', 'ReportViolations'],
-      ['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
-        $urlRouterProvider.when('/reports', '/reports/violations');
-        $stateProvider.state('violations', {
-          url: '/reports/violations',
-          templateUrl: 'report/violations/report-list.html?' + clmBuildTimestamp,
-          controller: 'ReportViolationsController',
-          data : {
-            title : 'Report Violations'
-          }
-        });
-      }]);
-}());
+angular.module('ReportModule',
+    ['ui.router', 'ReportViolations'],
+    ['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
+      $urlRouterProvider.when('/reports', '/reports/violations');
+      $stateProvider.state('violations', {
+        url: '/reports/violations',
+        templateUrl: 'report/violations/report-list.html?' + clmBuildTimestamp,
+        controller: 'ReportViolationsController',
+        data: {
+          title: 'Report Violations'
+        }
+      });
+    }]);

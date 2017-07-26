@@ -4,45 +4,40 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global Base64 */
-(function(angular) {
-  'use strict';
+function LoginModalController($scope, $http, CLMLocations, Messages) {
+  var vm = this;
 
-  function LoginModalController($scope, $http, CLMLocations, Messages) {
-    var vm = this;
+  vm.username = undefined;
+  vm.password = undefined;
+  vm.error = undefined;
+  vm.loginMask = undefined;
 
-    vm.username = undefined;
-    vm.password = undefined;
+  $scope.$watchGroup([function() {
+    return vm.username;
+  }, function() {
+    return vm.password;
+  }], function() {
     vm.error = undefined;
-    vm.loginMask = undefined;
+  });
 
-    $scope.$watchGroup([function() {
-      return vm.username;
-    }, function() {
-      return vm.password;
-    }], function() {
-      vm.error = undefined;
+  vm.signIn = function() {
+    vm.error = undefined;
+
+    vm.loginMask.wrap($http.post(CLMLocations.getSessionUrl(), {}, {
+      clmLogin: true,
+      headers: {
+        'Authorization': 'Basic ' + Base64.encode(vm.username + ':' + vm.password)
+      }
+    })).then(function() {
+      $scope.$close();
+    }, function(error) {
+      vm.error = Messages.getHttpErrorMessage(error);
     });
+  };
+}
 
-    vm.signIn = function() {
-      vm.error = undefined;
+LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages'];
 
-      vm.loginMask.wrap($http.post(CLMLocations.getSessionUrl(), {}, {
-        clmLogin: true,
-        headers: {
-          'Authorization': 'Basic ' + Base64.encode(vm.username + ':' + vm.password)
-        }
-      })).then(function() {
-        $scope.$close();
-      }, function(error) {
-        vm.error = Messages.getHttpErrorMessage(error);
-      });
-    };
-  }
-
-  LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages'];
-
-  angular //
-      .module('utility.services') //
-      .controller('login.modal.controller', LoginModalController);
-
-}(angular));
+angular //
+    .module('utility.services') //
+    .controller('login.modal.controller', LoginModalController);

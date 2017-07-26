@@ -4,21 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global Fuse*/
-(function() {
-  'use strict';
-
-  function FuseFilter(input, term, field) {
-    if (!input || !angular.isArray(input) || !term || !field) {
-      return input;
-    }
-    var fuse = new Fuse(input, {keys: [field]});
-
-    return fuse.search(term);
+function FuseFilter(input, term, field) {
+  if (!input || !angular.isArray(input) || !term || !field) {
+    return input;
   }
+  var fuse = new Fuse(input, {keys: [field]});
 
-  function FuseFilterFactory() {
-    return FuseFilter;
-  }
+  return fuse.search(term);
+}
 
-  angular.module('utility').filter('fuzzy', FuseFilterFactory);
-}());
+function FuseFilterFactory() {
+  return FuseFilter;
+}
+
+angular.module('utility').filter('fuzzy', FuseFilterFactory);

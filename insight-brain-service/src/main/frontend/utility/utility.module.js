@@ -4,13 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-(function(angular) {
-  'use strict';
-
-  angular.module('utility', ['ui.router.state', 'ngAria', 'CommonServices', 'FormsModule', 'utility.directives', 'utility.services']).config([
-    '$httpProvider', function($httpProvider) {
-      $httpProvider.interceptors.push('form.data.http.interceptor');
-    }
-  ]);
-
-}(angular));
+angular.module('utility', ['ui.router.state', 'ngAria', 'CommonServices', 'FormsModule', 'utility.directives', 'utility.services']).config([
+  '$httpProvider', function($httpProvider) {
+    $httpProvider.interceptors.push('form.data.http.interceptor');
+  }
+]);

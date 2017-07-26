@@ -5,105 +5,100 @@
  */
 /* global angular */
 
-// global function
-(function() {
-  'use strict';
+var httpInterceptors = angular.module('HttpInterceptors', []);
 
-  var httpInterceptors = angular.module('HttpInterceptors', []);
-
-  httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '$q', '$rootScope',
-    function($window, $q, $rootScope) {
-      return {
-        responseError: function(response) {
-          if (response.status === 401) {
-            // $rootScope.username will be present if this is the top frame and login had already succeeded previously.
-            // If we are in a child frame (for a report), the username won't be available but we can still detect that
-            // we are in a child frame.
-            if ($rootScope.username || window.top !== window) {
-              // session expired - tell SessionSecurityService of the main IQ UI, which resides in the top frame of
-              // the page.
-              $window.top.sessionExpired();
-            }
-            else {
-              // new promise for each failure, that will be completed once login suceeds
-              var deferred = $q.defer();
-
-              //fresh page load, not logged in yet
-              $rootScope.$emit('userNeedsAuthentication', response, deferred);
-
-              return deferred.promise;
-            }
-          }
-
-          return $q.reject(response);
-        }
-      };
-    }
-  ]);
-
-  // This is the cache busting interceptor factory, which handles adding a timestamp query parameter to each request
-  // note it's not currently in use, would need to be pushed into the interceptor list in the httpInterceptors.config
-  // call below
-  httpInterceptors.factory('cacheBusterHttpInterceptor', [function() {
+httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '$q', '$rootScope',
+  function($window, $q, $rootScope) {
     return {
-      request: function(config) {
-        if ((config.url.indexOf('/rest/') > -1 || config.url.indexOf('.json') > -1) && config.url.indexOf('timestamp=') < 0) {
-          config.params = config.params || {};
-          config.params.timestamp = new Date().getTime();
+      responseError: function(response) {
+        if (response.status === 401) {
+          // $rootScope.username will be present if this is the top frame and login had already succeeded previously.
+          // If we are in a child frame (for a report), the username won't be available but we can still detect that
+          // we are in a child frame.
+          if ($rootScope.username || window.top !== window) {
+            // session expired - tell SessionSecurityService of the main IQ UI, which resides in the top frame of
+            // the page.
+            $window.top.sessionExpired();
+          }
+          else {
+            // new promise for each failure, that will be completed once login suceeds
+            var deferred = $q.defer();
+
+            //fresh page load, not logged in yet
+            $rootScope.$emit('userNeedsAuthentication', response, deferred);
+
+            return deferred.promise;
+          }
         }
-        return config;
+
+        return $q.reject(response);
       }
     };
-  }]);
+  }
+]);
 
-  // Apply the interceptor to the httpProvider during config
-  httpInterceptors.config(['$httpProvider', function($httpProvider) {
-    $httpProvider.interceptors.push('unauthenticatedResponseHttpInterceptor');
-    $httpProvider.interceptors.push('cacheBusterHttpInterceptor');
-    $httpProvider.defaults.xsrfCookieName = 'CLM-CSRF-TOKEN';
-    $httpProvider.defaults.xsrfHeaderName = 'X-CSRF-TOKEN';
-  }]);
-
-  //Ideally this would be merged into the above code, no event would be emitted, but sadly, ui.bootstrap (for $modal) has a dependency
-  //on $http, therefore putting modal code in an http interceptor creates a circular dependency
-  angular.module('UnauthenticatedResponseHttpInterceptor', ['HttpInterceptors', 'AngularCommon', 'ui.bootstrap', 'CLMLocation', 'utility.services']).run([
-    '$rootScope',
-    '$q',
-    '$http',
-    'LoginModalService',
-    'UnauthenticatedRequestQueueService',
-    function($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
-      function authenticate() {
-        return LoginModalService.show($rootScope.username);
+// This is the cache busting interceptor factory, which handles adding a timestamp query parameter to each request
+// note it's not currently in use, would need to be pushed into the interceptor list in the httpInterceptors.config
+// call below
+httpInterceptors.factory('cacheBusterHttpInterceptor', [function() {
+  return {
+    request: function(config) {
+      if ((config.url.indexOf('/rest/') > -1 || config.url.indexOf('.json') > -1) && config.url.indexOf('timestamp=') < 0) {
+        config.params = config.params || {};
+        config.params.timestamp = new Date().getTime();
       }
+      return config;
+    }
+  };
+}]);
 
-      $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
-        // if user is already processing login, this will be a login failure response so reject and let them try
-        // again
-        if (response.config && response.config.clmLogin) {
-          deferred.reject(response);
-        } else {
-          // add a new function to the queue that will handle resolving the promise retrieved from event emitter
-          UnauthenticatedRequestQueueService.addRequest(function() {
-            // simply replay the request
-            $http(response.config).then(function() {
-              deferred.resolve(arguments[0]);
-            }, function() {
-              deferred.reject(arguments[0]);
+// Apply the interceptor to the httpProvider during config
+httpInterceptors.config(['$httpProvider', function($httpProvider) {
+  $httpProvider.interceptors.push('unauthenticatedResponseHttpInterceptor');
+  $httpProvider.interceptors.push('cacheBusterHttpInterceptor');
+  $httpProvider.defaults.xsrfCookieName = 'CLM-CSRF-TOKEN';
+  $httpProvider.defaults.xsrfHeaderName = 'X-CSRF-TOKEN';
+}]);
+
+//Ideally this would be merged into the above code, no event would be emitted, but sadly, ui.bootstrap (for $modal) has a dependency
+//on $http, therefore putting modal code in an http interceptor creates a circular dependency
+angular.module('UnauthenticatedResponseHttpInterceptor', ['HttpInterceptors', 'AngularCommon', 'ui.bootstrap', 'CLMLocation', 'utility.services']).run([
+  '$rootScope',
+  '$q',
+  '$http',
+  'LoginModalService',
+  'UnauthenticatedRequestQueueService',
+  function($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
+    function authenticate() {
+      return LoginModalService.show($rootScope.username);
+    }
+
+    $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
+      // if user is already processing login, this will be a login failure response so reject and let them try
+      // again
+      if (response.config && response.config.clmLogin) {
+        deferred.reject(response);
+      } else {
+        // add a new function to the queue that will handle resolving the promise retrieved from event emitter
+        UnauthenticatedRequestQueueService.addRequest(function() {
+          // simply replay the request
+          $http(response.config).then(function() {
+            deferred.resolve(arguments[0]);
+          }, function() {
+            deferred.reject(arguments[0]);
+          });
+        });
+        // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
+        // the other messages, the data will be added to the queue, but the dialog portion will be ignored
+        if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
+          authenticate().then(function() {
+            // retry failed requests and then clear the queue
+            $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {
+              UnauthenticatedRequestQueueService.clearRequests();
             });
           });
-          // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
-          // the other messages, the data will be added to the queue, but the dialog portion will be ignored
-          if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-            authenticate().then(function() {
-              // retry failed requests and then clear the queue
-              $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function() {
-                UnauthenticatedRequestQueueService.clearRequests();
-              });
-            });
-          }
         }
-      });
-    }
-  ]);
-}());
+      }
+    });
+  }
+]);

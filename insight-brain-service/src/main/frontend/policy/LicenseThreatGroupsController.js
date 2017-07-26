@@ -4,38 +4,34 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-(function() {
-  'use strict';
+var licenseGroupModule = angular.module('LicenseThreatGroup',
+    ['Stores', 'CLMAppLocation']);
 
-  var licenseGroupModule = angular.module('LicenseThreatGroup',
-      ['Stores', 'CLMAppLocation']);
-
-  licenseGroupModule.service('licenseGroupStore', [
-    'CLMAppLocations', 'CachedStore', function(CLMAppLocations, CachedStore) {
-      var licenseGroupStoreTemplate = {
-        id: 'id',
-        template: { id: null, ownerId: null, name: null, threatLevel: 5 },
-        getUrl: CLMAppLocations.getLicenseGroupsUrl,
-        relationalConfigs: {
-          'licenses': {
-            id: 'licenseId',
-            template: { id: null, licenseId: null },
-            url: CLMAppLocations.getLicenseGroupLicensesUrl
-          }
+licenseGroupModule.service('licenseGroupStore', [
+  'CLMAppLocations', 'CachedStore', function(CLMAppLocations, CachedStore) {
+    var licenseGroupStoreTemplate = {
+      id: 'id',
+      template: { id: null, ownerId: null, name: null, threatLevel: 5 },
+      getUrl: CLMAppLocations.getLicenseGroupsUrl,
+      relationalConfigs: {
+        'licenses': {
+          id: 'licenseId',
+          template: { id: null, licenseId: null },
+          url: CLMAppLocations.getLicenseGroupLicensesUrl
         }
-      };
+      }
+    };
 
-      return CachedStore.get(licenseGroupStoreTemplate);
-    }
-  ]);
+    return CachedStore.get(licenseGroupStoreTemplate);
+  }
+]);
 
-  licenseGroupModule.service('licenseStore', [
-    'CLMLocations', 'StoreFactory', function(CLMLocations, StoreFactory) {
-      var licenseStore = StoreFactory.getStore({
-        id: 'id',
-        url: CLMLocations.getLicensesUrl()
-      });
-      return licenseStore;
-    }
-  ]);
-}());
+licenseGroupModule.service('licenseStore', [
+  'CLMLocations', 'StoreFactory', function(CLMLocations, StoreFactory) {
+    var licenseStore = StoreFactory.getStore({
+      id: 'id',
+      url: CLMLocations.getLicensesUrl()
+    });
+    return licenseStore;
+  }
+]);

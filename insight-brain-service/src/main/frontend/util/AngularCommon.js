@@ -89,13 +89,13 @@ angularCommon.directive('isDuplicate', [
 
 angularCommon.directive('clmButtons', [function () {
   return {
-    scope : {
-      acceptFn : '&',
-      acceptDisabled : '&',
-      cancelFn : '&',
-      cancelDisabled : '&'
+    scope: {
+      acceptFn: '&',
+      acceptDisabled: '&',
+      cancelFn: '&',
+      cancelDisabled: '&'
     },
-    template : '<button class="btn btn-link btn-cancel" type="button" ng-click="decline()" ng-disabled="disabled || cancelDisabled()">{{cancelText}}</button> ' +
+    template: '<button class="btn btn-link btn-cancel" type="button" ng-click="decline()" ng-disabled="disabled || cancelDisabled()">{{cancelText}}</button> ' +
                '<button class="btn btn-primary pull-right" type="button" ng-click="accept()" ng-disabled="disabled || acceptDisabled()">{{acceptText}}</button>',
     link: function(scope, element, attrs) {
       function buttonClick(clickFn) {
@@ -420,10 +420,10 @@ angularCommon.service('Dialog', ['$modal', function ($modal) {
   }
   var counter = 0;
   return {
-    open : function (config) {
+    open: function (config) {
       config = angular.extend({
         backdrop: 'static',
-        keyboard : false,
+        keyboard: false,
         template: '<div id="{{id}}"><div class="clm-modal-header"><h2>{{title}}</h2></div>' +
             '<div class="clm-modal-body" ng-bind-html="body"></div>' +
             '<div class="clm-modal-footer">' +
@@ -463,16 +463,16 @@ angularCommon.service('Dialog', ['$modal', function ($modal) {
 
 angularCommon.service('ErrorDialog', ['Dialog', 'Messages', function (Dialog, Messages) {
   return {
-    open : function (body, title) {
+    open: function (body, title) {
       if (typeof body !== 'string') {
         body = Messages.getHttpErrorMessage(body);
       }
       return Dialog.open({
-        keyboard : true,
-        title : title || 'Error',
-        body : body,
-        buttons : [{
-          name : 'Close'
+        keyboard: true,
+        title: title || 'Error',
+        body: body,
+        buttons: [{
+          name: 'Close'
         }]
       });
     }
@@ -485,19 +485,19 @@ angularCommon.service('ErrorDialog', ['Dialog', 'Messages', function (Dialog, Me
 */
 angularCommon.directive('multiSelect', ['$compile', '$timeout', function($compile, $timeout) {
   return {
-    template : '<div class="btn-group" ng-class="{ open : open }">' +
+    template: '<div class="btn-group" ng-class="{ open : open }">' +
                  '<button class="btn dropdown-toggle" ng-click="toggleDropdown()" ng-class="{ \'btn-small\': small }" type="button">' +
                  '<span><div>{{getText()}}</div></span> <span class="caret"></span></button>' +
                    '<ul class="dropdown-menu multiselect-container">' +
                    '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0 auto 5px auto;width:160px;display:block" placeholder="Search" ng-click="$event.stopPropagation()"></li>' +
                  '</ul>' +
                '</div>',
-    scope : {
-      items : '=',
-      selectedIds : '=',
-      effectiveIdField : '@',
-      noneSelectedText : '@',
-      summarizeWith : '@',
+    scope: {
+      items: '=',
+      selectedIds: '=',
+      effectiveIdField: '@',
+      noneSelectedText: '@',
+      summarizeWith: '@',
       small: '@?',
       useVsRepeat: '@?'
     },
@@ -640,7 +640,7 @@ angularCommon.directive('threatClass', function() {
 
 angularCommon.service('maximizeHeightService', ['$timeout', '$window', function ($timeout, $window) {
   return {
-    getOffset : function (element) {
+    getOffset: function (element) {
       var currentElement = element,
           sum = 0;
       while (currentElement[0] !== document.body) {
@@ -649,7 +649,7 @@ angularCommon.service('maximizeHeightService', ['$timeout', '$window', function 
       }
       return sum;
     },
-    setDimensions : function (element, options) {
+    setDimensions: function (element, options) {
       options = angular.extend({
         bottomPadding: 35,
         checkBodyScroll: false,
@@ -664,7 +664,7 @@ angularCommon.service('maximizeHeightService', ['$timeout', '$window', function 
 
       element.height(height + 'px');
     },
-    updateDimensions : function (element, options) {
+    updateDimensions: function (element, options) {
       var me = this;
       if (element.is(':visible')) {
         me.setDimensions(element, options);

@@ -3,33 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function StateHistoryService($rootScope) {
+  var service = {
+        register: angular.noop, // Fake function used to register this service on app init
+        getPreviousState: getPreviousState
+      },
+      states = [];
 
-  function StateHistoryService($rootScope) {
-    var service = {
-          register: angular.noop, // Fake function used to register this service on app init
-          getPreviousState: getPreviousState
-        },
-        states = [];
-
-    $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-      if (states.length === 0 || !angular.equals(states[states.length - 1], fromState)) {
-        states.push(fromState);
-      }
-    });
-
-    function getPreviousState() {
-      return states.length ? states[states.length - 1] : undefined;
+  $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
+    if (states.length === 0 || !angular.equals(states[states.length - 1], fromState)) {
+      states.push(fromState);
     }
+  });
 
-    return service;
+  function getPreviousState() {
+    return states.length ? states[states.length - 1] : undefined;
   }
 
-  StateHistoryService.$inject = ['$rootScope'];
+  return service;
+}
 
-  angular //
-      .module('utility.services') //
-      .service('state.history.service', StateHistoryService);
+StateHistoryService.$inject = ['$rootScope'];
 
-}(angular));
+angular //
+    .module('utility.services') //
+    .service('state.history.service', StateHistoryService);

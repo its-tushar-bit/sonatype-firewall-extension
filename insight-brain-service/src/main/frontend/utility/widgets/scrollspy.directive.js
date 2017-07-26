@@ -3,80 +3,75 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function ScrollSpy($timeout, EventNameConstant, StableBodyService) {
+  return {
+    scope: {
+      scrollspy: '@'
+    },
+    link: function($scope, element) {
+      var scrollspyObject;
+      initScrollspy();
 
-  function ScrollSpy($timeout, EventNameConstant, StableBodyService) {
-    return {
-      scope: {
-        scrollspy: '@'
-      },
-      link: function($scope, element) {
-        var scrollspyObject;
-        initScrollspy();
-
-        var eventHandlerFn = function() {
-          pauseScrollspy(scrollspyObject.$scrollElement);
-          var me = $(this);
-          //note the offset is 8 here, as using a higher number will occassionally push us into the next section
-          //and select the wrong pill
-          element.animate({ scrollTop: $(me.attr('data-target')).position().top + element.scrollTop() - 8}, 300, 'easeInOutSine');
-          $($scope.scrollspy + ' .nav li').removeClass('active');
-          me.parent().addClass('active');
-          $timeout(function() {
-            unpauseScrollspy(scrollspyObject.$scrollElement);
-          });
-        };
-
-        $(document).on('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
-
-        $scope.$on('$destroy', function() {
-          $(document).off('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
+      var eventHandlerFn = function() {
+        pauseScrollspy(scrollspyObject.$scrollElement);
+        var me = $(this);
+        //note the offset is 8 here, as using a higher number will occassionally push us into the next section
+        //and select the wrong pill
+        element.animate({ scrollTop: $(me.attr('data-target')).position().top + element.scrollTop() - 8}, 300, 'easeInOutSine');
+        $($scope.scrollspy + ' .nav li').removeClass('active');
+        me.parent().addClass('active');
+        $timeout(function() {
+          unpauseScrollspy(scrollspyObject.$scrollElement);
         });
+      };
 
-        $scope.$on(EventNameConstant.UPDATE_SCROLLSPY, function(event, options) {
-          if (scrollspyObject) {
-            if (options) {
-              if (options.resetScroll) {
-                $($scope.scrollspy + ' .nav li:first-child > a').click();
-              }
-              if (options.refresh) {
-                scrollspyObject.refresh();
-              }
+      $(document).on('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
+
+      $scope.$on('$destroy', function() {
+        $(document).off('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
+      });
+
+      $scope.$on(EventNameConstant.UPDATE_SCROLLSPY, function(event, options) {
+        if (scrollspyObject) {
+          if (options) {
+            if (options.resetScroll) {
+              $($scope.scrollspy + ' .nav li:first-child > a').click();
             }
-            else {
+            if (options.refresh) {
               scrollspyObject.refresh();
             }
           }
+          else {
+            scrollspyObject.refresh();
+          }
+        }
+      });
+
+      function initScrollspy() {
+        StableBodyService.whenStable(function() {
+          $timeout(function() {
+            scrollspyObject = new $.fn.scrollspy.Constructor(element, {
+              target: $scope.scrollspy,
+              offset: 10
+            });
+            element.addClass('scroll-spy-initialized');
+          }, 250);
         });
-
-        function initScrollspy() {
-          StableBodyService.whenStable(function() {
-            $timeout(function() {
-              scrollspyObject = new $.fn.scrollspy.Constructor(element, {
-                target: $scope.scrollspy,
-                offset: 10
-              });
-              element.addClass('scroll-spy-initialized');
-            }, 250);
-          });
-        }
-
-        function pauseScrollspy() {
-          $(element).off('scroll.scroll-spy.data-api');
-        }
-
-        function unpauseScrollspy() {
-          $(element).on('scroll.scroll-spy.data-api', $.proxy(scrollspyObject.process, scrollspyObject));
-        }
       }
-    };
-  }
 
-  ScrollSpy.$inject = ['$timeout', 'event.name.constant', 'stable.body.service'];
+      function pauseScrollspy() {
+        $(element).off('scroll.scroll-spy.data-api');
+      }
 
-  angular
-      .module('utility')
-      .directive('scrollspy', ScrollSpy);
+      function unpauseScrollspy() {
+        $(element).on('scroll.scroll-spy.data-api', $.proxy(scrollspyObject.process, scrollspyObject));
+      }
+    }
+  };
+}
 
-}(angular));
+ScrollSpy.$inject = ['$timeout', 'event.name.constant', 'stable.body.service'];
+
+angular
+    .module('utility')
+    .directive('scrollspy', ScrollSpy);

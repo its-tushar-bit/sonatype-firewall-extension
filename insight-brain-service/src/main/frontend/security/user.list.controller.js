@@ -4,118 +4,114 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, AngularUtils*/
-(function() {
-  'use strict';
+function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope, DeleteModalService,
+                            $modal, $q, isAuthorized, $state)
+{
+  var username = null;
 
-  function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope, DeleteModalService,
-                              $modal, $q, isAuthorized, $state)
-  {
-    var username = null;
+  $scope.context = {
+    userEditMap: {},
+    users: []
+  };
 
-    $scope.context = {
-      userEditMap: {},
-      users: []
-    };
+  $scope.isAuthorized = isAuthorized;
 
-    $scope.isAuthorized = isAuthorized;
+  $scope.doLoad = function() {
+    if (isAuthorized) {
+      $scope.error = null;
 
-    $scope.doLoad = function() {
-      if (isAuthorized) {
-        $scope.error = null;
+      $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {
+        $scope.context.users = results[0];
+        username = results[1].username;
+      }, function(error) {
+        $scope.error = error;
+      });
+    }
+  };
 
-        $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {
-          $scope.context.users = results[0];
-          username = results[1].username;
-        }, function(error) {
-          $scope.error = error;
-        });
+  $scope.editClick = function(user) {
+    $scope.context.userEditMap[user.id] = user;
+    $scope.$broadcast('userEditClick', {
+      userId: user.id
+    });
+  };
+
+  $scope.isCurrentUser = function(user) {
+    return username === user.username;
+  };
+
+  $scope.resetPasswordClick = function(user) {
+    $modal.open({
+      templateUrl: 'reset-password-modal',
+      windowClass: 'clm-modal',
+      scope: $scope,
+      backdrop: 'static',
+      keyboard: false,
+      controller: ['$scope', function(scope) {
+        scope.state = 'ready';
+        scope.user = user;
+
+        scope.cancelClick = function() {
+          scope.$close();
+        };
+
+        scope.resetClick = function() {
+          scope.state = 'pending';
+          $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').then(function(response) {
+            scope.newPassword = response.data.newPassword;
+            scope.state = 'complete';
+          }, function(error) {
+            scope.state = 'failed';
+            scope.error = messages.getHttpErrorMessage(error);
+          });
+        };
+
+        scope.okClick = function() {
+          scope.$close();
+        };
+
+        scope.flashInstalled = function() {
+          return AngularUtils.hasFlash();
+        };
+      }]
+    });
+  };
+
+  $scope.removeClick = function(user) {
+    DeleteModalService.deleteResource('User', user.username, user);
+  };
+
+  $scope.newUserClick = function() {
+    $state.go('users.create');
+  };
+
+  $scope.closeUserCreateForm = function() {
+    $scope.context.users.sort(function(a, b) {
+      if (a.usernameLowercase < b.usernameLowercase) {
+        return -1;
       }
-    };
+      else if (a.usernameLowercase > b.usernameLowercase) {
+        return 1;
+      }
+      else {
+        return 0;
+      }
+    });
 
-    $scope.editClick = function(user) {
-      $scope.context.userEditMap[user.id] = user;
-      $scope.$broadcast('userEditClick', {
-        userId: user.id
-      });
-    };
+    // when a user is added by the user-create page, change the state back to the user list page
+    $state.go('users');
+  };
 
-    $scope.isCurrentUser = function(user) {
-      return username === user.username;
-    };
+  $scope.closeUserEditForm = function(user) {
+    $scope.context.userEditMap[user.id] = null;
+  };
 
-    $scope.resetPasswordClick = function(user) {
-      $modal.open({
-        templateUrl: 'reset-password-modal',
-        windowClass: 'clm-modal',
-        scope: $scope,
-        backdrop: 'static',
-        keyboard: false,
-        controller: ['$scope', function(scope) {
-          scope.state = 'ready';
-          scope.user = user;
+  $scope.doLoad();
+}
 
-          scope.cancelClick = function() {
-            scope.$close();
-          };
+UserListController.$inject = [
+  '$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
+  'DeleteModalService', '$modal', '$q', 'isAuthorized', '$state'
+];
 
-          scope.resetClick = function() {
-            scope.state = 'pending';
-            $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').then(function(response) {
-              scope.newPassword = response.data.newPassword;
-              scope.state = 'complete';
-            }, function(error) {
-              scope.state = 'failed';
-              scope.error = messages.getHttpErrorMessage(error);
-            });
-          };
-
-          scope.okClick = function() {
-            scope.$close();
-          };
-
-          scope.flashInstalled = function() {
-            return AngularUtils.hasFlash();
-          };
-        }]
-      });
-    };
-
-    $scope.removeClick = function(user) {
-      DeleteModalService.deleteResource('User', user.username, user);
-    };
-
-    $scope.newUserClick = function() {
-      $state.go('users.create');
-    };
-
-    $scope.closeUserCreateForm = function() {
-      $scope.context.users.sort(function(a, b) {
-        if (a.usernameLowercase < b.usernameLowercase) {
-          return -1;
-        }
-        else if (a.usernameLowercase > b.usernameLowercase) {
-          return 1;
-        }
-        else {
-          return 0;
-        }
-      });
-
-      // when a user is added by the user-create page, change the state back to the user list page
-      $state.go('users');
-    };
-
-    $scope.closeUserEditForm = function(user) {
-      $scope.context.userEditMap[user.id] = null;
-    };
-
-    $scope.doLoad();
-  }
-
-  UserListController.$inject = [
-    '$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-    'DeleteModalService', '$modal', '$q', 'isAuthorized', '$state'
-  ];
-
-  angular.module('UserModule').controller('UserListController', UserListController);
-}());
+angular.module('UserModule').controller('UserListController', UserListController);

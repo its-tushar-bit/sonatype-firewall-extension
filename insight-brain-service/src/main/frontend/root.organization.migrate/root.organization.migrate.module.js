@@ -4,9 +4,4 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-(function() {
-  'use strict';
-
-  angular.module('root.organization.migrate', ['CommonServices', 'Stores']);
-
-}());
+angular.module('root.organization.migrate', ['CommonServices', 'Stores']);

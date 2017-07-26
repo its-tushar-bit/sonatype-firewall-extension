@@ -3,48 +3,43 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function CopiedTooltipDirective($parse) {
+  return {
+    restrict: 'A',
+    controller: CopiedTooltipController,
+    require: 'copiedTooltip',
+    link: CopiedTooltipLink
+  };
 
-  function CopiedTooltipDirective($parse) {
-    return {
-      restrict: 'A',
-      controller: CopiedTooltipController,
-      require: 'copiedTooltip',
-      link: CopiedTooltipLink
-    };
-
-    function CopiedTooltipLink(scope, element, attrs, tooltipController) {
-      if (attrs.copiedTooltip.length) {
-        $parse(attrs.copiedTooltip).assign(scope, tooltipController);
-      }
+  function CopiedTooltipLink(scope, element, attrs, tooltipController) {
+    if (attrs.copiedTooltip.length) {
+      $parse(attrs.copiedTooltip).assign(scope, tooltipController);
     }
   }
+}
 
-  CopiedTooltipDirective.$inject = ['$parse'];
+CopiedTooltipDirective.$inject = ['$parse'];
 
-  function CopiedTooltipController($element) {
-    this.showTooltip = showTooltip;
+function CopiedTooltipController($element) {
+  this.showTooltip = showTooltip;
 
-    $element.on('mouseleave', removeTooltip);
+  $element.on('mouseleave', removeTooltip);
 
-    function showTooltip() {
-      $element.tooltip({
-        title: 'Copied!',
-        trigger: 'manual',
-        placement: 'bottom',
-        template: '<div class="tooltip copied-tooltip"><div class="tooltip-arrow"></div>' +
-        '<div class="tooltip-content"><i class="fa fa-check-circle"></i><span class="tooltip-inner"></span></div></div>'
-      }).tooltip('show');
-    }
-
-    function removeTooltip() {
-      $element.tooltip('destroy');
-    }
+  function showTooltip() {
+    $element.tooltip({
+      title: 'Copied!',
+      trigger: 'manual',
+      placement: 'bottom',
+      template: '<div class="tooltip copied-tooltip"><div class="tooltip-arrow"></div>' +
+      '<div class="tooltip-content"><i class="fa fa-check-circle"></i><span class="tooltip-inner"></span></div></div>'
+    }).tooltip('show');
   }
 
-  CopiedTooltipController.$inject = ['$element'];
+  function removeTooltip() {
+    $element.tooltip('destroy');
+  }
+}
 
-  angular.module('utility.directives').directive('copiedTooltip', CopiedTooltipDirective);
+CopiedTooltipController.$inject = ['$element'];
 
-}(angular));
+angular.module('utility.directives').directive('copiedTooltip', CopiedTooltipDirective);

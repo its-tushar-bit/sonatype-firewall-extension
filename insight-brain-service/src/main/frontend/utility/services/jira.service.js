@@ -3,50 +3,46 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function JiraService($http, $q, CLMLocations) {
+  var isEnabledDeferred,
+      getProjectsDeferred;
 
-  function JiraService($http, $q, CLMLocations) {
-    var isEnabledDeferred,
-        getProjectsDeferred;
+  var service = {
+    isEnabled: isEnabled,
+    getJiraProjects: getJiraProjects
+  };
 
-    var service = {
-      isEnabled: isEnabled,
-      getJiraProjects: getJiraProjects
-    };
-
-    function isEnabled() {
-      if (!isEnabledDeferred) {
-        isEnabledDeferred = $q.defer();
-        $http.get(CLMLocations.getIsJiraEnabledUrl()).then(function(isJiraEnabled) {
-          isEnabledDeferred.resolve(isJiraEnabled.data);
-        }, function(error) {
-          isEnabledDeferred.reject(error);
-          // Allow for retrying request
-          isEnabledDeferred = null;
-        });
-      }
-      return isEnabledDeferred.promise;
+  function isEnabled() {
+    if (!isEnabledDeferred) {
+      isEnabledDeferred = $q.defer();
+      $http.get(CLMLocations.getIsJiraEnabledUrl()).then(function(isJiraEnabled) {
+        isEnabledDeferred.resolve(isJiraEnabled.data);
+      }, function(error) {
+        isEnabledDeferred.reject(error);
+        // Allow for retrying request
+        isEnabledDeferred = null;
+      });
     }
-
-    function getJiraProjects() {
-      if (!getProjectsDeferred) {
-        getProjectsDeferred = $q.defer();
-        $http.get(CLMLocations.getJiraProjectsUrl()).then(function(jiraProjects) {
-          getProjectsDeferred.resolve(jiraProjects.data);
-        }, function(error) {
-          getProjectsDeferred.reject(error);
-          // Allow for retrying request
-          getProjectsDeferred = null;
-        });
-      }
-      return getProjectsDeferred.promise;
-    }
-
-    return service;
+    return isEnabledDeferred.promise;
   }
 
-  JiraService.$inject = ['$http', '$q', 'CLMLocations'];
+  function getJiraProjects() {
+    if (!getProjectsDeferred) {
+      getProjectsDeferred = $q.defer();
+      $http.get(CLMLocations.getJiraProjectsUrl()).then(function(jiraProjects) {
+        getProjectsDeferred.resolve(jiraProjects.data);
+      }, function(error) {
+        getProjectsDeferred.reject(error);
+        // Allow for retrying request
+        getProjectsDeferred = null;
+      });
+    }
+    return getProjectsDeferred.promise;
+  }
 
-  angular.module('utility.services').service('jira.service', JiraService);
-}(angular));
+  return service;
+}
+
+JiraService.$inject = ['$http', '$q', 'CLMLocations'];
+
+angular.module('utility.services').service('jira.service', JiraService);

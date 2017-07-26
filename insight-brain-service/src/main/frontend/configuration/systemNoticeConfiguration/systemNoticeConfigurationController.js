@@ -3,57 +3,53 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-(function(angular) {
-  'use strict';
+function systemNoticeConfigurationController(isAuthorized, systemNoticeService, $rootScope) {
+  var vm = this;
+  vm.isAuthorized = isAuthorized;
+  vm.load = load;
+  vm.save = save;
+  vm.cancel = cancel;
+  vm.hasError = hasError;
+  vm.isChanged = isChanged;
 
-  function systemNoticeConfigurationController(isAuthorized, systemNoticeService, $rootScope) {
-    var vm = this;
-    vm.isAuthorized = isAuthorized;
-    vm.load = load;
-    vm.save = save;
-    vm.cancel = cancel;
-    vm.hasError = hasError;
-    vm.isChanged = isChanged;
+  vm.load();
 
-    vm.load();
-
-    function load() {
-      vm.error = undefined;
-      systemNoticeService.getSystemNotice().then(function(response) {
-        vm.savedSystemNotice = response;
-        vm.systemNotice = angular.copy(vm.savedSystemNotice);
-      }).catch(function(error) {
-        vm.error = error;
-        vm.savedSystemNotice = systemNoticeService.getDefaultSystemNotice();
-        vm.systemNotice = angular.copy(vm.savedSystemNotice);
-      });
-    }
-
-    function save() {
-      vm.error = undefined;
-      systemNoticeService.saveSystemNotice(vm.systemNotice).then(function() {
-        vm.savedSystemNotice = angular.copy(vm.systemNotice);
-        $rootScope.$broadcast('systemNoticeUpdated', angular.copy(vm.systemNotice));
-      }).catch(function(error) {
-        vm.error = error;
-      });
-    }
-
-    function cancel() {
+  function load() {
+    vm.error = undefined;
+    systemNoticeService.getSystemNotice().then(function(response) {
+      vm.savedSystemNotice = response;
       vm.systemNotice = angular.copy(vm.savedSystemNotice);
-    }
-
-    function hasError() {
-      return vm.error !== undefined;
-    }
-
-    function isChanged() {
-      return !angular.equals(vm.savedSystemNotice, vm.systemNotice);
-    }
+    }).catch(function(error) {
+      vm.error = error;
+      vm.savedSystemNotice = systemNoticeService.getDefaultSystemNotice();
+      vm.systemNotice = angular.copy(vm.savedSystemNotice);
+    });
   }
 
-  systemNoticeConfigurationController.$inject = ['isAuthorized', 'systemNoticeService', '$rootScope'];
+  function save() {
+    vm.error = undefined;
+    systemNoticeService.saveSystemNotice(vm.systemNotice).then(function() {
+      vm.savedSystemNotice = angular.copy(vm.systemNotice);
+      $rootScope.$broadcast('systemNoticeUpdated', angular.copy(vm.systemNotice));
+    }).catch(function(error) {
+      vm.error = error;
+    });
+  }
 
-  angular.module('systemNoticeConfigurationModule').controller('systemNoticeConfigurationController',
-      systemNoticeConfigurationController);
-}(angular));
+  function cancel() {
+    vm.systemNotice = angular.copy(vm.savedSystemNotice);
+  }
+
+  function hasError() {
+    return vm.error !== undefined;
+  }
+
+  function isChanged() {
+    return !angular.equals(vm.savedSystemNotice, vm.systemNotice);
+  }
+}
+
+systemNoticeConfigurationController.$inject = ['isAuthorized', 'systemNoticeService', '$rootScope'];
+
+angular.module('systemNoticeConfigurationModule').controller('systemNoticeConfigurationController',
+    systemNoticeConfigurationController);

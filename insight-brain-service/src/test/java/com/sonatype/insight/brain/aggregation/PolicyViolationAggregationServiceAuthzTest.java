@@ -8,15 +8,18 @@ package com.sonatype.insight.brain.aggregation;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import com.google.common.collect.Sets;
 import org.joda.time.LocalDate;
 import org.junit.Test;
 
@@ -52,9 +55,14 @@ public class PolicyViolationAggregationServiceAuthzTest
 
   @Test
   public void testGetMttrs_ExplicitApplicationFilter_Authorized() {
+    Application app2 = tempEntity.newApplication(org.getId());
+
     createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
-    assertMttrResults(policyViolationAggregationService.getMttrs(null, Collections.singleton(app.getId())), today);
+
+    Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
+    assertMttrResults(policyViolationAggregationService.getMttrs(null, appIds), today);
   }
 
   @Test
@@ -72,9 +80,27 @@ public class PolicyViolationAggregationServiceAuthzTest
 
   @Test
   public void testGetMttrs_ExplicitOrganizationFilter_Authorized() {
+    Application app2 = tempEntity.newApplication(org.getId());
+
     createPolicyViolation(app.getId(), today, ONE_HOUR);
-    grantReadPermission(org.getId());
+    createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
+
+    grantReadPermission(app.getId());
     assertMttrResults(policyViolationAggregationService.getMttrs(Collections.singleton(org.getId()), null), today);
+  }
+
+  @Test
+  public void testGetMttrs_ExplicitOrganizationFilter_AuthorizedOneOrg() {
+    Organization org2 = tempEntity.newOrganization();
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
+
+    grantReadPermission(org.getId());
+
+    Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
+    assertMttrResults(policyViolationAggregationService.getMttrs(orgIds, null), today);
   }
 
   @Test
@@ -115,10 +141,15 @@ public class PolicyViolationAggregationServiceAuthzTest
 
   @Test
   public void testGetAverages_ExplicitApplicationFilter_Authorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    Application app2 = tempEntity.newApplication(org.getId());
+
+    createPolicyViolation(app.getId(), today);
+    createPolicyViolation(app2.getId(), today);
+
     grantReadPermission(app.getId());
-    assertAveragesResults(policyViolationAggregationService.getAverages(null, Collections.singleton(app.getId())),
-        today);
+
+    Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
+    assertAveragesResults(policyViolationAggregationService.getAverages(null, appIds), today);
   }
 
   @Test
@@ -136,10 +167,28 @@ public class PolicyViolationAggregationServiceAuthzTest
 
   @Test
   public void testGetAverages_ExplicitOrganizationFilter_Authorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    grantReadPermission(org.getId());
+    Application app2 = tempEntity.newApplication(org.getId());
+
+    createPolicyViolation(app.getId(), today);
+    createPolicyViolation(app2.getId(), today);
+
+    grantReadPermission(app.getId());
     assertAveragesResults(policyViolationAggregationService.getAverages(Collections.singleton(org.getId()), null),
         today);
+  }
+
+  @Test
+  public void testGetAverages_ExplicitOrganizationFilter_AuthorizedOneOrg() {
+    Organization org2 = tempEntity.newOrganization();
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    createPolicyViolation(app.getId(), today);
+    createPolicyViolation(app2.getId(), today);
+
+    grantReadPermission(org.getId());
+
+    Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
+    assertAveragesResults(policyViolationAggregationService.getAverages(orgIds, null), today);
   }
 
   @Test
@@ -182,10 +231,14 @@ public class PolicyViolationAggregationServiceAuthzTest
 
   @Test
   public void testGetApplicationCounts_ExplicitApplicationFilter_Authorized() {
+    Application app2 = tempEntity.newApplication(org.getId());
+
     createPolicyViolation(app.getId(), today);
+    createPolicyViolation(app2.getId(), today);
     grantReadPermission(app.getId());
-    assertApplicationCountsResult(
-        policyViolationAggregationService.getApplicationCounts(null, Collections.singleton(app.getId())));
+
+    Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
+    assertApplicationCountsResult(policyViolationAggregationService.getApplicationCounts(null, appIds));
   }
 
   @Test
@@ -205,10 +258,28 @@ public class PolicyViolationAggregationServiceAuthzTest
 
   @Test
   public void testGetApplicationCounts_ExplicitOrganizationFilter_Authorized() {
+    Application app2 = tempEntity.newApplication(org.getId());
+
     createPolicyViolation(app.getId(), today);
-    grantReadPermission(org.getId());
+    createPolicyViolation(app2.getId(), today);
+
+    grantReadPermission(app.getId());
     assertApplicationCountsResult(
         policyViolationAggregationService.getApplicationCounts(Collections.singleton(org.getId()), null));
+  }
+
+  @Test
+  public void testGetApplicationCounts_ExplicitOrganizationFilter_AuthorizedOneOrg() {
+    Organization org2 = tempEntity.newOrganization();
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    createPolicyViolation(app.getId(), today);
+    createPolicyViolation(app2.getId(), today);
+
+    grantReadPermission(org.getId());
+
+    Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
+    assertApplicationCountsResult(policyViolationAggregationService.getApplicationCounts(orgIds, null));
   }
 
   @Test

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class SupportConfig
 {
-  static final long DEFAULT_READ_LIMIT_30MB = 3145728;
+  static final long DEFAULT_READ_LIMIT_30MB = 31457280;
 
   @JsonProperty
   private long readLimitBytes = DEFAULT_READ_LIMIT_30MB;

@@ -17,17 +17,17 @@
   "extends": "eslint:recommended",
   "rules": {
     "camelcase": [
-      2,
+      "error",
       {
         "properties": "never"
       }
     ],
     "curly": [
-      2,
+      "error",
       "all"
     ],
-    "eqeqeq": 2,
-    "wrap-iife": 2,
+    "eqeqeq": "error",
+    "wrap-iife": "error",
     "indent": [
       "error",
       2,
@@ -41,77 +41,77 @@
         "CallExpression": {"arguments": 2}
       }
     ],
-    "new-cap": 0,
-    "no-caller": 2,
+    "new-cap": "off",
+    "no-caller": "error",
     "quotes": [
-      2,
+      "error",
       "single"
     ],
-    "no-undef": 2,
-    "no-unused-vars": 2,
-    "strict": 2,
-    "no-invalid-this": "off", // enable this (See CLM-8375)
-    "no-mixed-spaces-and-tabs": 2,
-    "no-multiple-empty-lines": 2,
-    "no-multi-spaces": 2,
-    "no-nested-ternary": "off", // enable this (See CLM-8375)
+    "no-undef": "error",
+    "no-unused-vars": "error",
+    "strict": "error",
+    "no-invalid-this": "off",
+    "no-mixed-spaces-and-tabs": "error",
+    "no-multiple-empty-lines": "error",
+    "no-multi-spaces": "error",
+    "no-nested-ternary": "off",
     "padded-blocks": "off",
-    "key-spacing": 2,
+    "key-spacing": "error",
     "space-unary-ops": [
-      2,
+      "error",
       {
         "words": false,
         "nonwords": false
       }
     ],
     "comma-spacing": [
-      2,
+      "error",
       {
         "before": false,
         "after": true
       }
     ],
     "semi-spacing": [
-      2,
+      "error",
       {
         "before": false,
         "after": true
       }
     ],
-    "no-spaced-func": 2,
+    "no-spaced-func": "error",
     "space-before-function-paren": [
-      2,
+      "error",
       {
         "anonymous": "ignore",
         "named": "never"
       }
     ],
     "comma-dangle": [
-      2,
+      "error",
       "never"
     ],
-    "no-trailing-spaces": 2,
-    "eol-last": 2,
+    "no-trailing-spaces": "error",
+    "eol-last": "error",
     "semi": [
-      2,
+      "error",
       "always"
     ],
-    "space-infix-ops": 2,
+    "space-infix-ops": "error",
     "keyword-spacing": [
-      2,
+      "error",
       {}
     ],
     "space-before-blocks": [
-      2,
+      "error",
       "always"
     ],
-    "vars-on-top": 0,
+    "vars-on-top": "off",
     "space-in-parens": [
-      2,
+      "error",
       "never"
     ],
-    "no-console": [2, { "allow": ["warn", "error"] }],
-    "array-bracket-spacing": [2, "never"],
-    "object-property-newline": [2, { "allowMultiplePropertiesPerLine": true }]
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "array-bracket-spacing": ["error", "never"],
+    "object-property-newline": ["error", { "allowMultiplePropertiesPerLine": true }]
   }
 }

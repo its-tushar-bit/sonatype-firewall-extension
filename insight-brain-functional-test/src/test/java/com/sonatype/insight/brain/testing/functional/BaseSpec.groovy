@@ -15,9 +15,9 @@ import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.product.license.CLMLicenseManager
 import com.sonatype.insight.brain.service.InsightMockServerRule
-import com.sonatype.insight.brain.service.PortAllocator
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
+import com.sonatype.insight.test.PortAllocator
 import com.sonatype.insight.test.SslProperties;
 
 import org.sonatype.licensing.product.ProductLicenseManager

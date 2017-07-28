@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.performance
 
-import com.sonatype.insight.brain.service.PortAllocator
+import com.sonatype.insight.test.PortAllocator
 
 import geb.report.ReporterSupport
 import geb.spock.GebSpec

@@ -19,10 +19,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.service.PortAllocator;
 import com.sonatype.insight.brain.service.ProxyConfig;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
+import com.sonatype.insight.test.PortAllocator;
 import com.sonatype.insight.test.SslProperties;
 
 import org.eclipse.jetty.http.HttpHeaders;

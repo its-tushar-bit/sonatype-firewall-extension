@@ -6,8 +6,13 @@
 
 import galleryModule from './gallery/module';
 import configModule from '../config';
+import legacyConfigurationModule from '../../frontend/LegacyConfigurationModule';
 
-var module = angular.module('galleryApp', ['ui.router', 'hljs', 'hc.marked', galleryModule.name, configModule.name]);
+var module = angular.module('galleryApp',
+    [
+      'ui.router', 'ui.router.state.events', 'hljs', 'hc.marked', galleryModule.name, configModule.name,
+      legacyConfigurationModule.name
+    ]);
 
 module.config(function($stateProvider, $urlRouterProvider, markedProvider, hljsServiceProvider, componentsConfig,
                        directivesConfig, stylesConfig)

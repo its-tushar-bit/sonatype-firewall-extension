@@ -5,14 +5,16 @@
   },
   "env": {
     "browser": true,
-    "node": true
+    "node": true,
+    "jasmine": true
   },
   "globals": {
     "angular": false,
     "$": false,
     "clmBuildTimestamp": false,
     "Fuse": false,
-    "AngularStateUtils":  false
+    "AngularStateUtils":  false,
+    "inject": false
   },
   "extends": "eslint:recommended",
   "rules": {

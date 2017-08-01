@@ -3,7 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
+import template from './dashboardFilter.html';
+
+var dashboardFilter = {
+  template: template,
+  controller: DashboardFilterController,
+  controllerAs: 'vm'
+};
+
+export default dashboardFilter;
+
 function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
                                    OrganizationStore, EventNameConstant, filterService, $state)
 {
@@ -410,5 +419,5 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
 
 DashboardFilterController.$inject = [
   '$rootScope', '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
-  'event.name.constant', 'dashboard.filter.service', '$state'
+  'event.name.constant', 'dashboardFilterService', '$state'
 ];

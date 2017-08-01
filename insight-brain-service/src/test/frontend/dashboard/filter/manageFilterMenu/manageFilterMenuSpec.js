@@ -1,4 +1,4 @@
-describe('manage.filter.menu.controller', function() {
+describe('manageFilterMenu', function() {
   "use strict";
 
   var $rootScope, $q, $componentController, $httpBackend, CLMLocations, SaveFilterModal, 
@@ -26,8 +26,8 @@ describe('manage.filter.menu.controller', function() {
    
   beforeEach(module('dashboard.module'));
   
-  beforeEach(inject(['$rootScope', '$q', '$httpBackend', '$http', 'CLMLocations', 'save.filter.modal', 
-                     'delete.filters.modal', 'dashboard.filter.service', '$componentController',
+  beforeEach(inject(['$rootScope', '$q', '$httpBackend', '$http', 'CLMLocations', 'saveFilterModal',
+                     'deleteFiltersModal', 'dashboardFilterService', '$componentController',
     function(_$rootScope_, _$q_, _$httpBackend_, _$http_, _CLMLocations_, _SaveFilterModal_, 
              _DeleteFiltersModal_, _filterService_, _$componentController_ ) {
     

@@ -42,7 +42,6 @@ describe('mainModuleSpec', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
       $httpBackend.expectGET('dashboard/results/dashboard.results.html?').respond('<div></div>');
-      $httpBackend.expectGET('dashboard/dashboard.filter.html?').respond('<div></div>');
       $httpBackend.expectGET('dashboard/results/violations.html?').respond('<div></div>');
 
       initService.start();

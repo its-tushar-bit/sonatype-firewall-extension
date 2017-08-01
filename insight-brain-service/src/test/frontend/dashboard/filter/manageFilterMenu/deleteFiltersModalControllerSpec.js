@@ -1,4 +1,4 @@
-describe('delete.filters.modal.controller.spec.js', function() {
+describe('deleteFiltersModalController', function() {
 
   beforeEach(module('dashboard.module'));
 
@@ -34,7 +34,7 @@ describe('delete.filters.modal.controller.spec.js', function() {
   it('Successful delete closes modal', function() {
     scope.$close = jasmine.createSpy();
     inject(function($controller) {
-      vm = $controller('delete.filters.modal.controller',
+      vm = $controller('deleteFiltersModalController',
           {$scope: scope, savedNamedFilters: savedFilterData, DeleteModalService: mockDeleteService});
     });
     vm.filters = {Test1: true};
@@ -48,7 +48,7 @@ describe('delete.filters.modal.controller.spec.js', function() {
 
   it('Delete service error returns control', function() {
     inject(function($controller) {
-      vm = $controller('delete.filters.modal.controller',
+      vm = $controller('deleteFiltersModalController',
           {$scope: scope, savedNamedFilters: savedFilterData, DeleteModalService: mockDeleteService});
     });
     vm.filters = {Test1: true};
@@ -64,7 +64,7 @@ describe('delete.filters.modal.controller.spec.js', function() {
 
   it('Checks dirty state', function() {
     inject(function($controller) {
-      vm = $controller('delete.filters.modal.controller', {$scope: scope, savedNamedFilters: savedFilterData});
+      vm = $controller('deleteFiltersModalController', {$scope: scope, savedNamedFilters: savedFilterData});
     });
     vm.filters = {Test1: false};
     expect(vm.isDirty()).toBe(false);
@@ -74,7 +74,7 @@ describe('delete.filters.modal.controller.spec.js', function() {
 
   describe('Page Changes', function() {
     beforeEach(inject(function($controller) {
-      vm = $controller('delete.filters.modal.controller', {$scope: scope, savedNamedFilters: savedFilterData});
+      vm = $controller('deleteFiltersModalController', {$scope: scope, savedNamedFilters: savedFilterData});
     }));
 
     it('clean', function() {

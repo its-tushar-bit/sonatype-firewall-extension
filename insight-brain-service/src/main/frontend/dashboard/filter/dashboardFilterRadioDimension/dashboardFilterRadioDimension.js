@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './dashboardFilterRadioDimension.html';
 
 /**
  * @ngDoc directive
@@ -24,7 +25,7 @@ function dashboardFilterRadioDimension() {
   return {
     restrict: 'E',
     transclude: true,
-    templateUrl: 'entity-filter-radio-template',
+    template: template,
     scope: {
       available: '<',
       selectedEntry: '=',

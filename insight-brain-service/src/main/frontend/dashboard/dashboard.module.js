@@ -7,43 +7,22 @@
 
 import dashboardUtilsModule from './utils/dashboard.utils.module';
 import dashboardDataService from './services/dashboard.data.service';
-import dashboardFilterService from './services/dashboard.filter.service';
 import policyTrendController from './results/PolicyTrendController';
 import violationsTableRow from './results/violationsTableRow';
 import dashboardResultsController from './results/dashboard.results.controller';
-import dashboardFilterController from './dashboard.filter.controller';
-import dashboardFilterDimension from './dashboard.filter.dimension.directive';
-import dashboardFilterRadioDimension from './dashboard.filter.dimension.radio.directive';
-import deleteFiltersModalController from './manage.filter.menu/delete.filters.modal.controller';
-import deleteFiltersModal from './manage.filter.menu/delete.filters.modal';
-import saveFilterModalController from './manage.filter.menu/save.filter.modal.controller';
-import saveFilterModal from './manage.filter.menu/save.filter.modal';
-import manageFilterMenu from './manage.filter.menu/manage.filter.menu';
+import dashboardFilterModule from './filter/module';
 
 var dashboardModule = angular.module('dashboard.module',
     [
       'ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay', dashboardUtilsModule.name,
-      'utility'
+      'utility', dashboardFilterModule.name
     ])
     .service('dashboard.data.service', dashboardDataService)
-    .service('dashboard.filter.service', dashboardFilterService)
 
     // dashboard results
     .controller('PolicyTrendController', policyTrendController)
     .component('violationsTableRow', violationsTableRow)
-    .controller('dashboard.results.controller', dashboardResultsController)
-
-    // dashboard filter
-    .controller('dashboard.filter.controller', dashboardFilterController)
-    .directive('dashboardFilterDimension', dashboardFilterDimension)
-    .directive('dashboardFilterRadioDimension', dashboardFilterRadioDimension)
-
-    // manage filter modal
-    .controller('delete.filters.modal.controller', deleteFiltersModalController)
-    .service('delete.filters.modal', deleteFiltersModal)
-    .controller('save.filter.modal.controller', saveFilterModalController)
-    .service('save.filter.modal', saveFilterModal)
-    .component('manageFilterMenu', manageFilterMenu);
+    .controller('dashboard.results.controller', dashboardResultsController);
 
 export default dashboardModule;
 
@@ -67,10 +46,7 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
         templateUrl: 'dashboard/results/dashboard.results.html?' + clmBuildTimestamp,
         controller: 'dashboard.results.controller'
       },
-      filter: {
-        templateUrl: 'dashboard/dashboard.filter.html?' + clmBuildTimestamp,
-        controller: 'dashboard.filter.controller as vm'
-      }
+      filter: 'dashboardFilter'
     }
   }).state('dashboard.overview.violations', {
     url: '/violations',

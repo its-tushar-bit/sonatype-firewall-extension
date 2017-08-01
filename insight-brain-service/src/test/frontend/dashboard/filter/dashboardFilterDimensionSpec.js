@@ -1,4 +1,4 @@
-describe('dashboard.filter.dimension.directive', function() {
+describe('dashboardFilterDimension', function() {
   function entity(id, name) {
     return {
       id: id,

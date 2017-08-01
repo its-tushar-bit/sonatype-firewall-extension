@@ -3,9 +3,9 @@ describe('dashboard.filter.controller', function() {
 
   var $rootScope, $scope, $componentController, vm, $httpBackend, CLMLocations, mockState;
 
-  beforeEach(module('dashboard.module'));
+  beforeEach(module('dashboardFilter'));
 
-  beforeEach(inject(function(_$rootScope_, _$httpBackend_, $controller, _$componentController_, _CLMLocations_) {
+  beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$componentController_, _CLMLocations_) {
     $rootScope = _$rootScope_;
     $scope = $rootScope.$new();
     $componentController = _$componentController_;
@@ -16,7 +16,7 @@ describe('dashboard.filter.controller', function() {
       $current: { name: ''}
     };
 
-    vm = $controller('dashboard.filter.controller', {
+    vm = $componentController('dashboardFilter', {
       $scope: $scope,
       $state: mockState
     });
@@ -581,9 +581,9 @@ describe('dashboard.filter.controller', function() {
 
   describe('age filter', function() {
 
-    var controllerWithoutParam, controllerWithParam, controllerWithParamWrongState;
+    var dashboardFilterWithoutParam, dashboardFilterWithParam, dashboardFilterWithParamWrongState;
 
-    beforeEach(inject(function($controller) {
+    beforeEach(function() {
       $httpBackend.whenGET(CLMLocations.getApplicationsUrl()).respond([]);
       $httpBackend.whenGET(CLMLocations.getDashboardStageUrl()).respond([]);
       $httpBackend.whenGET(CLMLocations.getOrganizationsUrl()).respond([]);
@@ -602,43 +602,43 @@ describe('dashboard.filter.controller', function() {
             params: {timeFilterFeature: 'true'},
             $current: {name: 'dashboard.overview.components'}
           };
-      controllerWithoutParam = $controller('dashboard.filter.controller', {
+      dashboardFilterWithoutParam = $componentController('dashboardFilter', {
         $state: mockViolationsStateWithoutParam,
         $scope: $rootScope.$new()
       });
-      controllerWithParam = $controller('dashboard.filter.controller', {
+      dashboardFilterWithParam = $componentController('dashboardFilter', {
         $state: mockViolationsStateWithParam,
         $scope: $rootScope.$new()
       });
-      controllerWithParamWrongState = $controller('dashboard.filter.controller', {
+      dashboardFilterWithParamWrongState = $componentController('dashboardFilter', {
         $state: mockComponentsStateWithParam,
         $scope: $rootScope.$new()
       });
-    }));
+    });
 
 
     it('only shows the age filter when the flag is turned on', function() {
       $httpBackend.whenGET(CLMLocations.getDashboardFilters()).respond({filter: {maxDaysOld: 30}});
       $httpBackend.flush(15); // (3 controllers here + 1 at the top scope) * 3 endpoint calls + 3 store calls
 
-      expect(controllerWithoutParam.showAgeFilter).toBeFalsy();
-      expect(controllerWithoutParam.isAgeFilterReadOnly).toBeTruthy();
-      expect(controllerWithParam.showAgeFilter).toBeTruthy();
-      expect(controllerWithParam.isAgeFilterReadOnly).toBeFalsy();
-      expect(controllerWithParamWrongState.showAgeFilter).toBeFalsy();
-      expect(controllerWithParamWrongState.isAgeFilterReadOnly).toBeFalsy();
+      expect(dashboardFilterWithoutParam.showAgeFilter).toBeFalsy();
+      expect(dashboardFilterWithoutParam.isAgeFilterReadOnly).toBeTruthy();
+      expect(dashboardFilterWithParam.showAgeFilter).toBeTruthy();
+      expect(dashboardFilterWithParam.isAgeFilterReadOnly).toBeFalsy();
+      expect(dashboardFilterWithParamWrongState.showAgeFilter).toBeFalsy();
+      expect(dashboardFilterWithParamWrongState.isAgeFilterReadOnly).toBeFalsy();
     });
 
     it('also shows read-only age filter when loading a filter with non-default age', function() {
       $httpBackend.whenGET(CLMLocations.getDashboardFilters()).respond({filter: {maxDaysOld: 90}});
       $httpBackend.flush(15); // (3 controllers here + 1 at the top scope) * 3 endpoint calls + 3 store calls
 
-      expect(controllerWithoutParam.showAgeFilter).toBeTruthy();
-      expect(controllerWithoutParam.isAgeFilterReadOnly).toBeTruthy();
-      expect(controllerWithParam.showAgeFilter).toBeTruthy();
-      expect(controllerWithParam.isAgeFilterReadOnly).toBeFalsy();
-      expect(controllerWithParamWrongState.showAgeFilter).toBeFalsy();
-      expect(controllerWithParamWrongState.isAgeFilterReadOnly).toBeFalsy();
+      expect(dashboardFilterWithoutParam.showAgeFilter).toBeTruthy();
+      expect(dashboardFilterWithoutParam.isAgeFilterReadOnly).toBeTruthy();
+      expect(dashboardFilterWithParam.showAgeFilter).toBeTruthy();
+      expect(dashboardFilterWithParam.isAgeFilterReadOnly).toBeFalsy();
+      expect(dashboardFilterWithParamWrongState.showAgeFilter).toBeFalsy();
+      expect(dashboardFilterWithParamWrongState.isAgeFilterReadOnly).toBeFalsy();
     });
 
   });

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './dashboardFilterDimension.html';
 
 /**
  * @ngDoc directive
@@ -25,7 +26,7 @@ function DashboardFilterDimension() {
   return {
     restrict: 'E',
     transclude: true,
-    templateUrl: 'entity-filter-template',
+    template: template,
     scope: {
       available: '=',
       selected: '=',

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './saveFilterModal.html';
 export default
 function SaveFilterModal($modal) {
   return {
@@ -15,8 +16,8 @@ function SaveFilterModal($modal) {
       backdrop: 'static',
       keyboard: false,
       windowClass: 'save-filter-modal clm-modal',
-      controller: 'save.filter.modal.controller as vm',
-      templateUrl: 'dashboard/manage.filter.menu/save.filter.modal.html',
+      controller: 'saveFilterModalController as vm',
+      template: template,
       resolve: {
         filterJson: function() {
           return filterJson;

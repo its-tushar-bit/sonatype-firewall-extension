@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './deleteFiltersModal.html';
+
 export default
 function DeleteFiltersModal($modal) {
   return {
@@ -15,8 +17,8 @@ function DeleteFiltersModal($modal) {
       backdrop: 'static',
       keyboard: false,
       windowClass: 'delete-filters-modal iq-modal clm-modal',
-      controller: 'delete.filters.modal.controller as vm',
-      templateUrl: 'dashboard/manage.filter.menu/delete.filters.modal.html',
+      controller: 'deleteFiltersModalController as vm',
+      template: template,
       resolve: {
         savedNamedFilters: function() {
           return savedNamedFilters;

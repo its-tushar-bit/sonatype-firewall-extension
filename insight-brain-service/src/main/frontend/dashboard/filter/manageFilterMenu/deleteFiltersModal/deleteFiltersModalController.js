@@ -88,5 +88,5 @@ function DeleteFiltersModalController($scope, $http, CLMLocations, savedNamedFil
 }
 
 DeleteFiltersModalController.$inject = [
-  '$scope', '$http', 'CLMLocations', 'savedNamedFilters', 'DeleteModalService', 'dashboard.filter.service'
+  '$scope', '$http', 'CLMLocations', 'savedNamedFilters', 'DeleteModalService', 'dashboardFilterService'
 ];

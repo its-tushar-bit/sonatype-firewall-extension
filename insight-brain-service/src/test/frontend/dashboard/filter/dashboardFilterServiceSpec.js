@@ -1,11 +1,11 @@
-describe('dashboard.filter.service.spec', function() {
+describe('dashboardFilterService', function() {
   var $httpBackend, dashboardFilterService, CLMLocations;
 
   beforeEach(module('dashboard.module'));
 
   beforeEach(inject(function($injector) {
     $httpBackend = $injector.get('$httpBackend');
-    dashboardFilterService = $injector.get('dashboard.filter.service');
+    dashboardFilterService = $injector.get('dashboardFilterService');
     CLMLocations = $injector.get('CLMLocations');
   }));
 

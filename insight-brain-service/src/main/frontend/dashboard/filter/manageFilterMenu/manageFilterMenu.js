@@ -3,7 +3,25 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function ManageFilterMenu($http, CLMLocations, SaveFilterModal, DeleteFiltersModal, filterService) {
+import template from './manageFilterMenu.html';
+
+var manageFilterMenu = {
+  template: template,
+  controller: ManageFilterMenuController,
+  controllerAs: 'vm',
+  bindings: {
+    activeFilterName: '<',
+    isSaveFilterDisabled: '<',
+    currentFilter: '<',
+    onActiveFilterDeleted: '&',
+    onFilterSelected: '&',
+    onFilterSaved: '&'
+  }
+};
+
+export default manageFilterMenu;
+
+function ManageFilterMenuController($http, CLMLocations, SaveFilterModal, DeleteFiltersModal, filterService) {
   var vm = this;
 
   vm.savedFiltersHasError = false;
@@ -80,22 +98,6 @@ function ManageFilterMenu($http, CLMLocations, SaveFilterModal, DeleteFiltersMod
 
 }
 
-ManageFilterMenu.$inject = [
-  '$http', 'CLMLocations', 'save.filter.modal', 'delete.filters.modal', 'dashboard.filter.service'
+ManageFilterMenuController.$inject = [
+  '$http', 'CLMLocations', 'saveFilterModal', 'deleteFiltersModal', 'dashboardFilterService'
 ];
-
-var manageFilterMenuComponent = {
-  templateUrl: 'dashboard/manage.filter.menu/manage.filter.menu.html',
-  controller: ManageFilterMenu,
-  controllerAs: 'vm',
-  bindings: {
-    activeFilterName: '<',
-    isSaveFilterDisabled: '<',
-    currentFilter: '<',
-    onActiveFilterDeleted: '&',
-    onFilterSelected: '&',
-    onFilterSaved: '&'
-  }
-};
-
-export default manageFilterMenuComponent;

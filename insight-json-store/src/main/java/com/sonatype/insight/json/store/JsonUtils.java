@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -147,7 +146,7 @@ public final class JsonUtils
 
   public static String writeUnformatted(Object pojo) {
     try {
-      return new ObjectMapper(JSON).writeValueAsString(pojo);
+      return JSON.getCodec().writeValueAsString(pojo);
     }
     catch (JsonProcessingException e) {
       throw new UncheckedIOException(e);

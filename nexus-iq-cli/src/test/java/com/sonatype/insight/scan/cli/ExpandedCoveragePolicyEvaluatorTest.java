@@ -7,8 +7,10 @@ package com.sonatype.insight.scan.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -30,6 +32,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
 import org.owasp.dependencycheck.dependency.Dependency;
+import org.owasp.dependencycheck.dependency.Evidence;
 import org.owasp.dependencycheck.utils.Settings.KEYS;
 
 import static com.sonatype.insight.scan.cli.ExpandedCoveragePolicyEvaluator.EXPANDED_COVERAGE_SCAN_DISCLAIMER;
@@ -89,14 +92,30 @@ public class ExpandedCoveragePolicyEvaluatorTest
   public void testScan_Directory() throws Exception {
     List<Dependency> dependencies = testScan("");
 
-    logOutput.assertInfo("Found 4 items.");
-    assertThat(dependencies, hasSize(4));
+    logOutput.assertInfo("Found 7 items.");
+    assertThat(dependencies, hasSize(7));
     assertThat(dependencies, hasItem(dependencyWithName("cmake/CMakeLists.txt")));
     assertThat(dependencies, hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar")));
     assertThat(dependencies,
         hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/com.example/uber/pom.xml")));
     assertThat(dependencies,
         hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/org.apache.commons/commons-lang3/pom.xml")));
+    assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg")));
+    assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg: ActionSheet.nuspec")));
+    assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg: ActionSheet.dll")));
+  }
+
+  @Test
+  public void testScan_DependencyWithEmptyVendorEvidenceItemValue_IsSerialized() throws Exception {
+    List<Dependency> dependencies = testScan("actionsheet.1.0.0.mod.nupkg");
+    Set<String> values = new HashSet<>();
+    for (Dependency dependency : dependencies) {
+      for (Evidence evidence : dependency.getVendorEvidence().getEvidence()) {
+        assertThat(evidence.getValue(), is(notNullValue()));
+        values.add(evidence.getValue());
+      }
+    }
+    assertThat(values, hasItem(""));
   }
 
   @Test

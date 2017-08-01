@@ -157,7 +157,7 @@ public class ExpandedCoveragePolicyEvaluator
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.setVisibility(objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY)
         .withGetterVisibility(JsonAutoDetect.Visibility.NONE));
-    objectMapper.setSerializationInclusion(Include.NON_EMPTY);
+    objectMapper.setSerializationInclusion(Include.NON_NULL);
     objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     return objectMapper;
   }

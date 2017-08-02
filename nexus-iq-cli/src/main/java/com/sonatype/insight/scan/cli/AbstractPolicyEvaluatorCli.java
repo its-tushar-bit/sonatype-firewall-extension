@@ -20,9 +20,8 @@ abstract class AbstractPolicyEvaluatorCli
   static final String PROP_START_TIME = "com.sonatype.insight.scan.startTime";
 
   protected void run(Class<? extends PolicyEvaluator> policyEvaluatorClass, AbstractCliParameters params) {
-    PolicyEvaluator<AbstractCliParameters> main = boot(policyEvaluatorClass, params);
-
     try {
+      PolicyEvaluator<AbstractCliParameters> main = boot(policyEvaluatorClass, params);
       main.run(params);
     }
     catch (ExitException e) {
@@ -30,7 +29,7 @@ abstract class AbstractPolicyEvaluatorCli
     }
   }
 
-  private <T extends PolicyEvaluator<?>> T boot(Class<T> type, AbstractParameters params) {
+  private <T extends PolicyEvaluator<?>> T boot(Class<T> type, AbstractParameters params) throws ExitException {
     initLogging(params);
 
     if (params.getError() != null) {
@@ -40,12 +39,12 @@ abstract class AbstractPolicyEvaluatorCli
       Logger log = LoggerFactory.getLogger(type);
       log.error(params.getError().getMessage());
 
-      System.exit(1);
+      throw new ExitException(1);
     }
 
     if (params.isHelp()) {
       params.printUsage();
-      System.exit(0);
+      throw new ExitException(0);
     }
 
     return org.eclipse.sisu.launch.Main.boot(type, params.getArgs());

@@ -138,13 +138,14 @@ angularCommon.directive('loadError', [
     return {
       restrict: 'A',
       priority: 99,
-      template: '<div ng-show="error != null" class="clm-alert alert alert-error">' +
-          '<div><i class="fa fa-warning"></i>' +
+      template: '<div ng-show="error != null" class="iq-alert iq-alert--error">' +
+          '<i class="fa fa-warning"></i>' +
           '<span>{{message || "An error occurred loading data."}} </span>' +
           '<span ng-if="error">{{getDetails()}}</span>' +
+          '<div class="iq-btn-bar">' +
+          '<a href class="btn btn-error" ng-click="reload()"><i class="fa fa-refresh"></i>Retry</a>' +
           '</div>' +
-          '<div><button type="button" class="btn btn-error" ng-click="reload()">' +
-          '<i class="fa fa-refresh"></i>Retry</button></div></div>',
+          '</div>',
       scope: {
         error: '=loadError',
         reload: '&reload',

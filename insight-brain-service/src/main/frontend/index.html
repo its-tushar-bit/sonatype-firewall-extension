@@ -83,8 +83,8 @@
     <system-notice></system-notice>
     <div ui-view></div>
   </div>
-  <div ng-cloak ng-if='error' class='alert alert-error' style='margin:86px auto;width:50%;max-width:400px'>
-    <h3>Error</h3>
+  <div ng-cloak ng-if="error" class="iq-alert iq-alert--error" style="margin:86px auto;width:50%;max-width:400px">
+    <i class="fa fa-warning"></i><strong>Error</strong>
     <p>An unrecoverable error has occurred while loading the page.</p>
     <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
   </div>
@@ -92,8 +92,8 @@
     <div class="clm-modal unsaved-modal">
       <div class="clm-modal-header"><h2>Unsaved Changes</h2></div>
       <div class="clm-modal-body warn">
-        <div class="clm-alert alert"><i class="fa fa-warning"></i>The page may contain unsaved changes,
-          continuing will discard them.
+        <div class="iq-alert">
+          <i class="fa fa-warning"></i>The page may contain unsaved changes, continuing will discard them.
         </div>
       </div>
       <div class='clm-modal-footer'>

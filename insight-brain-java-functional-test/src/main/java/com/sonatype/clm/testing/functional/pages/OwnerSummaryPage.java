@@ -108,7 +108,7 @@ public class OwnerSummaryPage
     }
 
     public static ErrorBox error() {
-      return new ErrorBox(ROOT_ID, ".clm-alert.alert-error");
+      return new ErrorBox(ROOT_ID, ".iq-alert.iq-alert--error");
     }
 
     public static SelenideElement appCategoriesButton() {

@@ -52,6 +52,6 @@ public class ApplicationCategoryEditorPage
   }
 
   public static ErrorBox errorBox() {
-    return new ErrorBox(ROOT_ID, ".clm-alert");
+    return new ErrorBox(ROOT_ID, ".iq-alert");
   }
 }

@@ -122,7 +122,7 @@ public abstract class AbstractSummaryViewTest
 
     ErrorBox error = OwnerSummaryPage.SummaryTile.error();
     error.shouldBe(visible);
-    error.message().shouldHave(text("Could not find an " + currentOwner.getType().toString()));
+    error.shouldHave(text("Could not find an " + currentOwner.getType().toString()));
     error.retryButton().shouldBe(visible, enabled);
   }
 

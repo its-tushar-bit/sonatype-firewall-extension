@@ -11,11 +11,10 @@
           <input type='file' file-model='vm.importFile' id='importFile' name='file' accept=".json">
         </div>
       </div>
-      <div ng-if="!vm.error" class="clm-alert alert">
-        <i class="fa fa-warning"></i>
-        <span><strong>Note:</strong> Importing policies is <strong>destructive</strong>, all existing policies, waivers,
-          and license threat groups belonging to this organization/application and any of its descendants will be
-          <strong>permanently deleted</strong> before importing.</span>
+      <div ng-if="!vm.error" class="iq-alert">
+        <i class="fa fa-warning"></i><strong>Note:</strong> Importing policies is <strong>destructive</strong>, all
+        existing policies, waivers, and license threat groups belonging to this organization/application and any of its
+        descendants will be <strong>permanently deleted</strong> before importing.
       </div>
     </div>
     <div class='clm-modal-footer' ng-class="{error: vm.error}">

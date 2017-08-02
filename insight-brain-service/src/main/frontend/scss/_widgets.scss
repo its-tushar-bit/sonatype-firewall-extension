@@ -251,6 +251,12 @@
   }
 }
 
+.iq-alert--system-notice {
+  border-style: solid;
+  border-width: 1px 0;
+  margin: 0;
+}
+
 /*
  #Dropdown menus
 */
@@ -602,57 +608,6 @@
       cursor: default;
     }
   }
-}
-  
-  
-
-/*
-  ## Alerts
-*/
-.clm-alert {
-  $maximum-alert-scroll-height: 318px;
-
-  background-color: $iq-warn-color-bg;
-  border-color: $iq-warn-color;
-  border-radius: 0;
-  color: $iq-warn-color;
-  margin: 5px;
-  padding: 12px 8px;
-
-  &.alert-error {
-    background-color: $iq-fail-color-bg;
-    border-color: $iq-fail-color;
-    color: $iq-fail-color;
-  }
-
-  &.alert-info {
-    background-color: $iq-off-white;
-    border-color: $iq-dark-blue;
-    color: $iq-off-black;
-
-    .fa {
-      color: $iq-dark-blue;
-    }
-  }
-
-  .btn {
-    margin-top: 24px;
-  }
-
-  i.fa::before {
-    margin-right: 8px;
-  }
-
-  &.alert-scrollable{
-    max-height: $maximum-alert-scroll-height;
-    overflow: auto;
-  }
-}
-
-.clm-alert__system-notice {
-  border-style: solid;
-  border-width: 1px 0;
-  margin: 0;
 }
 
 #move-app-error-modal {

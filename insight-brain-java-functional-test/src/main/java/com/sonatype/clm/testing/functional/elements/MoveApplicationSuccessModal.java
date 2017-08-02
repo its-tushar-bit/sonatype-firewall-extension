@@ -17,11 +17,11 @@ public class MoveApplicationSuccessModal
   }
 
   public SelenideElement infoSection() {
-    return child(".clm-modal-body .clm-alert.alert-info");
+    return child(".clm-modal-body .iq-alert.iq-alert--info");
   }
 
   public SelenideElement warningSection() {
-    return child(".clm-modal-body .clm-alert.alert");
+    return child(".clm-modal-body .iq-alert.iq-scrollable");
   }
 
   public SelenideElement okButton() {

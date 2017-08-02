@@ -37,7 +37,7 @@ public class RootOrganizationSuccessMetricsPage
   }
 
   public ErrorBox errorBox() {
-    return new ErrorBox(childSelector(".clm-alert"));
+    return new ErrorBox(childSelector(".iq-alert.iq-alert--error"));
   }
 
   public SelenideElement noRootOrgError() {

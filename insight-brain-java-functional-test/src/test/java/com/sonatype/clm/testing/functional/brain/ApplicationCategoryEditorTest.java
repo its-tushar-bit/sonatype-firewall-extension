@@ -68,7 +68,7 @@ public class ApplicationCategoryEditorTest
 
     ErrorBox errorBox = ApplicationCategoryEditorPage.errorBox();
     errorBox.shouldBe(visible);
-    errorBox.message().shouldHave(ApplicationCategoryEditorPage.NO_CATEGORIES_DEFINED);
+    errorBox.shouldHave(ApplicationCategoryEditorPage.NO_CATEGORIES_DEFINED);
   }
 
   @Test

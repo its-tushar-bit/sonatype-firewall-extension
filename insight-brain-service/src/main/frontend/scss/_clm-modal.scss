@@ -79,7 +79,7 @@ $iq-modal-footer-height: 58px;
       padding: 0px;
     }
 
-    .clm-alert__system-notice {
+    .iq-alert--system-notice {
       border-width: 1px;
       margin: 8px 8px 30px 8px;
     }
@@ -113,12 +113,6 @@ $iq-modal-footer-height: 58px;
 .clm-modal {
   .clm-modal-body.warn {
     padding: 0;
-
-    div.clm-alert {
-      border-right: 0;
-      border-left: 0;
-      margin: 0;
-    }
   }
 }
 

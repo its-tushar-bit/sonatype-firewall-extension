@@ -25,10 +25,8 @@
       Filter
     </div>
     <div class="dashboard-filter-name" ng-if="vm.activeFilterName">{{vm.activeFilterName}}<span class="dashboard-filter-dirty-asterisk" ng-if="vm.showDirtyAsterisk">*</span></div>
-    <div ng-show="vm.loadErrorFilterName" class="clm-alert alert alert-error">
-      <div><i class="fa fa-warning"></i>
-        <span>Failed to load {{vm.loadErrorFilterName}}</span>
-      </div>
+    <div ng-show="vm.loadErrorFilterName" class="iq-alert iq-alert--error">
+      <i class="fa fa-warning"></i>Failed to load {{vm.loadErrorFilterName}}
     </div>
     <div load-wrapper="vm.loadError" reload="vm.doLoad()" error-message="Unable to load filter data."
          loading="!vm.applications">

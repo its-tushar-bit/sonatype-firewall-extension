@@ -16,11 +16,7 @@ public class ErrorBox
     super(selector);
   }
 
-  public SelenideElement message() {
-    return child("div:first-child");
-  }
-
   public SelenideElement retryButton() {
-    return child("button");
+    return child("a");
   }
 }

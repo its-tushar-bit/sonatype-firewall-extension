@@ -27,7 +27,7 @@ public class SuccessMetricsChartsPage
   }
 
   public ErrorBox errorBox() {
-    return new ErrorBox(childSelector(".clm-alert"));
+    return new ErrorBox(childSelector(".iq-alert"));
   }
 
   public SelenideElement noRootOrgWarning() {

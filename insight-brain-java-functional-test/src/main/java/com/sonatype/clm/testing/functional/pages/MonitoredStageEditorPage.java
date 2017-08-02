@@ -51,6 +51,6 @@ public class MonitoredStageEditorPage
   }
 
   public static SelenideElement unsupportedLicenseWarning() {
-    return $(ROOT + " .alert");
+    return $(ROOT + " .iq-alert");
   }
 }

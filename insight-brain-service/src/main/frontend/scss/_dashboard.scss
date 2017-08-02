@@ -648,9 +648,7 @@
   }
 }
 
-.dashboard-tooltip {
-  margin-top: 2px!important;
-
+.tooltip.dashboard-tooltip {
   &.pathname .tooltip-inner::before {
     content: "COMPONENT PATH\a";
     display: block;
@@ -660,8 +658,5 @@
   .tooltip-inner {
     text-align: left;
     max-width: 350px;
-  }
-  .tooltip-arrow {
-    left: 10%;
   }
 }

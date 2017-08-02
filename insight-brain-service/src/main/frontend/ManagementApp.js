@@ -6,12 +6,13 @@
 
 import successMetricsConfigurationModule from './configuration/successMetricsConfiguration/successMetricsConfigurationModule';
 import legacyConfigurationModule from './LegacyConfigurationModule';
+import directivesModule from './directives/module';
 
 export default angular.module('managementApp',
     [
       'MainModule', 'UserModule', 'RoleModule', 'ldap.module', 'owner.manager.module',
       'root.organization.migrate', 'ProductLicense', 'webhook.module', 'systemNoticeConfigurationModule',
-      'systemNoticeModule', 'components', 'labsModule', successMetricsConfigurationModule.name,
+      'systemNoticeModule', 'components', directivesModule.name, 'labsModule', successMetricsConfigurationModule.name,
       legacyConfigurationModule.name
     ]
 );

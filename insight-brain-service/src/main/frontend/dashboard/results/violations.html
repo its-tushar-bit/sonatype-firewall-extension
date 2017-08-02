@@ -5,31 +5,35 @@
       <div class="width-third column threat-and-policy-column-container semi-bold"><!--
      --><div class="column fixed threat-number">{{::vm.risk.threatLevel}}</div><!--
      --><div class="column remaining policy truncate-ellipsis"
-             data-tooltip="{{::vm.risk.policyName}}"
-             data-tooltip-placement="top-left"
-             data-tooltip-popup-delay="500"
-             data-tooltip-append-to-body="true"
-             data-tooltip-class="dashboard-tooltip">
+             iq-tooltip
+             tooltip-attach-to-body
+             tooltip-class="dashboard-tooltip"
+             tooltip-delay=500
+             tooltip-only-on-overflow="true"
+             tooltip-text="{{::vm.risk.policyName}}">
           {{::vm.risk.policyName}}
         </div>
       </div><!--
    --><div class="column width-third application truncate-ellipsis"
-           data-tooltip="{{::vm.risk.applicationName}}"
-           data-tooltip-placement="top-left"
-           data-tooltip-popup-delay="500"
-           data-tooltip-append-to-body="true"
-           data-tooltip-class="dashboard-tooltip">
+           iq-tooltip
+           tooltip-attach-to-body
+           tooltip-class="dashboard-tooltip"
+           tooltip-delay=500
+           tooltip-only-on-overflow="true"
+           tooltip-text="{{::vm.risk.applicationName}}">
         {{::vm.risk.applicationName}}
       </div><!--
    --><div class="column width-third component truncate-ellipsis"><!--
      --><span component-display
               component="vm.risk"
               truncate="true"
-              data-tooltip="{{::vm.risk.gavName}}"
-              data-tooltip-placement="top-left"
-              data-tooltip-popup-delay="500"
-              data-tooltip-append-to-body="true"
-              data-tooltip-class="dashboard-tooltip {{::!vm.risk.displayName && vm.risk.pathnames ? 'pathname' : ''}}"><!--
+              iq-tooltip
+              tooltip-attach-to-body
+              tooltip-class="dashboard-tooltip {{::!vm.risk.displayName && vm.risk.pathnames ? 'pathname' : ''}}"
+              tooltip-delay=500
+              tooltip-only-on-overflow="true"
+              tooltip-overflow-element-selector=".truncate-ellipsis"
+              tooltip-text="{{::vm.risk.gavName}}"><!--
      --></span><!--
    --></div><!--
    --><div class="column fixed age">{{::vm.risk.time | terseAgo}}</div><!--

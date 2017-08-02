@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import componentsModule from '../frontend/components/module';
+import directivesModule from '../frontend/directives/module';
 import '../frontend/components/iqCheckbox/iqCheckbox';
 import '../frontend/components/iqRadio/iqRadio';
 import '../frontend/components/iqBackButton/iqBackButton';
@@ -13,7 +14,8 @@ import '../frontend/utility/directives/load.wrapper.directive';
 
 import charts from './charts/module';
 
-export default angular.module('config', [componentsModule.name, charts.name, utilityDirectivesModule.name])
+export default angular.module('config',
+    [componentsModule.name, directivesModule.name, charts.name, utilityDirectivesModule.name])
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
       'iq-radio': 'components/iq-radio.html',
@@ -22,6 +24,7 @@ export default angular.module('config', [componentsModule.name, charts.name, uti
 
     .constant('directivesConfig', {
       'load-wrapper': 'directives/load-wrapper.html',
+      'iq-tooltip': 'directives/iq-tooltip.html'
     })
 
     .constant('stylesConfig', {

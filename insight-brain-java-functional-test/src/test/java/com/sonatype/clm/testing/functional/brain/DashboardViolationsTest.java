@@ -106,10 +106,10 @@ public class DashboardViolationsTest
 
   @Before
   public void init() throws IOException {
-    app1 = tempEntity.newApplicationWithParent("app1", "Violations Test App1");
-    app2 = tempEntity.newApplicationWithParent("app2", "Violations Test App2");
-    licensePolicy = tempEntity.newPolicy(app1.getParentOwnerId(), "DashboardViolationsTestLicensePolicy");
-    securityPolicy = tempEntity.newPolicy(app2.getParentOwnerId(), "DashboardViolationsTestSecurityPolicy");
+    app1 = tempEntity.newApplicationWithParent("app1", "DVT App1");
+    app2 = tempEntity.newApplicationWithParent("app2", "DVT App2 With A Long Name Just To Force Overflow");
+    licensePolicy = tempEntity.newPolicy(app1.getParentOwnerId(), "DVTLicensePolicy");
+    securityPolicy = tempEntity.newPolicy(app2.getParentOwnerId(), "DVTSecurityPolicyWithAnotherUnnecessarilyLongName");
     buildEvalNow = tempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "now", now);
     buildEval2MonthsAgo = tempEntity
@@ -123,7 +123,7 @@ public class DashboardViolationsTest
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
     releaseComponent = tempEntity
         .newApplicationComponent(app2.getId(), ReleaseStageType.ID, randomAlphanumeric(10),
-            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890"));
     operateComponent = tempEntity
         .newApplicationComponent(app1.getId(), OperateStageType.ID, randomAlphanumeric(10),
             ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
@@ -180,17 +180,26 @@ public class DashboardViolationsTest
     refreshOrOpen(VIOLATIONS_URL);
     table.violations().shouldHaveSize(4);
 
-    // check the tile details
+    // check the tile details - tooltips should not show for short names
     ViolationTile firstViolation = table.firstViolation();
     firstViolation.threatBar().shouldHave(SEVERE);
     firstViolation.threatNumber().shouldHave(text("7"));
     firstViolation.policy().shouldHave(text(licensePolicy.getName())).hover();
-    DashboardPage.tooltip().shouldBe(visible).shouldHave(text(licensePolicy.getName()));
+    DashboardPage.tooltip().shouldNotBe(visible);
     firstViolation.application().shouldHave(text(app1.getName())).hover();
-    DashboardPage.tooltip().shouldBe(visible).shouldHave(text(app1.getName()));
+    DashboardPage.tooltip().shouldNotBe(visible);
     firstViolation.component().shouldHave(text("g1 : a1 : v1")).hover();
-    DashboardPage.tooltip().shouldBe(visible).shouldHave(text("g1 : a1 : v1"));
+    DashboardPage.tooltip().shouldNotBe(visible);
     firstViolation.age().shouldHave(text("1min"));
+
+    // check that tooltips do show for long names
+    ViolationTile secondViolation = table.violation(1);
+    secondViolation.policy().hover();
+    DashboardPage.tooltip().shouldBe(visible).shouldHave(text(securityPolicy.getName()));
+    secondViolation.application().hover();
+    DashboardPage.tooltip().shouldBe(visible).shouldHave(text(app2.getName()));
+    secondViolation.component().hover();
+    DashboardPage.tooltip().shouldBe(visible).shouldHave(text("g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890"));
 
     // check the report link - opens new window
     firstViolation.latestReport().shouldNotBe(DISABLED).shouldHave(text("Build")).click();
@@ -228,19 +237,19 @@ public class DashboardViolationsTest
 
     // sort by licensePolicy name
     headers.policyHeader().click();
-    firstViolation.shouldHave(text("DashboardViolationsTestLicensePolicy"));
-    table.lastViolation().shouldHave(text("DashboardViolationsTestSecurityPolicy"));
+    firstViolation.shouldHave(text("DVTLicensePolicy"));
+    table.lastViolation().shouldHave(text("DVTSecurityPolicyWithAnotherUnnecessarilyLongName"));
     headers.policyHeader().click();
-    firstViolation.shouldHave(text("DashboardViolationsTestSecurityPolicy"));
-    table.lastViolation().shouldHave(text("DashboardViolationsTestLicensePolicy"));
+    firstViolation.shouldHave(text("DVTSecurityPolicyWithAnotherUnnecessarilyLongName"));
+    table.lastViolation().shouldHave(text("DVTLicensePolicy"));
 
     // sort by application name
     headers.applicationHeader().click();
-    firstViolation.shouldHave(text("Violations Test App1"));
-    table.lastViolation().shouldHave(text("Violations Test App2"));
+    firstViolation.shouldHave(text("DVT App1"));
+    table.lastViolation().shouldHave(text("DVT App2 With A Long Name Just To Force Overflow"));
     headers.applicationHeader().click();
-    firstViolation.shouldHave(text("Violations Test App2"));
-    table.lastViolation().shouldHave(text("Violations Test App1"));
+    firstViolation.shouldHave(text("DVT App2 With A Long Name Just To Force Overflow"));
+    table.lastViolation().shouldHave(text("DVT App1"));
 
     // sort by component name
     headers.componentHeader().click();
@@ -260,10 +269,10 @@ public class DashboardViolationsTest
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.consumeResponse());
     Map<String, Date> expectedResults = ImmutableMap.of(
-        "1,DashboardViolationsTestLicensePolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo,   //
-        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
-        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo,   //
-        "7,DashboardViolationsTestLicensePolicy,Violations Test App1,g1 : a1 : v1", now           //
+        "1,DVTLicensePolicy,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo,   //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
+        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo,   //
+        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now           //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -275,9 +284,9 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
-        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo,   //
-        "7,DashboardViolationsTestLicensePolicy,Violations Test App1,g1 : a1 : v1", now           //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
+        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo,   //
+        "7,DVTLicensePolicy,DVT App1,g1 : a1 : v1", now           //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -290,8 +299,8 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "10,DashboardViolationsTestSecurityPolicy,Violations Test App2,g2 : a2 : v2", twoDaysAgo, //
-        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo    //
+        "10,DVTSecurityPolicyWithAnotherUnnecessarilyLongName,DVT App2 With A Long Name Just To Force Overflow,g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890", twoDaysAgo, //
+        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo    //
     );
     assertViolationsCsv(exportCsv, expectedResults);
 
@@ -304,7 +313,7 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "3,DashboardViolationsTestLicensePolicy,Violations Test App1,g3 : a3 : v3", oneWeekAgo
+        "3,DVTLicensePolicy,DVT App1,g3 : a3 : v3", oneWeekAgo
     );
     assertViolationsCsv(exportCsv, expectedResults);
 

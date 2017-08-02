@@ -42,7 +42,7 @@ public class DashboardViolations
     }
 
     public ViolationTile violation(int index) {
-      return new ViolationTile(childSelector(createSelector(".tile", nthChild(index + 1))));
+      return new ViolationTile(childSelector(createSelector("violations-table-row", nthChild(index + 1))));
     }
 
     public ViolationTile firstViolation() {

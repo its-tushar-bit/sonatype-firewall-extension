@@ -1,5 +1,6 @@
 import './utility/Polyfills';
 import './components/module';
+import './directives/module';
 import './components/iqRenderPlottable/iqRenderPlottable';
 import './components/iqBackButton/iqBackButton';
 import './labs/module';

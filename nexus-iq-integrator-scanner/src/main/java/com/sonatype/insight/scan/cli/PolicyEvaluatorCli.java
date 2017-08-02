@@ -38,18 +38,18 @@ public class PolicyEvaluatorCli
   private static <T> T boot(Class<T> type, Parameters params) {
     initLogging(params);
 
-    if (params.getError() != null) {
-      params.printUsage();
+    // NOTE: Acquire logger after initLogging()
+    Logger log = LoggerFactory.getLogger(PolicyEvaluatorCli.class);
 
-      // NOTE: Acquire logger after initLogging()
-      Logger log = LoggerFactory.getLogger(PolicyEvaluatorCli.class);
+    if (params.getError() != null) {
+      log.error(params.createUsageHelp());
       log.error(params.getError().getMessage());
 
       System.exit(1);
     }
 
     if (params.isHelp()) {
-      params.printUsage();
+      log.info(params.createUsageHelp());
       System.exit(0);
     }
 

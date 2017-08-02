@@ -94,7 +94,7 @@ public abstract class AbstractParameters
   public AbstractParameters() {
   }
 
-  public void printUsage() {
+  public String createUsageHelp() {
     JCommander jc;
     try {
       // NOTE: Be sure to use a fresh params instance to not have current state spoil default values
@@ -104,7 +104,9 @@ public abstract class AbstractParameters
       throw new IllegalStateException(e);
     }
     jc.setProgramName(getProgramName());
-    jc.usage();
+    StringBuilder buffer = new StringBuilder();
+    jc.usage(buffer);
+    return buffer.toString();
   }
 
   protected abstract String getProgramName();

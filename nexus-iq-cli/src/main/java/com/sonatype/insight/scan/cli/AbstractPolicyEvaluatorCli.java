@@ -32,18 +32,18 @@ abstract class AbstractPolicyEvaluatorCli
   private <T extends PolicyEvaluator<?>> T boot(Class<T> type, AbstractParameters params) throws ExitException {
     initLogging(params);
 
-    if (params.getError() != null) {
-      params.printUsage();
+    // NOTE: Acquire logger after initLogging()
+    Logger log = LoggerFactory.getLogger(type);
 
-      // NOTE: Acquire logger after initLogging()
-      Logger log = LoggerFactory.getLogger(type);
+    if (params.getError() != null) {
+      log.error(params.createUsageHelp());
       log.error(params.getError().getMessage());
 
       throw new ExitException(1);
     }
 
     if (params.isHelp()) {
-      params.printUsage();
+      log.info(params.createUsageHelp());
       throw new ExitException(0);
     }
 

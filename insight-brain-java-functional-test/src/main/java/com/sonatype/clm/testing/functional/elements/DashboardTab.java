@@ -5,37 +5,18 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public class DashboardTab
+    extends BasicElement<DashboardTab>
 {
-
-  private final SelenideElement link;
-  private final SelenideElement tab;
-
-  public DashboardTab(String linkId) {
-    this.link = $(linkId);
-    this.tab = link.parent();
-  }
-
-  public DashboardTab shouldBe(Condition condition) {
-    tab.shouldBe(condition);
-    return this;
-  }
-
-  public DashboardTab shouldNotBe(Condition condition) {
-    tab.shouldNotBe(condition);
-    return this;
+  public DashboardTab(final String selector) {
+    super(selector);
   }
 
   public SelenideElement counter() {
-    return link.$(".iq-counter");
-  }
-
-  public void click() {
-    link.click();
+    return child(".iq-counter");
   }
 }

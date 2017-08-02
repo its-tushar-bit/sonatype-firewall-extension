@@ -1,80 +1,90 @@
 <div id="dashboard-applications">
-  <div class="dashboard-headers iq-dashboard-headers">
-    <div class="tile summary-tile">
-      <div class="dashboard-header-container">
-        <div class="dashboard-header">
-          <div class="applications-row" sort="-totalApplicationRisk.totalRisk">
-            <div class="column greedy application-name" sort-column="applicationName">
+  <div class="iq-tile iq-tile--dashboard-table-container">
+    <div class="iq-scrollable" detect-scrollbar>
+      <table class="iq-table iq-table--dashboard-applications">
+        <thead class="dashboard-headers iq-dashboard-headers">
+          <tr class="iq-table-row" sort="-totalApplicationRisk.totalRisk">
+            <th class="iq-cell iq-cell--header iq-cell--application-name" sort-column="applicationName">
               <span class="header-text">Name</span>
-            </div><!--
-         --><div class="column fixed total-risk split-line" sort-column="-totalApplicationRisk.totalRisk">
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--total-risk split-line"
+                sort-column="-totalApplicationRisk.totalRisk">
               <span class="header-text">Total Risk</span>
-            </div><!--
-         --><div class="column fixed critical-risk" sort-column="-totalApplicationRisk.criticalRisk">
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--critical-risk" sort-column="-totalApplicationRisk.criticalRisk">
               <span class="header-text">Critical</span>
-              <div class="clm-bar critical"></div>
-            </div><!--
-         --><div class="column fixed severe-risk" sort-column="-totalApplicationRisk.severeRisk">
+              <div class="iq-threat-indication critical"></div>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--severe-risk" sort-column="-totalApplicationRisk.severeRisk">
               <span class="header-text">Severe</span>
-              <div class="clm-bar severe"></div>
-            </div><!--
-         --><div class="column fixed moderate-risk" sort-column="-totalApplicationRisk.moderateRisk">
+              <div class="iq-threat-indication severe"></div>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--moderate-risk" sort-column="-totalApplicationRisk.moderateRisk">
               <span class="header-text">Moderate</span>
-              <div class="clm-bar moderate"></div>
-            </div><!--
-         --><div class="column fixed low-risk" sort-column="-totalApplicationRisk.lowRisk">
+              <div class="iq-threat-indication moderate"></div>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--low-risk" sort-column="-totalApplicationRisk.lowRisk">
               <span class="header-text">Low</span>
-              <div class="clm-bar none"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+              <div class="iq-threat-indication none"></div>
+            </th>
+          </tr>
+        </thead>
 
-  <div class="dashboard-results">
-    <div class="tile-container" fill-vertical>
-      <div class="tile-scroll-container" detect-scrollbar>
-        <div applications-results>
-          <div class="tile" ng-repeat="application in data | limitTo: maxResults | orderBy: sortVm.sortFields">
-            <div class="applications-row total-application-risks">
-              <div class="column greedy application-name semi-bold">{{::application.applicationName}}</div><!--
-           --><div class="column fixed total-risk heatmap-cell {{::getTextColorClass(application.totalApplicationRisk.totalRisk)}}"
-                   ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.totalRisk)}}">
-                {{::application.totalApplicationRisk.totalRisk}}
-              </div><!--
-           --><div class="column fixed critical-risk heatmap-cell {{::getTextColorClass(application.totalApplicationRisk.criticalRisk)}}"
-                   ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.criticalRisk)}}">
-                {{::application.totalApplicationRisk.criticalRisk}}
-              </div><!--
-           --><div class="column fixed severe-risk heatmap-cell {{::getTextColorClass(application.totalApplicationRisk.severeRisk)}}"
-                   ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.severeRisk)}}">
-                {{::application.totalApplicationRisk.severeRisk}}
-              </div><!--
-           --><div class="column fixed moderate-risk heatmap-cell {{::getTextColorClass(application.totalApplicationRisk.moderateRisk)}}"
-                   ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.moderateRisk)}}">
-                {{::application.totalApplicationRisk.moderateRisk}}
-              </div><!--
-           --><div class="column fixed low-risk heatmap-cell {{::getTextColorClass(application.totalApplicationRisk.lowRisk)}}"
-                   ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.lowRisk)}}">
-                {{::application.totalApplicationRisk.lowRisk}}
-              </div>
-            </div>
-            <div class="applications-row stage-application-risks" ng-repeat='stage in application.stageRisks'>
-              <div class="column greedy application-name semi-bold">
-                <a title="View application report"
-                   ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
-                   target="_blank"><i class="fa fa-external-link fa-fw"></i>{{::stage.stageTypeName}}</a>
-              </div><!--
-           --><div class="column fixed total-risk">{{::stage.risk.totalRisk}}</div><!--
-           --><div class="column fixed critical-risk">{{::stage.risk.criticalRisk}}</div><!--
-           --><div class="column fixed severe-risk">{{::stage.risk.severeRisk}}</div><!--
-           --><div class="column fixed moderate-risk">{{::stage.risk.moderateRisk}}</div><!--
-           --><div class="column fixed low-risk">{{::stage.risk.lowRisk}}</div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <tbody id="dashboard-results"
+               class="iq-applications-results"
+               applications-results
+               form-mask="maskController"
+               mask-message="">
+          <tr id="app{{$index}}_"
+              class="iq-table-row applications-row total-application-risks"
+              ng-repeat-start="application in data | limitTo: maxResults | orderBy: sortVm.sortFields">
+            <td class="iq-cell iq-cell--label iq-cell--application-name">{{::application.applicationName}}</td><!--
+         --><td class="iq-cell iq-cell--total-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.totalRisk)}}"
+                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.totalRisk)}}">
+              {{::application.totalApplicationRisk.totalRisk}}
+            </td><!--
+         --><td class="iq-cell iq-cell--critical-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.criticalRisk)}}"
+                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.criticalRisk)}}">
+              {{::application.totalApplicationRisk.criticalRisk}}
+            </td><!--
+         --><td class="iq-cell iq-cell--severe-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.severeRisk)}}"
+                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.severeRisk)}}">
+              {{::application.totalApplicationRisk.severeRisk}}
+            </td><!--
+         --><td class="iq-cell iq-cell--moderate-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.moderateRisk)}}"
+                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.moderateRisk)}}">
+              {{::application.totalApplicationRisk.moderateRisk}}
+            </td><!--
+         --><td class="iq-cell iq-cell--low-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.lowRisk)}}"
+                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.lowRisk)}}">
+              {{::application.totalApplicationRisk.lowRisk}}
+            </td>
+          </tr>
+          <tr id="app{{$parent.$index}}_stage{{$index}}"
+              class="iq-table-row applications-row stage-application-risks"
+              ng-repeat-end ng-repeat="stage in application.stageRisks">
+            <td class="iq-cell iq-cell--label iq-cell--application-name">
+              <a title="View application report"
+                 ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
+                 target="_blank">
+                <i class="fa fa-external-link fa-fw"></i>{{::stage.stageTypeName}}
+              </a>
+            </td><!--
+         --><td class="iq-cell iq-cell--total-risk iq-cell--heatmap">{{::stage.risk.totalRisk}}</td><!--
+         --><td class="iq-cell iq-cell--critical-risk iq-cell--heatmap">{{::stage.risk.criticalRisk}}</td><!--
+         --><td class="iq-cell iq-cell--severe-risk iq-cell--heatmap">{{::stage.risk.severeRisk}}</td><!--
+         --><td class="iq-cell iq-cell--moderate-risk iq-cell--heatmap">{{::stage.risk.moderateRisk}}</td><!--
+         --><td class="iq-cell iq-cell--low-risk iq-cell--heatmap">{{::stage.risk.lowRisk}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <dashboard-common-results results="data" 
+                                needs-acknowledgement="needsAcknowledgement"
+                                max-results="maxResults"
+                                max-days-old="maxDaysOld"
+                                error="error"
+                                reload="reload()">
+      </dashboard-common-results>
     </div>
   </div>
 </div>

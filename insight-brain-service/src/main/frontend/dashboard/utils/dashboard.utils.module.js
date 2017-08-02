@@ -7,6 +7,7 @@
 import ClassyBrew from './classybrew.factory';
 import windowEventsFactory from './windowEventsFactory';
 import getDashboardResultsDirective from './directives/dashboard.results.directives';
+import dashboardCommonResults from './components/dashboardCommonResults';
 import dashboardTabs from './directives/dashboardTabs.component';
 import sparkline from './directives/sparkline.directive';
 import valueBars from './directives/valueBars.directive';
@@ -25,7 +26,6 @@ export default angular.module('dashboard.utils',
     .directive('violationsResults', getDashboardResultsDirective('getNewestRisks'))
     .directive('applicationsResults', getDashboardResultsDirective('getApplicationRisks'))
     .directive('componentsResults', getDashboardResultsDirective('getComponentRisks'))
-    .component('dashboardTabs', dashboardTabs)
     .directive('sparkline', sparkline)
     .directive('valueBars', valueBars)
     .filter('emptyToEnd', emptyToEnd)
@@ -33,6 +33,8 @@ export default angular.module('dashboard.utils',
     .filter('stageTypeSort', stageTypeSort)
     .filter('removeDashes', removeDashes)
     .filter('wrapWith', wrapWith)
+    .component('dashboardCommonResults', dashboardCommonResults)
+    .component('dashboardTabs', dashboardTabs)
 ;
 
 function filterToParams(filter, maxResults) {

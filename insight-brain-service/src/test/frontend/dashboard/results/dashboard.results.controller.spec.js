@@ -39,6 +39,15 @@ describe('dashboard.results.controller.spec', function() {
       expect(scope.filters).toBe(filterJson);
       expect(scope.maxDaysOld).toEqual(filterJson.maxDaysOld);
     });
+
+    it('listens to filter dirtiness event', function() {
+      expect(scope.filtersAreDirty).toBeUndefined();
+      scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS_DIRTINESS, true);
+      expect(scope.filtersAreDirty).toBe(true);
+
+      scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS_DIRTINESS, false);
+      expect(scope.filtersAreDirty).toBe(false);
+    });
   });
 
   it('getViewTitle() uses state.data.title', function() {

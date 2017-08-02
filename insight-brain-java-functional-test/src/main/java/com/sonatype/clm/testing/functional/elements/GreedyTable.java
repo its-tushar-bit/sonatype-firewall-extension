@@ -40,7 +40,7 @@ public abstract class GreedyTable<RowElement>
 
   public HeaderColumn selectedHeaderColumn() {
     // XXX this seems very inefficient
-    return new HeaderColumn(selectedHeaderElements().get(0).parent().parent());
+    return new HeaderColumn(selectedHeaderElements().get(0).parent().parent().parent());
   }
 
   public static class HeaderColumn
@@ -70,7 +70,7 @@ public abstract class GreedyTable<RowElement>
     }
 
     public SelenideElement name() {
-      return root.$(".header-text");
+      return root.$(".iq-cell__text--header");
     }
   }
 }

@@ -1,6 +1,10 @@
 describe('violationsTableRow.spec', function() {
 
-  var scope, getVm, mockWindow, mockState;
+  var scope,
+      getVm,
+      mockWindow,
+      mockState,
+      violationsTableRow;
 
   var riskDataMultipleStages =
   {
@@ -70,7 +74,12 @@ describe('violationsTableRow.spec', function() {
     ]
   };
 
-  beforeEach(module('dashboard.module', 'legacyConfiguration'));
+  beforeEach(module('dashboard.module', 'legacyConfiguration', function($provide) {
+    mockWindow = jasmine.createSpyObj('$window', ['open']);
+    mockState = {href: angular.noop};
+    $provide.value('$window', mockWindow);
+    $provide.value('$state', mockState);
+  }));
 
   afterEach(inject(function($httpBackend) {
     scope.$destroy();
@@ -79,23 +88,27 @@ describe('violationsTableRow.spec', function() {
   }));
 
   beforeEach(inject([
-    '$rootScope', '$componentController', '$httpBackend', 'CLMLocations',
-    function($rootScope, $componentController, $httpBackend, CLMLocations) {
+    '$q', '$rootScope', '$compile', '$httpBackend', 'CLMLocations', '$templateCache',
+    function($q, $rootScope, $compile, $httpBackend, CLMLocations, $templateCache) {
       scope = $rootScope.$new();
-      mockWindow = jasmine.createSpyObj('$window', ['open']);
-      mockState = {href: angular.noop};
       $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
+      $templateCache.put('violations-table-row', '<td/>');
 
-      getVm = function(bindings) {
-        return $componentController('violationsTableRow', {$window: mockWindow, $state: mockState}, bindings);
-      };
+      getVm = function(risk) {
+        scope.risk = risk;
+
+        var element = $compile('<tr violations-table-row risk="risk"></tr>')(scope);
+        scope.$digest();
+
+        return element.controller('violationsTableRow');
+      }
     }
   ]));
 
   describe('ViolationsTableRowComponent', function() {
     beforeEach(inject([
       '$httpBackend', function($httpBackend) {
-        violationsTableRow = getVm({risk: riskDataMultipleStages});
+        violationsTableRow = getVm(riskDataMultipleStages);
         $httpBackend.flush();
       }
     ]));
@@ -127,7 +140,7 @@ describe('violationsTableRow.spec', function() {
     it('Gets the report', function() {
       inject([
         '$httpBackend', function($httpBackend) {
-          violationsTableRow = getVm({risk: riskDataSingleStage});
+          violationsTableRow = getVm(riskDataSingleStage);
           $httpBackend.flush();
         }
       ]);

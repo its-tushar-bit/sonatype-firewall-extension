@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.Arrays;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationTile;
+import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationElement;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
@@ -137,9 +137,9 @@ public class DashboardApplicationsTest
     table.application(4).getRows().shouldHaveSize(2);
 
     // check app totals and report links
-    ApplicationTile app5 = table.application(0);
+    ApplicationElement app5 = table.application(0);
     ElementsCollection app5Totals = app5.getTotalsInRow(0);
-    app5Totals.shouldHave(texts("14", "8", "4", "2", "0"), allHaveClass("heatmap-cell"))
+    app5Totals.shouldHave(texts("14", "8", "4", "2", "0"), allHaveClass("iq-cell--heatmap"))
         .shouldHave(cssValues("background-color", "rgba(40, 69, 91, 1)", "rgba(83, 139, 183, 1)", // heatmap
             "rgba(121, 165, 198, 1)", "rgba(190, 212, 228, 1)", "rgba(247, 251, 255, 1)"));
     app5Totals.get(0).shouldHave(cssClass("white-text"));
@@ -153,7 +153,7 @@ public class DashboardApplicationsTest
     app5.getTotalsInRow(2).shouldHave(texts("0", "0", "0", "0", "0"));
     app5.getTotalsInRow(3).shouldHave(texts("4", "0", "4", "0", "0"));
     app5.getTotalsInRow(4).shouldHave(texts("2", "0", "0", "2", "0"));
-    app5.getStageLinks().shouldHaveSize(4).shouldHave(texts(
+    app5.getStages().shouldHaveSize(4).shouldHave(texts(
         "Build",          //
         "Stage Release",  //
         "Release",        //

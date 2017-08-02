@@ -7,13 +7,13 @@
 */
 .iq-tree-view {
   @include semi-bold();
-  
+
   box-sizing: border-box;
   color: $iq-slate;
   padding-right: 8px;
   padding-left: 8px;
   min-width: 250px;
-  max-width: 330px;  
+  max-width: 330px;
 }
 
 .iq-tree-view__group {
@@ -27,7 +27,7 @@
   font-size: 14px;
   height: 30px;
   line-height: 32px;
-  
+
   &:hover, &:focus {
     color: $iq-slate;
     text-decoration: none;
@@ -65,7 +65,7 @@
 .iq-tree-view__text {
   color: $iq-slate;
   display: inline-block;
-  
+
   .fa {
     height: 16px;
     margin-right: 5px;
@@ -103,7 +103,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
-  
+
   &.selected {
     a {
       color: $iq-off-black;
@@ -156,10 +156,10 @@
   border: 1px solid $iq-slate;
   border-bottom: 1px solid $iq-grey-4;
   padding: 12px 8px;
-  
+
   h2 {
-    margin-top: -5px; 
-    margin-bottom: -6px; 
+    margin-top: -5px;
+    margin-bottom: -6px;
 
     .fa {
       margin-right: 6px;
@@ -219,7 +219,7 @@
   color: $iq-warn-color;
   margin: 8px;
   padding: 9px 8px 8px 8px;
-  
+
   .fa {
       margin-right: 8px;
   }
@@ -255,6 +255,169 @@
   border-style: solid;
   border-width: 1px 0;
   margin: 0;
+}
+
+/*
+  #Tables
+*/
+
+.iq-table {
+  border-collapse: collapse;
+  display: table;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.iq-cell {
+  display: table-cell;
+  height: 40px;
+  line-height: 40px;
+  overflow: hidden;
+  padding: 0 12px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iq-cell--header {
+  background-color: $iq-grey-1;
+  border-left: 1px solid $iq-grey-2;
+  color: $iq-slate;
+  position: relative;
+  text-align: left;
+
+  &.iq-cell--chevron {
+    border-color: $iq-grey-1;
+  }
+
+  &.iq-th--selected, &.selected-column {
+    background-color: $iq-grey-2;
+  }
+}
+
+.iq-cell--selected-column {
+  background-color: $iq-grey-2;
+}
+
+.iq-column-sort-trigger {
+  color: $iq-slate;
+  display: block;
+  height: 40px;
+  line-height: 40px;
+
+  &:hover {
+    color: $iq-off-black;
+    text-decoration: none;
+  }
+}
+
+.iq-column-sort-icons {
+  color: $iq-grey-4;
+  display: inline-block;
+  margin-right: 6px;
+  position: relative;
+  top: -13px;
+  width: 6px;
+
+  .fa-caret-up {
+    line-height: 7px;
+    position: absolute;
+    top: 1px;
+
+    &.up {
+      color: $iq-slate;
+    }
+  }
+
+  .fa-caret-down {
+    line-height: 7px;
+    position: absolute;
+    top: 8px;
+
+    &.down {
+      color: $iq-slate;
+    }
+  }
+}
+
+.iq-cell--label {
+  @include semi-bold();
+
+  color: $iq-slate;
+
+  tr:hover & {
+    color: $iq-off-black;
+  }
+}
+
+/*
+  #Tabs
+*/
+.iq-tab-bar {
+  border-bottom: 1px solid $iq-grey-3;
+  height: 32px;
+}
+
+.iq-tab {
+  @include semi-bold();
+
+  border-top: 1px solid transparent;
+  border-right: 1px solid transparent;
+  border-left: 1px solid transparent;
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
+  box-sizing: border-box;
+  color: $iq-slate;
+  display: inline-block;
+  font-size: 14px;
+  height: 32px;
+  line-height: 16px;
+  margin-right: 8px;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  vertical-align: bottom;
+
+  &:hover, &:focus {
+    color: $iq-off-black;
+    text-decoration: none;
+
+    .fa.inverse {
+      background-color: $iq-off-black;
+    }
+  }
+
+  &:last-child {
+    margin-right: 0;
+  }
+
+  &.active {
+    background-color: $iq-grey-1;
+    border-top: 1px solid $iq-grey-3;
+    border-right: 1px solid $iq-grey-3;
+    border-left: 1px solid $iq-grey-3;
+    color: $iq-off-black;
+    cursor: default;
+  }
+
+  .fa {
+    margin-right: 8px;
+
+    &.fa-exclamation {
+      line-height: 16px;
+      text-align: center;
+      vertical-align: 1px;
+      width: 16px;
+    }
+
+    &.fa-terminal {
+      font-size: 12px;
+      height: 16px;
+      line-height: 12px;
+      text-align: center;
+      vertical-align: 3px;
+      width: 16px;
+    }
+  }
 }
 
 /*
@@ -2049,7 +2212,7 @@ root-organization-migrate {
 }
 
 .slider-handle {
-  background-color: #f5f5f5;
+  background-color: $iq-grey-1;
   background-image: -moz-linear-gradient(top, #fff, #e6e6e6);
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fff), to(#e6e6e6));
   background-image: -webkit-linear-gradient(top, #fff, #e6e6e6);

@@ -34,23 +34,23 @@ public class DashboardViolations
       extends BasicElement<ViolationsResults>
   {
     ViolationsResults() {
-      super(ROOT, ".dashboard-results");
+      super(ROOT, ".iq-tile--dashboard-table-container");
     }
 
     public ElementsCollection violations() {
-      return children(".tile");
+      return children("tr[violations-table-row]");
     }
 
     public ViolationTile violation(int index) {
-      return new ViolationTile(childSelector(createSelector("violations-table-row", nthChild(index + 1))));
+      return new ViolationTile(childSelector(createSelector("tr[violations-table-row]", nthChild(index + 1))));
     }
 
     public ViolationTile firstViolation() {
-      return new ViolationTile(childSelector("violations-table-row:first-child"));
+      return new ViolationTile(childSelector("tr[violations-table-row]:first-child"));
     }
 
     public ViolationTile lastViolation() {
-      return new ViolationTile(childSelector("violations-table-row:last-child"));
+      return new ViolationTile(childSelector("tr[violations-table-row]:last-of-type"));
     }
 
     public SelenideElement maxResultsMessage() {
@@ -58,7 +58,11 @@ public class DashboardViolations
     }
 
     public SelenideElement noDataMessage() {
-      return child("#no-data");
+      return child("#dashboard-common-results-no-data");
+    }
+
+    public SelenideElement mask() {
+      return child(".form-mask");
     }
   }
 
@@ -66,27 +70,27 @@ public class DashboardViolations
       extends BasicElement<ViolationsHeaders>
   {
     public ViolationsHeaders() {
-      super(ROOT, ".dashboard-headers");
+      super(ROOT, ".iq-dashboard-headers");
     }
 
     public SelenideElement threatHeader() {
-      return child(".threat a");
+      return child(".iq-cell--threat a");
     }
 
     public SelenideElement policyHeader() {
-      return child(".policy a");
+      return child(".iq-cell--policy a");
     }
 
     public SelenideElement applicationHeader() {
-      return child(".application a");
+      return child(".iq-cell--application a");
     }
 
     public SelenideElement componentHeader() {
-      return child(".component a");
+      return child(".iq-cell--component a");
     }
 
     public SelenideElement ageHeader() {
-      return child(".age a");
+      return child(".iq-cell--age a");
     }
   }
 
@@ -97,31 +101,31 @@ public class DashboardViolations
     }
 
     public SelenideElement threatBar() {
-      return child(".clm-bar");
+      return child(".iq-cell--threat .iq-threat-indication");
     }
 
     public SelenideElement threatNumber() {
-      return child(".threat-number");
+      return child(".iq-cell--threat .iq-threat-number");
     }
 
     public SelenideElement policy() {
-      return child(".policy");
+      return child(".iq-cell--policy");
     }
 
     public SelenideElement application() {
-      return child(".application");
+      return child(".iq-cell--application");
     }
 
     public SelenideElement component() {
-      return child(".component a");
+      return child(".iq-cell--component a");
     }
 
     public SelenideElement age() {
-      return child(".age");
+      return child(".iq-cell--age");
     }
 
     public SelenideElement latestReport() {
-      return child(".report a");
+      return child(".iq-cell--report a");
     }
   }
 }

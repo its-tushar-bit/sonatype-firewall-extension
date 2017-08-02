@@ -1,63 +1,80 @@
 <div id="dashboard-components">
-  <div class="dashboard-headers iq-dashboard-headers">
-    <div class="tile summary-tile">
-      <div class="dashboard-header-container">
-        <div class="components-row" sort="-score">
-          <div class="column greedy component-name" sort-column="name">
-            <span class="header-text">Name</span>
-          </div><!--
-       --><div class="column fixed affected-apps split-line" sort-column="-affectedApplications">
-            <span class="header-text">Affected Apps</span>
-          </div><!--
-       --><div class="column fixed total-risk split-line" sort-column="-score">
-            <span class="header-text">Total Risk</span>
-          </div><!--
-       --><div class="column fixed critical-risk" sort-column="-scoreCritical">
-            <span class="header-text">Critical</span>
-            <div class="clm-bar critical"></div>
-          </div><!--
-       --><div class="column fixed severe-risk" sort-column="-scoreSevere">
-            <span class="header-text">Severe</span>
-            <div class="clm-bar severe"></div>
-          </div><!--
-       --><div class="column fixed moderate-risk" sort-column="-scoreModerate">
-            <span class="header-text">Moderate</span>
-            <div class="clm-bar moderate"></div>
-          </div><!--
-       --><div class="column fixed low-risk" sort-column="-scoreLow">
-            <span class="header-text">Low</span>
-            <div class="clm-bar none"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="iq-tile iq-tile--dashboard-table-container">
+    <div class="iq-scrollable" detect-scrollbar>
+      <table class="iq-table iq-table--dashboard-components">
+        <thead class="iq-dashboard-headers">
+          <tr class="iq-table-row components-row" sort="-score">
+            <th class="iq-cell iq-cell--header iq-cell--component-name" sort-column="name">
+              <span class="header-text">Name</span>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--affected-apps iq-cell--split-line"
+                sort-column="-affectedApplications">
+              <span class="header-text">Affected Apps</span>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--total-risk split-line" sort-column="-score">
+              <span class="header-text">Total Risk</span>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--critical-risk" sort-column="-scoreCritical">
+              <span class="header-text">Critical</span>
+              <div class="iq-threat-indication critical"></div>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--severe-risk" sort-column="-scoreSevere">
+              <span class="header-text">Severe</span>
+              <div class="iq-threat-indication severe"></div>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--moderate-risk" sort-column="-scoreModerate">
+              <span class="header-text">Moderate</span>
+              <div class="iq-threat-indication moderate"></div>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--low-risk" sort-column="-scoreLow" colspan="2">
+              <span class="header-text">Low</span>
+              <div class="iq-threat-indication none"></div>
+            </th>
+          </tr>
+        </thead>
 
-  <div class="dashboard-results">
-    <div class="tile-container" fill-vertical>
-      <div class="tile-scroll-container" detect-scrollbar>
-        <div components-results>
-          <div class="tile clickable" ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
-               ng-click="goToComponentDetails(component)"><!--
-         --><div class="components-row"><!--
-           --><div class="column greedy component-name semi-bold">{{component.name}}</div><!--
-           --><div class="column fixed affected-apps">{{::component.affectedApplications}}</div><!--
-           --><div class="column fixed heatmap-cell total-risk {{::getTextColorClass(component.score)}}"
-                   ng-attr-style="background-color: {{::getColor(component.score)}}">{{::component.score}}</div><!--
-           --><div class="column fixed heatmap-cell critical-risk {{::getTextColorClass(component.scoreCritical)}}"
-                   ng-attr-style="background-color: {{::getColor(component.scoreCritical)}}">{{::component.scoreCritical}}</div><!--
-           --><div class="column fixed heatmap-cell severe-risk {{::getTextColorClass(component.scoreSevere)}}"
-                   ng-attr-style="background-color: {{::getColor(component.scoreSevere)}}">{{::component.scoreSevere}}</div><!--
-           --><div class="column fixed heatmap-cell moderate-risk {{::getTextColorClass(component.scoreModerate)}}"
-                   ng-attr-style="background-color: {{::getColor(component.scoreModerate)}}">{{::component.scoreModerate}}</div><!--
-           --><div class="column fixed heatmap-cell low-risk {{::getTextColorClass(component.scoreLow)}}"
-                   ng-attr-style="background-color: {{::getColor(component.scoreLow)}}">{{::component.scoreLow}}</div><!--
-           --><div class="column chevron {{::getTextColorClass(component.scoreLow)}}"
-                   ng-attr-style="background-color: {{::getColor(component.scoreLow)}}"><i class="fa fa-chevron-right"></i></div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <tbody id="dashboard-results"
+               class="iq-components-results"
+               components-results
+               form-mask="maskController"
+               mask-message="">
+          <tr class="iq-table-row iq-clickable"
+              ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
+              ng-click="goToComponentDetails(component)">
+            <td class="iq-cell iq-cell--component-name iq-cell--label">{{component.name}}</td><!--
+         --><td class="iq-cell iq-cell--affected-apps">{{::component.affectedApplications}}</td><!--
+         --><td class="iq-cell iq-cell--heatmap iq-cell--total-risk {{::getTextColorClass(component.score)}}"
+                 ng-attr-style="background-color: {{::getColor(component.score)}}">{{::component.score}}</td><!--
+         --><td class="iq-cell iq-cell--heatmap iq-cell--critical-risk {{::getTextColorClass(component.scoreCritical)}}"
+                 ng-attr-style="background-color: {{::getColor(component.scoreCritical)}}">
+              {{::component.scoreCritical}}
+            </td><!--
+         --><td class="iq-cell iq-cell--heatmap iq-cell--severe-risk {{::getTextColorClass(component.scoreSevere)}}"
+                 ng-attr-style="background-color: {{::getColor(component.scoreSevere)}}">
+              {{::component.scoreSevere}}
+            </td><!--
+         --><td class="iq-cell iq-cell--heatmap iq-cell--moderate-risk {{::getTextColorClass(component.scoreModerate)}}"
+                 ng-attr-style="background-color: {{::getColor(component.scoreModerate)}}">
+              {{::component.scoreModerate}}
+            </td><!--
+         --><td class="iq-cell iq-cell--heatmap iq-cell--low-risk {{::getTextColorClass(component.scoreLow)}}"
+                 ng-attr-style="background-color: {{::getColor(component.scoreLow)}}">
+              {{::component.scoreLow}}
+            </td><!--
+         --><td class="iq-cell iq-cell--chevron {{::getTextColorClass(component.scoreLow)}}"
+                 ng-attr-style="background-color: {{::getColor(component.scoreLow)}}">
+              <i class="fa fa-chevron-right"></i>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <dashboard-common-results results="data" 
+                                needs-acknowledgement="needsAcknowledgement"
+                                max-results="maxResults"
+                                max-days-old="maxDaysOld"
+                                error="error"
+                                reload="reload()">
+      </dashboard-common-results>
     </div>
   </div>
 </div>

@@ -1,0 +1,37 @@
+/*
+  DASHBOARD VIOLATIONS TABLE
+*/
+.ie9 {
+  .iq-table--dashboard-violations,
+  .iq-table--dashboard-components,
+  .iq-table--dashboard-applications {
+    display: table;
+  
+    thead {
+      display: table-row-group;
+      position: relative;
+    }
+  
+    tbody {
+      display: table-row-group;
+    }
+  
+    tr {
+      display: table-row;
+    }
+  
+    td, th {
+      display: table-cell;
+    }
+    
+    .iq-cell {
+      min-width: 90px;
+    }
+  }
+
+  .dashboard-container {
+    .iq-scrollable {
+      overflow-x: scroll;
+    }
+  }
+}

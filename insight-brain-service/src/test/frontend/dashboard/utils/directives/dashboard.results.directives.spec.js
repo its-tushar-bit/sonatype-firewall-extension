@@ -13,7 +13,9 @@ describe('dashboard.results.directives.spec', function() {
     }
   ];
 
-  var dashboardDataServiceMock, $state;
+  var dashboardDataServiceMock,
+      maskControllerMock,
+      $state;
 
   beforeEach(module('dashboard.utils', 'legacyConfiguration', function($provide) {
     $provide.service('dashboard.data.service', function() {
@@ -35,15 +37,16 @@ describe('dashboard.results.directives.spec', function() {
         $q = _$q_;
         scope = $rootScope.$new();
         scope.maxResults = 123;
+        scope.filtersAreDirty = false;
         directiveScope = scope.$new();
 
         dashboardDataServiceMock =  jasmine.createSpyObj('dashboardDataService', [directive.serviceMethod]);
+        maskControllerMock = jasmine.createSpyObj('maskController', ['activateMask', 'removeMask']);
 
-        $httpBackend.expectGET('dashboard-table').respond('<div></div>');
+        scope.maskController = maskControllerMock;
+
         $compile(angular.element('<div ' + directive.prefix + '-results></div>'))(scope);
         scope.$digest();
-        $httpBackend.flush();
-        $httpBackend.verifyNoOutstandingRequest();
       }));
 
       it('Filter Set', function() {
@@ -134,6 +137,30 @@ describe('dashboard.results.directives.spec', function() {
 
         expect(dashboardDataServiceMock[directive.serviceMethod]).not.toHaveBeenCalled();
         expect(directiveScope.data).toBeUndefined();
+      });
+
+      it('watches the filtersAreDirty property and calls the correct functions on the maskController', function() {
+        function updateDirty(isDirty) {
+          scope.$apply(function(scope) {
+            scope.filtersAreDirty = isDirty;
+          });
+        }
+
+        expect(maskControllerMock.removeMask.calls.count()).toBe(1);
+        expect(maskControllerMock.activateMask.calls.count()).toBe(0);
+
+        updateDirty(true);
+        expect(maskControllerMock.removeMask.calls.count()).toBe(1);
+        expect(maskControllerMock.activateMask.calls.count()).toBe(1);
+
+        updateDirty(false);
+        expect(maskControllerMock.removeMask.calls.count()).toBe(2);
+        expect(maskControllerMock.activateMask.calls.count()).toBe(1);
+
+        // no change - shouldn't make an additional call
+        updateDirty(false);
+        expect(maskControllerMock.removeMask.calls.count()).toBe(2);
+        expect(maskControllerMock.activateMask.calls.count()).toBe(1);
       });
     });
   });

@@ -7,7 +7,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   #Name-spaced Tile System
 */
 
-// Base Tile
+// Base Tiles
 
 .iq-tile {
   background-color: $iq-main-background-color;
@@ -18,6 +18,12 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   .iq-alert {
     margin: 8px 0;
   }
+}
+
+.iq-tile--summary {
+  border: none;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .iq-tile--title-only {

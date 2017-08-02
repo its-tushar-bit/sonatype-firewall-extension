@@ -1,33 +1,4 @@
 <div>
-  <script type="text/ng-template" id="dashboard-table">
-    <div load-wrapper="error" reload="doLoad()">
-      <div ng-if="!data && !needsAcknowledgement" class="dashboard-loading">
-        <h5>
-          <i class="icon-time"></i> Loading...
-        </h5>
-      </div>
-      <div class="iq-alert iq-alert--info" id="needs-acknowledgement" ng-if="needsAcknowledgement">
-        <i class='fa fa-info-circle'></i>Select your filter criteria on the left, and click 'apply' to see results.
-      </div>
-      <div ng-if="data !== undefined && data !== null && !needsAcknowledgement">
-        <div ng-transclude></div>
-        <div ng-if="data.length === 0" id="no-data">
-          <em class="clm-bar-text-offset">
-            <span ng-if="$state.is('dashboard.overview.violations')">
-              No data available {{maxDaysOld ? 'in the last ' + maxDaysOld + ' days' : ''}} given the applied filters and permissions.
-            </span>
-            <span ng-if="!$state.is('dashboard.overview.violations')">
-              No data available given the applied filters and permissions.
-            </span>
-          </em>
-        </div>
-        <div id="max-results-shown" ng-if="data.length > maxResults">
-          <div class="tile" ng-if="$state.is('dashboard.overview.violations')">Newest {{maxResults}} results shown</div>
-          <div class="tile" ng-if="!$state.is('dashboard.overview.violations')">First {{maxResults}} results shown</div>
-        </div>
-      </div>
-    </div>
-  </script>
   <script type="text/ng-template" id="policy-trends-dialog-template">
     <div id="policy-trends-dialog">
       <div class="clm-modal-header">
@@ -85,33 +56,25 @@
     </div>
   </script>
   <script type="text/ng-template" id="dashboard-tabs">
-    <div class="tabs">
-      <ul>
-        <li class="tab" ui-sref-active="active">
-          <a id="tab-button-newest" ui-sref=".violations">
-            <i class="fa fa-exclamation"></i>Violations<!--
-         --><span class="iq-counter" ng-if="vm.latestResultCounts.newestRisk !== undefined">
-              {{vm.latestResultCounts.newestRisk}}
-            </span>
-          </a>
-        </li>
-        <li class="tab" ui-sref-active="active">
-          <a id="tab-button-component" ui-sref=".components">
-            <i class="fa fa-cube size-16px"></i>Components<!--
-         --><span class="iq-counter" ng-if="vm.latestResultCounts.componentRisk !== undefined">
-              {{vm.latestResultCounts.componentRisk}}
-            </span>
-          </a>
-        </li>
-        <li class="tab" ui-sref-active="active">
-          <a id="tab-button-application" ui-sref=".applications">
-            <i class="fa fa-terminal inverse"></i>Applications<!--
-         --><span class="iq-counter" ng-if="vm.latestResultCounts.applicationRisk !== undefined">
-              {{vm.latestResultCounts.applicationRisk}}
-            </span>
-          </a>
-        </li>
-      </ul>
+    <div class="iq-tab-bar">
+      <a id="tab-button-newest" class="iq-tab" ui-sref-active="active" ui-sref=".violations">
+        <i class="fa fa-exclamation"></i>Violations<!--
+     --><span class="iq-counter" ng-if="vm.latestResultCounts.newestRisk !== undefined">
+          {{vm.latestResultCounts.newestRisk}}
+        </span>
+      </a>
+      <a id="tab-button-component" class="iq-tab" ui-sref-active="active" ui-sref=".components">
+        <i class="fa fa-cube size-16px"></i>Components<!--
+     --><span class="iq-counter" ng-if="vm.latestResultCounts.componentRisk !== undefined">
+          {{vm.latestResultCounts.componentRisk}}
+      </span>
+      </a>
+      <a id="tab-button-application" class="iq-tab" ui-sref-active="active" ui-sref=".applications">
+        <i class="fa fa-terminal inverse"></i>Applications<!--
+     --><span class="iq-counter" ng-if="vm.latestResultCounts.applicationRisk !== undefined">
+          {{vm.latestResultCounts.applicationRisk}}
+        </span>
+      </a>
     </div>
   </script>
 

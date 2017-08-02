@@ -28,8 +28,8 @@
       "error",
       "all"
     ],
-    "eqeqeq": "error",
-    "wrap-iife": "error",
+    "eqeqeq": ["error", "always", {"null": "ignore"}],
+    "wrap-iife": 2,
     "indent": [
       "error",
       2,

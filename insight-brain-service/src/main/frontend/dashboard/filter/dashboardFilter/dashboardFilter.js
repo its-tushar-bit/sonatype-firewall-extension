@@ -142,6 +142,9 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
     vm.isAgeFilterReadOnly = shouldAgeFilterBeReadOnly();
   });
 
+  // fire the UPDATE_DASHBOARD_FILTERS_DIRTINESS event whenever the value of isDirty changes
+  $scope.$watch(isDirty, $rootScope.$broadcast.bind($rootScope, EventNameConstant.UPDATE_DASHBOARD_FILTERS_DIRTINESS));
+
   function doLoad() {
     delete vm.loadError;
 

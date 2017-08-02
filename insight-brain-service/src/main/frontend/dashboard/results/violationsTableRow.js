@@ -4,6 +4,20 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+export default
+function ViolationsTableRow() {
+  return {
+    restrict: 'A',
+    scope: {
+      risk: '<'
+    },
+    bindToController: true,
+    controllerAs: 'vm',
+    controller: ViolationsTableRowController,
+    templateUrl: 'violations-table-row'
+  };
+}
+
 function ViolationsTableRowController(StageTypeStore, $window, $state) {
   var vm = this;
 
@@ -37,14 +51,3 @@ function ViolationsTableRowController(StageTypeStore, $window, $state) {
 }
 
 ViolationsTableRowController.$inject = ['StageTypeStore', '$window', '$state'];
-
-var violationsTableRowComponent = {
-  bindings: {
-    risk: '<'
-  },
-  controllerAs: 'vm',
-  controller: ViolationsTableRowController,
-  templateUrl: 'violations-table-row'
-};
-
-export default violationsTableRowComponent;

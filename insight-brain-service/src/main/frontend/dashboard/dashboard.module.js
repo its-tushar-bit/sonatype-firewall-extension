@@ -21,7 +21,7 @@ var dashboardModule = angular.module('dashboard.module',
 
     // dashboard results
     .controller('PolicyTrendController', policyTrendController)
-    .component('violationsTableRow', violationsTableRow)
+    .directive('violationsTableRow', violationsTableRow)
     .controller('dashboard.results.controller', dashboardResultsController);
 
 export default dashboardModule;

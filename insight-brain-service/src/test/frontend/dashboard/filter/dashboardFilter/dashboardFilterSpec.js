@@ -695,5 +695,47 @@ describe('dashboard.filter.controller', function() {
         expect(vm.needsAcknowledgement).toBe(false);
       }
     ]));
+
+    it('causes an UPDATE_DASHBOARD_FILTERS_DIRTINESS event to fire whenever it changes',
+        inject(['event.name.constant', function(EventNameConstant) {
+          var falseEventReceived = false,
+              trueEventReceived = false;
+
+          $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applicationData);
+          $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
+          $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
+          $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData);
+          $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(appliedDirtyFilterData);
+          $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
+          $httpBackend.flush();
+
+          $rootScope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS_DIRTINESS, function(e, value) {
+            if (value === true) {
+              trueEventReceived = true;
+            }
+            else if (value === false) {
+              falseEventReceived = true;
+            }
+            else {
+              throw new Error("value should be true or false");
+            }
+          });
+
+          var orgId1 = vm.selected.organizations.orgId1;
+          delete vm.selected.organizations.orgId1;
+          $rootScope.$digest();
+
+          expect(trueEventReceived).toBe(true);
+          expect(falseEventReceived).toBe(false);
+
+          trueEventReceived = false;
+
+          vm.selected.organizations.orgId1 = orgId1;
+          $rootScope.$digest();
+
+          expect(trueEventReceived).toBe(false);
+          expect(falseEventReceived).toBe(true);
+        }])
+    );
   });
 });

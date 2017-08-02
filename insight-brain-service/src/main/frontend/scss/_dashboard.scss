@@ -1,654 +1,517 @@
-.dashboard-container {
+$iq-cell-default-width: 90px;
+$iq-cell-threat-width: 65px;
+$iq-cell-age-width: 65px;
+$iq-cell-report-width: 140px;
+$iq-cell-scroll-bar-width: 14px;
+$iq-cell-chevron-width: 21px;
+$iq-cell-affected-apps-width: 109px;
 
-  $dashboard-border: 1px solid $iq-grey-3;
-
-  // fixed column widths  
-  $total-risk-width: 82px;
-  $critical-risk-width: 99px;
-  $severe-risk-width: 90px;
-  $moderate-risk-width: 114px;
-  $low-risk-width: 71px;
-  $threat-width: 92px;
-  $threat-number-width: 30px;
-  $threat-bar-width: 8px;
-  $age-width: 67px;
-  $report-width: 107px;
-  $scroll-bar-width: 14px;
-  $chevron-width: 21px;
-  $affected-apps-width: 109px;
+.iq-tile--dashboard-table-container {
+  background-color: transparent;
+  border: 0;
+  margin-top: 0;
+  padding-right: 0;
+  padding-left: 0;
+  position: relative;
   
-  $chevron-header-width: 23px;
-  $total-risk-columns: $total-risk-width + $critical-risk-width + $severe-risk-width + $moderate-risk-width + $low-risk-width;
+  .iq-scrollable {
+    // window height - main header - tile header - padding for bottom
+    max-height: calc(100vh - 40px - 85px - 16px);
+  }
+}
 
-  $tile-right-padding: 12px;
+.iq-tile--dashboard-common-messages {
+  background: none;
+  border: none;
+  color: $iq-slate;
+  text-align: center;
+}
 
-  .tile-scroll-container {
-    height: calc(100% - 16px);
-    padding-top: 4px;
+.iq-table--dashboard-violations,
+.iq-table--dashboard-applications,
+.iq-table--dashboard-components {
+  border-top: 1px solid $iq-grey-3;
+  display: block;
+  margin-top: 0;
+  width: 100%;
 
-    .iq-alert {
-      margin: 0px;
-    }
+  .iq-table-row {
+    display: block;
   }
 
-  .tile {
-    line-height: 21px;
-    margin-bottom: 4px;
-    padding-right: $tile-right-padding;
-
-    .fa-chevron-right {
-      color: $iq-slate;
-      font-size: 12px;
-      width: 7px;
-    }
-
-    &.clickable {
-      &:hover, &:active {
-        cursor: pointer;
-        .fa-chevron-right {
-          color: $iq-off-black;
-        }
-      }
-
-      &:active, &:focus {
-        outline: 0;
-      }
-
-      &:hover {
-        border-color: $iq-grey-4;
-      }
-
-      &:active {
-        background: $iq-grey-1;
-        border-color: $iq-slate;
-      }
-    }
-
-  }
-
-  .column {
-    box-sizing: border-box;
+  .iq-cell {
     display: inline-block;
-    vertical-align: top;
+    min-width: 0;
 
-    &:focus {
-      outline: none;
-    }
-
-    &.greedy {
-      overflow: hidden;
-      text-align: left;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    &.fixed {
-      text-align: center;
-    }
-
-    &.chevron {
-      text-align: right;
-      width: $chevron-width;
+    .iq-spinner__wrapper {
+      margin-top: 16px;
     }
   }
+}
 
-  dashboard-tabs, .dashboard-headers {
-    @include semi-bold();
-    
-    font-size: 14px;
-    text-transform: uppercase;
+.iq-dashboard-headers {
+  @include semi-bold();
 
-    a {
-      color: $iq-slate;
+  background-color: #fff;
+  border-right: 1px solid $iq-grey-2;
+  border-left: 1px solid $iq-grey-2;
+  box-shadow: 0px 2px 5px 0px $iq-grey-1;
+  display: block;
+  font-size: 14px;
+  padding-bottom: 8px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-transform: uppercase;
+  width: calc(100% - 2px);
+  z-index: $iq-dashboard-headers-zindex;
+
+  .iq-cell--header {
+    &:first-child {
+      border-left: 8px solid $iq-off-white;
       line-height: 16px;
     }
   }
 
-  .dashboard-summary {
-    .summary-tile {
-      border-bottom-width: 0;
-      margin-bottom: 0;
-      padding-bottom: 0;
+  .iq-threat-indication {
+    height: 6px;
+    position: absolute;
+    top: 41px;
+    left: 1px;
+    width: calc(100% - 2px);
+  }
+}
 
-      .tile-header {
-        padding-top: 0;
+// apply white border to non-zero heatmap styles
+// override default :hover states for table rows because we have gaps between our rows here
+.iq-components-results, .iq-applications-results {
+  .iq-table-row.iq-clickable {
+    td {
+      border-top: none;
+      border-bottom: none;
+
+      &:hover {
+        border-top: none;
       }
     }
 
-    .tabs {
-      height: 32px;
-
-      ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
+    &:hover {
+      + tr td {
+        border-top: none;
       }
 
-      li {
-        display: inline-block;
-        vertical-align: top;
-
-        &:not(last-child) {
-          margin-right: 8px;
-        }
-      }
-
-      a {
-        // invisible border to avoid shifts upon activating
-        border-top: 1px solid transparent;
-        border-right: 1px solid transparent;
-        border-left: 1px solid transparent;
-
-        box-sizing: border-box;
-        display: inline-block;
-        height: 32px;
-        padding: 8px 12px;
-
-        &:hover, &:focus {
-          color: $iq-off-black;
-          text-decoration: none;
-
-          .fa.inverse {
-            background-color: $iq-off-black;
-          }
-        }
-      }
-
-      .fa {
-        margin-right: 8px;
-      }
-
-      .active {
-        a {
-          background-color: $iq-grey-1;
-          border-top: $dashboard-border;
-          border-right: $dashboard-border;
-          border-left: $dashboard-border;
-          border-top-right-radius: 4px;
-          border-top-left-radius: 4px;
-          color: $iq-off-black;
-          cursor: default;
-        }
-      }
-      
-      .dashboard-tab-counter {
-        background-color: $iq-grey-1;
-        border-radius: 4px;
-        font-size: 12px;
-        margin-left: 8px;
-        padding: 0 4px;
-      }
-      
-      .fa.fa-exclamation {
-        line-height: 16px;
-        text-align: center;
-        vertical-align: 1px;
-        width: 16px;
-      
-        &::before {
-          font-size: 15px;
-          vertical-align: -2px;
-        }
-      }
-
-      .fa.fa-terminal {
-        font-size: 12px;
-        height: 16px;
-        line-height: 12px;
-        text-align: center;
-        vertical-align: 3px;
-        width: 16px;
-
-        &::before {
-          vertical-align: -2px;
+      &:last-child {
+        td {
+          border-bottom: none;
         }
       }
     }
   }
 
-  .dashboard-headers {
-    .summary-tile {
-      border-top-width: 0;
-      margin-top: 0;
-      padding-top: 0;
-    }
-
-    .dashboard-header-container {
-      border-top: $dashboard-border;
-      height: 40px;
-
-      .column {
-        background-color: $iq-grey-1;
-        box-sizing: border-box;
-        color: $iq-slate;
-        height: 40px;
-        line-height: 40px;
-        padding: 0 12px;
-        position: relative;
-        text-align: left;
-
-        a {
-          display: inline-block;
-          height: 100%;
-          line-height: 40px;
-          position: static; // static is the initial setting
-          text-decoration: none;
-          width: 100%;
-        }
-
-        .fa-caret-up {
-          top: calc(50% - 7px);
-        }
-
-        .fa-caret-down {
-          top: calc(50%);
-        }
-
-        .clm-bar {
-          height: 6px;
-          position: absolute;
-          top: 41px;
-          left: 1px;
-          width: calc(100% - 2px);
-        }
-
-        &.selected-column {
-          background-color: $iq-grey-2;
-        }
-
-        &.split-line {
-          padding-top: 4px;
-
-          a {
-            line-height: 16px;
-          }
-        }
-
-        &.chevron {
-          width: $chevron-header-width;
-        }
-
-        &:nth-child(1) {
-          padding-left: 8px;
-        }
-      }
-
-      .header-text {
-        display: inline-block;
-        text-align: center;
-      }
-    }
-  }
-
-  .dashboard-results {
-    // provide extra padding to cells to compensate for sort indicators
-    .padded-cell {
-      padding-left: 16px;
-    }
-
-    .heatmap-cell {
+  td {
+    &.iq-cell--heatmap {
       @include semi-bold();
-    }
 
-    .white-text {
-      color: $iq-off-white;
-    }
+      // RGB value comes from /frontend/dashboard/utils/classybrew.factory.js
+      border-left: 1px solid rgb(247,251,255);
+      text-align: center;
 
-    .grey-text {
-      color: $iq-grey-4;
-    }
-  }
-
-  #dashboard-violations {
-    .tile-scroll-container.scrollbar-present .violations-card .violations-row .column {
-      &.width-third {
-        width: calc((100% - #{$threat-bar-width + $age-width + $report-width + $scroll-bar-width / 3}) / 3 - 2px);
-      }
-
-      &.age {
-        padding-left: 5px;
-      }
-
-      &.report {
-        padding-left: 5px;
-        width: $report-width + $scroll-bar-width;
-      }
-    }
-
-    .violations-card {
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding: 0;
-
-      .violations-row {
-        width: calc(100% - #{$threat-bar-width});
-
-        .column.threat-and-policy-column-container {
-          padding: 0;
-
-          .threat {
-            float: left;
-            width: $threat-width;
-          }
-
-          .policy {
-            display: block;
-            overflow: hidden;
-          }
-
-          .threat-number {
-            float: left;
-            padding: 0 8px;
-            width: $threat-number-width;
-          }
-        }
-
-        .column.width-third {
-          width: calc((100% - #{$threat-bar-width + $chevron-width + $age-width + $report-width}) / 3 - 2px);
-
-          &:not(:first-of-type) {
-            padding: 0 12px;
-          }
-        }
-
-        .column.fixed.age {
-          width: $age-width;
-        }
-
-        .column.fixed.report {
-          width: $report-width + $chevron-header-width;
-          text-align: left;
-
-          a {
-            &.link {
-              @extend %link;
-
-              &.disabled {
-                text-decoration: none;
-              }
-
-              .fa-external-link {
-                margin-bottom: 2px;
-                vertical-align: middle;
-              }
-            }
-
-            &:hover, &:focus {
-              filter: none; // bootstrap override
-            }
-
-            > .fa, span {
-              margin-right: 8px;
-            }
-          }
-        }
-      }
-
-      .violations-row {
-        float: left;
-        height: 40px;
-        line-height: 40px;
-      }
-
-      .clm-bar {
-        border: none;
-        display: inline-block;
-        float: left;
-        height: 40px;
-        width: $threat-bar-width;
-
-        &:nth-child(3) {
-          clear: left;
-        }
-      }
-    }
-
-    .dashboard-headers {
-      .violations-row {
-        .column.width-third {
-          width: calc((100% - #{$age-width + $report-width + $chevron-header-width}) / 3);
-        }
-
-        .column {
-          &.policy {
-            width: calc(100% - #{$threat-width});
-          }
-
-          &.age {
-            width: $age-width;
-          }
-
-          &.report {
-            width: $report-width + $chevron-header-width;
-          }
-
-          &.threat-and-policy-column-container {
-            padding: 0;
-          }
-        }
-      }
-    }
-  }
-
-  #dashboard-applications {
-    .applications-row {
-      line-height: 22px;
-
-      .column {
-        &.application-name {
-          @include semi-bold();
-
-          width: calc(100% - #{$total-risk-columns + $chevron-width + $scroll-bar-width});
-        }
-
-        &.total-risk {
-          width: $total-risk-width;
-        }
-
-        &.critical-risk {
-          width: $critical-risk-width;
-        }
-
-        &.severe-risk {
-          width: $severe-risk-width;
-        }
-
-        &.moderate-risk {
-          width: $moderate-risk-width;
-        }
-
-        &.low-risk {
-          width: $low-risk-width + $chevron-width;
-
-          .clm-bar {
-            width: calc(100% - 1px);
-          }
-        }
-      }
-
-      &.total-application-risks {
-        border-bottom: 1px solid $iq-grey-3;
-      }
-    }
-
-    .dashboard-headers {
-      .applications-row {
-        .column.application-name {
-          width: calc(100% - #{$total-risk-columns + $chevron-header-width});
-        }
-      }
-    }
-
-    .dashboard-results {
-      .tile-scroll-container.scrollbar-present {
-        .column {
-          &.application-name {
-            width: calc(100% - #{$total-risk-columns + $chevron-width - 1px});
-          }
-
-          &.low-risk {
-            padding-right: 0;
-            width: $low-risk-width + $chevron-width - 1px;
-          }
-        }
-
-        .applications-row.stage-application-risks .column.low-risk {
-          margin-right: $chevron-width - $scroll-bar-width - 1px;
-          padding-left: 6px;
-        }
-      }
-
-      .tile {
-        // remove padding so we can extend the color in low risk to the tile edge
-        padding-right: 0px;
-      }
-
-      .applications-row.stage-application-risks {
-        .application-name {
-          @include regular();
-          
-          padding-right: 12px;
-          text-align: right;
-        }
-
-        &:nth-child(n+3) .column:nth-child(n+2) {
-          border-top: 1px solid $iq-grey-1;
-        }
-
-        .column.low-risk {
-          // ensures the border doesn't extend the full width that would be occupied by chevrons on non-stage lines
-          margin-right: $chevron-width;
-          padding-left: $chevron-width;
-          width: $low-risk-width + $scroll-bar-width;
-        }
-      }
-
-      .column {
-        padding-top: 8px;
-        padding-bottom: 8px;
-
-        &.low-risk {
-          padding-right: $scroll-bar-width;
-
-          // No chevron on the table + extend color to the edge
-          width: $low-risk-width + $chevron-width + $scroll-bar-width;
-        }
-
-        .fa {
-          margin-right: 8px;
-          width: 12px;
-        }
-      }
-    }
-  }
-
-  #dashboard-components {
-    .tile-scroll-container.scrollbar-present {
-      .column {
-        &.component-name {
-          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width - 1px});
-        }
-
-        &.chevron {
-          width: #{$chevron-width - 1px};
-        }
-      }
-    }
-
-    .components-row {
-      .column {
-        &.component-name {
-          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-width + $scroll-bar-width});
-        }
-
-        &.affected-apps {
-          width: $affected-apps-width;
-        }
-
-        &.total-risk {
-          width: $total-risk-width;
-        }
-
-        &.critical-risk {
-          width: $critical-risk-width;
-        }
-
-        &.severe-risk {
-          width: $severe-risk-width;
-        }
-
-        &.moderate-risk {
-          width: $moderate-risk-width;
-        }
-
-        &.low-risk {
-          width: $low-risk-width;
-
-          .clm-bar {
-            width: calc(100% - 1px);
-          }
-        }
-
-        &.chevron {
-          width: #{$chevron-width + $scroll-bar-width};
-        }
-      }
-    }
-
-    .dashboard-headers {
-      .components-row {
-        .column.component-name {
-          width: calc(100% - #{$total-risk-columns + $affected-apps-width + $chevron-header-width});
-        }
-
-        .column.low-risk {
-          width: $low-risk-width + $chevron-header-width;
-        }
-      }
-    }
-
-    .dashboard-results {
-      .tile {
-        height: 40px;
-        line-height: 40px;
-        padding-right: 0;
-        .chevron {
-          padding-right: 12px;
-        }
+      &.grey-text {
+        border-left-color: transparent;
+        color: $iq-grey-4;
       }
     }
   }
 }
 
-// Placeholder that allows dropdowns to appear above table headers
+.iq-cell--chevron {
+  border-left: none;
+  color: $iq-slate;
+  padding: 0 12px;
+  text-align: right;
+  width: $iq-cell-chevron-width;
+  max-width: $iq-cell-chevron-width;
+
+  tr:hover & {
+    color: $iq-off-black;
+  }
+}
+
+.iq-cell--split-line {
+  .iq-column-sort-icons {
+    padding-right: 8px;
+  }
+
+  .header-text {
+    height: 40px;
+    line-height: 16px;
+    padding-top: 4px;
+    position: absolute;
+    top: 0;
+    white-space: normal;
+  }
+}
+
+.iq-tile--dashboard-common-messages {
+  background-color: transparent;
+  border: none;
+  color: $iq-slate;
+  text-align: center;
+}
+
+.iq-violations-results, .iq-components-results, .iq-applications-results {
+  border-top: 6px solid transparent;
+  display: block;
+  position: relative;
+
+  .form-mask {
+    z-index: $iq-dashboard-mask-zindex;
+  }
+}
+
+/*
+  VIOLATIONS & COMPONENTS TABS
+*/
+.iq-violations-results, .iq-components-results {
+  margin-top: 46px;
+
+  .iq-table-row {
+    background-color: $iq-off-white;
+    border: 1px solid $iq-grey-2;
+    margin-bottom: 4px;
+
+    &:hover {
+      border-color: $iq-grey-4;
+    }
+  }
+}
+
+.iq-cell--threat {
+  width: $iq-cell-threat-width;
+  max-width: $iq-cell-threat-width;
+}
+
+.iq-cell--policy,
+.iq-cell--application,
+.iq-cell--component {
+  // format is $cell-width + padding + border
+  width: calc(
+          (100% -
+             (
+               (24px + 1px) * 3
+               + #{$iq-cell-threat-width} + 24px + 8px
+               + #{$iq-cell-age-width} + 24px + 1px
+               + #{$iq-cell-report-width} + 24px + 8px
+             )
+          )
+          / 3);
+}
+
+.iq-cell--age {
+  width: $iq-cell-age-width;
+  max-width: $iq-cell-age-width;
+}
+
+.iq-cell--report {
+  width: $iq-cell-report-width;
+  max-width: $iq-cell-report-width;
+
+  a {
+    span {
+      vertical-align: middle;
+    }
+    .fa-external-link {
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    .fa-exclamation-triangle, .fa-exclamation-circle {
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+  }
+}
+
+// Cells in the <tbody> must adjust their size to accommodate wider space
+.iq-violations-results {
+  .iq-cell--threat {
+    padding-left: 0;
+    width: $iq-cell-threat-width + 24px;
+    max-width: $iq-cell-threat-width + 24px;
+  }
+
+  .iq-cell--policy,
+  .iq-cell--application,
+  .iq-cell--component {
+    // in calc below 24px is L/R padding, 1px is borders
+    width: calc(
+             (100% -
+               (
+                 (24px + 1px) * 3
+                 + #{$iq-cell-threat-width} + 24px + 12px
+                 + #{$iq-cell-age-width} + 24px + 1px
+                 + #{$iq-cell-report-width} + 24px + 1px
+               )
+             )
+           / 3);
+  }
+
+  .iq-cell--report {
+    width: $iq-cell-report-width - 10px;
+    max-width: $iq-cell-report-width - 10px;
+  }
+}
+
+// If the scrollbar is present the cells must adjust to accommodate the lost space
+.scrollbar-present {
+  // <tbody> cells
+  .iq-violations-results {
+    .iq-cell--policy,
+    .iq-cell--application,
+    .iq-cell--component {
+      // in calc below 24px is L/R padding, 1px is borders
+      width: calc(
+               (100% -
+                 (
+                   (24px + 1px) * 3
+                   + #{$iq-cell-threat-width} + 24px
+                   + #{$iq-cell-age-width} + 24px + 1px
+                   + #{$iq-cell-report-width} + 24px + 1px
+                 )
+               )
+             / 3);
+    }
+  }
+}
+
+.iq-threat-indication {
+  display: inline-block;
+  height: 41px;
+  vertical-align: middle;
+  width: 8px;
+}
+
+.iq-threat-number {
+  @include semi-bold();
+
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+/*
+  COMPONENTS TAB
+*/
+.iq-cell--affected-apps,
+.iq-cell--total-risk,
+.iq-cell--critical-risk,
+.iq-cell--severe-risk,
+.iq-cell--moderate-risk,
+.iq-cell--low-risk {
+  width: $iq-cell-default-width;
+  max-width: $iq-cell-default-width;
+
+  &.white-text {
+    color: $iq-off-white;
+  }
+}
+
+.iq-table--dashboard-components {
+  .iq-dashboard-headers {
+    .iq-cell--critical-risk,
+    .iq-cell--severe-risk,
+    .iq-cell--moderate-risk,
+    .iq-cell--low-risk {
+      overflow: visible;
+    }
+
+    .iq-cell--low-risk {
+      width: $iq-cell-default-width + $iq-cell-chevron-width + 24px;
+      max-width: $iq-cell-default-width + $iq-cell-chevron-width + 24px;
+    }
+
+    .iq-cell--component-name {
+      // in calc below 8px are header LR spacing, 24px is L/R padding, 1px is borders
+      width: calc(
+             100% -
+             (
+               8px + 24px
+               + (#{$iq-cell-default-width} + 24px + 1px) * 6
+               + #{$iq-cell-chevron-width} + 24px
+               + 8px
+             )
+           );
+    }
+  }
+  .iq-components-results {
+    .iq-cell--affected-apps {
+      width: $iq-cell-default-width + 1px;
+      max-width: $iq-cell-default-width + 1px;
+    }
+    .iq-cell--chevron {
+      width: $iq-cell-chevron-width + 8px;
+      max-width: $iq-cell-chevron-width + 8px;
+    }
+    .iq-cell--component-name {
+      // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
+      width: calc(
+               100% -
+               (
+                 8px + 24px
+                 + (#{$iq-cell-default-width} + 24px + 1px) * 6
+                 + #{$iq-cell-chevron-width} + 24px
+               )
+             );
+    }
+  }
+}
+
+.iq-components-results {
+  .iq-cell--affected-apps {
+    text-align: center;
+  }
+}
+
+// If the scrollbar is present the cells must adjust to fill the lost space
+.scrollbar-present {
+  .iq-components-results {
+    .iq-cell--chevron {
+      padding-left: 5px;
+      width: $iq-cell-chevron-width;
+      max-width: $iq-cell-chevron-width;
+    }
+
+    .iq-cell--component-name {
+      // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
+      width: calc(
+               100% -
+               (
+                 8px + 24px
+                 + (#{$iq-cell-default-width} + 24px + 1px) * 6
+                 + #{$iq-cell-chevron-width} + 9px
+               )
+             );
+    }
+  }
+}
+
+/*
+  APPLICATIONS TAB
+*/
+.iq-cell--affected-apps,
+.iq-cell--total-risk,
+.iq-cell--critical-risk,
+.iq-cell--severe-risk,
+.iq-cell--moderate-risk,
+.iq-cell--low-risk {
+  width: $iq-cell-default-width;
+  max-width: $iq-cell-default-width;
+
+  &.white-text {
+    color: $iq-off-white;
+  }
+}
+
+.iq-applications-results {
+  margin-top: 42px;
+
+  .iq-table-row {
+    background-color: $iq-off-white;
+    border: 1px solid $iq-grey-2;
+  }
+
+  .total-application-risks {
+    border-bottom: none;
+    margin-top: 4px;
+  }
+
+  .stage-application-risks {
+    + .stage-application-risks {
+      border-top: none;
+    }
+  }
+}
+
+tbody {
+  .iq-cell--affected-apps,
+  .iq-cell--total-risk,
+  .iq-cell--critical-risk,
+  .iq-cell--severe-risk,
+  .iq-cell--moderate-risk,
+  .iq-cell--low-risk {
+    width: $iq-cell-default-width;
+    max-width: $iq-cell-default-width;
+  }
+}
+
+.stage-application-risks {
+  .iq-cell--application-name {
+    text-align: right;
+  }
+}
+
+.iq-dashboard-headers {
+  .iq-cell--application-name {
+    // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
+    width: calc(
+             100% -
+             (
+               8px + 24px + 1px
+               + (#{$iq-cell-default-width} + 24px + 1px) * 5
+               + 8px
+             )
+           );
+  }
+}
+
+.iq-applications-results {
+  .iq-cell--low-risk {
+    width: $iq-cell-default-width + 8px;
+    max-width: $iq-cell-default-width + 8px;
+  }
+}
+
+.iq-cell--application-name {
+  // in calc below 8px is header padding, 24px is L/R padding, 1px is borders
+  width: calc(
+           100% -
+           (
+              8px + 24px + 1px
+              + (#{$iq-cell-default-width} + 24px + 1px) * 5
+           )
+         );
+}
+
+// If the scrollbar is present the cells must adjust to accommodate the lost space
+.scrollbar-present {
+  .iq-applications-results {
+    .iq-cell--low-risk {
+      width: $iq-cell-default-width - 6px;
+      max-width: $iq-cell-default-width - 6px;
+    }
+
+    .iq-cell--application-name {
+      // in calc below 24px is L/R padding, 1px is borders
+      width: calc(
+               100% -
+               (
+                  24px + 1px
+                  + (#{$iq-cell-default-width} + 24px + 1px) * 4
+                  + #{$iq-cell-default-width} + 18px
+               )
+             );
+    }
+  }
+}
+
+// Allows dropdowns to appear above table headers
 .iq-dashboard-summary {
   position: relative;
   z-index: $iq-dashboard-summary-zindex;
 }
 
-//Placeholder that allows box-shadow to appear over scrollable contents 
-.iq-dashboard-headers {
-  box-shadow: 0px 2px 5px 0px $iq-grey-1;
-  position: relative;
-  z-index: $iq-dashboard-headers-zindex;
-}
+.dashboard-tooltip {
+  margin-top: 2px!important;
 
-#max-results-shown .tile {
-  background-color: transparent;
-  border: none;
-  text-align: center;
-}
-
-#dashboard-applications, #dashboard-components {
-  .dashboard-results {
-    .tile {
-      padding-top: 0;
-      padding-bottom: 0;
-    }
-  }
-}
-
-.tooltip.dashboard-tooltip {
   &.pathname .tooltip-inner::before {
     content: "COMPONENT PATH\a";
     display: block;
@@ -658,5 +521,8 @@
   .tooltip-inner {
     text-align: left;
     max-width: 350px;
+  }
+  .tooltip-arrow {
+    left: 10%;
   }
 }

@@ -27,7 +27,7 @@ function FormMaskDirective($parse) {
     $parse(attrs.formMask).assign(scope, maskController);
 
     attrs.$observe('maskMessage', function(newMessage) {
-      maskMessage = newMessage || 'Saving';
+      maskMessage = (newMessage != null ? newMessage : 'Saving');
     });
 
     scope.$on('$destroy', removeMask);
@@ -42,29 +42,34 @@ function FormMaskDirective($parse) {
     function activateMask() {
       if (!maskElement) {
         var msgElement,
-            offset,
             targetElement = attachToBody ? $('body') : element;
 
         // open mask
-        maskElement = $('<div class="form-mask"><div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' +
-            maskMessage + '</h3></div></div>');
+        maskElement = $('<div class="form-mask"/>');
 
-        //note we are tweaking the size a slight bit to not overrun the margin of the form
-        offset = targetElement.offset();
-        maskElement.css('top', offset.top + 1).css('left', offset.left + 1).css('width',
-            targetElement.width() - 2).css('height', targetElement.height() - 2);
+        if (maskMessage) {
+          msgElement = $('<div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' +
+            maskMessage + '</h3></div>');
+
+          maskElement.append(msgElement);
+        }
+
         targetElement.append(maskElement);
 
-        // prior to adding to the DOM the element has no height
-        msgElement = $('.form-mask-msg', element);
-        msgElement.css('margin-top', -msgElement.outerHeight());
+        if (msgElement) {
+          // prior to adding to the DOM the element has no height
+          msgElement.css('margin-top', -msgElement.outerHeight());
+        }
       }
     }
 
     function showSuccessMask() {
       var msgElement = $('.form-mask-msg', attachToBody ? $('body') : element);
-      msgElement.addClass('success');
-      msgElement.html('<h3><i class="fa fa-check-circle"></i> Success!</h3>');
+
+      if (msgElement) {
+        msgElement.addClass('success');
+        msgElement.html('<h3><i class="fa fa-check-circle"></i> Success!</h3>');
+      }
     }
   }
 }

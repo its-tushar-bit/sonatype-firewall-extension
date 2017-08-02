@@ -21,7 +21,7 @@ class DashboardOverviewPage
   static at = { filters.displayed }
 
   static content = {
-    noDataAvailable(required: false) { $('#no-data') }
+    noDataAvailable(required: false) { $('#dashboard-common-results-no-data') }
 
     highestRiskDiv(required: false) { module ThreatTableModule, $('#highest-risk') }
     maxResults(required: false) { module ThreatTableModule, $('#max-results-shown') }

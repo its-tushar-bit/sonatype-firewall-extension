@@ -8,7 +8,8 @@ var eventNameConstant = {
   RELOAD_OWNER_TREE_DATA: 'reload.owner.tree.data',
   OWNER_UPDATED: 'owner.updated',
   UPDATE_SCROLLSPY: 'update.scrollspy',
-  UPDATE_DASHBOARD_FILTERS: 'update.dashboard.filters'
+  UPDATE_DASHBOARD_FILTERS: 'update.dashboard.filters',
+  UPDATE_DASHBOARD_FILTERS_DIRTINESS: 'update.dashboard.filters.dirtiness'
 };
 
 angular.module('utility').constant('event.name.constant', eventNameConstant);

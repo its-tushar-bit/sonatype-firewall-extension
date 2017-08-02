@@ -11,13 +11,25 @@ function DashboardResultsController($scope, $modal, EventNameConstant, $state, f
   $scope.getViewTitle = getViewTitle;
   $scope.getExportUrl = getExportUrl;
   $scope.getFilterJson = getFilterJson;
+  $scope.reload = reload;
 
   $scope.filters = undefined;
+  $scope.filtersAreDirty = undefined;
 
   $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS, function(e, newFilters, needsAcknowledgement) {
     $scope.filters = newFilters;
     $scope.maxDaysOld = newFilters.maxDaysOld;
     $scope.needsAcknowledgement = needsAcknowledgement;
+  });
+
+  /*
+   * Listen for dirtiness changes and set a scope property that children (the three dashboard tables) can listen to.
+   * The event listening is done here, instead of in the children themselves, because the child tables don't get
+   * created until their tab is clicked on, and they would therefore miss instances of this event that fired
+   * before they existed
+   */
+  $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS_DIRTINESS, function(e, filtersAreDirty) {
+    $scope.filtersAreDirty = filtersAreDirty;
   });
 
   function showTrendDialog() {
@@ -58,6 +70,10 @@ function DashboardResultsController($scope, $modal, EventNameConstant, $state, f
   function getFilterJson() {
     var filterJson = filterToParams($scope.filters);
     return JSON.stringify(filterJson);
+  }
+
+  function reload() {
+    $scope.filters = angular.copy($scope.filters);
   }
 }
 

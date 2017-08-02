@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardApplications
@@ -28,31 +29,31 @@ public class DashboardApplications
       extends BasicElement<ApplicationsHeaders>
   {
     ApplicationsHeaders() {
-      super(ROOT, ".dashboard-headers");
+      super(ROOT, ".iq-dashboard-headers");
     }
 
     public SelenideElement totalRiskHeader() {
-      return child(".total-risk a");
+      return child(".iq-cell--total-risk a");
     }
 
     public SelenideElement lowRiskHeader() {
-      return child(".low-risk a");
+      return child(".iq-cell--low-risk a");
     }
 
     public SelenideElement moderateRiskHeader() {
-      return child(".moderate-risk a");
+      return child(".iq-cell--moderate-risk a");
     }
 
     public SelenideElement severeRiskHeader() {
-      return child(".severe-risk a");
+      return child(".iq-cell--severe-risk a");
     }
 
     public SelenideElement criticalRiskHeader() {
-      return child(".critical-risk a");
+      return child(".iq-cell--critical-risk a");
     }
 
     public SelenideElement applicationNameHeader() {
-      return child(".application-name a");
+      return child(".iq-cell--application-name a");
     }
   }
 
@@ -60,23 +61,23 @@ public class DashboardApplications
       extends BasicElement<ApplicationsResults>
   {
     ApplicationsResults() {
-      super(ROOT, ".dashboard-results");
+      super(ROOT, ".iq-tile--dashboard-table-container");
     }
 
     public ElementsCollection applications() {
-      return children(".tile");
+      return children(".total-application-risks");
     }
 
-    public ApplicationTile application(int index) {
-      return new ApplicationTile(childSelector(".tile", nthChild(index + 1)));
+    public ApplicationElement application(int index) {
+      return new ApplicationElement(childSelector("tr[id^=\"app" + index + "_\"]"));
     }
 
-    public ApplicationTile firstApplication() {
-      return new ApplicationTile(childSelector(".tile:first-child"));
+    public ApplicationElement firstApplication() {
+      return application(0);
     }
 
-    public ApplicationTile lastApplication() {
-      return new ApplicationTile(childSelector(".tile:last-child"));
+    public ApplicationElement lastApplication() {
+      return application(applications().size() - 1);
     }
 
     public SelenideElement maxResultsMessage() {
@@ -84,31 +85,55 @@ public class DashboardApplications
     }
 
     public SelenideElement noDataMessage() {
-      return child("#no-data");
+      return child("#dashboard-common-results-no-data");
+    }
+
+    public SelenideElement mask() {
+      return child(".form-mask");
     }
   }
 
-  public static class ApplicationTile
-      extends BasicElement<ApplicationTile>
+  public static class ApplicationElement
+      extends BasicElement<ApplicationElement>
   {
-    ApplicationTile(String selector) {
-      super(selector);
+    private final ApplicationStageList applicationStageList;
+
+    ApplicationElement(String selector) {
+      super(selector);               
+      applicationStageList = new ApplicationStageList(this.selector + ".stage-application-risks");
     }
 
     public ElementsCollection getRows() {
-      return children(".applications-row");
-    }
-
-    public ElementsCollection getStageLinks() {
-      return children(".applications-row.stage-application-risks", "a[target=_blank]");
-    }
-
-    public SelenideElement getStageLink(int index) {
-      return child(".stage-application-risks", nthChild(index + 2), "a[target=_blank]");
+      return children();
     }
 
     public ElementsCollection getTotalsInRow(int index) {
-      return children(".applications-row", nthChild(index + 1), ".column.fixed");
+      return children(nthChild(index + 1), ".iq-cell--heatmap");
+    }
+
+    public ElementsCollection getStages() {
+      return applicationStageList.getRows();
+    }
+
+    public SelenideElement getStageLink(int index) {
+      return applicationStageList.getStageLinkByRow(index);
+    }
+
+
+    private static class ApplicationStageList
+        extends BasicElement<ApplicationStageList>
+    {
+      ApplicationStageList(String... selectors) {
+        super(selectors);
+      }
+
+      public ElementsCollection getRows() {
+        return children();
+      }
+
+      public SelenideElement getStageLinkByRow(int index) {
+        return children().get(index).$(createSelector(nthChild(index + 2), "a[target=_blank]"));
+      }
     }
   }
 }

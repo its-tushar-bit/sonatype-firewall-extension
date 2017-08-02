@@ -8,7 +8,7 @@ $threat-bars: ("ignore", #FFF, $iq-threat-color-ignore),
         ("unspecified", #FFF, $iq-threat-color-unspecified);
 
 @each $threatdef in join($threat-levels, $threat-bars) {
-  .clm-bar.#{nth($threatdef, 1)} {
+  .iq-threat-indication.#{nth($threatdef, 1)} {
     background-color: #{nth($threatdef, 3)} !important;
   }
 }

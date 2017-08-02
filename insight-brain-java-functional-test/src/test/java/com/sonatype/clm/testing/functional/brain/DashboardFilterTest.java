@@ -208,7 +208,7 @@ public class DashboardFilterTest
     refreshOrOpen(VIOLATIONS_URL);
     ageFilter.shouldNotBe(visible);
     refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
-    ageFilter.shouldBe(visible).counter().shouldHave(text("past 30 days"));
+    ageFilter.shouldBe(visible).shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
     ageFilter.singleSelectList().shouldHaveSize(6)
         .shouldHave(texts("past 24 hours", "past 7 days", "past 30 days", "past 90 days", "past 12 months", "all time"));
@@ -265,23 +265,43 @@ public class DashboardFilterTest
     DashboardPage.applicationsTab().counter().shouldNot(exist);
     
     DashboardFilters.applyButton().shouldBe(DISABLED).hover().tooltip().shouldHave(NO_CHANGES_MESSAGE);
+    DashboardPage.violationsView().results().mask().shouldNotBe(visible);
 
     // check that counters get updated
     setSomeFilterValues();
 
     DashboardFilters.applyButton().shouldNotBe(DISABLED).hover().tooltip().shouldNotBe(visible);
 
+    // violations should be covered by the mask
+    DashboardPage.violationsView().results().mask().shouldBe(visible);
+    DashboardPage.violationsView().results().lastViolation().shouldBe(visible);
+
+    // Ideally we would check here that the violation is not clickable.  There doesn't appear to be a way to do
+    // that however, at least not one that works in PhantomJS
+
+    DashboardPage.componentsTab().click();
+    DashboardPage.componentsView().results().mask().shouldBe(visible);
+
+    DashboardPage.applicationsTab().click();
+    DashboardPage.applicationsView().results().mask().shouldBe(visible);
+
+    DashboardPage.violationsTab().click();
+
     assertNewCounterState();
 
     // check revert
     DashboardFilters.revertButton().click();
     assertInitialFilterState();
+    DashboardPage.violationsView().results().mask().shouldNotBe(visible);
 
     // make sure changes persist after save + reload
     setSomeFilterValues();
     DashboardFilters.apply();
+    DashboardPage.violationsView().results().mask().shouldNotBe(visible);
+
     refresh();
     assertNewCounterState();
+    DashboardPage.violationsView().results().mask().shouldNotBe(visible);
 
     // assert stored filter
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO()
@@ -355,7 +375,10 @@ public class DashboardFilterTest
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().allItems().shouldBe(selected).click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardPage.applicationsView().results().mask().shouldBe(visible);
+
     DashboardFilters.apply();
+    DashboardPage.applicationsView().results().mask().shouldNotBe(visible);
 
     // check all tabs - should have the same results
     DashboardPage.violationsTab().counter().shouldNot(exist);
@@ -378,23 +401,27 @@ public class DashboardFilterTest
     DashboardPage.violationsTab().counter().shouldHave(text("2"));
     DashboardPage.componentsTab().counter().shouldHave(text("2"));
     DashboardPage.applicationsTab().counter().shouldHave(text("2"));
+    DashboardPage.componentsTab().click();
 
     // filter WAIVED only
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().waived().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardPage.componentsView().results().mask().shouldBe(visible);
+
     DashboardFilters.apply();
+    DashboardPage.componentsView().results().mask().shouldNotBe(visible);
+
+    // components tab should have only waived component
+    DashboardPage.componentsView().results().components().shouldHaveSize(1);
+    DashboardPage.componentsView().results().firstComponent().shouldHave(text("Artifact2"));
+
 
     // violations tab should have only waived violation
     DashboardPage.violationsTab().click();
     DashboardPage.violationsView().results().violations().shouldHaveSize(1);
     ViolationTile waivedViolation = DashboardPage.violationsView().results().firstViolation();
     waivedViolation.component().shouldHave(text("Artifact2"));
-
-    // components tab should have only waived component
-    DashboardPage.componentsTab().click();
-    DashboardPage.componentsView().results().components().shouldHaveSize(1);
-    DashboardPage.componentsView().results().firstComponent().shouldHave(text("Artifact2"));
 
     // applications tab should have only waived violation app
     DashboardPage.applicationsTab().click();

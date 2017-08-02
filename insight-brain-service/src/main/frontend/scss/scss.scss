@@ -12,6 +12,7 @@
 @import "widgets";
 @import "chiclet";
 @import "buttons";
+@import "tiles";
 @import "content";
 @import "dashboard-old";
 @import "dashboard-filter";
@@ -25,11 +26,11 @@
 @import "ldap";
 @import "roles";
 @import "threatBars";
-@import "tiles";
 @import "clm-modal";
 @import "editor";
 @import "reports";
 @import "responsive";
 @import "../components/components";
 @import "../directives/directives";
+@import "ie9";
 @import "../labs/labs";

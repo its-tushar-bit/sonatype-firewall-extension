@@ -53,7 +53,8 @@ function getDashboardResultsDirective(serviceMethod) {
 
       return {
         transclude: true,
-        templateUrl: 'dashboard-table',
+        replace: true,
+        template: '<tbody ng-transclude></tbody>',
         controller: [
           '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore', 'ClassyBrew',
           function($scope, $rootScope, $state, Dialog, ApplicationStore, ClassyBrew) {
@@ -62,6 +63,11 @@ function getDashboardResultsDirective(serviceMethod) {
               $scope.brew = ClassyBrew.create();
             }
             $scope.$watch('filters', filterChangedFn);
+
+            $scope.$watch('filtersAreDirty', function(filtersAreDirty) {
+              $scope.maskController[filtersAreDirty ? 'activateMask' : 'removeMask']();
+            });
+
             $scope.goToComponentDetails = function(component) {
               $state.go('dashboard.component', {hash: component.hash});
             };

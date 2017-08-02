@@ -28,27 +28,27 @@ public class DashboardComponents
       extends BasicElement<ComponentsResults>
   {
     ComponentsResults() {
-      super(ROOT, ".dashboard-results");
+      super(ROOT, ".iq-tile--dashboard-table-container");
     }
 
     public ElementsCollection components() {
-      return children(".tile");
+      return children(".iq-components-results .iq-table-row");
     }
 
     public SelenideElement component(int index) {
-      return child(".tile", nthChild(index + 1));
+      return child(".iq-components-results .iq-table-row", nthChild(index + 1));
     }
 
     public ElementsCollection componentRisks(int index) {
-      return children(".tile", nthChild(index + 1), ".column:nth-child(n+3):nth-child(-n+7)");
+      return children(".iq-components-results .iq-table-row", nthChild(index + 1), ".iq-cell:nth-child(n+3):nth-child(-n+7)");
     }
 
     public SelenideElement firstComponent() {
-      return child(".tile:first-child");
+      return child(".iq-components-results .iq-table-row:first-child");
     }
 
     public SelenideElement lastComponent() {
-      return child(".tile:last-child");
+      return child(".iq-components-results .iq-table-row:last-of-type");
     }
 
     public SelenideElement maxResultsMessage() {
@@ -56,7 +56,11 @@ public class DashboardComponents
     }
 
     public SelenideElement noDataMessage() {
-      return child("#no-data");
+      return child("#dashboard-common-results-no-data");
+    }
+
+    public SelenideElement mask() {
+      return child(".form-mask");
     }
   }
 
@@ -64,31 +68,31 @@ public class DashboardComponents
       extends BasicElement<ComponentsHeaders>
   {
     ComponentsHeaders() {
-      super(ROOT, ".dashboard-headers");
+      super(ROOT, ".iq-dashboard-headers");
     }
 
     public SelenideElement componentNameHeader() {
-      return child(".component-name", "a");
+      return child(".iq-cell--component-name", "a");
   }
 
     public SelenideElement totalRiskHeader() {
-      return child(".total-risk", "a");
+      return child(".iq-cell--total-risk", "a");
     }
 
     public SelenideElement lowRiskHeader() {
-      return child(".low-risk", "a");
+      return child(".iq-cell--low-risk", "a");
     }
 
     public SelenideElement moderateRiskHeader() {
-      return child(".moderate-risk", "a");
+      return child(".iq-cell--moderate-risk", "a");
     }
 
     public SelenideElement severeRiskHeader() {
-      return child(".severe-risk", "a");
+      return child(".iq-cell--severe-risk", "a");
     }
 
     public SelenideElement criticalRiskHeader() {
-      return child(".critical-risk", "a");
+      return child(".iq-cell--critical-risk", "a");
     }
   }
 }

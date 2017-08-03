@@ -4,17 +4,20 @@
  * 'Sonatype' is a trademark of Sonatype, Inc.
  */
 /* global d3, Plottable */
+import template from './mttrChart.html';
 
-var NUMBER_OF_TICKS = 4;
+const NUMBER_OF_TICKS = 4;
 
-export default {
-  templateUrl: 'labs/successMetrics/mttrChart/mttrChart.html?' + clmBuildTimestamp,
-  controller: mttrChartController,
+const mttrChart = {
+  template,
+  controller,
   controllerAs: 'vm'
 };
 
-function mttrChartController(successMetricsDataService, $q, chartUtilsService) {
-  var vm = this;
+export default mttrChart;
+
+function controller(successMetricsDataService, $q, chartUtilsService) {
+  const vm = this;
   vm.doLoad = doLoad;
   vm.error = undefined;
 
@@ -34,26 +37,26 @@ function mttrChartController(successMetricsDataService, $q, chartUtilsService) {
 
   function makeMttrChart(dataset) {
 
-    var formatMonth = d3.utcFormat('%b');
+    const formatMonth = d3.utcFormat('%b');
 
-    var max = d3.max(dataset, function(entry) {
-      return Math.max(entry.mttrInSeconds, entry.criticalMttrInSeconds);
+    var max = d3.max(dataset, function({mttrInSeconds, criticalMttrInSeconds}) {
+      return Math.max(mttrInSeconds, criticalMttrInSeconds);
     });
 
-    var secondsInDay = 24 * 60 * 60;
-    var maxDays = max / secondsInDay;
+    const secondsInDay = 24 * 60 * 60;
+    const maxDays = max / secondsInDay;
 
     // This is needed to avoid truncation of max and min scatter points.
     // It's equivalent to calling yScale.padProportion(0.05),
     // except padProportion() doesn't work properly if domainMin is set (plottable bug).
-    var padding = 0.05 * maxDays;
+    const padding = 0.05 * maxDays;
 
-    var xScale = new Plottable.Scales.Category();
+    const xScale = new Plottable.Scales.Category();
 
-    var yScaleTickInterval = chartUtilsService.calculateTickInterval(NUMBER_OF_TICKS, maxDays);
-    var yScaleTickGenerator = Plottable.Scales.TickGenerators.intervalTickGenerator(yScaleTickInterval);
+    const yScaleTickInterval = chartUtilsService.calculateTickInterval(NUMBER_OF_TICKS, maxDays);
+    const yScaleTickGenerator = Plottable.Scales.TickGenerators.intervalTickGenerator(yScaleTickInterval);
 
-    var yScale = new Plottable.Scales.Linear()
+    const yScale = new Plottable.Scales.Linear()
         .domainMin(0 - padding)
         .tickGenerator(yScaleTickGenerator)
 
@@ -62,14 +65,14 @@ function mttrChartController(successMetricsDataService, $q, chartUtilsService) {
         // make the domain (0, 1) in that case
         .domainMax((maxDays + padding) || 1);
 
-    var colorScale = new Plottable.Scales.Color()
+    const colorScale = new Plottable.Scales.Color()
         .domain(['All', 'Critical']);
 
-    var legend = new Plottable.Components.Legend(colorScale)
+    const legend = new Plottable.Components.Legend(colorScale)
         .maxEntriesPerRow(Infinity);
 
-    var allPlot = getPlot('All', 'mttrInSeconds', dataset, 'iq-chart__dataset--overall');
-    var criticalPlot = getPlot('Critical', 'criticalMttrInSeconds', dataset, 'iq-chart__dataset--critical');
+    const allPlot = getPlot('All', 'mttrInSeconds', dataset, 'iq-chart__dataset--overall');
+    const criticalPlot = getPlot('Critical', 'criticalMttrInSeconds', dataset, 'iq-chart__dataset--critical');
 
     function getYAccessor(key) {
       return function(d) {
@@ -83,8 +86,8 @@ function mttrChartController(successMetricsDataService, $q, chartUtilsService) {
     }
 
     function getPlot(colorDomain, key, data, className) {
-      var yAccessor = getYAccessor(key);
-      var scatterPlot = new Plottable.Plots.Scatter()
+      const yAccessor = getYAccessor(key);
+      const scatterPlot = new Plottable.Plots.Scatter()
           .addDataset(new Plottable.Dataset(data))
           .x(xAccessor, xScale)
           .y(yAccessor, yScale)
@@ -93,7 +96,7 @@ function mttrChartController(successMetricsDataService, $q, chartUtilsService) {
           .attr('opacity', 1)
           .attr('class', className);
 
-      var linePlot = new Plottable.Plots.Line()
+      const linePlot = new Plottable.Plots.Line()
           .addDataset(new Plottable.Dataset(data))
           .x(xAccessor, xScale)
           .y(yAccessor, yScale)
@@ -105,18 +108,16 @@ function mttrChartController(successMetricsDataService, $q, chartUtilsService) {
       return new Plottable.Components.Group([linePlot, scatterPlot]);
     }
 
-    var xAxis = new Plottable.Axes.Category(xScale, 'bottom')
-        .formatter(function(time) {
-          return formatMonth(new Date(time));
-        });
+    const xAxis = new Plottable.Axes.Category(xScale, 'bottom')
+        .formatter(time => formatMonth(new Date(time)));
 
-    var yAxis = new Plottable.Axes.Numeric(yScale, 'left').endTickLength(0);
+    const yAxis = new Plottable.Axes.Numeric(yScale, 'left').endTickLength(0);
 
-    var yAxisLabel = new Plottable.Components.AxisLabel('Days to Resolve')
+    const yAxisLabel = new Plottable.Components.AxisLabel('Days to Resolve')
         .yAlignment('center')
         .angle(-90);
 
-    var group = new Plottable.Components.Group([allPlot, criticalPlot]);
+    const group = new Plottable.Components.Group([allPlot, criticalPlot]);
 
     return new Plottable.Components.Table([
       [null, null, legend],
@@ -126,4 +127,4 @@ function mttrChartController(successMetricsDataService, $q, chartUtilsService) {
   }
 }
 
-mttrChartController.$inject = ['successMetricsDataService', '$q', 'chartUtilsService'];
+controller.$inject = ['successMetricsDataService', '$q', 'chartUtilsService'];

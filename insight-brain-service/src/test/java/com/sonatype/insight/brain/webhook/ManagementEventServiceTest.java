@@ -35,6 +35,10 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ManagementEventServiceTest
     extends AbstractComponentTest
@@ -74,6 +78,16 @@ public class ManagementEventServiceTest
   }
 
   @Test
+  public void testPostEvent_Tag_HandlesRuntimeException() {
+    Tag tag = mock(Tag.class);
+    when(tag.getOrganizationId()).thenThrow(new RuntimeException("CRASH"));
+
+    managementEventService.postEvent(EventAction.CREATED, tag);
+
+    verify(tag, atLeastOnce()).getOrganizationId();
+  }
+
+  @Test
   public void testPostEvent_Label() throws InterruptedException {
     Label label = new Label();
     label.setOwnerId(organization.getId());
@@ -91,6 +105,16 @@ public class ManagementEventServiceTest
     assertThat(event.label, is(label));
 
     asyncEventBus.unregister(handler);
+  }
+
+  @Test
+  public void testPostEvent_Label_HandlesRuntimeException() {
+    Label label = mock(Label.class);
+    when(label.getOwnerId()).thenThrow(new RuntimeException("CRASH"));
+
+    managementEventService.postEvent(EventAction.CREATED, label);
+
+    verify(label, atLeastOnce()).getOwnerId();
   }
 
   @Test
@@ -114,6 +138,16 @@ public class ManagementEventServiceTest
   }
 
   @Test
+  public void testPostEvent_LicenseThreatGroup_HandlesRuntimeException() {
+    LicenseThreatGroup licenseThreatGroup = mock(LicenseThreatGroup.class);
+    when(licenseThreatGroup.getOwnerId()).thenThrow(new RuntimeException("CRASH"));
+
+    managementEventService.postEvent(EventAction.CREATED, licenseThreatGroup);
+
+    verify(licenseThreatGroup, atLeastOnce()).getOwnerId();
+  }
+
+  @Test
   public void testPostEvent_Application() throws InterruptedException {
     Application application = new Application();
     application.setOrganizationId(organization.getId());
@@ -134,6 +168,16 @@ public class ManagementEventServiceTest
   }
 
   @Test
+  public void testPostEvent_Application_HandlesRuntimeException() {
+    Application application = mock(Application.class);
+    when(application.getId()).thenThrow(new RuntimeException("CRASH"));
+
+    managementEventService.postEvent(EventAction.CREATED, application);
+
+    verify(application, atLeastOnce()).getId();
+  }
+
+  @Test
   public void testPostEvent_Organization() throws InterruptedException {
     TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     asyncEventBus.register(handler);
@@ -148,6 +192,16 @@ public class ManagementEventServiceTest
     assertThat(event.owner, is((Owner) organization));
 
     asyncEventBus.unregister(handler);
+  }
+
+  @Test
+  public void testPostEvent_Organization_HandlesRuntimeException() {
+    Organization organization = mock(Organization.class);
+    when(organization.getId()).thenThrow(new RuntimeException("CRASH"));
+
+    managementEventService.postEvent(EventAction.CREATED, organization);
+
+    verify(organization, atLeastOnce()).getId();
   }
 
   @Test
@@ -187,5 +241,15 @@ public class ManagementEventServiceTest
     assertThat(event.policy, is(policy));
 
     asyncEventBus.unregister(handler);
+  }
+
+  @Test
+  public void testPostEvent_Policy_HandlesRuntimeException() {
+    Policy policy = mock(Policy.class);
+    when(policy.getOwnerId()).thenThrow(new RuntimeException("CRASH"));
+
+    managementEventService.postEvent(EventAction.CREATED, policy);
+
+    verify(policy, atLeastOnce()).getOwnerId();
   }
 }

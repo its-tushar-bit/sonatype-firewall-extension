@@ -13,6 +13,9 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.security.CurrentUser;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.25.0
  */
@@ -20,6 +23,8 @@ import com.sonatype.insight.brain.security.CurrentUser;
 @Named
 public class LicenseOverrideEventService
 {
+  private static final Logger log = LoggerFactory.getLogger(LicenseOverrideEventService.class);
+
   private final AsyncEventBus asyncEventBus;
 
   private final CurrentUser currentUser;
@@ -35,10 +40,15 @@ public class LicenseOverrideEventService
   public void postEvent(final EventAction action,
                         final LicenseOverride licenseOverride)
   {
-    LicenseOverrideEvent event = new LicenseOverrideEvent();
-    event.licenseOverride = licenseOverride;
-    event.initiator = currentUser.getUsernameOrSystem();
-    event.action = action;
-    asyncEventBus.post(event);
+    try {
+      LicenseOverrideEvent event = new LicenseOverrideEvent();
+      event.licenseOverride = licenseOverride;
+      event.initiator = currentUser.getUsernameOrSystem();
+      event.action = action;
+      asyncEventBus.post(event);
+    }
+    catch (RuntimeException e) {
+      log.error("Webhook not posted due to exception.", e);
+    }
   }
 }

@@ -25,6 +25,10 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ApplicationEvaluationEventServiceTest
     extends AbstractComponentTest
@@ -125,5 +129,16 @@ public class ApplicationEvaluationEventServiceTest
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event.outcome, is(Action.ID_FAIL));
     asyncEventBus.unregister(handler);
+  }
+
+  @Test
+  public void testPostEvent_HandlesRuntimeException() {
+    final PolicyEvaluation policyEvaluation = mock(PolicyEvaluation.class);
+    when(policyEvaluation.getId()).thenThrow(new RuntimeException("CRASH"));
+    final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
+
+    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
+
+    verify(policyEvaluation, atLeastOnce()).getId();
   }
 }

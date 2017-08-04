@@ -18,6 +18,10 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class LicenseOverrideEventServiceTest
     extends AbstractComponentTest
@@ -43,5 +47,15 @@ public class LicenseOverrideEventServiceTest
     assertThat(event.licenseOverride, is(override));
 
     asyncEventBus.unregister(handler);
+  }
+
+  @Test
+  public void testPostEvent_HandlesRuntimeException() {
+    LicenseOverride override = mock(LicenseOverride.class);
+    when(override.getId()).thenThrow(new RuntimeException("CRASH"));
+
+    licenseOverrideEventService.postEvent(EventAction.CREATED, override);
+
+    verify(override, atLeastOnce()).getId();
   }
 }

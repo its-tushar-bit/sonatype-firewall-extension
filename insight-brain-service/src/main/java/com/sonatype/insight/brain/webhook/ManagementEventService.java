@@ -27,10 +27,15 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.PolicyEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 @Singleton
 public class ManagementEventService
 {
+  private static final Logger log = LoggerFactory.getLogger(ManagementEventService.class);
+
   private final AsyncEventBus eventBus;
 
   private final CurrentUser currentUser;
@@ -44,43 +49,73 @@ public class ManagementEventService
   }
 
   public void postEvent(final EventAction action, final Tag tag) {
-    TagEvent tagEvent = buildOwnerManagementEvent(action, tag.getOrganizationId(), new TagEvent());
-    tagEvent.tag = tag;
-    eventBus.post(tagEvent);
+    try {
+      TagEvent tagEvent = buildOwnerManagementEvent(action, tag.getOrganizationId(), new TagEvent());
+      tagEvent.tag = tag;
+      eventBus.post(tagEvent);
+    }
+    catch (RuntimeException e) {
+      log.error("Webhook not posted due to exception.", e);
+    }
   }
 
   public void postEvent(final EventAction action, final Label label) {
-    LabelEvent labelEvent = buildOwnerManagementEvent(action, label.getOwnerId(), new LabelEvent());
-    labelEvent.label = label;
-    eventBus.post(labelEvent);
+    try {
+      LabelEvent labelEvent = buildOwnerManagementEvent(action, label.getOwnerId(), new LabelEvent());
+      labelEvent.label = label;
+      eventBus.post(labelEvent);
+    }
+    catch (RuntimeException e) {
+      log.error("Webhook not posted due to exception.", e);
+    }
   }
 
   public void postEvent(final EventAction action, final LicenseThreatGroup ltg) {
-    LicenseThreatGroupEvent licenseThreatGroupEvent = buildOwnerManagementEvent(action, ltg.getOwnerId(),
-        new LicenseThreatGroupEvent());
-    licenseThreatGroupEvent.licenseThreatGroup = ltg;
-    eventBus.post(licenseThreatGroupEvent);
+    try {
+      LicenseThreatGroupEvent licenseThreatGroupEvent = buildOwnerManagementEvent(action, ltg.getOwnerId(),
+          new LicenseThreatGroupEvent());
+      licenseThreatGroupEvent.licenseThreatGroup = ltg;
+      eventBus.post(licenseThreatGroupEvent);
+    }
+    catch (RuntimeException e) {
+      log.error("Webhook not posted due to exception.", e);
+    }
   }
 
   public void postEvent(final EventAction action, final Owner owner) {
-    OwnerEvent ownerEvent = buildOwnerManagementEvent(action, owner.getId(), new OwnerEvent());
-    ownerEvent.owner = owner;
-    eventBus.post(ownerEvent);
+    try {
+      OwnerEvent ownerEvent = buildOwnerManagementEvent(action, owner.getId(), new OwnerEvent());
+      ownerEvent.owner = owner;
+      eventBus.post(ownerEvent);
+    }
+    catch (RuntimeException e) {
+      log.error("Webhook not posted due to exception.", e);
+    }
   }
 
   public void postEvent(final EventAction action, final Policy policy) {
-    PolicyEvent policyEvent = buildOwnerManagementEvent(action, policy.getOwnerId(), new PolicyEvent());
-    policyEvent.policy = policy;
-    eventBus.post(policyEvent);
+    try {
+      PolicyEvent policyEvent = buildOwnerManagementEvent(action, policy.getOwnerId(), new PolicyEvent());
+      policyEvent.policy = policy;
+      eventBus.post(policyEvent);
+    }
+    catch (RuntimeException e) {
+      log.error("Webhook not posted due to exception.", e);
+    }
   }
 
   public void postEvent(final EventAction action,
                         final Map<String, List<Member>> roleToMembers,
                         final String internalOwnerId)
   {
-    RoleEvent roleEvent = buildOwnerManagementEvent(action, internalOwnerId, new RoleEvent());
-    roleEvent.roleIdToMemberMap = roleToMembers;
-    eventBus.post(roleEvent);
+    try {
+      RoleEvent roleEvent = buildOwnerManagementEvent(action, internalOwnerId, new RoleEvent());
+      roleEvent.roleIdToMemberMap = roleToMembers;
+      eventBus.post(roleEvent);
+    }
+    catch (RuntimeException e) {
+      log.error("Webhook not posted due to exception.", e);
+    }
   }
 
 

@@ -16,6 +16,9 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.security.CurrentUser;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.25.0
  */
@@ -23,6 +26,8 @@ import com.sonatype.insight.brain.security.CurrentUser;
 @Singleton
 public class ApplicationEvaluationEventService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApplicationEvaluationEventService.class);
+
   private final AsyncEventBus asyncEventBus;
 
   private final CurrentUser currentUser;
@@ -34,32 +39,37 @@ public class ApplicationEvaluationEventService
   }
 
   public void postEvent(final PolicyEvaluation policyEvaluation, final PolicyEvaluationResult policyEvaluationResult) {
-    ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
-    event.policyEvaluationId = policyEvaluation.getId();
-    event.stageTypeId = policyEvaluation.getStageTypeId();
-    event.ownerId = policyEvaluation.getApplicationId();
-    event.evaluationDate = policyEvaluation.getTime();
-    event.initiator = currentUser.getUsernameOrSystem();
+    try {
+      ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
+      event.policyEvaluationId = policyEvaluation.getId();
+      event.stageTypeId = policyEvaluation.getStageTypeId();
+      event.ownerId = policyEvaluation.getApplicationId();
+      event.evaluationDate = policyEvaluation.getTime();
+      event.initiator = currentUser.getUsernameOrSystem();
 
-    event.affectedComponentCount = policyEvaluationResult.getAffectedComponentCount();
-    event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();
-    event.severeComponentCount = policyEvaluationResult.getSevereComponentCount();
-    event.moderateComponentCount = policyEvaluationResult.getModerateComponentCount();
+      event.affectedComponentCount = policyEvaluationResult.getAffectedComponentCount();
+      event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();
+      event.severeComponentCount = policyEvaluationResult.getSevereComponentCount();
+      event.moderateComponentCount = policyEvaluationResult.getModerateComponentCount();
 
-    String outcome = ApplicationEvaluationEvent.ACTION_ID_NONE;
-    for (PolicyAlert alert : policyEvaluationResult.getAlerts()) {
-      for (final Action action : alert.getActions()) {
-        final String actionTypeId = action.getActionTypeId();
-        if (Action.ID_FAIL.equals(actionTypeId)) {
-          outcome = actionTypeId;
-        }
-        else if (Action.ID_WARN.equals(actionTypeId) && !outcome.equals(Action.ID_FAIL)) {
-          outcome = actionTypeId;
+      String outcome = ApplicationEvaluationEvent.ACTION_ID_NONE;
+      for (PolicyAlert alert : policyEvaluationResult.getAlerts()) {
+        for (final Action action : alert.getActions()) {
+          final String actionTypeId = action.getActionTypeId();
+          if (Action.ID_FAIL.equals(actionTypeId)) {
+            outcome = actionTypeId;
+          }
+          else if (Action.ID_WARN.equals(actionTypeId) && !outcome.equals(Action.ID_FAIL)) {
+            outcome = actionTypeId;
+          }
         }
       }
-    }
-    event.outcome = outcome;
+      event.outcome = outcome;
 
-    asyncEventBus.post(event);
+      asyncEventBus.post(event);
+    }
+    catch (RuntimeException e) {
+      log.error("Webhook not posted due to exception.", e);
+    }
   }
 }

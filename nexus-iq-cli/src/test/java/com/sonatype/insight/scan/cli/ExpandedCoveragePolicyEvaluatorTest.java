@@ -33,6 +33,7 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
 import org.owasp.dependencycheck.dependency.Dependency;
 import org.owasp.dependencycheck.dependency.Evidence;
+import org.owasp.dependencycheck.utils.Settings;
 import org.owasp.dependencycheck.utils.Settings.KEYS;
 
 import static com.sonatype.insight.scan.cli.ExpandedCoveragePolicyEvaluator.EXPANDED_COVERAGE_SCAN_DISCLAIMER;
@@ -151,6 +152,15 @@ public class ExpandedCoveragePolicyEvaluatorTest
         description.appendText("Dependency with displayFilename ").appendValue(name);
       }
     };
+  }
+
+  @Test
+  public void testScan_AnalyzersThatConnectToExternalResourcesAreDisabled() throws Exception {
+    testScan("java");
+
+    assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED), is(false));
+    assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED), is(false));
+    assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED), is(false));
   }
 
   private List<Dependency> testScan(String scanTarget) throws Exception {

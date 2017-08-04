@@ -141,6 +141,10 @@ public class ExpandedCoveragePolicyEvaluator
     Settings.initialize();
     // Enable the experimental analyzers.
     Settings.setBoolean(KEYS.ANALYZER_EXPERIMENTAL_ENABLED, true);
+    // Disable analyzers that connect to external resources.
+    Settings.setBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED, false);
+    Settings.setBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED, false);
+    Settings.setBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED, false);
   }
 
   private String getExpandedCoverageVersion() throws IOException {

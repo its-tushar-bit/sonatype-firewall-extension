@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.model.policy.notifications;
 import javax.mail.internet.InternetAddress;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.model.ValidationResult;
 
 import org.apache.commons.lang.StringUtils;
@@ -56,7 +55,7 @@ public class UserNotification
 
   @Override
   public Action toAction() {
-    return new NotifyAction(emailAddress, null);
+    return Action.newNotifyAction(emailAddress, null);
   }
 
   @Override

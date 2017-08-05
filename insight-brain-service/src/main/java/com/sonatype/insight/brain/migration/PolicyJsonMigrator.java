@@ -160,6 +160,6 @@ public class PolicyJsonMigrator
 
     public Map<String, List<Action>> actions;
 
-    public List<NotifyAction> monitorNotifyActions;
+    public List<Action> monitorNotifyActions;
   }
 }

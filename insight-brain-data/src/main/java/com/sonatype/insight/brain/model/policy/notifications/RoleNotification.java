@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.policy.notifications;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
@@ -54,7 +53,7 @@ public class RoleNotification
 
   @Override
   public Action toAction() {
-    return new NotifyAction(roleId, NotifyActionType.TARGET_TYPE_ROLE);
+    return Action.newNotifyAction(roleId, NotifyActionType.TARGET_TYPE_ROLE);
   }
 
   @Override

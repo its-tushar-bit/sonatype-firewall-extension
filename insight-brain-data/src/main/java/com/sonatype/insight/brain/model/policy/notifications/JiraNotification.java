@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.model.policy.notifications;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 
@@ -62,7 +61,7 @@ public class JiraNotification
 
   @Override
   public Action toAction() {
-    return new NotifyAction(projectKey, NotifyActionType.TARGET_TYPE_JIRA);
+    return Action.newNotifyAction(projectKey, NotifyActionType.TARGET_TYPE_JIRA);
   }
 
   @Override

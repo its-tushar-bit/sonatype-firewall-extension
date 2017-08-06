@@ -74,10 +74,7 @@ import com.google.inject.Binder;
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
@@ -94,14 +91,14 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 /**
  * @since 1.17
  */
-@RunWith(MockitoJUnitRunner.class)
 public class RepositoryServiceTest
     extends AbstractComponentTest
 {
@@ -2090,10 +2087,9 @@ public class RepositoryServiceTest
     component.declaredLicenses = Collections.emptySet();
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
-    Mockito.when(
-        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
-            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
-            Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
+    when(auditHdsClient.post(eq(ComponentEvaluationDataList.class),
+        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
+        any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
     Date beforeEvaluation = new Date();
     repositoryService.reevaluateRepository(repository.getId());
@@ -2151,10 +2147,9 @@ public class RepositoryServiceTest
     component.declaredLicenses = Collections.emptySet();
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
-    Mockito.when(
-        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
-            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
-            Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
+    when(auditHdsClient.post(eq(ComponentEvaluationDataList.class),
+        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
+        any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
     repositoryService.reevaluateComponent(repository.getId(), repositoryComponent.getHash(), null);
 

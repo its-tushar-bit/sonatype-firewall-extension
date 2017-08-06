@@ -19,24 +19,22 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
 public class UserServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
   private UserService userService;
 
-  private SessionDAO sessionDAOMock = mock(SessionDAO.class);
+  @Mock
+  private SessionDAO sessionDAOMock;
 
   @Override
   public void configure(Binder binder) {

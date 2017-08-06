@@ -25,14 +25,11 @@ import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class ComponentInfoServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
@@ -42,7 +39,8 @@ public class ComponentInfoServiceAuthzTest
   @Inject
   private ComponentInfoService componentInfoService;
 
-  private HdsClient hdsClientMock = mock(HdsClient.class);
+  @Mock
+  private HdsClient hdsClientMock;
 
   @Override
   public void configure(Binder binder) {
@@ -55,9 +53,9 @@ public class ComponentInfoServiceAuthzTest
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
     componentDetailsList.setList(new ArrayList<ComponentDetails>());
-    when(hdsClientMock.get(any(HttpServletRequest.class), any(Class.class), any(String.class))).thenReturn(
+    when(hdsClientMock.get((HttpServletRequest) any(), any(Class.class), any(String.class))).thenReturn(
         componentDetailsList);
-    when(hdsClientMock.get(any(HttpServletRequest.class), any(Class.class), any(String.class), any(Map.class)))
+    when(hdsClientMock.get((HttpServletRequest) any(), any(Class.class), any(String.class), any(Map.class)))
         .thenReturn(namedComponentDetails);
   }
 

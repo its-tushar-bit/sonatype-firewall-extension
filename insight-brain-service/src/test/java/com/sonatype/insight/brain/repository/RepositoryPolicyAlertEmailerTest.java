@@ -47,20 +47,17 @@ import org.sonatype.micromailer.Address;
 
 import com.google.inject.Binder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class RepositoryPolicyAlertEmailerTest
     extends AbstractComponentTest
 {
@@ -180,7 +177,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   //This is required as Address doesn't implement equals/hashCode
   private static class AddressListEq
-      extends ArgumentMatcher<List<Address>>
+      implements ArgumentMatcher<List<Address>>
   {
     private final List<Address> addresses;
 
@@ -189,9 +186,7 @@ public class RepositoryPolicyAlertEmailerTest
     }
 
     @Override
-    public boolean matches(Object list) {
-      @SuppressWarnings("unchecked")
-      List<Address> addressList = (List<Address>) list;
+    public boolean matches(List<Address> addressList) {
       if (addressList == null || addressList.isEmpty()) {
         return addresses == null || addresses.isEmpty();
       }

@@ -44,14 +44,17 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.when;
 
 public class RepositoryReevaluationTaskTest
     extends AbstractComponentTest
@@ -78,6 +81,7 @@ public class RepositoryReevaluationTaskTest
   @Inject
   private PendingRepositoryPolicyNotifications pendingRepositoryPolicyNotifications;
 
+  @Mock
   private FirewallAuditHdsClient auditHdsClient;
 
   private RepositoryComponent unknownComponent;
@@ -100,7 +104,6 @@ public class RepositoryReevaluationTaskTest
    */
   @Before
   public void setup() throws Exception {
-    auditHdsClient = Mockito.mock(FirewallAuditHdsClient.class);
     repository = tempEntity.newRepository();
 
     component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
@@ -201,10 +204,9 @@ public class RepositoryReevaluationTaskTest
     response.components.add(createComponentResponse(unknownComponent.getHash(), newIdentifier,
         MatchState.EXACT.getId(), 1));
 
-    Mockito.when(
-        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
-            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
-            Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
+    when(auditHdsClient.post(eq(ComponentEvaluationDataList.class),
+        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
+        any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
   }
 
   private ComponentEvaluationData createComponentResponse(String hash,

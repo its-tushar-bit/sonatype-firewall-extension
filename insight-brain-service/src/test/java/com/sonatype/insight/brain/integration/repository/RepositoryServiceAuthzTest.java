@@ -25,19 +25,18 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class RepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
@@ -376,10 +375,8 @@ public class RepositoryServiceAuthzTest
     Repository repo = createRepository();
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
-    Mockito.when(
-        repositoryPolicyEvaluator.evaluate(Mockito.eq(repo),
-            Mockito.isA(RepositoryComponentEvaluationDataRequestList.class), Mockito.eq(false),
-            isNull(String.class))).thenReturn(null);
+    when(repositoryPolicyEvaluator.evaluate(eq(repo), isA(RepositoryComponentEvaluationDataRequestList.class),
+        eq(false), isNull(String.class))).thenReturn(null);
 
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.reevaluateComponent(repo.getId(), component.getHash(), null);

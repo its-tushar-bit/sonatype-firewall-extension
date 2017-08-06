@@ -9,16 +9,19 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.Rule;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import static org.mockito.Mockito.doThrow;
 
-@RunWith(MockitoJUnitRunner.class)
-abstract public class AbstractServiceNotLicensedTest
+public abstract class AbstractServiceNotLicensedTest
     extends InjectedTest
 {
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule();
+
   @Mock
   private DashboardUtils dashboardUtils;
 

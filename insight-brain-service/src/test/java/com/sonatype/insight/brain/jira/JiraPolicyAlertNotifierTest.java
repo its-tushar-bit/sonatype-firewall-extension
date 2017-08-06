@@ -37,14 +37,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,15 +63,15 @@ public class JiraPolicyAlertNotifierTest
   @Inject
   private InsightConfig config;
 
+  @Mock
   private JiraClient jiraClient;
 
+  @Mock
   private JiraService jiraService;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    jiraService = mock(JiraService.class);
-    jiraClient = mock(JiraClient.class);
     when(jiraService.client()).thenReturn(jiraClient);
     when(jiraService.isEnabled()).thenReturn(true);
 

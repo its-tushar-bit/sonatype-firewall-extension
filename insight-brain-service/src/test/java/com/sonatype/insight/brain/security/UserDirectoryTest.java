@@ -54,14 +54,15 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 public class UserDirectoryTest
     extends AbstractComponentTest
@@ -181,7 +182,7 @@ public class UserDirectoryTest
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapService.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
-    when(mockLdapService.getUsers(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(namingException);
+    when(mockLdapService.getUsers(any(LdapServer.class), any(String[].class), anyLong())).thenThrow(namingException);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
 
@@ -208,7 +209,7 @@ public class UserDirectoryTest
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapService.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable exception = new RuntimeException("Exception!");
-    when(mockLdapService.getUsers(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(exception);
+    when(mockLdapService.getUsers(any(LdapServer.class), any(String[].class), anyLong())).thenThrow(exception);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
 
@@ -235,7 +236,7 @@ public class UserDirectoryTest
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapService.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
-    when(mockLdapService.getGroups(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(namingException);
+    when(mockLdapService.getGroups(any(LdapServer.class), any(String[].class), anyLong())).thenThrow(namingException);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
 
@@ -262,7 +263,7 @@ public class UserDirectoryTest
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapService.isGroupSearchEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable exception = new RuntimeException("Exception!");
-    when(mockLdapService.getGroups(any(LdapServer.class), any(String[].class), anyInt())).thenThrow(exception);
+    when(mockLdapService.getGroups(any(LdapServer.class), any(String[].class), anyLong())).thenThrow(exception);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
 
@@ -407,7 +408,7 @@ public class UserDirectoryTest
     LdapService mockLdapService = Mockito.mock(LdapService.class);
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
-    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
+    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyLong()))
         .thenThrow(namingException);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
@@ -433,7 +434,7 @@ public class UserDirectoryTest
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapService.isGroupSearchEnabled(argThat(new SameId(ldapServer)))).thenReturn(true);
     Throwable namingException = new NamingException("Naming Exception!");
-    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
+    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyLong()))
         .thenThrow(namingException);
 
     UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService);
@@ -453,7 +454,7 @@ public class UserDirectoryTest
     LdapService mockLdapService = Mockito.mock(LdapService.class);
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     Throwable exception = new RuntimeException("Exception!");
-    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
+    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyLong()))
         .thenThrow(exception);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
@@ -479,7 +480,7 @@ public class UserDirectoryTest
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     when(mockLdapService.isGroupSearchEnabled(argThat(new SameId(ldapServer)))).thenReturn(true);
     Throwable exception = new RuntimeException("Exception!");
-    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyInt()))
+    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyLong()))
         .thenThrow(exception);
 
     UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService);
@@ -502,16 +503,16 @@ public class UserDirectoryTest
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
     // First LDAP server throws a generic exception
     Throwable exception = new RuntimeException("Exception!");
-    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer1)), any(String.class), anyInt()))
+    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer1)), any(String.class), anyLong()))
         .thenThrow(exception);
     // Second LDAP server throws a NamingException
     Throwable namingException = new NamingException("NamingException!");
-    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer2)), any(String.class), anyInt()))
+    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer2)), any(String.class), anyLong()))
         .thenThrow(namingException);
     // Third LDAP server returns a user
     LdapUser ldapUser = new LdapUser();
     ldapUser.setUsername("testldapuser");
-    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer3)), any(String.class), anyInt()))
+    when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer3)), any(String.class), anyLong()))
         .thenReturn(Collections.singletonList(ldapUser));
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
@@ -542,18 +543,18 @@ public class UserDirectoryTest
     when(mockLdapService.isGroupSearchEnabled(argThat(new SameId(ldapServer1)))).thenReturn(true);
     // First LDAP server throws a generic exception
     Throwable exception = new RuntimeException("Exception!");
-    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer1)), any(String.class), anyInt()))
+    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer1)), any(String.class), anyLong()))
         .thenThrow(exception);
     // Second LDAP server throws a NamingException
     when(mockLdapService.isGroupSearchEnabled(argThat(new SameId(ldapServer2)))).thenReturn(true);
     Throwable namingException = new NamingException("NamingException!");
-    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer2)), any(String.class), anyInt()))
+    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer2)), any(String.class), anyLong()))
         .thenThrow(namingException);
     // Third LDAP server returns a group
     LdapGroup ldapGroup = new LdapGroup();
     ldapGroup.setGroupname("testldapgroup");
     when(mockLdapService.isGroupSearchEnabled(argThat(new SameId(ldapServer3)))).thenReturn(true);
-    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer3)), any(String.class), anyInt()))
+    when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer3)), any(String.class), anyLong()))
         .thenReturn(Collections.singletonList(ldapGroup));
 
     UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService);
@@ -600,7 +601,7 @@ public class UserDirectoryTest
     // Test that the get users method isn't called when only internal users are provided.
     userDirectory.getUsersByName(Sets.newHashSet("tesTcLmUsEr"));
     // Count of the number of calls is still one, as expected.
-    verify(mockLdapService, times(1)).getUsers(any(LdapServer.class), any(String[].class), anyInt());
+    verify(mockLdapService, times(1)).getUsers(any(LdapServer.class), any(String[].class), anyLong());
   }
   
   @Test
@@ -709,7 +710,7 @@ public class UserDirectoryTest
     LdapService mockLdapService = Mockito.mock(LdapService.class);
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
-    when(mockLdapService.getUsers(argThat(new SameId(ldapServer)), any(String[].class), anyInt()))
+    when(mockLdapService.getUsers(argThat(new SameId(ldapServer)), any(String[].class), anyLong()))
         .thenThrow(new NamingException("Naming Exception!"));
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
@@ -855,7 +856,7 @@ public class UserDirectoryTest
   }
   
   private static class SameId
-      extends ArgumentMatcher<LdapServer>
+      implements ArgumentMatcher<LdapServer>
   {
     private final String ldapServerId;
 
@@ -864,11 +865,10 @@ public class UserDirectoryTest
     }
 
     @Override
-    public boolean matches(Object obj) {
-      if (obj == null) {
+    public boolean matches(LdapServer other) {
+      if (other == null) {
         return false;
       }
-      LdapServer other = (LdapServer) obj;
       return ldapServerId.equals(other.getId());
     }
   }

@@ -16,13 +16,13 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -36,21 +36,21 @@ public class PolicyMonitorSchedulerTest
   @Inject
   private PolicyMonitorScheduler scheduler;
 
+  @Mock
   private ScheduledExecutorService executor;
 
+  @Mock
   private CLMLicenseManager licenseManager;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    licenseManager = mock(CLMLicenseManager.class);
     binder.bind(CLMLicenseManager.class).toInstance(licenseManager);
   }
 
   @Before
   public void init() {
     scheduler = spy(scheduler);
-    executor = mock(ScheduledExecutorService.class);
     doReturn(executor).when(scheduler).newExecutor();
   }
 

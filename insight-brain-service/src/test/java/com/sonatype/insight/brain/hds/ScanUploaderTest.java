@@ -14,19 +14,15 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class ScanUploaderTest
@@ -37,9 +33,6 @@ public class ScanUploaderTest
 
   @Mock
   private HdsClient hdsClient;
-
-  @Rule
-  public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   @Override
   public void configure(Binder binder) {
@@ -69,7 +62,7 @@ public class ScanUploaderTest
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
     when(
         hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), any(String.class), any(File.class),
-            (String[]) anyVararg())).thenReturn(receipt);
+            any(String[].class))).thenReturn(receipt);
 
     scanUploader.upload(tempDir.newFile(), app);
     HdsClientAnalytics analytics = analyticsArg.getValue();

@@ -23,6 +23,7 @@ import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -33,10 +34,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -48,8 +48,10 @@ public class ScanServiceTest
   @Inject
   private ScanService scanService;
 
+  @Mock
   private ScanUploader scanUploader;
 
+  @Mock
   private ReportDownloader reportDownloader;
 
   private Application app;
@@ -61,9 +63,7 @@ public class ScanServiceTest
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    scanUploader = mock(ScanUploader.class);
     binder.bind(ScanUploader.class).toInstance(scanUploader);
-    reportDownloader = mock(ReportDownloader.class);
     binder.bind(ReportDownloader.class).toInstance(reportDownloader);
   }
 

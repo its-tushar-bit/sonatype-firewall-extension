@@ -144,8 +144,8 @@ public class TwistlockPolicyEvaluatorTest
 
     evaluator.scan(twistlockParameters, new ProprietaryConfig());
     
-    @SuppressWarnings("deprecation")
-    ArgumentCaptor<List<String>> argCaptor = new ArgumentCaptor<>();
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<String>> argCaptor = ArgumentCaptor.forClass(List.class);
     verify(spyTwistlockScanner).runTwistlockScannerCommand(argCaptor.capture());
     assertThat(argCaptor.getValue(), is(expectedParameters));
   }

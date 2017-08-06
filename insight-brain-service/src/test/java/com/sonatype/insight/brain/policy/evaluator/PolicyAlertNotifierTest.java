@@ -22,22 +22,19 @@ import com.sonatype.insight.test.LogOutput;
 import com.google.inject.Binder;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyListOf;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
 public class PolicyAlertNotifierTest
     extends AbstractComponentTest
 {
@@ -47,12 +44,12 @@ public class PolicyAlertNotifierTest
   @Inject
   private PolicyAlertNotifier notifier;
 
+  @Mock
   private PolicyAlertEmailer policyAlertEmailer;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    policyAlertEmailer = mock(PolicyAlertEmailer.class);
     binder.bind(PolicyAlertEmailer.class).toInstance(policyAlertEmailer);
   }
 

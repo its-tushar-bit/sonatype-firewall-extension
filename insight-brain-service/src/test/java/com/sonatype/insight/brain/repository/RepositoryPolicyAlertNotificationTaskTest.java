@@ -17,17 +17,14 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
 public class RepositoryPolicyAlertNotificationTaskTest
     extends AbstractComponentTest
 {
@@ -73,7 +70,7 @@ public class RepositoryPolicyAlertNotificationTaskTest
 
   //This is required as Repository doesn't implement equals/hashCode
   private static class RepositoryEq
-      extends ArgumentMatcher<Repository>
+      implements ArgumentMatcher<Repository>
   {
     private final Repository repository;
 
@@ -82,8 +79,7 @@ public class RepositoryPolicyAlertNotificationTaskTest
     }
 
     @Override
-    public boolean matches(Object obj) {
-      Repository other = (Repository) obj;
+    public boolean matches(Repository other) {
       if (repository == null) {
         return other == null;
       }

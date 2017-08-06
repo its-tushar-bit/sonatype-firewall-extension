@@ -17,8 +17,8 @@ import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.Binder;
-import org.apache.shiro.subject.Subject;
 import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.util.ThreadContext;
 import org.eclipse.sisu.launch.InjectedTest;
@@ -27,9 +27,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,9 +49,16 @@ public class AbstractComponentTest
   @Rule
   public TestName testName = new TestName();
 
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule();
+
   protected static final String USERNAME = "testuser";
 
+  @Mock
   protected Subject subject;
+
+  @Mock
+  private SecurityManager securityManager;
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
@@ -67,9 +76,7 @@ public class AbstractComponentTest
 
   @Before
   public void setUpSecurity() {
-    subject = mock(Subject.class);
     when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", true));
-    SecurityManager securityManager = mock(SecurityManager.class);
     when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);

@@ -17,13 +17,10 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class PolicyImportExportAuthzTest
     extends AbstractServiceAuthzTest
 {

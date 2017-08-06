@@ -32,13 +32,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.same;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 /**
  * Also see {@link ScanTaskStateTest} and {@link ScanStateToTicketTranslatorTest}.
@@ -154,11 +154,10 @@ public class ScanTaskTest
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void erorredTaskHasTicketWithErrorMessage() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false);
 
-    when(scanner.scan((File) any(), (String) any(), (File) any(), eq("public-app-id")))
+    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq("public-app-id")))
         .thenThrow(RuntimeException.class);
 
     task.init(app, bundleFile, bundleFilename, stage, false);
@@ -184,9 +183,8 @@ public class ScanTaskTest
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void erorredTaskDeletesTemporaryApplicationBinary() throws IOException {
-    when(scanner.scan((File) any(), (String) any(), (File) any(), eq("public-app-id")))
+    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq("public-app-id")))
         .thenThrow(RuntimeException.class);
 
     File appBinary = new File("any");

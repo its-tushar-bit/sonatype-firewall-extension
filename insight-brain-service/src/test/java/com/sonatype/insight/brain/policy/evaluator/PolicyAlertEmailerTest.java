@@ -64,30 +64,28 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Captor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyListOf;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class PolicyAlertEmailerTest
     extends AbstractComponentTest
 {
@@ -105,6 +103,7 @@ public class PolicyAlertEmailerTest
   @Inject
   private PolicyAlertEmailer policyAlertEmailer;
 
+  @Mock
   private InsightMail mailer;
 
   @Captor
@@ -124,7 +123,6 @@ public class PolicyAlertEmailerTest
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    mailer = mock(InsightMail.class);
     when(mailer.getServer()).thenReturn("localhost:587");
     when(mailer.getCdnUrl()).thenReturn("http://localhost");
     binder.bind(InsightMail.class).toInstance(mailer);
@@ -359,7 +357,7 @@ public class PolicyAlertEmailerTest
     Throwable expectedException = new NamingException("Naming exception!");
     LdapService ldapServiceSpy = Mockito.spy(ldapService);
     doThrow(expectedException).when(ldapServiceSpy)
-        .findUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class), anyInt());
+        .findUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class), anyLong());
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
     InsightConfig appConfig = new InsightConfig();
@@ -543,7 +541,7 @@ public class PolicyAlertEmailerTest
   }
 
   private static class SameId
-      extends ArgumentMatcher<LdapServer>
+      implements ArgumentMatcher<LdapServer>
   {
     private final String ldapServerId;
 
@@ -552,11 +550,10 @@ public class PolicyAlertEmailerTest
     }
 
     @Override
-    public boolean matches(Object obj) {
-      if (obj == null) {
+    public boolean matches(LdapServer other) {
+      if (other == null) {
         return false;
       }
-      LdapServer other = (LdapServer) obj;
       return ldapServerId.equals(other.getId());
     }
   }

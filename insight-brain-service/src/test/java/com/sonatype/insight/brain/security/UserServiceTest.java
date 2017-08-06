@@ -27,8 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
 
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.hasSize;
@@ -36,16 +35,15 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest
     extends AbstractComponentTest
 {
   @Inject
   private UserService userService;
 
-  private SessionDAO sessionDAOMock = mock(SessionDAO.class);
+  @Mock
+  private SessionDAO sessionDAOMock;
 
   @Override
   public void configure(Binder binder) {

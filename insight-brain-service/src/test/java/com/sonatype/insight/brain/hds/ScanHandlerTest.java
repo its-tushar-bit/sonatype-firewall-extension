@@ -35,12 +35,9 @@ import de.schlichtherle.truezip.file.TArchiveDetector;
 import de.schlichtherle.truezip.fs.FsDriver;
 import de.schlichtherle.truezip.fs.FsScheme;
 import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -50,9 +47,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,9 +67,6 @@ public class ScanHandlerTest
   @Mock
   private HdsClient hdsClient;
 
-  @Rule
-  public MockitoRule mockitoRule = MockitoJUnit.rule();
-
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
@@ -91,7 +84,7 @@ public class ScanHandlerTest
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
     when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
-        eq((Map<String, String>) null), (String[]) anyVararg())).thenReturn(scanReceipt);
+        eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.EXPANDED_COVERAGE);
     assertThat(scanReceipt.getScanId(), is(scanId));
@@ -110,7 +103,7 @@ public class ScanHandlerTest
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
     when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
-        eq((Map<String, String>) null), (String[]) anyVararg())).thenReturn(scanReceipt);
+        eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId());
     assertThat(scanReceipt.getScanId(), is(scanId));
@@ -133,7 +126,7 @@ public class ScanHandlerTest
     when(servletRequest.getInputStream())
         .thenReturn(new ServletInputStreamImpl(FileUtils.readFileToByteArray(inputScanFile)));
     when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
-        eq((Map<String, String>) null), (String[]) anyVararg())).thenReturn(scanReceipt);
+        eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
     assertThat(scanReceipt.getScanId(), is(scanId));
@@ -184,7 +177,7 @@ public class ScanHandlerTest
     when(servletRequest.getInputStream())
         .thenReturn(new ServletInputStreamImpl(FileUtils.readFileToByteArray(inputScanFile)));
     when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
-        eq((Map<String, String>) null), (String[]) anyVararg())).thenReturn(scanReceipt);
+        eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.TWISTLOCK);
     assertThat(scanReceipt.getScanId(), is(scanId));
@@ -243,7 +236,7 @@ public class ScanHandlerTest
 
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
     when(hdsClient.get(eq(servletRequest), analyticsArg.capture(), eq(ScanReceipt.class), any(String.class),
-        eq((Map<String, String>) null), (String[]) anyVararg())).thenReturn(scanReceipt);
+        eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
     scanHandler.handle(servletRequest, app.getPublicId());
 

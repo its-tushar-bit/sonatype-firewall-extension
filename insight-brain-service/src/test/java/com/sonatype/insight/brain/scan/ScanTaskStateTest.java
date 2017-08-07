@@ -111,7 +111,6 @@ public class ScanTaskStateTest
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void error() throws IOException {
     when(scanner.scan((File) any(), (String) any(), (File) any(), (String) any())).thenThrow(RuntimeException.class);
 

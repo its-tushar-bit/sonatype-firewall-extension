@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 public class ScanServiceUnitTest
 {
   @Test(expected = NotFoundException.class)
-  @SuppressWarnings("unchecked")
   public void testGetTicketNotFound() {
     ScanTaskRepository taskRepository = mock(ScanTaskRepository.class);
     ScanService service = new ScanService(taskRepository, mock(FileCleaner.class));

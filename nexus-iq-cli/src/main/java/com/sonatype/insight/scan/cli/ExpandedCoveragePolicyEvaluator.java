@@ -145,6 +145,7 @@ public class ExpandedCoveragePolicyEvaluator
     Settings.setBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED, false);
     Settings.setBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED, false);
     Settings.setBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED, false);
+    Settings.setBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED, false);
   }
 
   private String getExpandedCoverageVersion() throws IOException {

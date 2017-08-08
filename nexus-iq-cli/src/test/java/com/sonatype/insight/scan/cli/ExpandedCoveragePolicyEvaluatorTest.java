@@ -161,6 +161,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
     assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED), is(false));
     assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED), is(false));
     assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED), is(false));
+    assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED), is(false));
   }
 
   private List<Dependency> testScan(String scanTarget) throws Exception {

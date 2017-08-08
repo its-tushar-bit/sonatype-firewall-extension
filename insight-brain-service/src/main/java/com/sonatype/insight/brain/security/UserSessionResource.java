@@ -13,9 +13,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -34,8 +37,11 @@ public class UserSessionResource
 
   public static final String LOGOUT_PATH = "logout";
 
+  private final InsightConfig insightConfig;
+
   @Inject
-  public UserSessionResource() {
+  public UserSessionResource(InsightConfig insightConfig) {
+    this.insightConfig = insightConfig;
   }
 
   /**
@@ -55,8 +61,14 @@ public class UserSessionResource
    */
   @DELETE
   @Path(LOGOUT_PATH)
-  public void logout() {
+  public Response logout() {
     SecurityUtils.getSubject().logout();
+    if (insightConfig.getReverseProxyAuthentication().isEnabled() &&
+        insightConfig.getReverseProxyAuthentication().getLogoutUrl() != null) {
+      return Response.status(Status.NO_CONTENT)
+          .location(insightConfig.getReverseProxyAuthentication().getLogoutUrl()).build();
+    }
+    return Response.status(Status.NO_CONTENT).build();
   }
 
   /**

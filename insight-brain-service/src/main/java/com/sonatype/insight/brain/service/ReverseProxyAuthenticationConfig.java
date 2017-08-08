@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.net.URI;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,6 +31,12 @@ public class ReverseProxyAuthenticationConfig
   @JsonProperty
   private boolean csrfProtectionDisabled;
 
+  /**
+   * @since 1.35.0
+   */
+  @JsonProperty
+  private URI logoutUrl;
+
   public boolean isEnabled() {
     return enabled;
   }
@@ -51,5 +59,13 @@ public class ReverseProxyAuthenticationConfig
 
   public void setCsrfProtectionDisabled(final boolean csrfProtectionDisabled) {
     this.csrfProtectionDisabled = csrfProtectionDisabled;
+  }
+
+  public URI getLogoutUrl() {
+    return logoutUrl;
+  }
+
+  public void setLogoutUrl(final URI logoutUrl) {
+    this.logoutUrl = logoutUrl;
   }
 }

@@ -75,6 +75,19 @@ describe('userMenu', function() {
 
       expect(spy).toHaveBeenCalled();
     }));
+
+    it('provides the ability to log out for reverse proxy', inject(function($httpBackend, CLMLocations) {
+      var spy = jasmine.createSpy();
+      parentScope.$on('logout', spy);
+      var headers = {'Location': 'http://localhost/logout'};
+      expect(vm.logout).not.toBeUndefined();
+      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204, '', headers);
+
+      vm.logout();
+      $httpBackend.flush();
+
+      expect(spy).toHaveBeenCalledWith(jasmine.any(Object), headers.Location);
+    }));
   });
 
   describe('canChangePassword()', function () {

@@ -148,9 +148,14 @@ angular.module('InitModule', [
       //Init the service on app load
       StateHistoryService.register();
 
-      $rootScope.$on('logout', function() {
+      $rootScope.$on('logout', function(event, toLocation) {
         $rootScope.username = null;
-        $window.location.assign('../');
+        if (toLocation != null) {
+          $window.location.href = toLocation;
+        }
+        else {
+          $window.location.assign('../');
+        }
       });
 
       $rootScope.$on('$stateChangeSuccess', function() {

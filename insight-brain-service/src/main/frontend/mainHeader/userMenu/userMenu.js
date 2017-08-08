@@ -20,8 +20,8 @@ function UserMenuController($scope, $http, CLMLocations, modal, messages, Curren
   function logout() {
     // TODO This ought to perform a dirty check before it simply logs the user out
     // https://issues.sonatype.org/browse/CLM-1251
-    $http['delete'](CLMLocations.getSessionLogoutUrl()).then(function() {
-      $scope.$emit('logout');
+    $http['delete'](CLMLocations.getSessionLogoutUrl()).then(function(response) {
+      $scope.$emit('logout', response.headers('Location'));
     });
   }
 

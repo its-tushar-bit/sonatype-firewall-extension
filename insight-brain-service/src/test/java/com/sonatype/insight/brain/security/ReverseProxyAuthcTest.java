@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.net.HttpCookie;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -21,6 +23,7 @@ import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.LogOutput;
 
+import org.apache.http.HttpStatus;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -115,6 +118,61 @@ public class ReverseProxyAuthcTest
     response = request.subpath(PublicApiPaths.ORG_RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie(), is(nullValue()));
+  }
+
+  @Test
+  public void testLogout_reverseProxyIsEnabledWithLogoutUrl() throws Exception {
+    final URI logoutUrl = new URI("http://localhost/logout");
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.getReverseProxyAuthentication().setEnabled(true);
+        config.getReverseProxyAuthentication().setLogoutUrl(logoutUrl);
+      }
+    });
+
+    HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
+    HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    HttpCookie sessionCookie = response.getSessionCookie();
+    assertThat(sessionCookie, is(notNullValue()));
+    AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
+    assertThat(authStatus.isAuthenticated(), is(true));
+    assertThat(authStatus.isClmUser(), is(localUser));
+    assertThat(authStatus.getDisplayName(), is("John Doe"));
+
+    response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
+        .delete();
+    assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
+    assertThat(response.getHeader("Location"), is(logoutUrl.toString()));
+  }
+
+  @Test
+  public void testLogout_reverseProxyIsEnabledWithoutLogoutUrl() throws Exception {
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+        config.getReverseProxyAuthentication().setEnabled(true);
+        config.getReverseProxyAuthentication().setLogoutUrl(null);
+      }
+    });
+
+    HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
+    HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    HttpCookie sessionCookie = response.getSessionCookie();
+    assertThat(sessionCookie, is(notNullValue()));
+    AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
+    assertThat(authStatus.isAuthenticated(), is(true));
+    assertThat(authStatus.isClmUser(), is(localUser));
+    assertThat(authStatus.getDisplayName(), is("John Doe"));
+
+    response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
+        .delete();
+    assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
+    assertThat(response.getHeader("Location"), is(nullValue()));
   }
 
   @Test

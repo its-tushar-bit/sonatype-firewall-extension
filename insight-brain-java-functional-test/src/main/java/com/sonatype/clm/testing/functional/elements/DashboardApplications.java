@@ -119,6 +119,10 @@ public class DashboardApplications
       return applicationStageList.getStageLinkByRow(index);
     }
 
+    public SelenideElement name() {
+      return child(".iq-cell--application-name");
+    }
+
 
     private static class ApplicationStageList
         extends BasicElement<ApplicationStageList>

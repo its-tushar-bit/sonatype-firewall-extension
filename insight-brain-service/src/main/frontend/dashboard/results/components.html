@@ -41,7 +41,12 @@
           <tr class="iq-table-row iq-clickable"
               ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
               ng-click="goToComponentDetails(component)">
-            <td class="iq-cell iq-cell--component-name iq-cell--label">{{component.name}}</td><!--
+            <td class="iq-cell iq-cell--component-name iq-cell--label"
+                iq-tooltip
+                tooltip-attach-to-body
+                tooltip-delay=500
+                tooltip-only-on-overflow="true"
+                tooltip-text="{{::component.name}}">{{component.name}}</td><!--
          --><td class="iq-cell iq-cell--affected-apps">{{::component.affectedApplications}}</td><!--
          --><td class="iq-cell iq-cell--heatmap iq-cell--total-risk {{::getTextColorClass(component.score)}}"
                  ng-attr-style="background-color: {{::getColor(component.score)}}">{{::component.score}}</td><!--

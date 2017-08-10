@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardApplications.Applic
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
@@ -30,10 +31,12 @@ import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.Dimension;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
@@ -58,10 +61,13 @@ public class DashboardApplicationsTest
 
   private Policy policy;
 
+  private static Dimension originalSize;
+
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.APPLICATIONS_URL);
     loginAsAdmin();
+    originalSize = WebDriverRunner.getWebDriver().manage().window().getSize();
   }
 
   @Before
@@ -76,6 +82,7 @@ public class DashboardApplicationsTest
   public void cleanup() {
     clearFilters();
     reverseProxyServer.reset();
+    WebDriverRunner.getWebDriver().manage().window().setSize(originalSize);
   }
 
   @Test
@@ -260,6 +267,23 @@ public class DashboardApplicationsTest
         "App5,10,8,0,2,0"   //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
+  }
+
+  @Test
+  public void testApplicationNameTooltip() {
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1024, 768));
+
+    createViolation(tempEntity.newApplication("A long name to ensure overflow in cell", "long", org.getId()),
+        BuildStageType.ID, 8);
+    createViolation(tempEntity.newApplication("A", "short", org.getId()), BuildStageType.ID, 5);
+    ApplicationsResults table = DashboardPage.applicationsView().results();
+    refresh();
+
+    Tooltip.get().shouldNotBe(visible);
+    table.firstApplication().name().hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("A long name to ensure overflow in cell"));
+    table.lastApplication().name().hover();
+    Tooltip.get().shouldNotBe(visible);
   }
 
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {

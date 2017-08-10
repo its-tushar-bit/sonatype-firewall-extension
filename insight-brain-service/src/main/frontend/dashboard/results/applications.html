@@ -38,7 +38,12 @@
           <tr id="app{{$index}}_"
               class="iq-table-row applications-row total-application-risks"
               ng-repeat-start="application in data | limitTo: maxResults | orderBy: sortVm.sortFields">
-            <td class="iq-cell iq-cell--label iq-cell--application-name">{{::application.applicationName}}</td><!--
+            <td class="iq-cell iq-cell--label iq-cell--application-name"
+                iq-tooltip
+                tooltip-attach-to-body
+                tooltip-delay=500
+                tooltip-only-on-overflow="true"
+                tooltip-text="{{::application.applicationName}}">{{::application.applicationName}}</td><!--
          --><td class="iq-cell iq-cell--total-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.totalRisk)}}"
                 ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.totalRisk)}}">
               {{::application.totalApplicationRisk.totalRisk}}

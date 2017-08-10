@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardComponentDetails;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -233,6 +234,24 @@ public class DashboardComponentsTest
     assertComponentsCsv(exportCsv, expectedResults);
   }
 
+  @Test
+  public void testComponentNameTooltip() {
+    addComponentWithViolation("A superficially artificial, perfunctorily slapdash", "protracted and interminable name",
+        "to ensure overflow in cell", "hash-b", 7);
+    addComponentWithViolation("A", null, null, "hash-a", 3);
+
+    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    ComponentsResults table = DashboardPage.componentsView().results();
+
+    Tooltip.get().shouldNotBe(visible);
+    table.firstComponent().$("td:first-child").hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text(
+        "A superficially artificial, perfunctorily slapdash : protracted and interminable name : to ensure overflow in cell"));
+    table.lastComponent().$("td:first-child").hover();
+    Tooltip.get().shouldNotBe(visible);
+  }
+
   private void assertComponentsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
     assertEquals("Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
@@ -252,6 +271,10 @@ public class DashboardComponentsTest
     String artifact = "Artifact" + index;
     String version = "Version" + index;
     String hash = "hash" + index;
+    addComponentWithViolation(group, artifact, version, hash, riskScore);
+  }
+
+  private void addComponentWithViolation(String group, String artifact, String version, String hash, int riskScore) {
     tempEntity.newApplicationComponent(app.getId(), policyEvaluation.getStageTypeId(), hash,
         ComponentIdentifier.createMavenCoordinates(group, artifact, version));
     tempEntity.newPolicyViolation(policyEvaluation, policy, riskScore,

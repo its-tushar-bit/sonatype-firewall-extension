@@ -133,7 +133,7 @@
 
 // For now we scope min-width to new elements
 .root-container, .clm-modal {
-  .btn:not(.btn-icon-only):not(.btn-error) {
+  .btn:not(.btn-icon-only) {
     min-width: 100px;
   }
 }

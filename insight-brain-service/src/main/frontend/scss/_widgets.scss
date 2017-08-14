@@ -148,7 +148,9 @@
   $iq-modal-width: 560px;
 
   background-color: $iq-off-white;
+  border: 1px solid $iq-slate;
   box-shadow: -8px 8px 12px $iq-slate;
+  margin-left: 0; // override bootstrap .modal style
   outline: none;
   position: fixed;
   top: 10%;
@@ -183,6 +185,23 @@
   border: 1px solid $iq-slate;
   border-top: 1px solid $iq-grey-4;
   padding: 12px;
+}
+
+// Duplicates for Bootstrap styles we might want/need to remove someday
+.iq-modal.fade.in {
+  top: 48px;
+}
+
+.iq-modal.fade {
+  -webkit-transition: opacity 0.3s linear, top 0.3s ease-out;
+  -moz-transition: opacity 0.3s linear, top 0.3s ease-out;
+  -o-transition: opacity 0.3s linear, top 0.3s ease-out;
+  transition: opacity 0.3s linear, top 0.3s ease-out;
+  top: -25%;
+}
+
+.fade.in {
+  opacity: 1;
 }
 
 /*

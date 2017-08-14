@@ -13,9 +13,10 @@ import utilityDirectivesModule from '../frontend/utility/directives/utility.dire
 import '../frontend/utility/directives/load.wrapper.directive';
 
 import charts from './charts/module';
+import iqModalModule from './styles/iq-modal/module';
 
 export default angular.module('config',
-    [componentsModule.name, directivesModule.name, charts.name, utilityDirectivesModule.name])
+    [componentsModule.name, directivesModule.name, charts.name, utilityDirectivesModule.name, iqModalModule.name])
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
       'iq-radio': 'components/iq-radio.html',
@@ -34,7 +35,7 @@ export default angular.module('config',
       'iq-pull-right': 'styles/iq-pull-right.html',
       'iq-scrollable': 'styles/iq-scrollable.html',
       'iq-alerts': 'styles/iq-alerts.html',
-      'iq-modal': 'styles/iq-modal.html',
+      'iq-modal': 'styles/iq-modal/iq-modal.html',
       'iq-table': 'styles/iq-table.html',
       'iq-tree-view': 'styles/iq-tree-view.html'
     });

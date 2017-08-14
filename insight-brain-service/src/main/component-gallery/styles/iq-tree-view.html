@@ -6,14 +6,15 @@
 
 <item-example-html>
   <!-- wrapping <div> is for clarity -->
-  <div style="background-color: #eaeaea; padding: 10px 0 20px 0; width: 300px;">
+  <div style="background-color: #eaeaea; padding: 10px 8px 20px; width: 300px;">
     <div class="iq-tree-view">
       <a class="iq-tree-view__trigger" ng-click="isExpanded1 = !isExpanded1">
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded1, collapse: isExpanded1 }"></span>
         </div>
         <div class="iq-tree-view__text">
-          <i class="fa fa-cube icon-12px"></i>Tree view group title
+          <i class="fa fa-sitemap inverse iq-tree-view__text-icon iq-tree-view__text-icon--org-chart"></i><!--
+       -->Tree view group title
         </div>
       </a>
       <div class="iq-tree-view__children" ng-if="isExpanded1">
@@ -37,10 +38,34 @@
           <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded2, collapse: isExpanded2 }"></span>
         </div>
         <div class="iq-tree-view__text">
-          <i class="fa fa-cube icon-12px"></i>Tree view group title
+          <i class="fa fa-cube iq-tree-view__text-icon"></i>Tree view group title
         </div>
       </a>
       <div class="iq-tree-view__children" ng-if="isExpanded2">
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 1
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 2
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 3
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 4 - extra long to demonstrate overflow ellipsis
+        </div>
+      </div>
+    </div>
+    <div class="iq-tree-view">
+      <a class="iq-tree-view__trigger" ng-click="isExpanded3 = !isExpanded3">
+        <div class="iq-tree-view__twisty">
+          <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded3, collapse: isExpanded3 }"></span>
+        </div>
+        <div class="iq-tree-view__text">
+          Tree view group title
+        </div>
+      </a>
+      <div class="iq-tree-view__children" ng-if="isExpanded3">
         <div ui-sref-active="selected" class="iq-tree-view__child">
           Tree view element 1
         </div>

@@ -120,7 +120,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
   }
 
   @Test
-  public void testRun_withExpandedCoverage() throws IOException, ExitException {
+  public void testRun_ExpandedCoverage() throws IOException, ExitException {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
         "src/test/data/artifact.jar");
     RestClient restClient = mock(RestClient.class);

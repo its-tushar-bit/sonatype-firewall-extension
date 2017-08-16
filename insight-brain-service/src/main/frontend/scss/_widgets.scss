@@ -21,6 +21,8 @@
 }
 
 .iq-tree-view__trigger {
+  @extend .truncate-ellipsis;
+  
   border: 1px solid transparent;
   display: block;
   font-size: 14px;
@@ -31,11 +33,18 @@
     color: $iq-slate;
     text-decoration: none;
   }
+  
+  .iq-tree-view__counter {
+    float: right;
+    margin-top: 7px;
+  }
 }
 
 .iq-tree-view__twisty {
-  display: inline-block;
+  float: left;
   height: 16px;
+  margin-right: 5px;
+  vertical-align: top;
   width: 16px;
 }
 
@@ -61,8 +70,10 @@
 }
 
 .iq-tree-view__text {
+  @extend .truncate-ellipsis;
+  
   color: $iq-slate;
-  display: inline-block;
+  display: block;
 
   .fa, .iq-tree-view__text-icon {
     height: 16px;
@@ -78,21 +89,6 @@
   vertical-align: text-top;
 }
 
-.iq-tree-view__counter {
-  background-color: $iq-grey-3;
-  border: 1px solid $iq-grey-4;
-  border-radius: 8px;
-  color: $iq-slate;
-  float: right;
-  font-size: 11px;
-  height: 16px;
-  line-height: 18px;
-  margin-top: 6px;
-  padding: 0 4px;
-  text-align: center;
-  min-width: 8px;
-}
-
 .iq-tree-view__children {
   margin-bottom: 12px;
 }
@@ -104,7 +100,7 @@
   line-height: 30px;
   overflow: hidden;
   padding-right: 8px;
-  padding-left: 44px;
+  padding-left: 45px;
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;

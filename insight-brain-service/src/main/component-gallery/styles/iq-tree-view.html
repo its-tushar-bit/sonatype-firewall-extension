@@ -37,6 +37,9 @@
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded2, collapse: isExpanded2 }"></span>
         </div>
+        <div class="iq-counter iq-counter--active iq-tree-view__counter">
+          14 of 33
+        </div>
         <div class="iq-tree-view__text">
           <i class="fa fa-cube iq-tree-view__text-icon"></i>Tree view group title
         </div>
@@ -61,11 +64,38 @@
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded3, collapse: isExpanded3 }"></span>
         </div>
+        <div class="iq-counter iq-counter--active iq-tree-view__counter">
+          3 of 6
+        </div>
+        <div class="iq-tree-view__text">
+          <i class="fa fa-cube iq-tree-view__text-icon"></i>A really really long tree view group title
+        </div>
+      </a>
+      <div class="iq-tree-view__children" ng-if="isExpanded3">
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 1
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 2
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 3
+        </div>
+        <div ui-sref-active="selected" class="iq-tree-view__child">
+          Tree view element 4 - extra long to demonstrate overflow ellipsis
+        </div>
+      </div>
+    </div>
+    <div class="iq-tree-view">
+      <a class="iq-tree-view__trigger" ng-click="isExpanded4 = !isExpanded4">
+        <div class="iq-tree-view__twisty">
+          <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded4, collapse: isExpanded4 }"></span>
+        </div>
         <div class="iq-tree-view__text">
           Tree view group title
         </div>
       </a>
-      <div class="iq-tree-view__children" ng-if="isExpanded3">
+      <div class="iq-tree-view__children" ng-if="isExpanded4">
         <div ui-sref-active="selected" class="iq-tree-view__child">
           Tree view element 1
         </div>

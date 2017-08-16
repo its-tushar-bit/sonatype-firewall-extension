@@ -63,6 +63,8 @@ import static org.mockito.Mockito.verify;
 public class WebhookDispatcherTest
     extends AbstractComponentTest
 {
+  private static final int EVENT_TIMEOUT_MS = 5000;
+
   @Inject
   private WebhookDispatcher webhookDispatcher;
 
@@ -107,7 +109,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
             webhookPayloadArgumentCaptor.capture());
 
@@ -146,7 +148,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
             webhookPayloadArgumentCaptor.capture());
 
@@ -177,7 +179,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
             webhookPayloadArgumentCaptor.capture());
 
@@ -208,7 +210,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
             webhookPayloadArgumentCaptor.capture());
 
@@ -239,7 +241,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
             webhookPayloadArgumentCaptor.capture());
 
@@ -270,7 +272,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
             webhookPayloadArgumentCaptor.capture());
 
@@ -299,7 +301,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
             webhookPayloadArgumentCaptor.capture());
 
@@ -360,7 +362,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID),
             webhookPayloadArgumentCaptor.capture());
 
@@ -396,7 +398,7 @@ public class WebhookDispatcherTest
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
-    verify(webhookClientUtil, timeout(500).only())
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
         .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.LICENSE_OVERRIDE_MANAGEMENT_ID),
             webhookPayloadArgumentCaptor.capture());
 

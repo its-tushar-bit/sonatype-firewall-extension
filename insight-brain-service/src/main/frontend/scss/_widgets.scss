@@ -145,6 +145,7 @@
 
   background-color: $iq-off-white;
   border: 1px solid $iq-slate;
+  border-radius: 0;
   box-shadow: -8px 8px 12px $iq-slate;
   margin-left: 0; // override bootstrap .modal style
   outline: none;
@@ -156,7 +157,6 @@
 }
 
 .iq-modal-header {
-  border: 1px solid $iq-slate;
   border-bottom: 1px solid $iq-grey-4;
   padding: 12px 8px;
 
@@ -171,14 +171,11 @@
 }
 
 .iq-modal-content {
-  border-right: 1px solid $iq-slate;
-  border-left: 1px solid $iq-slate;
   padding: 20px 12px 18px 12px;
 }
 
 .iq-modal-footer {
   background-color: $iq-grey-1;
-  border: 1px solid $iq-slate;
   border-top: 1px solid $iq-grey-4;
   padding: 12px;
 }

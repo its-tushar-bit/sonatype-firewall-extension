@@ -20,29 +20,31 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class OwnerTreeView
 {
   public static SelenideElement filter() {
-    return $(".tree-view-filter input");
+    return $(".owner-tree-view__filter input");
   }
 
   public static ElementsCollection organizationElements() {
-    return $$(".tree-view-organization-group");
+    return $$("#owner-tree-view-owner-rows > .iq-tree-view");
   }
 
   public static OrganizationNode organization(int num) {
-    return new OrganizationNode("#organizations .tree-view-organization-group", nthChild(num + 1));
+    int cssNum = num + 1;
+
+    return new OrganizationNode("#owner-tree-view-owner-rows > .iq-tree-view:nth-of-type(" + cssNum + ")");
   }
 
   public static SelenideElement repositories() {
-    return $("#tree-view-repositories-group .tree-view-item");
+    return $("#owner-tree-view-repositories-row");
   }
 
   public static class RootOrganizationNode
   {
     public static SelenideElement treeViewElement() {
-      return $("#tree-view-root-organization-group .tree-view-item");
+      return $("#owner-tree-view-root-org-row");
     }
 
     public static SelenideElement newOrganizationButton() {
-      return $(".tree-view-new-organization button");
+      return $("#owner-tree-view-root-org-row button");
     }
   }
 
@@ -60,23 +62,23 @@ public class OwnerTreeView
     }
 
     public SelenideElement treeViewElement() {
-      return child(".tree-view-item:first-child");
+      return child(".iq-tree-view__trigger");
     }
 
     public SelenideElement organizationName() {
-      return child(".tree-view-item:first-child > span");
+      return child(".iq-tree-view__trigger .iq-tree-view__text");
     }
 
     public SelenideElement twisty() {
-      return child(".twisty");
+      return child(".iq-tree-view__trigger .iq-tree-view__twisty-icon");
     }
 
     public SelenideElement newApplicationButton() {
-      return child(".tree-view-new-application button");
+      return child(".owner-tree-view__new-application button");
     }
 
     public ElementsCollection applicationElements() {
-      return children(".tree-view-item:not(:first-child)");
+      return children(".iq-tree-view__child");
     }
 
     public SelenideElement popup() {
@@ -84,9 +86,10 @@ public class OwnerTreeView
     }
 
     public static ApplicationNode application(int num) {
-      return new ApplicationNode(".tree-view-item", nthChild(num + 1 + 1 /* The org is the first entry */));
+      int cssNum = num + 1;
+      return new ApplicationNode("#owner-tree-view-owner-rows > .iq-tree-view .iq-tree-view__child", nthChild(cssNum));
     }
-    
+
     public static class ApplicationNode
         extends BasicElement<ApplicationNode>
     {
@@ -96,7 +99,7 @@ public class OwnerTreeView
       }
 
       public SelenideElement applicationName() {
-        return child("> span");
+        return child("> .iq-tree-view__text");
       }
     }
 

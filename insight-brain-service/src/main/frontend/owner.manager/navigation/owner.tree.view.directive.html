@@ -1,9 +1,9 @@
-<div class="tree-view">
-  <div class="tree-view-header">
+<div class="iq-tree-view owner-tree-view">
+  <div class="owner-tree-view__header">
     Organizations and Applications
   </div>
   <div load-wrapper="vm.error" loading="!vm.organizations" reload="vm.doLoad()">
-    <div class="tree-view-filter search input-prepend">
+    <div class="owner-tree-view__filter search input-prepend">
             <span class="add-on">
               <i role="button" class="fa fa-filter"
                  ng-class="{ 'fa-filter': !vm.filter.value, 'fa-times': vm.filter.value }"
@@ -14,81 +14,79 @@
     <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">
       Filter Results
     </h4>
-    <div id="tree-view-root-organization-group" ng-if="vm.rootOrganization" class="tree-view-group">
-      <a class="tree-view-item"
-         ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
-         ui-sref="management.view.organization({organizationId: vm.rootOrganization.id})">
-        <i class="fa fa-globe fa-lg tree-view-icon"></i>{{vm.rootOrganization.name}}
-        <div class="tree-view-new-organization"
-             ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }">
-          <button class="btn" ng-click="vm.createOrganization()">
-            <i class="fa fa-plus"></i>
-            New Organization
-          </button>
-        </div>
-      </a>
-    </div>
-    <div id="tree-view-repositories-group" class="tree-view-group" ng-if="vm.showRepositories">
-      <a class="tree-view-item" ui-sref-active="selected" ui-sref="management.view.repositories">
-        <div class="twisty-container">
-          <span class="twisty empty"></span>
+    <a id="owner-tree-view-root-org-row" class="iq-tree-view__trigger owner-tree-view__row"
+       ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
+       ui-sref="management.view.organization({organizationId: vm.rootOrganization.id})">
+      <i class="fa fa-globe fa-lg owner-tree-view__icon"></i><!--
+   --><span class="iq-tree-view__text">{{vm.rootOrganization.name}}</span>
+      <div class="owner-tree-view__new-organization"
+           ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }">
+        <button class="btn" ng-click="vm.createOrganization()">
+          <i class="fa fa-plus"></i> New Organization
+        </button>
+      </div>
+    </a>
+    <div id="owner-tree-view-owner-rows" class="iq-tree-view__children">
+      <a id="owner-tree-view-repositories-row"
+         class="iq-tree-view__child owner-tree-view__row"
+         ui-sref-active="selected"
+         ng-if="vm.showRepositories"
+         ui-sref="management.view.repositories">
+        <div class="iq-tree-view__twisty">
+          <span class="iq-tree-view__twisty-icon empty"></span>
         </div><!--
-        --><i class="fa fa-database tree-view-icon icon-12px inverse"></i>
-        Repositories
+     --><i class="fa fa-database owner-tree-view__icon owner-tree-view__icon--12px inverse"></i><!--
+     --><span class="iq-tree-view__text">Repositories</span>
       </a>
-    </div>
-    <div id="organizations">
-      <div class="tree-view-group tree-view-organization-group"
+      <div class="iq-tree-view__child iq-tree-view"
            ng-repeat="organization in vm.organizations | orderBy:'name'"
            ng-if="organization.isVisible">
-        <a class="tree-view-item"
+        <a class="iq-tree-view__trigger owner-tree-view__row"
            ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: organization.id}),
-                             disabled : organization.synthetic,
-                             'child-selected' : vm.selectedParentOrganization.id === organization.id }"
+               disabled : organization.synthetic,
+               'child-selected' : vm.selectedParentOrganization.id == organization.id }"
            ng-click="organization.isExpanded = true;
-                     vm.goToOrganizationIfNotSynthetic(organization);">
-          <div class="twisty-container"
-               ng-click="$event.preventDefault();
-                         $event.stopPropagation();
-                         organization.isExpanded =
-                           vm.$state.includes('management.view.organization', {organizationId: organization.id}) ||
-                           vm.selectedParentOrganization.id === organization.id || !organization.isExpanded;">
-                  <span class="twisty"
-                        ng-class="{ empty: organization.applications.length == 0,
-                                  expand: organization.applications.length > 0 && !organization.isExpanded,
-                                  collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
+               vm.goToOrganizationIfNotSynthetic(organization);">
+          <div class="iq-tree-view__twisty" ng-click="vm.handleOrganizationTwistyClick($event, organization)">
+            <span class="iq-tree-view__twisty-icon"
+                  ng-class="{ empty: organization.applications.length == 0,
+                      expand: organization.applications.length > 0 && !organization.isExpanded,
+                      collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
           </div><!--
-             --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
-             --><span
-                  data-tooltip="{{organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
-                  data-tooltip-placement="top-left" data-tooltip-append-to-body="true" data-tooltip-popup-delay="500"
-                  tooltip-class="entity-item-tooltip">
-                    {{organization.name}}
-                </span>
-          <div class="tree-view-new-application"
+       --><i class="fa fa-sitemap owner-tree-view__icon owner-tree-view__icon--12px inverse"></i><!--
+       --><span class="iq-tree-view__text"
+                data-tooltip="{{organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
+                data-tooltip-placement="top-left"
+                data-tooltip-append-to-body="true"
+                data-tooltip-popup-delay="500"
+                tooltip-class="entity-item-tooltip"><!--
+         -->{{organization.name}}<!--
+       --></span>
+          <div class="owner-tree-view__new-application"
                ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }">
             <button class="btn"
-                    ng-click="$event.preventDefault();
-                              $event.stopPropagation();
-                              vm.createApplication(organization);">
-              <i class="fa fa-plus"></i>
-              New Application
+                    ng-click="$event.preventDefault(); $event.stopPropagation(); vm.createApplication(organization);">
+              <i class="fa fa-plus"></i> New Application
             </button>
           </div>
         </a>
-        <a class="tree-view-item"
-           ng-repeat="application in organization.applications | orderBy:'name'"
-           ng-if="organization.isExpanded && application.isVisible"
-           ui-sref="management.view.application({applicationPublicId: application.publicId})"
-           ng-class="{ selected : vm.$state.includes('management.view.application', {applicationPublicId: application.publicId}) }">
-          <i class="fa fa-terminal tree-view-icon icon-12px inverse"></i><!--
-           --><span
-                data-tooltip="{{application.name}}"
-                data-tooltip-placement="top-left" data-tooltip-append-to-body="true" data-tooltip-popup-delay="500"
-                tooltip-class="entity-item-tooltip">
-                  {{application.name}}
-              </span>
-        </a>
+        <div class="iq-tree-view__children">
+          <a class="iq-tree-view__child owner-tree-view__row owner-tree-view__row--child"
+             ng-repeat="application in organization.applications | orderBy:'name'"
+             ng-if="organization.isExpanded && application.isVisible"
+             ui-sref="management.view.application({applicationPublicId: application.publicId})"
+             ng-class="{ selected : vm.$state.includes('management.view.application', {applicationPublicId: application.publicId}) }">
+            <i class="fa fa-terminal owner-tree-view__icon owner-tree-view__icon--12px inverse"></i><!--
+         --><span class="iq-tree-view__text"
+                  data-tooltip="{{application.name}}"
+                  data-tooltip-placement="top-left"
+                  data-tooltip-append-to-body="true"
+                  data-tooltip-popup-delay="500"
+                  tooltip-class="entity-item-tooltip"><!--
+           -->{{application.name}}<!--
+         --></span>
+          </a>
+        </div>
       </div>
     </div>
   </div>

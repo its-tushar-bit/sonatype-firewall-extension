@@ -84,7 +84,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
     // disable the owner detail tree view item
     refreshOrOpen(PolicyEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
-    OwnerDetailTreeView.policyGroup().item(2).shouldBe(DISABLED).hover();
+    OwnerDetailTreeView.policyGroup().item(1).shouldBe(DISABLED).hover();
     int cmIndex = OwnerDetailTreeView.policyGroup().items().size() - 2;
     OwnerDetailTreeView.policyGroup().item(cmIndex).shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));

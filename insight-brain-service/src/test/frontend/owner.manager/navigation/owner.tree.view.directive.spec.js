@@ -279,6 +279,61 @@ describe('owner.tree-view.directive.spec.js', function() {
         $httpBackend.flush();
         $timeout.flush();
       }));
+
+      describe('handleOrganizationTwistyClick', function() {
+        it('expands an unexpanded organization', function() {
+          var evt = jasmine.createSpyObj('event', ['preventDefault', 'stopPropagation']),
+              organization = { id: 'asdf', isExpanded: false };
+
+          scope.vm.handleOrganizationTwistyClick(evt, organization);
+
+          expect(organization.isExpanded).toBe(true);
+          expect(evt.stopPropagation).toHaveBeenCalled();
+          expect(evt.preventDefault).toHaveBeenCalled();
+          expect($state.includes).toHaveBeenCalledWith('management.view.organization', { organizationId: 'asdf' });
+        });
+
+        it('unexpands an expanded organization that isn\'t the active one', function() {
+          var evt = jasmine.createSpyObj('event', ['preventDefault', 'stopPropagation']),
+              organization = { id: 'asdf', isExpanded: true };
+
+          scope.vm.handleOrganizationTwistyClick(evt, organization);
+
+          expect(organization.isExpanded).toBe(false);
+          expect(evt.stopPropagation).toHaveBeenCalled();
+          expect(evt.preventDefault).toHaveBeenCalled();
+          expect($state.includes).toHaveBeenCalledWith('management.view.organization', { organizationId: 'asdf' });
+        });
+
+        it('does not unexpand the currently selected organization', function() {
+          var evt = jasmine.createSpyObj('event', ['preventDefault', 'stopPropagation']),
+              organization = { id: 'asdf', isExpanded: true };
+
+          // $state.includes is already a spy, so we can't use spyOn.  We can however adjust the spy behavior
+          $state.includes.and.returnValue(true);
+
+          scope.vm.handleOrganizationTwistyClick(evt, organization);
+
+          expect(organization.isExpanded).toBe(true);
+          expect(evt.stopPropagation).toHaveBeenCalled();
+          expect(evt.preventDefault).toHaveBeenCalled();
+          expect($state.includes).toHaveBeenCalledWith('management.view.organization', { organizationId: 'asdf' });
+        });
+
+        it('does not unexpand the parent org of the currently selected application', function() {
+          var evt = jasmine.createSpyObj('event', ['preventDefault', 'stopPropagation']),
+              organization = { id: 'asdf', isExpanded: true };
+
+          scope.vm.selectedParentOrganization = { id: 'asdf' };
+
+          scope.vm.handleOrganizationTwistyClick(evt, organization);
+
+          expect(organization.isExpanded).toBe(true);
+          expect(evt.stopPropagation).toHaveBeenCalled();
+          expect(evt.preventDefault).toHaveBeenCalled();
+          expect($state.includes).toHaveBeenCalledWith('management.view.organization', { organizationId: 'asdf' });
+        });
+      });
     });
   }
 

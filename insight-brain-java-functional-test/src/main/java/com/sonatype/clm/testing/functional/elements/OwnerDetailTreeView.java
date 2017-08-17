@@ -24,11 +24,11 @@ public class OwnerDetailTreeView
   }
 
   public static SelenideElement header() {
-    return root().$(".tree-view-header");
+    return root().$(".owner-tree-view__header");
   }
 
   public static SelenideElement backLink() {
-    return $(SelectorUtils.createSelector(DETAIL_TREE_VIEW_SELECTOR, ".tree-view-header", "a"));
+    return $(SelectorUtils.createSelector(DETAIL_TREE_VIEW_SELECTOR, ".owner-tree-view__header", "a"));
   }
 
   public static String headerHref() {
@@ -63,19 +63,19 @@ public class OwnerDetailTreeView
     }
 
     public SelenideElement twisty() {
-      return child(".twisty");
+      return child(".iq-tree-view__twisty-icon");
     }
 
     public ElementsCollection items() {
-      return children(".tree-view-item");
+      return children(".iq-tree-view__child");
     }
 
     public ElementsCollection entryItems() {
-      return children(".tree-view-item:nth-child(n+3)"); // skip root and 'Add ...' entries
+      return children(".iq-tree-view__child:nth-child(n+2)"); // skip 'Add ...' entries
     }
 
     public OwnerDetailTreeViewItem item(int num) {
-      return new OwnerDetailTreeViewItem(childSelector(".tree-view-item", nthChild(num + 1)));
+      return new OwnerDetailTreeViewItem(childSelector(".iq-tree-view__child", nthChild(num + 1)));
     }
 
     public static class OwnerDetailTreeViewItem
@@ -86,7 +86,7 @@ public class OwnerDetailTreeView
       }
 
       public SelenideElement icon() {
-        return child(".tree-view-icon");
+        return child(".owner-tree-view__icon");
       }
     }
   }

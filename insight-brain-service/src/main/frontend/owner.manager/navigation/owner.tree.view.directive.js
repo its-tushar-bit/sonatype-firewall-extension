@@ -20,6 +20,7 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
   vm.createOrganization = createOrganization;
   vm.doLoad = doLoad;
   vm.goToOrganizationIfNotSynthetic = goToOrganizationIfNotSynthetic;
+  vm.handleOrganizationTwistyClick = handleOrganizationTwistyClick;
 
   $scope.$watch('vm.filter.value', filter, function(error) {
     vm.error = error;
@@ -254,6 +255,17 @@ function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLoc
     }
 
     return false;
+  }
+
+  function handleOrganizationTwistyClick(evt, organization) {
+    var stateIsThisOrg = vm.$state.includes('management.view.organization', {organizationId: organization.id}),
+        selectedParentIsThisOrg = vm.selectedParentOrganization && vm.selectedParentOrganization.id ===
+            organization.id;
+
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    organization.isExpanded = stateIsThisOrg || selectedParentIsThisOrg || !organization.isExpanded;
   }
 }
 

@@ -9,6 +9,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage;
 import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.ApplicationCountsTile;
+import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.ComponentCountsTile;
 import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.SummaryStatementTile;
 import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.ViolationAveragesTile;
@@ -26,6 +27,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.text;
@@ -34,7 +36,6 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICEN
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
-import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 import static org.joda.time.DateTime.now;
 
 public class RootOrgSuccessMetricsChartTest
@@ -77,13 +78,12 @@ public class RootOrgSuccessMetricsChartTest
     PolicyEvaluation releaseEval1MonthAgo = staticTempEntity
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "oneMonthAgo", oneMonthAgo.toDate());
 
-
     ApplicationComponent buildComponent = staticTempEntity
-        .newApplicationComponent(app1.getId(), BuildStageType.ID, "g1a1v1",
-            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+        .newApplicationComponent(app1.getId(), BuildStageType.ID, "logbackhash",
+            ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-access", "0.6"));
     ApplicationComponent releaseComponent = staticTempEntity
-        .newApplicationComponent(app2.getId(), ReleaseStageType.ID, randomAlphanumeric(10),
-            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+        .newApplicationComponent(app2.getId(), ReleaseStageType.ID, "jettyhash",
+            ComponentIdentifier.createMavenCoordinates("org.mortbay.jetty", "jetty", "6.1.15"));
 
     // add a few violations
     staticTempEntity.newPolicyViolation(buildEval4MonthsAgo, licensePolicy, 7,
@@ -192,5 +192,34 @@ public class RootOrgSuccessMetricsChartTest
       months.get(0).shouldBe(visible).shouldHave(text(mttrMonth.toString("MMM")));
       mttrMonth.plusMonths(1);
     }
+  }
+
+  @Test
+  public void testComponentCountsTile() throws Exception {
+    RootOrganizationSuccessMetricsPage rootOrganizationSuccessMetricsPage = new RootOrganizationSuccessMetricsPage();
+
+    ComponentCountsTile.root().scrollTo();
+
+    rootOrganizationSuccessMetricsPage.should(appear);
+    ComponentCountsTile.root().shouldBe(visible);
+
+    ElementsCollection componentsInMostApplications = ComponentCountsTile.componentsInMostApplications();
+    componentsInMostApplications.shouldHaveSize(2);
+    ElementsCollection componentsWithMostViolations = ComponentCountsTile.componentsWithMostViolations();
+    componentsWithMostViolations.shouldHaveSize(2);
+
+    String[] componentGroupIdsInMostApplications = {
+        "ch.qos.logback", "org.mortbay.jetty"
+    };
+    String expectedApplicationText = "1applications";
+    componentsInMostApplications.shouldHave(texts(componentGroupIdsInMostApplications));
+    componentsInMostApplications.shouldHave(
+        texts(expectedApplicationText, expectedApplicationText));
+
+    String[] componentGroupIdsWithMostViolations = {
+        "ch.qos.logback", "org.mortbay.jetty"
+    };
+    componentsWithMostViolations.shouldHave(texts(componentGroupIdsWithMostViolations));
+    componentsWithMostViolations.shouldHave(texts("5violations", "1violations"));
   }
 }

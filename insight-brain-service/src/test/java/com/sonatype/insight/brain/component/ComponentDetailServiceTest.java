@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.component;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -12,12 +13,14 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.aggregation.ComponentCountsDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -26,12 +29,14 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
+
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -363,5 +368,259 @@ public class ComponentDetailServiceTest
       }
     }
     return null;
+  }
+
+  @Test
+  public void testGetComponentCounts() {
+    String hash = "ababababab";
+    String hash2 = "acacacacac";
+
+    Date date = new Date();
+
+    // app1 has the component without any policy violations
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
+        date);
+    ApplicationComponent component2 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
+        ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"), null, MatchState.EXACT,
+        false, date);
+
+    // app2 has the component with policy violations
+    Application app2 = tempEntity.newApplicationWithParent("app2");
+    tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+    // add two policy violations for a stage
+    Policy policy1 = tempEntity.newPolicy(app2.getId(), "policy1", 1);
+    Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy2, "groupId", "artifactId", "version", hash, "reason2");
+
+    // app3 does not have the component
+    tempEntity.newApplicationWithParent("app3");
+
+    ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
+    assertThat(componentDetailsDTO, notNullValue());
+
+    //app1=2 components, app2=1 component, app3=0 components
+    assertThat(componentDetailsDTO.componentsPerApplication, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(2));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(2));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString()));
+
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(2));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
+  }
+
+  @Test
+  public void testGetComponentCounts_NoComponents() {
+    ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
+    assertThat(componentDetailsDTO, notNullValue());
+
+    assertThat(componentDetailsDTO.componentsPerApplication, is(0));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(0));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(0));
+  }
+
+  @Test
+  public void testGetComponentCounts_ExcludesDevelopStage() {
+    String hash = "ababababab";
+    String hash2 = "acacacacac";
+
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+    tempEntity.newApplicationComponent(app1.getId(), DevelopStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+
+    ApplicationComponent buildComponent = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
+        ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"));
+
+    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "scanId1");
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId1", "artifactId1", "version1", hash2, "reason2");
+
+    ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
+    assertThat(componentDetailsDTO, notNullValue());
+
+    assertThat(componentDetailsDTO.componentsPerApplication, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(buildComponent.getComponentIdentifier()).toString()));
+
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(buildComponent.getComponentIdentifier()).toString()));
+  }
+
+  @Test
+  public void testGetComponentCounts_AlphaSorting() {
+    String hash = "hash1";
+    String hash2 = "hash2";
+    String hash3 = "hash3";
+
+    Date date = new Date();
+
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
+        date);
+    ApplicationComponent component2 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
+        ComponentIdentifier.createMavenCoordinates("Z2", "artifactId2", "version2"), null, MatchState.EXACT, false,
+        date);
+    ApplicationComponent component3 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash3,
+        ComponentIdentifier.createMavenCoordinates("groupId3", "artifactId3", "version3"), null, MatchState.EXACT,
+        false, date);
+
+    // add three policy violations for a stage
+    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "Z2", "artifactId2", "version2", hash2, "reason2");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId3", "artifactId3", "version3", hash3, "reason3");
+
+    ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
+    assertThat(componentDetailsDTO, notNullValue());
+
+    assertThat(componentDetailsDTO.componentsPerApplication, is(3));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(3));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString()));
+
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(3));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count, is(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).count, is(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString()));
+  }
+
+  @Test
+  public void testGetComponentCounts_LimitedTo5() {
+    Date date = new Date();
+
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
+
+    List<ApplicationComponent> components = new ArrayList<>();
+
+    // Create 6 components and 6 violations
+    for (int i = 1; i < 7; i++) {
+      components.add(tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash" + i,
+          ComponentIdentifier.createMavenCoordinates("groupId" + i, "artifactId" + i, "version" + i), null,
+          MatchState.EXACT, false, date));
+      tempEntity
+          .newPolicyViolation(policyEvaluation1, policy1, "groupId" + i, "artifactId" + i, "version" + i, "hash" + i,
+              "reason1" + i);
+    }
+
+    ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
+    assertThat(componentDetailsDTO, notNullValue());
+
+    assertThat(componentDetailsDTO.componentsPerApplication, is(6));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(5));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(5));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
+
+    for (int i = 0; i < 5; i++) {
+      assertThat(componentDetailsDTO.componentsInTheMostApplications.get(i).count, is(1));
+      assertThat(componentDetailsDTO.componentsInTheMostApplications.get(i).componentDisplayName,
+          is(ComponentDisplayNameUtil.fromIdentifier(components.get(i).getComponentIdentifier()).toString()));
+      assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(i).count, is(1));
+      assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(i).componentDisplayName,
+          is(ComponentDisplayNameUtil.fromIdentifier(components.get(i).getComponentIdentifier()).toString()));
+    }
+  }
+
+  @Test
+  public void testGetComponentCounts_MultipleStages() {
+    String hash = "hash1";
+    String hash2 = "hash2";
+    String hash3 = "hash3";
+    Date newerDate = new Date();
+    Date olderDate = new Date(newerDate.getTime() - 2000);
+
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+
+    // Create some application components
+    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
+        newerDate);
+    // Same component, different stage. Components in applications count will not count this twice. However, policy
+    // violation counts are aggregate and will be reflected accordingly.
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
+        newerDate);
+    ApplicationComponent component2 = tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, hash2,
+        ComponentIdentifier.createMavenCoordinates("groupId2", "artifactId2", "version2"), null, MatchState.EXACT,
+        false, olderDate);
+
+    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    PolicyEvaluation policyEvaluation1 = tempEntity
+        .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", newerDate);
+    // Create 2 evals for the release stage, policy violation results should consider the first one (newer date).
+    PolicyEvaluation policyEvaluation2 = tempEntity
+        .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId1", newerDate);
+    PolicyEvaluation policyEvaluation3 = tempEntity
+        .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2", olderDate);
+
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId", "artifactId", "version", hash, "reason1");
+    tempEntity.newPolicyViolation(policyEvaluation3, policy1, "groupId2", "artifactId2", "version2", hash2, "reason2");
+
+    Application app2 = tempEntity.newApplicationWithParent("app2");
+    ApplicationComponent component3 = tempEntity.newApplicationComponent(app2.getId(), OperateStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId3", "artifactId3", "version3"), null, MatchState.EXACT,
+        false, olderDate);
+
+    Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
+    PolicyEvaluation policyEvaluation4 = tempEntity
+        .newPolicyEvaluation(app2.getId(), OperateStageType.ID, "scanId3", olderDate);
+
+    tempEntity.newPolicyViolation(policyEvaluation4, policy2, "groupId3", "artifactId3", "version3", hash3, "reason3");
+
+    ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
+    assertThat(componentDetailsDTO, notNullValue());
+
+    assertThat(componentDetailsDTO.componentsPerApplication, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(3));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
+
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(2));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(2));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count, is(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
   }
 }

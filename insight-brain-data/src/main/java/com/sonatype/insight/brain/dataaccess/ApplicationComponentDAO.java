@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -87,5 +88,15 @@ public class ApplicationComponentDAO
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.proprietary=false AND entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";
     return getList(sQuery, appIds, stageTypeIds);
+  }
+
+  public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(Collection<String> applicationIds,
+                                                                            Collection<String> stageTypeIds,
+                                                                            Date date)
+  {
+    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+        " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2) AND entity.time >= ?3" +
+        " ORDER BY entity.time ASC";
+    return getList(sQuery, applicationIds, stageTypeIds, date);
   }
 }

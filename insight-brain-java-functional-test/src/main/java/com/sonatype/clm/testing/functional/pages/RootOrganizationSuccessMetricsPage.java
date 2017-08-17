@@ -184,4 +184,21 @@ public class RootOrganizationSuccessMetricsPage
       return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".x-axis", ".tick-label-container", "text"));
     }
   }
+
+  public static class ComponentCountsTile
+  {
+    private static final String ROOT = "component-counts-chart";
+
+    public static SelenideElement root() {
+      return $(ROOT);
+    }
+
+    public static ElementsCollection componentsInMostApplications() {
+      return $$(SelectorUtils.createSelector(ROOT, "#component-in-most-applications", ".iq-chart__bar-label"));
+    }
+
+    public static ElementsCollection componentsWithMostViolations() {
+      return $$(SelectorUtils.createSelector(ROOT, "#component-with-most-violations", ".iq-chart__bar-label"));
+    }
+  }
 }

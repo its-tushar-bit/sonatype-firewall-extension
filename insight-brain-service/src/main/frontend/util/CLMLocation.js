@@ -351,6 +351,10 @@ angular.module('CLMLocation', ['CommonServices', 'ui.router']).factory('CLMLocat
 
       getSuccessMetricsApplicationCountsUrl: function() {
         return baseUrl.get() + '/rest/aggregation/policyViolation/applicationCounts';
+      },
+
+      getSuccessMetricsComponentCountsUrl: function() {
+        return baseUrl.get() + '/rest/componentDetails/componentCounts';
       }
     };
   }

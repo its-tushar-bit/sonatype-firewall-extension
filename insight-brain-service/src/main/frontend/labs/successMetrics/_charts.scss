@@ -68,6 +68,10 @@ $iq-chart-horizontal-bar-min-width: 490px;
     fill: $iq-dark-red;
   }
 
+  .iq-chart__dataset--component {
+    fill: $iq-dark-blue;
+  }
+
   > iq-render-plottable {
     background-color: $iq-off-white;
     box-sizing: border-box;

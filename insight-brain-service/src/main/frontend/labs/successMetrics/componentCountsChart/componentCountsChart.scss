@@ -1,0 +1,27 @@
+.iq-chart--component-counts {
+  height: 247px;
+}
+
+.iq-chart__bar-label--component-counts {
+  padding-right: 12px;
+
+  span {
+    &:first-child {
+      @extend .truncate-ellipsis;
+      width: 309px;
+    }
+    
+    &:last-child {
+      text-align: right;
+    }
+  }
+}
+
+.iq-chart__highlight--component-counts {
+  margin-right: 8px;
+  width: 50px;
+}
+
+.iq-chart-title--component-counts {
+  margin-top: 24px;
+}

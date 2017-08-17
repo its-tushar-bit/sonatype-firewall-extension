@@ -9,6 +9,7 @@ import mttrChart from './mttrChart/mttrChart';
 import violationAveragesChart from './violationAveragesChart/violationAveragesChart';
 import applicationCountsChart from './applicationCountsChart/applicationCountsChart';
 import summaryStatementTile from './summaryStatementTile/summaryStatementTile';
+import componentCountsChart from './componentCountsChart/componentCountsChart';
 import rootOrganization from './rootOrganization/rootOrganization';
 import chartUtilsService from './chartUtilsService';
 
@@ -20,5 +21,6 @@ export default angular.module('successMetricsModule', ['components', 'CLMLocatio
     .component('violationAveragesChart', violationAveragesChart)
     .component('applicationCountsChart', applicationCountsChart)
     .component('summaryStatementTile', summaryStatementTile)
+    .component('componentCountsChart', componentCountsChart)
     .component('rootOrganization', rootOrganization);
 

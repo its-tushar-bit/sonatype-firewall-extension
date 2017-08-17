@@ -17,7 +17,9 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
+import org.joda.time.DateTime;
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -137,8 +139,7 @@ public class ApplicationComponentDAOTest
         .newApplicationComponent(app2, BuildStageType.ID, "hash-1", MatchState.EXACT, false).getId();
 
     Collection<String> stageTypeIds = Arrays.asList(BuildStageType.ID);
-    List<ApplicationComponent> components;
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(null, stageTypeIds);
+    List<ApplicationComponent> components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(null, stageTypeIds);
     assertThat(components, hasSize(0));
     components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(Arrays.<String> asList(), stageTypeIds);
     assertThat(components, hasSize(0));
@@ -163,8 +164,7 @@ public class ApplicationComponentDAOTest
         MatchState.EXACT, false).getId();
 
     Collection<String> appIds = Arrays.asList(application.getId());
-    List<ApplicationComponent> components;
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds, null);
+    List<ApplicationComponent> components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds, null);
     assertThat(components, hasSize(0));
     components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds, Arrays.<String> asList());
     assertThat(components, hasSize(0));
@@ -197,6 +197,146 @@ public class ApplicationComponentDAOTest
     ApplicationComponent retrievedComponent = dao.getByApplicationIdAndStageTypeIdAndHash(app1, BuildStageType.ID,
         "hash-1");
     assertApplicationComponent(component1, retrievedComponent);
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering() {
+    String appId1 = application.getId();
+    String appId2 = tempEntity.newApplication(organization.getId()).getId();
+
+    Date date = new Date();
+    String componentId1 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 1000)).getId();
+    String componentId2 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 2000)).getId();
+    String componentId3 = tempEntity.newApplicationComponent(appId2, ReleaseStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 3000)).getId();
+    tempEntity
+        .newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID, "hash-4",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date).getId();
+
+    Collection<String> stageTypeIds = Arrays.asList(ReleaseStageType.ID);
+    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(null, stageTypeIds, date);
+    assertThat(components, hasSize(0));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.<String>asList(), stageTypeIds, date);
+    assertThat(components, hasSize(0));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList("missing"), stageTypeIds, date);
+    assertThat(components, hasSize(0));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), stageTypeIds, date);
+    assertThat(components, hasSize(2));
+    assertThat(components.get(0).getId(), is(componentId1));
+    assertThat(components.get(1).getId(), is(componentId2));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId2), stageTypeIds, date);
+    assertThat(components, hasSize(1));
+    assertThat(components.get(0).getId(), is(componentId3));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1, appId2), stageTypeIds, date);
+    assertThat(components, hasSize(3));
+    assertThat(components.get(0).getId(), is(componentId1));
+    assertThat(components.get(1).getId(), is(componentId2));
+    assertThat(components.get(2).getId(), is(componentId3));
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIdsSince_StageFiltering() {
+    String appId1 = application.getId();
+    String appId2 = tempEntity.newApplication(organization.getId()).getId();
+
+    Date date = new Date();
+    String componentId1 = tempEntity.newApplicationComponent(appId1, BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 1000)).getId();
+    String componentId2 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 2000)).getId();
+    String componentId3 = tempEntity.newApplicationComponent(appId2, ReleaseStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 3000)).getId();
+    tempEntity
+        .newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID, "hash-4",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date).getId();
+
+    Collection<String> appIds = Arrays.asList(application.getId());
+    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, null, date);
+    assertThat(components, hasSize(0));
+    components = dao
+        .getByApplicationIdsAndStageTypeIdsSince(Arrays.<String>asList(), Arrays.<String>asList(), date);
+    assertThat(components, hasSize(0));
+    components = dao
+        .getByApplicationIdsAndStageTypeIdsSince(Arrays.asList("missing"), Arrays.asList("missing"), date);
+    assertThat(components, hasSize(0));
+    components = dao
+        .getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), Arrays.asList(BuildStageType.ID), date);
+    assertThat(components, hasSize(1));
+    assertThat(components.get(0).getId(), is(componentId1));
+    components = dao
+        .getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), Arrays.asList(ReleaseStageType.ID), date);
+    assertThat(components, hasSize(1));
+    assertThat(components.get(0).getId(), is(componentId2));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1, appId2),
+        Arrays.asList(BuildStageType.ID, ReleaseStageType.ID), date);
+    assertThat(components, hasSize(3));
+    assertThat(components.get(0).getId(), is(componentId1));
+    assertThat(components.get(1).getId(), is(componentId2));
+    assertThat(components.get(2).getId(), is(componentId3));
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIdsSince_DateFiltering() {
+    String appId1 = application.getId();
+
+    Date date = new Date();
+    String componentId1 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 1000)).getId();
+    String componentId2 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 2000)).getId();
+
+    Collection<String> stageTypeIds = Arrays.asList(ReleaseStageType.ID);
+    Collection<String> appIds = Arrays.asList(application.getId());
+    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageTypeIds, null);
+    assertThat(components, hasSize(0));
+    components = dao
+        .getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), stageTypeIds, new Date(date.getTime() + 3000));
+    assertThat(components, hasSize(0));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), stageTypeIds, date);
+    assertThat(components, hasSize(2));
+    assertThat(components.get(0).getId(), is(componentId1));
+    assertThat(components.get(1).getId(), is(componentId2));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), stageTypeIds,
+        new DateTime(date).minusDays(1).toDate());
+    assertThat(components, hasSize(2));
+    assertThat(components.get(0).getId(), is(componentId1));
+    assertThat(components.get(1).getId(), is(componentId2));
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIdsSince_MultipleStages() {
+    String appId1 = application.getId();
+    String appId2 = tempEntity.newApplication(organization.getId()).getId();
+
+    Date date = new Date();
+
+    String componentId1 = tempEntity.newApplicationComponent(appId1, BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 1000)).getId();
+    String componentId2 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 2000)).getId();
+    String componentId3 = tempEntity.newApplicationComponent(appId2, BuildStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 3000)).getId();
+
+    Collection<String> appIds = Arrays.asList(appId1, appId2);
+    Collection<String> stageIds = Arrays.asList(BuildStageType.ID, ReleaseStageType.ID);
+    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageIds, date);
+    assertThat(components, hasSize(3));
+    assertThat(components.get(0).getId(), is(componentId1));
+    assertThat(components.get(1).getId(), is(componentId2));
+    assertThat(components.get(2).getId(), is(componentId3));
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {

@@ -7,19 +7,27 @@ package com.sonatype.insight.brain.component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.aggregation.ComponentCountsDTO;
+import com.sonatype.insight.brain.aggregation.ComponentCountsDTO.ComponentCountDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
+import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -37,6 +45,8 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.common.collect.Ordering;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +58,8 @@ public class ComponentDetailService
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentDetailService.class);
 
+  private static final int COMPONENT_COUNT_LIMIT = 5;
+
   private final ApplicationService appService;
 
   private final ApplicationAdapter appAdapter;
@@ -58,18 +70,22 @@ public class ComponentDetailService
 
   private final CLMLicenseManager licenseManager;
 
+  private final DashboardUtils dashboardUtils;
+
   @Inject
   public ComponentDetailService(ApplicationService appService,
                                 ApplicationAdapter appAdapter,
                                 ApplicationComponentDAO applicationComponentDAO,
                                 StageTypeService stageTypeService,
-                                CLMLicenseManager licenseManager)
+                                CLMLicenseManager licenseManager,
+                                DashboardUtils dashboardUtils)
   {
     this.appService = appService;
     this.appAdapter = appAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
     this.stageTypeService = stageTypeService;
     this.licenseManager = licenseManager;
+    this.dashboardUtils = dashboardUtils;
   }
 
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(String hash) {
@@ -195,6 +211,158 @@ public class ComponentDetailService
     return result;
   }
 
+  public ComponentCountsDTO getComponentCounts(Set<String> organizationIds, Set<String> applicationIds) {
+    Collection<Application> applications = appService
+        .getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, null);
+
+    Set<String> applicationIdsToQuery = new HashSet<>();
+    for (Application app : applications) {
+      applicationIdsToQuery.add(app.getId());
+    }
+
+    // beginning of last month a year ago
+    Date sinceDate = new LocalDate().withDayOfMonth(1).minusMonths(13).toDate();
+
+    List<StageType> stageTypes = new ArrayList<>();
+    for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
+      if (!StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())) {
+        stageTypes.add(stageType);
+      }
+    }
+    Set<String> stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
+
+    Map<ComponentIdentifier, Integer> componentApplicationCounts = getComponentApplicationCounts(applicationIdsToQuery,
+        stageTypeIds, sinceDate);
+
+    Map<ComponentIdentifier, Integer> componentViolationCounts =
+        getComponentViolationCounts(applicationIdsToQuery, stageTypeIds, sinceDate);
+
+    // An Ordering that sorts by count, ascending, and then by ComponentIdentifier string, descending
+    Ordering<Entry<ComponentIdentifier, Integer>> ordering = new ComponentCountOrdering();
+
+    List<Entry<ComponentIdentifier, Integer>> topComponentApplicationCounts =
+        ordering.greatestOf(componentApplicationCounts.entrySet().iterator(), COMPONENT_COUNT_LIMIT);
+
+    List<Entry<ComponentIdentifier, Integer>> topComponentViolationCounts =
+        ordering.greatestOf(componentViolationCounts.entrySet().iterator(), COMPONENT_COUNT_LIMIT);
+
+    ComponentCountsDTO retval = new ComponentCountsDTO();
+    retval.componentsInTheMostApplications = toComponentCountDTOs(topComponentApplicationCounts);
+    retval.componentsWithTheMostViolations = toComponentCountDTOs(topComponentViolationCounts);
+    retval.componentsPerApplication = getAverageComponentCountPerApplication(applications.size(),
+        componentApplicationCounts);
+
+    return retval;
+  }
+
+  /**
+   * @return a map from Component Id to count of applications that contain that component in their most recent
+   * evaluation. Only evaluations more recent than the passed-in date are considered.
+   */
+  private Map<ComponentIdentifier, Integer> getComponentApplicationCounts(Set<String> applicationIds,
+                                                                          Set<String> stageTypeIds,
+                                                                          Date date)
+  {
+    List<ApplicationComponent> applicationComponents =
+        applicationComponentDAO.getByApplicationIdsAndStageTypeIdsSince(applicationIds, stageTypeIds, date);
+
+    Map<ComponentIdentifier, Set<String>> componentApplicationMap = new HashMap<>();
+
+    // build a map from component id -> set of application ids
+    for (ApplicationComponent applicationComponent : applicationComponents) {
+      ComponentIdentifier componentId = applicationComponent.getComponentIdentifier();
+
+      if (componentId != null) {
+        String applicationId = applicationComponent.getApplicationId();
+
+        Set<String> appIdSet = componentApplicationMap.get(componentId);
+
+        if (appIdSet == null) {
+          appIdSet = new HashSet<>();
+          componentApplicationMap.put(componentId, appIdSet);
+        }
+        appIdSet.add(applicationId);
+      }
+    }
+
+    Map<ComponentIdentifier, Integer> retval = new HashMap<>();
+    for (Map.Entry<ComponentIdentifier, Set<String>> entry : componentApplicationMap.entrySet()) {
+      retval.put(entry.getKey(), entry.getValue().size());
+    }
+
+    return retval;
+  }
+
+  private List<ComponentCountDTO> toComponentCountDTOs(List<Map.Entry<ComponentIdentifier, Integer>> mapEntries) {
+    List<ComponentCountDTO> retval = new ArrayList<>(mapEntries.size());
+
+    for (Map.Entry<ComponentIdentifier, Integer> entry : mapEntries) {
+      ComponentCountDTO dto = new ComponentCountDTO();
+      dto.componentDisplayName = ComponentDisplayNameUtil.fromIdentifier(entry.getKey()).toString();
+      dto.count = entry.getValue();
+
+      retval.add(dto);
+    }
+
+    return retval;
+  }
+
+  /**
+   * @return a map from Component Id to total violation count in the specified applications.  Only applications
+   * with an evaluation more recent than the specified date are included.
+   */
+  private Map<ComponentIdentifier, Integer> getComponentViolationCounts(Set<String> applicationIds,
+                                                                        Set<String> stageTypeIds,
+                                                                        Date date)
+  {
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+
+    Map<ComponentIdentifier, Integer> retval = new HashMap<>();
+
+    for (PolicyEvaluation evaluation : policyEvaluationDAO
+        .getLastByApplicationIdsAndStageIds(applicationIds, stageTypeIds)) {
+      if (evaluation == null || evaluation.getTime().compareTo(date) < 0) {
+        continue;
+      }
+
+      Collection<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(evaluation.getId());
+
+      for (PolicyViolation violation : violations) {
+        ComponentIdentifier componentId = violation.getComponentIdentifier();
+        if (componentId == null) {
+          continue;
+        }
+
+        Integer componentViolationCount = retval.get(componentId);
+
+        if (componentViolationCount == null) {
+          retval.put(componentId, 1);
+        }
+        else {
+          retval.put(componentId, componentViolationCount + 1);
+        }
+      }
+    }
+
+    return retval;
+  }
+
+  private int getAverageComponentCountPerApplication(int applicationCount,
+                                                     Map<ComponentIdentifier, Integer> componentApplicationCounts)
+  {
+    int totalComponentApplicationCounts = 0;
+    for (Map.Entry<ComponentIdentifier, Integer> entry : componentApplicationCounts.entrySet()) {
+      totalComponentApplicationCounts += entry.getValue();
+    }
+
+    if (applicationCount == 0) {
+      return 0;
+    }
+
+    return totalComponentApplicationCounts / applicationCount;
+  }
+
   private Map<String, StageDetailDTO> initStageDetails(Collection<StageType> stageTypes) {
     Map<String, StageDetailDTO> stageDetailsById = new LinkedHashMap<>();
     for (StageType stageType : stageTypes) {
@@ -237,6 +405,27 @@ public class ComponentDetailService
   private void validateDashboardLicensed() {
     if (!licenseManager.hasDashboard()) {
       throw new InvalidLicenseException();
+    }
+  }
+
+  private static class ComponentCountOrdering
+      extends Ordering<Entry<ComponentIdentifier, Integer>>
+  {
+    @Override
+    public int compare(Entry<ComponentIdentifier, Integer> a, Entry<ComponentIdentifier, Integer> b) {
+      int countDiff = a.getValue() - b.getValue();
+
+      if (countDiff != 0) {
+        return countDiff;
+      }
+      else {
+        String aComponentIdentifierName =
+            ComponentDisplayNameUtil.fromIdentifier(a.getKey()).toString();
+        String bComponentIdentifierName =
+            ComponentDisplayNameUtil.fromIdentifier(b.getKey()).toString();
+
+        return bComponentIdentifierName.compareToIgnoreCase(aComponentIdentifierName);
+      }
     }
   }
 }

@@ -265,4 +265,95 @@ describe('successMetricsDataService', function() {
       expect(mttr.criticalMttrInSeconds).toBe(expectedCriticalMttrInSeconds);
     }
   });
+
+  describe('getComponentCountsData', function() {
+
+    it('fetches component counts data', function() {
+      var output;
+
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsComponentCountsUrl()).respond(
+          PolicyViolationAggregationResourceMockData.getComponentCountsData());
+
+      successMetricsDataService.getComponentCountsData().then(function(o) {
+        output = o;
+      });
+
+      $httpBackend.flush();
+
+      expect(output).toBeDefined();
+      expect(output).toEqual(PolicyViolationAggregationResourceMockData.getComponentCountsData());
+    });
+
+    it('fetches component counts data and properly pads missing results', function() {
+      var output;
+
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsComponentCountsUrl()).respond(
+          PolicyViolationAggregationResourceMockData.getPartialComponentCountsData());
+
+      successMetricsDataService.getComponentCountsData().then(function(o) {
+        output = o;
+      });
+
+      $httpBackend.flush();
+
+      expect(output).toBeDefined();
+      expect(output.componentsPerApplication).toBe(32);
+      expect(output.componentsInTheMostApplications.length).toBe(5);
+      expect(output.componentsWithTheMostViolations.length).toBe(5);
+
+      assertComponentData(output.componentsInTheMostApplications[0], 1);
+      assertComponentData(output.componentsWithTheMostViolations[0], 1);
+      assertComponentData(output.componentsInTheMostApplications[1], 1);
+      assertComponentData(output.componentsWithTheMostViolations[1], 1);
+      assertComponentData(output.componentsInTheMostApplications[2], 1);
+      assertComponentData(output.componentsWithTheMostViolations[2], 1);
+
+      // last 2 components are padded
+      for (var i = 4; i > 2; i--) {
+        assertComponentData(output.componentsInTheMostApplications[i], 0);
+        assertComponentData(output.componentsWithTheMostViolations[i], 0);
+      }
+    });
+
+    it('fetches empty component counts data and does not pad missing results', function() {
+      var output;
+
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsComponentCountsUrl()).respond({
+        componentsPerApplication: 0,
+        componentsInTheMostApplications: [],
+        componentsWithTheMostViolations: []
+      });
+
+      successMetricsDataService.getComponentCountsData().then(function(o) {
+        output = o;
+      });
+
+      $httpBackend.flush();
+
+      expect(output).toBeDefined();
+      expect(output.componentsPerApplication).toBe(0);
+      expect(output.componentsInTheMostApplications.length).toBe(0);
+      expect(output.componentsWithTheMostViolations.length).toBe(0);
+    });
+
+    it('passes on a rejected promise', function() {
+      var caughtError;
+
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsComponentCountsUrl()).respond(403, 'Forbidden');
+
+      successMetricsDataService.getComponentCountsData().catch(function(e) {
+        caughtError = e;
+      });
+
+      $httpBackend.flush();
+
+      expect(caughtError).toBeDefined();
+      expect(caughtError.data).toBe('Forbidden');
+      expect(caughtError.status).toBe(403);
+    });
+
+    function assertComponentData(componentData, expectedCount) {
+      expect(componentData.count).toBe(expectedCount);
+    }
+  });
 });

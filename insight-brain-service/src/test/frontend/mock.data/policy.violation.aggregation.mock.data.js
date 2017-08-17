@@ -347,5 +347,39 @@ var PolicyViolationAggregationResourceMockData = {
       {"timePeriodStart": 1491026400000, "mttrInSeconds": null, "criticalMttrInSeconds": null},
       {"timePeriodStart": 1493618400000, "mttrInSeconds": null, "criticalMttrInSeconds": null}
     ];
+  },
+  getComponentCountsData: function() {
+    return {
+      componentsPerApplication: 32,
+      componentsInTheMostApplications: [
+        {componentDisplayName: 'SimpleJson 0.38.0', count: 1},
+        {componentDisplayName: 'ch.qos.logback : logback-access : 0.6', count: 1},
+        {componentDisplayName: 'commons-beanutils : commons-beanutils : 1.8.3', count: 1},
+        {componentDisplayName: 'commons-dbcp : commons-dbcp : 1.4', count: 2},
+        {componentDisplayName: 'commons-httpclient : commons-httpclient : 3.1', count: 2}
+      ],
+      componentsWithTheMostViolations: [
+        {componentDisplayName: 'commons-httpclient : commons-httpclient : 3.1', count: 1},
+        {componentDisplayName: 'org.apache.geronimo.framework : geronimo-security : 2.1', count: 1},
+        {componentDisplayName: 'org.mortbay.jetty : jetty : 6.1.15', count: 1},
+        {componentDisplayName: 'tomcat : catalina-host-manager : 5.5.23', count: 2},
+        {componentDisplayName: 'tomcat : tomcat-util : 5.5.23', count: 2}
+      ]
+    };
+  },
+  getPartialComponentCountsData: function() {
+    return {
+      componentsPerApplication: 32,
+      componentsInTheMostApplications: [
+        {componentDisplayName: 'SimpleJson 0.38.0', count: 1},
+        {componentDisplayName: 'ch.qos.logback : logback-access : 0.6', count: 1},
+        {componentDisplayName: 'commons-beanutils : commons-beanutils : 1.8.3', count: 1}
+      ],
+      componentsWithTheMostViolations: [
+        {componentDisplayName: 'commons-httpclient : commons-httpclient : 3.1', count: 1},
+        {componentDisplayName: 'org.apache.geronimo.framework : geronimo-security : 2.1', count: 1},
+        {componentDisplayName: 'org.mortbay.jetty : jetty : 6.1.15', count: 1}
+      ]
+    };
   }
 };

@@ -3,13 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+const EMPTY_PREFIX = '~empty~';
+
 export default
 function successMetricsDataService($http, CLMLocations, ProductFeatures) {
   return {
     getMttrData: getMttrData,
     getAveragesData: getAveragesData,
     getApplicationCountsData: getApplicationCountsData,
-    isRootOrgAvailable: isRootOrgAvailable
+    getComponentCountsData: getComponentCountsData,
+    isRootOrgAvailable: isRootOrgAvailable,
+    EMPTY_PREFIX: EMPTY_PREFIX
   };
 
   function getMttrData() {
@@ -103,6 +108,34 @@ function successMetricsDataService($http, CLMLocations, ProductFeatures) {
     return $http.post(CLMLocations.getSuccessMetricsApplicationCountsUrl(), {}).then(function(response) {
       return response.data;
     });
+  }
+
+  function getComponentCountsData() {
+    return $http.post(CLMLocations.getSuccessMetricsComponentCountsUrl(), {}).then(function({data}) {
+      var componentCountMostApplications = data.componentsInTheMostApplications.length;
+      if (componentCountMostApplications > 0 && componentCountMostApplications < 5) {
+        data.componentsInTheMostApplications = data.componentsInTheMostApplications.concat(
+            padMissingComponents(componentCountMostApplications));
+      }
+      var componentCountViolations = data.componentsWithTheMostViolations.length;
+      if (componentCountViolations > 0 && componentCountViolations < 5) {
+        data.componentsWithTheMostViolations = data.componentsWithTheMostViolations.concat(
+            padMissingComponents(componentCountViolations));
+      }
+
+      return data;
+    });
+
+    function padMissingComponents(componentCount) {
+      var paddedComponents = [],
+          missingComponentCount = 5 - componentCount;
+
+      for (var i = 0; i < missingComponentCount; i++) {
+        // a unique component name is needed for the chart to display properly
+        paddedComponents.push({componentDisplayName: EMPTY_PREFIX + i, count: 0});
+      }
+      return paddedComponents;
+    }
   }
 
   function isRootOrgAvailable() {

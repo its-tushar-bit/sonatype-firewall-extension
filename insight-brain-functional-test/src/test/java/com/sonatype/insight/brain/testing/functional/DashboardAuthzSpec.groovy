@@ -72,7 +72,7 @@ extends BaseSpec {
     waitFor { filters.applicationFilter.displayed }
 
     then: 'application filter is disabled with a tooltip on hover'
-    filters.applicationFilter.twisty.hasClass("disabled")
+    filters.applicationFilter.trigger.hasClass("disabled")
     filters.applicationFilter.tooltip.getTooltipContent() == "There are no applications to filter."
   }
 

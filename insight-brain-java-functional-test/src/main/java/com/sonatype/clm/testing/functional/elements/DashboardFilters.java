@@ -217,23 +217,23 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
     public SelenideElement twisty() {
-      return child(".tree-view-item");
+      return child(".iq-tree-view__trigger");
     }
 
     public ElementsCollection multiSelectList() {
-      return children(".clm-form iq-checkbox");
+      return children(".iq-tree-view__child iq-checkbox");
     }
 
     public ElementsCollection singleSelectList() {
-      return children(".clm-form iq-radio");
+      return children("iq-radio.iq-tree-view__child");
     }
 
     public IqCheckbox checkboxItem(int index) {
-      return new IqCheckbox(child(".clm-form iq-checkbox", nthChild(index)));
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(index), "iq-checkbox"));
     }
 
     public IqRadio radioItem(int index) {
-      return new IqRadio(child(".clm-form iq-radio", nthChild(index)));
+      return new IqRadio(child(".iq-tree-view__children iq-radio.iq-tree-view__child", nthChild(index)));
     }
 
     public IqCheckbox allItems() {
@@ -261,7 +261,7 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
     public IqCheckbox noCategory() {
-      return new IqCheckbox(child(".clm-form iq-checkbox:last-child"));
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child:last-child iq-checkbox"));
     }
   }
 

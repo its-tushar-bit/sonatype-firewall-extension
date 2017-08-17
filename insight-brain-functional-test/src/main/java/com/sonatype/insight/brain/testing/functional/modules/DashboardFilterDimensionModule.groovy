@@ -11,9 +11,10 @@ public class DashboardFilterDimensionModule
     extends Module
 {
   static content = {
-    twisty { $('.tree-view-item') }
+    twisty { $('.iq-tree-view__twisty') }
     counter { $('.iq-counter') }
-    multiSelectList(required: false) { moduleList FilterCheckboxRow, $('.clm-form iq-checkbox') }
+    trigger { $('.iq-tree-view__trigger')}
+    multiSelectList(required: false) { moduleList FilterCheckboxRow, $('.iq-tree-view__child iq-checkbox') }
     tooltip { module TooltipModule }
   }
 

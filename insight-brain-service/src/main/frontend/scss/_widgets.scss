@@ -103,9 +103,14 @@
     margin-right: 8px;
     width: 16px;
   }
+
+  .hexagon {
+    vertical-align: text-top;
+    margin-right: 8px;
+  }
 }
 
-.iq-tree-view__text-icon--org-chart {
+.iq-tree-view__text-icon--inverse {
   font-size: 12px;
   line-height: 16px;
   text-align: center;

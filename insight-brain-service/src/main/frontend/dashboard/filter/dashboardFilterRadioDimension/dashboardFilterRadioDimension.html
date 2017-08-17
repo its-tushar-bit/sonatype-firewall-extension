@@ -1,24 +1,23 @@
-<div>
-  <a class="tree-view-item cannot-select"
+<div class="iq-tree-view">
+  <a class="iq-tree-view__trigger"
      ng-click="isExpanded = available.length && !readOnly && !isExpanded"
      ng-class="{disabled: readOnly}">
     <div class="iq-counter">
       {{selectedEntry[nameField]}}
     </div>
-    <div class="twisty-container">
-      <span class="twisty" ng-class="{ expand: !isExpanded, collapse: isExpanded }"></span>
+    <div class="iq-tree-view__twisty">
+      <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded, collapse: isExpanded }"></span>
     </div>
-    <span ng-transclude></span>
+    <div class="iq-tree-view__text">
+      <span ng-transclude></span>
+    </div>
   </a>
-  <div ng-if="isExpanded" class="tree-view-children">
-    <div class="clm-form">
-      <iq-radio ng-repeat="entity in available"
-                class="tree-view-item"
-                model="vm.isChecked(entity)"
-                value="true"
-                on-click="vm.select(entity)"><!--
-              -->{{::entity[nameField]}}
-      </iq-radio>
-    </div>
+  <div ng-if="isExpanded" class="iq-tree-view__children">
+    <iq-radio ng-repeat="entity in available"
+              class="iq-tree-view__child"
+              model="vm.isChecked(entity)"
+              value="true"
+              on-click="vm.select(entity)">{{::entity[nameField]}}
+    </iq-radio>
   </div>
 </div>

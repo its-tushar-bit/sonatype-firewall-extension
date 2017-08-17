@@ -1,5 +1,5 @@
 <form class="dashboard-filter-container" ng-submit="vm.applyCurrentFilter()">
-  <div class="tree-view">
+  <div class="dashboard-filter">
     <div id="manage-filters-dropdown"
          class="iq-dropdown pull-right"
          dropdown
@@ -21,7 +21,7 @@
       </manage-filter-menu>
     </div>
     
-    <div class="tree-view-header">
+    <div class="dashboard-filter-header">
       Filter
     </div>
     <div class="dashboard-filter-name" ng-if="vm.activeFilterName">{{vm.activeFilterName}}<span class="dashboard-filter-dirty-asterisk" ng-if="vm.showDirtyAsterisk">*</span></div>
@@ -36,9 +36,8 @@
                                   long-name="organizations"
                                   short-name="Organization"
                                   sort-entities="true"
-                                  class="tree-view-group"
-                                  id="org-filter"><!--
-         --><div class="filter-label"><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i>Organizations</div>
+                                  id="org-filter">
+        <i class="fa fa-sitemap iq-tree-view__text-icon iq-tree-view__text-icon--inverse inverse"></i>Organizations
       </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.applications"
@@ -47,9 +46,8 @@
                                   short-name="Application"
                                   sort-entities="true"
                                   tooltip-generator="'in ' + entity.organizationName"
-                                  class="tree-view-group"
-                                  id="app-filter"><!--
-         --><div class="filter-label"><i class="fa fa-terminal tree-view-icon icon-12px inverse"></i>Applications</div>
+                                  id="app-filter">
+        <i class="fa fa-terminal iq-tree-view__text-icon iq-tree-view__text-icon--inverse inverse"></i>Applications
       </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.categories"
@@ -58,9 +56,8 @@
                                   short-name="Category"
                                   sort-entities="true"
                                   tooltip-generator="entity.owner ? 'in ' + entity.owner : entity.description"
-                                  class="tree-view-group"
-                                  id="category-filter"><!--
-         --><div class="filter-label"><hexagon class="size-16px size-fw outline tree-view-icon"></hexagon>Application Categories</div>
+                                  id="category-filter">
+        <hexagon class="size-16px size-fw outline"></hexagon>Application Categories
       </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.stages"
@@ -69,53 +66,46 @@
                                   name-field="stageName"
                                   long-name="stages"
                                   short-name="Stage"
-                                  class="tree-view-group"
-                                  id="stage-filter"><!--
-         --><div class="filter-label"><i class="tree-view-icon"></i>Stages</div>
+                                  id="stage-filter">Stages
       </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.policyTypes"
                                   selected="vm.selected.policyTypes"
                                   long-name="policy types"
                                   short-name="Policy Type"
-                                  class="tree-view-group"
-                                  id="policy-type-filter"><!--
-         --><div class="filter-label"><i class="tree-view-icon"></i>Policy Types</div>
+                                  id="policy-type-filter">Policy Types
       </dashboard-filter-dimension>
 
       <dashboard-filter-dimension available="vm.policyViolationStates"
                                   selected="vm.selected.policyViolationStates"
                                   long-name="violation states"
                                   short-name="Violation State"
-                                  class="tree-view-group"
-                                  id="policy-violation-state-filter">
-         <div class="filter-label"><i class="tree-view-icon"></i>Violation State</div>
+                                  id="policy-violation-state-filter">Violation State
       </dashboard-filter-dimension>
 
       <dashboard-filter-radio-dimension available="vm.ages"
                                         selected-entry="vm.selected.age"
                                         id-field="maxDaysOld"
                                         name="maxOldDays"
-                                        class="tree-view-group"
                                         id="age-filter"
                                         ng-if="vm.showAgeFilter"
-                                        read-only="vm.isAgeFilterReadOnly">
-        <div class="filter-label"><i class="tree-view-icon"></i>Age</div>
+                                        read-only="vm.isAgeFilterReadOnly">Age
       </dashboard-filter-radio-dimension>
 
-      <div class="tree-view-group" id="threat-level-filter">
-        <a class="tree-view-item" ng-click="vm.policyThreatLevelState.isExpanded = !vm.policyThreatLevelState.isExpanded">
+      <div class="iq-tree-view" id="threat-level-filter">
+        <a class="iq-tree-view__trigger" ng-click="vm.policyThreatLevelState.isExpanded = !vm.policyThreatLevelState.isExpanded">
           <div class="iq-counter iq-counter--active">{{vm.selected.policyThreatLevels[0]}} &ndash;
             {{vm.selected.policyThreatLevels[1]}}
           </div>
-          <div class="twisty-container">
-            <span class="twisty"
+          <div class="iq-tree-view__twisty">
+            <span class="iq-tree-view__twisty-icon"
                   ng-class="{ expand: !vm.policyThreatLevelState.isExpanded,
-                              collapse: vm.policyThreatLevelState.isExpanded }"></span>
+                              collapse: vm.policyThreatLevelState.isExpanded }">
+            </span>
           </div>
-          <div class="filter-label">Policy Threat Level</div>
+          <div class="iq-tree-view__text">Policy Threat Level</div>
         </a>
-        <div class="tree-view-control" ng-if="vm.policyThreatLevelState.isExpanded">
+        <div class="iq-tree-view__children" ng-if="vm.policyThreatLevelState.isExpanded">
           <div class="policy-threat-level-slider">
             <div slider ng-model="vm.selected.policyThreatLevels" min="0" max="10" hide-labels="true"></div>
           </div>

@@ -862,7 +862,7 @@ public class DashboardFilterTest
 
     filter.anchor().shouldBe(DISABLED);
     filter.multiSelectList().shouldBe(empty);
-    filter.twisty().shouldBe(visible).shouldHave(cssClass("disabled"), cssClass("cannot-select")).click();
+    filter.twisty().shouldBe(visible).shouldHave(cssClass("disabled")).click();
     filter.multiSelectList().shouldBe(empty);
 
     filter.hover().tooltip().shouldHave(text("There are no " + filterType + " to filter."));

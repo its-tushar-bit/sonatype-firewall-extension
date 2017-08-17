@@ -25,6 +25,10 @@ $iq-cell-affected-apps-width: 109px;
   border: none;
   color: $iq-slate;
   text-align: center;
+
+  .iq-alert {
+    text-align: left;
+  }
 }
 
 .iq-table--dashboard-violations,

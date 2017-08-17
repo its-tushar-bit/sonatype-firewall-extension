@@ -9,7 +9,7 @@ function getDashboardResultsDirective(serviceMethod) {
   return [
     'dashboard.data.service', 'filterToParams',
     function(dashboardDataService, filterToParams) {
-      function createFilterWatch($scope, $rootScope, Dialog, ApplicationStore) {
+      function createFilterWatch($scope, $rootScope, Dialog, ApplicationStore, Messages) {
         return function(newFilter) {
           if (newFilter && !$scope.needsAcknowledgement) {
             $scope.error = $scope.data = null;
@@ -43,7 +43,7 @@ function getDashboardResultsDirective(serviceMethod) {
                   });
                 }
                 else {
-                  $scope.error = arguments;
+                  $scope.error = Messages.getHttpErrorMessage(arguments);
                 }
               }
             });
@@ -56,9 +56,9 @@ function getDashboardResultsDirective(serviceMethod) {
         replace: true,
         template: '<tbody ng-transclude></tbody>',
         controller: [
-          '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore', 'ClassyBrew',
-          function($scope, $rootScope, $state, Dialog, ApplicationStore, ClassyBrew) {
-            var filterChangedFn = createFilterWatch($scope, $rootScope, Dialog, ApplicationStore);
+          '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore', 'ClassyBrew', 'Messages',
+          function($scope, $rootScope, $state, Dialog, ApplicationStore, ClassyBrew, Messages) {
+            var filterChangedFn = createFilterWatch($scope, $rootScope, Dialog, ApplicationStore, Messages);
             if ($state.is('dashboard.overview.components') || $state.is('dashboard.overview.applications')) {
               $scope.brew = ClassyBrew.create();
             }

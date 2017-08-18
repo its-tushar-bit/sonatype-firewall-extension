@@ -40,9 +40,9 @@ public class ComponentDetailServiceAuthzTest
 
   private String hash = "ababababab";
 
-  private Set orgIds = null;
+  private Set<String> orgIds;
 
-  private Set appIds = null;
+  private Set<String> appIds;
 
   @Before
   public void before() {
@@ -52,8 +52,8 @@ public class ComponentDetailServiceAuthzTest
     PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "now", new Date());
     tempEntity.newPolicyViolation(buildEval, licensePolicy, 7, LICENSE, buildComponent.getComponentIdentifier(),
         buildComponent.getHash(), FailActionType.ID);
-    orgIds = new HashSet(Arrays.asList(org.getId()));
-    appIds = new HashSet(Arrays.asList(app.getId()));
+    orgIds = new HashSet<>(Arrays.asList(org.getId()));
+    appIds = new HashSet<>(Arrays.asList(app.getId()));
   }
 
   @Test

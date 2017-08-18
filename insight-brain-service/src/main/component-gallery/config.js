@@ -5,9 +5,6 @@
  */
 import componentsModule from '../frontend/components/module';
 import directivesModule from '../frontend/directives/module';
-import '../frontend/components/iqCheckbox/iqCheckbox';
-import '../frontend/components/iqRadio/iqRadio';
-import '../frontend/components/iqBackButton/iqBackButton';
 
 import utilityDirectivesModule from '../frontend/utility/directives/utility.directives.module';
 import '../frontend/utility/directives/load.wrapper.directive';

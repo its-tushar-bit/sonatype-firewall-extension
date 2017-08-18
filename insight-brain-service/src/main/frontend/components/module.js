@@ -5,8 +5,10 @@
  */
 import iqCheckbox from './iqCheckbox/iqCheckbox';
 import iqRadio from './iqRadio/iqRadio';
+import iqBackButton from './iqBackButton/iqBackButton';
 
 export default angular.module('components', [])
     .component('iqCheckbox', iqCheckbox)
-    .component('iqRadio', iqRadio);
+    .component('iqRadio', iqRadio)
+    .component('iqBackButton', iqBackButton);
 

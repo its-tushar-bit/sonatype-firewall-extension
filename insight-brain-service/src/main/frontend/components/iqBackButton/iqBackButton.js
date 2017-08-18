@@ -3,15 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import template from './iqBackButton.html';
 
 var iqBackButtonComponent = {
-  templateUrl: 'components/iqBackButton/iqBackButton.html?' + clmBuildTimestamp,
-  controller: controller,
+  template,
+  controller,
   controllerAs: 'vm',
   bindings: {
     stateName: '@state'
   }
 };
+
+export default iqBackButtonComponent;
 
 function controller($state) {
   var vm = this;
@@ -32,5 +35,3 @@ function controller($state) {
 }
 
 controller.$inject = ['$state'];
-
-angular.module('components').component('iqBackButton', iqBackButtonComponent);

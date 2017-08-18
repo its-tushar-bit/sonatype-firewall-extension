@@ -7,6 +7,16 @@
     :---        | :---        | :---
     state       | String      | state to navigate to
 
+    Button text depends on `data.title` configured in the provided state:
+    ```js
+    $stateProvider.state('home', {
+      url: '/home',
+      templateUrl: 'app/home.html',
+      data: {
+        title: 'Gallery Home'
+      }
+    });
+    ```
 
   </marked>
 </item-description>

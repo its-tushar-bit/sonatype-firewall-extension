@@ -35,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.Engine.Mode;
 import org.owasp.dependencycheck.dependency.Dependency;
+import org.owasp.dependencycheck.exception.ExceptionCollection;
 import org.owasp.dependencycheck.utils.Settings;
 import org.owasp.dependencycheck.utils.Settings.KEYS;
 import org.slf4j.Logger;
@@ -92,7 +93,15 @@ public class ExpandedCoveragePolicyEvaluator
         clientScanner.scan(new ClientScanRequest(scan));
 
         engine.scan(params.getScanTargets().toArray(new String[params.getScanTargets().size()]));
-        engine.analyzeDependencies();
+        try {
+          engine.analyzeDependencies();
+        }
+        catch (ExceptionCollection e) {
+          if (e.isFatal()) {
+            throw e;
+          }
+          log.warn(e.getMessage(), e);
+        }
         List<Dependency> xcItems = engine.getDependencies();
         log.info("Found {} items.", xcItems.size());
 

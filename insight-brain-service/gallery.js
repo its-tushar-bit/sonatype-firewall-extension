@@ -9,6 +9,7 @@
 
 var rollup = require('rollup-endpoint');
 var html = require('rollup-plugin-html');
+var buble = require('rollup-plugin-buble');
 var express = require('express');
 var app = express();
 var port = 4040;
@@ -16,7 +17,8 @@ var port = 4040;
 app.get('/assets/app-bundle.js', rollup.serve({
   entry: 'src/main/component-gallery/app/main.js',
   plugins: [
-      html({include: '**/*.html'})
+    html({include: '**/*.html'}),
+    buble({ objectAssign: 'angular.extend' })
   ]
 }));
 

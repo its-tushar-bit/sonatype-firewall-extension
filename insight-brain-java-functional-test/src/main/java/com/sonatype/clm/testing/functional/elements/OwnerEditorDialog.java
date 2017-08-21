@@ -18,23 +18,23 @@ public class OwnerEditorDialog
   }
 
   public static SelenideElement title() {
-    return root().find(".clm-modal-header h2");
+    return root().find(".iq-modal-header h2");
   }
 
   public static SelenideElement name() {
-    return root().find(".clm-modal-body input[name=name]");
+    return root().find(".iq-modal-content input[name=name]");
   }
 
   public static SelenideElement publicId() {
-    return root().find(".clm-modal-body input[name=publicId]");
+    return root().find(".iq-modal-content input[name=publicId]");
   }
 
   public static SelenideElement saveButton() {
-    return root().find(".clm-modal-footer .btn-primary");
+    return root().find(".iq-modal-footer .btn-primary");
   }
 
   public static SelenideElement cancelButton() {
-    return root().find(".clm-modal-footer button[type=button]");
+    return root().find(".iq-modal-footer button[type=button]");
   }
 
   public static IqRadio defaultIcon() {

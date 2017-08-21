@@ -5,17 +5,16 @@
  */
 
 export default
-function MoveApplicationErrorModalService($modal) {
+function MoveApplicationErrorModalService(Modal) {
   return {
     open: openModal
   };
 
   function openModal(messages) {
-    return $modal.open({
+    return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'clm-modal',
       controller: MoveApplicationErrorModalController,
       templateUrl: 'owner.manager/move.application/move.application.error.modal.html',
       resolve: {
@@ -36,5 +35,5 @@ function MoveApplicationErrorModalController($scope, messages) {
 
 MoveApplicationErrorModalController.$inject = ['$scope', 'messages'];
 
-MoveApplicationErrorModalService.$inject = ['$modal'];
+MoveApplicationErrorModalService.$inject = ['Modal'];
 

@@ -262,7 +262,12 @@ import legacyConfigurationModule from '../LegacyConfigurationModule';
           },{
             name: 'Cancel',
             type: 'cancel'
-          }]
+          }],
+
+          // NOTE: temporarily prevent this dialog from using the new iq-modal styles until those styles are made
+          // compatible with the version of bootstrap used within the reports
+          windowClass: null,
+          backdropClass: null
         });
       };
 

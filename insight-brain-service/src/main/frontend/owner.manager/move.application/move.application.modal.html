@@ -1,6 +1,6 @@
 <div id="move-app-modal" ng-hide="vm.isHidden">
 
-  <div class='clm-modal-header'>
+  <div class='iq-modal-header'>
     <h2>
       <i class="fa fa-arrows"></i>Move Application
     </h2>
@@ -9,7 +9,7 @@
   <form class="clm-form" name="vm.moveApplicationForm" ng-submit="vm.save()"
         form-mask="vm.formMask" mask-message="Updating the application, this may take a few minutes">
 
-    <div class="clm-modal-body" ng-if="!vm.loadError" load-wrapper loading="vm.isLoading()">
+    <div class="iq-modal-content" ng-if="!vm.loadError" load-wrapper loading="vm.isLoading()">
       <div class="section">
         <div class="field">
           <label for="selectParentOrganization">
@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <div class="clm-modal-footer" ng-class="{ error : vm.getError() }">
+    <div class="iq-modal-footer" ng-class="{ error : vm.getError() }">
       <div ng-if="vm.getError()" class="section with-icon"><i class="fa fa-warning"></i>{{::vm.getError()}}</div>
       <button ng-if="!vm.getError()" class="btn btn-primary" type="submit" ng-disabled="vm.isLoading()"
               submit-validation submit-type="Move" submit-dirty="vm.selectedOrganization">

@@ -12,13 +12,13 @@
   </script>
   <script type="text/ng-template" id="license-uninstall-modal-template">
     <div id="license-uninstall-modal">
-      <div class="clm-modal-header">
+      <div class="iq-modal-header">
         <h2>Uninstall License</h2>
       </div>
-      <div class="clm-modal-body">
+      <div class="iq-modal-content">
         If you uninstall the Nexus IQ Server License, the system will be rendered unusable, are you sure you want to continue?
       </div>
-      <div class="clm-modal-footer" ng-class="{error: vm.error}">
+      <div class="iq-modal-footer" ng-class="{error: vm.error}">
         <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i>{{vm.error}}</div>
         <button ng-if="vm.error" class="btn btn-error" ng-click="vm.uninstall()">
           <i class="fa fa-refresh"></i>Retry
@@ -41,26 +41,26 @@
   </script>
   <script type="text/ng-template" id="license-installed-modal-template">
     <div id="licenseInstalledModal">
-      <div class="clm-modal-header">
+      <div class="iq-modal-header">
         <h2>License Installed!</h2>
       </div>
-      <div class="clm-modal-body">
+      <div class="iq-modal-content">
         Your license has been installed. The page will reload in a moment, or <a href="#" ng-click="$event.preventDefault();$close()">refresh</a> now.
       </div>
-      <div class="clm-modal-footer">
+      <div class="iq-modal-footer">
         <button class="btn btn-primary" ng-click="$close()">Refresh</button>
       </div>
     </div>
   </script>
   <script type="text/ng-template" id="license-uninstalled-modal-template">
     <div id="licenseUninstalledModal">
-      <div class="clm-modal-header">
+      <div class="iq-modal-header">
         <h2>License Uninstalled!</h2>
       </div>
-      <div class="clm-modal-body">
+      <div class="iq-modal-content">
         Your license has been uninstalled.  The page will reload in a moment, or <a href="#" ng-click="$event.preventDefault();$close()">refresh</a> now.
       </div>
-      <div class="clm-modal-footer">
+      <div class="iq-modal-footer">
         <button class="btn btn-primary" ng-click="$close()">Refresh</button>
       </div>
     </div>

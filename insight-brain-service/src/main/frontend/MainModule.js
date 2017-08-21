@@ -76,9 +76,9 @@ angular.module('InitModule', [
   }
 ]).service('initService', [
   'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
-  '$q', '$urlRouter', '$modal', '$timeout', 'state.history.service', 'SessionSecurityService',
+  '$q', '$urlRouter', 'Modal', '$timeout', 'state.history.service', 'SessionSecurityService',
   function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q,
-           $urlRouter, $modal, $timeout, StateHistoryService, SessionSecurityService)
+           $urlRouter, Modal, $timeout, StateHistoryService, SessionSecurityService)
   {
     var savedState = null,
         stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
@@ -187,11 +187,10 @@ angular.module('InitModule', [
           if (e.defaultPrevented) {
             event.preventDefault();
             isShowingModal = true;
-            $modal.open({
+            Modal.open({
               backdrop: 'static',
               keyboard: false,
-              templateUrl: 'unsaved-modal',
-              windowClass: 'master-modal'
+              templateUrl: 'unsaved-modal'
             }).result.then(function() {
               resetIsShowing();
               $state.go(toState, toParams);

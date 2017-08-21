@@ -11,7 +11,7 @@ var plugins = [
     outputStyle: isProd ? 'compressed' : 'nested'
   }),
   commonjs({ include: 'src/main/frontend/lib/angular-ui-router/**' }),
-  buble()
+  buble({ objectAssign: 'angular.extend' })
 ];
 
 if (isProd) {

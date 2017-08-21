@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function DashboardResultsController($scope, $modal, EventNameConstant, $state, filterToParams, CLMLocations) {
+function DashboardResultsController($scope, Modal, EventNameConstant, $state, filterToParams, CLMLocations) {
   $scope.maxResults = 100;
   $scope.maxDaysOld = 30;
   $scope.showTrendDialog = showTrendDialog;
@@ -33,11 +33,10 @@ function DashboardResultsController($scope, $modal, EventNameConstant, $state, f
   });
 
   function showTrendDialog() {
-    $modal.open({
+    Modal.open({
       backdrop: 'static',
       keyboard: false,
       templateUrl: 'policy-trends-dialog-template',
-      windowClass: 'fit-content dashboard-policy-trend-dialog clm-modal',
       controller: 'PolicyTrendController',
       resolve: {
         filters: function() {
@@ -78,5 +77,5 @@ function DashboardResultsController($scope, $modal, EventNameConstant, $state, f
 }
 
 DashboardResultsController.$inject = [
-  '$scope', '$modal', 'event.name.constant', '$state', 'filterToParams', 'CLMLocations'
+  '$scope', 'Modal', 'event.name.constant', '$state', 'filterToParams', 'CLMLocations'
 ];

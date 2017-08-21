@@ -37,7 +37,7 @@ describe('ProductLicenseController', function() {
         }
       });
       $provide.value('$window', mockWindow);
-      $provide.value('$modal', {open: modalOpenSpy});
+      $provide.value('Modal', {open: modalOpenSpy});
       SpecUtil.mockPermissionService($provide);
     });
   });

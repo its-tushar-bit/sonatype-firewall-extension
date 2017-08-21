@@ -6,17 +6,16 @@
 import template from './deleteFiltersModal.html';
 
 export default
-function DeleteFiltersModal($modal) {
+function DeleteFiltersModal(Modal) {
   return {
     open: openModal
   };
 
   function openModal(savedNamedFilters) {
-    return $modal.open({
+    return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'delete-filters-modal iq-modal clm-modal',
       controller: 'deleteFiltersModalController as vm',
       template: template,
       resolve: {
@@ -28,4 +27,4 @@ function DeleteFiltersModal($modal) {
   }
 }
 
-DeleteFiltersModal.$inject = ['$modal'];
+DeleteFiltersModal.$inject = ['Modal'];

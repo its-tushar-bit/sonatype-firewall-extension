@@ -1,10 +1,10 @@
 <div>
   <script type="text/ng-template" id="policy-trends-dialog-template">
     <div id="policy-trends-dialog">
-      <div class="clm-modal-header">
+      <div class="iq-modal-header">
         <h2>Policy Violation Trends</h2>
       </div>
-      <div load-wrapper="error" reload="doLoad()" class="clm-modal-body">
+      <div load-wrapper="error" reload="doLoad()" class="iq-modal-content">
         <div ng-if="!policySummaryData && !error" class="policy-trends-loading">
           <i class="fa fa-spin fa-circle-o-notch loading-spinner"></i> Calculating policy violation trends...
         </div>
@@ -50,7 +50,7 @@
           </table>
         </div>
       </div>
-      <div class="clm-modal-footer">
+      <div class="iq-modal-footer">
         <button id="policy-trends-dialog-close" class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
       </div>
     </div>

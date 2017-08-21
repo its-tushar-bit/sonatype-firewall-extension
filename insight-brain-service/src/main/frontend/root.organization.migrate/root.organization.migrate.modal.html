@@ -1,17 +1,17 @@
 <div id="root-organization-migrate-modal">
-  <div class="clm-modal-header">
+  <div class="iq-modal-header">
     <h2><i class="sonatype-glyphicons medium root-org"></i>Configure the Root Organization</h2>
   </div>
   <div load-wrapper="vm.loadError" reload="vm.doLoad()">
-    <div ng-if="!vm.organizations" class="clm-modal-body">
+    <div ng-if="!vm.organizations" class="iq-modal-content">
       <i class='icon-time'></i> Loading
     </div>
-    <div ng-if="vm.waitingForReload" class="clm-modal-body">
+    <div ng-if="vm.waitingForReload" class="iq-modal-content">
       <p>Root organization has been enabled.  The page will reload in a moment, or <a id="reload-app-link" href='#' ng-click='vm.reloadApp()'>refresh</a> now</p>
     </div>
     <div ng-if="vm.organizations && !vm.waitingForReload">
       <form name="rootOrganizationMigrateForm" ng-submit="vm.selectTemplate()">
-        <div class="clm-modal-body">
+        <div class="iq-modal-content">
           <div>
             Make sure you have <a target="_blank" href="http://links.sonatype.com/products/clm/doc/backup/{{vm.majorMinorVersion}}">backed
             up the IQ Server</a> and read the <a target="_blank" href="http://links.sonatype.com/products/clm/doc/upgrade/{{vm.majorMinorVersion}}">
@@ -39,7 +39,7 @@
             </div>
           </div>
         </div>
-        <div class="clm-modal-footer" ng-class="{ error : vm.error }">
+        <div class="iq-modal-footer" ng-class="{ error : vm.error }">
           <div ng-if="vm.error" class="section with-icon">
             {{ vm.error }}
           </div>

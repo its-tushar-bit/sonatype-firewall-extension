@@ -23,7 +23,7 @@ describe('UserModuleSpec.js', function() {
       });
       return deferred.promise;
     }]);
-    $provide.value('$modal', {
+    $provide.value('Modal', {
       open: function(config) {
         dialogScope = listScope.$new();
         dialogScope.$close = function() {

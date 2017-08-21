@@ -1,12 +1,12 @@
 <div id="select-application-contact-modal" ng-hide="vm.deleteMode || vm.unsavedModalVisible">
-  <div class="clm-modal-header">
+  <div class="iq-modal-header">
     <h2>
       <i class="fa size-20px fa-user slate"></i>Select Contact
     </h2>
   </div>
   <form class="clm-form" role="form" name="vm.selectContactForm" ng-submit="vm.isDirty() && vm.updateContact()"
         form-mask="vm.selectContactFormMask" mask-message="Updating">
-    <div class="clm-modal-body">
+    <div class="iq-modal-content">
       <div class="section">
         <h3 id="current-contact">
           <i class="fa size-18px fa-user slate"></i><span ng-class="{'grey-4': !vm.owner.contact}">{{vm.owner.contact ? vm.owner.contact.displayName : '(None)'}}</span>
@@ -26,7 +26,7 @@
         </div>
       </div>
     </div>
-    <div class="clm-modal-footer" ng-class="{ error : vm.submitError }">
+    <div class="iq-modal-footer" ng-class="{ error : vm.submitError }">
       <div ng-if="vm.submitError" class="section with-icon"><i class="fa fa-warning"></i> {{vm.submitError}}</div><!--
    --><button ng-if="!vm.submitError" class="btn btn-primary" type="submit" submit-validation submit-dirty="vm.isDirty()" submit-type="update">
         Select

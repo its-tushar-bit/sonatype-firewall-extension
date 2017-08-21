@@ -5,17 +5,16 @@
  */
 
 export default
-function MoveApplicationSuccessModalService($modal) {
+function MoveApplicationSuccessModalService(Modal) {
   return {
     open: openModal
   };
 
   function openModal(messages) {
-    return $modal.open({
+    return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'clm-modal',
       controller: MoveApplicationSuccessModalController,
       templateUrl: 'owner.manager/move.application/move.application.success.modal.html',
       resolve: {
@@ -36,4 +35,4 @@ function MoveApplicationSuccessModalController($scope, messages) {
 
 MoveApplicationSuccessModalController.$inject = ['$scope', 'messages'];
 
-MoveApplicationSuccessModalService.$inject = ['$modal'];
+MoveApplicationSuccessModalService.$inject = ['Modal'];

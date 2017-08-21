@@ -5,17 +5,16 @@
  */
 
 export default
-function MoveApplicationModalService($modal) {
+function MoveApplicationModalService(Modal) {
   return {
     open: openModal
   };
 
   function openModal(application) {
-    $modal.open({
+    Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'move-application-modal clm-modal',
       controller: 'move.application.modal.controller as vm',
       templateUrl: 'owner.manager/move.application/move.application.modal.html',
       resolve: {
@@ -27,4 +26,4 @@ function MoveApplicationModalService($modal) {
   }
 }
 
-MoveApplicationModalService.$inject = ['$modal'];
+MoveApplicationModalService.$inject = ['Modal'];

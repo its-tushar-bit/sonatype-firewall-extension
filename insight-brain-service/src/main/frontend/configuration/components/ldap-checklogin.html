@@ -1,9 +1,9 @@
-<div id="ldap-check-login-modal" class="clm-modal">
-  <div class="clm-modal-header">
+<div id="ldap-check-login-modal">
+  <div class="iq-modal-header">
     <h2>Test LDAP Login Credentials</h2>
   </div>
   <form name="ldapCheckLogin" class="clm-form" novalidate>
-    <div class="clm-modal-body">
+    <div class="iq-modal-content">
       <div clm-control-group for="username" label="Username">
         <input clm-input type="text" id="username" name="username" ng-model="ldapCredentials.username" required
                focus-input="true">
@@ -12,7 +12,7 @@
         <input clm-input type="password" name="password" ng-model="ldapCredentials.password" required>
       </div>
     </div>
-    <div class="clm-modal-footer">
+    <div class="iq-modal-footer">
       <div clm-alerts="alerts"></div>
       <button class="btn btn-primary" ng-disabled="ldapCheckLogin.$invalid || testInProgress"
               ng-click="testLogin()">

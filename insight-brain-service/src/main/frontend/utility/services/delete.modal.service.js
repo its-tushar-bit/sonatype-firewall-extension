@@ -3,18 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function DeleteModalService($modal) {
+function DeleteModalService(Modal) {
   var service = {
     deleteResource: DeleteResource,
     deleteCustom: DeleteCustom
   };
 
   function DeleteResource(resourceType, resourceName, resource) {
-    return $modal.open({
+    return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'clm-modal',
       controller: 'DeleteModalController as vm',
       templateUrl: 'utility/services/delete.modal.service.html',
       resolve: {
@@ -37,11 +36,10 @@ function DeleteModalService($modal) {
   }
 
   function DeleteCustom(headerText, bodyText, maskText, continueAction, dismissOnError) {
-    return $modal.open({
+    return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'clm-modal',
       controller: 'DeleteModalController as vm',
       templateUrl: 'utility/services/delete.modal.service.html',
       resolve: {
@@ -70,7 +68,7 @@ function DeleteModalService($modal) {
   return service;
 }
 
-DeleteModalService.$inject = ['$modal'];
+DeleteModalService.$inject = ['Modal'];
 
 angular //
     .module('utility') //

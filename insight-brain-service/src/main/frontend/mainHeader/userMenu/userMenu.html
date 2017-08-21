@@ -1,11 +1,11 @@
 <div>
   <script type="text/ng-template" id="change-password-template">
     <div>
-      <div class="clm-modal-header">
+      <div class="iq-modal-header">
         <h2>Change Password</h2>
       </div>
       <form name="passwordForm" class="clm-form" ng-submit="save()">
-        <div class="clm-modal-body">
+        <div class="iq-modal-content">
           <div clm-control-group for="originalPassword" label="Current Password">
             <input clm-input
                    type="password"
@@ -30,7 +30,7 @@
                    messages="{validator: 'Passwords must match!'}">
           </div>
         </div>
-        <div class="clm-modal-footer" ng-class="{error: error}">
+        <div class="iq-modal-footer" ng-class="{error: error}">
           <div ng-if="error" class="section with-icon"><i class="fa fa-warning"></i>{{error}}</div>
           <button type="submit"
                   class="btn btn-error"

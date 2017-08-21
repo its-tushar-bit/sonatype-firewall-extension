@@ -200,6 +200,10 @@
 
 .iq-modal-content {
   padding: 20px 12px 18px 12px;
+
+  > .iq-alert {
+    margin: -12px -4px -10px -4px;
+  }
 }
 
 .iq-modal-footer {

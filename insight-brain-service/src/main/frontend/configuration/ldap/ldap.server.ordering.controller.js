@@ -122,14 +122,13 @@ if (window.jasmine) {
   angular.module('ldap.module').controller('LdapServerOrderingController', LdapServerOrderingController);
 }
 
-function LdapServerOrderingModal($modal) {
+function LdapServerOrderingModal(Modal) {
   return {
     open: function() {
-      return $modal.open({
+      return Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal',
         controller: LdapServerOrderingController,
         controllerAs: 'vm',
         templateUrl: 'configuration/ldap/ldap.server.ordering.modal.html'
@@ -137,6 +136,6 @@ function LdapServerOrderingModal($modal) {
     }
   };
 }
-LdapServerOrderingModal.$inject = ['$modal'];
+LdapServerOrderingModal.$inject = ['Modal'];
 
 angular.module('ldap.module').factory('LdapServerOrderingModal', LdapServerOrderingModal);

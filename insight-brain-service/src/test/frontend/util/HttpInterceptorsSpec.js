@@ -6,7 +6,7 @@ describe('HttpInterceptors.js', function() {
     $provide.value('$modalInstance', {
       close: function() {}
     });
-    $provide.value('$modal', {
+    $provide.value('Modal', {
       open: function(config) {
         scope.$close = function() {
         };

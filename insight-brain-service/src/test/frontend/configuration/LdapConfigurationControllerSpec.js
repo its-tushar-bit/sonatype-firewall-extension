@@ -2,7 +2,7 @@ describe('Tests for the LdapConfigurationController', function() {
   var scope, dialogScope;
 
   beforeEach(module('ldap.module', 'HttpInterceptors', function($provide, $stateProvider) {
-    $provide.value('$modal', {
+    $provide.value('Modal', {
       open: function(config) {
         dialogScope = scope.$new();
         dialogScope.$close = function() {

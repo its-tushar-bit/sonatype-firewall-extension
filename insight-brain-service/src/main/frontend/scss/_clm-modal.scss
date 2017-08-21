@@ -108,15 +108,6 @@ $iq-modal-footer-height: 58px;
 }
 
 /*
-  ##Delete Modal
-*/
-.clm-modal {
-  .clm-modal-body.warn {
-    padding: 0;
-  }
-}
-
-/*
   #Modals with Forms
 */
 .modal-footer {
@@ -154,10 +145,6 @@ $iq-modal-footer-height: 58px;
 
 .loginPanel {
   z-index: $iq-login-modal-zindex;
-}
-
-.move-application-modal {
-  width: 425px;
 }
 
 .move-application-dropdown {

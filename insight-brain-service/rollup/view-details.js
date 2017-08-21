@@ -15,7 +15,7 @@ var plugins = [
 
   // angular-ui-router depends on angular by name, so tell rollup where to find it
   alias({ angular: __dirname + '/../src/main/frontend/lib/angular/angular.js' }),
-  buble()
+  buble({ objectAssign: 'angular.extend' })
 ];
 
 if (isProd) {

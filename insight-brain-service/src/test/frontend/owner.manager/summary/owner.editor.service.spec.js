@@ -5,20 +5,20 @@ describe('owner.editor.service.spec.js', function () {
     });
   }));
 
-  beforeEach(inject(function ($modal) {
-    spyOn($modal, 'open');
+  beforeEach(inject(function (Modal) {
+    spyOn(Modal, 'open');
   }));
 
-  it('open', inject(function (OwnerEditorService, $modal) {
+  it('open', inject(function (OwnerEditorService, Modal) {
     var owner = {
       id : 'foo',
       name : 'bar'
     };
 
     OwnerEditorService.open(owner, 'organization');
-    expect($modal.open).toHaveBeenCalled();
+    expect(Modal.open).toHaveBeenCalled();
 
-    expect($modal.open.calls.mostRecent().args[0].resolve.owner()).toEqual(owner);
-    expect($modal.open.calls.mostRecent().args[0].resolve.ownerType()).toEqual('organization');
+    expect(Modal.open.calls.mostRecent().args[0].resolve.owner()).toEqual(owner);
+    expect(Modal.open.calls.mostRecent().args[0].resolve.ownerType()).toEqual('organization');
   }));
 });

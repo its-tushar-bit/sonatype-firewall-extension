@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function CategoryEditorController($scope, $stateParams, $modal, TagStore, DeleteModalService,
+function CategoryEditorController($scope, $stateParams, Modal, TagStore, DeleteModalService,
                                   SameOwnerStateNavigationService, $q, PolicyTagStore, PolicyHierarchyStore,
                                   ApplicationStore)
 {
@@ -33,7 +33,7 @@ function CategoryEditorController($scope, $stateParams, $modal, TagStore, Delete
 
   function deleteCategory() {
     if (vm.tagPolicyList.length) {
-      $modal.open({
+      Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
@@ -128,7 +128,7 @@ function CategoryEditorController($scope, $stateParams, $modal, TagStore, Delete
 }
 
 CategoryEditorController.$inject = [
-  '$scope', '$stateParams', '$modal', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService', '$q',
+  '$scope', '$stateParams', 'Modal', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService', '$q',
   'PolicyTagStore', 'PolicyHierarchyStore', 'ApplicationStore'
 ];
 

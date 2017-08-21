@@ -26,11 +26,11 @@ public class DeleteModal
   }
 
   public static SelenideElement header() {
-    return root().$(".clm-modal-header");
+    return root().$(".iq-modal-header");
   }
 
   public static SelenideElement body() {
-    return root().$(".clm-modal-body");
+    return root().$(".iq-modal-content");
   }
 
   public static SelenideElement continueButton() {

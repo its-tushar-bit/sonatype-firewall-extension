@@ -1,16 +1,16 @@
 <div id="save-filter-modal">
-  <div class="clm-modal-header">
+  <div class="iq-modal-header">
     <h2>
       <i class="fa size-20px fa-floppy-o"></i>Save Filter
     </h2>
   </div>
   <div ng-if="vm.confirm" id="save-filter-confirmation">
-    <div class="clm-modal-body warn">
+    <div class="iq-modal-content">
       <div class="iq-alert">
        <i class="fa fa-warning"></i>A filter already exists with this name.
       </div>
     </div>
-    <div class="clm-modal-footer">
+    <div class="iq-modal-footer">
       <button class="btn btn-primary" ng-click="vm.saveFilter(true);">
         Continue
       </button>
@@ -20,7 +20,7 @@
   <div ng-hide="vm.confirm">
     <form class="clm-form" role="form" name="saveFilterForm" ng-submit="vm.saveFilter()"
           form-mask="vm.formMask" mask-message="Saving">
-      <div class="clm-modal-body">
+      <div class="iq-modal-content">
         <div class="section">
           <div class="field">
             <label for="filter-name-input">Filter Name</label>
@@ -29,7 +29,7 @@
           </div>
         </div>
       </div>
-      <div class="clm-modal-footer" ng-class="{ error : vm.saveError }">
+      <div class="iq-modal-footer" ng-class="{ error : vm.saveError }">
         <div ng-if="vm.saveError" class="section with-icon"><i class="fa fa-warning"></i>{{::vm.saveError}}</div>
         <button ng-if="!vm.saveError" class="btn btn-primary" type="submit"
                 submit-validation submit-type="Save" submit-dirty="vm.filterName">

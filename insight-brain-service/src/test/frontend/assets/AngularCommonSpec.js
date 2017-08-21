@@ -585,4 +585,50 @@ describe('AngularCommon', function() {
       expect(scope.states[1].state).toBe('dashboard.component');
     });
   });
+
+  describe('Modal', function() {
+    var $modal,
+        Modal;
+
+    beforeEach(inject(function(_$modal_, _Modal_) {
+      $modal = _$modal_;
+      Modal = _Modal_;
+
+      spyOn($modal, 'open');
+    }));
+
+    it('augments and then passes to $modal the config object that it receives', function() {
+      var config = { a: 1, b: '2' };
+
+      Modal.open(config);
+
+      expect($modal.open).toHaveBeenCalledWith({
+        a: 1,
+        b: '2',
+        windowClass: 'iq-modal',
+        backdropClass: 'iq-modal-backdrop',
+        animation: false
+      });
+    });
+
+    it('does not overwrite conflicting values from the config object it receives', function() {
+      var config = {
+        a: 1,
+        b: '2',
+        windowClass: 'iq-modal-test',
+        backdropClass: 'iq-modal-backdrop-test',
+        animation: true
+      };
+
+      Modal.open(config);
+
+      expect($modal.open).toHaveBeenCalledWith({
+        a: 1,
+        b: '2',
+        windowClass: 'iq-modal-test',
+        backdropClass: 'iq-modal-backdrop-test',
+        animation: true
+      });
+    });
+  });
 });

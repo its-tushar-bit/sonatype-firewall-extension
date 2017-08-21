@@ -3,17 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function SelectApplicationContactService($modal) {
+function SelectApplicationContactService(Modal) {
   var service = {
     open: SelectContact
   };
 
   function SelectContact(owner) {
-    return $modal.open({
+    return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'clm-modal',
       controller: 'select.application.contact.controller as vm',
       templateUrl: 'owner.manager/summary/select.application.contact.modal.html',
       resolve: {
@@ -27,7 +26,7 @@ function SelectApplicationContactService($modal) {
   return service;
 }
 
-SelectApplicationContactService.$inject = ['$modal'];
+SelectApplicationContactService.$inject = ['Modal'];
 
 angular //
     .module('owner.manager.module') //

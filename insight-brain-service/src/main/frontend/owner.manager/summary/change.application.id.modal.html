@@ -1,17 +1,17 @@
 <div id="change-application-id-modal" ng-hide="vm.unsavedModalVisible">
-  <div class="clm-modal-header">
+  <div class="iq-modal-header">
     <h2>
       <i class="fa fa-random size-20px"></i>Change Application ID
     </h2>
   </div>
   <form name="vm.applicationIdEditor" role="form" ng-submit="vm.changeApplicationId()" class="clm-form" form-mask="vm.applicationIdEditorMask">
-    <div class="clm-modal-body warn">
+    <div class="iq-modal-content">
       <div class="iq-alert">
         <i class="fa fa-warning size-18px"></i>Changing the Application ID will break existing integration points.
         They will have to be re-configured.
       </div>
     </div>
-    <div class="clm-modal-body">
+    <div class="iq-modal-content">
       <div class="section">
         <div class="field">
           <label for="editor-current-id">Current Application ID</label>
@@ -33,7 +33,7 @@
         </div>
       </div>
     </div>
-    <div class="clm-modal-footer" ng-class="{error : vm.error}">
+    <div class="iq-modal-footer" ng-class="{error : vm.error}">
       <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i> {{vm.error}}</div>
       <button ng-if="!vm.error" class="btn btn-primary" type="submit" ng-disabled="vm.applicationIdEditor.$invalid || !vm.isDirty()">
         Change

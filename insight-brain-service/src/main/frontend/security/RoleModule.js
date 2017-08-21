@@ -56,7 +56,7 @@ module.service('RoleStore', [
 
 module.controller('RoleListController', [
   'RoleStore', 'Messages', '$scope',
-  '$modal', '$q', '$state', 'rolePermissions', function(RoleStore, messages, $scope, $modal, $q, $state, rolePermissions) {
+  '$q', '$state', 'rolePermissions', function(RoleStore, messages, $scope, $q, $state, rolePermissions) {
     $scope.doLoad = function() {
       if (rolePermissions.viewRoles) {
         $scope.error = null;

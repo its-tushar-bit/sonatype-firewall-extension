@@ -1,17 +1,17 @@
 <div class='scrollable-root-container' maximize-container-height>
   <script type='text/ng-template' id='reset-password-modal'>
-<div class="clm-modal-header">
+<div class="iq-modal-header">
   <h2>Reset Password</h2>
 </div>
 <div ng-switch="state">
   <div ng-switch-default>
-    <div class="clm-modal-body warn">
+    <div class="iq-modal-content">
       <div class="iq-alert">
         <i class="fa fa-warning"></i>Are you sure you want to reset the password for <strong>{{::user.username}}</strong>?
         This action cannot be undone.
       </div>
     </div>
-    <div class="clm-modal-footer" ng-class="{error : error}">
+    <div class="iq-modal-footer" ng-class="{error : error}">
       <div class="section with-icon" ng-if="error">
         <i class="fa fa-warning"></i> {{ error }}
       </div>
@@ -23,12 +23,12 @@
     </div>
   </div>
   <div ng-switch-when="pending">
-    <div class="clm-modal-body">
+    <div class="iq-modal-content">
       <span>Reset pending...</span>
     </div>
   </div>
   <div ng-switch-when="complete">
-    <div class="clm-modal-body">
+    <div class="iq-modal-content">
       <form>
         <span style="margin-right:10px;">The new password for <strong>{{user.username}}</strong> is</span>
         <span style="margin-bottom:0px;" ng-class="{ 'input-append' : flashInstalled() }">
@@ -39,7 +39,7 @@
         </span>
       </form>
     </div>
-    <div class="clm-modal-footer">
+    <div class="iq-modal-footer">
       <button class="btn btn-primary" ng-click="okClick()">OK</button>
     </div>
   </div>

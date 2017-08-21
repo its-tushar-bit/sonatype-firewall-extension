@@ -5,7 +5,7 @@
  */
 /*global angular, AngularUtils*/
 function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope, DeleteModalService,
-                            $modal, $q, isAuthorized, $state)
+                            Modal, $q, isAuthorized, $state)
 {
   var username = null;
 
@@ -41,9 +41,8 @@ function UserListController($http, clmLocations, UserStore, messages, CurrentUse
   };
 
   $scope.resetPasswordClick = function(user) {
-    $modal.open({
+    Modal.open({
       templateUrl: 'reset-password-modal',
-      windowClass: 'clm-modal',
       scope: $scope,
       backdrop: 'static',
       keyboard: false,
@@ -111,7 +110,7 @@ function UserListController($http, clmLocations, UserStore, messages, CurrentUse
 
 UserListController.$inject = [
   '$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-  'DeleteModalService', '$modal', '$q', 'isAuthorized', '$state'
+  'DeleteModalService', 'Modal', '$q', 'isAuthorized', '$state'
 ];
 
 angular.module('UserModule').controller('UserListController', UserListController);

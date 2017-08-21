@@ -14,14 +14,14 @@ import static com.codeborne.selenide.Selenide.$;
 public class MoveApplicationDialog
     extends BasicElement<MoveApplicationDialog>
 {
-  private static final String FOOTER_SELECTOR = ".clm-modal-footer";
+  private static final String FOOTER_SELECTOR = ".iq-modal-footer";
 
   public MoveApplicationDialog() {
     super("#move-app-modal");
   }
 
   public SelenideElement body() {
-    return child(".clm-modal-body");
+    return child(".iq-modal-content");
   }
 
   public SelenideElement footer() {

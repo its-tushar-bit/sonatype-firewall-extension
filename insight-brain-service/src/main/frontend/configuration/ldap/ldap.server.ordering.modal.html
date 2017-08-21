@@ -1,11 +1,11 @@
 <div id="ldap-server-ordering-modal">
-  <div class="clm-modal-header">
+  <div class="iq-modal-header">
     <h2>
       <i class="fa fa-pencil size-20px"></i>Reorder LDAP Servers
     </h2>
   </div>
   <form name="vm.ldapOrderForm" role="form" ng-submit="vm.save()" class="clm-form" form-mask="vm.ldapOrderForm">
-    <div class="clm-modal-body no-padding scrolling">
+    <div class="iq-modal-content no-padding scrolling">
       <div class="pull-right toolbar">
         <button class="btn btn-icon-only btn-tertiary" type="button" id="move-to-first" ng-click="vm.moveToFirst(vm.selected)"
                 ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === 0">
@@ -41,7 +41,7 @@
         </ul>
       </div>
     </div>
-    <div class="clm-modal-footer" ng-class="{error : vm.error}">
+    <div class="iq-modal-footer" ng-class="{error : vm.error}">
       <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i> {{vm.error}}</div>
       <button ng-if="!vm.error" class="btn btn-primary" type="submit" submit-validation submit-dirty="vm.isDirty()">
         Save

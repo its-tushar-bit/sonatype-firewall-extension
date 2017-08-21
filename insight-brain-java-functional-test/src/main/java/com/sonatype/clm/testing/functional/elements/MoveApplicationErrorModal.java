@@ -17,10 +17,10 @@ public class MoveApplicationErrorModal
   }
 
   public SelenideElement body() {
-    return child(".clm-modal-body");
+    return child(".iq-modal-content");
   }
 
   public SelenideElement okButton() {
-    return child(".clm-modal-footer .btn-primary");
+    return child(".iq-modal-footer .btn-primary");
   }
 }

@@ -138,7 +138,9 @@ describe('CIP Claim Component tests', function() {
       }, {
         name: 'Cancel',
         type: 'cancel'
-      }]
+      }],
+      windowClass: null,
+      backdropClass: null
     });
     Dialog.open.calls.mostRecent().args[0].buttons[0].click();
     $http.flush();

@@ -22,11 +22,11 @@ public class SelectContactModal
   }
 
   public static SelenideElement header() {
-    return $(ROOT + " .clm-modal-header");
+    return $(ROOT + " .iq-modal-header");
   }
 
   public static SelenideElement body() {
-    return $(ROOT + " .clm-modal-body");
+    return $(ROOT + " .iq-modal-content");
   }
 
   public static SelenideElement currentUserLabel() {

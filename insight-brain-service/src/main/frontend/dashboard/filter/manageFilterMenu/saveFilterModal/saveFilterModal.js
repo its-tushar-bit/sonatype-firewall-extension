@@ -5,17 +5,16 @@
  */
 import template from './saveFilterModal.html';
 export default
-function SaveFilterModal($modal) {
+function SaveFilterModal(Modal) {
   return {
     open: openModal
   };
 
   function openModal(filterJson, name, existingFilters) {
-    return $modal.open({
+    return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'save-filter-modal clm-modal',
       controller: 'saveFilterModalController as vm',
       template: template,
       resolve: {
@@ -33,4 +32,4 @@ function SaveFilterModal($modal) {
   }
 }
 
-SaveFilterModal.$inject = ['$modal'];
+SaveFilterModal.$inject = ['Modal'];

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function LoginModalService($modal) {
+function LoginModalService(Modal) {
   var service = {
     show: LoginModal
   };
@@ -12,7 +12,7 @@ function LoginModalService($modal) {
    * Present the login modal
    */
   function LoginModal() {
-    return $modal.open({
+    return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
@@ -20,11 +20,11 @@ function LoginModalService($modal) {
       //note that we have to use inline html here.  This module is used in the cip in app reports, and in the audit
       //reports, should a 401 be received in either of these areas, retrieval of the template html will also fail
       //as authz is required to download
-      template: '<div id="loginModal" class="clm-modal">' +
-      '<div class="clm-modal-header" ><h2>User Login</h2></div>' +
+      template: '<div id="loginModal">' +
+      '<div class="iq-modal-header" ><h2>User Login</h2></div>' +
       '<form name="loginForm" class="form-horizontal" ng-submit="vm.signIn()" form-mask="vm.loginMask" ' +
       'mask-message="Signing in">' +
-      '<div class="clm-modal-body">' +
+      '<div class="iq-modal-content">' +
       '<system-notice></system-notice>' +
       '<div class="control-group">' +
       '<label class="control-label" for="login-username">Username</label>' +
@@ -38,20 +38,20 @@ function LoginModalService($modal) {
       '<input id="login-password" type="password" name="password" ng-model="vm.password" ng-required="true" ' +
       'autofill>' +
       '</div></div></div>' +
-      '<div class="clm-modal-footer" ng-class="{error: vm.error}">' +
+      '<div class="iq-modal-footer" ng-class="{error: vm.error}">' +
       '<div id="login-error" ng-if="vm.error" class="section with-icon">' +
       '<i class="fa fa-warning"></i>{{vm.error}}' +
       '</div>' +
       '<button id="login-action" class="btn btn-primary" type="submit">Sign in</button>' +
       '</div></form></div>',
-      windowClass: 'loginPanel'
+      windowClass: 'loginPanel iq-modal'
     }).result;
   }
 
   return service;
 }
 
-LoginModalService.$inject = ['$modal'];
+LoginModalService.$inject = ['Modal'];
 
 angular //
     .module('utility.services') //

@@ -1,10 +1,10 @@
-<div id='import-policy-dialog' class="clm-modal">
-  <div class='clm-modal-header'>
+<div id='import-policy-dialog'>
+  <div class='iq-modal-header'>
     <h2>Import Policies</h2>
   </div>
   <form class="clm-form" name='importPolicy' action='{{vm.importPolicyUrl()}}' enctype='multipart/form-data'
         method='post' ng-upload='vm.uploaded(content)' form-mask="vm.importPolicyMask" mask-message="Importing">
-    <div class="clm-modal-body">
+    <div class="iq-modal-content">
       <div class="section">
         <div class="field">
           <label for="importFile">Policies File</label>
@@ -17,7 +17,7 @@
         descendants will be <strong>permanently deleted</strong> before importing.
       </div>
     </div>
-    <div class='clm-modal-footer' ng-class="{error: vm.error}">
+    <div class='iq-modal-footer' ng-class="{error: vm.error}">
       <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i>{{vm.error}}</div>
       <button ng-if="!vm.error" id='import-policy-upload' class='btn btn-primary' type='button'
               ng-disabled='!vm.importFile' ng-click='vm.doSubmit()'>Import

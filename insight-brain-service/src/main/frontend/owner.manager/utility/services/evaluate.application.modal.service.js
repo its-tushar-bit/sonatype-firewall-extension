@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function EvaluateApplicationModalService($modal) {
+function EvaluateApplicationModalService(Modal) {
   return {open: openModal};
 
   function openModal(selectedApplication) {
-    return $modal.open({
+    return Modal.open({
       backdrop: 'static',
       keyboard: false,
       templateUrl: 'owner.manager/utility/services/evaluate.application.modal.html',
@@ -21,7 +21,7 @@ function EvaluateApplicationModalService($modal) {
   }
 }
 
-EvaluateApplicationModalService.$inject = ['$modal'];
+EvaluateApplicationModalService.$inject = ['Modal'];
 
 angular //
     .module('owner.manager.module') //

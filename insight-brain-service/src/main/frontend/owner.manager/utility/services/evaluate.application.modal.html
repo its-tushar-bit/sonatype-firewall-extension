@@ -1,5 +1,5 @@
-<div id="evaluate-application-modal" class="clm-modal">
-  <div class='clm-modal-header'>
+<div id="evaluate-application-modal">
+  <div class='iq-modal-header'>
     <div ng-switch='vm.evaluationState'>
       <div ng-switch-when='polling'>
         <h2>Evaluation Status</h2>
@@ -13,7 +13,7 @@
     <i class='icon icon-time'></i> Loading...
   </div>
   <div ng-show="vm.evaluationState == 'polling'">
-    <div class="clm-modal-body">
+    <div class="iq-modal-content">
       <p>Closing this panel will not interrupt the evaluation. It will still progress until it is complete. When the
         evaluation has been completed you can view the results by clicking on the button below.</p>
       <table>
@@ -37,7 +37,7 @@
         <b>{{vm.evaluationStatus.currentStepName}}</b>
       </div>
     </div>
-    <div class='clm-modal-footer' ng-class="{error: vm.error}">
+    <div class='iq-modal-footer' ng-class="{error: vm.error}">
       <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i>{{vm.error}}</div>
       <button ng-if="!vm.error" id='evaluate-bundle-view' class='btn btn-primary' type='button'
               ng-disabled='!vm.evaluationStatus.scanId' ng-click="vm.openReport()">View Report
@@ -52,7 +52,7 @@
   <div ng-show="vm.evaluationState != 'loading' && vm.evaluationState != 'polling'">
     <form class="clm-form" name='evaluateBundle' action='{{vm.uploadBundleUrl()}}' enctype='multipart/form-data'
           method='post' ng-upload="vm.uploaded(content)">
-      <div class="clm-modal-body">
+      <div class="iq-modal-content">
         <div class="section">
           <div class="field">
             <label for="bundleFile">Select the file you want evaluated</label>
@@ -81,7 +81,7 @@
           </div>
         </div>
       </div>
-      <div class='clm-modal-footer' ng-class="{error: vm.error}">
+      <div class='iq-modal-footer' ng-class="{error: vm.error}">
         <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i>{{vm.error}}</div>
         <button ng-if="!vm.error" id='evaluate-bundle-upload' class='btn btn-primary' type='button'
                 ng-disabled='vm.evaluationState != "ready" || !vm.isFormValid()' ng-click='vm.doSubmit()'>Upload

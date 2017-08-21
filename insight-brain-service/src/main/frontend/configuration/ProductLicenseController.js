@@ -24,8 +24,8 @@ var module = angular.module('ProductLicense',
     ]);
 
 module.controller('ProductLicenseController', [
-  '$http', '$scope', 'CLMLocations', '$timeout', '$window', '$cookies', '$modal', 'Messages', 'ErrorDialog', 'isAuthorized',
-  function($http, $scope, clmLocations, $timeout, $window, $cookies, $modal, Messages, ErrorDialog, isAuthorized) {
+  '$http', '$scope', 'CLMLocations', '$timeout', '$window', '$cookies', 'Modal', 'Messages', 'ErrorDialog', 'isAuthorized',
+  function($http, $scope, clmLocations, $timeout, $window, $cookies, Modal, Messages, ErrorDialog, isAuthorized) {
 
     $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
     $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
@@ -52,11 +52,10 @@ module.controller('ProductLicenseController', [
     };
 
     function showLicense() {
-      $modal.open({
+      Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal',
         templateUrl: 'license-installed-modal-template'
       }).result.then($scope.reload);
 
@@ -64,11 +63,10 @@ module.controller('ProductLicenseController', [
     }
 
     function showUninstalled() {
-      $modal.open({
+      Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal',
         templateUrl: 'license-uninstalled-modal-template'
       }).result.then($scope.reload);
       $timeout($scope.reload, 5000);
@@ -83,11 +81,10 @@ module.controller('ProductLicenseController', [
     };
 
     $scope.viewUninstallLicense = function() {
-      $modal.open({
+      Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal',
         templateUrl: 'license-uninstall-modal-template',
         controller: 'uninstall.license.controller as vm'
       }).result.then(function () {
@@ -96,11 +93,10 @@ module.controller('ProductLicenseController', [
     };
 
     $scope.onFileChanged = function() {
-      $modal.open({
+      Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal',
         templateUrl: 'eula-modal-template'
       }).result.then(function () {
         if ($window.FormData) {

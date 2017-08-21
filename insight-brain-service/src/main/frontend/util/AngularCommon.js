@@ -406,7 +406,20 @@ angularCommon.directive('breadcrumb', ['$state', 'state.history.service', functi
   };
 }]);
 
-angularCommon.service('Dialog', ['$modal', function ($modal) {
+angularCommon.service('Modal', ['$modal', function($modal) {
+  return {
+    open(config) {
+      return $modal.open({
+        windowClass: 'iq-modal',
+        backdropClass: 'iq-modal-backdrop',
+        animation: false,
+        ...config
+      });
+    }
+  };
+}]);
+
+angularCommon.service('Dialog', ['Modal', function (Modal) {
   function wrapClick(fn, scope, dismiss) {
     return function () {
       if (dismiss) {
@@ -425,9 +438,9 @@ angularCommon.service('Dialog', ['$modal', function ($modal) {
       config = angular.extend({
         backdrop: 'static',
         keyboard: false,
-        template: '<div id="{{id}}"><div class="clm-modal-header"><h2>{{title}}</h2></div>' +
-            '<div class="clm-modal-body" ng-bind-html="body"></div>' +
-            '<div class="clm-modal-footer">' +
+        template: '<div id="{{id}}"><div class="iq-modal-header"><h2>{{title}}</h2></div>' +
+            '<div class="iq-modal-content" ng-bind-html="body"></div>' +
+            '<div class="iq-modal-footer">' +
               '<button ng-repeat="button in buttons" ng-click="button.click()" ' +
               'ng-class="{' +
                 '\'btn-error\' : button.type == \'danger\',' +
@@ -435,7 +448,6 @@ angularCommon.service('Dialog', ['$modal', function ($modal) {
                 '\'btn-link btn-cancel\' : button.type == \'cancel\'}" ' +
               'class="btn">{{button.name}}</button>' +
             '</div></div>',
-        windowClass: 'clm-modal',
         controller: ['$scope', function(scope) {
           // Since the buttons need to be set in the controller, the cancel button should appear last. This fixes a
           // browser bug where elements that are dynamically added float: right after others break to a new line
@@ -457,7 +469,7 @@ angularCommon.service('Dialog', ['$modal', function ($modal) {
         }]
       }, config);
 
-      return $modal.open(config);
+      return Modal.open(config);
     }
   };
 }]);

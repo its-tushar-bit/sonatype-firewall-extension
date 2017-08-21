@@ -3,14 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function OwnerEditorService($modal) {
+function OwnerEditorService(Modal) {
   return {
     open: function(owner, ownerType, siblings) {
-      $modal.open({
+      Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'owner-editor-modal clm-modal',
         controller: 'owner.editor.controller as vm',
         templateUrl: 'owner.manager/summary/owner.editor.service.html',
         resolve: {
@@ -29,7 +28,7 @@ function OwnerEditorService($modal) {
   };
 }
 
-OwnerEditorService.$inject = ['$modal'];
+OwnerEditorService.$inject = ['Modal'];
 
 angular //
     .module('owner.manager.module') //

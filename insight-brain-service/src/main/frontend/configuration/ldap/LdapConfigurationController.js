@@ -9,17 +9,16 @@ function showAlert(alerts, alert) {
   alerts.push(alert);
 }
 
-function resetDialog($modal, discardFn, discardLabel) {
+function resetDialog(Modal, discardFn, discardLabel) {
   if (!discardLabel) {
     discardLabel = 'Discard';
   }
   return function() {
-    $modal.open({
+    Modal.open({
       backdrop: 'static',
-      windowClass: 'clm-modal',
-      template: '<div id="ldap-unsaved-changes"><div class="clm-modal-header"><h2>Unsaved Changes</h2></div>' +
-          '<div class="clm-modal-body">There are unsaved changes, continuing will discard them.</div>' +
-          '<div class="clm-modal-footer">' +
+      template: '<div id="ldap-unsaved-changes"><div class="iq-modal-header"><h2>Unsaved Changes</h2></div>' +
+          '<div class="iq-modal-content">There are unsaved changes, continuing will discard them.</div>' +
+          '<div class="iq-modal-footer">' +
             '<button class="btn btn-primary" ng-click="discardChanges()">' + discardLabel + '</button>' +
             '<button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>' +
           '</div></div>',
@@ -73,8 +72,8 @@ function testRequest($scope, $http, resourceUrl, requestData) {
 var module = angular.module('ldap.module');
 
 module.controller('LdapConfigurationController', [
-  '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog', 'isAuthorized',
-  function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog, isAuthorized) {
+  '$scope', '$state', 'Modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog', 'isAuthorized',
+  function($scope, $state, Modal, Dialog, ldapStore, clmLocations, ErrorDialog, isAuthorized) {
     function isDirty() {
       if ($scope.ldapNameForm && $scope.ldapNameForm.$visible) {
         return true;
@@ -172,8 +171,8 @@ module.controller('LdapConfigurationController', [
 ]);
 
 module.controller('LdapConnectionController', [
-  '$scope', '$modal', '$http', 'CLMLocations', 'ErrorDialog',
-  function($scope, $modal, $http, CLMLocations, ErrorDialog) {
+  '$scope', 'Modal', '$http', 'CLMLocations', 'ErrorDialog',
+  function($scope, Modal, $http, CLMLocations, ErrorDialog) {
     $scope.ldapProtocols = ['LDAP', 'LDAPS'];
     $scope.ldapMethods = ['NONE', 'SIMPLE', 'DIGESTMD5', 'CRAMMD5'];
     $scope.alerts = [];
@@ -202,7 +201,7 @@ module.controller('LdapConnectionController', [
       testRequest($scope, $http, CLMLocations.getLdapConnectionTest(), $scope.ldapConn);
     };
 
-    $scope.reset = resetDialog($modal, function() {
+    $scope.reset = resetDialog(Modal, function() {
       $scope.ldapConn = angular.copy(origLdapConn);
       $scope.alerts.length = 0;
       $scope.ldapConnectionEditor.$setPristine();
@@ -238,8 +237,8 @@ module.controller('LdapConnectionController', [
   }
 ]);
 
-module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 'CLMLocations', 'ErrorDialog', '$q',
-  function($scope, $modal, $http, CLMLocations, ErrorDialog, $q) {
+module.controller('LdapUsermappingController', ['$scope', 'Modal', '$http', 'CLMLocations', 'ErrorDialog', '$q',
+  function($scope, Modal, $http, CLMLocations, ErrorDialog, $q) {
     $scope.alerts = [];
     delete $scope.ldapUserMapping;// make sure the scope is clean while we query backend
 
@@ -257,7 +256,7 @@ module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 'CL
       return !$scope.ldapUserMappingEditor.$invalid && $scope.isDirty();
     };
 
-    $scope.reset = resetDialog($modal, function () {
+    $scope.reset = resetDialog(Modal, function () {
       $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
       $scope.alerts.length = 0;
       $scope.ldapUserMappingEditor.$setPristine();
@@ -286,12 +285,11 @@ module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 'CL
 
     $scope.checkUserMapping = function() {
       $scope.testInProgress = true;
-      $modal.open({
+      Modal.open({
         backdrop: 'static',
         scope: $scope,
         templateUrl: 'configuration/components/ldap-checkusermapping.html?' + clmBuildTimestamp,
         controller: 'LdapCheckUserMappingController',
-        windowClass: 'modal modal-ldap',
         resolve: {
           users: function() {
             var deferred = $q.defer();
@@ -325,7 +323,7 @@ module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 'CL
 
     $scope.checkLogin = function() {
       $scope.testInProgress = true;
-      $modal.open({
+      Modal.open({
         backdrop: 'static',
         scope: $scope,
         templateUrl: 'configuration/components/ldap-checklogin.html?' + clmBuildTimestamp,

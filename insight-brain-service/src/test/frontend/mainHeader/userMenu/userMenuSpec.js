@@ -21,7 +21,7 @@ describe('userMenu', function() {
       }
     });
 
-    $provide.value('$modal', {
+    $provide.value('Modal', {
       open: function(config) {
         dialogScope = scope.$new();
         dialogScope.$close = jasmine.createSpy('dialogClose');

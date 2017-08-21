@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function UserMenuController($scope, $http, CLMLocations, modal, messages, CurrentUser) {
+function UserMenuController($scope, $http, CLMLocations, Modal, messages, CurrentUser) {
   var vm = this;
 
   vm.$onInit = getCurrentUser;
@@ -30,12 +30,11 @@ function UserMenuController($scope, $http, CLMLocations, modal, messages, Curren
   }
 
   function changePassword() {
-    modal.open({
+    Modal.open({
       templateUrl: 'change-password-template',
       animation: false,
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'clm-modal',
       controller: [
         '$scope', function(scope) {
           scope.result = {};
@@ -61,7 +60,7 @@ function UserMenuController($scope, $http, CLMLocations, modal, messages, Curren
   }
 }
 
-UserMenuController.$inject = ['$scope', '$http', 'CLMLocations', '$modal', 'Messages', 'CurrentUser'];
+UserMenuController.$inject = ['$scope', '$http', 'CLMLocations', 'Modal', 'Messages', 'CurrentUser'];
 
 angular.module('mainHeader').component('userMenu', {
   templateUrl: 'mainHeader/userMenu/userMenu.html?' + clmBuildTimestamp,

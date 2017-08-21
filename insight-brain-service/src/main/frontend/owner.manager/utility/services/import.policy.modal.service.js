@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function ImportPolicyModalService($modal) {
+function ImportPolicyModalService(Modal) {
   return {open: openModal};
 
   function openModal() {
-    return $modal.open({
+    return Modal.open({
       backdrop: 'static',
       keyboard: false,
       templateUrl: 'owner.manager/utility/services/import.policy.modal.html',
@@ -16,7 +16,7 @@ function ImportPolicyModalService($modal) {
   }
 }
 
-ImportPolicyModalService.$inject = ['$modal'];
+ImportPolicyModalService.$inject = ['Modal'];
 
 angular //
     .module('owner.manager.module') //

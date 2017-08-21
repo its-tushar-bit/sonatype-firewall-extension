@@ -155,11 +155,11 @@ public class LdapUserAndGroupSettingsForm
     }
 
     public SelenideElement testLoginButton() {
-      return child(".clm-modal-footer", ".btn-primary");
+      return child(".iq-modal-footer", ".btn-primary");
     }
 
     public SelenideElement cancelButton() {
-      return child(".clm-modal-footer", ".btn-cancel");
+      return child(".iq-modal-footer", ".btn-cancel");
     }
   }
 

@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -52,6 +53,10 @@ public interface RestClient
 
     Resource getResource(String path, Map<String, String[]> params) throws IOException, URISyntaxException;
 
+    /**
+     * @since 1.35
+     */
+    FirewallIgnorePatterns getFirewallIgnorePatterns() throws IOException;
   }
 
   interface App

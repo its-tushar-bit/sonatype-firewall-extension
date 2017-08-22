@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -118,5 +119,13 @@ public class ConfigurationClient
   public void validateAuthentication() throws IOException {
     final Result result = postRequest(path("rest/user/session"), null);
     verifyStatusCode(result);
+  }
+
+  /**
+   * @since 1.35
+   */
+  public FirewallIgnorePatterns getFirewallIgnorePatterns() throws IOException {
+    Result result = getRequest(path("rest/integration/repositories/evaluate/ignorePatterns"));
+    return parseResult(result, FirewallIgnorePatterns.class);
   }
 }

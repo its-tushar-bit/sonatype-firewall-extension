@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -146,6 +147,16 @@ public class RestClientFactory
     {
       try {
         return newConfigurationClient(config).getProprietaryConfigForApplicationEvaluation(applicationPublicId);
+      }
+      catch (IOException e) {
+        throw handleError(e);
+      }
+    }
+
+    @Override
+    public FirewallIgnorePatterns getFirewallIgnorePatterns() throws IOException {
+      try {
+        return newConfigurationClient(config).getFirewallIgnorePatterns();
       }
       catch (IOException e) {
         throw handleError(e);

@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
@@ -359,5 +360,16 @@ public class RestClientFactoryTest
 
     verify(firewallClient).getRepositoryMigrationState(repositoryManagerInstanceId, repositoryPublicId);
     verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
+  public void testGetFirewallIgnorePatterns() throws Exception {
+    FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
+    ConfigurationClient configClient = mock(ConfigurationClient.class);
+    when(configClient.getFirewallIgnorePatterns()).thenReturn(firewallIgnorePatterns);
+    RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
+    RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    assertSame(firewallIgnorePatterns, client.getFirewallIgnorePatterns());
   }
 }

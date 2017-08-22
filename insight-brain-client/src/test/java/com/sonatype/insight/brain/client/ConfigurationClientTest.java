@@ -8,11 +8,14 @@ package com.sonatype.insight.brain.client;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient.Context;
 import com.sonatype.insight.brain.model.Application;
@@ -466,5 +469,19 @@ public class ConfigurationClientTest
     Configuration clientConfig = getCLMServer().getClientConfiguration();
     clientConfig.setServerAuth(SimpleAuthentication.parse(user.getUsername() + ":" + user.getPassword()));
     return clientConfig;
+  }
+
+  @Test
+  public void testGetFirewallIgnorePatterns() throws Exception {
+    // Setup the mocked hds return
+    FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
+    hdsResult.regexpsByRepositoryFormat = new HashMap<>();
+    hdsResult.regexpsByRepositoryFormat.put("foo", Collections.singletonList("bar"));
+    setHdsResponseForURI("/rest/component/details/firewall/ignorePatterns", hdsResult, 200);
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    ConfigurationClient client = new ConfigurationClient(config);
+    FirewallIgnorePatterns firewallIgnorePatterns = client.getFirewallIgnorePatterns();
+    assertThat(firewallIgnorePatterns.regexpsByRepositoryFormat, is(hdsResult.regexpsByRepositoryFormat));
   }
 }

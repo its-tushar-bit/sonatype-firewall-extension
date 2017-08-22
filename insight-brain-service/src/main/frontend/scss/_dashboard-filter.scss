@@ -72,12 +72,11 @@
       .iq-checkbox__label {
         @extend .truncate-ellipsis;
 
-        // fix checkbox label overflow
-        display: block;
-
         // fix checkbox labels vertical alignment
         // overwrites (back to original): .iq-tree-view__child label { line-height: 32px; }
         line-height: 20px;
+
+        vertical-align: middle;
       }
 
       .iq-radio {

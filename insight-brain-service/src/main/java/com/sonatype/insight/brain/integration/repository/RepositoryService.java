@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -33,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -71,6 +74,8 @@ public class RepositoryService
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryService.class);
 
+  static final String HDS_IGNORE_PATTERNS_PATH = "rest/component/details/firewall/ignorePatterns";
+
   private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
   private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
@@ -85,14 +90,18 @@ public class RepositoryService
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
+  private final HdsClient hdsClient;
+
   @Inject
   public RepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
                            CLMLicenseManager licenseManager,
-                           PolicyThreatsAdapter policyThreatsAdapter)
+                           PolicyThreatsAdapter policyThreatsAdapter,
+                           HdsClient hdsClient)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.licenseManager = licenseManager;
     this.policyThreatsAdapter = policyThreatsAdapter;
+    this.hdsClient = hdsClient;
   }
 
   private void checkLicenseFeature() {
@@ -715,5 +724,14 @@ public class RepositoryService
         repository.getId(), System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  FirewallIgnorePatterns getIgnorePatterns() {
+    try {
+      return hdsClient.get(FirewallIgnorePatterns.class, HDS_IGNORE_PATTERNS_PATH);
+    }
+    catch (IOException e) {
+      throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
+    }
   }
 }

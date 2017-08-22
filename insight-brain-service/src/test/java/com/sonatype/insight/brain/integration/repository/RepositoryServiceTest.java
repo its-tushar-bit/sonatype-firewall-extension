@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -19,6 +20,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -34,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -130,6 +133,9 @@ public class RepositoryServiceTest
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   @Mock
+  private HdsClient hdsClient;
+
+  @Mock
   private FirewallAuditHdsClient auditHdsClient;
 
   @Mock
@@ -138,6 +144,7 @@ public class RepositoryServiceTest
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
+    binder.bind(HdsClient.class).toInstance(hdsClient);
     binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
     binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
   }
@@ -2249,5 +2256,20 @@ public class RepositoryServiceTest
     catch (NotFoundException expected) {
       assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
     }
+  }
+
+  @Test
+  public void testGetIgnorePatterns() throws Exception {
+    // Prepare request and mock the HDS request
+    FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
+    hdsResult.regexpsByRepositoryFormat = new HashMap<>();
+    hdsResult.regexpsByRepositoryFormat.put("foo", Collections.singletonList("bar"));
+    when(hdsClient.get(eq(FirewallIgnorePatterns.class), eq(RepositoryService.HDS_IGNORE_PATTERNS_PATH)))
+        .thenReturn(hdsResult);
+
+    // Call the service
+    FirewallIgnorePatterns firewallIgnorePatterns = repositoryService.getIgnorePatterns();
+
+    assertThat(firewallIgnorePatterns, is(hdsResult));
   }
 }

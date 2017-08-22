@@ -19,6 +19,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
@@ -35,21 +36,25 @@ import com.yammer.metrics.annotation.Timed;
 public class RepositoryResource
 {
 
-  public static final String RESOURCE_PATH = "rest/integration/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}";
+  public static final String RESOURCE_PATH = "rest/integration/repositories";
 
-  public static final String SUMMARY_PATH = "summary";
+  private static final String REPOSITORY_PATH = "{repositoryManagerInstanceId}/{repositoryPublicId}/";
 
-  public static final String ENABLE_PATH = "enable/{enabled}";
+  public static final String SUMMARY_PATH = REPOSITORY_PATH + "summary";
 
-  static final String QUARANTINE_PATH = "quarantine/{enabled}";
+  public static final String ENABLE_PATH = REPOSITORY_PATH + "enable/{enabled}";
 
-  public static final String EVALUATE_COMPONENTS_PATH = "evaluate/audit";
+  static final String QUARANTINE_PATH = REPOSITORY_PATH + "quarantine/{enabled}";
 
-  static final String COMPONENTS_PATH = "components/{pathname: .+}";
+  public static final String EVALUATE_COMPONENTS_PATH = REPOSITORY_PATH + "evaluate/audit";
 
-  public static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
+  static final String COMPONENTS_PATH = REPOSITORY_PATH + "components/{pathname: .+}";
 
-  static final String UNQUARANTINED_COMPONENTS_PATH = "components/unquarantined";
+  public static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
+
+  static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
+
+  static final String IGNORE_PATTERNS_PATH = "evaluate/ignorePatterns";
 
   private final RepositoryService repositoryService;
 
@@ -144,5 +149,15 @@ public class RepositoryResource
   {
     return repositoryService.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId,
         sinceUtcTimestamp);
+  }
+
+  /**
+   * @since 1.35
+   */
+  @GET
+  @Path(IGNORE_PATTERNS_PATH)
+  @Produces({ MediaType.APPLICATION_JSON })
+  public FirewallIgnorePatterns getIgnorePatterns() {
+    return repositoryService.getIgnorePatterns();
   }
 }

@@ -38,9 +38,7 @@ import org.owasp.dependencycheck.utils.Settings.KEYS;
 
 import static com.sonatype.insight.scan.cli.ExpandedCoveragePolicyEvaluator.EXPANDED_COVERAGE_SCAN_DISCLAIMER;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
@@ -95,8 +93,8 @@ public class ExpandedCoveragePolicyEvaluatorTest
   public void testScan_Directory() throws Exception {
     List<Dependency> dependencies = testScan("");
 
-    logOutput.assertInfo("Found 18 items.");
-    assertThat(dependencies, hasSize(18));
+    logOutput.assertInfo("Found 19 items.");
+    assertThat(dependencies, hasSize(19));
     assertThat(dependencies, hasItem(dependencyWithName("cmake/CMakeLists.txt")));
     assertThat(dependencies, hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar")));
     assertThat(dependencies,
@@ -107,18 +105,14 @@ public class ExpandedCoveragePolicyEvaluatorTest
     assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg: ActionSheet.nuspec")));
     assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg: ActionSheet.dll")));
     assertThat(dependencies, hasItem(dependencyWithName("noBytes.jar")));
-    assertThat(dependencies, either(
-        allOf(hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: a_macMetaDataHash1.jar")),
-            not(hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: c_macMetaDataHash1.jar")))))
-        .or(allOf(hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: c_macMetaDataHash1.jar")),
-            not(hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: a_macMetaDataHash1.jar"))))));
+    assertThat(dependencies,
+        hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: a_macMetaDataHash1.jar")));
     assertThat(dependencies,
         hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: b_jarWithStruts2pom.jar")));
     assertThat(dependencies,
-        not(hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: c_macMetaDataHash1.jar"))));
-    assertThat(dependencies,
-        hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: d_macMetaDataHash2.jar")));
+        hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: c_macMetaDataHash2.jar")));
     assertThat(dependencies, hasItem(dependencyWithName("test/._OpenCVDetectPython.cmake")));
+    assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: ._uber-1.1-SNAPSHOT.jar")));
     assertThat(dependencies, hasItem(dependencyWithName("test/OpenCVDetectPython.cmake")));
     assertThat(dependencies, hasItem(dependencyWithName("test/opensslv.h")));
     assertThat(dependencies, hasItem(dependencyWithName("test/package.json")));

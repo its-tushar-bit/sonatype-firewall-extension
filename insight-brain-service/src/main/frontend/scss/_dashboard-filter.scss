@@ -71,6 +71,7 @@
 
       .iq-checkbox__label {
         @extend .truncate-ellipsis;
+        @include semi-bold();
 
         // fix checkbox labels vertical alignment
         // overwrites (back to original): .iq-tree-view__child label { line-height: 32px; }
@@ -80,6 +81,8 @@
       }
 
       .iq-radio {
+        @include semi-bold();
+        
         // fix radio labels vertical alignment
         // overwrites (back to original): .iq-tree-view__child label { line-height: 32px; }
         line-height: 20px;

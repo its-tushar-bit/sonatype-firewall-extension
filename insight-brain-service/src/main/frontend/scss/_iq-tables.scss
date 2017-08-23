@@ -1,0 +1,92 @@
+/*
+  #Tables
+*/
+
+.iq-table {
+  border-collapse: collapse;
+  display: table;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.iq-cell {
+  display: table-cell;
+  height: 40px;
+  line-height: 40px;
+  overflow: hidden;
+  padding: 0 12px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iq-cell--header {
+  background-color: $iq-grey-1;
+  border-left: 1px solid $iq-grey-2;
+  color: $iq-slate;
+  position: relative;
+  text-align: left;
+
+  &.iq-cell--chevron {
+    border-color: $iq-grey-1;
+  }
+
+  &.iq-th--selected, &.selected-column {
+    background-color: $iq-grey-2;
+  }
+}
+
+.iq-cell--selected-column {
+  background-color: $iq-grey-2;
+}
+
+.iq-column-sort-trigger {
+  color: $iq-slate;
+  display: block;
+  height: 40px;
+  line-height: 40px;
+
+  &:hover {
+    color: $iq-off-black;
+    text-decoration: none;
+  }
+}
+
+.iq-column-sort-icons {
+  color: $iq-grey-4;
+  display: inline-block;
+  margin-right: 6px;
+  position: relative;
+  top: -13px;
+  width: 6px;
+
+  .fa-caret-up {
+    line-height: 7px;
+    position: absolute;
+    top: 1px;
+
+    &.up {
+      color: $iq-slate;
+    }
+  }
+
+  .fa-caret-down {
+    line-height: 7px;
+    position: absolute;
+    top: 8px;
+
+    &.down {
+      color: $iq-slate;
+    }
+  }
+}
+
+.iq-cell--label {
+  @include semi-bold();
+
+  color: $iq-slate;
+
+  tr:hover & {
+    color: $iq-off-black;
+  }
+}

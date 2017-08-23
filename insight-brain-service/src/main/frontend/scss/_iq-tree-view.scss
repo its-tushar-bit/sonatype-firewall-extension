@@ -1,0 +1,150 @@
+/*
+  #Tree view
+*/
+.iq-tree-view {
+  @include semi-bold();
+
+  box-sizing: border-box;
+  color: $iq-slate;
+  padding-right: 8px;
+  min-width: 250px;
+  max-width: 330px;
+}
+
+.iq-tree-view__group {
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.iq-tree-view__trigger {
+  @extend .truncate-ellipsis;
+  
+  border: 1px solid transparent;
+  display: block;
+  font-size: 14px;
+  height: 30px;
+  line-height: 32px;
+
+  &:hover, &:focus {
+    color: $iq-slate;
+    text-decoration: none;
+  }
+  
+  .iq-tree-view__counter {
+    float: right;
+    margin-top: 7px;
+  }
+}
+
+.iq-tree-view__trigger--unselectable {
+
+  &, .iq-tree-view__twisty {
+    cursor: default;
+  }
+
+  .iq-tree-view__twisty-icon {
+    &.expand {
+      border-left-color: $iq-grey-4;
+    }
+
+    &.collapse {
+      border-top-color: $iq-grey-4;
+    }
+  }
+}
+
+.iq-tree-view__twisty {
+  float: left;
+  height: 16px;
+  margin-right: 5px;
+  vertical-align: top;
+  width: 16px;
+}
+
+.iq-tree-view__twisty-icon {
+  content: "";
+  display: inline-block;
+  margin: 6px 0;
+  vertical-align: text-top;
+  width: 0;
+
+  &.collapse {
+    border-top: 5px solid $iq-slate;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+  }
+
+  &.expand {
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid $iq-slate;
+    margin: 3px 5px 3px 0;
+  }
+
+  &.empty {
+    border-top: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+  }
+}
+
+.iq-tree-view__text {
+  @extend .truncate-ellipsis;
+  
+  color: $iq-slate;
+  display: block;
+
+  .fa, .iq-tree-view__text-icon {
+    height: 16px;
+    margin-right: 8px;
+    width: 16px;
+  }
+
+  .hexagon {
+    vertical-align: text-top;
+    margin-right: 8px;
+  }
+}
+
+.iq-tree-view__text-icon--inverse {
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  vertical-align: text-top;
+}
+
+.iq-tree-view__children {
+  margin-bottom: 12px;
+}
+
+.iq-tree-view__child {
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  height: 30px;
+  line-height: 30px;
+  overflow: hidden;
+  padding-right: 8px;
+  padding-left: 45px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+
+  &.selected {
+    a {
+      color: $iq-off-black;
+      cursor: default;
+      text-decoration: none;
+    }
+  }
+
+  label {
+    line-height: 32px;
+    margin: 0;
+  }
+}
+
+.iq-tree-view--active {
+  background-color: $iq-off-white;
+  border-top-color: $iq-slate;
+  border-bottom-color: $iq-slate;
+}

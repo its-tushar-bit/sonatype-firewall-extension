@@ -158,7 +158,11 @@ public class RestClientFactory
       try {
         return newConfigurationClient(config).getFirewallIgnorePatterns();
       }
-      catch (IOException e) {
+      catch (HttpResponseException e) {
+        if (e.getStatusCode() == 404) {
+          throw new UnsupportedOperationException("IQ Server doesn't support firewall ignore patterns, "
+              + "upgrade it to version 1.35, or newer, to support it.", e);
+        }
         throw handleError(e);
       }
     }

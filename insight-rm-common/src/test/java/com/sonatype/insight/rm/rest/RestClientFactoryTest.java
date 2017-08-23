@@ -26,6 +26,7 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -371,5 +372,28 @@ public class RestClientFactoryTest
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     assertSame(firewallIgnorePatterns, client.getFirewallIgnorePatterns());
+  }
+
+  @Test
+  public void testGetFirewallIgnorePatterns_OlderIQServer() throws Exception {
+    HttpResponseException httpResponseException = new HttpResponseException(404, "Resource not found");
+    ConfigurationClient configClient = mock(ConfigurationClient.class);
+    when(configClient.getFirewallIgnorePatterns()).thenThrow(httpResponseException);
+
+    RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
+
+    RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    try {
+      client.getFirewallIgnorePatterns();
+      fail("Exception expected");
+    }
+    catch (UnsupportedOperationException e) {
+      assertThat((HttpResponseException) e.getCause(), sameInstance(httpResponseException));
+      assertThat(e.getMessage(), is("IQ Server doesn't support firewall ignore patterns, "
+          + "upgrade it to version 1.35, or newer, to support it."));
+      verify(configClient).getFirewallIgnorePatterns();
+      verifyNoMoreInteractions(configClient);
+    }
   }
 }

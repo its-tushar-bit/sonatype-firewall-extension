@@ -14,7 +14,9 @@
     <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">
       Filter Results
     </h4>
-    <a id="owner-tree-view-root-org-row" class="iq-tree-view__trigger owner-tree-view__row"
+    <a id="owner-tree-view-root-org-row"
+       class="iq-tree-view__trigger owner-tree-view__row"
+       ng-if="vm.rootOrganization"
        ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
        ui-sref="management.view.organization({organizationId: vm.rootOrganization.id})">
       <i class="fa fa-globe fa-lg owner-tree-view__icon"></i><!--
@@ -28,7 +30,7 @@
     </a>
     <div id="owner-tree-view-owner-rows" class="iq-tree-view__children">
       <a id="owner-tree-view-repositories-row"
-         class="iq-tree-view__child owner-tree-view__row"
+         class="iq-tree-view__child owner-tree-view__row owner-tree-view__row--repositories"
          ui-sref-active="selected"
          ng-if="vm.showRepositories"
          ui-sref="management.view.repositories">
@@ -38,7 +40,7 @@
      --><i class="fa fa-database owner-tree-view__icon owner-tree-view__icon--12px inverse"></i><!--
      --><span class="iq-tree-view__text">Repositories</span>
       </a>
-      <div class="iq-tree-view__child iq-tree-view"
+      <div class="iq-tree-view__child iq-tree-view owner-tree-view__row--organization"
            ng-repeat="organization in vm.organizations | orderBy:'name'"
            ng-if="organization.isVisible">
         <a class="iq-tree-view__trigger owner-tree-view__row"
@@ -70,7 +72,7 @@
             </button>
           </div>
         </a>
-        <div class="iq-tree-view__children">
+        <div class="iq-tree-view__children" ng-if="organization.isExpanded">
           <a class="iq-tree-view__child owner-tree-view__row owner-tree-view__row--child"
              ng-repeat="application in organization.applications | orderBy:'name'"
              ng-if="organization.isExpanded && application.isVisible"

@@ -64,6 +64,9 @@
     background-color: $iq-fail-color-bg;
     border: 1px solid $iq-fail-color;
     color: $iq-fail-color;
+    margin-right: -1px;
+    margin-bottom: -1px;
+    margin-left: -1px;
   }
   
   .btn {

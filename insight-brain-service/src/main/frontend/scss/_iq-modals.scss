@@ -48,12 +48,31 @@
   > .iq-alert {
     margin: -12px -4px -10px -4px;
   }
+  
+  .iq-alert--system-notice {
+    border-width: 1px;
+    margin: -12px -4px 12px -4px;
+  }
 }
 
 .iq-modal-footer {
   background-color: $iq-grey-1;
   border-top: 1px solid $iq-grey-4;
   padding: 12px;
+  
+  &.error {
+    background-color: $iq-fail-color-bg;
+    border: 1px solid $iq-fail-color;
+    color: $iq-fail-color;
+  }
+  
+  .btn {
+    margin-right: 12px;
+    
+    &:not(.btn-icon-only) {
+      min-width: 100px;
+    }
+  }
 }
 
 // Duplicates for Bootstrap styles we might want/need to remove someday

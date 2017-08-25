@@ -241,6 +241,18 @@
       color: $iq-off-black;
       cursor: default;
     }
+
+    &.disabled {
+      cursor: default;
+
+      .iq-tree-view__text {
+        color: $iq-grey-4;
+      }
+
+      .owner-tree-view__icon {
+        background-color: $iq-grey-4;
+      }
+    }
   }
 
   .iq-tree-view__child {

@@ -5,6 +5,7 @@
  */
 /* global angular */
 var validators = angular.module('Validators', []);
+export default validators;
 
 validators.directive('uniqueValidator', ['$parse', function($parse) {
   return {

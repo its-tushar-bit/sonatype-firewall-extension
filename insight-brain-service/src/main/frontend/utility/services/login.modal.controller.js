@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global Base64 */
-function LoginModalController($scope, $http, CLMLocations, Messages) {
+export default function LoginModalController($scope, $http, CLMLocations, Messages) {
   var vm = this;
 
   vm.username = undefined;
@@ -37,7 +37,3 @@ function LoginModalController($scope, $http, CLMLocations, Messages) {
 }
 
 LoginModalController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages'];
-
-angular //
-    .module('utility.services') //
-    .controller('login.modal.controller', LoginModalController);

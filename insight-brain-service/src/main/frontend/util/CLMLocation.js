@@ -4,9 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import commonServicesModule from '../util/CommonServices';
 
 export default
-angular.module('CLMLocation', ['CommonServices', 'ui.router']).factory('CLMLocations', [
+angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory('CLMLocations', [
   'BaseUrl', '$window', '$state', function(baseUrl, $window, $state) {
     return {
       getLicensesUrl: function() {

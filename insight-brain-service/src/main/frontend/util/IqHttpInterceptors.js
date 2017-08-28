@@ -9,7 +9,7 @@
  * This file contains HttpInterceptors that are needed only in the top-level IQ UI and not in child frames such as
  * reports (HttpInterceptors.js, in contrast, is bundled in the report js as well)
  */
-angular.module('IqHttpInterceptors', ['SessionSecurityModule'])
+export default angular.module('IqHttpInterceptors', ['SessionSecurityModule'])
     .factory('serverDateInterceptor', ['SessionSecurityService', function(SessionSecurityService) {
       return {
         response: function(response) {

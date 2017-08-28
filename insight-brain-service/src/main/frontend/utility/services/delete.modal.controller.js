@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function DeleteModalController($scope, Messages, resourceType, resourceName, resource, headerText, bodyText, maskText,
-                               continueAction, dismissOnError)
+export default function DeleteModalController($scope, Messages, resourceType, resourceName, resource, headerText,
+                                              bodyText, maskText, continueAction, dismissOnError)
 {
   var vm = this;
 
@@ -39,7 +39,3 @@ DeleteModalController.$inject = [
   '$scope', 'Messages', 'resourceType', 'resourceName', 'resource', 'headerText', 'bodyText', 'maskText',
   'continueAction', 'dismissOnError'
 ];
-
-angular //
-    .module('utility') //
-    .controller('DeleteModalController', DeleteModalController);

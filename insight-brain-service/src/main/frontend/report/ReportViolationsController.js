@@ -4,7 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation', 'vs-repeat']);
+import angularCommonModule from '../util/AngularCommon';
+import CLMLocationModule from '../util/CLMLocation';
+
+var reportListModule = angular.module('ReportViolations', [angularCommonModule.name, CLMLocationModule.name, 'vs-repeat']);
 
 reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',
   function($scope, $http, $q, clmLocations) {

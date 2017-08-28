@@ -9,7 +9,7 @@
  * Usage: assign the return value of any failed $http call to $scope.error and surround
  * the DOM content depending on the $http call with this directive.
  */
-function SubmitWrapper() {
+export default function SubmitWrapper() {
 
   return {
     restrict: 'A',
@@ -38,5 +38,3 @@ function SubmitWrapperController(Messages) {
 }
 
 SubmitWrapperController.$inject = ['Messages'];
-
-angular.module('utility').directive('submitWrapper', SubmitWrapper);

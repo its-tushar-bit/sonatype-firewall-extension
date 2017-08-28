@@ -5,10 +5,7 @@
  */
 import componentsModule from '../frontend/components/module';
 import directivesModule from '../frontend/directives/module';
-
 import utilityDirectivesModule from '../frontend/utility/directives/utility.directives.module';
-import '../frontend/utility/directives/load.wrapper.directive';
-
 import charts from './charts/module';
 import iqModalModule from './styles/iq-modal/module';
 

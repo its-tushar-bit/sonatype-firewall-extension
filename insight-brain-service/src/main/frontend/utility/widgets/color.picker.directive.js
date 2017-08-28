@@ -12,7 +12,7 @@ function ColorPickerController() {
   ];
 }
 
-function ColorPicker() {
+export default function ColorPicker() {
   return {
     scope: {
       ngModel: '='
@@ -24,7 +24,3 @@ function ColorPicker() {
     require: 'ngModel'
   };
 }
-
-angular
-    .module('utility')
-    .directive('colorPicker', ColorPicker);

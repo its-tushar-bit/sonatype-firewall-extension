@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
+import angularCommonModule from './util/AngularCommon';
+
 var applyInitialValue = function() {
   return {
     restrict: 'E',
@@ -43,7 +45,7 @@ var applyInitialValue = function() {
   };
 };
 
-var module = angular.module('FormsModule', ['AngularCommon'])
+var module = angular.module('FormsModule', [angularCommonModule.name])
 /**
  * Watches for changes to the input validity and shows a popover above the input field if invalid input is seen, or
  * if a required field loses focus without having been set.
@@ -262,3 +264,5 @@ module.directive('input', [applyInitialValue]);
 
 // The same for text areas
 module.directive('textarea', [applyInitialValue]);
+
+export default module;

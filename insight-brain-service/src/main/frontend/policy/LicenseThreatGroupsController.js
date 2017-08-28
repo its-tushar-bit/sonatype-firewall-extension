@@ -4,8 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import CLMAppLocationModule from '../util/CLMAppLocation';
+import storesModule from '../util/Stores';
+
 var licenseGroupModule = angular.module('LicenseThreatGroup',
-    ['Stores', 'CLMAppLocation']);
+    [storesModule.name, CLMAppLocationModule.name]);
 
 licenseGroupModule.service('licenseGroupStore', [
   'CLMAppLocations', 'CachedStore', function(CLMAppLocations, CachedStore) {

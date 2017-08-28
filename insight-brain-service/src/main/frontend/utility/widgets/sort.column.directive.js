@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function SortColumn() {
+export default function SortColumn() {
   return {
     restrict: 'A',
     require: '^sort',
@@ -64,5 +64,3 @@ function SortColumn() {
     }
   };
 }
-
-angular.module('utility').directive('sortColumn', SortColumn);

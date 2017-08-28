@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function DoubleColumnPicker() {
+export default function DoubleColumnPicker() {
   return {
     restrict: 'E',
     scope: {
@@ -153,5 +153,3 @@ function DoubleColumnPickerController($filter) {
 }
 
 DoubleColumnPickerController.$inject = ['$filter'];
-
-angular.module('utility').directive('doubleColumnPicker', DoubleColumnPicker);

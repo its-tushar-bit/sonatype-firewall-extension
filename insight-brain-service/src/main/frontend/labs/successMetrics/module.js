@@ -12,8 +12,10 @@ import summaryStatementTile from './summaryStatementTile/summaryStatementTile';
 import componentCountsChart from './componentCountsChart/componentCountsChart';
 import rootOrganization from './rootOrganization/rootOrganization';
 import chartUtilsService from './chartUtilsService';
+import CLMLocationModule from '../../util/CLMLocation';
+import productFeaturesModule from '../../util/ProductFeatures';
 
-export default angular.module('successMetricsModule', ['components', 'CLMLocation', 'ProductFeaturesModule'])
+export default angular.module('successMetricsModule', ['components', CLMLocationModule.name, productFeaturesModule.name])
     .service('successMetricsDataService', successMetricsDataService)
     .service('chartUtilsService', chartUtilsService)
     .component('successMetrics', successMetrics)

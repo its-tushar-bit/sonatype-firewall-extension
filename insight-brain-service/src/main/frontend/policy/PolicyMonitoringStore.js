@@ -4,7 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-var policyModule = angular.module('Policy', ['CLMAppLocation', 'CommonServices']);
+import commonServicesModule from '../util/CommonServices';
+import CLMAppLocationModule from '../util/CLMAppLocation';
+
+var policyModule = angular.module('Policy', [CLMAppLocationModule.name, commonServicesModule.name]);
 
 policyModule.service('PolicyMonitoringStore', [
   'CLMAppLocations', '$http', function(CLMAppLocations, $http) {

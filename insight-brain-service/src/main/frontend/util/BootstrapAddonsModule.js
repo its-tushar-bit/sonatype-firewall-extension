@@ -5,6 +5,7 @@
  */
 /* global angular, $ */
 var bootstrapAddons = angular.module('BootstrapAddons', []);
+export default bootstrapAddons;
 
 bootstrapAddons.directive('slider', function() {
   return {

@@ -4,9 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import CLMLocationModule from '../util/CLMLocation';
+import CLMAppLocationModule from '../util/CLMAppLocation';
+import storesModule from '../util/Stores';
+
 var tagTemplate = {id: null, organizationId: null, name: null, description: null, color: null};
 
-var tagModule = angular.module('Tags', ['CLMAppLocation', 'CLMLocation', 'Stores']);
+var tagModule = angular.module('Tags', [CLMAppLocationModule.name, CLMLocationModule.name, storesModule.name]);
 
 tagModule.service('TagStore', [
   'CachedHierarchyStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedHierarchyStore, CLMAppLocations, CLMLocations, $http) {

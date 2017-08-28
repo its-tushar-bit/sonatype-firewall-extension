@@ -15,8 +15,10 @@ import deleteFiltersModal from './manageFilterMenu/deleteFiltersModal/deleteFilt
 import saveFilterModalController from './manageFilterMenu/saveFilterModal/saveFilterModalController';
 import saveFilterModal from './manageFilterMenu/saveFilterModal/saveFilterModal';
 import manageFilterMenu from './manageFilterMenu/manageFilterMenu';
+import utilityModule from '../../utility/utility.module';
+import storesModule from '../../util/Stores';
 
-var module = angular.module('dashboardFilter', [CLMLocationModule.name, 'Stores', 'utility'])
+var module = angular.module('dashboardFilter', [CLMLocationModule.name, storesModule.name, utilityModule.name])
     .directive('dashboardFilterDimension', dashboardFilterDimension)
     .directive('dashboardFilterRadioDimension', dashboardFilterRadioDimension)
     .service('dashboardFilterService', dashboardFilterService)

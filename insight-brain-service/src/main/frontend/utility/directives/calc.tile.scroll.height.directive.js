@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function CalcTileScrollHeight($rootScope, $interpolate, EventNameConstant) {
+export default function CalcTileScrollHeight($rootScope, $interpolate, EventNameConstant) {
   return {
     restrict: 'A',
     link: CalcTileScrollHeightLink
@@ -38,7 +38,3 @@ function CalcTileScrollHeight($rootScope, $interpolate, EventNameConstant) {
 }
 
 CalcTileScrollHeight.$inject = ['$rootScope', '$interpolate', 'event.name.constant'];
-
-angular //
-    .module('utility.directives') //
-    .directive('calcTileScrollHeight', CalcTileScrollHeight);

@@ -9,4 +9,4 @@ var ownerConstant = {
   ORGANIZATION_TYPE: 'organization'
 };
 
-angular.module('utility').constant('owner.constant', ownerConstant);
+export default ownerConstant;

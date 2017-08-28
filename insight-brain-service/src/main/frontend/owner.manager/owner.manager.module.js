@@ -5,13 +5,23 @@
  */
 
 import moveApplicationModule from './move.application/module';
+import formsModule from '../FormsModule';
+import angularCommonModule from '../util/AngularCommon';
+import CLMLocationModule from '../util/CLMLocation';
+import utilityDirectivesModule from '../utility/directives/utility.directives.module';
+import utilityServicesModule from '../utility/services/utility.services.module';
+import utilityModule from '../utility/utility.module';
+import permissionServiceModule from '../util/PermissionService';
+import validatorsModule from '../util/Validators';
+import storesModule from '../util/Stores';
 
 export default
 angular.module('owner.manager.module',
     [
-      'Stores', 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule',
-      'utility', 'utility.directives', 'PermissionServiceModule', 'Policy', 'CLMLocation', 'utility.services',
-      'Validators', 'role.membership.module', moveApplicationModule.name
+      storesModule.name, 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', angularCommonModule.name,
+      formsModule.name, utilityModule.name, utilityDirectivesModule.name, permissionServiceModule.name, 'Policy',
+      CLMLocationModule.name, utilityServicesModule.name, validatorsModule.name, 'role.membership.module',
+      moveApplicationModule.name
     ])
     .config([
       '$stateProvider', function($stateProvider) {

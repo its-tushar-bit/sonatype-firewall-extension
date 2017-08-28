@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function InitialValueDropdownSelector() {
+export default function InitialValueDropdownSelector() {
   return {
     restrict: 'E',
     require: 'ngModel',
@@ -46,7 +46,3 @@ function InitialValueDropdownSelector() {
     }
   }
 }
-
-angular //
-    .module('utility') //
-    .directive('dropdownSelector', InitialValueDropdownSelector);

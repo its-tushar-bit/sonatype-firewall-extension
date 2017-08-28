@@ -16,7 +16,7 @@
  * <a copy-to-clipboard="vm.owner.publicId" copied-tooltip>Copy app Id to clipboard</a>
  *
  */
-function CopyToClipboard($window, $parse) {
+export default function CopyToClipboard($window, $parse) {
   return {
     restrict: 'A',
     require: 'copiedTooltip',
@@ -83,7 +83,3 @@ function CopyToClipboard($window, $parse) {
 }
 
 CopyToClipboard.$inject = ['$window', '$parse'];
-
-angular //
-    .module('utility.directives') //
-    .directive('copyToClipboard', CopyToClipboard);

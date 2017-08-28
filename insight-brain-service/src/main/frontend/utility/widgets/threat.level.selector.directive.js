@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-function ThreatLevelSelector() {
+export default function ThreatLevelSelector() {
   return {
     restrict: 'E',
     scope: {
@@ -29,5 +29,3 @@ function ThreatLevelSelectorController() {
     vm.threatLevelModel = parseInt(threatLevel);
   }
 }
-
-angular.module('utility').directive('threatLevelSelector', ThreatLevelSelector);

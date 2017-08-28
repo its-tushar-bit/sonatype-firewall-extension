@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function FormMaskDirective($parse) {
+export default function FormMaskDirective($parse) {
   return {
     restrict: 'A',
     controller: FormMaskController,
@@ -107,5 +107,3 @@ function FormMaskController($q, $timeout, $attrs) {
 }
 
 FormMaskController.$inject = ['$q', '$timeout', '$attrs'];
-
-angular.module('utility.directives').directive('formMask', FormMaskDirective);

@@ -5,7 +5,12 @@
  */
 /* global angular, clmBuildTimestamp */
 
-var module = angular.module('RoleModule', ['ui.router', 'ui.router.state', 'BootstrapAddons', 'SecurityModule', 'CLMLocation', 'ResourceModule'], [
+import resourceModule from '../Resource';
+import CLMLocationModule from '../util/CLMLocation';
+import BootstrapAddonsModule from '../util/BootstrapAddonsModule';
+
+var module = angular.module('RoleModule', ['ui.router', 'ui.router.state', BootstrapAddonsModule.name, 'SecurityModule',
+  CLMLocationModule.name, resourceModule.name], [
   '$stateProvider', function($stateProvider) {
     $stateProvider.state('roles', {
       url: '/roles',

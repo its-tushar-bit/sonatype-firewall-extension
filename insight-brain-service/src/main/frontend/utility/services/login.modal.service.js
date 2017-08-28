@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function LoginModalService(Modal) {
+export default function LoginModalService(Modal) {
   var service = {
     show: LoginModal
   };
@@ -52,7 +52,3 @@ function LoginModalService(Modal) {
 }
 
 LoginModalService.$inject = ['Modal'];
-
-angular //
-    .module('utility.services') //
-    .service('LoginModalService', LoginModalService);

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function FillVertical($window, $timeout, maximizeHeightService) {
+export default function FillVertical($window, $timeout, maximizeHeightService) {
   function link(scope, element) {
     var timerId;
 
@@ -31,5 +31,3 @@ function FillVertical($window, $timeout, maximizeHeightService) {
   };
 }
 FillVertical.$inject = ['$window', '$timeout', 'maximizeHeightService'];
-
-angular.module('utility.directives').directive('fillVertical', FillVertical);

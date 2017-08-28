@@ -3,6 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import angularCommonModule from '../../util/AngularCommon';
+import permissionServiceModule from '../../util/PermissionService';
+import storesModule from '../../util/Stores';
+
 function webhookModuleConfiguration($stateProvider) {
   $stateProvider.state('webhooks', {
     url: '/webhooks',
@@ -47,5 +51,5 @@ function webhookModuleConfiguration($stateProvider) {
 webhookModuleConfiguration.$inject = ['$stateProvider'];
 
 angular.module('webhook.module', [
-  'Stores', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'PermissionServiceModule'
+  storesModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name, permissionServiceModule.name
 ], webhookModuleConfiguration);

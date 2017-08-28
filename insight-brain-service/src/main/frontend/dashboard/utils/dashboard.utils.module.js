@@ -16,9 +16,11 @@ import stageFilter from './filters/stageFilter.filter';
 import stageTypeSort from './filters/stageTypeSort.filter';
 import removeDashes from './filters/removeDashes.filter';
 import wrapWith from './filters/wrap.with.filter';
+import angularCommonModule from '../../util/AngularCommon';
+import storesModule from '../../util/Stores';
 
 export default angular.module('dashboard.utils',
-    ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay'])
+    ['ui.router', storesModule.name, angularCommonModule.name, 'ComponentModule', 'ComponentDisplay'])
     .value('filterToParams', filterToParams)
     .value('extractColumn', extractColumn)
     .factory('ClassyBrew', ClassyBrew)

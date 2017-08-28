@@ -4,8 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, $, clmBuildTimestamp */
+import angularCommonModule from '../util/AngularCommon';
+import CLMLocationModule from '../util/CLMLocation';
+
 var module = angular.module('ProductLicense',
-    ['ui.router', 'AngularCommon', 'ngUpload', 'ngCookies', 'CLMLocation'],
+    ['ui.router', angularCommonModule.name, 'ngUpload', 'ngCookies', CLMLocationModule.name],
     ['$stateProvider', function($stateProvider) {
       $stateProvider.state('productlicense', {
         url: '/productlicense',

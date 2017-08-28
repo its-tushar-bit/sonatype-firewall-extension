@@ -7,7 +7,7 @@
  * Caches services similar to store, note that callers of get() should not modify the returned object directly as it
  * is shared.
  */
-function CachedServiceFactory($q, $http, Messages) {
+export default function CachedServiceFactory($q, $http, Messages) {
   function createCachedService(urlFn) {
     var deferred,
         usedUrl,
@@ -58,5 +58,3 @@ function CachedServiceFactory($q, $http, Messages) {
   };
 }
 CachedServiceFactory.$inject = ['$q', '$http', 'Messages'];
-
-angular.module('utility').service('cached.service.factory', CachedServiceFactory);

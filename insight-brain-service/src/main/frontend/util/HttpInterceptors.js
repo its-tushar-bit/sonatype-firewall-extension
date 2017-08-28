@@ -4,8 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import angularCommonModule from './AngularCommon';
+import CLMLocationModule from './CLMLocation';
+import utilityServicesModule from '../utility/services/utility.services.module';
 
-var httpInterceptors = angular.module('HttpInterceptors', []);
+export var httpInterceptors = angular.module('HttpInterceptors', []);
 
 httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$window', '$q', '$rootScope',
   function($window, $q, $rootScope) {
@@ -62,7 +65,9 @@ httpInterceptors.config(['$httpProvider', function($httpProvider) {
 
 //Ideally this would be merged into the above code, no event would be emitted, but sadly, ui.bootstrap (for $modal) has a dependency
 //on $http, therefore putting modal code in an http interceptor creates a circular dependency
-angular.module('UnauthenticatedResponseHttpInterceptor', ['HttpInterceptors', 'AngularCommon', 'ui.bootstrap', 'CLMLocation', 'utility.services']).run([
+export var unauthenticatedResponseHttpInterceptor = angular.module('UnauthenticatedResponseHttpInterceptor', [
+  httpInterceptors.name, angularCommonModule.name, 'ui.bootstrap',
+  CLMLocationModule.name, utilityServicesModule.name]).run([
   '$rootScope',
   '$q',
   '$http',

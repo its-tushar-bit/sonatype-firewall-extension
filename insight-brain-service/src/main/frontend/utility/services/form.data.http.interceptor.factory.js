@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function FormDataHttpInterceptor($window) {
+export default function FormDataHttpInterceptor($window) {
   return {
     request: function(config) {
       if (config.method === 'POST' && $window.FormData && config.data instanceof FormData) {
@@ -16,7 +16,3 @@ function FormDataHttpInterceptor($window) {
 }
 
 FormDataHttpInterceptor.$inject = ['$window'];
-
-angular //
-    .module('utility') //
-    .factory('form.data.http.interceptor', FormDataHttpInterceptor);

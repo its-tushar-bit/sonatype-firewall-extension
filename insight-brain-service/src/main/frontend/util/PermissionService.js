@@ -4,7 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-var module = angular.module('PermissionServiceModule', ['CLMAppLocation']);
+import CLMAppLocationModule from './CLMAppLocation';
+
+var module = angular.module('PermissionServiceModule', [CLMAppLocationModule.name]);
+export default module;
 
 module.service('PermissionService', [
   '$http', 'CLMAppLocations', '$q', function($http, CLMAppLocations, $q) {

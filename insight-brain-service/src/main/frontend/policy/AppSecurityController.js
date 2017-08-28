@@ -4,6 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import commonServicesModule from '../util/CommonServices';
+import angularCommonModule from '../util/AngularCommon';
+import CLMAppLocationModule from '../util/CLMAppLocation';
+
 var groupings = [{
   type: 'GROUP',
   header: 'GROUPS',
@@ -157,7 +161,7 @@ function AppSecurityEditorDirective() {
 
 angular //
     .module('ApplicationSecurityModule', //
-        ['CommonServices', 'AngularCommon', 'CLMAppLocation', 'role.membership.module']) //
+        [commonServicesModule.name, angularCommonModule.name, CLMAppLocationModule.name, 'role.membership.module']) //
     .controller('AppSecurityController', AppSecurityController) //
     .controller('AppSecurityEditorController', AppSecurityEditorController) //
     .directive('appSecurityEditor', AppSecurityEditorDirective);

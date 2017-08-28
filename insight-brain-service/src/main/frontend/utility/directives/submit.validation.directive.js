@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function SubmitValidation() {
+export default function SubmitValidation() {
   return {
     restrict: 'A',
     scope: {
@@ -64,5 +64,3 @@ function SubmitValidation() {
     }
   };
 }
-
-angular.module('utility.directives').directive('submitValidation', SubmitValidation);

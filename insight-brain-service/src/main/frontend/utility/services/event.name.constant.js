@@ -12,4 +12,4 @@ var eventNameConstant = {
   UPDATE_DASHBOARD_FILTERS_DIRTINESS: 'update.dashboard.filters.dirtiness'
 };
 
-angular.module('utility').constant('event.name.constant', eventNameConstant);
+export default eventNameConstant;

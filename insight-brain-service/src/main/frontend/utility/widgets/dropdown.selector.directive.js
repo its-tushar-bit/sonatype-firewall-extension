@@ -5,7 +5,7 @@
 */
 import template from './dropdown.selector.directive.tpl.html';
 
-function DropdownSelector() {
+export default function DropdownSelector() {
   return {
     restrict: 'E',
     scope: {
@@ -129,6 +129,3 @@ function DropdownSelectorController($scope, $element) {
 }
 
 DropdownSelectorController.$inject = ['$scope', '$element'];
-
-angular.module('utility').directive('dropdownSelector', DropdownSelector);
-

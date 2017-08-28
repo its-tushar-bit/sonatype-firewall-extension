@@ -4,4 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-angular.module('root.organization.migrate', ['CommonServices', 'Stores']);
+import commonServicesModule from '../util/CommonServices';
+import storesModule from '../util/Stores';
+
+angular.module('root.organization.migrate', [commonServicesModule.name, storesModule.name]);

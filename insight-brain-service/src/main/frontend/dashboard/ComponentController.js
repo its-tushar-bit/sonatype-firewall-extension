@@ -4,7 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, d3 */
-var componentModule = angular.module('ComponentModule', ['ui.router', 'CommonServices', 'CLMLocation', 'Stores']);
+import commonServicesModule from '../util/CommonServices';
+import CLMLocationModule from '../util/CLMLocation';
+import storesModule from '../util/Stores';
+
+var componentModule = angular.module('ComponentModule',
+    ['ui.router', commonServicesModule.name, CLMLocationModule.name, storesModule.name]);
 
 componentModule.controller('componentController', ['$scope', '$state', '$q', '$http', 'StageTypeStore', 'CLMLocations',
   function($scope, $state, $q, $http, StageTypeStore, CLMLocations) {

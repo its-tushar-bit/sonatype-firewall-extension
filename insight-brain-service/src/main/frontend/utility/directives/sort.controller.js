@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function SortController($attrs) {
+export default function SortController($attrs) {
   var vm = this;
   vm.setSort = setSort;
   vm.extractSortField = extractSortField;
@@ -35,5 +35,3 @@ function SortController($attrs) {
 }
 
 SortController.$inject = ['$attrs'];
-
-angular.module('utility.directives').controller('sort.controller', SortController);

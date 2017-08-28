@@ -13,8 +13,6 @@ function FuseFilter(input, term, field) {
   return fuse.search(term);
 }
 
-function FuseFilterFactory() {
+export default function FuseFilterFactory() {
   return FuseFilter;
 }
-
-angular.module('utility').filter('fuzzy', FuseFilterFactory);

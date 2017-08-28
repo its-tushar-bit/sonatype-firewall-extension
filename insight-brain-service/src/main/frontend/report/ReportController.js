@@ -4,7 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, $, clmBuildTimestamp, window */
-var reportModule = angular.module('Report', ['CLMLocation', 'ui.router', 'AngularCommon', 'CommonServices'], [
+import commonServicesModule from '../util/CommonServices';
+import angularCommonModule from '../util/AngularCommon';
+import CLMLocationModule from '../util/CLMLocation';
+
+var reportModule = angular.module('Report', [CLMLocationModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name], [
   '$stateProvider', function($stateProvider) {
     $stateProvider.state('report', {
       url: '/reports/{publicId}/{scanId}',

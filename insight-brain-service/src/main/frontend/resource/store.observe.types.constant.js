@@ -8,4 +8,4 @@ var storeObserveTypesConstant = {
   DELETE: 'delete'
 };
 
-angular.module('ResourceModule').constant('store.observe.type.constant', storeObserveTypesConstant);
+export default storeObserveTypesConstant;

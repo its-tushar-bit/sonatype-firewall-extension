@@ -2,6 +2,16 @@
  * Copyright (c) 2011-present Sonatype, Inc. All rights reserved. Includes the third-party code listed at
  * http://links.sonatype.com/products/clm/attributions. "Sonatype" is a trademark of Sonatype, Inc.
  */
+import resourceModule from '../../Resource';
+import commonServicesModule from '../../util/CommonServices';
+import angularCommonModule from '../../util/AngularCommon';
+import CLMLocationModule from '../../util/CLMLocation';
+
+angular.module('ldap.module', [
+  CLMLocationModule.name, resourceModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name,
+  'EditorTools'
+], ldapModuleConfiguration);
+
 function ldapModuleConfiguration($stateProvider) {
   $stateProvider.state('ldap-servers', {
     url: '/ldap-servers',
@@ -50,8 +60,3 @@ function ldapModuleConfiguration($stateProvider) {
 }
 
 ldapModuleConfiguration.$inject = ['$stateProvider'];
-
-angular.module('ldap.module', [
-  'CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices',
-  'EditorTools'
-], ldapModuleConfiguration);

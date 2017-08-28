@@ -4,8 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import resourceModule from '../Resource';
+import CLMLocationModule from '../util/CLMLocation';
+import CLMAppLocationModule from '../util/CLMAppLocation';
 
-var storesModule = angular.module('Stores', ['CLMLocation', 'CLMAppLocation', 'ResourceModule']);
+var storesModule = angular.module('Stores', [CLMLocationModule.name, CLMAppLocationModule.name, resourceModule.name]);
+
+export default storesModule;
 
 storesModule.service('ApplicationStore', [
   '$rootScope', 'CLMLocations', 'StoreFactory', 'LastSelectedOrganization', 'OrganizationStore',

@@ -6,6 +6,21 @@
 /* global angular*/
 
 import systemConfigurationPropertyService from './systemConfigurationPropertyService';
+import CLMLocationModule from '../../util/CLMLocation';
+import utilityDirectivesModule from '../directives/utility.directives.module';
+import JiraService from './jira.service';
+import LoginModalController from './login.modal.controller';
+import LoginModalService from './login.modal.service';
+import StableBodyService from './stable.body.service';
+import StateHistoryService from './state.history.service';
+import UnauthenticatedRequestQueueService from './unauthenticated.request.queue.service';
 
-export default angular.module('utility.services', ['utility.directives', 'CLMLocation'])
-    .service('systemConfigurationPropertyService', systemConfigurationPropertyService);
+export default angular.module('utility.services', [utilityDirectivesModule.name, CLMLocationModule.name])
+    .service('systemConfigurationPropertyService', systemConfigurationPropertyService)
+    .service('jira.service', JiraService)
+    .controller('login.modal.controller', LoginModalController)
+    .service('LoginModalService', LoginModalService)
+    .service('stable.body.service', StableBodyService)
+    .service('state.history.service', StateHistoryService)
+    .service('UnauthenticatedRequestQueueService', UnauthenticatedRequestQueueService)
+;

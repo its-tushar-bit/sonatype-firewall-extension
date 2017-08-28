@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function AgeInDaysInput() {
+export default function AgeInDaysInput() {
   return {
     restrict: 'E',
     scope: {
@@ -54,7 +54,3 @@ function AgeInDaysInputController($scope) {
 }
 
 AgeInDaysInputController.$inject = ['$scope'];
-
-angular //
-    .module('utility') //
-    .directive('ageInDaysInput', AgeInDaysInput);

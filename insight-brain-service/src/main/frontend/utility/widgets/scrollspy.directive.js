@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function ScrollSpy($timeout, EventNameConstant, StableBodyService) {
+export default function ScrollSpy($timeout, EventNameConstant, StableBodyService) {
   return {
     scope: {
       scrollspy: '@'
@@ -71,7 +71,3 @@ function ScrollSpy($timeout, EventNameConstant, StableBodyService) {
 }
 
 ScrollSpy.$inject = ['$timeout', 'event.name.constant', 'stable.body.service'];
-
-angular
-    .module('utility')
-    .directive('scrollspy', ScrollSpy);

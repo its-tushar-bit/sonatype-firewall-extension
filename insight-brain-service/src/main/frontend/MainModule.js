@@ -4,6 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, $, angularDebug */
+import commonServicesModule from './util/CommonServices';
+import formsModule from './FormsModule';
+import CLMLocationModule from './util/CLMLocation';
+import {httpInterceptors, unauthenticatedResponseHttpInterceptor} from './util/HttpInterceptors';
+import IqHttpInterceptorsModule from './util/IqHttpInterceptors';
+import productFeaturesModule from './util/ProductFeatures';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -18,9 +24,9 @@ $.fn.modal.Constructor.prototype.enforceFocus = function() {
 };
 
 angular.module('InitModule', [
-  'ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices', 'ngAria',
-  'ReportModule', 'Report', 'mainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
-  'ProductFeaturesModule', 'HttpInterceptors', 'IqHttpInterceptors', 'dashboard.module', 'FormsModule',
+  'ui.router', 'ui.bootstrap', CLMLocationModule.name, commonServicesModule.name, 'ngAria',
+  'ReportModule', 'Report', 'mainHeader', 'ngRoute', unauthenticatedResponseHttpInterceptor.name, 'xeditable',
+  productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, 'dashboard.module', formsModule.name,
   'SessionSecurityModule'
 ], [
   '$stateProvider', '$routeProvider', '$urlRouterProvider',

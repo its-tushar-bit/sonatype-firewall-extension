@@ -8,7 +8,7 @@
  * Usage: assign the return value of any failed $http call to $scope.error and surround
  * the DOM content depending on the $http call with this directive.
  */
-function LoadWrapper() {
+export default function LoadWrapper() {
   return {
     restrict: 'A',
     priority: 99,
@@ -51,7 +51,3 @@ function LoadWrapperController(Messages) {
 }
 
 LoadWrapperController.$inject = ['Messages'];
-
-angular //
-    .module('utility.directives') //
-    .directive('loadWrapper', LoadWrapper);

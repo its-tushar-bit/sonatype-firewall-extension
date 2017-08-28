@@ -4,7 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable', 'ngCookies']);
+import commonServicesModule from './util/CommonServices';
+import angularCommonModule from './util/AngularCommon';
+import CLMAppLocationModule from './util/CLMAppLocation';
+import storesModule from './util/Stores';
+
+var module = angular.module('EditorTools',
+    [
+      commonServicesModule.name, CLMAppLocationModule.name, storesModule.name, angularCommonModule.name, 'xeditable',
+      'ngCookies'
+    ]);
 
 module.run(['editableOptions', function (editableOptions) {
   editableOptions.theme = 'bs2';

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function JiraService($http, $q, CLMLocations) {
+export default function JiraService($http, $q, CLMLocations) {
   var isEnabledDeferred,
       getProjectsDeferred;
 
@@ -44,5 +44,3 @@ function JiraService($http, $q, CLMLocations) {
 }
 
 JiraService.$inject = ['$http', '$q', 'CLMLocations'];
-
-angular.module('utility.services').service('jira.service', JiraService);

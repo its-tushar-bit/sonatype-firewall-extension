@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function UnauthenticatedRequestQueueService() {
+export default function UnauthenticatedRequestQueueService() {
   var service = {
     addRequest: addRequest,
     clearRequests: clearRequests,
@@ -38,7 +38,3 @@ function UnauthenticatedRequestQueueService() {
 
   return service;
 }
-
-angular //
-    .module('utility.services') //
-    .service('UnauthenticatedRequestQueueService', UnauthenticatedRequestQueueService);

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function ScrollbarDetector($window, $timeout, EventNameConstant, StableBodyService) {
+export default function ScrollbarDetector($window, $timeout, EventNameConstant, StableBodyService) {
   return {
     restrict: 'A',
     link: ScrollbarDetectorLink
@@ -36,7 +36,3 @@ function ScrollbarDetector($window, $timeout, EventNameConstant, StableBodyServi
 }
 
 ScrollbarDetector.$inject = ['$window', '$timeout', 'event.name.constant', 'stable.body.service'];
-
-angular //
-    .module('utility.directives') //
-    .directive('detectScrollbar', ScrollbarDetector);

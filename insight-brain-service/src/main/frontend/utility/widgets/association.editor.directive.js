@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function AssociationEditor() {
+export default function AssociationEditor() {
   return {
     restrict: 'E',
     scope: {
@@ -32,5 +32,3 @@ function AssociationEditorController() {
     item[checkboxParam] = !item[checkboxParam];
   }
 }
-
-angular.module('utility').directive('associationEditor', AssociationEditor);

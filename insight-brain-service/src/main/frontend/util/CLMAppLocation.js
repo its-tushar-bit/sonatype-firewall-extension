@@ -4,7 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global window, angular */
-var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ui.router', 'CLMLocation']);
+import commonServicesModule from '../util/CommonServices';
+import CLMLocationModule from '../util/CLMLocation';
+
+var locationModule = angular.module('CLMAppLocation', [commonServicesModule.name, 'ui.router', CLMLocationModule.name]);
+export default locationModule;
 
 locationModule.factory('CLMAppLocations', [
   'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', '$window', 'CLMLocations',

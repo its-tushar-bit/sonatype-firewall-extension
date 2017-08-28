@@ -3,4 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-angular.module('role.membership.module', ['CLMAppLocation', 'CommonServices']);
+import commonServicesModule from '../util/CommonServices';
+import CLMAppLocationModule from '../util/CLMAppLocation';
+
+angular.module('role.membership.module', [CLMAppLocationModule.name, commonServicesModule.name]);

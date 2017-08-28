@@ -11,11 +11,14 @@ import policyTrendController from './results/PolicyTrendController';
 import violationsTableRow from './results/violationsTableRow';
 import dashboardResultsController from './results/dashboard.results.controller';
 import dashboardFilterModule from './filter/module';
+import angularCommonModule from '../util/AngularCommon';
+import utilityModule from '../utility/utility.module';
+import storesModule from '../util/Stores';
 
 var dashboardModule = angular.module('dashboard.module',
     [
-      'ui.router', 'Stores', 'AngularCommon', 'ComponentModule', 'ComponentDisplay', dashboardUtilsModule.name,
-      'utility', dashboardFilterModule.name
+      'ui.router', storesModule.name, angularCommonModule.name, 'ComponentModule', 'ComponentDisplay', dashboardUtilsModule.name,
+      utilityModule.name, dashboardFilterModule.name
     ])
     .service('dashboard.data.service', dashboardDataService)
 

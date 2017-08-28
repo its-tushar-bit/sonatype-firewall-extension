@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function StateHistoryService($rootScope) {
+export default function StateHistoryService($rootScope) {
   var service = {
         register: angular.noop, // Fake function used to register this service on app init
         getPreviousState: getPreviousState
@@ -24,7 +24,3 @@ function StateHistoryService($rootScope) {
 }
 
 StateHistoryService.$inject = ['$rootScope'];
-
-angular //
-    .module('utility.services') //
-    .service('state.history.service', StateHistoryService);

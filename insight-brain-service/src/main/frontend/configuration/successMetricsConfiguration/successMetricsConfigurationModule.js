@@ -5,9 +5,11 @@
 /* global angular */
 
 import successMetricsConfiguration from './successMetricsConfiguration';
+import utilityServicesModule from '../../utility/services/utility.services.module';
+import permissionServiceModule from '../../util/PermissionService';
 
 var successMetricsConfigurationModule = angular.module('successMetricsConfigurationModule',
-    ['ui.router', 'utility.services', 'PermissionServiceModule'])
+    ['ui.router', utilityServicesModule.name, permissionServiceModule.name])
     .component('successMetricsConfiguration', successMetricsConfiguration)
     .config([
       '$stateProvider', function($stateProvider) {

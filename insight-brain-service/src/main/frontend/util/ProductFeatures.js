@@ -4,7 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-var productFeatureModule = angular.module('ProductFeaturesModule', ['CLMLocation']);
+import CLMLocationModule from '../util/CLMLocation';
+
+var productFeatureModule = angular.module('ProductFeaturesModule', [CLMLocationModule. name]);
+export default productFeatureModule;
 
 productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', function($http, CLMLocations) {
   var promise = null, productFeatures = null;

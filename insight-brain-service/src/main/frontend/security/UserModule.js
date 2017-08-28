@@ -5,7 +5,14 @@
  */
 /* global angular, ZeroClipboard, clmBuildTimestamp, $ */
 /* eslint indent: "off"*/
-angular.module('SecurityModule', ['ui.router', 'AngularCommon', 'ApplicationSecurityModule', 'PermissionServiceModule'], ['$stateProvider',
+import resourceModule from '../Resource';
+import angularCommonModule from '../util/AngularCommon';
+import CLMLocationModule from '../util/CLMLocation';
+import utilityModule from '../utility/utility.module';
+import permissionServiceModule from '../util/PermissionService';
+
+angular.module('SecurityModule', ['ui.router', angularCommonModule.name, 'ApplicationSecurityModule',
+  permissionServiceModule.name], ['$stateProvider',
     function($stateProvider) {
       $stateProvider.state('administrators', {
         url: '/administrators',
@@ -33,7 +40,8 @@ angular.module('SecurityModule', ['ui.router', 'AngularCommon', 'ApplicationSecu
       });
     }]);
 
-var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'utility'],
+var module = angular.module('UserModule', ['ui.router', 'SecurityModule', CLMLocationModule.name, resourceModule.name,
+  utilityModule.name],
         ['$stateProvider', function($stateProvider) {
           $stateProvider.state('users', {
             url: '/users',

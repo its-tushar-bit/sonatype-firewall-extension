@@ -4,7 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, jQuery */
+import storeObserveTypesConstant from './resource/store.observe.types.constant';
+
 var module = angular.module('ResourceModule', []);
+export default module;
 
 function createTemplateFn(object) {
   object = object || {};
@@ -12,6 +15,8 @@ function createTemplateFn(object) {
     return object;
   };
 }
+
+module.constant('store.observe.type.constant', storeObserveTypesConstant);
 
 module.service('StoreFactory', [
   '$q', '$http', '$parse', '$rootScope', 'store.observe.type.constant',

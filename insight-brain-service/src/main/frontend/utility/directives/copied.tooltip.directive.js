@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function CopiedTooltipDirective($parse) {
+export default function CopiedTooltipDirective($parse) {
   return {
     restrict: 'A',
     controller: CopiedTooltipController,
@@ -41,5 +41,3 @@ function CopiedTooltipController($element) {
 }
 
 CopiedTooltipController.$inject = ['$element'];
-
-angular.module('utility.directives').directive('copiedTooltip', CopiedTooltipDirective);

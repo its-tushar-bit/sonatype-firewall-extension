@@ -11,10 +11,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.LocalDate;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -35,6 +37,10 @@ public class PolicyViolationAggregationDataHelper
     // the logic that limits the returned data to just 12 months
     LocalDate beginningOfMonth = today.withDayOfMonth(1).minusMonths(13);
     Date beginningOfMonthDate = toDate(beginningOfMonth);
+
+    // PoC mode is based on oldest evaluation date. This aggregation dataset is definitely not PoC.
+    tempEntity.newPolicyEvaluation(tempEntity.newApplication(ROOT_ORGANIZATION_ID).getId(), StageTypes.BUILD.getId(),
+        "oldScan", beginningOfMonthDate);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[0], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] { 5000, 6000, 7000 }), //

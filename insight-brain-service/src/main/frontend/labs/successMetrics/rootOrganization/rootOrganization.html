@@ -6,24 +6,24 @@
   <iq-back-button state="labs.successMetrics"></iq-back-button>
   <div ng-if="vm.activeApplicationCount !== 0">
     <div class="iq-tile iq-tile--chart" >
-      <summary-statement-tile></summary-statement-tile>
+      <summary-statement-tile averages-data="vm.averagesData"></summary-statement-tile>
     </div>
     <div class="iq-tile iq-tile--chart">
-      <violation-averages-chart></violation-averages-chart>
+      <violation-averages-chart averages-data="vm.averagesData"></violation-averages-chart>
+    </div>
+    <div ng-if="!vm.isMttrDisabled()" class="iq-tile iq-tile--chart">
+      <mttr-chart mttr-data="vm.mttrData"></mttr-chart>
     </div>
     <div class="iq-tile iq-tile--chart">
-      <mttr-chart></mttr-chart>
+      <application-counts-chart application-counts-data="vm.applicationCountsData"></application-counts-chart>
     </div>
     <div class="iq-tile iq-tile--chart">
-      <application-counts-chart></application-counts-chart>
-    </div>
-    <div class="iq-tile iq-tile--chart">
-      <component-counts-chart></component-counts-chart>
+      <component-counts-chart component-data="vm.componentCountsData"></component-counts-chart>
     </div>
   </div>
   <div ng-if="vm.activeApplicationCount === 0" class="iq-alert iq-alert--info" id="no-data-warning">
     <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check
-    back next month!
+    again later.
   </div>
 </div>
 

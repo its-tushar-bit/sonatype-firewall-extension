@@ -86,8 +86,8 @@ public class PolicyViolationAggregationResourceTest
     // create two apps in two orgs
     Application app1 = tempEntity.newApplicationWithParent("appId1", "app 1", "test org 1");
     Application app2 = tempEntity.newApplicationWithParent("appId2", "app 2", "test org 2");
-    Date startOfMonth = new LocalDate().minusMonths(1).withDayOfMonth(1).toDate();
-    Date middleOfMonth = new LocalDate().minusMonths(1).withDayOfMonth(15).toDate();
+    Date startOfMonth = new LocalDate().withDayOfMonth(1).toDate();
+    Date middleOfMonth = new LocalDate().withDayOfMonth(15).toDate();
 
     // an evaluation for each app, with one violation each
     Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy1", 5);

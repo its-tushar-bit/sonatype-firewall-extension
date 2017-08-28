@@ -11,32 +11,20 @@ const NUMBER_OF_TICKS = 4;
 const mttrChart = {
   template,
   controller,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
+  bindings: {
+    mttrData: '<'
+  }
 };
 
 export default mttrChart;
 
-function controller(successMetricsDataService, $q, chartUtilsService) {
+function controller(chartUtilsService) {
   const vm = this;
-  vm.doLoad = doLoad;
-  vm.error = undefined;
 
-  doLoad();
-
-  function doLoad() {
-    vm.mttrChart = successMetricsDataService.getMttrData().then(function(data) {
-      vm.isLoaded = true;
-      return makeMttrChart(data);
-    }, function(error) {
-      vm.error = error;
-      return $q.reject(error);
-    });
-
-    delete vm.error;
-  }
+  vm.mttrChart = makeMttrChart(vm.mttrData);
 
   function makeMttrChart(dataset) {
-
     const formatMonth = d3.utcFormat('%b');
 
     var max = d3.max(dataset, function({mttrInSeconds, criticalMttrInSeconds}) {
@@ -127,4 +115,4 @@ function controller(successMetricsDataService, $q, chartUtilsService) {
   }
 }
 
-controller.$inject = ['successMetricsDataService', '$q', 'chartUtilsService'];
+controller.$inject = ['chartUtilsService'];

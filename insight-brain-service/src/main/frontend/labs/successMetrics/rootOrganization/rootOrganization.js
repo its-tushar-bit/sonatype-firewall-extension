@@ -18,19 +18,29 @@ function rootOrganizationController($q, systemConfigurationPropertyService, succ
   vm.error = undefined;
   vm.activeApplicationCount = undefined;
   vm.doLoad = doLoad;
+  vm.isMttrDisabled = isMttrDisabled;
 
   function doLoad() {
     delete vm.error;
     $q.all([
       systemConfigurationPropertyService.checkSuccessMetricsEnabled(),
-      successMetricsDataService.getApplicationCountsData()
-    ]).then(function(results) {
-      vm.activeApplicationCount = results[1].activeApplications;
+      successMetricsDataService.getApplicationCountsData(),
+      successMetricsDataService.getMttrData(),
+      successMetricsDataService.getAveragesData(),
+      successMetricsDataService.getComponentCountsData()
+    ]).then(function([, applicationCountsData, mttrData, averagesData, componentCountsData]) {
+      angular.extend(vm, { applicationCountsData, mttrData, averagesData, componentCountsData });
+
+      vm.activeApplicationCount = applicationCountsData.activeApplications;
     }).catch(function(error) {
       vm.error = error;
     }).finally(function() {
       vm.loaded = true;
     });
+  }
+
+  function isMttrDisabled() {
+    return !vm.mttrData || vm.mttrData.length === 0;
   }
 
   doLoad();

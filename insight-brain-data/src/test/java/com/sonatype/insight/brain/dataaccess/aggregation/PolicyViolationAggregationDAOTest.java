@@ -346,6 +346,48 @@ public class PolicyViolationAggregationDAOTest
     assertThat(result.countOtherCriticalThreat, is(0));
   }
 
+  @Test
+  public void testDeletePartialMonthsUpTo_OnlyDeletesForSuppliedAppId() {
+    LocalDate startOfLastMonth = LocalDate.now().withDayOfMonth(1).minusMonths(1);
+    LocalDate midOfLastMonth = startOfLastMonth.withDayOfMonth(15);
+    createPolicyViolationAggregation("app1", startOfLastMonth, midOfLastMonth);
+    createPolicyViolationAggregation("app2", startOfLastMonth, midOfLastMonth);
+
+    dao.deletePartialMonthsUpTo("app1", LocalDate.now());
+
+    assertThat(dao.getByApplicationId("app1"), hasSize(0));
+    assertThat(dao.getByApplicationId("app2"), hasSize(1));
+  }
+
+  @Test
+  public void testDeletePartialMonthsUpTo_OnlyDeletesPartialMonthsUpToSuppliedDate() {
+    LocalDate now = LocalDate.now();
+    LocalDate startOfLastMonth = now.minusMonths(1).withDayOfMonth(1);
+    LocalDate endOfLastMonth = startOfLastMonth.dayOfMonth().withMaximumValue();
+    LocalDate startOfThisMonth = startOfLastMonth.plusMonths(1);
+
+    createPolicyViolationAggregation("app1", startOfLastMonth, endOfLastMonth);
+    createPolicyViolationAggregation("app1", startOfThisMonth, now);
+
+    dao.deletePartialMonthsUpTo("app1", now);
+
+    List<PolicyViolationAggregation> results = dao.getByApplicationId("app1");
+    assertThat(results, hasSize(1));
+    assertThat(results.get(0).getTimePeriodEnd(), is(now.toDate()));
+  }
+
+  private void createPolicyViolationAggregation(String appId, LocalDate periodStart, LocalDate periodEnd) {
+    DescriptiveStatistics emptyStats = new DescriptiveStatistics();
+
+    tempEntity.newPolicyViolationAggregation(appId, periodStart.toDate(), periodEnd.toDate(),//
+        emptyStats, emptyStats, emptyStats, emptyStats, //
+        0, 0, 0, 0, //
+        0, 0, 0, 0, //
+        0, 0, 0, 0, //
+        0, 0, 0, 0, //
+        0);
+  }
+
   private void assertAverages(AverageThreatCategoryMonth actual, double low, double moderate, double severe, double critical) {
     assertThat(actual.averageDiscoveredLowThreat, closeTo(low, TOLERANCE));
     assertThat(actual.averageDiscoveredModerateThreat, closeTo(moderate, TOLERANCE));

@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  function PolicyViolationsController($http, $scope, $q, $modal, SelectedComponent, OwnerContext, PolicyViolations, Messages) {
+  function PolicyViolationsController($http, $scope, $q, Modal, SelectedComponent, OwnerContext, PolicyViolations, Messages) {
 
     $scope.getThreatColor = function (threatLevel) {
       return threatLevel > 7 ? 'red' : threatLevel > 3 ? 'orange' : threatLevel > 1 ? 'yellow' : threatLevel > 0 ? 'darkblue' : 'blue';
@@ -40,12 +40,11 @@
     };
 
     $scope.waiveComponent = function(policyAlert) {
-      $modal.open({
+      Modal.open({
         templateUrl: 'add-waiver-modal-tmpl',
         controller: 'AddWaiverController',
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal',
         resolve: {
           policy: function() {
             return policyAlert;
@@ -55,24 +54,22 @@
     };
 
     $scope.releaseQuarantine = function() {
-      $modal.open({
+      Modal.open({
         templateUrl: 'release-quarantine-tmpl',
         controller: 'release.quarantine.controller as vm',
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal'
       }).result.then(function() {
         $scope.quarantined = false;
       });
     };
 
     $scope.viewWaivers = function() {
-      $modal.open({
+      Modal.open({
         templateUrl: 'view-waivers-modal-tmpl',
         controller: 'ViewWaiverController',
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal'
       });
     };
     $scope.alerts = [];
@@ -90,7 +87,7 @@
     });
   }
 
-  PolicyViolationsController.$inject = ['$http', '$scope', '$q', '$modal', 'SelectedComponent', 'OwnerContext', 'PolicyViolations', 'Messages'];
+  PolicyViolationsController.$inject = ['$http', '$scope', '$q', 'Modal', 'SelectedComponent', 'OwnerContext', 'PolicyViolations', 'Messages'];
 
   angular.module('cip.policy.violations').controller('PolicyViolationsController', PolicyViolationsController);
 }());

@@ -20,12 +20,12 @@
     </div>
   </div>
   <script type='text/ng-template' id='repository-reevaluate-modal-template'>
-    <div id="repository-reevaluate-modal" class="clm-modal">
-      <div class="clm-modal-header">
+    <div id="repository-reevaluate-modal">
+      <div class="iq-modal-header">
         <h3>Re-evaluate policy</h3>
       </div>
       <form ng-submit="vm.reEvaluatePolicy()" form-mask="vm.reEvaluatePolicyMask" mask-message="Starting evaluation">
-        <div class="clm-modal-body">
+        <div class="iq-modal-content">
           <span>
             Note: Re-evaluating policy can be a time-consuming process depending on repository size. If you proceed,
             the re-evaluation will run in the background and update the results as it progresses.
@@ -35,7 +35,7 @@
             the re-evaluation progresses.
           </p>
         </div>
-        <div class="clm-modal-footer" ng-class="{ error : vm.error }">
+        <div class="iq-modal-footer" ng-class="{ error : vm.error }">
           <div ng-if="vm.error" class="section with-icon">
             <i class="fa fa-warning"></i>{{vm.error}}
           </div>

@@ -7,11 +7,11 @@
 (function () {
   'use strict';
 
-  function ComponentUpdateService($modal) {
+  function ComponentUpdateService(Modal) {
     return {
       reevaluate: function(componentKey, reevaluate) {
         if (componentKey) {
-          $modal.open({
+          Modal.open({
             templateUrl: 'audit.module/component.update.html',
             controller: 'component.update.controller as vm',
             backdrop: 'static',
@@ -27,7 +27,7 @@
           });
         }
         else {
-          $modal.open({
+          Modal.open({
             templateUrl: 'audit.module/component.update.optional.html',
             controller: 'component.update.optional.controller as vm',
             backdrop: 'static',
@@ -38,7 +38,7 @@
     };
   }
 
-  ComponentUpdateService.$inject = ['$modal'];
+  ComponentUpdateService.$inject = ['Modal'];
 
   angular.module('audit').service('component.update.service', ComponentUpdateService);
 }());

@@ -1,8 +1,8 @@
-.clm-modal .clm-modal-header i {
+.iq-modal .iq-modal-header i {
   margin-right: 8px;
 }
 
-.clm-modal .alert-info {
+.iq-modal .alert-info {
   padding: 8px 35px 8px 14px;
   border: 1px solid #006bbf;
   background-color: #fefefe;
@@ -10,40 +10,40 @@
   border-radius: 0;
 }
 
-.clm-modal .clm-btn {
+.iq-modal .clm-btn {
   min-width: 100px;
 }
 
-.clm-modal .clm-modal-footer .clm-btn {
+.iq-modal .iq-modal-footer .clm-btn {
   margin-right: 12px;
 }
 
 /* form */
 
-.clm-modal .clm-form .section .field:nth-child(n+2) {
+.iq-modal .clm-form .section .field:nth-child(n+2) {
   margin-top: 20px;
 }
 
-.clm-modal .clm-form .section:last-child {
+.iq-modal .clm-form .section:last-child {
   margin-bottom: 0;
 }
 
-.clm-modal .clm-form label {
+.iq-modal .clm-form label {
   display: block;
 }
 
-.clm-modal .clm-form label.checkbox {
+.iq-modal .clm-form label.checkbox {
   color: #070707;
   font-size: 14px;
   font-family: Proxima Nova Regular, sans-serif;
   padding-left: 40px;
 }
 
-.clm-modal .section.with-icon {
+.iq-modal .section.with-icon {
   margin-top: -4px;
   margin-bottom: 19px;
 }
 
-.clm-modal .section.with-icon>i {
+.iq-modal .section.with-icon>i {
   margin-right: 8px;
 }

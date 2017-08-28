@@ -1,6 +1,6 @@
 <div id="add-proprietary-matchers-modal">
 
-  <div class='clm-modal-header'>
+  <div class='iq-modal-header'>
     <h2><i class="clm-icon-proprietary-component-20px"></i>Add Proprietary Component Matchers</h2>
   </div>
 
@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <div class="clm-modal-body" load-wrapper loading="vm.isLoading()">
+      <div class="iq-modal-content" load-wrapper loading="vm.isLoading()">
         <div class="section">
           <div id="path-matchers" class="field">
             <label>
@@ -43,7 +43,7 @@
       </div>
     </div>
 
-    <div class="clm-modal-footer" ng-class="{ error : vm.error }">
+    <div class="iq-modal-footer" ng-class="{ error : vm.error }">
       <div ng-if="vm.error" class="section with-icon"><i class="clm-icon-error"></i>{{::vm.error}}</div>
       <button ng-if="!vm.error" class="clm-btn clm-btn-primary" type="submit"
               submit-validation submit-tooltip-target="body" submit-type="Add" submit-dirty="vm.isValid()">

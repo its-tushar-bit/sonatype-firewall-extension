@@ -15,7 +15,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class AddProprietaryMatchersDialog
     extends BasicElement<AddProprietaryMatchersDialog>
 {
-  private static final String FOOTER_SELECTOR = ".clm-modal-footer";
+  private static final String FOOTER_SELECTOR = ".iq-modal-footer";
 
   public AddProprietaryMatchersDialog() {
     super("#add-proprietary-matchers-modal");

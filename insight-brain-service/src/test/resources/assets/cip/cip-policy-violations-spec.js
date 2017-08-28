@@ -169,8 +169,8 @@ describe('CIP Policy Waiver tests', function() {
         }]);
       }));
 
-      it('Open Add Waiver', inject(function ($modal) {
-        var modalSpy = spyOn($modal, 'open');
+      it('Open Add Waiver', inject(function (Modal) {
+        var modalSpy = spyOn(Modal, 'open');
         _scope.waiveComponent(_scope.processedPolicyAlerts[0]);
 
         expect(modalSpy).toHaveBeenCalledWith({
@@ -178,22 +178,20 @@ describe('CIP Policy Waiver tests', function() {
           controller : 'AddWaiverController',
           backdrop : 'static',
           keyboard : false,
-          windowClass: 'clm-modal',
           resolve : {
             policy : jasmine.any(Function)
           }
         });
       }));
 
-      it('Open View Waiver', inject(function ($modal) {
-        var modalSpy = spyOn($modal, 'open');
+      it('Open View Waiver', inject(function (Modal) {
+        var modalSpy = spyOn(Modal, 'open');
         _scope.viewWaivers();
 
         expect(modalSpy).toHaveBeenCalledWith({
           templateUrl : 'view-waivers-modal-tmpl',
           controller : 'ViewWaiverController',
           backdrop : 'static',
-          windowClass: 'clm-modal',
           keyboard : false
         });
       }));

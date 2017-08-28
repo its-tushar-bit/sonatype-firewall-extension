@@ -6,17 +6,16 @@
 (function(angular) {
   'use strict';
 
-  function ProprietaryMatchersModal($modal) {
+  function ProprietaryMatchersModal(Modal) {
     return {
       open: openModal
     };
 
     function openModal(ownerAppId, pathNames) {
-      $modal.open({
+      Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal',
         controller: 'proprietary.matchers.modal.controller as vm',
         templateUrl: CLM.assetsPath + 'cip/proprietary.matchers.modal.html',
         resolve: {
@@ -31,7 +30,7 @@
     }
   }
 
-  ProprietaryMatchersModal.$inject = ['$modal'];
+  ProprietaryMatchersModal.$inject = ['Modal'];
 
   angular //
       .module('proprietary.matchers') //

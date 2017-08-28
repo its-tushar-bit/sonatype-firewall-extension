@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular*/
-function ReEvaluateModalService($modal) {
+function ReEvaluateModalService(Modal) {
   return {
     open: function () {
-      return $modal.open({
+      return Modal.open({
         backdrop: 'static',
         templateUrl: 'repository-reevaluate-modal-template',
         controller: 'repository.reevaluate.modal.controller as vm'
@@ -15,6 +15,6 @@ function ReEvaluateModalService($modal) {
     }
   };
 }
-ReEvaluateModalService.$inject = ['$modal'];
+ReEvaluateModalService.$inject = ['Modal'];
 
 angular.module('Report').service('ReEvaluateModal', ReEvaluateModalService);

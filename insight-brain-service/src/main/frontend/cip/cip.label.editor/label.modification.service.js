@@ -7,15 +7,14 @@
 (function() {
   'use strict';
 
-  function LabelModification($modal) {
+  function LabelModification(Modal) {
     return {
       add: function (label) {
-        return $modal.open({
+        return Modal.open({
           backdrop: 'static',
           keyboard: false,
           templateUrl: 'add-modal-service',
           controller: 'LabelAddController',
-          windowClass: 'clm-modal',
           resolve: {
             label: function () {
               return label;
@@ -25,12 +24,11 @@
       },
 
       remove: function (label) {
-        return $modal.open({
+        return Modal.open({
           backdrop: 'static',
           keyboard: false,
           templateUrl: 'delete-modal-service',
           controller: 'LabelRemoveController',
-          windowClass: 'clm-modal',
           resolve: {
             label: function () {
               return label;
@@ -40,7 +38,7 @@
       }
     };
   }
-  LabelModification.$inject = ['$modal'];
+  LabelModification.$inject = ['Modal'];
 
   angular.module('cip.label.editor').service('LabelModification', LabelModification);
 }());

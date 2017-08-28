@@ -270,7 +270,7 @@
     text-overflow: ellipsis;
 
     &.selected, &.child-selected {
-      .iq-tree-view__twisty-icon {
+      .iq-tree-view__twisty-icon.collapse {
         border-top-color: $iq-grey-4;
       }
     }

@@ -46,6 +46,14 @@ public class ProprietaryConfigDAO
     return get(tx, sQuery, ownerId);
   }
 
+  /**
+   * @since 1.35
+   */
+  public List<ProprietaryConfig> getAll() {
+    String sQuery = "SELECT entity FROM ProprietaryConfig entity";
+    return getList(sQuery);
+  }
+
   @Override
   public void insert(TransactionContext tx, ProprietaryConfig entity) {
     validateRegexes(entity.getRegexes());

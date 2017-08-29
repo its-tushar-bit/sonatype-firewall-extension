@@ -102,6 +102,14 @@ public class TagDAO
     return getList(sQuery, name);
   }
 
+  /**
+   * @since 1.35
+   */
+  public List<Tag> getAll() {
+    String sQuery = "SELECT entity FROM Tag entity";
+    return getList(sQuery);
+  }
+
   private void validateColor(Color color) {
     if (color == null) {
       throw new InvalidTagException("The application category color must be assigned.");

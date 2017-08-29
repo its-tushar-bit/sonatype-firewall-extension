@@ -12,7 +12,6 @@ import java.util.zip.ZipInputStream;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.support.SupportService.SupportFileType;
 
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
@@ -44,7 +43,7 @@ public class SupportResourceTest
       try (final ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
         final ZipEntry zipEntry = zipInputStream.getNextEntry();
         assertThat(zipEntry.getName(), startsWith("support-"));
-        assertThat(zipEntry.getName(), endsWith("/" + SupportFileType.CONFIG.dirName + "/filtered-config-test.yml"));
+        assertThat(zipEntry.getName(), endsWith("/" + SupportFileType.CONFIG.getDirName() + "/filtered-config-test.yml"));
 
         final String served = IOUtil.toString(zipInputStream, "UTF-8").replace("\r\n", "\n");
         assertThat(served, is("showRootOrganization: true\n" +
@@ -56,6 +55,27 @@ public class SupportResourceTest
             "    org.apache.shiro.realm.AuthenticatingRealm: INFO, org.springframework.jdbc.datasource.SimpleDriverDataSource: INFO,\n" +
             "    org.apache.commons.beanutils.converters: INFO}\n" +
             "  console: {logFormat: '%date %level [%thread%X{DC}] %logger - %msg%n'}\n"));
+      }
+    }
+  }
+
+  @Test
+  public void testCreateSupportZip_withIncludeDb() throws Exception {
+    final HttpResponse response = restRequest().query("includeDb", true).get();
+    assertResponseStatus(200, response);
+    try (final InputStream inputStream = response.getBodyStream()) {
+      assertThat(inputStream, notNullValue());
+
+      try (final ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
+        boolean foundDbEntry = false;
+        ZipEntry zipEntry;
+        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+          if (zipEntry.getName().contains("/" + SupportFileType.DB.getDirName() + "/")) {
+            foundDbEntry = true;
+            break;
+          }
+        }
+        assertThat(foundDbEntry, is(true));
       }
     }
   }

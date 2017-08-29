@@ -89,4 +89,12 @@ public class RepositoryManagerDAO
       log.debug("Deleted repository manager with id {} in {} ms.", repositoryManager.getId(), duration);
     }
   }
+
+  /**
+   * @since 1.35
+   */
+  public List<RepositoryManager> getAll() {
+    String sQuery = "SELECT entity FROM RepositoryManager entity";
+    return getList(sQuery);
+  }
 }

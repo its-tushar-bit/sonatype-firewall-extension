@@ -269,4 +269,12 @@ public class LicenseThreatGroupDAO
       }
     }
   }
+
+  /**
+   * @since 1.35
+   */
+  public List<LicenseThreatGroup> getAll() {
+    String sQuery = "SELECT entity FROM LicenseThreatGroup entity";
+    return getList(sQuery);
+  }
 }

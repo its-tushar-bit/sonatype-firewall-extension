@@ -119,6 +119,14 @@ public class LabelDAO
     }
   }
 
+  /**
+   * @since 1.35
+   */
+  public List<Label> getAll() {
+    String sQuery = "SELECT label FROM Label label";
+    return getList(sQuery);
+  }
+
   @Override
   public void delete(TransactionContext tx, Label label) {
     ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();

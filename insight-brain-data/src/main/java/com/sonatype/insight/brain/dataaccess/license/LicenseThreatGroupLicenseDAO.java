@@ -105,4 +105,12 @@ public class LicenseThreatGroupLicenseDAO
       tx.commit();
     }
   }
+
+  /**
+   * @since 1.35
+   */
+  public List<LicenseThreatGroupLicense> getAll() {
+    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity";
+    return getList(sQuery);
+  }
 }

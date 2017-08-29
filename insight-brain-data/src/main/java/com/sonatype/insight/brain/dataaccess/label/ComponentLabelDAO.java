@@ -90,6 +90,14 @@ public class ComponentLabelDAO
     return get(tx, sQuery, ownerId, hash, labelId);
   }
 
+  /**
+   * @since 1.35
+   */
+  public List<ComponentLabel> getAll() {
+    String sQuery = "SELECT entity FROM ComponentLabel entity";
+    return getList(sQuery);
+  }
+
   @Override
   public void insert(TransactionContext tx, ComponentLabel entity) {
     validate(tx, entity);

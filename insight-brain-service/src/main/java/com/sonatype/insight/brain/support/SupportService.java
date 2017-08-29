@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.FileUtils;
@@ -68,18 +69,22 @@ class SupportService
 
   private final JmxInfo jmxInfo;
 
+  private final DbData dbData;
+
   @Inject
   public SupportService(final InsightConfig config,
                         final VersionService versionService,
                         final ProductLicenseService productLicenseService,
                         final LdapService ldapService,
-                        final JmxInfo jmxInfo)
+                        final JmxInfo jmxInfo,
+                        final DbData dbData)
   {
     this.config = config;
     this.versionService = versionService;
     this.productLicenseService = productLicenseService;
     this.ldapService = ldapService;
     this.jmxInfo = jmxInfo;
+    this.dbData = dbData;
   }
 
   File getWorkDir() {
@@ -124,16 +129,7 @@ class SupportService
     return outputFile;
   }
 
-  enum SupportFileType
-  {
-    LOG,
-    INFO,
-    CONFIG;
-
-    final String dirName = name().toLowerCase(Locale.ENGLISH);
-  }
-
-  private static final class SupportFile
+  static final class SupportFile
   {
     final SupportFileType supportFileType;
 
@@ -178,7 +174,7 @@ class SupportService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  synchronized File createSupportZip() throws IOException {
+  synchronized File createSupportZip(final boolean includeDb) throws IOException {
     final File workDir = getWorkDir();
     if (!workDir.exists()) {
       if (!workDir.mkdirs()) {
@@ -237,6 +233,10 @@ class SupportService
         SupportFileType.INFO,
         true);
 
+    if (includeDb) {
+      addAllDbData(filesToZip, workDir);
+    }
+
     log.info("Populating support.zip: {}", supportZip);
     try (final ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(supportZip))) {
 
@@ -245,7 +245,7 @@ class SupportService
       for (final SupportFile fileToAdd : filesToZip) {
 
         final ZipEntry zipEntry = new ZipEntry(
-            prefix + "/" + fileToAdd.supportFileType.dirName + "/" + fileToAdd.file.getName());
+            prefix + "/" + fileToAdd.supportFileType.getDirName() + "/" + fileToAdd.file.getName());
         zos.putNextEntry(zipEntry);
         // Limit max size of file content we allow to copy
         try (LimitedFileInputStream lis = new LimitedFileInputStream(fileToAdd.file,
@@ -281,6 +281,43 @@ class SupportService
       output.write("\n".getBytes("UTF-8"));
     }
     ByteStreams.copy(input, output);
+  }
+
+  void addAllDbData(final List<SupportFile> filesToZip, final File workDir) throws IOException {
+    addDbData(filesToZip, workDir, dbData.getSchemaInfo());
+    addDbData(filesToZip, workDir, dbData.getRepositoryManager());
+    addDbData(filesToZip, workDir, dbData.getRepository());
+    addDbData(filesToZip, workDir, dbData.getOrganization());
+    addDbData(filesToZip, workDir, dbData.getApplication());
+    addDbData(filesToZip, workDir, dbData.getProprietaryConfig());
+    addDbData(filesToZip, workDir, dbData.getUser());
+    addDbData(filesToZip, workDir, dbData.getRole());
+    addDbData(filesToZip, workDir, dbData.getRolePermission());
+    addDbData(filesToZip, workDir, dbData.getMembershipMapping());
+    addDbData(filesToZip, workDir, dbData.getWebhook());
+    addDbData(filesToZip, workDir, dbData.getSystemNotice());
+    addDbData(filesToZip, workDir, dbData.getLabel());
+    addDbData(filesToZip, workDir, dbData.getComponentLabel());
+    addDbData(filesToZip, workDir, dbData.getTag());
+    addDbData(filesToZip, workDir, dbData.getApplicationTag());
+    addDbData(filesToZip, workDir, dbData.getPolicyTag());
+    addDbData(filesToZip, workDir, dbData.getSecurityVulnerabilityOverride());
+    addDbData(filesToZip, workDir, dbData.getLicenseThreatGroup());
+    addDbData(filesToZip, workDir, dbData.getMultiLicense());
+    addDbData(filesToZip, workDir, dbData.getLicense());
+    addDbData(filesToZip, workDir, dbData.getLicenseThreatGroupLicense());
+    addDbData(filesToZip, workDir, dbData.getPolicy());
+    addDbData(filesToZip, workDir, dbData.getPolicyMonitoring());
+  }
+
+  private void addDbData(final List<SupportFile> filesToZip,
+                         final File workDir,
+                         final Entry<String, Object> entry)
+      throws IOException
+  {
+    final String keyname = entry.getKey();
+    addFileIfExists(filesToZip, writeTextToFile(JsonUtils.format(entry), new File(workDir, keyname + ".json")),
+        keyname, SupportFileType.DB, true);
   }
 }
 

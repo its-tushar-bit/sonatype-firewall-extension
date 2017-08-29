@@ -69,6 +69,14 @@ public class PolicyTagDAO
     return get(sQuery, policyId, tagId);
   }
 
+  /**
+   * @since 1.35
+   */
+  public List<PolicyTag> getAll() {
+    String sQuery = "SELECT entity FROM PolicyTag entity";
+    return getList(sQuery);
+  }
+
   public boolean isPolicyApplicable(TransactionContext tx, String policyId, Set<String> tagIds) {
     List<PolicyTag> policyTags = getByPolicyId(tx, policyId);
     if (policyTags.isEmpty()) {

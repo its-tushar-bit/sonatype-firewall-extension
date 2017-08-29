@@ -1,0 +1,258 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.support;
+
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map.Entry;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.InternalRealm;
+
+/**
+ * @since 1.35
+ */
+@Named
+@Singleton
+class DbData
+{
+  private final SchemaInfoDAO schemaInfoDAO;
+
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
+  private final RepositoryDAO repositoryDAO;
+
+  private final OrganizationDAO organizationDAO;
+
+  private final ApplicationDAO applicationDAO;
+
+  private final ProprietaryConfigDAO proprietaryConfigDAO;
+
+  private final UserDAO userDAO;
+
+  private final InternalRealm clmRealm;
+
+  private final RoleDAO roleDAO;
+
+  private final RolePermissionDAO rolePermissionDAO;
+
+  private final MembershipMappingDAO membershipMappingDAO;
+
+  private final WebhookDAO webhookDAO;
+
+  private final SystemNoticeDAO systemNoticeDAO;
+
+  private final LabelDAO labelDAO;
+
+  private final ComponentLabelDAO componentLabelDAO;
+
+  private final TagDAO tagDAO;
+
+  private final ApplicationTagDAO applicationTagDAO;
+
+  private final PolicyTagDAO policyTagDAO;
+
+  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
+
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  private final MultiLicenseDAO multiLicenseDAO;
+
+  private final LicenseDAO licenseDAO;
+
+  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
+
+  private final PolicyDAO policyDAO;
+
+  private final PolicyMonitoringDAO policyMonitoringDAO;
+
+  @Inject
+  DbData(final SchemaInfoDAO schemaInfoDAO,
+         final RepositoryManagerDAO repositoryManagerDAO,
+         final RepositoryDAO repositoryDAO,
+         final OrganizationDAO organizationDAO,
+         final ApplicationDAO applicationDAO,
+         final ProprietaryConfigDAO proprietaryConfigDAO,
+         final UserDAO userDAO, final InternalRealm clmRealm,
+         final RoleDAO roleDAO,
+         final RolePermissionDAO rolePermissionDAO,
+         final MembershipMappingDAO membershipMappingDAO,
+         final WebhookDAO webhookDAO,
+         final SystemNoticeDAO systemNoticeDAO,
+         final LabelDAO labelDAO,
+         final ComponentLabelDAO componentLabelDAO,
+         final TagDAO tagDAO,
+         final ApplicationTagDAO applicationTagDAO,
+         final PolicyTagDAO policyTagDAO,
+         final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+         final LicenseThreatGroupDAO licenseThreatGroupDAO,
+         final MultiLicenseDAO multiLicenseDAO,
+         final LicenseDAO licenseDAO,
+         final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
+         final PolicyDAO policyDAO,
+         final PolicyMonitoringDAO policyMonitoringDAO)
+  {
+    this.schemaInfoDAO = schemaInfoDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.organizationDAO = organizationDAO;
+    this.applicationDAO = applicationDAO;
+    this.proprietaryConfigDAO = proprietaryConfigDAO;
+    this.userDAO = userDAO;
+    this.clmRealm = clmRealm;
+    this.roleDAO = roleDAO;
+    this.rolePermissionDAO = rolePermissionDAO;
+    this.membershipMappingDAO = membershipMappingDAO;
+    this.webhookDAO = webhookDAO;
+    this.systemNoticeDAO = systemNoticeDAO;
+    this.labelDAO = labelDAO;
+    this.componentLabelDAO = componentLabelDAO;
+    this.tagDAO = tagDAO;
+    this.applicationTagDAO = applicationTagDAO;
+    this.policyTagDAO = policyTagDAO;
+    this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.multiLicenseDAO = multiLicenseDAO;
+    this.licenseDAO = licenseDAO;
+    this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
+    this.policyDAO = policyDAO;
+    this.policyMonitoringDAO = policyMonitoringDAO;
+  }
+
+  Entry<String, Object> getSchemaInfo() {
+    return wrapEntry("schemaInfo", schemaInfoDAO.get());
+  }
+
+  Entry<String, Object> getRepositoryManager() {
+    return wrapEntry("repositoryManager", repositoryManagerDAO.getAll());
+  }
+
+  Entry<String, Object> getRepository() {
+    return wrapEntry("repository", repositoryDAO.getAll());
+  }
+
+  Entry<String, Object> getOrganization() {
+    return wrapEntry("organization", organizationDAO.getAll());
+  }
+
+  Entry<String, Object> getApplication() {
+    return wrapEntry("application", applicationDAO.getAll());
+  }
+
+  Entry<String, Object> getProprietaryConfig() {
+    return wrapEntry("proprietaryConfig", proprietaryConfigDAO.getAll());
+  }
+
+  Entry<String, Object> getUser() {
+    final List<User> users = userDAO.getAll();
+    final String encryptedAdminPwd = clmRealm.encryptPassword("admin123");
+    for (final User user : users) {
+      // reset all passwords
+      user.setPassword(encryptedAdminPwd);
+    }
+    return wrapEntry("user", users);
+  }
+
+  Entry<String, Object> getRole() {
+    return wrapEntry("role", roleDAO.getAll());
+  }
+
+  Entry<String, Object> getRolePermission() {
+    return wrapEntry("rolePermission", rolePermissionDAO.getAll());
+  }
+
+  Entry<String, Object> getMembershipMapping() {
+    return wrapEntry("membershipMapping", membershipMappingDAO.getAll());
+  }
+
+  Entry<String, Object> getWebhook() {
+    return wrapEntry("webhook", webhookDAO.getAll());
+  }
+
+  Entry<String, Object> getSystemNotice() {
+    return wrapEntry("systemNotice", systemNoticeDAO.get());
+  }
+
+  Entry<String, Object> getLabel() {
+    return wrapEntry("label", labelDAO.getAll());
+  }
+
+  Entry<String, Object> getComponentLabel() {
+    return wrapEntry("componentLabel", componentLabelDAO.getAll());
+  }
+
+  Entry<String, Object> getTag() {
+    return wrapEntry("tag", tagDAO.getAll());
+  }
+
+  Entry<String, Object> getApplicationTag() {
+    return wrapEntry("applicationTag", applicationTagDAO.getAll());
+  }
+
+  Entry<String, Object> getPolicyTag() {
+    return wrapEntry("policyTag", policyTagDAO.getAll());
+  }
+
+  Entry<String, Object> getSecurityVulnerabilityOverride() {
+    return wrapEntry("securityVulnerabilityOverride", securityVulnerabilityOverrideDAO.getAll());
+  }
+
+  Entry<String, Object> getLicenseThreatGroup() {
+    return wrapEntry("licenseThreatGroup", licenseThreatGroupDAO.getAll());
+  }
+
+  Entry<String, Object> getMultiLicense() {
+    return wrapEntry("multiLicense", multiLicenseDAO.getAll());
+  }
+
+  Entry<String, Object> getLicense() {
+    return wrapEntry("license", licenseDAO.getAll());
+  }
+
+  Entry<String, Object> getLicenseThreatGroupLicense() {
+    return wrapEntry("licenseThreatGroupLicense", licenseThreatGroupLicenseDAO.getAll());
+  }
+
+  Entry<String, Object> getPolicy() {
+    return wrapEntry("policy", policyDAO.getAll());
+  }
+
+  Entry<String, Object> getPolicyMonitoring() {
+    return wrapEntry("policyMonitoring", policyMonitoringDAO.getAll());
+  }
+
+  private static Entry<String, Object> wrapEntry(final String entryName, final Object objectToPut) {
+    return new AbstractMap.SimpleImmutableEntry<>(entryName, objectToPut);
+  }
+}

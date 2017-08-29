@@ -62,4 +62,12 @@ public class ApplicationTagDAO
         " WHERE appTag.tagId = tag.id AND tag.organizationId =?1";
     return getList(sQuery, organizationId);
   }
+
+  /**
+   * @since 1.35
+   */
+  public List<ApplicationTag> getAll() {
+    String sQuery = "SELECT entity FROM ApplicationTag entity" ;
+    return getList(sQuery);
+  }
 }

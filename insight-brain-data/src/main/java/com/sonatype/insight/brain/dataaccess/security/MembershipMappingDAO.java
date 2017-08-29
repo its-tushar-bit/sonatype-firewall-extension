@@ -156,4 +156,12 @@ public class MembershipMappingDAO
         + " WHERE entity.roleId=?1";
     return getList(tx, sQuery, roleId);
   }
+
+  /**
+   * @since 1.35
+   */
+  public List<MembershipMapping> getAll() {
+    String sQuery = "SELECT entity FROM MembershipMapping entity";
+    return getList(sQuery);
+  }
 }

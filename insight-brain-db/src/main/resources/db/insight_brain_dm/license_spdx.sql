@@ -161,3 +161,5 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('OPL
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('SISSL-1.1', 'SISSL-1.1', 'Sun Industry Standards Source License v1.1');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('SISSL-1.2', 'SISSL-1.2', 'Sun Industry Standards Source License v1.2');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('X11', 'X11', 'X11 License');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('XPP-1.1.1', 'XPP-1.1.1', 'Indiana University Extreme! Lab Xml Pull Parser License v1.1.1');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('XPP-1.2', 'XPP-1.2', 'Indiana University Extreme! Lab Xml Pull Parser License v1.2');

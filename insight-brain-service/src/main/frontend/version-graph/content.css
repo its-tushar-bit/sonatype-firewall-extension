@@ -194,6 +194,10 @@ form.form-horizontal .control-label {
   font-size: 14px;
 }
 
+#add-proprietary-matchers-modal .alert-info {
+  margin-bottom: 20px;
+}
+
 #add-proprietary-matchers-modal .alert-info i.clm-icon-info {
   float: left;
 }

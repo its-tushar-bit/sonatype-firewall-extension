@@ -8,18 +8,17 @@
         form-mask="vm.formMask" mask-message="Adding matchers">
 
     <div class="scrollable">
-      <div class="alert-info" ng-hide="vm.isLoading()">
-        <i class="clm-icon-info"></i>
-        <div>
-          The following matchers will be added to the
-          <a ng-href="{{::vm.basePath}}assets/index.html#/management/edit/application/{{::vm.appId}}/proprietary"
-             target='_blank'>
-            {{::vm.applicationName}} configuration<i class="clm-icon-external-link"></i></a>
-          (duplicates will be ignored). The new matchers will be in effect for the next application analysis.
-        </div>
-      </div>
-
       <div class="iq-modal-content" load-wrapper loading="vm.isLoading()">
+        <div class="alert-info" ng-hide="vm.isLoading()">
+          <i class="clm-icon-info"></i>
+          <div>
+            The following matchers will be added to the
+            <a ng-href="{{::vm.basePath}}assets/index.html#/management/edit/application/{{::vm.appId}}/proprietary"
+               target='_blank'>
+              {{::vm.applicationName}} configuration<i class="clm-icon-external-link"></i></a>
+            (duplicates will be ignored). The new matchers will be in effect for the next application analysis.
+          </div>
+        </div>
         <div class="section">
           <div id="path-matchers" class="field">
             <label>

@@ -507,6 +507,12 @@
       "licenseId": "CIP4-2.0"
     },
     {
+      "id": "ac88e57267d142728870811c9f9e69ff",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "CodeSmith-Generator"
+    },
+    {
       "id": "887a277372d64baf87c16ab80e41e99f",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
@@ -535,6 +541,12 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
       "licenseId": "ClArtistic"
+    },
+    {
+      "id": "d70fd5d1ecec47108c922510e166fb47",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "CuteSoft.net"
     },
     {
       "id": "f03e9e66a1f040dda80a5725e4361c12",
@@ -915,6 +927,12 @@
       "licenseId": "MPL-UNSPECIFIED"
     },
     {
+      "id": "3cc565931e074b96ace7f80e4098fbf6",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ADAL"
+    },
+    {
       "id": "1f249b6f1d1141bba2a280f8255e93dc",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
@@ -925,6 +943,12 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
       "licenseId": "MS-PL"
+    },
+    {
+      "id": "09548b03d79847d49b22996f223464f1",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-.NET-Compiler-Platform-Redist-Preview"
     },
     {
       "id": "a00fae0faf5642d58fa471a3bf281e78",
@@ -939,10 +963,22 @@
       "licenseId": "MS-.NET-Library-JS"
     },
     {
+      "id": "61e4a7abb5784fee9063ba2c812a3e01",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-3-Tools-Update"
+    },
+    {
       "id": "ba822b89f6324c249ee8f21fd6c3b0b8",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
       "licenseId": "MS-ASP.NET-MVC-4"
+    },
+    {
+      "id": "5b8a31f5eb9a41c1ac2aa25142acc20c",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-MVC-4-Beta"
     },
     {
       "id": "08ac06c565cb4ded9acec756dc341508",
@@ -955,6 +991,12 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
       "licenseId": "MS-ASP.NET-MVC-4-Pre-Release"
+    },
+    {
+      "id": "f13eb3e379984ea4a788afc84ffc505f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-SignalR-Client-Libraries"
     },
     {
       "id": "7b086dfb40764620895b8f9f73ee32f2",
@@ -981,6 +1023,12 @@
       "licenseId": "MS-ASP.NET-WOF-Pre-Release"
     },
     {
+      "id": "3815ebc5de7344d4b1b85660a9ee0b08",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-ASP.NET-Web-Pages"
+    },
+    {
       "id": "8ced290e89a64280aafe6ff3d70849ef",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
@@ -997,6 +1045,18 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
       "licenseId": "MS-MSN-WEBGREASE"
+    },
+    {
+      "id": "c6325318a1264317a202e578a419723b",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-Roslyn-CTP-EULA"
+    },
+    {
+      "id": "dbe18a9592854e399335a25e05010466",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "MS-RxJS-.NET-Libraries"
     },
     {
       "id": "6050d028680a4513914a8ab787469631",
@@ -1029,10 +1089,28 @@
       "licenseId": "OASIS"
     },
     {
+      "id": "06a340e0f1164410ac5e568e937b8ade",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "OFL-1.1"
+    },
+    {
       "id": "0b821d55f6f4457db3f5879c8c96074c",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "6314ae56747f4fe38404a27840570779",
       "licenseId": "OPL-1.0"
+    },
+    {
+      "id": "53cb2ab5d73744ae9a40ef483c5d5692",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Oracle-OTN-Distribution"
+    },
+    {
+      "id": "90c5830e20b84d588ebd725d6c56b3e3",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Oracle-OTN"
     },
     {
       "id": "a88adcc384b24a2eae0066afcfc9b54c",
@@ -1069,6 +1147,12 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
       "licenseId": "OSL-UNSPECIFIED"
+    },
+    {
+      "id": "e6e1838e19684a559f686cd101aacb80",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "PDDL-1.0"
     },
     {
       "id": "2835ec010a664e88bc1e291c948f98ca",
@@ -1129,6 +1213,12 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
       "licenseId": "RSA-Security"
+    },
+    {
+      "id": "4d1024072ff5405e96f1c6a161d2fc95",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Rebex-EULA-1.4"
     },
     {
       "id": "826d8882286f4191bfd2952aa71fb093",
@@ -1225,6 +1315,24 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
       "licenseId": "Sun-TM"
+    },
+    {
+      "id": "07bb0b25f48d48f98f356ac21233afb6",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Telerik-JustMock-Free-Edition"
+    },
+    {
+      "id": "09037da3c20a4fcba12524b73279815a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Telerik-UI-for-ASP.NET-MVC"
+    },
+    {
+      "id": "d88fa829211240d9bbf6a640a79bbef9",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "Telerik-UI-for-FiddlerCore-Embedded-Engine"
     },
     {
       "id": "0711e3afa5344bcda28153d037f6a0c2",

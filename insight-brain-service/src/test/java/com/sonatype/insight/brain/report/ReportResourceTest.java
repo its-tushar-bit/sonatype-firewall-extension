@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -60,8 +61,10 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -1187,6 +1190,63 @@ public class ReportResourceTest
     assertThat(ReportResource.toDataPathV3(identifier('>')), is("bb/x=%3e"));
   }
 
+  @Test
+  public void testGetReportMetadata() throws Exception {
+    // Create an application
+    final String applicationPublicId = "ReportResourceTest-getMetadataTest-AppId";
+    final String applicationName = "ReportResourceTest-getMetadataTest-Name";
+    final String licenseFingerprint = "ReportResourceTest-getMetadataTest-LicenseFingerprint";
+    final String organizationName = "OrgName";
+
+    Organization organization = tempEntity.newOrganization(organizationName);
+    Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
+    setLicenseFingerprint(licenseFingerprint);
+
+    final String scanId = "ScanId";
+
+    // ReportResource.fetchReport requires a report.zip to exist when evaluations exist
+    createReportFile(application.getId(), scanId, "/ReportResourceTest/report-expanded_coverage_false");
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+
+    // Verify Response for scan
+    HttpResponse response = restRequest(application.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
+    assertResponseStatus(200, response);
+    ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);
+    assertThat(metadata.getApplication().getId(), is(application.getId()));
+    assertThat(metadata.getReportTitle(), is("Build Report"));
+    assertThat(metadata.getReportTime(), is(eval.getTime()));
+
+    // Unknown scan id
+    response = restRequest(application.getPublicId(), "12345678").path(ReportResource.METADATA_PATH).get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(), is("Could not download the report for scan ID 12345678"));
+  }
+
+  @Test
+  public void testGetReportMetadata_expandedCoverage() throws Exception {
+    // Create an application
+    final String applicationPublicId = "ReportResourceTest-getMetadataTest-AppId";
+    final String applicationName = "ReportResourceTest-getMetadataTest-Name";
+    final String licenseFingerprint = "ReportResourceTest-getMetadataTest-LicenseFingerprint";
+    final String organizationName = "OrgName";
+
+    Organization organization = tempEntity.newOrganization(organizationName);
+    Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
+    setLicenseFingerprint(licenseFingerprint);
+
+    final String scanId = "ScanId";
+    mockReport(scanId, "/ReportResourceTest/report-expanded_coverage");
+
+    // Verify Response for scan
+    HttpResponse response = restRequest(application.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
+    assertResponseStatus(200, response);
+    ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);
+    assertThat(metadata.getApplication().getId(), is(application.getId()));
+    assertThat(metadata.getReportTitle(), is("Expanded Coverage Report"));
+    assertThat(metadata.getReportTime().getTime(), is(1503511338632l));
+  }
+
   private static ComponentIdentifier identifier(Character c) {
     return new ComponentIdentifier("bb", Collections.singletonMap("x", String.valueOf(c)));
   }
@@ -1357,6 +1417,11 @@ public class ReportResourceTest
 
   private void createReportFile(String appId, String scanId) throws IOException {
     FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"),
+        new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId));
+  }
+
+  private void createReportFile(String appId, String scanId, String sourceReportDir) throws IOException {
+    FileUtils.copyFile(zipResourceDir(sourceReportDir),
         new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId));
   }
 }

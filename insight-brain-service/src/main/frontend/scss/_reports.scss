@@ -43,12 +43,22 @@
 // end styles from report-list.css
 
 // Begin styles from /application/application.css
-.reportTitle {
+.report__title {
   @include bold();
   
   padding: 10px 0px;
 }
 // end styles from /application/application.css
+
+.report--expanded-coverage {
+  background-color: $iq-slate;
+}
+.report__title--expanded-coverage {
+  @include bold();
+
+  padding: 10px 0px;
+  color: $iq-off-white;
+}
 
 // Begin styles from management.css
 .marginless-alert .alert {

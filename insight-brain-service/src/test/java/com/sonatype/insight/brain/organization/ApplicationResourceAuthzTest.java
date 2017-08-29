@@ -24,15 +24,6 @@ public class ApplicationResourceAuthzTest
   }
 
   @Test
-  public void testGetScanApplicationManagementSummary() throws Exception {
-    grantReadPermission(app.getId());
-
-    HttpRequest request = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY).parameter(
-        app.getPublicId(), "scan123");
-    testAuthzGet(request, 200);
-  }
-
-  @Test
   public void testGetAllSummaries() throws Exception {
     grantReadPermission(app.getId());
 

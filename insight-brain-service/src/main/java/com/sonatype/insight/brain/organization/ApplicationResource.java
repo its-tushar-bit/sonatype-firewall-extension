@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.organization;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,9 +62,6 @@ public class ApplicationResource
 
   public static final String GET_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES
       + "/{applicationPublicId}";
-
-  public static final String GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES
-      + "/{applicationPublicId}/{scanId}";
 
   public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
@@ -165,20 +161,6 @@ public class ApplicationResource
   }
 
   /**
-   * Get an ApplicatinoManagementSummary containing only the information for a specific scan.
-   * @since 1.7
-   */
-  @GET
-  @Path(GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
-  @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationManagementSummaryDTO getApplicationManagementSummary(@PathParam("applicationPublicId") final String applicationPublicId,
-                                                                         @PathParam("scanId") final String scanId)
-  {
-    final Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
-    return getApplicationManagementSummary(application, scanId);
-  }
-
-  /**
    * @since 1.4
    */
   @Override
@@ -262,19 +244,6 @@ public class ApplicationResource
     loadPolicyEvaluations(Arrays.asList(applicationManagement));
 
     return applicationManagement;
-  }
-
-  private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application, String scanId)
-  {
-    ApplicationManagementSummaryDTO summary = applicationAdapter.createApplicationManagementSummary(application);
-
-    final String applicationId = application.getId();
-    PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(applicationId, scanId);
-    // The scans for expanded coverage don't have policy evaluations.
-    if (evaluation != null) {
-      summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStageTypeId(), evaluation));
-    }
-    return summary;
   }
 
   private void loadPolicyEvaluations(List<ApplicationManagementSummaryDTO> applicationManagementSummaries) {

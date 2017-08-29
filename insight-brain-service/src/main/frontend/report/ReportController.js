@@ -35,31 +35,18 @@ reportModule.controller('ReportController', [
     $scope.doLoad = function() {
       $scope.error = null;
 
-      var actionStagePromise = StageTypeStore.getActionStages(),
-          appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId));
-
       $scope.reportUrl = clmLocations.getReportUrl($state.params.publicId, $state.params.scanId);
 
-      $q.all([actionStagePromise, appScanSummary]).then(function(results) {
-        $scope.application = results[1].data;
-
-        angular.forEach($scope.application.policyEvaluations, function (evaluation) {
-          if (evaluation.scanId === $state.params.scanId) {
-            $scope.policyEvaluation = evaluation;
-          }
-        });
-
-        if ($scope.policyEvaluation) {
-          for (var i = 0; i < results[0].length; i++) {
-            if (results[0][i].stageTypeId === $scope.policyEvaluation.stageTypeId) {
-              $scope.policyEvaluation.stageName = results[0][i].stageName;
-              break;
-            }
-          }
-        }
-      }, function() {
-        $scope.error = arguments[0];
-      });
+      $http.get(clmLocations.getReportMetadataUrl($state.params.publicId, $state.params.scanId))
+          .then(function(response) {
+            var metadata = response.data;
+            $scope.application = metadata.application;
+            $scope.expandedCoverage = metadata.expandedCoverage;
+            $scope.reportTime = metadata.reportTime;
+            $scope.reportTitle = metadata.reportTitle;
+          }, function(error) {
+            $scope.error = error;
+          });
     };
     $scope.doLoad();
   }

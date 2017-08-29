@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.CIResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -309,66 +308,6 @@ public class ApplicationResourceTest
     Assert.assertNotNull(applicationSummary);
     Assert.assertEquals(application.getId(), applicationSummary.getId());
     Assert.assertEquals(application.getName(), applicationSummary.getName());
-  }
-
-  @Test
-  public void testGetApplicationManagementSummary() throws Exception {
-    // Create an application
-    final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
-    final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
-    final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
-    final String organizationName = "OrgName";
-
-    Organization organization = tempEntity.newOrganization(organizationName);
-    Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
-    application.setContactInternalName("admin");
-    new ApplicationDAO().update(application);
-    setLicenseFingerprint(licenseFingerprint);
-
-    final String scanId1 = "ScanId1", scanId2 = "ScanId2";
-    mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
-    mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");
-
-    final long startTime = System.currentTimeMillis();
-    HttpResponse response = evalRequest(applicationPublicId, scanId1, new Stage(Stage.ID_BUILD)).post();
-    assertResponseStatus(200, response);
-    response = evalRequest(applicationPublicId, scanId2, new Stage(Stage.ID_RELEASE)).post();
-    assertResponseStatus(200, response);
-
-    // Verify Response for scan 1
-    response = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
-        .parameter(application.getPublicId(), scanId1).get();
-    assertResponseStatus(200, response);
-    ApplicationManagementSummaryDTO summary = response.getBody(ApplicationManagementSummaryDTO.class);
-
-    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "IQ Server");
-    assertApplicationManagementSummaryDTO(summary, application, organization, 1, expectedContact);
-    Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_BUILD));
-
-    PolicyEvaluation evaluation = summary.getPolicyEvaluations().get(Stage.ID_BUILD);
-    Assert.assertEquals(scanId1, evaluation.getScanId());
-    Assert.assertTrue(evaluation.getTime().getTime() > startTime);
-
-    // Verify Response for scan 2
-    response = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
-        .parameter(application.getPublicId(), scanId2).get();
-    assertResponseStatus(200, response);
-
-    summary = response.getBody(ApplicationManagementSummaryDTO.class);
-
-    assertApplicationManagementSummaryDTO(summary, application, organization, 1, expectedContact);
-    Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_RELEASE));
-
-    evaluation = summary.getPolicyEvaluations().get(Stage.ID_RELEASE);
-    Assert.assertEquals(scanId2, evaluation.getScanId());
-    Assert.assertTrue(evaluation.getTime().getTime() > startTime);
-
-    // Unknown scan id
-    response = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
-        .parameter(application.getPublicId(), "12345678").get();
-    assertResponseStatus(200, response);
-    summary = response.getBody(ApplicationManagementSummaryDTO.class);
-    assertApplicationManagementSummaryDTO(summary, application, organization, 0, expectedContact);
   }
 
   private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,

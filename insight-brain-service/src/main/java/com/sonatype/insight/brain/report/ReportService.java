@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -17,11 +18,18 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.CacheBuilder;
 import org.codehaus.plexus.util.FileUtils;
 
@@ -42,16 +50,20 @@ public class ReportService
 
   private final InsightConfig insightConfig;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
   public ReportService(InsightWork work,
                        ReportDownloader reportDownloader,
                        PolicyEvaluationDAO policyEvaluationDAO,
-                       InsightConfig insightConfig)
+                       InsightConfig insightConfig,
+                       ApplicationDAO applicationDAO)
   {
     this.work = work;
     this.reportDownloader = reportDownloader;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.insightConfig = insightConfig;
+    this.applicationDAO = applicationDAO;
   }
 
   public File fetchReport(final InsightWork work, final String appId, final String scanId, final boolean waitForReport)
@@ -148,4 +160,30 @@ public class ReportService
   public static void flushReportChanges() {
     MODIFICATION_COUNTS.clear();
   }
+
+  @Authorize(permission = Permission.READ)
+  ReportMetadataDTO getReportMetadata(final @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
+                                          String applicationPublicId, final String scanId) throws IOException
+  {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    ReportMetadataDTO metadata = new ReportMetadataDTO();
+    metadata.setApplication(application);
+
+    File reportFile = fetchReport(work, application.getId(), scanId, false);
+    final ContainerNode<?> data = JsonUtils.parse(Report.getEntry(reportFile, "data.json").buf);
+    metadata.setExpandedCoverage(data.path("globals").path("expandedCoverage").booleanValue());
+
+    if (metadata.isExpandedCoverage()) {
+      metadata.setReportTime(new Date(data.path("globals").path("currentDate").longValue()));
+      metadata.setReportTitle("Expanded Coverage Report");
+    }
+    else {
+      PolicyEvaluation evaluation = new PolicyEvaluationDAO()
+          .getLastByApplicationIdAndScanId(application.getId(), scanId);
+      metadata.setReportTime(evaluation.getTime());
+      metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
+    }
+    return metadata;
+  }
+
 }

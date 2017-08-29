@@ -143,9 +143,9 @@ angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory(
         return baseUrl.get() + '/rest/user/' + userId + '/password';
       },
 
-      getApplicationScanSummary: function(applicationPublicId, scanId) {
-        return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationPublicId) + '/' +
-            scanId;
+      getReportMetadataUrl: function(applicationPublicId, scanId) {
+        return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationPublicId) + '/' +
+            encodeURIComponent(scanId) + '/metadata';
       },
 
       getBundleUploadUrl: function(applicationPublicId, stageId, sendNotifications) {

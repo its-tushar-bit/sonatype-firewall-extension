@@ -222,7 +222,7 @@ public abstract class AbstractBrainServiceTest
     setHdsResponseForURI("rest/application/analysis/" + scanId, resourceUrl, 200);
   }
 
-  private File zipResourceDir(String resourceName) {
+  protected File zipResourceDir(String resourceName) {
     try {
       URL resourceUrl = getClass().getResource(resourceName);
       File resourceDir = new File(resourceUrl.toURI());

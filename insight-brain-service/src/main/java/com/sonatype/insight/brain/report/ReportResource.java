@@ -62,6 +62,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
+import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
@@ -93,6 +94,8 @@ public class ReportResource
   public static final String PRINT_PATH = "printReport";
 
   public static final String DOWNLOAD_BUNDLE_PATH = "downloadBundle";
+
+  public static final String METADATA_PATH = "metadata";
 
   private static final Logger log = LoggerFactory.getLogger(ReportResource.class);
 
@@ -240,6 +243,18 @@ public class ReportResource
       return response.build();
     }
     return Response.status(Status.NOT_FOUND).build();
+  }
+
+  /**
+   * @since 1.35
+   */
+  @GET
+  @Path(METADATA_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ReportMetadataDTO getReportMetadata(@PathParam("applicationPublicId") final String applicationPublicId,
+                                             @PathParam("scanId") final String scanId) throws IOException
+  {
+    return reportService.getReportMetadata(applicationPublicId, scanId);
   }
 
   /**

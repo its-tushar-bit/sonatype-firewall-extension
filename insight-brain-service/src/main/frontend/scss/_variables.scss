@@ -101,6 +101,10 @@ $iq-grey-border: 1px solid $iq-grey-3;
 $iq-color-picker-zindex: $zindexModalBackdrop - 10;
 $iq-form-mask-zindex: $zindexModal + 10;
 
+// Modal Z-indexes
+$iq-modal-backdrop-z-index: 1040;
+$iq-modal-z-index: 1050;
+
 // need the login panel above the form save mask
 // ui-bootstrap modal window template sets z-index via ng-style, hence important
 $iq-login-modal-zindex: $zindexModal + 20 !important;

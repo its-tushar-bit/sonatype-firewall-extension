@@ -2,6 +2,11 @@
   #Modals
 */
 
+// Height of mainHeader + 8px margin
+$iq-modal-top-spacing: 48px;
+// Standard margin
+$iq-modal-bottom-spacing: 8px;
+
 .iq-modal-backdrop {
   background-color: rgba(7, 7, 7, 0.4);
   position: fixed;
@@ -9,7 +14,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 1040;
+  z-index: $iq-modal-backdrop-z-index;
 }
 
 .iq-modal {
@@ -19,13 +24,19 @@
   border: 1px solid $iq-slate;
   border-radius: 0;
   box-shadow: -8px 8px 12px $iq-slate;
+  height: auto;
+  max-height: calc(100vh - #{$iq-modal-top-spacing} - #{$iq-modal-bottom-spacing});
   margin: 0; // override bootstrap .modal style
   outline: none;
   position: fixed;
-  top: 10%;
+  top: $iq-modal-top-spacing;
   left: calc(50% - #{($iq-modal-width / 2)});
   width: $iq-modal-width;
-  z-index: 1050;
+  z-index: $iq-modal-z-index;
+
+  form {
+    margin-bottom: 0; // override Bootstrap
+  }
 }
 
 .iq-modal-header {

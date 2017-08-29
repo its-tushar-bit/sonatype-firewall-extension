@@ -5,7 +5,6 @@ import '../lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tool
 import '../scss/_variables.scss';
 import '../scss/_typography.scss';
 import '../scss/_global.scss';
-import '../scss/_clm-modal.scss';
 import '../scss/_mask.scss';
 
 import '../lib/angular-ui-router/release/angular-ui-router';

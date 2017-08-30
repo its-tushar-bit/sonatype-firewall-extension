@@ -34,13 +34,13 @@ describe('successMetricsDataService', function() {
       expect(output).toBeDefined();
       expect(output.activeApplicationCount).toBe(12);
       expect(output.averageEvaluations).toBe(1.8333333333333333);
-      expect(output.averagePolicyViolations).toBe(36);
-      expect(output.averageCriticalPolicyViolations).toBe(7);
+      expect(output.averagePolicyViolations).toBe(37);
+      expect(output.averageCriticalPolicyViolations).toBe(8);
       expect(output.security).toBeDefined();
       expect(output.security.averageDiscoveredLow).toBe(0);
       expect(output.security.averageDiscoveredModerate).toBe(2);
       expect(output.security.averageDiscoveredSevere).toBe(6);
-      expect(output.security.averageDiscoveredCritical).toBe(2);
+      expect(output.security.averageDiscoveredCritical).toBe(3);
       expect(output.license).toBeDefined();
       expect(output.license.averageDiscoveredLow).toBe(12);
       expect(output.license.averageDiscoveredModerate).toBe(3);
@@ -50,7 +50,7 @@ describe('successMetricsDataService', function() {
       expect(output.quality.averageDiscoveredLow).toBe(0);
       expect(output.quality.averageDiscoveredModerate).toBe(0);
       expect(output.quality.averageDiscoveredSevere).toBe(0);
-      expect(output.quality.averageDiscoveredCritical).toBe(0);
+      expect(output.quality.averageDiscoveredCritical).toBe(1);
       expect(output.other).toBeDefined();
       expect(output.other.averageDiscoveredLow).toBe(1);
       expect(output.other.averageDiscoveredModerate).toBe(2);

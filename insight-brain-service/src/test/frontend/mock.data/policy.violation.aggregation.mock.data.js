@@ -8,7 +8,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 1,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1
+          averageDiscoveredCritical: 1.9
         },
         license: {
           averageDiscoveredLow: 144,
@@ -20,7 +20,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 0,
           averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
+          averageDiscoveredCritical: 8
         },
         other: {
           averageDiscoveredLow: 1,
@@ -60,7 +60,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 3,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1
+          averageDiscoveredCritical: 2.5
         },
         license: {
           averageDiscoveredLow: 0,
@@ -112,7 +112,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 2,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1
+          averageDiscoveredCritical: 1.5
         },
         license: {
           averageDiscoveredLow: 0,
@@ -138,7 +138,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 3,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1
+          averageDiscoveredCritical: 1.5
         },
         license: {
           averageDiscoveredLow: 0,
@@ -164,7 +164,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 1,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3
+          averageDiscoveredCritical: 3.5
         },
         license: {
           averageDiscoveredLow: 0,
@@ -190,7 +190,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 2,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3
+          averageDiscoveredCritical: 3.5
         },
         license: {
           averageDiscoveredLow: 0,
@@ -216,7 +216,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 3,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3
+          averageDiscoveredCritical: 3.5
         },
         license: {
           averageDiscoveredLow: 0,
@@ -242,7 +242,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 1,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3
+          averageDiscoveredCritical: 3.5
         },
         license: {
           averageDiscoveredLow: 0,
@@ -268,7 +268,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 2,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3
+          averageDiscoveredCritical: 3.5
         },
         license: {
           averageDiscoveredLow: 0,
@@ -294,7 +294,7 @@ var PolicyViolationAggregationResourceMockData = {
           averageDiscoveredLow: 0,
           averageDiscoveredModerate: 3,
           averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3
+          averageDiscoveredCritical: 3.5
         },
         license: {
           averageDiscoveredLow: 0,

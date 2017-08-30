@@ -62,6 +62,8 @@ public class RootOrgSuccessMetricsPoCTest
     loginAsAdmin();
     rootOrganizationSuccessMetricsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
 
+    fakeNow = setTimeTo(fakeNow.plusDays(1));
+
     List<PolicyViolation> existingViolations = new ArrayList<>();
     createModerateViolations(createEvaluation(fakeNow), 1, existingViolations);
 

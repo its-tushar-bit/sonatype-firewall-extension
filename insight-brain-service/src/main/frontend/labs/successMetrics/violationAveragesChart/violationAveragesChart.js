@@ -9,32 +9,57 @@
 export default {
   templateUrl: 'labs/successMetrics/violationAveragesChart/violationAveragesChart.html?' + clmBuildTimestamp,
   controller: violationAveragesChartController,
-  controllerAs: 'vm',
-  bindings: {
-    averagesData: '<'
-  }
+  controllerAs: 'vm'
 };
 
-function violationAveragesChartController() {
-  const vm = this,
-      { averagesData } = vm;
+function violationAveragesChartController(successMetricsDataService, $q) {
+  var vm = this;
 
-  vm.averageEvaluations = averagesData.averageEvaluations;
-  vm.averagePolicyViolations = averagesData.averagePolicyViolations;
-  vm.averageCriticalPolicyViolations = averagesData.averageCriticalPolicyViolations;
+  vm.doLoad = doLoad;
+  vm.error = undefined;
+  vm.isLoaded = false;
 
-  vm.averageDiscoveredSecurity = sumColumn(averagesData.security);
-  vm.averageDiscoveredLicense = sumColumn(averagesData.license);
-  vm.averageDiscoveredQuality = sumColumn(averagesData.quality);
-  vm.averageDiscoveredOther = sumColumn(averagesData.other);
+  vm.averageDiscoveredSecurity = undefined;
+  vm.averageDiscoveredLicense = undefined;
+  vm.averageDiscoveredQuality = undefined;
+  vm.averageDiscoveredOther = undefined;
 
-  vm.averageDiscoveredSecurityCritical = averagesData.security.averageDiscoveredCritical;
-  vm.averageDiscoveredLicenseCritical = averagesData.license.averageDiscoveredCritical;
-  vm.averageDiscoveredQualityCritical = averagesData.quality.averageDiscoveredCritical;
-  vm.averageDiscoveredOtherCritical = averagesData.other.averageDiscoveredCritical;
+  vm.averageDiscoveredSecurityCritical = undefined;
+  vm.averageDiscoveredLicenseCritical = undefined;
+  vm.averageDiscoveredQualityCritical = undefined;
+  vm.averageDiscoveredOtherCritical = undefined;
 
-  vm.chart = makeChart(averagesData);
+  doLoad();
+
+  function doLoad() {
+    vm.error = undefined;
+
+    vm.chart = successMetricsDataService.getAveragesData().then(function(data) {
+      vm.isLoaded = true;
+
+      vm.averageEvaluations = data.averageEvaluations;
+      vm.averagePolicyViolations = data.averagePolicyViolations;
+      vm.averageCriticalPolicyViolations = data.averageCriticalPolicyViolations;
+
+      vm.averageDiscoveredSecurity = sumColumn(data.security);
+      vm.averageDiscoveredLicense = sumColumn(data.license);
+      vm.averageDiscoveredQuality = sumColumn(data.quality);
+      vm.averageDiscoveredOther = sumColumn(data.other);
+
+      vm.averageDiscoveredSecurityCritical = data.security.averageDiscoveredCritical;
+      vm.averageDiscoveredLicenseCritical = data.license.averageDiscoveredCritical;
+      vm.averageDiscoveredQualityCritical = data.quality.averageDiscoveredCritical;
+      vm.averageDiscoveredOtherCritical = data.other.averageDiscoveredCritical;
+
+      return makeChart(data);
+    }, function(error) {
+      vm.error = error;
+      return $q.reject(error);
+    });
+  }
 }
+
+violationAveragesChartController.$inject = ['successMetricsDataService', '$q'];
 
 function sumColumn(colData) {
   return colData.averageDiscoveredLow + colData.averageDiscoveredModerate + colData.averageDiscoveredSevere +

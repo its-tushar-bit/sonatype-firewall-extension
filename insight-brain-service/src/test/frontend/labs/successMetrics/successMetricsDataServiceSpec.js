@@ -221,7 +221,7 @@ describe('successMetricsDataService', function() {
       assertMttrData(output[11], date, null, null);
     });
 
-    it('fetches empty mttr data does not pad it', function() {
+    it('fetches empty mttr data and properly pads missing results', function() {
       var output;
 
       $httpBackend.expectPOST(CLMLocations.getMttrUrl()).respond([]);
@@ -235,7 +235,11 @@ describe('successMetricsDataService', function() {
       date.setDate(1); // set to the first to avoid wrapping
 
       expect(output).toBeDefined();
-      expect(output.length).toBe(0);
+      expect(output.length).toBe(12);
+      for (var i = 0; i < output.length; i++) {
+        assertMttrData(output[i], date);
+        date.setMonth(date.getMonth() + 1);
+      }
     });
 
     it('passes on a rejected promise', function() {

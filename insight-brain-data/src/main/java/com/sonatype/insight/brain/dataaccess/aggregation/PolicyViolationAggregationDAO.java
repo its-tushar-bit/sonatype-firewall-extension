@@ -38,24 +38,6 @@ public class PolicyViolationAggregationDAO
     return createQuery(sQuery, applicationId).forceSingleResult().get();
   }
 
-  /**
-   * Delete partial aggregations generated while in PoC mode.
-   * 
-   * @since 1.35
-   */
-  public void deletePartialMonthsUpTo(String applicationId, LocalDate timePeriodEnd) {
-    String sQuery = "SELECT entity FROM PolicyViolationAggregation entity" + //
-        " WHERE entity.applicationId = ?1 AND entity.timePeriodEnd < ?2";
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      List<PolicyViolationAggregation> partialMonths = getList(tx, sQuery, applicationId, timePeriodEnd.toDate());
-      for (PolicyViolationAggregation partialMonth : partialMonths) {
-        delete(tx, partialMonth);
-      }
-      tx.commit();
-    }
-  }
-
   public static class MttrMonth
   {
     public final Date monthStart;
@@ -427,12 +409,6 @@ public class PolicyViolationAggregationDAO
     List<PolicyViolationAggregation> aggregations = getByApplicationId(tx, applicationId);
     for (PolicyViolationAggregation aggregation : aggregations) {
       delete(tx, aggregation);
-    }
-  }
-
-  List<PolicyViolationAggregation> getByApplicationId(String applicationId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationId(tx, applicationId);
     }
   }
 

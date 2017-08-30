@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dataaccess.aggregation;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.model.aggregation.PolicyViolationResolutionState;
+import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -26,14 +26,6 @@ public class PolicyViolationResolutionStateDAO
   public List<PolicyViolationResolutionState> getByApplicationId(String applicationId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationId(tx, applicationId);
-    }
-  }
-
-  public void deleteByApplicationId(String applicationId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      deleteByApplicationId(tx, applicationId);
-      tx.commit();
     }
   }
 

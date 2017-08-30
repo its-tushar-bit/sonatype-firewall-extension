@@ -36,9 +36,6 @@ public class PolicyViolationAggregation
   @Column(name = "time_period_start")
   private Date timePeriodStart;
 
-  @Column(name = "time_period_end")
-  private Date timePeriodEnd;
-
   /*
    * Average numbers of milliseconds that it took to resolve violations at each threat level that were resolved within
    * this time period. Null indicates that there were no resolved violations within this period.
@@ -129,13 +126,12 @@ public class PolicyViolationAggregation
                                     DescriptiveStatistics mttrSevereThreatStats,
                                     DescriptiveStatistics mttrCriticalThreatStats)
   {
-    this(applicationId, timePeriodStart, null, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats,
+    this(applicationId, timePeriodStart, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats,
         mttrCriticalThreatStats, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
 
   public PolicyViolationAggregation(String applicationId,
                                     Date timePeriodStart,
-                                    Date timePeriodEnd,
                                     DescriptiveStatistics mttrLowThreatStats,
                                     DescriptiveStatistics mttrModerateThreatStats,
                                     DescriptiveStatistics mttrSevereThreatStats,
@@ -160,7 +156,6 @@ public class PolicyViolationAggregation
   {
     this.applicationId = applicationId;
     this.timePeriodStart = timePeriodStart;
-    this.timePeriodEnd = timePeriodEnd;
 
     this.mttrLowThreat = mttrLowThreatStats.getN() != 0 ? (long) mttrLowThreatStats.getMean() : null;
     this.mttrModerateThreat = mttrModerateThreatStats.getN() != 0 ? (long) mttrModerateThreatStats.getMean() : null;
@@ -216,10 +211,6 @@ public class PolicyViolationAggregation
 
   public void setTimePeriodStart(Date timePeriodStart) {
     this.timePeriodStart = timePeriodStart;
-  }
-
-  public Date getTimePeriodEnd() {
-    return timePeriodEnd;
   }
 
   public Long getMttrLowThreat() {

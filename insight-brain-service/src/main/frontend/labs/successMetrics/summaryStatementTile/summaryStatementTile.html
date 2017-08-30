@@ -1,20 +1,22 @@
-<div class="iq-tile-header--chart">
-  <h2>
-    Root Organization Success Metrics
-  </h2>
-</div>
-<p class="iq-chart__averages">
-  Over the last
-  <span id="success-metrics-summary-months">
-    <span class="iq-chart__display-number"><!--
-   -->{{::vm.averagesData.monthCount}}<!--
- --></span>
-    {{::(vm.averagesData.monthCount === 1 ? 'month' : 'months')}}<!--
---></span><!--
+<div load-wrapper="vm.error" loading="!vm.averagesData" reload="vm.doLoad()">
+  <div class="iq-tile-header--chart">
+    <h2>
+      Root Organization Success Metrics
+    </h2>
+  </div>
+  <p class="iq-chart__averages">
+    Over the last
+    <span id="success-metrics-summary-months">
+      <span class="iq-chart__display-number"><!--
+      -->{{::vm.averagesData.monthCount}}<!--
+   --></span>
+      {{::(vm.averagesData.monthCount === 1 ? 'month' : 'months')}}<!--
+ --></span><!--
 
--->, Lifecycle evaluated
-  <span class="iq-chart__display-number" id="active-applications-count"><!--
- -->{{::vm.averagesData.activeApplicationCount}}<!--
---></span>
-  applications.
-</p>
+ -->, Lifecycle evaluated
+    <span class="iq-chart__display-number" id="active-applications-count"><!--
+   -->{{::vm.averagesData.activeApplicationCount}}<!--
+ --></span>
+    applications.
+  </p>
+</div>

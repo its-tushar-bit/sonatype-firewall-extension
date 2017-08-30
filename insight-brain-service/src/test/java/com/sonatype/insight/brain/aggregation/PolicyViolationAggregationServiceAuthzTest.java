@@ -17,12 +17,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
 import org.joda.time.LocalDate;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.empty;
@@ -41,14 +39,6 @@ public class PolicyViolationAggregationServiceAuthzTest
   private PolicyViolationAggregationService policyViolationAggregationService;
 
   private LocalDate today = new LocalDate();
-
-  @Before
-  public void before() {
-    // Snap out of PoC mode.
-    String appId = tempEntity.newApplication(Organization.ROOT_ORGANIZATION_ID).getId();
-    Date twoYearsAgo = new LocalDate().minusYears(2).toDate(); // outside the 12 month window for success metrics
-    tempEntity.newPolicyEvaluation(appId, StageTypes.STAGE_RELEASE.getId(), "scanId", twoYearsAgo);
-  }
 
   @Test
   public void testGetMttrs_ExplicitApplicationFilter_Unauthenticated() {

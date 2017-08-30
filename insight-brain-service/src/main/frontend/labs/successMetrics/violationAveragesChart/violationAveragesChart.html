@@ -1,53 +1,55 @@
-<h3 class="iq-chart-title">Average Number of Violations Discovered Per Month, Per Application</h3>
-<p class="iq-chart__averages">
-  <strong>On average</strong> Lifecycle performed
-  <span class="iq-chart__display-number" id="average-evaluations"><!--
- -->{{::vm.averageEvaluations | number: 0}}<!--
---></span>
-  evaluations per month, finding
-  <span class="iq-chart__display-number" id="average-policy-violations"><!--
- -->{{::vm.averagePolicyViolations | number: 0}}<!--
---></span>
-  policy violations per application, of which
-  <span class="iq-chart__display-number" id="average-critical-policy-violations"><!--
- -->{{::vm.averageCriticalPolicyViolations | number: 0}}<!--
---></span>
-  were <strong>critical</strong>.
-</p>
-<div class="iq-chart iq-chart--violation-averages iq-chart--horizontal-bar">
-  <div class="iq-chart__labels--horizontal-bar">
-    <div class="iq-chart__bar-label">
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredSecurity}}</strong>Security Violations
-      </span>
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredSecurityCritical}}</strong>Critical
-      </span>
+<div load-wrapper="vm.error" loading="!vm.isLoaded" reload="vm.doLoad()">
+  <h3 class="iq-chart-title">Average Number of Violations Discovered Per Month, Per Application</h3>
+  <p class="iq-chart__averages">
+    <strong>On average</strong> Lifecycle performed
+    <span class="iq-chart__display-number" id="average-evaluations"><!--
+    -->{{::vm.averageEvaluations | number: 0}}<!--
+ --></span>
+    evaluations per month, finding
+    <span class="iq-chart__display-number" id="average-policy-violations"><!--
+   -->{{::vm.averagePolicyViolations | number: 0}}<!--
+ --></span>
+    policy violations per application, of which
+    <span class="iq-chart__display-number" id="average-critical-policy-violations"><!--
+   -->{{::vm.averageCriticalPolicyViolations | number: 0}}<!--
+ --></span>
+    were <strong>critical</strong>.
+  </p>
+  <div class="iq-chart iq-chart--violation-averages iq-chart--horizontal-bar">
+    <div class="iq-chart__labels--horizontal-bar">
+      <div class="iq-chart__bar-label">
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.averageDiscoveredSecurity}}</strong>Security Violations
+        </span>
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.averageDiscoveredSecurityCritical}}</strong>Critical
+        </span>
+      </div>
+      <div class="iq-chart__bar-label">
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.averageDiscoveredLicense}}</strong>License Violations
+        </span>
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.averageDiscoveredLicenseCritical}}</strong>Critical
+        </span>
+      </div>
+      <div class="iq-chart__bar-label">
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.averageDiscoveredQuality}}</strong>Quality Violations
+        </span>
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.averageDiscoveredQualityCritical}}</strong>Critical
+        </span>
+      </div>
+      <div class="iq-chart__bar-label">
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.averageDiscoveredOther}}</strong>Other Violations
+        </span>
+        <span>
+          <strong class="iq-chart__highlight">{{::vm.averageDiscoveredOtherCritical}}</strong>Critical
+        </span>
+      </div>
     </div>
-    <div class="iq-chart__bar-label">
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredLicense}}</strong>License Violations
-      </span>
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredLicenseCritical}}</strong>Critical
-      </span>
-    </div>
-    <div class="iq-chart__bar-label">
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredQuality}}</strong>Quality Violations
-      </span>
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredQualityCritical}}</strong>Critical
-      </span>
-    </div>
-    <div class="iq-chart__bar-label">
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredOther}}</strong>Other Violations
-      </span>
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredOtherCritical}}</strong>Critical
-      </span>
-    </div>
+    <iq-render-plottable chart="vm.chart"></iq-render-plottable>
   </div>
-  <iq-render-plottable chart="vm.chart"></iq-render-plottable>
 </div>

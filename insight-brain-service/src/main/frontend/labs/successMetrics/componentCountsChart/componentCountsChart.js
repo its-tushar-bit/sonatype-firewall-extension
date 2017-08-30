@@ -10,28 +10,39 @@ import template from './componentCountsChart.html';
 export default {
   template: template,
   controller: componentCountsChartController,
-  controllerAs: 'vm',
-  bindings: {
-    componentData: '<'
-  }
+  controllerAs: 'vm'
 };
 
-function componentCountsChartController(successMetricsDataService) {
-  const vm = this,
-      { componentData } = vm;
+function componentCountsChartController($q, successMetricsDataService) {
+  const vm = this;
 
+  vm.error = undefined;
+  vm.isLoaded = false;
   vm.showRow = showRow;
-  vm.componentsWithMostApplicationsChart =
-    makeChart(componentData, 'componentsInTheMostApplications', 'iq-chart__dataset--component');
-  vm.componentsWithMostViolationsChart =
-    makeChart(componentData, 'componentsWithTheMostViolations', 'iq-chart__dataset--critical');
+
+  vm.$onInit = function() {
+    vm.error = undefined;
+
+    successMetricsDataService.getComponentCountsData().then(function(data) {
+      vm.isLoaded = true;
+      vm.componentData = data;
+
+      vm.componentsWithMostApplicationsChart = $q.resolve(
+          makeChart(data, 'componentsInTheMostApplications', 'iq-chart__dataset--component'));
+      vm.componentsWithMostViolationsChart = $q.resolve(
+          makeChart(data, 'componentsWithTheMostViolations', 'iq-chart__dataset--critical'));
+    }, function(error) {
+      vm.error = error;
+      return $q.reject(error);
+    });
+  };
 
   function showRow(componentDisplayName) {
     return componentDisplayName.indexOf(successMetricsDataService.EMPTY_PREFIX) === -1;
   }
 }
 
-componentCountsChartController.$inject = ['successMetricsDataService'];
+componentCountsChartController.$inject = ['$q', 'successMetricsDataService'];
 
 function makeDataset(data, type, datasetClassName) {
   return new Plottable.Dataset(data[type].map(function(element) {

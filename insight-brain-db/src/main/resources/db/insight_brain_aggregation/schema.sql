@@ -2,7 +2,6 @@ CREATE TABLE policy_violation_aggregation (
   policy_violation_aggregation_id VARCHAR(50) NOT NULL,
   application_id VARCHAR(50) NOT NULL,
   time_period_start DATETIME NOT NULL,
-  time_period_end DATETIME NULL,
   mttr_low_threat BIGINT NULL,
   mttr_moderate_threat BIGINT NULL,
   mttr_severe_threat BIGINT NULL,

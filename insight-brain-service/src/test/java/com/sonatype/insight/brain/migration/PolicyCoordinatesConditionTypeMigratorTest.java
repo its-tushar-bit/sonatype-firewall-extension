@@ -6,11 +6,13 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -24,6 +26,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Lists;
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,20 +71,18 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   @Test
   public void testMigrate_OnlyModifiesCoordinateConditions() throws Exception {
     // setup
-    Policy originalCoordPolicy = newPolicy("coord-policy", CoordinatesConditionType.ID, "match", "maven:foo*");
+    String originalCoordPolicyId = createObsoletePolicy("policy_gav.json");
     Policy originalVulnPolicy = newPolicy("vuln-policy", SecurityVulnerabilityConditionType.ID, "present", null);
 
     // execute
     migrator.migrate();
 
     // assert
-    Policy coordPolicy = getPolicy("coord-policy");
-    Policy vulnPolicy = getPolicy("vuln-policy");
+    Policy coordPolicy = policyDAO.getById(originalCoordPolicyId);
+    Policy vulnPolicy = policyDAO.getById(originalVulnPolicy.getId());
 
-    String originalCoordPolicyValue = getFirstCondition(originalCoordPolicy);
-    assertThat(getFirstCondition(coordPolicy),
-        is(ComponentIdentifier.FORMAT_MAVEN + ":" + originalCoordPolicyValue.substring(0, originalCoordPolicyValue.lastIndexOf(":"))));
-    assertThat(getFirstCondition(vulnPolicy), is(getFirstCondition(originalVulnPolicy)));
+    assertThat(getFirstConditionValue(coordPolicy), is(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:*:*"));
+    assertThat(getFirstConditionValue(vulnPolicy), is(getFirstConditionValue(originalVulnPolicy)));
 
     File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
     assertThat(markerFile.exists(), is(true));
@@ -137,8 +138,8 @@ public class PolicyCoordinatesConditionTypeMigratorTest
 
     // assert
     assertThat(markerFile.exists(), is(true));
-    Policy coordPolicy = getPolicy("coord-policy");
-    assertThat(getFirstCondition(coordPolicy), is(getFirstCondition(originalCoordPolicy)));
+    Policy coordPolicy = policyDAO.getById(originalCoordPolicy.getId());
+    assertThat(getFirstConditionValue(coordPolicy), is(getFirstConditionValue(originalCoordPolicy)));
   }
 
   private Policy newPolicy(String name, String conditionTypeId, String operator, String conditionValue) {
@@ -156,13 +157,45 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     return policy;
   }
 
-  private String getFirstCondition(Policy policy) {
+  private String getFirstConditionValue(Policy policy) {
     return policy.getConstraints().get(0).getConditions().get(0).getValue();
   }
 
-  private Policy getPolicy(String name) {
-    return policyDAO
-        .getByOwnerIdAndName(policyInternalDAO.createTransactionContext(), Organization.ROOT_ORGANIZATION_ID, name);
+  private String getPolicyContent(String filename) throws IOException {
+    return IOUtil.toString(getClass().getResourceAsStream("/PolicyCoordinatesConditionTypeMigratorTest/" + filename),
+        "UTF-8");
   }
 
+  private String createObsoletePolicy(String policyJsonResourceName) throws IOException {
+    String policyId = tempEntity.newPolicy("Test").getId();
+    PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
+    policyInternal.setContent(getPolicyContent(policyJsonResourceName));
+    policyInternalDAO.update(policyInternal);
+
+    return policyId;
+  }
+
+  @Test
+  public void testMigrate_GAV() throws Exception {
+    // The policy condition to be migrated has value="g:a:v".
+    testMigrate("policy_gav.json", "maven:g:a:v:*:*");
+  }
+
+  @Test
+  public void testMigrate_Wildcard() throws Exception {
+    // The policy condition to be migrated has value="g:*".
+    testMigrate("policy_wildcard.json", "maven:g:*:*:*:*");
+  }
+
+  private void testMigrate(String policyJsonResourceName, String expectedConditionValue) throws Exception {
+    String policyId = createObsoletePolicy(policyJsonResourceName);
+
+    migrator.migrate();
+
+    Policy migratedPolicy = policyDAO.getById(policyId);
+    assertThat(getFirstConditionValue(migratedPolicy), is(expectedConditionValue));
+
+    File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
+    assertThat(markerFile.exists(), is(true));
+  }
 }

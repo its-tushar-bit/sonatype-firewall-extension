@@ -1,0 +1,28 @@
+{
+  "id": "3f2fbf197eab4f75ba9766ae7ff43a0c",
+  "name": "PolicyToBeMigratedGAV",
+  "ownerId": "a3178a2e375347818d8ddb8e0c328ddc",
+  "enabled": true,
+  "threatLevel": 5,
+  "constraints": [
+    {
+      "id": "72cf5a21cb63439fa74c502c44c2b91c",
+      "name": "AConstraint",
+      "enabled": true,
+      "operator": "OR",
+      "conditions": [
+        {
+          "conditionTypeId": "Coordinates",
+          "operator": "match",
+          "value": "g:a:v"
+        }
+      ]
+    }
+  ],
+  "actions": {},
+  "notifications": {
+    "userNotifications": [],
+    "roleNotifications": [],
+    "jiraNotifications": []
+  }
+}

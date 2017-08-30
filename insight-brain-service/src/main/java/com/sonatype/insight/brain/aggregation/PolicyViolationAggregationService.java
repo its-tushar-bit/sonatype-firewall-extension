@@ -429,6 +429,11 @@ public class PolicyViolationAggregationService
         processPolicyEvaluation(evaluation, mttrStats, discoveredStats, resolutionStates, applicationId);
       }
     }
+    else if (pocMode && startOfNewAggregation.equals(currentDate.withDayOfMonth(1))) {
+      // Do not save empty partial aggregations for current month. They would only be updated on day rollover
+      // and we want the user to get results as soon as there's evaluation data.
+      return;
+    }
 
     // insert the last aggregation from the loop above and any others necessary to bring things up to the
     // start of the current month

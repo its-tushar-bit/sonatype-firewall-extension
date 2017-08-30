@@ -61,7 +61,7 @@ public class PolicyJsonMigratorTest
   }
 
   private String getPolicyContent(String filename) throws Exception {
-    return IOUtil.toString(getClass().getResourceAsStream("/PolicyJsonMigratorTest/" + filename));
+    return IOUtil.toString(getClass().getResourceAsStream("/PolicyJsonMigratorTest/" + filename), "UTF-8");
   }
 
   @Test

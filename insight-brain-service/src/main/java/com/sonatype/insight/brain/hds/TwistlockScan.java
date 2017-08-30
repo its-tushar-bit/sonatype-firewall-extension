@@ -46,7 +46,7 @@ public class TwistlockScan
       if (scanArchiveEntry != null) {
         try (InputStream scanXmlStream = new GzipCompressorInputStream(
             scanArchiveFile.getInputStream(scanArchiveEntry))) {
-          return IOUtil.toString(scanXmlStream);
+          return IOUtil.toString(scanXmlStream, "UTF-8");
         }
       }
       throw new FileNotFoundException("Cannot find the Sonatype scan file in " + scanFile.getAbsolutePath());
@@ -65,7 +65,7 @@ public class TwistlockScan
           ArchiveEntry tarArchiveEntry = null;
           while ((tarArchiveEntry = tarArchiveStream.getNextEntry()) != null) {
             if (entryName.equals(tarArchiveEntry.getName())) {
-              return IOUtil.toString(tarArchiveStream);
+              return IOUtil.toString(tarArchiveStream, "UTF-8");
             }
           }
           throw new FileNotFoundException("Cannot find an entry with name " + entryName);

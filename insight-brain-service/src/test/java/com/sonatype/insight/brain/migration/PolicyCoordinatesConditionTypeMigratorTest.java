@@ -66,7 +66,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   }
 
   @Test
-  public void migrateOnlyModifiesCoordinateConditions() throws Exception {
+  public void testMigrate_OnlyModifiesCoordinateConditions() throws Exception {
     // setup
     Policy originalCoordPolicy = newPolicy("coord-policy", CoordinatesConditionType.ID, "match", "maven:foo*");
     Policy originalVulnPolicy = newPolicy("vuln-policy", SecurityVulnerabilityConditionType.ID, "present", null);
@@ -88,7 +88,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   }
 
   @Test
-  public void migrateWithNoPoliciesStillCreatesMarkerFile() throws Exception {
+  public void testMigrate_WithNoPoliciesStillCreatesMarkerFile() throws Exception {
     // execute
     migrator.migrate();
 
@@ -104,7 +104,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
    * policies more than once.
    */
   @Test
-  public void migrateUsesSingleTransaction() throws Exception {
+  public void testMigrate_UsesSingleTransaction() throws Exception {
     // setup
     TransactionContext txMock = mock(TransactionContext.class);
     PolicyInternalDAO policyInternalDAOMock = mock(PolicyInternalDAO.class);
@@ -126,7 +126,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   }
 
   @Test
-  public void testMigrateAlreadyRunDoesNotMigratePolicies() throws Exception {
+  public void testMigrate_AlreadyRunDoesNotMigratePolicies() throws Exception {
     // setup
     File markerFile = new File(work.getWorkDir(), PolicyCoordinatesConditionTypeMigrator.MARKER_FILE_NAME);
     markerFile.createNewFile();

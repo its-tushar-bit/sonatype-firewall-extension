@@ -18,8 +18,7 @@ public class Parameters
   /**
    * @since 1.34
    */
-  @Parameter(names = { "-xc",
-      "--expanded-coverage" }, description = "Enable Expanded Coverage analysis.", hidden = true)
+  @Parameter(names = { "-xc", "--expanded-coverage" }, description = "Enable Expanded Coverage analysis.")
   private boolean expandedCoverageMode;
 
   public Parameters() {

@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -110,7 +110,7 @@ public class IdeResourceTest
     tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint1.addCondition(condition1);
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
@@ -141,7 +141,7 @@ public class IdeResourceTest
     tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint1.addCondition(condition1);
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);
@@ -605,12 +605,20 @@ public class IdeResourceTest
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
     constraint1.addCondition(new Condition(AgeInDaysConditionType.ID, "younger than", "30"));
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "absent"));
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
     addPolicy(applicationPublicId, policy1);
+
+    // This policy verifies that the SVs are wiped out from manually identified components. If they are not wiped out,
+    // then there will be a policy violation for this policy and the assert on the policy violations at the end of the
+    // test will fail.
+    Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
+    constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    Policy policy2 = new Policy("PolicyId2", "Policy2");
+    policy2.addConstraint(constraint2);
+    addPolicy(applicationPublicId, policy2);
 
     String hash = "abababa1234babababab";
     String groupId = "g1";
@@ -641,6 +649,7 @@ public class IdeResourceTest
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName(), is("Policy1"));
   }
 
   @Test

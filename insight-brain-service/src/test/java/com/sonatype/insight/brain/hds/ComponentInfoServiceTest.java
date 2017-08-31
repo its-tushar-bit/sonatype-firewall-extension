@@ -52,7 +52,7 @@ import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -566,7 +566,7 @@ public class ComponentInfoServiceTest
     String hash = "01234567890123456789";
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint1.addCondition(condition1);
     Policy policy1 = new Policy("PolicyId1", "Policy1");
     policy1.setThreatLevel(8);

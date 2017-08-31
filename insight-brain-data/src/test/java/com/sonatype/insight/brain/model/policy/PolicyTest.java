@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
@@ -49,7 +49,7 @@ public class PolicyTest
     constraint3.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
     policy.addConstraint(constraint3);
     Constraint constraint4 = new Constraint(null, "Constraint4", LogicalOperator.AND);
-    constraint4.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint4.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint4);
 
     assertThat(policy.getThreatCategory(), is(PolicyThreatCategory.SECURITY));
@@ -111,7 +111,7 @@ public class PolicyTest
   public void testValidate_NameNull() {
     Policy policy = new Policy();
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "The policy name is required.");
@@ -121,7 +121,7 @@ public class PolicyTest
   public void testValidate_NameEmpty() {
     Policy policy = new Policy();
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     policy.setName(" ");
     ValidationResult result = policy.validate(null, applicationId);
@@ -132,7 +132,7 @@ public class PolicyTest
   public void testValidate_NameWhitespace() {
     Policy policy = new Policy();
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     policy.setName(" Leading Space");
     ValidationResult result = policy.validate(null, applicationId);
@@ -152,7 +152,7 @@ public class PolicyTest
   public void testValidate_NameInvalidChar() {
     Policy policy = new Policy();
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       policy.setName(name);
@@ -166,7 +166,7 @@ public class PolicyTest
   public void testValidate_NameValidChars() {
     Policy policy = new Policy();
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     for (String name : NameHelperTest.VALID_NAMES) {
       policy.setName(name);
@@ -179,7 +179,7 @@ public class PolicyTest
   public void testValidate_NameLength() {
     Policy policy = new Policy();
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     policy.addConstraint(constraint);
 
@@ -205,10 +205,10 @@ public class PolicyTest
   public void testValidate_ConstraintNameDuplicate() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint1 = new Constraint("Constraint Id 1", "Constraint Name", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint1);
     Constraint constraint2 = new Constraint("Constraint Id 2", "Constraint Name", LogicalOperator.AND);
-    constraint2.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint2);
     ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid constraints:",
@@ -219,7 +219,7 @@ public class PolicyTest
   public void testValidate_ConstraintInvalid() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id 1", null, LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid constraints:",
@@ -230,7 +230,7 @@ public class PolicyTest
   public void testValidate_StageTypeUnknown() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
 
     HashMap<String, String> invalidStage = new HashMap<>();
@@ -253,7 +253,7 @@ public class PolicyTest
   public void testValidate_ActionTypeUnknown() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     policy.setAction(BuildStageType.ID, "unknown action type");
     ValidationResult result = policy.validate(null, applicationId);
@@ -270,7 +270,7 @@ public class PolicyTest
   public void testValidate_RoleNotificationInvalid() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
 
     // Add invalid notification (no role id) and validate
@@ -296,7 +296,7 @@ public class PolicyTest
   public void testValidate_UserNotificationInvalid() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
 
     // Add invalid notification and validate
@@ -316,7 +316,7 @@ public class PolicyTest
   public void testValidate_JiraNotificationInvalid() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
 
     // Add invalid notification and validate
@@ -338,7 +338,7 @@ public class PolicyTest
   public void testValidate_threatLevelValidation() {
     Policy policy = new Policy();
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
 
     policy.setName("testValidate_threatLevelInvalid");

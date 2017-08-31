@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -123,7 +123,7 @@ public class ComponentEvaluationV2Helper
     // Create org policy
     List<Constraint> constraints = new ArrayList<>();
     Constraint constraintOrg = new Constraint(null, "Constraint Name Org", LogicalOperator.AND);
-    constraintOrg.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraintOrg.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     constraints.add(constraintOrg);
     Policy policyOrg = new Policy(null, "Policy Name Org");
     policyOrg.setOwnerId(org.getId());

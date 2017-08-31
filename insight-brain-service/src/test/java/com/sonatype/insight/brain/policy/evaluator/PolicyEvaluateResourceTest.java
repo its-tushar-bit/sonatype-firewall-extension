@@ -56,7 +56,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
@@ -138,7 +138,7 @@ public class PolicyEvaluateResourceTest
     Condition condition1 = new Condition(LicenseConditionType.ID, "is", "UNSPECIFIED");
     constraintLicense.addCondition(condition1);
     Constraint constraintSV = new Constraint(null /* constraintId */, "Constraint SV", LogicalOperator.AND);
-    Condition condition2 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    Condition condition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraintSV.addCondition(condition2);
 
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
@@ -182,21 +182,21 @@ public class PolicyEvaluateResourceTest
     assertContainsPolicyAlert(expectedComponentExact, policy1, constraintLicense, Action.ID_FAIL,
         LicenseConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(expectedComponentExact, policy1, constraintSV, Action.ID_FAIL,
-        SecurityVulnerabilityConditionType.ID, policyAlerts);
+        SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(expectedComponentSimilar1, policy1, constraintLicense, Action.ID_FAIL,
         LicenseConditionType.ID, policyAlerts);
     // Verify that the SVs are associated with components by hash, not by component identifier.
     // If SVs were associated with components by component identifier, this component would have a policy violation for
     // an SV because it has the same identifier as expectedComponentExact, which has a violation for an SV.
     assertNotContainsPolicyAlert(expectedComponentSimilar1, policy1, constraintSV, Action.ID_FAIL,
-        SecurityVulnerabilityConditionType.ID, policyAlerts);
+        SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(expectedComponentSimilar2, policy1, constraintLicense, Action.ID_FAIL,
         LicenseConditionType.ID, policyAlerts);
     // Verify that the SVs are associated with components by hash, not by component identifier.
     // If SVs were associated with components by component identifier, this component would have a policy violation for
     // an SV because it has the same identifier as expectedComponentExact, which has a violation for an SV.
     assertNotContainsPolicyAlert(expectedComponentSimilar2, policy1, constraintSV, Action.ID_FAIL,
-        SecurityVulnerabilityConditionType.ID, policyAlerts);
+        SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -341,7 +341,7 @@ public class PolicyEvaluateResourceTest
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
     final Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
-    final Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    final Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint1.addCondition(condition1);
     final Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
     policy1.setThreatLevel(8);
@@ -354,7 +354,7 @@ public class PolicyEvaluateResourceTest
     policyDAO.insert(policy1);
 
     final Constraint constraint2 = new Constraint("C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND);
-    final Condition condition2 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    final Condition condition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint2.addCondition(condition2);
     // same conditions, but lower threat-level => analysis should show highest threat-level
     final Policy policy2 = new Policy("P2", "PolicyEvaluateResourceTest policy2");
@@ -478,7 +478,7 @@ public class PolicyEvaluateResourceTest
 
     final Constraint constraint = new Constraint("C1", "PolicyThreatCountResourceTest constraint 1",
         LogicalOperator.AND);
-    final Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint.addCondition(condition);
     Policy policy = new Policy("P1", "PolicyThreatCountResourceTest policy1");
     policy.setThreatLevel(1);
@@ -704,7 +704,7 @@ public class PolicyEvaluateResourceTest
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
     final Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
     final Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
@@ -728,7 +728,7 @@ public class PolicyEvaluateResourceTest
     policyDAO.insert(policy3);
 
     final Constraint constraint4 = new Constraint("C4", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
-    constraint4.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "absent"));
+    constraint4.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<", "5"));
     final Policy policy4 = new Policy("P4", "PolicyEvaluateResourceTest policy4");
     policy4.setThreatLevel(0);
     policy4.addConstraint(constraint4);
@@ -758,10 +758,10 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals("http://cdn.sonatype.com/", model.get("cdnUrl"));
     Assert.assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId),
         model.get("detailedReportUrl"));
-    Assert.assertEquals(7, model.get("policyThreatRedCount"));
+    Assert.assertEquals(5, model.get("policyThreatRedCount"));
     Assert.assertEquals(3, model.get("policyThreatOrangeCount"));
     Assert.assertEquals(13, model.get("policyThreatYellowCount"));
-    Assert.assertEquals(21, model.get("policyThreatBlueCount"));
+    Assert.assertEquals(6, model.get("policyThreatBlueCount"));
     Assert.assertEquals("Build", model.get("policyThreatStage"));
     Assert.assertEquals(applicationPublicId, model.get("policyThreatApp"));
     Assert.assertEquals("Admin BuiltIn", model.get("applicationContactName"));
@@ -788,7 +788,7 @@ public class PolicyEvaluateResourceTest
     String scanId = "testReEvaluation";
 
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint1.addCondition(condition1);
     Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
     policy1.setThreatLevel(8);

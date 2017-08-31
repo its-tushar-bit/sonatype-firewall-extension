@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -442,7 +442,7 @@ public class PolicyMonitorTest
     policy.setOwnerId(ownerId);
     policy.setThreatLevel(8);
     Constraint constraint = new Constraint(null /* id */, "Constraint", LogicalOperator.AND);
-    Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint.addCondition(condition);
     policy.addConstraint(constraint);
     policy.setAction(stage.getStageTypeId(), FailActionType.ID);

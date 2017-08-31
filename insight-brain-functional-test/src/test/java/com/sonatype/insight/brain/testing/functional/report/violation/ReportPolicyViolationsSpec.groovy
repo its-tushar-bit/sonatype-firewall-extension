@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.policy.Constraint
 import com.sonatype.insight.brain.model.policy.LogicalOperator
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
@@ -115,7 +115,7 @@ extends BaseSpec {
     Policy policy = new Policy(name: 'NoSV', ownerId: app.id, threatLevel: 9,
     constraints: [
       new Constraint(name: 'NoSV', operator: LogicalOperator.AND,
-      conditions: [new Condition(SecurityVulnerabilityConditionType.ID, 'present')])
+      conditions: [new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0")])
     ])
     policyDAO.insert(policy)
     return policy

@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -100,7 +100,7 @@ public class HdsIdeResourcePerformanceUtils
     Constraint constraint = new Constraint();
     constraint.setName("NoSV");
     policy.setConstraints(Collections.singletonList(constraint));
-    Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint.addCondition(condition);
     return policy;
   }

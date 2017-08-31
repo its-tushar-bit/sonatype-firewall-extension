@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.drools.builder.KnowledgeBuilder;
@@ -36,13 +36,13 @@ public class DroolsGeneratorTest
   public void testGenerate() {
     final List<Constraint> constraints = new ArrayList<>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint1.addCondition(condition1);
     Condition condition2 = new Condition(LicenseConditionType.ID, "is", "Apache-2.0");
     constraint1.addCondition(condition2);
     constraints.add(constraint1);
     final Constraint constraint2 = new Constraint("ConstraintId2", "Constraint Name 2", LogicalOperator.OR);
-    condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "absent");
+    condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5");
     constraint2.addCondition(condition1);
     condition2 = new Condition(LicenseConditionType.ID, "is not", "GPL-2.0");
     constraint2.addCondition(condition2);

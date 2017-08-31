@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -72,7 +72,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   public void testMigrate_OnlyModifiesCoordinateConditions() throws Exception {
     // setup
     String originalCoordPolicyId = createObsoletePolicy("policy_gav.json");
-    Policy originalVulnPolicy = newPolicy("vuln-policy", SecurityVulnerabilityConditionType.ID, "present", null);
+    Policy originalVulnPolicy = newPolicy("vuln-policy", SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
 
     // execute
     migrator.migrate();

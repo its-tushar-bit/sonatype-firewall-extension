@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
 import org.junit.Test;
 
@@ -39,7 +39,8 @@ public class PolicyThreatCategoryUtilTest
     constraintFact1.addConditionFact(new ConditionFact(AgeInDaysConditionType.ID, "summary", "reason"));
     ConstraintFact constraintFact2 = new ConstraintFact("constraintId2", "constraintName2", "operatorName2");
     constraintFact2.addConditionFact(new ConditionFact(LabelConditionType.ID, "summary", "reason"));
-    constraintFact2.addConditionFact(new ConditionFact(SecurityVulnerabilityConditionType.ID, "summary", "reason"));
+    constraintFact2
+        .addConditionFact(new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, "summary", "reason"));
     List<ConstraintFact> constraintFacts = Arrays.asList(constraintFact1, constraintFact2);
     PolicyThreatCategory category = PolicyThreatCategoryUtil.determinePolicyThreatCategory(constraintFacts);
     assertThat(category, is(PolicyThreatCategory.SECURITY));

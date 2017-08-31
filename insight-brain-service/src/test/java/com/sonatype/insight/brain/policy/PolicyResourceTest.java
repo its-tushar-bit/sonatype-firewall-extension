@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
@@ -98,7 +98,7 @@ public class PolicyResourceTest
     policy.setName("PolicyResourceTest new policy");
     Constraint constraint = new Constraint();
     constraint.setName("PolicyResourceTest new constraint");
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     HttpResponse response = restRequest(ownerType, ownerId).body(policy).post();
     assertResponseStatus(200, response);
@@ -163,7 +163,7 @@ public class PolicyResourceTest
     policy.setName(null);
     Constraint constraint = new Constraint();
     constraint.setName("PolicyResourceTest new constraint");
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     HttpResponse response = restRequest(ownerType, ownerId).body(policy).post();
     assertResponseStatus(400, response);
@@ -190,7 +190,7 @@ public class PolicyResourceTest
     policy.setName("PolicyResourceTest-testUpdateInvalidPolicy");
     Constraint constraint = new Constraint();
     constraint.setName("PolicyResourceTest new constraint");
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     policyDAO.insert(policy);
 

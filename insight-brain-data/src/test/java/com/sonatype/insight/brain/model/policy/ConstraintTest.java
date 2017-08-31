@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.model.policy;
 
 import com.sonatype.insight.brain.model.ValidationResult;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class ConstraintTest
   @Test
   public void testValidate_NameNull() {
     Constraint constraint = new Constraint("Constraint Id", null /* name */, LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     ValidationResult result = constraint.validate(null, ownerId);
     assertValidationResultHasErrors(result, "The constraint name must not be null or empty");
   }
@@ -27,7 +27,7 @@ public class ConstraintTest
   @Test
   public void testValidate_NameEmpty() {
     Constraint constraint = new Constraint("Constraint Id", " " /* name */, LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     ValidationResult result = constraint.validate(null, ownerId);
     assertValidationResultHasErrors(result, "The constraint name must not be null or empty");
   }

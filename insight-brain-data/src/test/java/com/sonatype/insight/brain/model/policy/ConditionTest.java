@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.model.policy;
 
 import com.sonatype.insight.brain.model.ValidationResult;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
 import org.junit.Test;
 
@@ -39,8 +39,9 @@ public class ConditionTest
 
   @Test
   public void testValidate_OperatorNull() {
-    Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, null /* operator */);
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, null /* operator */);
     ValidationResult result = condition.validate(null, ownerId);
-    assertValidationResultHasErrors(result, "Invalid condition 'SecurityVulnerability null null', Operator is null");
+    assertValidationResultHasErrors(result,
+        "Invalid condition 'SecurityVulnerabilitySeverity null null', Operator is null");
   }
 }

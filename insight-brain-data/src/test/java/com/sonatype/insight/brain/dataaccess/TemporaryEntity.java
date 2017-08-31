@@ -89,7 +89,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -866,7 +866,7 @@ public class TemporaryEntity
     }
     policy.setNotifications(notifications);
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     return newPolicy(policy);
   }
@@ -884,7 +884,7 @@ public class TemporaryEntity
     policy.setThreatLevel(threatLevel);
     policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     return newPolicy(policy);
   }

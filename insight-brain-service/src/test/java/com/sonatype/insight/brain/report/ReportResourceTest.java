@@ -59,7 +59,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -695,7 +695,7 @@ public class ReportResourceTest
     Assert.assertNull(policyEvaluation);
 
     final Constraint constraint = new Constraint("C1", "testReevaluateReport constraint 1", LogicalOperator.AND);
-    final Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint.addCondition(condition);
     final Policy policy = new Policy("P1", "testReevaluateReport policy1");
     policy.setOwnerId(application.getId());

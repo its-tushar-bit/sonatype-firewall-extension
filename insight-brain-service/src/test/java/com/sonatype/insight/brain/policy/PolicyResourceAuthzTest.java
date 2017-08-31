@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
@@ -22,7 +22,7 @@ public class PolicyResourceAuthzTest
   private Policy newPolicy() {
     Policy policy = new Policy(null, "Policy " + tempEntity.uuid());
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     return policy;
   }

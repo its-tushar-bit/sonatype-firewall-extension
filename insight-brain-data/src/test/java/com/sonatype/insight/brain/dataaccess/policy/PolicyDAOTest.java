@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -78,7 +78,7 @@ public class PolicyDAOTest
     policy.setName(policyName);
     policy.setOwnerId(applicationId);
     Constraint constraint = new Constraint(null, "PolicyDAOTest new constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     policyDAO.insert(policy);
 
@@ -87,7 +87,7 @@ public class PolicyDAOTest
     policy.setName(policyName);
     policy.setOwnerId(applicationId);
     constraint = new Constraint(null, "PolicyDAOTest new constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     try {
       policyDAO.insert(policy);
@@ -252,7 +252,7 @@ public class PolicyDAOTest
     policy.setName("PolicyDAOTest new policy");
     policy.setOwnerId(applicationId);
     final Constraint constraint1 = new Constraint(null, "PolicyDAOTest new constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint1);
     Assert.assertNull(policy.getId());
     Assert.assertNull(constraint1.getId());
@@ -273,7 +273,7 @@ public class PolicyDAOTest
     // Update the policy - new constraint without id
     policy.setName("PolicyDAOTest updated policy");
     Constraint constraint2 = new Constraint(null, "PolicyDAOTest new constraint 2", LogicalOperator.AND);
-    constraint2.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint2);
     Assert.assertNotNull(policy.getId());
     Assert.assertNotNull(constraint1.getId());
@@ -301,7 +301,7 @@ public class PolicyDAOTest
     policy.setName("PolicyDAOTest updated again policy");
     String constraintId3 = "Constraint Id 3";
     Constraint constraint3 = new Constraint(constraintId3, "PolicyDAOTest new constraint 3", LogicalOperator.AND);
-    constraint3.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint3.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint3);
     Assert.assertNotNull(policy.getId());
     Assert.assertNotNull(constraint1.getId());
@@ -339,7 +339,7 @@ public class PolicyDAOTest
     policy.setName("PolicyDAOTest new policy");
     policy.setOwnerId(applicationId);
     final Constraint constraint = new Constraint(null, "PolicyDAOTest new constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     policyDAO.insert(policy);
 
@@ -380,7 +380,7 @@ public class PolicyDAOTest
     Policy policy = newPolicy(applicationId, null /* name */);
     policy.setOwnerId(applicationId);
     Constraint constraint1 = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint1);
     try {
       policyDAO.insert(policy);
@@ -415,7 +415,7 @@ public class PolicyDAOTest
     policy1.setName("PolicyDAOTest new policy 1");
     policy1.setOwnerId(applicationId);
     final Constraint constraint1 = new Constraint(null, "PolicyDAOTest new constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy1.addConstraint(constraint1);
     policyDAO.insert(policy1);
     Assert.assertEquals(1, policyDAO.getByOwnerId(applicationId).size());
@@ -472,7 +472,7 @@ public class PolicyDAOTest
     policy.setName(name);
     policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint(null, "Contraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     return policy;
   }
@@ -550,7 +550,7 @@ public class PolicyDAOTest
     policy.setName("PolicyDAOTest new policy 1");
     policy.setOwnerId(applicationId);
     final Constraint constraint1 = new Constraint(null, "PolicyDAOTest new constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint1);
     policyDAO.insert(policy);
 

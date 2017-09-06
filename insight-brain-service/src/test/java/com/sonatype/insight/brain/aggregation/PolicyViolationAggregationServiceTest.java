@@ -15,24 +15,31 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.aggregation.AverageDiscoveredPolicyViolationsDTO.AverageDiscoveredThreatCategoryPolicyViolationsDTO;
 import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
+import org.junit.After;
 import org.junit.Test;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.array;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -46,6 +53,11 @@ public class PolicyViolationAggregationServiceTest
 
   @Inject
   private PolicyViolationAggregationService service;
+
+  @After
+  public void after() {
+    DateTimeUtils.setCurrentMillisSystem();
+  }
 
   @Test
   public void testGetMttrs_AggregationsAlreadyExist() {
@@ -134,10 +146,12 @@ public class PolicyViolationAggregationServiceTest
   @Test
   public void testGetMttrs_NoData() {
     Application application = tempEntity.newApplicationWithParent("no-evals-app");
+    DateTimeUtils.setCurrentMillisFixed(DateTime.now().minusMonths(3).getMillis());
 
     List<MttrDTO> results = service.getMttrs(null, Collections.singleton(application.getId()));
 
-    assertThat(results, hasSize(0));
+    // Having no data puts it in PoC mode which is indicated by a null return.
+    assertThat(results.size(), is(0));
   }
 
   @Test
@@ -357,7 +371,7 @@ public class PolicyViolationAggregationServiceTest
     Policy policy1 = tempEntity.newPolicy(appId, "policy1", 5);
     StageType stageType = StageTypes.BUILD;
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan1",
-        toDate(today.minusMonths(3)));
+        toDate(today.minusMonths(4)));
 
     tempEntity.newPolicyViolation(eval1, policy1);
 
@@ -376,6 +390,12 @@ public class PolicyViolationAggregationServiceTest
     List<MttrDTO> expected1 = new ArrayList<>(1);
 
     MttrDTO dto = new MttrDTO();
+    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(4));
+    dto.mttrInSeconds = null;
+    dto.criticalMttrInSeconds = null;
+    expected1.add(dto);
+
+    dto = new MttrDTO();
     dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(3));
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
@@ -393,6 +413,12 @@ public class PolicyViolationAggregationServiceTest
 
     List<MttrDTO> results2 = service.getMttrs(null, Collections.singleton(appId));
     List<MttrDTO> expected2 = new ArrayList<>(3);
+
+    dto = new MttrDTO();
+    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(4));
+    dto.mttrInSeconds = null;
+    dto.criticalMttrInSeconds = null;
+    expected2.add(dto);
 
     dto = new MttrDTO();
     dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(3));
@@ -424,11 +450,11 @@ public class PolicyViolationAggregationServiceTest
     Policy policy1 = tempEntity.newPolicy(appId, "policy1", 5);
     StageType stageType = StageTypes.BUILD;
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan1",
-        toDate(today.withDayOfMonth(2).minusMonths(1)));
+        toDate(today.withDayOfMonth(2).minusMonths(2)));
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan2",
-        toDate(today.withDayOfMonth(3).minusMonths(1)));
+        toDate(today.withDayOfMonth(3).minusMonths(2)));
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan3",
-        toDate(today.withDayOfMonth(4).minusMonths(1)));
+        toDate(today.withDayOfMonth(4).minusMonths(2)));
 
     // violation appears in eval1, and eval2
     tempEntity.newPolicyViolation(eval1, policy1);
@@ -438,10 +464,13 @@ public class PolicyViolationAggregationServiceTest
     List<MttrDTO> expected = new ArrayList<>(1);
 
     MttrDTO dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(1));
+    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(2));
     dto.mttrInSeconds = (int) ((eval3.getTime().getTime() - eval1.getTime().getTime()) / 1000);
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
+    MttrDTO blankCurrentMonthDueToPoCMode = new MttrDTO();
+    blankCurrentMonthDueToPoCMode.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(1));
+    expected.add(blankCurrentMonthDueToPoCMode);
 
     assertMttrDTOs(results, expected);
   }
@@ -533,6 +562,7 @@ public class PolicyViolationAggregationServiceTest
   @Test
   public void testGetAverages_NoData() {
     Application application = tempEntity.newApplicationWithParent("no-evals-app");
+    DateTimeUtils.setCurrentMillisFixed(DateTime.now().minusMonths(3).getMillis());
 
     SuccessMetricsAveragesDTO result = service.getAverages(null, Collections.singleton(application.getId()));
 
@@ -565,14 +595,163 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
+  public void testPoCMode() {
+    Policy policy = tempEntity.newPolicy("some policy");
+    LocalDate fakeNow = setTimeTo(LocalDate.now().withDayOfMonth(15));
+    Application app = tempEntity.newApplicationWithParent("appy");
+
+    String stageTypeId = StageTypes.RELEASE.getId();
+    PolicyEvaluation firstEval = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "scan1", fakeNow.toDate());
+    tempEntity.newPolicyViolation(firstEval, policy, "arti", "fact", "1", "artifact1hash", null);
+
+    // In PoC mode aggregations are gathered for full days instead of months.
+    // Since the first evaluation happened today, we should get a blank result at this point.
+    SuccessMetricsAveragesDTO result = service.getAverages(null, null);
+
+    assertThat(result.activeApplicationCount, is(0));
+
+    fakeNow = setTimeTo(fakeNow.plusDays(1));
+    // Now that we have a full day's worth of evaluation data, we should see it in results.
+    result = service.getAverages(null, null);
+
+    AverageDiscoveredPolicyViolationsDTO firstMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 1, 1);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(firstMonthAverage));
+
+    // The aggregations should not change just because some other app received its first evaluation.
+    Application anotherApp = tempEntity.newApplicationWithParent("poppy");
+    PolicyEvaluation firstEvalForAnotherApp = tempEntity
+        .newPolicyEvaluation(anotherApp.getId(), stageTypeId, "anotherScan", fakeNow.toDate());
+    tempEntity.newPolicyViolation(firstEvalForAnotherApp, policy, "another", "fact", "1", "anotherfact1hash", null);
+
+    result = service.getAverages(null, null);
+
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(firstMonthAverage));
+
+    // Aggregations should be updated for all applications on day rollover.
+    PolicyEvaluation secondEval = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "scan2", fakeNow.toDate());
+    tempEntity.newPolicyViolation(secondEval, policy, "arti", "fact", "2", "artifact2hash", null);
+    fakeNow = setTimeTo(fakeNow.plusDays(1));
+
+    result = service.getAverages(null, null);
+
+    AverageDiscoveredPolicyViolationsDTO updatedFirstMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 3,
+        1.5);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(updatedFirstMonthAverage));
+
+    // Run an evaluation in month 2.
+    fakeNow = setTimeTo(fakeNow.plusMonths(1).withDayOfMonth(1));
+    PolicyEvaluation thirdEval = tempEntity
+        .newPolicyEvaluation(app.getId(), stageTypeId, "scan3", fakeNow.toDate());
+    tempEntity.newPolicyViolation(thirdEval, policy, "arti", "fact", "3", "artifact3hash", null);
+
+    // The only evaluation this month so far happened today, on the 1st day of the month.
+    // Since we're lacking a full day's worth of data, there should be no results for this month yet.
+    result = service.getAverages(null, null);
+
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(updatedFirstMonthAverage));
+
+    fakeNow = setTimeTo(fakeNow.plusDays(12));
+
+    // The third evaluation should show up in the results now
+    result = service.getAverages(null, null);
+
+    AverageDiscoveredPolicyViolationsDTO secondMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 1, 1);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, asList(updatedFirstMonthAverage, secondMonthAverage));
+
+    PolicyEvaluation fourthEval = tempEntity
+        .newPolicyEvaluation(app.getId(), stageTypeId, "scan4", fakeNow.toDate());
+    tempEntity.newPolicyViolation(fourthEval, policy, "arti", "fact", "4", "artifact4hash", null);
+    fakeNow = setTimeTo(fakeNow.plusDays(1));
+
+    // The results should include all updates up to current day.
+    result = service.getAverages(null, null);
+    AverageDiscoveredPolicyViolationsDTO updatedSecondMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 2,
+        2);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
+        asList(updatedFirstMonthAverage, updatedSecondMonthAverage));
+
+    // Check that data does not change just because we're out of PoC mode.
+    fakeNow = fakeNow.plusMonths(1).withDayOfMonth(1);
+
+    result = service.getAverages(null, null);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
+        asList(updatedFirstMonthAverage, updatedSecondMonthAverage));
+
+    // Because we're out of PoC mode, evaluations in current month should not show up.
+    PolicyEvaluation fifthEval = tempEntity
+        .newPolicyEvaluation(app.getId(), stageTypeId, "scan5", fakeNow.toDate());
+    tempEntity.newPolicyViolation(fifthEval, policy, "arti", "fact", "5", "artifact5hash", null);
+
+    setTimeTo(fakeNow.plusDays(1));
+    result = service.getAverages(null, null);
+
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
+        asList(updatedFirstMonthAverage, updatedSecondMonthAverage));
+
+    // Make sure that aggregations are updated when the month rolls over.
+    AverageDiscoveredPolicyViolationsDTO thirdMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 1, 1);
+
+    setTimeTo(fakeNow.plusMonths(1).withDayOfMonth(1));
+    result = service.getAverages(null, null);
+
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
+        asList(updatedFirstMonthAverage, updatedSecondMonthAverage, thirdMonthAverage));
+  }
+
+  @Test
+  public void testUpgradingFromReleaseWithoutPoCModeToReleaseWithPoCModeWithinPoCModeWindow() {
+    LocalDate startOfLastMonth = new LocalDate().minusMonths(1).withDayOfMonth(1);
+
+    // The user had previously run a version of IQ with Success Metrics but without PoC mode.
+    // The first evaluation happened last month and normal monthly aggregation has been created for that month.
+    String appId = tempEntity.newApplicationWithParent("app").getId();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(appId, Stage.ID_RELEASE, "scan1", startOfLastMonth.toDate());
+    Policy policy = tempEntity.newPolicy("policy");
+    tempEntity.newPolicyViolation(eval, policy, 5, PolicyThreatCategory.OTHER);
+    tempEntity.newPolicyViolationAggregation(appId, startOfLastMonth.toDate(), //
+        new DescriptiveStatistics(new double[] {}), //
+        new DescriptiveStatistics(new double[] {}), //
+        new DescriptiveStatistics(new double[] {}), //
+        new DescriptiveStatistics(new double[] {}), //
+        0, 0, 0, 0, //
+        0, 0, 0, 0, //
+        0, 0, 0, 0, //
+        0, 0, 1, 0, //
+        1);
+
+    // The user has upgraded to IQ with PoC mode while in the PoC window (second month).
+    // He should now see results being updated for this month.
+    LocalDate startOfThisMonth = setTimeTo(startOfLastMonth.plusMonths(1));
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId, Stage.ID_RELEASE, "scan2", startOfThisMonth.toDate());
+    tempEntity.newPolicyViolation(eval2, policy, 5, PolicyThreatCategory.OTHER);
+    setTimeTo(startOfThisMonth.plusDays(1));
+
+    AverageDiscoveredPolicyViolationsDTO averageLastMonth = createAverageMonth(startOfLastMonth, 1, 1);
+    AverageDiscoveredPolicyViolationsDTO averageThisMonth = createAverageMonth(startOfThisMonth, 1, 1);
+
+    SuccessMetricsAveragesDTO result = service.getAverages(null, null);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, asList(averageLastMonth, averageThisMonth));
+  }
+
+  private AverageDiscoveredPolicyViolationsDTO createAverageMonth(LocalDate localDate,
+                                                                  int evaluationCount,
+                                                                  double numDiscoveredSevereOther)
+  {
+    AverageDiscoveredPolicyViolationsDTO averageMonth = new AverageDiscoveredPolicyViolationsDTO();
+    averageMonth.timePeriodStart = localDate.toDate();
+    averageMonth.evaluationCount = evaluationCount;
+    averageMonth.security = new AverageDiscoveredThreatCategoryPolicyViolationsDTO(0.0, 0.0, 0.0, 0.0);
+    averageMonth.license = new AverageDiscoveredThreatCategoryPolicyViolationsDTO(0.0, 0.0, 0.0, 0.0);
+    averageMonth.quality = new AverageDiscoveredThreatCategoryPolicyViolationsDTO(0.0, 0.0, 0.0, 0.0);
+    averageMonth.other = new AverageDiscoveredThreatCategoryPolicyViolationsDTO(0.0, 0.0, numDiscoveredSevereOther,
+        0.0);
+    return averageMonth;
+  }
+
+  @Test
   public void testGetApplicationsCounts_AggregationsAlreadyExist() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper
         .createApplicationCountAggregationHistory(tempEntity);
-
-    Organization org = tempEntity.newOrganization();
-    for (String appId : applicationIds) {
-      tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
-    }
 
     ApplicationCountsDTO result = service.getApplicationCounts(null, applicationIds);
 
@@ -584,12 +763,7 @@ public class PolicyViolationAggregationServiceTest
     Set<String> applicationIds = PolicyViolationAggregationDataHelper
         .createApplicationCountAggregationHistory(tempEntity);
 
-    Organization org = tempEntity.newOrganization();
-    for (String appId : applicationIds) {
-      tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
-    }
-
-    ApplicationCountsDTO result = service.getApplicationCounts(Collections.singleton(org.getId()), null);
+    ApplicationCountsDTO result = service.getApplicationCounts(Collections.singleton(PolicyViolationAggregationDataHelper.ORG_ID), null);
 
     assertApplicationCountsDTO(result, makeAggregationHistoryCountsDTO());
   }
@@ -598,9 +772,6 @@ public class PolicyViolationAggregationServiceTest
   public void testGetApplicationsCounts_AggregationsAlreadyExist_SpecificApplicationId() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
     String appId = PolicyViolationAggregationDataHelper.APPLICATION_IDS[2];
-
-    Organization org = tempEntity.newOrganization();
-    tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
 
     ApplicationCountsDTO result = service.getApplicationCounts(null, Collections.singleton(appId));
 
@@ -624,13 +795,7 @@ public class PolicyViolationAggregationServiceTest
 
   @Test
   public void testGetApplicationCounts_EmptyArguments() {
-    Set<String> applicationIds = PolicyViolationAggregationDataHelper
-        .createApplicationCountAggregationHistory(tempEntity);
-
-    Organization org = tempEntity.newOrganization();
-    for (String appId : applicationIds) {
-      tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
-    }
+    PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
     ApplicationCountsDTO result = service.getApplicationCounts(new HashSet<String>(), new HashSet<String>());
 
@@ -639,13 +804,7 @@ public class PolicyViolationAggregationServiceTest
 
   @Test
   public void testGetApplicationCounts_NullArguments() {
-    Set<String> applicationIds = PolicyViolationAggregationDataHelper
-        .createApplicationCountAggregationHistory(tempEntity);
-
-    Organization org = tempEntity.newOrganization();
-    for (String appId : applicationIds) {
-      tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
-    }
+    PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
     ApplicationCountsDTO result = service.getApplicationCounts(null, null);
 
@@ -666,13 +825,7 @@ public class PolicyViolationAggregationServiceTest
 
   @Test
   public void testGetApplicationCounts_ExcludesDevelopmentStage() {
-    Set<String> applicationIds = 
-        PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
-
-    Organization org = tempEntity.newOrganization();
-    for (String appId : applicationIds) {
-      tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
-    }
+    PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
     Application application = tempEntity.newApplicationWithParent("counts-app");
     String appId = application.getId();
@@ -1210,5 +1363,10 @@ public class PolicyViolationAggregationServiceTest
 
   private Date toDate(LocalDate localDate) {
     return localDate.toDateTimeAtStartOfDay().toDate();
+  }
+
+  private LocalDate setTimeTo(LocalDate fakeNow) {
+    DateTimeUtils.setCurrentMillisFixed(fakeNow.toDateTimeAtStartOfDay().getMillis());
+    return fakeNow;
   }
 }

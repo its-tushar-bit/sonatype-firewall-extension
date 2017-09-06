@@ -18,30 +18,32 @@ function successMetricsDataService($http, CLMLocations, ProductFeatures) {
   };
 
   function getMttrData() {
-    return $http.post(CLMLocations.getMttrUrl(), {}).then(function(response) {
-      var monthsOfMttr = response.data.length;
-      if (monthsOfMttr < 12) {
-        var paddedMonths = [];
-        var missingMonthCount = 12 - monthsOfMttr;
-        var paddedDate = new Date();
+    return $http.post(CLMLocations.getMttrUrl(), {}).then(function({ data }) {
+      const monthsOfMttr = data.length;
 
-        if (monthsOfMttr > 0) {
-          paddedDate = new Date(response.data[0].timePeriodStart);
-        }
-
-        for (var i = 0; i < missingMonthCount; i++) {
-          /*
-           * The second parameter sets the day to the first to avoid wrapping. For example, if the date is the 30th of
-           * the given month, when March is hit it would show up twice since Feb 30th isn't a valid date. (it wraps to
-           * March) This is only a problem when the mttr data is empty.
-           */
-          paddedDate.setMonth(paddedDate.getMonth() - 1, 1);
-          paddedMonths.unshift({timePeriodStart: paddedDate.getTime()});
-        }
-
-        return paddedMonths.concat(response.data);
+      if (monthsOfMttr === 0) {
+        return data;
       }
-      return response.data;
+      else {
+        if (monthsOfMttr < 12) {
+          var paddedMonths = [];
+          var missingMonthCount = 12 - monthsOfMttr;
+          var paddedDate = new Date(data[0].timePeriodStart);
+
+          for (var i = 0; i < missingMonthCount; i++) {
+            /*
+             * The second parameter sets the day to the first to avoid wrapping. For example, if the date is the 30th of
+             * the given month, when March is hit it would show up twice since Feb 30th isn't a valid date. (it wraps to
+             * March) This is only a problem when the mttr data is empty.
+             */
+            paddedDate.setMonth(paddedDate.getMonth() - 1, 1);
+            paddedMonths.unshift({timePeriodStart: paddedDate.getTime()});
+          }
+
+          return paddedMonths.concat(data);
+        }
+        return data;
+      }
     });
   }
 

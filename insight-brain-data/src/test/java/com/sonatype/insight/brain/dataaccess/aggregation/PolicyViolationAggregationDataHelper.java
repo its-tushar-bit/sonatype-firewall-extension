@@ -11,10 +11,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.LocalDate;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -23,6 +26,8 @@ public class PolicyViolationAggregationDataHelper
   // NOTE: the last id deliberately doesn't actually have any records, and the second to last has records with
   // all 0's for every month (ie, it is an inactive application)
   public static final String[] APPLICATION_IDS = { "1", "2", "3", "4", "5", "6" };
+
+  public static final String ORG_ID = "PVADH_ORG_ID";
 
   /**
    * Create 13 months worth of PolicyViolationAggregation records and return a set that includes all application ids
@@ -35,6 +40,10 @@ public class PolicyViolationAggregationDataHelper
     // the logic that limits the returned data to just 12 months
     LocalDate beginningOfMonth = today.withDayOfMonth(1).minusMonths(13);
     Date beginningOfMonthDate = toDate(beginningOfMonth);
+
+    // PoC mode is based on oldest evaluation date. This aggregation dataset is definitely not PoC.
+    tempEntity.newPolicyEvaluation(tempEntity.newApplication(ROOT_ORGANIZATION_ID).getId(), StageTypes.BUILD.getId(),
+        "oldScan", beginningOfMonthDate);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[0], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] { 5000, 6000, 7000 }), //
@@ -905,6 +914,15 @@ public class PolicyViolationAggregationDataHelper
 
     // sanity check
     assertThat(beginningOfMonth.plusMonths(1), is(today.withDayOfMonth(1)));
+
+    Organization org = tempEntity.newOrganizationWithSpecificId(ORG_ID);
+    for (String appId : APPLICATION_IDS) {
+      tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
+    }
+
+    // PoC mode is based on oldest evaluation date. This aggregation dataset is definitely not PoC.
+    tempEntity.newPolicyEvaluation(APPLICATION_IDS[0], StageTypes.BUILD.getId(), "oldScan",
+        new LocalDate().minusYears(2).toDate());
 
     return new HashSet<>(Arrays.asList(APPLICATION_IDS));
   }

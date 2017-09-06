@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -228,6 +229,18 @@ public class PolicyEvaluationDAO
         " ORDER BY entity.time";
 
     return createQuery(sQuery, applicationId).forceSingleResult().get();
+  }
+
+  /**
+   * Get the oldest policy evaluation in the system.
+   *
+   * @since 1.36
+   */
+  public PolicyEvaluation getOldest(Collection<String> stageTypeIds) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" +
+        " WHERE entity.stageTypeId IN ?1" +
+        " ORDER BY entity.time";
+    return createQuery(sQuery, stageTypeIds).forceSingleResult().get();
   }
 
   @Override

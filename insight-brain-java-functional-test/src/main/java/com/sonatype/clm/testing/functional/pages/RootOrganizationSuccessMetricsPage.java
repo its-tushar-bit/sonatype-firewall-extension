@@ -26,7 +26,7 @@ public class RootOrganizationSuccessMetricsPage
   private static final String ROOT_SELECTOR = "root-organization";
 
   public static final Condition NO_DATA_INFO_TEXT = Condition.text(
-      "There's not enough data to generate Success Metrics. Run some evaluations and check back next month!");
+      "There's not enough data to generate Success Metrics. Run some evaluations and check again tomorrow.");
 
   public RootOrganizationSuccessMetricsPage() {
     super(ROOT_SELECTOR);

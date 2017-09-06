@@ -8,12 +8,12 @@
  * "iq-render-plottable" reusable component
  *
  * Attributes:
- * - chart {Promise<plottableComponent>}: Promise resolving with plottable component
+ * - chart {plottableComponent|Promise<plottableComponent>}: A plottable component, or a Promise resolving to one
  *
  * Example:
  * <iq-render-plottable chart="vm.mttrChart"></iq-render-plottable>
  */
-angular.module('components').directive('iqRenderPlottable', ['$window', function($window) {
+angular.module('components').directive('iqRenderPlottable', ['$window', '$q', function($window, $q) {
   return {
     restrict: 'E',
     scope: {
@@ -21,7 +21,7 @@ angular.module('components').directive('iqRenderPlottable', ['$window', function
     },
     link: function(scope, el) {
       function renderChart() {
-        scope.chart.then(function(plot) {
+        $q.when(scope.chart).then(function(plot) {
           plot.renderTo(el[0]);
         });
       }

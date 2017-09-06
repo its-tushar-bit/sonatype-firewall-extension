@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.aggregation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
@@ -106,7 +107,14 @@ public class PolicyViolationAggregationService
     this.dashboardUtils = dashboardUtils;
   }
 
+  /**
+   * @return the list of MttrDTOs which will be empty if the MTTR functionality is disabled
+   * (ie, due to being in PoC mode)
+   */
   public List<MttrDTO> getMttrs(Set<String> organizationIds, Set<String> applicationIds) {
+    if (isInPoCMode()) {
+      return Arrays.asList();
+    }
 
     Set<String> applicationIdsToQuery = getApplicationIdsToQuery(organizationIds, applicationIds);
     // make sure the aggregations data is up to date before we query it
@@ -205,6 +213,23 @@ public class PolicyViolationAggregationService
         applicationCounts.countOtherCriticalThreat);
 
     return retval;
+  }
+
+  private boolean isInPoCMode() {
+    Set<String> applicableStageTypes = new HashSet<>();
+    for (StageType stageType : StageTypes.getAll()) {
+      if (!StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())) {
+        applicableStageTypes.add(stageType.getId());
+      }
+    }
+
+    PolicyEvaluation oldestEvaluation = policyEvaluationDAO.getOldest(applicableStageTypes);
+    if (oldestEvaluation == null) {
+      return true;
+    }
+    LocalDate oldestEvaluationDate = new LocalDate(oldestEvaluation.getTime());
+    LocalDate startOfPreviousMonth = new LocalDate().withDayOfMonth(1).minusMonths(1);
+    return oldestEvaluationDate.compareTo(startOfPreviousMonth) >= 0;
   }
 
   private Set<String> getApplicationIdsToQuery(Set<String> organizationIds, Set<String> applicationIds) {
@@ -349,6 +374,12 @@ public class PolicyViolationAggregationService
                                                    Set<String> allStageTypeIds,
                                                    LocalDate currentDate)
   {
+    int numDeletedPartialMonths = violationAggregationDAO.deletePartialMonthsUpTo(applicationId, currentDate);
+    if (numDeletedPartialMonths != 0) {
+      policyViolationResolutionStateDAO.deleteByApplicationId(applicationId);
+    }
+    boolean pocMode = isInPoCMode();
+
     log.trace("Generating Violation Aggregations for {}", applicationId);
 
     PolicyViolationAggregation mostRecentPriorAggregation = violationAggregationDAO
@@ -358,13 +389,30 @@ public class PolicyViolationAggregationService
 
     // start the next new aggregation at the beginning of the month after the last aggregation, or at the beginning
     // of the month of the first evaluation if there aren't any aggregations for this app yet
-    LocalDate startOfNewAggregation = mostRecentPriorAggregation == null ? getOldestEvaluationMonth(applicationId)
-        : new LocalDate(mostRecentPriorAggregation.getTimePeriodStart()).withDayOfMonth(1).plusMonths(1);
+    PolicyEvaluation oldestEvaluation = policyEvaluationDAO.getOldestByApplicationId(applicationId);
+    LocalDate oldestEvaluationDate = oldestEvaluation == null ? null : new LocalDate(oldestEvaluation.getTime());
+    LocalDate startOfFirstAggregation =
+        oldestEvaluationDate == null ? startOfCurrentMonth : oldestEvaluationDate.withDayOfMonth(1);
+    LocalDate startOfNewAggregation = mostRecentPriorAggregation == null ? startOfFirstAggregation : new LocalDate(
+        mostRecentPriorAggregation.getTimePeriodStart()).plusMonths(1);
     LocalDate startOfNextAggregation = startOfNewAggregation.plusMonths(1);
 
-    if (startOfNewAggregation.compareTo(startOfCurrentMonth) >= 0) {
-      // aggregations are already done up to last month
-      return;
+    if (pocMode) {
+      if (mostRecentPriorAggregation != null &&
+          currentDate.toDate().equals(mostRecentPriorAggregation.getTimePeriodEnd())) {
+        // aggregations are already done up to today
+        return;
+      }
+      else if (oldestEvaluation == null || currentDate.toDate().equals(oldestEvaluationDate)) {
+        // no evaluations or oldest evaluation is within current day
+        return;
+      }
+    }
+    else {
+      if (startOfNewAggregation.compareTo(startOfCurrentMonth) >= 0) {
+        // aggregations are already done up to this month
+        return;
+      }
     }
 
     List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getSinceDateByApplicationIdAndStageIds(
@@ -380,14 +428,23 @@ public class PolicyViolationAggregationService
       for (PolicyEvaluation evaluation : policyEvaluations) {
         LocalDate evaluationDate = new LocalDate(evaluation.getTime());
 
-        if (evaluationDate.compareTo(startOfCurrentMonth) >= 0) {
-          // evaluation is within current month. Skip it and the rest
-          break;
+        if (pocMode) {
+          if (evaluationDate.compareTo(currentDate) >= 0) {
+            // evaluation is within current day. Skip it and the rest
+            break;
+          }
+        }
+        else {
+          if (evaluationDate.compareTo(startOfCurrentMonth) >= 0) {
+            // evaluation is within current month. Skip it and the rest
+            break;
+          }
         }
 
         while (evaluationDate.compareTo(startOfNextAggregation) >= 0) {
           // evaluation is too recent for the current evaluation record, start a new one
-          saveViolationAggregation(applicationId, startOfNewAggregation, mttrStats, discoveredStats);
+          saveViolationAggregation(applicationId, startOfNewAggregation, pocMode ? currentDate : null, mttrStats,
+              discoveredStats);
           startOfNewAggregation = startOfNextAggregation;
           startOfNextAggregation = startOfNewAggregation.plusMonths(1);
 
@@ -401,8 +458,9 @@ public class PolicyViolationAggregationService
 
     // insert the last aggregation from the loop above and any others necessary to bring things up to the
     // start of the current month
-    while (startOfNewAggregation.compareTo(startOfCurrentMonth) < 0) {
-      saveViolationAggregation(applicationId, startOfNewAggregation, mttrStats, discoveredStats);
+    while (startOfNewAggregation.compareTo(pocMode ? currentDate : startOfCurrentMonth) < 0) {
+      saveViolationAggregation(applicationId, startOfNewAggregation, pocMode ? currentDate : null, mttrStats,
+          discoveredStats);
       startOfNewAggregation = startOfNextAggregation;
       startOfNextAggregation = startOfNewAggregation.plusMonths(1);
       mttrStats = new MttrStats();
@@ -454,18 +512,10 @@ public class PolicyViolationAggregationService
     }
   }
 
-  /**
-   * @return a LocalDate representing the beginning of the month in which the oldest PolicyEvaluation for this app
-   *         occurred. If there are no policy evaluations at all then the beginning of the current month is returned
-   */
-  private LocalDate getOldestEvaluationMonth(String applicationId) {
-    PolicyEvaluation oldestEvaluation = policyEvaluationDAO.getOldestByApplicationId(applicationId);
-    Date oldestEvaluationDate = oldestEvaluation == null ? new Date() : oldestEvaluation.getTime();
-
-    return new LocalDate(oldestEvaluationDate).withDayOfMonth(1);
-  }
-
   private static Date localDateToTimestamp(LocalDate date) {
+    if (date == null) {
+      return null;
+    }
     return date.toDateTimeAtStartOfDay().toDate();
   }
 
@@ -498,11 +548,13 @@ public class PolicyViolationAggregationService
 
   private void saveViolationAggregation(String applicationId,
                                         LocalDate timePeriodStart,
+                                        LocalDate timePeriodEnd,
                                         MttrStats mttrStats,
                                         DiscoveredStats discoveredStats)
   {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, //
         localDateToTimestamp(timePeriodStart), //
+        localDateToTimestamp(timePeriodEnd), //
         mttrStats.mttrLowThreatStats, //
         mttrStats.mttrModerateThreatStats, //
         mttrStats.mttrSevereThreatStats, //

@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.joda.time.LocalDate;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -36,6 +37,16 @@ public class PolicyViolationAggregationResourceTest
 {
   protected HttpRequest restRequest(String path) {
     return super.restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH, path);
+  }
+
+  @Before
+  public void before() {
+    // create an evaluation long time ago to make sure we are not in PoC mode
+    Application app = tempEntity.newApplicationWithParent("app");
+    Date date = new LocalDate().minusMonths(22).toDate();
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy", 5);
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "oldEvaluation", date);
+    tempEntity.newPolicyViolation(eval, policy);
   }
 
   @Test

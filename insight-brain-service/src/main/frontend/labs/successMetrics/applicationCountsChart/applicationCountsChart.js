@@ -9,61 +9,32 @@
 export default {
   templateUrl: 'labs/successMetrics/applicationCountsChart/applicationCountsChart.html?' + clmBuildTimestamp,
   controller: applicationCountsChartController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
+  bindings: {
+    applicationCountsData: '<'
+  }
 };
 
-function applicationCountsChartController(successMetricsDataService, $q) {
-  var vm = this;
+function applicationCountsChartController() {
+  const vm = this,
+      { applicationCountsData } = vm;
 
-  vm.doLoad = doLoad;
-  vm.error = undefined;
-  vm.isLoaded = false;
+  vm.applicationCount = applicationCountsData.activeApplications;
 
-  vm.applicationCount = undefined;
+  vm.applicationCountSecurity = applicationCountsData.security.applicationsWithViolations;
+  vm.applicationCountLicense = applicationCountsData.license.applicationsWithViolations;
+  vm.applicationCountQuality = applicationCountsData.quality.applicationsWithViolations;
+  vm.applicationCountOther = applicationCountsData.other.applicationsWithViolations;
+  vm.applicationCountTotalViolating = applicationCountsData.total.applicationsWithViolations;
 
-  vm.applicationCountTotalViolating = undefined;
-  vm.applicationCountSecurity = undefined;
-  vm.applicationCountLicense = undefined;
-  vm.applicationCountQuality = undefined;
-  vm.applicationCountOther = undefined;
+  vm.applicationCountSecurityCritical = applicationCountsData.security.applicationsWithCriticalViolations;
+  vm.applicationCountLicenseCritical = applicationCountsData.license.applicationsWithCriticalViolations;
+  vm.applicationCountQualityCritical = applicationCountsData.quality.applicationsWithCriticalViolations;
+  vm.applicationCountOtherCritical = applicationCountsData.other.applicationsWithCriticalViolations;
+  vm.applicationCountTotalViolatingCritical = applicationCountsData.total.applicationsWithCriticalViolations;
 
-  vm.applicationCountTotalViolatingCritical = undefined;
-  vm.applicationCountSecurityCritical = undefined;
-  vm.applicationCountLicenseCritical = undefined;
-  vm.applicationCountQualityCritical = undefined;
-  vm.applicationCountOtherCritical = undefined;
-
-  doLoad();
-
-  function doLoad() {
-    vm.error = undefined;
-
-    vm.chart = successMetricsDataService.getApplicationCountsData().then(function(data) {
-      vm.isLoaded = true;
-
-      vm.applicationCount = data.activeApplications;
-
-      vm.applicationCountSecurity = data.security.applicationsWithViolations;
-      vm.applicationCountLicense = data.license.applicationsWithViolations;
-      vm.applicationCountQuality = data.quality.applicationsWithViolations;
-      vm.applicationCountOther = data.other.applicationsWithViolations;
-      vm.applicationCountTotalViolating = data.total.applicationsWithViolations;
-
-      vm.applicationCountSecurityCritical = data.security.applicationsWithCriticalViolations;
-      vm.applicationCountLicenseCritical = data.license.applicationsWithCriticalViolations;
-      vm.applicationCountQualityCritical = data.quality.applicationsWithCriticalViolations;
-      vm.applicationCountOtherCritical = data.other.applicationsWithCriticalViolations;
-      vm.applicationCountTotalViolatingCritical = data.total.applicationsWithCriticalViolations;
-
-      return makeChart(data);
-    }, function(error) {
-      vm.error = error;
-      return $q.reject(error);
-    });
-  }
+  vm.chart = makeChart(applicationCountsData);
 }
-
-applicationCountsChartController.$inject = ['successMetricsDataService', '$q'];
 
 function makeDataset(data, valueProp, datasetClassName) {
   var threatCategories = ['security', 'license', 'quality', 'other'],

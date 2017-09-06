@@ -14,7 +14,6 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -41,16 +40,10 @@ public class PolicyCoordinatesConditionTypeMigrator
 
   private final PolicyDAO policyDAO;
 
-  private final PolicyInternalDAO policyInternalDAO;
-
   @Inject
-  public PolicyCoordinatesConditionTypeMigrator(InsightWork insightWork,
-                                                PolicyDAO policyDAO,
-                                                PolicyInternalDAO policyInternalDAO)
-  {
+  public PolicyCoordinatesConditionTypeMigrator(InsightWork insightWork, PolicyDAO policyDAO) {
     this.insightWork = insightWork;
     this.policyDAO = policyDAO;
-    this.policyInternalDAO = policyInternalDAO;
   }
 
   public void migrate() throws IOException {
@@ -65,7 +58,7 @@ public class PolicyCoordinatesConditionTypeMigrator
     }
 
     int numPoliciesMigrated = 0;
-    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
+    try (TransactionContext tx = policyDAO.createTransactionContext()) {
       tx.begin();
       List<Policy> policies = policyDAO.getAll(tx);
       for (Policy policy : policies) {

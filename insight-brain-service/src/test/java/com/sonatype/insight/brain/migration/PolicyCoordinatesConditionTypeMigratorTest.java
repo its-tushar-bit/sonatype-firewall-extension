@@ -65,7 +65,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     work.getDataDir().mkdirs();
     policyDAO = new PolicyDAO();
     policyInternalDAO = new PolicyInternalDAO();
-    migrator = new PolicyCoordinatesConditionTypeMigrator(work, policyDAO, policyInternalDAO);
+    migrator = new PolicyCoordinatesConditionTypeMigrator(work, policyDAO);
   }
 
   @Test
@@ -108,14 +108,13 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   public void testMigrate_UsesSingleTransaction() throws Exception {
     // setup
     TransactionContext txMock = mock(TransactionContext.class);
-    PolicyInternalDAO policyInternalDAOMock = mock(PolicyInternalDAO.class);
-    when(policyInternalDAOMock.createTransactionContext()).thenReturn(txMock);
     PolicyDAO policyDAOMock = mock(PolicyDAO.class);
+    when(policyDAOMock.createTransactionContext()).thenReturn(txMock);
     Policy policy1 = newPolicyObject("coord-policy1", CoordinatesConditionType.ID, "match", "maven:foo*");
     Policy policy2 = newPolicyObject("coord-policy2", CoordinatesConditionType.ID, "match", "maven:bar*");
     List<Policy> policies = Lists.newArrayList(policy1, policy2);
     when(policyDAOMock.getAll(txMock)).thenReturn(policies);
-    migrator = new PolicyCoordinatesConditionTypeMigrator(work, policyDAOMock, policyInternalDAOMock);
+    migrator = new PolicyCoordinatesConditionTypeMigrator(work, policyDAOMock);
 
     // execute
     migrator.migrate();

@@ -52,11 +52,6 @@ OrganizationMockData = {
                       "value": "360"
                     },
                     {
-                      "conditionTypeId": "SecurityVulnerability",
-                      "operator": "present",
-                      "value": null
-                    },
-                    {
                       "conditionTypeId": "SecurityVulnerabilitySeverity",
                       "operator": "=",
                       "value": "44"

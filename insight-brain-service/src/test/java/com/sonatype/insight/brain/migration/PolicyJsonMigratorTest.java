@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.model.SchemaInfo;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
@@ -29,6 +30,7 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class PolicyJsonMigratorTest
@@ -90,5 +92,25 @@ public class PolicyJsonMigratorTest
     RoleNotification roleNotification = policy.getNotifications().getRoleNotifications().get(0);
     assertThat(roleNotification.getRoleId(), is(Role.OWNER_ROLE_ID));
     assertThat(roleNotification.getStageIds(), containsInAnyOrder(Notification.CONTINUOUS_MONITORING, Stage.ID_BUILD));
+  }
+
+  @Test
+  public void testMigrate_DeprecatedConditionForSecurityVulnerabilities() throws Exception {
+    // Verifies that the deprecated condition for security vulnerabilities can be migrated.
+    // The migrator should not fail when it encounters this policy condition type.
+    String policyId = tempEntity.newPolicy("Test").getId();
+    PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
+    policyInternal.setContent(getPolicyContent("policy_deprecated_security_vulnerability_condition.json"));
+    policyInternalDAO.update(policyInternal);
+
+    migrator.migrate();
+
+    assertThat(schemaInfoDAO.get().getPolicyJsonVersion(), is(PolicyJsonMigrator.POLICY_JSON_VERSION));
+
+    Policy policy = policyDAO.getById(policyId);
+    Condition deprecatedCondition = policy.getConstraints().get(0).getConditions().get(0);
+    assertThat(deprecatedCondition.getConditionTypeId(), is("SecurityVulnerability"));
+    assertThat(deprecatedCondition.getOperator(), is("present"));
+    assertThat(deprecatedCondition.getValue(), is(nullValue()));
   }
 }

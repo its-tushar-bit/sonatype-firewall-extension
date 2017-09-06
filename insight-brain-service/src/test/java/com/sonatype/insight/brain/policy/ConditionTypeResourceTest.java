@@ -5,15 +5,24 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Map;
+
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.policy.conditions.DeprecatedSecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
 public class ConditionTypeResourceTest
     extends AbstractResourceTest
 {
+  @SuppressWarnings("deprecation")
   @Test
   public void testGetConditionTypes() throws Exception {
     final HttpResponse response = restRequest().path(ConditionTypeResource.RESOURCE_PATH).get();
@@ -21,5 +30,13 @@ public class ConditionTypeResourceTest
     final Object[] conditionTypes = response.getBody(Object[].class);
     Assert.assertNotNull(conditionTypes);
     Assert.assertTrue(conditionTypes.length > 0);
+
+    for (Object conditionTypeObject : conditionTypes) {
+      @SuppressWarnings("unchecked")
+      Map<String, Object> conditionType = (Map<String, Object>) conditionTypeObject;
+      String conditionTypeId = (String) conditionType.get("id");
+      assertThat(conditionTypeId, is(notNullValue()));
+      assertThat(conditionTypeId, is(not(DeprecatedSecurityVulnerabilityConditionType.ID)));
+    }
   }
 }

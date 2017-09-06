@@ -34,6 +34,7 @@ public class DataMigrator
   private final RootOrganizationConfigMigrator rootOrganizationConfigMigrator;
   private final ProprietaryConfigMigrator proprietaryConfigMigrator;
   private final PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator;
+  private final PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator;
 
   @Inject
   public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator,
@@ -51,7 +52,8 @@ public class DataMigrator
                       RootOrganizationConfigMigrator rootOrganizationConfigMigrator,
                       SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator,
                       ProprietaryConfigMigrator proprietaryConfigMigrator,
-                      PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator)
+                      PolicyCoordinatesConditionTypeMigrator policyCoordinatesConditionTypeMigrator,
+                      PolicySecurityVulnerabilityConditionTypeMigrator policySecurityVulnerabilityConditionTypeMigrator)
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;
@@ -69,6 +71,7 @@ public class DataMigrator
     this.securityVulnerabilityOverrideMigrator = securityVulnerabilityOverrideMigrator;
     this.proprietaryConfigMigrator = proprietaryConfigMigrator;
     this.policyCoordinatesConditionTypeMigrator = policyCoordinatesConditionTypeMigrator;
+    this.policySecurityVulnerabilityConditionTypeMigrator = policySecurityVulnerabilityConditionTypeMigrator;
   }
 
   /**
@@ -91,5 +94,6 @@ public class DataMigrator
     securityVulnerabilityOverrideMigrator.migrate();
     proprietaryConfigMigrator.migrate();
     policyCoordinatesConditionTypeMigrator.migrate();
+    policySecurityVulnerabilityConditionTypeMigrator.migrate();
   }
 }

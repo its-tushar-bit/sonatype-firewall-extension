@@ -73,6 +73,8 @@ public class PolicyMigratorTest
 
     URL testPolicyFileUrl = getClass().getResource("/PolicyMigratorTest/policy1.json");
     FileUtils.copyFile(new File(testPolicyFileUrl.getFile()), new File(orgPolicyDir, "policy.json"));
+    // This policy contains conditions with DeprecatedSecurityVulnerabilityConditionType type.
+    // The migrator should not fail when it encounters this policy condition type.
     testPolicyFileUrl = getClass().getResource("/PolicyMigratorTest/policy2.json");
     FileUtils.copyFile(new File(testPolicyFileUrl.getFile()), new File(appPolicyDir, "policy.json"));
 

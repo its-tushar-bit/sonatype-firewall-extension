@@ -12,6 +12,8 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.db.H2DatabaseMigrator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -27,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupCond
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -154,5 +157,32 @@ public class PolicyDroolsCodeMigratorTest
     migrator.migrate();
 
     assertThat(schemaInfoDAO.get().getDroolsCodeVersion(), is(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION));
+  }
+
+  @Test
+  public void testMigrate_DeprecatedConditionForSecurityVulnerabilities() throws Exception {
+    // Verifies that the deprecated condition for security vulnerabilities can be migrated.
+    // The migrator should not fail when it encounters this policy condition type.
+    String policyId = tempEntity.newPolicy("Test").getId();
+    PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
+    PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
+    policyInternal.setContent(getPolicyContent("policy_deprecated_security_vulnerability_condition.json"));
+    policyInternalDAO.update(policyInternal);
+
+    // Fake schema state before migration
+    SchemaInfo schemaInfo = schemaInfoDAO.get();
+    schemaInfo.setDroolsCodeVersion(0);
+    schemaInfoDAO.update(schemaInfo);
+
+    migrator.migrate();
+    Policy policy = policyDAO.getById(policyId);
+    Condition deprecatedCondition = policy.getConstraints().get(0).getConditions().get(0);
+    assertThat(deprecatedCondition.getConditionTypeId(), is("SecurityVulnerability"));
+    assertThat(deprecatedCondition.getOperator(), is("present"));
+    assertThat(deprecatedCondition.getValue(), is(nullValue()));
+  }
+
+  private String getPolicyContent(String filename) throws Exception {
+    return IOUtil.toString(getClass().getResourceAsStream("/PolicyDroolsCodeMigratorTest/" + filename), "UTF-8");
   }
 }

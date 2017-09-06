@@ -35,7 +35,8 @@ public class ConditionTypes
 
   public static final MatchStateConditionType MatchStateConditionType = new MatchStateConditionType();
 
-  public static final SecurityVulnerabilityConditionType SecurityVulnerabilityConditionType = new SecurityVulnerabilityConditionType();
+  @SuppressWarnings("deprecation")
+  public static final DeprecatedSecurityVulnerabilityConditionType DeprecatedSecurityVulnerabilityConditionType = new DeprecatedSecurityVulnerabilityConditionType();
 
   public static final SecurityVulnerabilitySeverityConditionType SecurityVulnerabilitySeverityConditionType = new SecurityVulnerabilitySeverityConditionType();
 
@@ -57,7 +58,7 @@ public class ConditionTypes
     add(MatchStateConditionType);
     add(ProprietaryConditionType);
     add(RelativePopularityConditionType);
-    add(SecurityVulnerabilityConditionType);
+    add(DeprecatedSecurityVulnerabilityConditionType);
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);
   }

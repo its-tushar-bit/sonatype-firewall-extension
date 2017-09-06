@@ -275,4 +275,8 @@ public class PolicyDAO
   public List<Policy> getByName(String name) {
     return PolicyInternal.toPolicies(policyInternalDAO.getByName(name));
   }
+
+  public TransactionContext createTransactionContext() {
+    return policyInternalDAO.createTransactionContext();
+  }
 }

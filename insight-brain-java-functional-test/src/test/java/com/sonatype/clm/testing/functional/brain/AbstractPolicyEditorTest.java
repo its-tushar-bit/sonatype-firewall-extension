@@ -68,7 +68,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLeve
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
@@ -96,7 +95,6 @@ import static com.sonatype.insight.brain.model.Color.dark_red;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -171,7 +169,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName(), is("New Constraint"));
     assertThat(constraint.getOperator(), is(LogicalOperator.OR));
 
-    assertThat(constraint.getConditions().size(), is(15));
+    assertThat(constraint.getConditions().size(), is(14));
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -185,15 +183,14 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(6), LicenseThreatGroupConditionType.ID, "is", 
         new LicenseThreatGroupDAO().getByName("Liberal").get(0).getId());
     assertCondition(constraint.getConditions().get(7), LicenseThreatGroupLevelConditionType.ID, ">=", "5");
-    assertCondition(constraint.getConditions().get(8), SecurityVulnerabilityConditionType.ID, "absent", null);
-    assertCondition(constraint.getConditions().get(9), SecurityVulnerabilitySeverityConditionType.ID, ">", "1");
-    assertCondition(constraint.getConditions().get(10), SecurityVulnerabilityStatusConditionType.ID, "is",
+    assertCondition(constraint.getConditions().get(8), SecurityVulnerabilitySeverityConditionType.ID, ">", "1");
+    assertCondition(constraint.getConditions().get(9), SecurityVulnerabilityStatusConditionType.ID, "is",
         SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.name());
-    assertCondition(constraint.getConditions().get(11), RelativePopularityConditionType.ID, "=", "50");
-    assertCondition(constraint.getConditions().get(12), MatchStateConditionType.ID, "is not",
+    assertCondition(constraint.getConditions().get(10), RelativePopularityConditionType.ID, "=", "50");
+    assertCondition(constraint.getConditions().get(11), MatchStateConditionType.ID, "is not",
         MatchState.UNKNOWN.getId());
-    assertCondition(constraint.getConditions().get(13), ProprietaryConditionType.ID, "is false", null);
-    assertCondition(constraint.getConditions().get(14), IdentificationSourceConditionType.ID, "is not",
+    assertCondition(constraint.getConditions().get(12), ProprietaryConditionType.ID, "is false", null);
+    assertCondition(constraint.getConditions().get(13), IdentificationSourceConditionType.ID, "is not",
         IdentificationSource.MANUAL.getId());
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD), is("warn"));
@@ -577,9 +574,14 @@ public abstract class AbstractPolicyEditorTest
     assertThat(coordinatesCondition.getOperator(), is("do not match"));
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintEdit.condition(2).type().chooseOption(conditionTypesOptionMap.get(SecurityVulnerabilityConditionType.class));
-    constraintEdit.condition(2).operator().selectedItem().shouldHave(text("present")).click();
-    constraintEdit.condition(2).operator().listItem(1).shouldHave(text("absent")).click();
+    constraintEdit.condition(2).type()
+        .chooseOption(conditionTypesOptionMap.get(SecurityVulnerabilitySeverityConditionType.class));
+    constraintEdit.condition(2).operator().selectedItem().shouldHave(text("=")).click();
+    constraintEdit.condition(2).operator().listItem(1).shouldHave(text("<"));
+    constraintEdit.condition(2).operator().listItem(2).shouldHave(text("<="));
+    constraintEdit.condition(2).operator().listItem(3).shouldHave(text(">"));
+    constraintEdit.condition(2).operator().listItem(4).shouldHave(text(">=")).click();
+    constraintEdit.inputCondition(2).value().val("1");
     PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
@@ -589,9 +591,9 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraints.get(0).getConditions().size(), is(3));
 
     Condition securityVulnerabilityCondition = constraints.get(0).getConditions().get(2);
-    assertThat(securityVulnerabilityCondition.getConditionTypeId(), is("SecurityVulnerability"));
-    assertThat(securityVulnerabilityCondition.getValue(), isEmptyOrNullString());
-    assertThat(securityVulnerabilityCondition.getOperator(), is("absent"));
+    assertThat(securityVulnerabilityCondition.getConditionTypeId(), is("SecurityVulnerabilitySeverity"));
+    assertThat(securityVulnerabilityCondition.getValue(), is("1"));
+    assertThat(securityVulnerabilityCondition.getOperator(), is(">="));
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled);
     constraintEdit.condition(1).deleteConditionButton().shouldBe(visible, enabled);
@@ -899,30 +901,25 @@ public abstract class AbstractPolicyEditorTest
     licenseThreatGroupLevel.operator().listItem(1).shouldHave(text(">=")).click();
     licenseThreatGroupLevel.value().val("5");
 
-    DropdownConditionEditSection securityVulnerability = addDropdownCondition(newConstraint, SecurityVulnerabilityConditionType.class, 8);
-    securityVulnerability.operator().selectedItem().shouldHave(text("present")).click();
-    securityVulnerability.operator().listItem(1).shouldHave(text("absent")).click();
-
-
     InputConditionEditSection securityVulnerabilitySeverity = addInputCondition(newConstraint,
-        SecurityVulnerabilitySeverityConditionType.class, 9);
+        SecurityVulnerabilitySeverityConditionType.class, 8);
     securityVulnerabilitySeverity.operator().selectedItem().shouldHave(text("=")).click();
     securityVulnerabilitySeverity.operator().listItem(3).shouldHave(text(">")).click();
     securityVulnerabilitySeverity.value().val("1");
 
     DropdownConditionEditSection securityVulnerabilityStatus = addDropdownCondition(newConstraint,
-        SecurityVulnerabilityStatusConditionType.class, 10);
+        SecurityVulnerabilityStatusConditionType.class, 9);
     securityVulnerabilityStatus.operator().selectedItem().shouldHave(text("is"));
     securityVulnerabilityStatus.value().selectedItem().shouldHave(text("Open")).click();
     securityVulnerabilityStatus.value().listItem(2).shouldHave(text("Not Applicable")).click();
 
     InputConditionEditSection relativePopularity = addInputCondition(newConstraint,
-        RelativePopularityConditionType.class, 11);
+        RelativePopularityConditionType.class, 10);
     relativePopularity.operator().selectedItem().shouldHave(text("="));
     relativePopularity.value().val("50");
 
     newConstraint.addConditionButton().click();
-    DropdownConditionEditSection matchState = newConstraint.dropdownCondition(12);
+    DropdownConditionEditSection matchState = newConstraint.dropdownCondition(11);
     matchState.type().chooseOption(conditionTypesOptionMap.get(MatchStateConditionType.class));
     matchState.operator().selectedItem().shouldHave(text("is")).click();
     matchState.operator().listItem(1).shouldHave(text("is not")).click();
@@ -930,13 +927,13 @@ public abstract class AbstractPolicyEditorTest
     matchState.value().listItem(2).shouldHave(text("Unknown")).click();
 
     newConstraint.addConditionButton().click();
-    DropdownConditionEditSection proprietary = newConstraint.dropdownCondition(13);
+    DropdownConditionEditSection proprietary = newConstraint.dropdownCondition(12);
     proprietary.type().chooseOption(conditionTypesOptionMap.get(ProprietaryConditionType.class));
     proprietary.operator().selectedItem().shouldHave(text("is true")).click();
     proprietary.operator().listItem(1).shouldHave(text("is false")).click();
 
     newConstraint.addConditionButton().click();
-    DropdownConditionEditSection identificationSource = newConstraint.dropdownCondition(14);
+    DropdownConditionEditSection identificationSource = newConstraint.dropdownCondition(13);
     identificationSource.type().chooseOption(conditionTypesOptionMap.get(IdentificationSourceConditionType.class));
     identificationSource.operator().selectedItem().shouldHave(text("is")).click();
     identificationSource.operator().listItem(1).shouldHave(text("is not")).click();
@@ -1199,9 +1196,11 @@ public abstract class AbstractPolicyEditorTest
     HashMap<Class<? extends ConditionType>, Option> map = new HashMap<>();
 
     int i = 0;
-    for (ConditionType type : ConditionTypes.getAll()) {
-      map.put(type.getClass(), new Option(i, type.getName()));
-      i++;
+    for (ConditionType conditionType : ConditionTypes.getAll()) {
+      if (conditionType != ConditionTypes.DeprecatedSecurityVulnerabilityConditionType) {
+        map.put(conditionType.getClass(), new Option(i, conditionType.getName()));
+        i++;
+      }
     }
 
     return map;

@@ -32,13 +32,6 @@ PolicyMockData = {
         }
       },
       {
-        "name": "Security Vulnerability",
-        "id": "SecurityVulnerability",
-        "supportedOperators": ["present", "absent"],
-        "valueTypeId": null,
-        "valueHint": null
-      },
-      {
         "name": "Security Vulnerability Severity",
         "id": "SecurityVulnerabilitySeverity",
         "supportedOperators": ["=", "<", "<=", ">", ">="],
@@ -258,11 +251,6 @@ PolicyMockData = {
                 "value": "360"
               },
               {
-                "conditionTypeId": "SecurityVulnerability",
-                "operator": "present",
-                "value": null
-              },
-              {
                 "conditionTypeId": "SecurityVulnerabilitySeverity",
                 "operator": "=",
                 "value": "44"
@@ -372,9 +360,9 @@ PolicyMockData = {
             "operator": "OR",
             "conditions": [
               {
-                "conditionTypeId": "SecurityVulnerability",
-                "operator": "present",
-                "value": null
+                "conditionTypeId": "SecurityVulnerabilitySeverity",
+                "operator": ">=",
+                "value": "0"
               }
             ]
           }
@@ -394,9 +382,9 @@ PolicyMockData = {
             "operator": "OR",
             "conditions": [
               {
-                "conditionTypeId": "SecurityVulnerability",
-                "operator": "present",
-                "value": null
+                "conditionTypeId": "SecurityVulnerabilitySeverity",
+                "operator": ">=",
+                "value": "0"
               }
             ]
           }
@@ -416,9 +404,9 @@ PolicyMockData = {
             "operator": "OR",
             "conditions": [
               {
-                "conditionTypeId": "SecurityVulnerability",
-                "operator": "present",
-                "value": null
+                "conditionTypeId": "SecurityVulnerabilitySeverity",
+                "operator": ">=",
+                "value": "0"
               }
             ]
           }
@@ -434,8 +422,9 @@ PolicyMockData = {
           "name": "createPolicyTest_constraint",
           "conditions": [
             {
-              "conditionTypeId": "SecurityVulnerability",
-              "operator": "present"
+              "conditionTypeId": "SecurityVulnerabilitySeverity",
+              "operator": ">=",
+              "value": "0"
             }
           ],
           "operator": "AND",
@@ -462,9 +451,9 @@ PolicyMockData = {
           "operator": "OR",
           "conditions": [
             {
-              "conditionTypeId": "SecurityVulnerability",
-              "operator": "present",
-              "value": null
+              "conditionTypeId": "SecurityVulnerabilitySeverity",
+              "operator": ">=",
+              "value": "0"
             }
           ]
         }

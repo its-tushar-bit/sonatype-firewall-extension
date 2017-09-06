@@ -18,11 +18,13 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,6 +32,8 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 
 public class ProcureRemovalMigratorTest
@@ -104,5 +108,27 @@ public class ProcureRemovalMigratorTest
     monitoring.setOwnerId(ownerId);
     field.set(monitoring, stageTypeId);
     return monitoring;
+  }
+
+  @Test
+  public void testMigrate_DeprecatedConditionForSecurityVulnerabilities() throws Exception {
+    // Verifies that the deprecated condition for security vulnerabilities can be migrated.
+    // The migrator should not fail when it encounters this policy condition type.
+    String policyId = tempEntity.newPolicy("Test").getId();
+    PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
+    policyInternal.setContent(getPolicyContent("policy_deprecated_security_vulnerability_condition.json"));
+    policyInternalDAO.update(policyInternal);
+
+    procureRemovalMigrator.migrate();
+
+    Policy policy = new PolicyDAO().getById(policyId);
+    Condition deprecatedCondition = policy.getConstraints().get(0).getConditions().get(0);
+    assertThat(deprecatedCondition.getConditionTypeId(), is("SecurityVulnerability"));
+    assertThat(deprecatedCondition.getOperator(), is("present"));
+    assertThat(deprecatedCondition.getValue(), is(nullValue()));
+  }
+
+  private String getPolicyContent(String filename) throws Exception {
+    return IOUtil.toString(getClass().getResourceAsStream("/ProcureRemovalMigratorTest/" + filename), "UTF-8");
   }
 }

@@ -77,12 +77,6 @@ var PolicyResourceMockData = {
         'threatCategory': 'LICENSE',
         'valueTypeId': 'IntegerValueType'
       }, {
-        'id': 'SecurityVulnerability',
-        'name': 'Security Vulnerability',
-        'supportedOperators': ['present', 'absent'],
-        'threatCategory': 'SECURITY',
-        'valueTypeId': null
-      }, {
         'id': 'SecurityVulnerabilitySeverity',
         'name': 'Security Vulnerability Severity',
         'supportedOperators': ['=', '<', '<=', '>', '>='],

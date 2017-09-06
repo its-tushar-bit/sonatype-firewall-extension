@@ -71,13 +71,16 @@ class SupportService
 
   private final DbData dbData;
 
+  private final SystemInfo systemInfo;
+
   @Inject
   public SupportService(final InsightConfig config,
                         final VersionService versionService,
                         final ProductLicenseService productLicenseService,
                         final LdapService ldapService,
                         final JmxInfo jmxInfo,
-                        final DbData dbData)
+                        final DbData dbData,
+                        final SystemInfo systemInfo)
   {
     this.config = config;
     this.versionService = versionService;
@@ -85,6 +88,7 @@ class SupportService
     this.ldapService = ldapService;
     this.jmxInfo = jmxInfo;
     this.dbData = dbData;
+    this.systemInfo = systemInfo;
   }
 
   File getWorkDir() {
@@ -119,7 +123,7 @@ class SupportService
     final File filteredConfigYml = new File(workDir, "filtered-" + rawYml.getName());
 
     try (final FileInputStream input = new FileInputStream(rawYml)) {
-      FileUtils.write(filteredConfigYml, SystemInfo.getObfuscatedYaml(input), "UTF-8");
+      FileUtils.write(filteredConfigYml, systemInfo.getObfuscatedYaml(input), "UTF-8");
     }
     return filteredConfigYml;
   }
@@ -196,19 +200,19 @@ class SupportService
     addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
         SupportFileType.CONFIG, true);
 
-    addFileIfExists(filesToZip, writeTextToFile(SystemInfo.getSystemInfoJson(), new File(workDir, "sysinfo.json")),
+    addFileIfExists(filesToZip, writeTextToFile(systemInfo.getSystemInfoJson(), new File(workDir, "sysinfo.json")),
         "sysinfo.json", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,
-        writeTextToFile(SystemInfo.getPropertiesJson(versionService.getProperties(), "product-version"),
+        writeTextToFile(systemInfo.getPropertiesJson(versionService.getProperties(), "product-version"),
             new File(workDir, "product-version.json")), "product-version", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,
-        writeTextToFile(SystemInfo.getProductLicense(productLicenseService.getLicenseSummary()),
+        writeTextToFile(systemInfo.getProductLicense(productLicenseService.getLicenseSummary()),
             new File(workDir, "product-license.json")), "product-license", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,
-        writeTextToFile(SystemInfo.getThreadDump(), new File(workDir, "threads.txt")), "threads", SupportFileType.INFO,
+        writeTextToFile(systemInfo.getThreadDump(), new File(workDir, "threads.txt")), "threads", SupportFileType.INFO,
         true);
 
     addFileIfExists(filesToZip,
@@ -223,7 +227,7 @@ class SupportService
       ldapServers.add(new LdapConfig(ldapServer, ldapConnection, ldapUserMapping));
     }
     addFileIfExists(filesToZip,
-        writeTextToFile(SystemInfo.getLdapConfig(ldapServers), new File(workDir, "ldap.json")), "ldap",
+        writeTextToFile(systemInfo.getLdapConfig(ldapServers), new File(workDir, "ldap.json")), "ldap",
         SupportFileType.CONFIG,
         true);
 

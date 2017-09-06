@@ -30,6 +30,10 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -41,6 +45,8 @@ import org.yaml.snakeyaml.Yaml;
 /**
  * @since 1.27
  */
+@Named
+@Singleton
 class SystemInfo
 {
   private static final Logger log = LoggerFactory.getLogger(SystemInfo.class);
@@ -53,12 +59,16 @@ class SystemInfo
     return new AbstractMap.SimpleImmutableEntry<>(entryName, objectToPut);
   }
 
-  static boolean isSensitiveKey(final String key) {
+  @Inject
+  SystemInfo() {
+  }
+
+  boolean isSensitiveKey(final String key) {
     final String lowercaseKey = key.toLowerCase(Locale.ENGLISH);
     return lowercaseKey.contains("password") || lowercaseKey.contains("passphrase");
   }
 
-  static Object obfuscateValue(final String key, final Object value) {
+  Object obfuscateValue(final String key, final Object value) {
     if (isSensitiveKey(key)) {
       return MASK;
     }
@@ -67,7 +77,7 @@ class SystemInfo
     }
   }
 
-  static Entry<String, SortedMap<String, Object>> getObfuscatedSystemProperties() {
+  Entry<String, SortedMap<String, Object>> getObfuscatedSystemProperties() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
     final Properties iterationSafeCopy = (Properties) System.getProperties().clone();
@@ -79,7 +89,7 @@ class SystemInfo
     return wrapEntry("system-properties", entries);
   }
 
-  static Entry<String, SortedMap<String, Object>> getObfuscatedEnvironment() {
+  Entry<String, SortedMap<String, Object>> getObfuscatedEnvironment() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
     final Map<String, String> systemEnvironment = System.getenv();
@@ -91,7 +101,7 @@ class SystemInfo
     return wrapEntry("system-environment", entries);
   }
 
-  static String getObfuscatedYaml(final InputStream input) {
+  String getObfuscatedYaml(final InputStream input) {
 
     final Yaml yaml = new Yaml();
 
@@ -105,8 +115,8 @@ class SystemInfo
     return yaml.dump(map);
   }
 
-  private static void obfuscateNestedMap(final Entry<String, Object> entry) {
-    if (SystemInfo.isSensitiveKey(entry.getKey())) {
+  private void obfuscateNestedMap(final Entry<String, Object> entry) {
+    if (isSensitiveKey(entry.getKey())) {
       entry.setValue(SystemInfo.MASK);
     }
 
@@ -118,7 +128,7 @@ class SystemInfo
     }
   }
 
-  static Entry<String, SortedMap<String, Object>> getReportTime() {
+  Entry<String, SortedMap<String, Object>> getReportTime() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
     final Date now = new Date();
@@ -129,7 +139,7 @@ class SystemInfo
     return wrapEntry("system-time", entries);
   }
 
-  static Entry<String, SortedMap<String, Object>> getSystemRuntime() {
+  Entry<String, SortedMap<String, Object>> getSystemRuntime() {
     final SortedMap<String, Object> entries = new TreeMap<>();
     final Runtime runtime = Runtime.getRuntime();
 
@@ -142,7 +152,7 @@ class SystemInfo
     return wrapEntry("system-runtime", entries);
   }
 
-  static Entry<String, SortedMap<String, Object>> getFileStores() {
+  Entry<String, SortedMap<String, Object>> getFileStores() {
     final SortedMap<String, Object> entries = new TreeMap<>();
     final FileSystem fileSystem = FileSystems.getDefault();
     for (final FileStore fileStore : fileSystem.getFileStores()) {
@@ -153,7 +163,7 @@ class SystemInfo
     return wrapEntry("system-filestores", entries);
   }
 
-  static TreeMap<String, Object> getFileStore(final FileStore fileStore) {
+  TreeMap<String, Object> getFileStore(final FileStore fileStore) {
     final TreeMap<String, Object> items = new TreeMap<>();
     items.put("description", fileStore.toString());
     items.put("type", fileStore.type());
@@ -170,7 +180,7 @@ class SystemInfo
     return items;
   }
 
-  static Entry<String, SortedMap<String, Object>> getNetworkInterfaces() {
+  Entry<String, SortedMap<String, Object>> getNetworkInterfaces() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
     final Enumeration<NetworkInterface> networkInterfaces;
@@ -230,11 +240,11 @@ class SystemInfo
     }
   }
 
-  private static TreeMap<String, Object> getNetworkInterface(final NetworkInterface networkInterface) {
+  private TreeMap<String, Object> getNetworkInterface(final NetworkInterface networkInterface) {
     return getNetworkInterfaceWithWrapper(new NetworkInterfaceWrapper(networkInterface));
   }
 
-  static TreeMap<String, Object> getNetworkInterfaceWithWrapper(final NetworkInterfaceWrapper networkInterface) {
+  TreeMap<String, Object> getNetworkInterfaceWithWrapper(final NetworkInterfaceWrapper networkInterface) {
     final TreeMap<String, Object> items = new TreeMap<>();
     items.put("displayName", networkInterface.getDisplayName());
     try {
@@ -257,7 +267,7 @@ class SystemInfo
     return items;
   }
 
-  static List<Entry<String, SortedMap<String, Object>>> getSystemInfo() {
+  List<Entry<String, SortedMap<String, Object>>> getSystemInfo() {
     final List<Entry<String, SortedMap<String, Object>>> entries = new ArrayList<>();
 
     entries.add(getReportTime());
@@ -270,13 +280,13 @@ class SystemInfo
     return entries;
   }
 
-  static String getSystemInfoJson() {
+  String getSystemInfoJson() {
     final List<Entry<String, SortedMap<String, Object>>> entries = getSystemInfo();
     return JsonUtils.format(entries);
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  static String getPropertiesJson(final Properties properties, final String parentObjectName)
+  String getPropertiesJson(final Properties properties, final String parentObjectName)
   {
     final SortedMap<String, Object> entries = new TreeMap<>();
     entries.putAll(((Map) properties));
@@ -286,19 +296,19 @@ class SystemInfo
     return JsonUtils.format(mapEntry);
   }
 
-  static String getProductLicense(final LicenseSummary licenseSummary)
+  String getProductLicense(final LicenseSummary licenseSummary)
   {
     return JsonUtils.format(licenseSummary);
   }
 
-  static String getThreadDump() throws IOException {
+  String getThreadDump() throws IOException {
     try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
       VirtualMachineMetrics.getInstance().threadDump(outputStream);
       return outputStream.toString();
     }
   }
 
-  static String getLdapConfig(final List<LdapConfig> ldapServers) {
+  String getLdapConfig(final List<LdapConfig> ldapServers) {
     return JsonUtils.format(ldapServers);
   }
 }

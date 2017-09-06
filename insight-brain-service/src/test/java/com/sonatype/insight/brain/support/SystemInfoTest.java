@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -70,9 +71,9 @@ public class SystemInfoTest
   private void verifyGetObfuscatedProperties_MaskKeyValue(final String keyName) {
     System.setProperty(keyName, "yadda");
     try {
-      final SortedMap<String, Object> obfuscatedProps = SystemInfo.getObfuscatedSystemProperties()
-          .get("system-properties");
-      assertThat(obfuscatedProps.get(keyName), Is.<Object>is(SystemInfo.MASK));
+      final Entry<String, SortedMap<String, Object>> obfuscatedProps = SystemInfo.getObfuscatedSystemProperties();
+      assertThat(obfuscatedProps.getKey(), is("system-properties"));
+      assertThat(obfuscatedProps.getValue().get(keyName), Is.<Object>is(SystemInfo.MASK));
     }
     finally {
       System.getProperties().remove(keyName);
@@ -81,10 +82,10 @@ public class SystemInfoTest
 
   @Test
   public void testGetObfuscatedSystemProperties() throws Exception {
-    final Map<String, SortedMap<String, Object>> map = SystemInfo.getObfuscatedSystemProperties();
-    assertThat(map.size(), is(1));
+    final Entry<String, SortedMap<String, Object>> entry = SystemInfo.getObfuscatedSystemProperties();
+    assertThat(entry.getKey(), is("system-properties"));
 
-    final SortedMap<String, Object> entries = map.get("system-properties");
+    final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries.get("awt.toolkit"), notNullValue());
     assertThat(entries.get("user.dir"), notNullValue());
     assertThat(entries.get("user.name"), notNullValue());
@@ -93,10 +94,10 @@ public class SystemInfoTest
 
   @Test
   public void testGetObfuscatedEnvironment() throws Exception {
-    final Map<String, SortedMap<String, Object>> map = SystemInfo.getObfuscatedEnvironment();
-    assertThat(map.size(), is(1));
+    final Entry<String, SortedMap<String, Object>> entry = SystemInfo.getObfuscatedEnvironment();
+    assertThat(entry.getKey(), is("system-environment"));
 
-    final SortedMap<String, Object> entries = map.get("system-environment");
+    final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries.size(), greaterThan(0));
     assertThat(entries.size(), is(System.getenv().size()));
   }
@@ -144,10 +145,10 @@ public class SystemInfoTest
 
   @Test
   public void testGetSystemRuntime() throws Exception {
-    final Map<String, SortedMap<String, Object>> map = SystemInfo.getSystemRuntime();
-    assertThat(map.size(), is(1));
+    final Entry<String, SortedMap<String, Object>> entry = SystemInfo.getSystemRuntime();
+    assertThat(entry.getKey(), is("system-runtime"));
 
-    final SortedMap<String, Object> entries = map.get("system-runtime");
+    final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries.get("availableProcessors"), notNullValue());
     assertThat(entries.get("freeMemory"), notNullValue());
     assertThat(entries.get("maxMemory"), notNullValue());
@@ -158,10 +159,10 @@ public class SystemInfoTest
 
   @Test
   public void testGetReportTime() throws Exception {
-    final Map<String, SortedMap<String, Object>> map = SystemInfo.getReportTime();
-    assertThat(map.size(), is(1));
+    final Entry<String, SortedMap<String, Object>> entry = SystemInfo.getReportTime();
+    assertThat(entry.getKey(), is("system-time"));
 
-    final SortedMap<String, Object> entries = map.get("system-time");
+    final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries.get("timezone"), notNullValue());
     assertThat(entries.get("current"), notNullValue());
     assertThat(entries.get("iso8601"), notNullValue());
@@ -170,20 +171,20 @@ public class SystemInfoTest
 
   @Test
   public void testGetFileStores() throws Exception {
-    final Map<String, SortedMap<String, Object>> map = SystemInfo.getFileStores();
-    assertThat(map.size(), is(1));
+    final Entry<String, SortedMap<String, Object>> entry = SystemInfo.getFileStores();
+    assertThat(entry.getKey(), is("system-filestores"));
 
-    final SortedMap<String, Object> entries = map.get("system-filestores");
+    final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries.size(), greaterThan(0));
 
     @SuppressWarnings("unchecked")
-    final Map<String, Object> entry = (Map<String, Object>) entries.get(entries.firstKey());
-    assertThat(entry.get("description"), notNullValue());
-    assertThat(entry.get("type"), notNullValue());
-    assertThat(entry.get("totalSpace"), notNullValue());
-    assertThat(entry.get("usableSpace"), notNullValue());
-    assertThat(entry.get("unallocatedSpace"), notNullValue());
-    assertThat(entry.get("readOnly"), notNullValue());
+    final Map<String, Object> fileStoresEntry = (Map<String, Object>) entries.get(entries.firstKey());
+    assertThat(fileStoresEntry.get("description"), notNullValue());
+    assertThat(fileStoresEntry.get("type"), notNullValue());
+    assertThat(fileStoresEntry.get("totalSpace"), notNullValue());
+    assertThat(fileStoresEntry.get("usableSpace"), notNullValue());
+    assertThat(fileStoresEntry.get("unallocatedSpace"), notNullValue());
+    assertThat(fileStoresEntry.get("readOnly"), notNullValue());
   }
 
   @Test
@@ -215,22 +216,22 @@ public class SystemInfoTest
   @SuppressWarnings("unchecked")
   @Test
   public void testGetNetworkInterfaces() throws Exception {
-    final Map<String, SortedMap<String, Object>> map = SystemInfo.getNetworkInterfaces();
-    assertThat(map.size(), is(1));
+    final Entry<String, SortedMap<String, Object>> entry = SystemInfo.getNetworkInterfaces();
+    assertThat(entry.getKey(), is("system-network"));
 
-    final SortedMap<String, Object> entries = map.get("system-network");
+    final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries.toString(), entries.size(), greaterThan(0));
 
-    final Map<String, Object> entry = (Map<String, Object>) entries.get(entries.firstKey());
-    assertThat(entry.get("displayName"), notNullValue());
-    assertThat(entry.get("up"), notNullValue());
-    assertThat(entry.get("virtual"), notNullValue());
-    assertThat(entry.get("multicast"), notNullValue());
-    assertThat(entry.get("loopback"), notNullValue());
-    assertThat(entry.get("ptp"), notNullValue());
-    assertThat(entry.get("mtu"), notNullValue());
-    assertThat(entry.get("addresses"), notNullValue());
-    assertThat(entry + "", entry.size(), is(8));
+    final Map<String, Object> networkInterfacesEntry = (Map<String, Object>) entries.get(entries.firstKey());
+    assertThat(networkInterfacesEntry.get("displayName"), notNullValue());
+    assertThat(networkInterfacesEntry.get("up"), notNullValue());
+    assertThat(networkInterfacesEntry.get("virtual"), notNullValue());
+    assertThat(networkInterfacesEntry.get("multicast"), notNullValue());
+    assertThat(networkInterfacesEntry.get("loopback"), notNullValue());
+    assertThat(networkInterfacesEntry.get("ptp"), notNullValue());
+    assertThat(networkInterfacesEntry.get("mtu"), notNullValue());
+    assertThat(networkInterfacesEntry.get("addresses"), notNullValue());
+    assertThat(networkInterfacesEntry + "", networkInterfacesEntry.size(), is(8));
   }
 
   @SuppressWarnings("unchecked")
@@ -281,13 +282,13 @@ public class SystemInfoTest
 
   @Test
   public void testGetSystemInfo() throws Exception {
-    final List<Map<String, SortedMap<String, Object>>> list = SystemInfo.getSystemInfo();
-    assertThat(list.get(0).keySet().iterator().next(), is("system-time"));
-    assertThat(list.get(1).keySet().iterator().next(), is("system-properties"));
-    assertThat(list.get(2).keySet().iterator().next(), is("system-environment"));
-    assertThat(list.get(3).keySet().iterator().next(), is("system-runtime"));
-    assertThat(list.get(4).keySet().iterator().next(), is("system-network"));
-    assertThat(list.get(5).keySet().iterator().next(), is("system-filestores"));
+    final List<Entry<String, SortedMap<String, Object>>> list = SystemInfo.getSystemInfo();
+    assertThat(list.get(0).getKey(), is("system-time"));
+    assertThat(list.get(1).getKey(), is("system-properties"));
+    assertThat(list.get(2).getKey(), is("system-environment"));
+    assertThat(list.get(3).getKey(), is("system-runtime"));
+    assertThat(list.get(4).getKey(), is("system-network"));
+    assertThat(list.get(5).getKey(), is("system-filestores"));
     assertThat(list.size(), is(6));
   }
 

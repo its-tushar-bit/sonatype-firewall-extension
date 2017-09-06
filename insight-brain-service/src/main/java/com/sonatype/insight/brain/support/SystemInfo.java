@@ -15,6 +15,7 @@ import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -46,6 +47,12 @@ class SystemInfo
 
   static final String MASK = "****";
 
+  private static Entry<String, SortedMap<String, Object>> wrapEntry(final String entryName,
+                                                                    final SortedMap<String, Object> objectToPut)
+  {
+    return new AbstractMap.SimpleImmutableEntry<>(entryName, objectToPut);
+  }
+
   static boolean isSensitiveKey(final String key) {
     final String lowercaseKey = key.toLowerCase(Locale.ENGLISH);
     return lowercaseKey.contains("password") || lowercaseKey.contains("passphrase");
@@ -60,7 +67,7 @@ class SystemInfo
     }
   }
 
-  static Map<String, SortedMap<String, Object>> getObfuscatedSystemProperties() {
+  static Entry<String, SortedMap<String, Object>> getObfuscatedSystemProperties() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
     final Properties iterationSafeCopy = (Properties) System.getProperties().clone();
@@ -69,12 +76,10 @@ class SystemInfo
       entries.put(key, obfuscateValue(key, entry.getValue()));
     }
 
-    final Map<String, SortedMap<String, Object>> mapEntry = new HashMap<>();
-    mapEntry.put("system-properties", entries);
-    return mapEntry;
+    return wrapEntry("system-properties", entries);
   }
 
-  static Map<String, SortedMap<String, Object>> getObfuscatedEnvironment() {
+  static Entry<String, SortedMap<String, Object>> getObfuscatedEnvironment() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
     final Map<String, String> systemEnvironment = System.getenv();
@@ -83,17 +88,14 @@ class SystemInfo
       entries.put(key, obfuscateValue(key, entry.getValue()));
     }
 
-    final Map<String, SortedMap<String, Object>> mapEntry = new HashMap<>();
-    mapEntry.put("system-environment", entries);
-    return mapEntry;
+    return wrapEntry("system-environment", entries);
   }
 
   static String getObfuscatedYaml(final InputStream input) {
 
     final Yaml yaml = new Yaml();
 
-    @SuppressWarnings("unchecked")
-    final Map<String, Object> map = (Map<String, Object>) yaml.load(input);
+    @SuppressWarnings("unchecked") final Map<String, Object> map = (Map<String, Object>) yaml.load(input);
 
     // Recurse nested entries
     for (final Entry<String, Object> entry : map.entrySet()) {
@@ -109,15 +111,14 @@ class SystemInfo
     }
 
     if (entry.getValue() instanceof Map) {
-      @SuppressWarnings("unchecked")
-      final Map<String, Object> entryMap = (Map<String, Object>) entry.getValue();
+      @SuppressWarnings("unchecked") final Map<String, Object> entryMap = (Map<String, Object>) entry.getValue();
       for (final Entry<String, Object> entrySub : entryMap.entrySet()) {
         obfuscateNestedMap(entrySub);
       }
     }
   }
 
-  static Map<String, SortedMap<String, Object>> getReportTime() {
+  static Entry<String, SortedMap<String, Object>> getReportTime() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
     final Date now = new Date();
@@ -125,12 +126,10 @@ class SystemInfo
     entries.put("current", now.getTime() + "");
     entries.put("iso8601", new SimpleDateFormat("yyyy-MM-dd\'T\'HH:mm:ss.SSSZ").format(now));
 
-    final Map<String, SortedMap<String, Object>> mapEntry = new HashMap<>();
-    mapEntry.put("system-time", entries);
-    return mapEntry;
+    return wrapEntry("system-time", entries);
   }
 
-  static Map<String, SortedMap<String, Object>> getSystemRuntime() {
+  static Entry<String, SortedMap<String, Object>> getSystemRuntime() {
     final SortedMap<String, Object> entries = new TreeMap<>();
     final Runtime runtime = Runtime.getRuntime();
 
@@ -140,21 +139,18 @@ class SystemInfo
     entries.put("maxMemory", runtime.maxMemory());
     entries.put("threads", Thread.activeCount());
 
-    final Map<String, SortedMap<String, Object>> mapEntry = new HashMap<>();
-    mapEntry.put("system-runtime", entries);
-    return mapEntry;
+    return wrapEntry("system-runtime", entries);
   }
 
-  static Map<String, SortedMap<String, Object>> getFileStores() {
+  static Entry<String, SortedMap<String, Object>> getFileStores() {
     final SortedMap<String, Object> entries = new TreeMap<>();
     final FileSystem fileSystem = FileSystems.getDefault();
     for (final FileStore fileStore : fileSystem.getFileStores()) {
       final TreeMap<String, Object> items = getFileStore(fileStore);
       entries.put(fileStore.name(), items);
     }
-    final Map<String, SortedMap<String, Object>> mapEntry = new HashMap<>();
-    mapEntry.put("system-filestores", entries);
-    return mapEntry;
+
+    return wrapEntry("system-filestores", entries);
   }
 
   static TreeMap<String, Object> getFileStore(final FileStore fileStore) {
@@ -174,7 +170,7 @@ class SystemInfo
     return items;
   }
 
-  static Map<String, SortedMap<String, Object>> getNetworkInterfaces() {
+  static Entry<String, SortedMap<String, Object>> getNetworkInterfaces() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
     final Enumeration<NetworkInterface> networkInterfaces;
@@ -190,9 +186,7 @@ class SystemInfo
       log.warn("Could not read all NetworkInterface information", e);
     }
 
-    final Map<String, SortedMap<String, Object>> map = new HashMap<>();
-    map.put("system-network", entries);
-    return map;
+    return wrapEntry("system-network", entries);
   }
 
   static class NetworkInterfaceWrapper
@@ -263,8 +257,8 @@ class SystemInfo
     return items;
   }
 
-  static List<Map<String, SortedMap<String, Object>>> getSystemInfo() {
-    final List<Map<String, SortedMap<String, Object>>> entries = new ArrayList<>();
+  static List<Entry<String, SortedMap<String, Object>>> getSystemInfo() {
+    final List<Entry<String, SortedMap<String, Object>>> entries = new ArrayList<>();
 
     entries.add(getReportTime());
     entries.add(getObfuscatedSystemProperties());
@@ -277,11 +271,11 @@ class SystemInfo
   }
 
   static String getSystemInfoJson() {
-    final List<Map<String, SortedMap<String, Object>>> entries = getSystemInfo();
+    final List<Entry<String, SortedMap<String, Object>>> entries = getSystemInfo();
     return JsonUtils.format(entries);
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @SuppressWarnings({"unchecked", "rawtypes"})
   static String getPropertiesJson(final Properties properties, final String parentObjectName)
   {
     final SortedMap<String, Object> entries = new TreeMap<>();

@@ -500,6 +500,10 @@ public class TemporaryEntity
     Collections.addAll(this.membershipMappings, membershipMappings);
   }
 
+  public Application newApplicationWithParent() {
+    return newApplicationWithParent("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
+  }
+
   public Application newApplicationWithParent(String appPublicId) {
     // Application Name must be unique
     return newApplicationWithParent(appPublicId, "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());

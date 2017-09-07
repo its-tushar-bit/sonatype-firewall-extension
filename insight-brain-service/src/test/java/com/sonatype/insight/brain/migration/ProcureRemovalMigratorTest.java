@@ -5,76 +5,46 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.codehaus.plexus.util.IOUtil;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
 
 public class ProcureRemovalMigratorTest
+    extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
-  private File sonatypeWork;
-
-  private InsightConfig insightConfig;
-
-  private InsightWork insightWork;
-
+  @Inject
   private ProcureRemovalMigrator procureRemovalMigrator;
 
-  private int x = 0;
-
-  private static PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
-
-  @Before
-  public void setup() throws IOException {
-    sonatypeWork = temporaryFolder.newFolder();
-    String tempFolderPath = sonatypeWork.getAbsolutePath();
-    insightConfig = new InsightConfig();
-    insightConfig.setSonatypeWork(tempFolderPath);
-    insightWork = new InsightWork(insightConfig);
-    procureRemovalMigrator = new ProcureRemovalMigrator(insightWork);
-  }
-
   @Test
-  public void testPolicyActionsRemoved() throws Exception {
-    String appId = createApplication();
+  public void testMigrate_PolicyAction() throws Exception {
+    String appId = tempEntity.newApplicationWithParent().getId();
     PolicyDAO dao = new PolicyDAO();
-    Policy policy = tempEntity.newPolicy(appId, "testPolicyMonitorsRemoved");
+    Policy policy = tempEntity.newPolicy(appId, "testMigrate_PolicyAction");
     policy.setAction(ProcureRemovalMigrator.ID_PROCURE, Action.ID_WARN);
     policy.setAction(Stage.ID_BUILD, Action.ID_WARN);
 
-    policyInternalDAO.update(PolicyInternal.fromPolicy(policy));
+    new PolicyInternalDAO().update(PolicyInternal.fromPolicy(policy));
 
     procureRemovalMigrator.migrate();
 
@@ -84,21 +54,17 @@ public class ProcureRemovalMigratorTest
   }
 
   @Test
-  public void testPolicyMonitorsRemoved() throws Exception {
-    PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
-    dao.insert(createPolicyMonitoring(createApplication(), ProcureRemovalMigrator.ID_PROCURE));
-    dao.insert(createPolicyMonitoring(createApplication(), Stage.ID_BUILD));
+  public void testMigrate_PolicyMonitoring() throws Exception {
+    tempEntity.newPolicyMonitoring(
+        createPolicyMonitoring(tempEntity.newApplicationWithParent().getId(), ProcureRemovalMigrator.ID_PROCURE));
+    tempEntity
+        .newPolicyMonitoring(createPolicyMonitoring(tempEntity.newApplicationWithParent().getId(), Stage.ID_BUILD));
 
     procureRemovalMigrator.migrate();
 
-    List<PolicyMonitoring> monitoring = dao.getAll();
-    assertEquals(1, monitoring.size());
-    assertEquals(Stage.ID_BUILD, monitoring.get(0).getStageTypeId());
-  }
-
-  private String createApplication() {
-    Application app = tempEntity.newApplicationWithParent("ProcureRemovalMigratorTest" + x++);
-    return app.getId();
+    List<PolicyMonitoring> monitoring = new PolicyMonitoringDAO().getAll();
+    assertThat(monitoring, hasSize(1));
+    assertThat(monitoring.get(0).getStageTypeId(), is(Stage.ID_BUILD));
   }
 
   private PolicyMonitoring createPolicyMonitoring(String ownerId, String stageTypeId) throws Exception {
@@ -115,6 +81,7 @@ public class ProcureRemovalMigratorTest
     // Verifies that the deprecated condition for security vulnerabilities can be migrated.
     // The migrator should not fail when it encounters this policy condition type.
     String policyId = tempEntity.newPolicy("Test").getId();
+    PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);
     policyInternal.setContent(getPolicyContent("policy_deprecated_security_vulnerability_condition.json"));
     policyInternalDAO.update(policyInternal);

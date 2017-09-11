@@ -26,15 +26,22 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 
+import com.yammer.dropwizard.config.LoggingConfiguration;
+import com.yammer.dropwizard.config.LoggingConfiguration.FileConfiguration;
+import com.yammer.dropwizard.config.RequestLogConfiguration;
 import org.hamcrest.core.Is;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
 import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONFIG_YML;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
@@ -50,10 +57,30 @@ public class SystemInfoTest
 {
   private final String lineSeparator = System.lineSeparator();
 
+  private static final String SERVER_LOG_FILENAME = "myServerLogFilename";
+
+  private static final String REQUEST_LOG_FILENAME = "myRequestLogFilename";
+
   @Inject
   private SystemInfo systemInfo;
 
-  @Test
+  @Inject
+  @Override
+  protected void customizeConfig(final InsightConfig config) {
+    final LoggingConfiguration serverLoggingConfiguration = new LoggingConfiguration();
+    final FileConfiguration serverFileConfiguration = new FileConfiguration();
+    serverFileConfiguration.setCurrentLogFilename(SERVER_LOG_FILENAME);
+    serverLoggingConfiguration.setFileConfiguration(serverFileConfiguration);
+    config.setLoggingConfiguration(serverLoggingConfiguration);
+
+    final RequestLogConfiguration requestLoggingConfiguration = new RequestLogConfiguration();
+    final FileConfiguration requestFileConfiguration = new FileConfiguration();
+    requestFileConfiguration.setCurrentLogFilename(REQUEST_LOG_FILENAME);
+    requestLoggingConfiguration.setFileConfiguration(requestFileConfiguration);
+    config.getHttpConfiguration().setRequestLogConfiguration(requestLoggingConfiguration);
+  }
+
+    @Test
   public void testIsSensitiveKey() {
     assertThat(systemInfo.isSensitiveKey("myPasswordLikePropertyName"), is(true));
     assertThat(systemInfo.isSensitiveKey("myPassPhrasePropertyName"), is(true));
@@ -177,6 +204,53 @@ public class SystemInfoTest
   }
 
   @Test
+  public void testGetInstallInfo() throws Exception {
+    final File originalConfigFile = InsightBrainService.getConfigFile();
+    final File expectedConfigFile = new File("myConfig.yml");
+    final Entry<String, SortedMap<String, Object>> entry;
+    try {
+      InsightBrainService.setConfigFile(expectedConfigFile);
+      entry = systemInfo.getInstallInfo();
+    } finally {
+      InsightBrainService.setConfigFile(originalConfigFile);
+    }
+    assertThat(entry.getKey(), is("install-info"));
+
+    final SortedMap<String, Object> entries = entry.getValue();
+
+    assertThat(entries.get("application-jar").toString(),
+        endsWith(InsightBrainService.class.getSimpleName() + ".class"));
+
+    assertThat(entries.get("configfile").toString(), is(expectedConfigFile.getAbsolutePath()));
+
+    assertThat(entries.get("instanceId").toString(), is(InsightBrainService.getInstanceId()));
+    assertThat(entries.get("hostname-ip").toString(), is(InsightBrainService.getLocalHostString()));
+
+    final File workDir = new File(entries.get("sonatypeWork").toString());
+    assertThat(workDir.isDirectory(), is(true));
+    assertThat(workDir.isAbsolute(), is(true));
+    assertThat(entries.get("sonatypeWorkContent"), notNullValue());
+
+    final File auditDir = new File(entries.get("auditDir").toString());
+    assertThat(auditDir.isAbsolute(), is(true));
+    assertThat(entries.get("auditDirContent"), nullValue());
+
+    assertThat(entries.get("downloadsDirContent"), nullValue());
+
+    final String serverLog = (String) entries.get("serverLog");
+    assertThat(serverLog, endsWith(SERVER_LOG_FILENAME));
+    final File serverFile = new File(serverLog);
+    assertThat(serverFile.isAbsolute(), is(true));
+
+    final String requestValue = (String) entries.get("requestLog");
+    assertThat(requestValue, endsWith(REQUEST_LOG_FILENAME));
+    final File requestFile = new File(requestValue);
+    assertThat(requestFile.isAbsolute(), is(true));
+
+    assertThat(entries.toString(), entries.size(), is(11));
+  }
+
+  @Test
   public void testGetFileStores() throws Exception {
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getFileStores();
     assertThat(entry.getKey(), is("system-filestores"));
@@ -290,13 +364,15 @@ public class SystemInfoTest
   @Test
   public void testGetSystemInfo() throws Exception {
     final List<Entry<String, SortedMap<String, Object>>> list = systemInfo.getSystemInfo();
-    assertThat(list.get(0).getKey(), is("system-time"));
-    assertThat(list.get(1).getKey(), is("system-properties"));
-    assertThat(list.get(2).getKey(), is("system-environment"));
-    assertThat(list.get(3).getKey(), is("system-runtime"));
-    assertThat(list.get(4).getKey(), is("system-network"));
-    assertThat(list.get(5).getKey(), is("system-filestores"));
-    assertThat(list.size(), is(6));
+    int i = 0;
+    assertThat(list.get(i++).getKey(), is("system-time"));
+    assertThat(list.get(i++).getKey(), is("install-info"));
+    assertThat(list.get(i++).getKey(), is("system-properties"));
+    assertThat(list.get(i++).getKey(), is("system-environment"));
+    assertThat(list.get(i++).getKey(), is("system-runtime"));
+    assertThat(list.get(i++).getKey(), is("system-network"));
+    assertThat(list.get(i).getKey(), is("system-filestores"));
+    assertThat(list, hasSize(7));
   }
 
   @Test

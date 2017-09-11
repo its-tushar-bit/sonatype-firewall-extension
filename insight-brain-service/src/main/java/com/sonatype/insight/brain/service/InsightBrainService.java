@@ -339,7 +339,11 @@ public class InsightBrainService
     return Arrays.asList(bindings, eventBus, authc, authz);
   }
 
-  private static String getLocalHostString() {
+  public static String getInstanceId() {
+    return INSTANCE_ID;
+  }
+
+  public static String getLocalHostString() {
     try {
       InetAddress localHost = InetAddress.getLocalHost();
       if (localHost == null) {

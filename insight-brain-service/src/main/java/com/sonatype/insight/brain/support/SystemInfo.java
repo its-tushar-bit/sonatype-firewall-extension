@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.support;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -35,6 +36,9 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
+import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.yammer.metrics.core.VirtualMachineMetrics;
@@ -59,8 +63,14 @@ class SystemInfo
     return new AbstractMap.SimpleImmutableEntry<>(entryName, objectToPut);
   }
 
+  private final InsightConfig insightConfig;
+
+  private final InsightWork insightWork;
+
   @Inject
-  SystemInfo() {
+  SystemInfo(final InsightConfig insightConfig, final InsightWork insightWork) {
+    this.insightConfig = insightConfig;
+    this.insightWork = insightWork;
   }
 
   boolean isSensitiveKey(final String key) {
@@ -137,6 +147,41 @@ class SystemInfo
     entries.put("iso8601", new SimpleDateFormat("yyyy-MM-dd\'T\'HH:mm:ss.SSSZ").format(now));
 
     return wrapEntry("system-time", entries);
+  }
+
+  Entry<String, SortedMap<String, Object>> getInstallInfo() {
+    final SortedMap<String, Object> entries = new TreeMap<>();
+
+    final Class brainClass = InsightBrainService.class;
+    entries.put("application-jar", brainClass.getResource('/' + brainClass.getName().replace('.', '/') + ".class"));
+
+    entries.put("configfile", getAbsoluteLogPath(InsightBrainService.getConfigFile()));
+
+    entries.put("instanceId", InsightBrainService.getInstanceId());
+    entries.put("hostname-ip", InsightBrainService.getLocalHostString());
+
+    final File sonatypeWork = insightConfig.getSonatypeWork();
+    entries.put("sonatypeWork", sonatypeWork.getAbsolutePath());
+    entries.put("sonatypeWorkContent", sonatypeWork.list());
+
+    final File auditDir = insightWork.getAuditDir();
+    entries.put("auditDir", auditDir.getAbsolutePath());
+    entries.put("auditDirContent", auditDir.list());
+
+    final File downloads = new File(sonatypeWork, "downloads");
+    entries.put("downloadsDirContent", downloads.list());
+
+    entries.put("serverLog", getAbsoluteLogPath(SupportService.getServerLog(insightConfig)));
+    entries.put("requestLog", getAbsoluteLogPath(SupportService.getRequestLog(insightConfig)));
+
+    return wrapEntry("install-info", entries);
+  }
+
+  private String getAbsoluteLogPath(final File logFile) {
+    if (logFile == null) {
+      return null;
+    }
+    return logFile.getAbsolutePath();
   }
 
   Entry<String, SortedMap<String, Object>> getSystemRuntime() {
@@ -271,6 +316,7 @@ class SystemInfo
     final List<Entry<String, SortedMap<String, Object>>> entries = new ArrayList<>();
 
     entries.add(getReportTime());
+    entries.add(getInstallInfo());
     entries.add(getObfuscatedSystemProperties());
     entries.add(getObfuscatedEnvironment());
     entries.add(getSystemRuntime());

@@ -95,7 +95,7 @@ class SupportService
     return new File(config.getSonatypeWork(), "downloads");
   }
 
-  private File getServerLog(final InsightConfig config) {
+  static File getServerLog(final InsightConfig config) {
     final String configuredLogFilename = config.getLoggingConfiguration().getFileConfiguration()
         .getCurrentLogFilename();
 
@@ -105,7 +105,7 @@ class SupportService
     return new File(configuredLogFilename);
   }
 
-  private File getRequestLog(final InsightConfig config) {
+  static File getRequestLog(final InsightConfig config) {
     final String configuredLogFilename = config.getHttpConfiguration().getRequestLogConfiguration()
         .getFileConfiguration().getCurrentLogFilename();
 

@@ -760,8 +760,7 @@ public class PolicyViolationAggregationServiceTest
 
   @Test
   public void testGetApplicationsCounts_AggregationsAlreadyExist_ByOrganizationId() {
-    Set<String> applicationIds = PolicyViolationAggregationDataHelper
-        .createApplicationCountAggregationHistory(tempEntity);
+    PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
     ApplicationCountsDTO result = service.getApplicationCounts(Collections.singleton(PolicyViolationAggregationDataHelper.ORG_ID), null);
 

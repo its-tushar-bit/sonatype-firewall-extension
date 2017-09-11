@@ -301,6 +301,7 @@ public class InsightBrainService
   protected List<Module> modules(final InsightConfig config) {
     // NOTE: The ReleaseGraphCacheLoader indirectly uses the ApplicationDAO so we better setup the DB before
     File databaseDir = new File(config.getSonatypeWork(), "data");
+    log.debug("Data directory: {}", databaseDir.getAbsolutePath());
     DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseDir, "dm", null, config.getAdditionalDBParams());
     DatamartProvider.init(dmDatabaseConfig);
     // NOTE: H2 uses previous setting if not set in URL, so be explicit about the default size

@@ -152,7 +152,7 @@ class SystemInfo
   Entry<String, SortedMap<String, Object>> getInstallInfo() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
-    final Class brainClass = InsightBrainService.class;
+    final Class<?> brainClass = InsightBrainService.class;
     entries.put("application-jar", brainClass.getResource('/' + brainClass.getName().replace('.', '/') + ".class"));
 
     entries.put("configfile", getAbsoluteLogPath(InsightBrainService.getConfigFile()));

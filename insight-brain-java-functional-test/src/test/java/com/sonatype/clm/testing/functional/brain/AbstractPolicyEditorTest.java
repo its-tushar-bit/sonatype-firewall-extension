@@ -389,15 +389,16 @@ public abstract class AbstractPolicyEditorTest
   private Policy createPolicy(String ownerId, Tag[] categories) {
     Policy policy = tempEntity.newPolicy(ownerId, "original name", 1);
     Constraint constraint1 = new Constraint(policy.getId() + "1", "First Constraint with One Condition", null);
-    constraint1.addCondition(new Condition("AgeInDays", "older than", "730"));
+    constraint1.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "730"));
     Constraint constraint2 = new Constraint(policy.getId() + "2", "Second Constraint with Two Conditions",
         LogicalOperator.AND);
-    constraint2.addCondition(
-        new Condition("License Threat Group", "is", tempEntity.newLicenseThreatGroup(ownerId, "my LTG", 5).getId()));
-    constraint2.addCondition(new Condition("Label", "is", tempEntity.newLabel(ownerId, "my Label").getId()));
+    constraint2.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is",
+        tempEntity.newLicenseThreatGroup(ownerId, "my LTG", 5).getId()));
+    constraint2
+        .addCondition(new Condition(LabelConditionType.ID, "is", tempEntity.newLabel(ownerId, "my Label").getId()));
     Constraint constraint3 = new Constraint(policy.getId() + "3", "Third Constraint with Two Conditions",
         LogicalOperator.OR);
-    constraint3.addCondition(new Condition("RelativePopularity", "<", "50"));
+    constraint3.addCondition(new Condition(RelativePopularityConditionType.ID, "<", "50"));
     constraint3.addCondition(new Condition(CoordinatesConditionType.ID, "do not match", "maven:blah:blah:blah"));
 
     policy.setConstraints(Arrays.asList(constraint1, constraint2, constraint3));
@@ -523,7 +524,7 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.constraintsPill().click();
 
     Condition updatedAgeCondition = policyDAO.getById(policy.getId()).getConstraints().get(0).getConditions().get(0);
-    assertThat(updatedAgeCondition.getConditionTypeId(), is("AgeInDays"));
+    assertThat(updatedAgeCondition.getConditionTypeId(), is(AgeInDaysConditionType.ID));
     assertThat(updatedAgeCondition.getValue(), is(Integer.toString(3 * 30)));
     assertThat(updatedAgeCondition.getOperator(), is("younger than"));
 
@@ -544,7 +545,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraints.get(0).getConditions().size(), is(2));
 
     Condition ltgCondition = constraints.get(0).getConditions().get(1);
-    assertThat(ltgCondition.getConditionTypeId(), is("License Threat Group"));
+    assertThat(ltgCondition.getConditionTypeId(), is(LicenseThreatGroupConditionType.ID));
     assertThat(ltgCondition.getValue(),
         is(new LicenseThreatGroupDAO().getByOwnerIdAndName(currentOwner.getId(), "my LTG 2").getId()));
     assertThat(ltgCondition.getOperator(), is("is not"));
@@ -569,7 +570,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraints.get(0).getConditions().size(), is(3));
 
     Condition coordinatesCondition = constraints.get(0).getConditions().get(2);
-    assertThat(coordinatesCondition.getConditionTypeId(), is("Coordinates"));
+    assertThat(coordinatesCondition.getConditionTypeId(), is(CoordinatesConditionType.ID));
     assertThat(coordinatesCondition.getValue(), is("maven:com.eclipse.*:*:*:*:*"));
     assertThat(coordinatesCondition.getOperator(), is("do not match"));
 
@@ -591,7 +592,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraints.get(0).getConditions().size(), is(3));
 
     Condition securityVulnerabilityCondition = constraints.get(0).getConditions().get(2);
-    assertThat(securityVulnerabilityCondition.getConditionTypeId(), is("SecurityVulnerabilitySeverity"));
+    assertThat(securityVulnerabilityCondition.getConditionTypeId(), is(SecurityVulnerabilitySeverityConditionType.ID));
     assertThat(securityVulnerabilityCondition.getValue(), is("1"));
     assertThat(securityVulnerabilityCondition.getOperator(), is(">="));
 
@@ -923,8 +924,8 @@ public abstract class AbstractPolicyEditorTest
     matchState.type().chooseOption(conditionTypesOptionMap.get(MatchStateConditionType.class));
     matchState.operator().selectedItem().shouldHave(text("is")).click();
     matchState.operator().listItem(1).shouldHave(text("is not")).click();
-    matchState.value().selectedItem().shouldHave(text("Exact")).click();
-    matchState.value().listItem(2).shouldHave(text("Unknown")).click();
+    matchState.value().selectedItem().shouldHave(text(MatchState.EXACT.getName())).click();
+    matchState.value().listItem(2).shouldHave(text(MatchState.UNKNOWN.getName())).click();
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection proprietary = newConstraint.dropdownCondition(12);
@@ -937,8 +938,8 @@ public abstract class AbstractPolicyEditorTest
     identificationSource.type().chooseOption(conditionTypesOptionMap.get(IdentificationSourceConditionType.class));
     identificationSource.operator().selectedItem().shouldHave(text("is")).click();
     identificationSource.operator().listItem(1).shouldHave(text("is not")).click();
-    identificationSource.value().selectedItem().shouldHave(text("Sonatype")).click();
-    identificationSource.value().listItem(1).shouldHave(text("Manual")).click();
+    identificationSource.value().selectedItem().shouldHave(text(IdentificationSource.SONATYPE.getName())).click();
+    identificationSource.value().listItem(1).shouldHave(text(IdentificationSource.MANUAL.getName())).click();
   }
 
   private void toggleAndCheckSave(final SelenideElement element) {

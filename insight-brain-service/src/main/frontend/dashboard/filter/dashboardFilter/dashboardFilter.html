@@ -31,24 +31,13 @@
     <div load-wrapper="vm.loadError" reload="vm.doLoad()" error-message="Unable to load filter data."
          loading="!vm.applications">
 
-      <dashboard-filter-dimension available="vm.organizations"
-                                  selected="vm.selected.organizations"
-                                  long-name="organizations"
-                                  short-name="Organization"
-                                  sort-entities="true"
-                                  id="org-filter">
-        <i class="fa fa-sitemap iq-tree-view__text-icon iq-tree-view__text-icon--inverse inverse"></i>Organizations
-      </dashboard-filter-dimension>
-
-      <dashboard-filter-dimension available="vm.applications"
-                                  selected="vm.selected.applications"
-                                  long-name="applications"
-                                  short-name="Application"
-                                  sort-entities="true"
-                                  tooltip-generator="'in ' + entity.organizationName"
-                                  id="app-filter">
-        <i class="fa fa-terminal iq-tree-view__text-icon iq-tree-view__text-icon--inverse inverse"></i>Applications
-      </dashboard-filter-dimension>
+      <iq-org-app-picker organizations="vm.organizations"
+                         applications="vm.applications"
+                         selected-organizations="vm.selected.organizations"
+                         selected-applications="vm.selected.applications"
+                         on-change="vm.selectOrgsAndApps(selectedOrganizations, selectedApplications)"
+                         id="org-app-filters">
+      </iq-org-app-picker>
 
       <dashboard-filter-dimension available="vm.categories"
                                   selected="vm.selected.categories"
@@ -92,7 +81,7 @@
                                         read-only="vm.isAgeFilterReadOnly">Age
       </dashboard-filter-radio-dimension>
 
-      <div class="iq-tree-view" id="threat-level-filter">
+      <div class="iq-tree-view iq-tree-view--multi-select" id="threat-level-filter">
         <a class="iq-tree-view__trigger" ng-click="vm.policyThreatLevelState.isExpanded = !vm.policyThreatLevelState.isExpanded">
           <div class="iq-counter iq-counter--active">{{vm.selected.policyThreatLevels[0]}} &ndash;
             {{vm.selected.policyThreatLevels[1]}}

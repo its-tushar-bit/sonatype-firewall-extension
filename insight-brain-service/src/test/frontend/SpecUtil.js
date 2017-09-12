@@ -125,3 +125,33 @@ var SpecUtil = {
     expect(event.defaultPrevented).toBeFalsy();
   }
 };
+
+// custom equality tester for Sets
+// Sets are supported starting jasmine 2.6.0
+// https://github.com/jasmine/jasmine/blob/master/release_notes/2.6.0.md
+var customEqualityTesterForSets = function(as, bs) {
+  if (as instanceof Set && bs instanceof Set) {
+    return as.size === bs.size && all(isIn(bs), as);
+  }
+};
+
+function all(pred, as) {
+  var notAll = false;
+  // using forEach so it works in with ES5
+  as.forEach(function(a) {
+    notAll = notAll || !pred(a);
+  });
+
+  return !notAll;
+}
+
+function isIn(as) {
+  return function (a) {
+    return as.has(a);
+  };
+}
+
+// customize jasmine globally for all Specs
+beforeEach(function() {
+  jasmine.addCustomEqualityTester(customEqualityTesterForSets);
+});

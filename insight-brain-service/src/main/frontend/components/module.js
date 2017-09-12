@@ -6,9 +6,14 @@
 import iqCheckbox from './iqCheckbox/iqCheckbox';
 import iqRadio from './iqRadio/iqRadio';
 import iqBackButton from './iqBackButton/iqBackButton';
+import iqTreeViewMultiSelect from './iqTreeViewMultiSelect/iqTreeViewMultiSelect';
+import utilityModule from '../utility/utility.module';
+import iqOrgAppPicker from './iqOrgAppPicker/iqOrgAppPicker';
 
-export default angular.module('components', [])
+export default angular.module('components', [utilityModule.name])
     .component('iqCheckbox', iqCheckbox)
     .component('iqRadio', iqRadio)
-    .component('iqBackButton', iqBackButton);
+    .component('iqBackButton', iqBackButton)
+    .component('iqTreeViewMultiSelect', iqTreeViewMultiSelect)
+    .component('iqOrgAppPicker', iqOrgAppPicker);
 

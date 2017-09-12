@@ -8,13 +8,20 @@ import directivesModule from '../frontend/directives/module';
 import utilityDirectivesModule from '../frontend/utility/directives/utility.directives.module';
 import charts from './charts/module';
 import iqModalModule from './styles/iq-modal/module';
+import iqTreeViewMultiSelectModule from './components/iqTreeViewMultiSelect/module';
+import iqOrgAppPickerModule from './components/iq-org-app-picker/module';
 
 export default angular.module('config',
-    [componentsModule.name, directivesModule.name, charts.name, utilityDirectivesModule.name, iqModalModule.name])
+    [
+      componentsModule.name, directivesModule.name, charts.name, utilityDirectivesModule.name, iqModalModule.name,
+      iqTreeViewMultiSelectModule.name, iqOrgAppPickerModule.name
+    ])
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
       'iq-radio': 'components/iq-radio.html',
-      'iq-back-button': 'components/iq-back-button.html'
+      'iq-back-button': 'components/iq-back-button.html',
+      'iq-tree-view-multi-select': 'components/iqTreeViewMultiSelect/iq-tree-view-multi-select.html',
+      'iq-org-app-picker': 'components/iq-org-app-picker/iq-org-app-picker.html'
     })
 
     .constant('directivesConfig', {

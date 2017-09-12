@@ -27,7 +27,7 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
   public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
   public static DashboardFilter applicationFilter() {
-    return new DashboardFilter("#app-filter");
+    return new DashboardFilter("#org-app-filters iq-tree-view-multi-select:nth-child(2)");
   }
 
   public static CategoryFilter applicationCategoryFilter() {

@@ -21,68 +21,15 @@
       margin-bottom: 16px;
     }
 
-    .dashboard-filter-tree-view-filter {
-      display: block;
-      padding-left: 26px;
-      margin-bottom: 12px;
-      
-      input {
-        width: calc(100% - 44px);
-      }
-    }
-
-    .iq-tree-view {
-      min-width: 0; // so that counters are not pushed out
-    }
-
     .policy-threat-level-slider {
       padding-top: 6px;
       padding-left: 16px;
     }
 
-    .iq-counter {
-      float: right;
-      margin-top: 7px;
-    }
-
-    .iq-tree-view__trigger.disabled {
-      cursor: not-allowed;
-
-      .iq-tree-view__text {
-        color: $iq-grey-4;
-      }
-
-      .inverse {
-        background-color: $iq-grey-4;
-      }
-
-      .iq-tree-view__twisty-icon.expand {
-        border-left-color: $iq-grey-4;
-      }
-
-      .hexagon path {
-        stroke: $iq-grey-4;
-      }
-    }
-
-    // overflow of tree view children (checkboxes and radio)
     .iq-tree-view__child {
-      padding-right: 0;
-
-      .iq-checkbox__label {
-        @extend .truncate-ellipsis;
-        @include semi-bold();
-
-        // fix checkbox labels vertical alignment
-        // overwrites (back to original): .iq-tree-view__child label { line-height: 32px; }
-        line-height: 20px;
-        margin-top: 4px;
-        vertical-align: top;
-      }
-
       .iq-radio {
         @include semi-bold();
-        
+
         // fix radio labels vertical alignment
         // overwrites (back to original): .iq-tree-view__child label { line-height: 32px; }
         line-height: 20px;

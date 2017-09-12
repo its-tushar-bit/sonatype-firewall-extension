@@ -580,6 +580,7 @@
             <configuration>
               <preloadSources>
                 <source>resources/assets/cip/cip-test-util.js</source>
+                <source>frontend/lib/es6-collections/es6-collections.js</source>
                 <include>frontend/lib/jquery/dist/jquery.js</include>
                 <include>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</include>
                 <include>frontend/lib/angular/angular.js</include>
@@ -622,6 +623,7 @@
             <configuration>
               <preloadSources>
                 <source>resources/assets/cip/cip-test-util.js</source>
+                <source>frontend/lib/es6-collections/es6-collections.js</source>
                 <include>frontend/lib/jquery/dist/jquery.js</include>
                 <include>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</include>
                 <include>frontend/lib/angular/angular.js</include>
@@ -664,6 +666,7 @@
             <configuration>
               <preloadSources>
                 <source>frontend/lib/jquery/dist/jquery.js</source>
+                <source>frontend/lib/es6-collections/es6-collections.js</source>
                 <source>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</source>
                 <source>frontend/lib/angular/angular.js</source>
                 <source>frontend/lib/angular-${angularjs.version}/angular-aria.js</source>

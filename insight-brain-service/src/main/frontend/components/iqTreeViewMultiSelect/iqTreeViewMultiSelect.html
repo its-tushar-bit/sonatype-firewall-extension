@@ -1,13 +1,13 @@
 <div class="iq-tree-view iq-tree-view--multi-select">
   <a class="iq-tree-view__trigger"
-     ng-click="isExpanded = available.length && !isExpanded"
-     ng-class="{disabled: !available.length}"
-     data-tooltip="{{:: available.length ? '' : 'There are no ' + longName + ' to filter.'}}"
+     ng-click="isExpanded = vm.available.length && !isExpanded"
+     ng-class="{disabled: !vm.available.length}"
+     data-tooltip="{{:: vm.available.length ? '' : 'There are no ' + vm.name + ' to filter.'}}"
      data-tooltip-placement="top-left"
      data-tooltip-append-to-body="true"
      tooltip-class="filter-label-tooltip">
-    <div class="iq-counter" ng-class="{'iq-counter--active': vm.selectedCount !== 0}">
-      {{vm.selectedCount === 0 ? '' : vm.selectedCount + ' of '}}{{::available.length}}
+    <div class="iq-counter" ng-class="{'iq-counter--active': vm.selected.size !== 0}">
+      {{vm.selected.size === 0 ? '' : vm.selected.size + ' of '}}{{::vm.available.length}}
     </div>
     <div class="iq-tree-view__twisty">
       <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded, collapse: isExpanded }"></span>
@@ -17,7 +17,7 @@
     </div>
   </a>
   <div ng-if="isExpanded" class="iq-tree-view__children">
-    <div class="dashboard-filter-tree-view-filter search input-prepend ng-scope" ng-if="available.length > 10">
+    <div class="iq-tree-view__filter search input-prepend ng-scope" ng-if="vm.showFilter()">
       <span class="add-on">
         <i role="button"
            class="fa fa-filter"
@@ -26,23 +26,24 @@
            tabindex="0">
         </i>
       </span>
-      <input type="text" ng-model="vm.filter" autocomplete="off" placeholder="{{shortName}} Name">
+      <input type="text" ng-model="vm.filter" autocomplete="off" placeholder="{{vm.filterPlaceholder}}">
     </div>
     <div class="iq-tree-view__child">
-      <iq-checkbox label="all {{!vm.filter ? longName : 'matches'}}"
+      <iq-checkbox label="all {{!vm.filter ? vm.name : 'matches'}}"
                    on-click="vm.toggleSelectAll()"
                    is-checked="vm.allSelected()">
       </iq-checkbox>
     </div>
     <div class="iq-tree-view__child"
-         ng-repeat="entity in available | fuzzy:vm.filter:nameField | orderBy: sortEntities ? [nameField] : []">
-      <iq-checkbox tooltip="{{::(tooltipGenerator({entity: entity}))}}"
+         ng-repeat="entity in vm.available | fuzzy:vm.filter:'name' | orderBy: vm.sortEntities ? ['name'] : []">
+      <iq-checkbox tooltip="{{::(vm.tooltipGenerator({entity: entity}))}}"
                    tooltip-append-to-body="true"
-                   data-tooltip-popup-delay="200" data-tooltip-placement="top-left"
+                   data-tooltip-popup-delay="200"
+                   data-tooltip-placement="top-left"
                    tooltip-class="filter-item-tooltip"
-                   label="{{::entity[nameField]}}"
-                   on-click="vm.toggle(entity[idField])"
-                   is-checked="selected[entity[idField]]">
+                   label="{{::entity.name}}"
+                   on-click="vm.toggle(entity.id)"
+                   is-checked="vm.selected.has(entity.id)">
       </iq-checkbox>
     </div>
   </div>

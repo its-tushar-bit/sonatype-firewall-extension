@@ -1,0 +1,18 @@
+<iq-tree-view-multi-select available="vm.organizations"
+                           selected="vm.selectedOrganizations"
+                           on-change="vm.onSelectedOrganizationsChange(selected)"
+                           filter-placeholder="Organization Name"
+                           name="organizations"
+                           sort-entities="true">
+  <i class="fa fa-sitemap iq-tree-view__text-icon iq-tree-view__text-icon--inverse inverse"></i>Organizations
+</iq-tree-view-multi-select>
+
+<iq-tree-view-multi-select available="vm.applications"
+                           selected="vm.selectedApplications"
+                           on-change="vm.onSelectedApplicationsChange(selected)"
+                           tooltip-generator="'in ' + entity.organizationName"
+                           filter-placeholder="Application Name"
+                           name="applications"
+                           sort-entities="true">
+  <i class="fa fa-terminal iq-tree-view__text-icon iq-tree-view__text-icon--inverse inverse"></i>Applications
+</iq-tree-view-multi-select>

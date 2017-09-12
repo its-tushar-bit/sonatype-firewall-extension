@@ -104,10 +104,23 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
   vm.onActiveFilterDeleted = onActiveFilterDeleted;
   vm.onFilterSaved = onFilterSaved;
   vm.toggleManageFiltersDropdown = toggleManageFiltersDropdown;
+  vm.selectOrgsAndApps = selectOrgsAndApps;
 
   vm.showAgeFilter = undefined;
   vm.isAgeFilterReadOnly = undefined;
   vm.needsAcknowledgement = undefined;
+
+  function selectOrgsAndApps(organizationsSet, applicationsSet) {
+    const organizations = setToObject(organizationsSet);
+    const applications = setToObject(applicationsSet);
+    vm.selected = {...vm.selected, organizations, applications};
+  }
+
+  function setToObject(set) {
+    const obj = {};
+    set.forEach(id => obj[id] = true);
+    return obj;
+  }
 
   function shouldShowAgeFilter() {
     return ($state.$current.name === 'dashboard.overview.violations') &&
@@ -193,64 +206,6 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
       if (activeFilter) {
         vm.loadFilterFromJson(activeFilter);
       }
-
-      $scope.$watch('vm.selected.applications', function() {
-        var original = angular.copy(vm.selected.organizations);
-
-        vm.organizations.forEach(function(org) {
-          var hasApp = false;
-          var hasUnselectedApps = vm.applications.some(function(app) {
-            if (app.organizationId === org.id) {
-              hasApp = true;
-            }
-            return app.organizationId === org.id && !vm.selected.applications[app.id];
-          });
-          // remove checkbox if there aren't any selected apps and handle special cases where there are no apps
-          // belonging to an org
-          if (hasUnselectedApps || (!hasApp && !vm.selected.organizations[org.id])) {
-            delete vm.selected.organizations[org.id];
-          }
-          else {
-            vm.selected.organizations[org.id] = true;
-          }
-        });
-
-        if (!angular.equals(vm.selected.organizations, original)) {
-          vm.selected.organizations = angular.copy(vm.selected.organizations);
-        }
-      });
-
-      $scope.$watch('vm.selected.organizations', function() {
-        var original = angular.copy(vm.selected.applications);
-
-        vm.organizations.forEach(function(org) {
-          if (vm.selected.organizations[org.id]) {
-            // set all applications w/ orgId
-            vm.applications.forEach(function(app) {
-              if (app.organizationId === org.id) {
-                vm.selected.applications[app.id] = true;
-              }
-            });
-          }
-          else {
-            // set them to empty if and only if all applications are selected
-            var hasUnselectedApps = vm.applications.some(function(app) {
-              return app.organizationId === org.id && !vm.selected.applications[app.id];
-            });
-            if (!hasUnselectedApps) {
-              vm.applications.forEach(function(app) {
-                if (app.organizationId === org.id) {
-                  delete vm.selected.applications[app.id];
-                }
-              });
-            }
-          }
-        });
-
-        if (!angular.equals(vm.selected.applications, original)) {
-          vm.selected.applications = angular.copy(vm.selected.applications);
-        }
-      });
 
       appliedFilter = angular.copy(vm.selected);
       var savedNamedFilter = vm.activeFilterName && vm.savedNamedFilters.filter(function(savedFilter) {

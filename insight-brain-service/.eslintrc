@@ -17,7 +17,8 @@
     "clmBuildTimestamp": false,
     "Fuse": false,
     "AngularStateUtils":  false,
-    "inject": false
+    "inject": false,
+    "Set": false
   },
   "extends": "eslint:recommended",
   "rules": {

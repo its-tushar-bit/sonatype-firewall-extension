@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess.aggregation;
+package com.sonatype.insight.brain.dataaccess.successmetrics;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
-import com.sonatype.insight.brain.model.aggregation.PolicyViolationResolutionState;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 
 import org.junit.Test;
 

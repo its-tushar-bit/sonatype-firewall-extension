@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess.aggregation;
+package com.sonatype.insight.brain.dataaccess.successmetrics;
 
 import java.util.Arrays;
 import java.util.Date;

@@ -14,7 +14,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.aggregation.ComponentCountsDTO;
+import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;

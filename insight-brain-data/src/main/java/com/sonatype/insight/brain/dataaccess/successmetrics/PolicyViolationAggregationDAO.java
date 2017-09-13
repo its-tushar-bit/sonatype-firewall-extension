@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess.aggregation;
+package com.sonatype.insight.brain.dataaccess.successmetrics;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
-import com.sonatype.insight.brain.model.aggregation.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.joda.time.LocalDate;

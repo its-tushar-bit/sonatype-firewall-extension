@@ -13,7 +13,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.aggregation.ComponentCountsDTO;
+import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;

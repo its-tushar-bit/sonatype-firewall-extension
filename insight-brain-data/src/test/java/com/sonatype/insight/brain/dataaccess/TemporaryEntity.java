@@ -16,8 +16,9 @@ import java.util.UUID;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationResolutionStateDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -54,8 +55,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.aggregation.PolicyViolationAggregation;
-import com.sonatype.insight.brain.model.aggregation.PolicyViolationResolutionState;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -209,6 +211,8 @@ public class TemporaryEntity
 
   private final PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO = new PolicyViolationResolutionStateDAO();
 
+  private final SuccessMetricsDAO successMetricsDAO = new SuccessMetricsDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -251,6 +255,8 @@ public class TemporaryEntity
 
   private Collection<PolicyViolationResolutionState> policyViolationResolutionStates;
 
+  private Collection<SuccessMetrics> successMetrics;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -274,6 +280,7 @@ public class TemporaryEntity
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
     policyViolationResolutionStates = new ArrayList<>();
+    successMetrics = new ArrayList<>();
   }
 
   @Override
@@ -401,6 +408,12 @@ public class TemporaryEntity
       if ((policyViolationResolutionState = policyViolationResolutionStateDAO
           .getById(policyViolationResolutionState.getId())) != null) {
         policyViolationResolutionStateDAO.delete(policyViolationResolutionState);
+      }
+    }
+
+    for (SuccessMetrics successMetrics : this.successMetrics) {
+      if ((successMetrics = successMetricsDAO.getById(successMetrics.getId())) != null) {
+        successMetricsDAO.delete(successMetrics);
       }
     }
   }
@@ -1629,5 +1642,20 @@ public class TemporaryEntity
     policyViolationResolutionStates.add(resolutionState);
 
     return resolutionState;
+  }
+
+  public SuccessMetrics newSuccessMetrics(String username, String metricsName, String scopeJson, Date createTime) {
+    SuccessMetrics successMetrics = new SuccessMetrics();
+    successMetrics.setUsername(username);
+    successMetrics.setScopeJson(scopeJson);
+    successMetrics.setName(metricsName);
+    successMetrics.setCreateTime(createTime);
+    successMetricsDAO.insert(successMetrics);
+    this.successMetrics.add(successMetrics);
+    return successMetrics;
+  }
+
+  public SuccessMetrics newSuccessMetrics(String username, String metricsName, String scopeJson) {
+    return newSuccessMetrics(username, metricsName, scopeJson, null);
   }
 }

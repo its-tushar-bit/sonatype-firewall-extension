@@ -109,9 +109,10 @@
   </persistence-unit>
   <persistence-unit name="InsightBrainAggregation" transaction-type="RESOURCE_LOCAL">
     <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
-    <class>com.sonatype.insight.brain.model.aggregation.PolicyViolationAggregation</class>
+    <class>com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation</class>
     <class>com.sonatype.insight.brain.model.HasComponentId</class>
-    <class>com.sonatype.insight.brain.model.aggregation.PolicyViolationResolutionState</class>
+    <class>com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState</class>
+    <class>com.sonatype.insight.brain.model.successmetrics.SuccessMetrics</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

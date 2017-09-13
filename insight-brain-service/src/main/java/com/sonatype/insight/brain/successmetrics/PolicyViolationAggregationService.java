@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.aggregation;
+package com.sonatype.insight.brain.successmetrics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,17 +24,17 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.aggregation.AverageDiscoveredPolicyViolationsDTO.AverageDiscoveredThreatCategoryPolicyViolationsDTO;
+import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.AverageDiscoveredThreatCategoryPolicyViolationsDTO;
 import com.sonatype.insight.brain.dashboard.DashboardUtils;
-import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
-import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO.AverageMonth;
-import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationResolutionStateDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageMonth;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.aggregation.PolicyViolationAggregation;
-import com.sonatype.insight.brain.model.aggregation.PolicyViolationResolutionState;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;

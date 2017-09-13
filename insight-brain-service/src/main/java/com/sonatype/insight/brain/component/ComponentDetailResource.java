@@ -18,8 +18,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
-import com.sonatype.insight.brain.aggregation.ComponentCountsDTO;
-import com.sonatype.insight.brain.aggregation.OwnerFilterDTO;
+import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
+import com.sonatype.insight.brain.successmetrics.OwnerFilterDTO;
 
 import com.yammer.metrics.annotation.ExceptionMetered;
 import com.yammer.metrics.annotation.Timed;

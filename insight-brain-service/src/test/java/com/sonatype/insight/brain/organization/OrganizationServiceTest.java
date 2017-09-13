@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -29,6 +32,8 @@ import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -125,5 +130,27 @@ public class OrganizationServiceTest
     assertThat(handler.getEvent().owner.getId(), is(organizationId));
 
     eventBus.unregister(handler);
+  }
+  
+  @Test
+  public void testGetOrganizationsByIds() {
+    Organization org1 = tempEntity.newOrganization("Org 1");
+    Organization org2 = tempEntity.newOrganization("Org 2");
+    List<Organization> orgs = organizationService
+        .getOrganizationsByIds(new HashSet<>(Arrays.asList(org1.getId(), org2.getId())));
+    assertThat(orgs, hasSize(2));
+    assertThat(Arrays.asList(orgs.get(0).getId(), orgs.get(1).getId()), containsInAnyOrder(org1.getId(), org2.getId()));
+  }
+
+  @Test
+  public void testGetOrganizationsByIds_Null() {
+    tempEntity.newOrganization("Org 1");
+    assertThat(organizationService.getOrganizationsByIds(null), is(empty()));
+  }
+
+  @Test
+  public void testGetOrganizationsByIds_Empty() {
+    tempEntity.newOrganization("Org 1");
+    assertThat(organizationService.getOrganizationsByIds(Collections.<String>emptySet()), is(empty()));
   }
 }

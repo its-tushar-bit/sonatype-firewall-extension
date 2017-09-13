@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess.aggregation;
+package com.sonatype.insight.brain.dataaccess.successmetrics;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -11,18 +11,18 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO.AverageMonth;
-import com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO.AverageThreatCategoryMonth;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageMonth;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageThreatCategoryMonth;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.aggregation.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.LocalDate;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
-import static com.sonatype.insight.brain.dataaccess.aggregation.PolicyViolationAggregationDAO.MttrMonth;
+import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
+import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.MttrMonth;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.hasSize;

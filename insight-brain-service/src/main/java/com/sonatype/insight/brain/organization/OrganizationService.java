@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -133,5 +135,13 @@ public class OrganizationService
 
     // delete organization last, this way the operation can be retried later if anything goes wrong
     organizationDAO.delete(tx, organization);
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
+  public List<Organization> getOrganizationsByIds(final Set<String> organizationIds) {
+    if (organizationIds != null) {
+      return organizationDAO.getByIds(organizationIds);
+    }
+    return new ArrayList<>();
   }
 }

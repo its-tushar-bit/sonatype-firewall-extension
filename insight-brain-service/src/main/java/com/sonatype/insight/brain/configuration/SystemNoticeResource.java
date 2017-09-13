@@ -15,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
+import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 /**
  * @since 1.29.0
@@ -37,6 +38,7 @@ public class SystemNoticeResource
   @GET
   @Path(FETCH_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @UnlicensedPath
   public SystemNotice getSystemNotice() {
     return systemNoticeService.getSystemNotice();
   }

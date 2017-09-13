@@ -35,4 +35,12 @@ public class SystemNoticeResourceTest
     HttpResponse response = request.body(new SystemNotice()).put();
     assertResponseStatus(HttpStatus.SC_OK, response);
   }
+
+  @Test
+  public void testGetSystemNotice_Unlicensed() throws Exception {
+    uninstallLicense();
+    HttpRequest request = restRequest();
+    HttpResponse response = request.path(SystemNoticeResource.FETCH_PATH).get();
+    assertResponseStatus(HttpStatus.SC_OK, response);
+  }
 }

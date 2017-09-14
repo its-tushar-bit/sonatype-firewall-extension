@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -70,6 +71,10 @@ public class SuccessMetricsService
   }
 
   SuccessMetricsDTO createSuccessMetricsForCurrentUser(SuccessMetricsDTO successMetricsDTO) {
+    if (successMetricsDTO.scope == null) {
+      throw new BadRequestException("Scope cannot be null or missing.");
+    }
+
     String username = currentUser.getUsername();
 
     SuccessMetrics successMetrics = new SuccessMetrics(successMetricsDTO.name);

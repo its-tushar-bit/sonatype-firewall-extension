@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -81,6 +82,20 @@ public class SuccessMetricsServiceTest
 
     //cleanup
     successMetricsDAO.delete(actual);
+  }
+
+  @Test
+  public void testCreateSuccessMetricsForCurrentUser_NullScope() throws Exception
+  {
+    SuccessMetricsScopeDTO scopeDTO = null;
+    SuccessMetricsDTO dto = new SuccessMetricsDTO("Metrics1", scopeDTO);
+    try {
+      successMetricsService.createSuccessMetricsForCurrentUser(dto);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("Scope cannot be null or missing.", expected.getMessage());
+    }
   }
 
   @Test

@@ -20,7 +20,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 /**
- * @since 1.36
+ * @since 1.37
  */
 @Named
 @Path(SuccessMetricsResource.RESOURCE_PATH)

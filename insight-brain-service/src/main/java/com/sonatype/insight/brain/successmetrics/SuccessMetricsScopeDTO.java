@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.successmetrics;
 import java.util.Set;
 
 /**
- * @since 1.36
+ * @since 1.37
  */
 public class SuccessMetricsScopeDTO
 {

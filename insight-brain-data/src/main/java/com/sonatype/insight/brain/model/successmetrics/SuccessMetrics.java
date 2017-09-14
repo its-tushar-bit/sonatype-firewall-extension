@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.model.HasStringId;
 
 /**
- * @since 1.36
+ * @since 1.37
  */
 @Entity
 @Table(name = "success_metrics")

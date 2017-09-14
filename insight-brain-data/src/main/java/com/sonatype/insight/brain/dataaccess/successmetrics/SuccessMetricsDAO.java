@@ -15,7 +15,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
- * @since 1.36
+ * @since 1.37
  */
 public class SuccessMetricsDAO
     extends AbstractAggregationSqlDAO<SuccessMetrics>

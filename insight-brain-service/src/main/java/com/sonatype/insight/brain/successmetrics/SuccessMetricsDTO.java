@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.successmetrics;
 
 /**
- * @since 1.36
+ * @since 1.37
  */
 public class SuccessMetricsDTO
 {

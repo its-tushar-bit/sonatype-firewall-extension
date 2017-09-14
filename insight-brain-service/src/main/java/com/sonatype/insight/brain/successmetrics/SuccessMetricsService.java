@@ -26,7 +26,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
- * @since 1.36
+ * @since 1.37
  */
 @Named
 public class SuccessMetricsService

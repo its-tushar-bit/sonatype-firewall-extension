@@ -15,24 +15,25 @@ import static org.junit.Assert.assertThat;
 
 public class TwistlockScanTest
 {
+  private String readFile(String filename) throws Exception {
+    return FileUtils.fileRead("target/test-classes/TwistlockScanTest/" + filename, "UTF-8");
+  }
+
   @Test
   public void testGetAnalysisJson() throws Exception {
     TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
-    assertThat(twistlockScan.getAnalysisJson(),
-        is(FileUtils.fileRead("target/test-classes/TwistlockScanTest/expected-analysis.json")));
+    assertThat(twistlockScan.getAnalysisJson(), is(readFile("expected-analysis.json")));
   }
 
   @Test
   public void testGetFilesJson() throws Exception {
     TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
-    assertThat(twistlockScan.getFilesJson(),
-        is(FileUtils.fileRead("target/test-classes/TwistlockScanTest/expected-files.json")));
+    assertThat(twistlockScan.getFilesJson(), is(readFile("expected-files.json")));
   }
 
   @Test
   public void testGetScanXml() throws Exception {
     TwistlockScan twistlockScan = new TwistlockScan(new File("target/test-classes/TwistlockScanTest/scan.zip"));
-    assertThat(twistlockScan.getScanXml(),
-        is(FileUtils.fileRead("target/test-classes/TwistlockScanTest/expected-scan.xml").replace("\r\n", "\n")));
+    assertThat(twistlockScan.getScanXml(), is(readFile("expected-scan.xml").replace("\r\n", "\n")));
   }
 }

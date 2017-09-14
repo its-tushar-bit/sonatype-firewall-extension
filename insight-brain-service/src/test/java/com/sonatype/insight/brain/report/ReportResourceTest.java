@@ -476,7 +476,7 @@ public class ReportResourceTest
       }
       else if ("security.json".equals(entry)) {
         JsonNode actual = JsonUtils.parse(response.getBodyText());
-        JsonNode expected = JsonUtils.parse(FileUtils.fileRead(file));
+        JsonNode expected = JsonUtils.parse(FileUtils.fileRead(file, "UTF-8"));
         for (JsonNode node : expected.get("aaData")) {
           ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
           ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
@@ -493,7 +493,7 @@ public class ReportResourceTest
         testJsonApplyComponentChanges(actual);
       }
       else if (contentType.startsWith("text") || contentType.endsWith("json")) {
-        assertThat(response.getBodyText(), equalToIgnoringWhiteSpace(FileUtils.fileRead(file)));
+        assertThat(response.getBodyText(), equalToIgnoringWhiteSpace(FileUtils.fileRead(file, "UTF-8")));
       }
       else {
         assertThat("Unexpected content for " + entry, response.getBodyBytes(),

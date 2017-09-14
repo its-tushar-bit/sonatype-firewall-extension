@@ -37,6 +37,10 @@ public class H2DatabaseMigratorTest
     DataSourceFactory.clear_ForTestsOnly();
   }
 
+  private String readDatabaseVersion(File versionFile) throws Exception {
+    return FileUtils.fileRead(versionFile, "UTF-8");
+  }
+
   @Test
   public void testMigrateOperationalDataStore() throws Exception {
     File databaseDir = new File("target/H2DatabaseMigratorTest/testMigrateOperationalDataStore");
@@ -45,7 +49,7 @@ public class H2DatabaseMigratorTest
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
     assertTrue(databaseVersionFile.exists());
-    assertEquals("6", FileUtils.fileRead(databaseVersionFile));
+    assertEquals("6", readDatabaseVersion(databaseVersionFile));
 
     DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
     odsDatabaseConfig.setDriverClassName("org.h2.Driver");
@@ -56,7 +60,7 @@ public class H2DatabaseMigratorTest
     odsDatabaseConfig.setMaxConnections(50);
     OperationalDataStoreProvider.init(odsDatabaseConfig);
     assertEquals(String.valueOf(OperationalDataStoreProvider.DESIRED_DATABASE_VERSION),
-        FileUtils.fileRead(databaseVersionFile));
+        readDatabaseVersion(databaseVersionFile));
   }
 
   @Test
@@ -66,7 +70,7 @@ public class H2DatabaseMigratorTest
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateDatamart"), databaseDir);
     File databaseVersionFile = new File(databaseDir, "dm.ver");
     assertTrue(databaseVersionFile.exists());
-    assertEquals("1", FileUtils.fileRead(databaseVersionFile));
+    assertEquals("1", readDatabaseVersion(databaseVersionFile));
 
     DatabaseConfig dmDatabaseConfig = new DatabaseConfig();
     dmDatabaseConfig.setDriverClassName("org.h2.Driver");
@@ -76,7 +80,7 @@ public class H2DatabaseMigratorTest
     dmDatabaseConfig.setPassword("");
     dmDatabaseConfig.setMaxConnections(50);
     DatamartProvider.init(dmDatabaseConfig);
-    assertEquals(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION), FileUtils.fileRead(databaseVersionFile));
+    assertEquals(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION), readDatabaseVersion(databaseVersionFile));
   }
 
   @Test
@@ -89,7 +93,7 @@ public class H2DatabaseMigratorTest
             databaseDir);
     File databaseVersionFile = new File(databaseDir, "dm.ver");
     assertThat(databaseVersionFile.isFile(), is(true));
-    assertThat(FileUtils.fileRead(databaseVersionFile), is("3"));
+    assertThat(readDatabaseVersion(databaseVersionFile), is("3"));
 
     String dbUrl = "jdbc:h2:" + databaseDir.getAbsolutePath()
         + "/dm;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
@@ -110,7 +114,7 @@ public class H2DatabaseMigratorTest
       fail("Expected exception");
     }
     catch (CannotReadScriptException expected) {
-      assertThat(FileUtils.fileRead(databaseVersionFile), is(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION)));
+      assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION)));
     }
   }
 }

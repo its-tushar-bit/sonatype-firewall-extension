@@ -45,7 +45,7 @@ public class H2DatabaseBackupTest
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
     assertTrue(databaseVersionFile.exists());
-    assertEquals("6", FileUtils.fileRead(databaseVersionFile));
+    assertEquals("6", FileUtils.fileRead(databaseVersionFile, "UTF-8"));
 
     String dbUrl = "jdbc:h2:" + databaseDir.getAbsolutePath()
         + "/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";

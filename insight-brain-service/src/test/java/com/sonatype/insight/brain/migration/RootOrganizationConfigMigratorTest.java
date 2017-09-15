@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -502,7 +503,7 @@ public class RootOrganizationConfigMigratorTest
 
     try {
       // Create an on-disk database
-      File dbDir = new File(tempDir.getRoot(), "ods");
+      File dbDir = new File(tempDir.getRoot(), DatabaseName.ods.name());
       DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
       odsDatabaseConfig.setDriverClassName("org.h2.Driver");
       odsDatabaseConfig.setUrl("jdbc:h2:" + dbDir.getAbsolutePath()

@@ -9,6 +9,7 @@ import java.io.File;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseBackup;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -54,6 +55,7 @@ public class DbBackupTaskTest
     assertThat(dbBackupDir.isDirectory(), is(true));
     assertThat(dbBackupDir.getParentFile().getAbsolutePath(), is(getCLMServer().getConfiguration().getDbBackupDir()
         .getAbsolutePath()));
-    assertThat(new File(dbBackupDir, "ods" + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX).isFile(), is(true));
+    assertThat(new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX).isFile(),
+        is(true));
   }
 }

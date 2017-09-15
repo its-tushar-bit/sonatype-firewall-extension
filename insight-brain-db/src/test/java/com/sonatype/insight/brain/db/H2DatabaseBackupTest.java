@@ -61,7 +61,7 @@ public class H2DatabaseBackupTest
     File dbBackupDir = temporaryFolder.newFolder("backup");
     new H2DatabaseBackup().backup(databaseConfig, dataSource, dbBackupDir);
 
-    File dbBackupFile = new File(dbBackupDir, "ods" + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX);
+    File dbBackupFile = new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX);
     try (ZipFile dbBackupZipFile = new ZipFile(dbBackupFile)) {
       ZipEntry zipEntryDb = dbBackupZipFile.getEntry("ods.h2.db");
       assertThat("The db file is missing from the db backup", zipEntryDb, notNullValue());

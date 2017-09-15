@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
@@ -75,8 +76,7 @@ public class InsightBrainService
 
   public static void main(final String[] args) {
     try {
-      printInstanceId("Starting");
-      addShutdownLogger();
+      setupServerLogging(args);
       JavaRuntimeChecker.checkJreIsSupported();
       JavaXXMaxPermSizeChecker.check();
 
@@ -92,6 +92,13 @@ public class InsightBrainService
       t.printStackTrace();
       log.error(t.getMessage(), t);
       System.exit(2);
+    }
+  }
+
+  static void setupServerLogging(final String... args) {
+    if (args.length == 0 || "server".equals(args[0])) {
+      printInstanceId("Starting");
+      addShutdownLogger();
     }
   }
 
@@ -232,28 +239,13 @@ public class InsightBrainService
 
     // workaround to let us set different defaults in the core HTTP configuration
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());
+
+    bootstrap.addCommand(new CompactCommand());
   }
 
-  protected DatabaseConfig getDatabaseConfig(File databaseDir,
-                                             String databaseName,
-                                             Long cacheSizeInBytes,
-                                             String additionalDBParams)
+  protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName)
   {
-    DatabaseConfig databaseConfig = new DatabaseConfig();
-    databaseConfig.setDriverClassName("org.h2.Driver");
-    StringBuilder urlBuilder = new StringBuilder().append("jdbc:h2:").append(databaseDir.getAbsolutePath()).append('/')
-        .append(databaseName).append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=60000");
-    if (cacheSizeInBytes != null) {
-      urlBuilder.append(";CACHE_SIZE=").append(cacheSizeInBytes / 1024);
-    }
-    if (additionalDBParams != null) {
-      urlBuilder.append(";").append(additionalDBParams);
-    }
-    databaseConfig.setUrl(urlBuilder.toString());
-    databaseConfig.setUsername("sa");
-    databaseConfig.setPassword("");
-    databaseConfig.setMaxConnections(50);
-    return databaseConfig;
+    return databaseConfigProvider.getDatabaseConfig(databaseName);
   }
 
   @Override
@@ -300,21 +292,14 @@ public class InsightBrainService
   @Override
   protected List<Module> modules(final InsightConfig config) {
     // NOTE: The ReleaseGraphCacheLoader indirectly uses the ApplicationDAO so we better setup the DB before
-    File databaseDir = new File(config.getSonatypeWork(), "data");
-    log.debug("Data directory: {}", databaseDir.getAbsolutePath());
-    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseDir, "dm", null, config.getAdditionalDBParams());
+    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
+    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.dm);
     DatamartProvider.init(dmDatabaseConfig);
-    // NOTE: H2 uses previous setting if not set in URL, so be explicit about the default size
-    long dbCacheSizeInBytes = 16L * 1024 * 1024;
-    if (config.getDbCacheSizePercent() != null) {
-      dbCacheSizeInBytes = Runtime.getRuntime().maxMemory() * config.getDbCacheSizePercent() / 100;
-    }
-    DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseDir, "ods", dbCacheSizeInBytes,
-        config.getAdditionalDBParams());
+
+    DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.ods);
     OperationalDataStoreProvider.init(odsDatabaseConfig);
 
-    DatabaseConfig aggregationDatabaseConfig = getDatabaseConfig(databaseDir, "aggregation", null,
-        config.getAdditionalDBParams());
+    DatabaseConfig aggregationDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.aggregation);
     AggregationDataStoreProvider.init(aggregationDatabaseConfig);
 
     // Create the default LTGs on the root organization (must be called after the database is initialized)

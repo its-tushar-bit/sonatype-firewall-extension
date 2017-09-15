@@ -11,13 +11,14 @@ import java.util.Iterator;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
+import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
-import com.sonatype.insight.test.SslProperties;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.test.SslProperties;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
@@ -309,10 +310,7 @@ public class TestInsightBrainService
   }
 
   @Override
-  protected DatabaseConfig getDatabaseConfig(File databaseDir,
-                                             String databaseName,
-                                             Long cacheSize,
-                                             final String additionalDBParams)
+  protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName)
   {
     // Use in memory db
     return null;

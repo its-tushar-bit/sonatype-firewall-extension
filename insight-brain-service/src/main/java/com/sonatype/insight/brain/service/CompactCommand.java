@@ -12,6 +12,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Statement;
 
+import javax.sql.DataSource;
+
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -44,12 +46,13 @@ public class CompactCommand
     final DatabaseConfig databaseConfig = new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods);
     final Path databaseFile = Paths.get(H2DatabaseUtil.getDatabasePath(databaseConfig).getAbsolutePath() + ".h2.db");
     try {
-      log.info("Compacting {}", databaseFile);
-      log.info("This might take a while, please be patient.");
       final long originalSize = Files.size(databaseFile);
       OperationalDataStoreProvider.init(databaseConfig);
+      DataSource dataSource = OperationalDataStoreProvider.getDataSource();
+      log.info("Compacting {}", databaseFile);
+      log.info("This might take a while, please be patient.");
       final long startTime = System.currentTimeMillis();
-      try (final Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+      try (final Connection connection = dataSource.getConnection();
            final Statement statement = connection.createStatement()) {
         statement.execute("SHUTDOWN COMPACT");
       }

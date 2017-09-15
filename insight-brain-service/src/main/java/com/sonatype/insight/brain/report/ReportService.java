@@ -162,8 +162,9 @@ public class ReportService
   }
 
   @Authorize(permission = Permission.READ)
-  ReportMetadataDTO getReportMetadata(final @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
-                                          String applicationPublicId, final String scanId) throws IOException
+  ReportMetadataDTO getReportMetadata(final @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+                                      final String scanId)
+      throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ReportMetadataDTO metadata = new ReportMetadataDTO();
@@ -178,12 +179,11 @@ public class ReportService
       metadata.setReportTitle("Expanded Coverage Report");
     }
     else {
-      PolicyEvaluation evaluation = new PolicyEvaluationDAO()
-          .getLastByApplicationIdAndScanId(application.getId(), scanId);
+      PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(),
+          scanId);
       metadata.setReportTime(evaluation.getTime());
       metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
     }
     return metadata;
   }
-
 }

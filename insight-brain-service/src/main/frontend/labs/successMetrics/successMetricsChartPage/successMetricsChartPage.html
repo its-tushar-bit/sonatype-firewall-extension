@@ -1,12 +1,12 @@
-<div ng-if="vm.rootOrgAvailable"
-     class="tile-container tile-scroll-container iq-tile-scroll-container--success-metrics"
+<div class="tile-container tile-scroll-container iq-tile-scroll-container--success-metrics"
      load-wrapper="vm.error"
      loading="!vm.loaded"
      reload="vm.doLoad()">
   <iq-back-button state="labs.successMetrics"></iq-back-button>
   <div ng-if="vm.activeApplicationCount !== 0">
     <div class="iq-tile iq-tile--chart" >
-      <summary-statement-tile averages-data="vm.averagesData"></summary-statement-tile>
+      <summary-statement-tile averages-data="vm.averagesData" success-metrics-name="vm.successMetricsName">
+      </summary-statement-tile>
     </div>
     <div class="iq-tile iq-tile--chart">
       <violation-averages-chart averages-data="vm.averagesData"></violation-averages-chart>
@@ -25,10 +25,4 @@
     <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check
     again tomorrow.
   </div>
-</div>
-
-<div ng-if="!vm.rootOrgAvailable" class="iq-alert iq-alert--error" id="no-root-org-warning">
-  <i class="fa fa-warning"></i>Currently, Success Metrics only supports reporting from the Root Organization.
-  Since your instance of IQ Server does not have the Root Organization configured, Success Metrics is not available
-  at this time.
 </div>

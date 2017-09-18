@@ -6,19 +6,22 @@
 
 const EMPTY_PREFIX = '~empty~';
 
+const getData = ({ data }) => data;
+
 export default
-function successMetricsDataService($http, CLMLocations, ProductFeatures) {
+function successMetricsDataService($http, CLMLocations) {
   return {
     getMttrData: getMttrData,
     getAveragesData: getAveragesData,
     getApplicationCountsData: getApplicationCountsData,
     getComponentCountsData: getComponentCountsData,
-    isRootOrgAvailable: isRootOrgAvailable,
+    getSuccessMetricsForCurrentUser: getSuccessMetricsForCurrentUser,
+    createSuccessMetricsForCurrentUser: createSuccessMetricsForCurrentUser,
     EMPTY_PREFIX: EMPTY_PREFIX
   };
 
-  function getMttrData() {
-    return $http.post(CLMLocations.getMttrUrl(), {}).then(function({ data }) {
+  function getMttrData(postData) {
+    return $http.post(CLMLocations.getMttrUrl(), postData).then(function({ data }) {
       const monthsOfMttr = data.length;
 
       if (monthsOfMttr === 0) {
@@ -47,7 +50,7 @@ function successMetricsDataService($http, CLMLocations, ProductFeatures) {
     });
   }
 
-  function getAveragesData() {
+  function getAveragesData(postData) {
     var threatCategoryAccessors = ['security', 'license', 'quality', 'other'],
         threatLevelAccessors = [
           'averageDiscoveredLow', 'averageDiscoveredModerate', 'averageDiscoveredSevere',
@@ -68,7 +71,7 @@ function successMetricsDataService($http, CLMLocations, ProductFeatures) {
       return retval;
     }
 
-    return $http.post(CLMLocations.getViolationAveragesUrl(), {}).then(function(response) {
+    return $http.post(CLMLocations.getViolationAveragesUrl(), postData).then(function(response) {
       var monthAverages = response.data.averageDiscoveredPolicyViolations;
 
       // the rest endpoint returns separate data for each month.  We need to combine into overall averages
@@ -117,14 +120,14 @@ function successMetricsDataService($http, CLMLocations, ProductFeatures) {
     });
   }
 
-  function getApplicationCountsData() {
-    return $http.post(CLMLocations.getSuccessMetricsApplicationCountsUrl(), {}).then(function(response) {
+  function getApplicationCountsData(postData) {
+    return $http.post(CLMLocations.getSuccessMetricsApplicationCountsUrl(), postData).then(function(response) {
       return response.data;
     });
   }
 
-  function getComponentCountsData() {
-    return $http.post(CLMLocations.getSuccessMetricsComponentCountsUrl(), {}).then(function({data}) {
+  function getComponentCountsData(postData) {
+    return $http.post(CLMLocations.getSuccessMetricsComponentCountsUrl(), postData).then(function({data}) {
       var componentCountMostApplications = data.componentsInTheMostApplications.length;
       if (componentCountMostApplications > 0 && componentCountMostApplications < 5) {
         data.componentsInTheMostApplications = data.componentsInTheMostApplications.concat(
@@ -151,9 +154,13 @@ function successMetricsDataService($http, CLMLocations, ProductFeatures) {
     }
   }
 
-  function isRootOrgAvailable() {
-    return ProductFeatures.isAvailable('root-org');
+  function getSuccessMetricsForCurrentUser() {
+    return $http.get(CLMLocations.getSuccessMetricsUrl()).then(getData);
+  }
+
+  function createSuccessMetricsForCurrentUser(successMetricConfiguration) {
+    return $http.post(CLMLocations.getSuccessMetricsUrl(), successMetricConfiguration).then(getData);
   }
 }
 
-successMetricsDataService.$inject = ['$http', 'CLMLocations', 'ProductFeatures'];
+successMetricsDataService.$inject = ['$http', 'CLMLocations'];

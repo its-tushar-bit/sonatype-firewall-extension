@@ -5,14 +5,17 @@
  */
 package com.sonatype.clm.testing.functional.brain.labs;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.ApplicationCountsTile;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.ComponentCountsTile;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.MttrTile;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.SummaryStatementTile;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ApplicationCountsTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ComponentCountsTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.MttrTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ViolationAveragesTile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -20,6 +23,9 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsScopeDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.ElementsCollection;
 import org.joda.time.DateTime;
@@ -38,7 +44,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALI
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static org.joda.time.DateTime.now;
 
-public class RootOrgSuccessMetricsChartTest
+public class SuccessMetricsChartsTest
     extends AbstractFunctionalTest
 {
   private static final String FILL_ATTRIBUTE = "fill";
@@ -57,15 +63,20 @@ public class RootOrgSuccessMetricsChartTest
 
   private static final DateTime oneMonthAgo = now().minusMonths(1);
 
+  private static String successMetricsChartsPageUrl;
+
   @BeforeClass
   public static void startup() {
     Application app1 = staticTempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");
     Application app2 = staticTempEntity.newApplicationWithParent("app2", "SuccessMetricsChart Test App2");
+    Application app3 = staticTempEntity.newApplicationWithParent("app3", "SuccessMetricsChart Test App3");
+
     Policy licensePolicy = staticTempEntity.newPolicy(app1.getParentOwnerId(), "SuccessMetricsChartTestLicensePolicy");
     Policy securityPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId(),
         "SuccessMetricsChartTestSecurityPolicy");
     Policy qualityPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId(), "SuccessMetricsChartTestQualityPolicy");
     Policy otherPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId(), "SuccessMetricsChartTestOtherPolicy");
+    Policy app3Policy = staticTempEntity.newPolicy(app3.getParentOwnerId(), "SuccessMetricsChartApp3Policy");
 
     PolicyEvaluation buildEval4MonthsAgo = staticTempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "fourMonthsAgo", fourMonthsAgo.toDate());
@@ -77,6 +88,9 @@ public class RootOrgSuccessMetricsChartTest
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "twoMonthsAgo", twoMonthsAgo.toDate());
     PolicyEvaluation releaseEval1MonthAgo = staticTempEntity
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "oneMonthAgo", oneMonthAgo.toDate());
+    PolicyEvaluation app3Eval1 = staticTempEntity
+        .newPolicyEvaluation(app3.getId(), BuildStageType.ID, "app3Eval1", fourMonthsAgo.toDate());
+    staticTempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "app3Eval2", threeMonthsAgo.toDate());
 
     ApplicationComponent buildComponent = staticTempEntity
         .newApplicationComponent(app1.getId(), BuildStageType.ID, "logbackhash",
@@ -110,31 +124,44 @@ public class RootOrgSuccessMetricsChartTest
         OTHER, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
     staticTempEntity.newPolicyViolation(releaseEval1MonthAgo, securityPolicy, 10,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
+    staticTempEntity.newPolicyViolation(app3Eval1, app3Policy, 10,
+        SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
 
-    refreshOrOpen(RootOrganizationSuccessMetricsPage.URL);
+    SuccessMetricsScopeDTO successMetricsScope = new SuccessMetricsScopeDTO();
+    successMetricsScope.organizationIds = new HashSet<>(Arrays.asList(app1.getParentOwnerId()));
+    successMetricsScope.applicationIds = new HashSet<>(Arrays.asList(app2.getId()));
+
+    // Include app2 using its app id and app1 using its parent org id. Do not include app3.
+    SuccessMetrics successMetrics = staticTempEntity.newSuccessMetrics("admin", "Test",
+        JsonUtils.format(successMetricsScope));
+
+    successMetricsChartsPageUrl = SuccessMetricsChartPage.getUrl(successMetrics.getId());
+
+    refreshOrOpen(successMetricsChartsPageUrl);
     loginAsAdmin();
   }
 
   @Before
   public void navigate() {
-    refreshOrOpen(RootOrganizationSuccessMetricsPage.URL);
+    refreshOrOpen(successMetricsChartsPageUrl);
   }
 
   @Test
   public void testSummaryStatementTile() {
-    RootOrganizationSuccessMetricsPage rootOrganizationSuccessMetricsPage = new RootOrganizationSuccessMetricsPage();
+    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
 
-    rootOrganizationSuccessMetricsPage.should(appear);
+    successMetricsChartsPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
+    SummaryStatementTile.title().shouldHave(text("Test"));
     SummaryStatementTile.activeApplicationsCount().shouldBe(visible).shouldBe(text("2"));
     SummaryStatementTile.months().shouldBe(visible).shouldHave(text("4 months"));
   }
 
   @Test
   public void testViolationAveragesTile() {
-    RootOrganizationSuccessMetricsPage rootOrganizationSuccessMetricsPage = new RootOrganizationSuccessMetricsPage();
+    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
 
-    rootOrganizationSuccessMetricsPage.should(appear);
+    successMetricsChartsPage.should(appear);
     ViolationAveragesTile.root().shouldBe(visible);
     ViolationAveragesTile.averageEvaluations().shouldBe(visible).shouldBe(text("1"));
     ViolationAveragesTile.averagePolicyViolations().shouldBe(visible).shouldBe(text("2"));
@@ -143,11 +170,11 @@ public class RootOrgSuccessMetricsChartTest
 
   @Test
   public void testApplicationCountsTile() throws Exception {
-    RootOrganizationSuccessMetricsPage rootOrganizationSuccessMetricsPage = new RootOrganizationSuccessMetricsPage();
+    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
 
     ApplicationCountsTile.root().scrollTo();
 
-    rootOrganizationSuccessMetricsPage.should(appear);
+    successMetricsChartsPage.should(appear);
     ApplicationCountsTile.root().shouldHave(visible);
     ApplicationCountsTile.activeApplicationsCount().shouldBe(visible).shouldHave(text("2"));
     ApplicationCountsTile.totalViolatingApplicationsCount().shouldBe(visible).shouldHave(text("2"));
@@ -164,11 +191,11 @@ public class RootOrgSuccessMetricsChartTest
 
   @Test
   public void testMttrTile() {
-    RootOrganizationSuccessMetricsPage rootOrganizationSuccessMetricsPage = new RootOrganizationSuccessMetricsPage();
+    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
 
     MttrTile.root().scrollTo();
 
-    rootOrganizationSuccessMetricsPage.should(appear);
+    successMetricsChartsPage.should(appear);
     MttrTile.root().shouldBe(visible);
     MttrTile.chart().shouldBe(visible);
 
@@ -196,11 +223,11 @@ public class RootOrgSuccessMetricsChartTest
 
   @Test
   public void testComponentCountsTile() throws Exception {
-    RootOrganizationSuccessMetricsPage rootOrganizationSuccessMetricsPage = new RootOrganizationSuccessMetricsPage();
+    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
 
     ComponentCountsTile.root().scrollTo();
 
-    rootOrganizationSuccessMetricsPage.should(appear);
+    successMetricsChartsPage.should(appear);
     ComponentCountsTile.root().shouldBe(visible);
 
     ElementsCollection componentsInMostApplications = ComponentCountsTile.componentsInMostApplications();

@@ -82,4 +82,13 @@ public class IqCheckbox
       }    }
     return this;
   }
+
+  // grammatical convenience methods
+  public IqCheckbox shouldHave(Condition... conditions) {
+    return shouldBe(conditions);
+  }
+
+  public IqCheckbox shouldNotHave(Condition... conditions) {
+    return shouldNotBe(conditions);
+  }
 }

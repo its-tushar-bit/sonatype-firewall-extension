@@ -4,25 +4,28 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import successMetricsDataService from './successMetricsDataService';
-import successMetrics from './successMetrics';
+import successMetricsList from './successMetricsList';
+import addSuccessMetricsModal from './addSuccessMetricsModal/addSuccessMetricsModal';
 import mttrChart from './mttrChart/mttrChart';
 import violationAveragesChart from './violationAveragesChart/violationAveragesChart';
 import applicationCountsChart from './applicationCountsChart/applicationCountsChart';
 import summaryStatementTile from './summaryStatementTile/summaryStatementTile';
 import componentCountsChart from './componentCountsChart/componentCountsChart';
-import rootOrganization from './rootOrganization/rootOrganization';
+import successMetricsChartPage from './successMetricsChartPage/successMetricsChartPage';
 import chartUtilsService from './chartUtilsService';
 import CLMLocationModule from '../../util/CLMLocation';
 import productFeaturesModule from '../../util/ProductFeatures';
+import commonServicesModule from '../../util/CommonServices';
 
-export default angular.module('successMetricsModule', ['components', CLMLocationModule.name, productFeaturesModule.name])
+export default angular.module('successMetricsModule', ['components', CLMLocationModule.name,
+  productFeaturesModule.name, commonServicesModule.name])
     .service('successMetricsDataService', successMetricsDataService)
     .service('chartUtilsService', chartUtilsService)
-    .component('successMetrics', successMetrics)
+    .component('successMetricsList', successMetricsList)
+    .component('addSuccessMetricsModal', addSuccessMetricsModal)
     .component('mttrChart', mttrChart)
     .component('violationAveragesChart', violationAveragesChart)
     .component('applicationCountsChart', applicationCountsChart)
     .component('summaryStatementTile', summaryStatementTile)
     .component('componentCountsChart', componentCountsChart)
-    .component('rootOrganization', rootOrganization);
-
+    .component('successMetricsChartPage', successMetricsChartPage);

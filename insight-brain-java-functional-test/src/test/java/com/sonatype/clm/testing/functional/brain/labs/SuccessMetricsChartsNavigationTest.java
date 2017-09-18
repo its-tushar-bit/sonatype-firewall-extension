@@ -8,23 +8,20 @@ package com.sonatype.clm.testing.functional.brain.labs;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartsPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsListPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsScopeDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.IQ_DISABLED;
 import static com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton.CLASS_ACTIVE;
-import static com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.ApplicationCountsTile;
-import static com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.MttrTile;
-import static com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.SummaryStatementTile;
-import static com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.NO_DATA_INFO_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.NO_DATA_INFO_TEXT;
 
 public class SuccessMetricsChartsNavigationTest
     extends AbstractFunctionalTest
@@ -36,53 +33,25 @@ public class SuccessMetricsChartsNavigationTest
   }
 
   @Test
-  public void navigateToRootOrgSuccessMetricsCharts() {
+  public void navigateToSuccessMetricsCharts() {
+    tempEntity.newSuccessMetrics("admin", "Test Success Metrics", JsonUtils.format(new SuccessMetricsScopeDTO()));
+
     refreshOrOpen(BaseUrl.uriBuilder().build().toString());
     loginAsAdmin();
 
-    SuccessMetricsChartsPage successMetricsChartsPage = new SuccessMetricsChartsPage();
-    RootOrganizationSuccessMetricsPage rootOrganizationSuccessMetricsPage = new RootOrganizationSuccessMetricsPage();
+    SuccessMetricsListPage successMetricsPage = new SuccessMetricsListPage();
+    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
 
     MainHeaderNavigationButton labsNavigationButton = MainHeader.labsNavigationButton();
     labsNavigationButton.shouldBe(visible).shouldNotHave(CLASS_ACTIVE).click();
-    successMetricsChartsPage.should(appear);
-    labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);
-    successMetricsChartsPage.rootOrganizationActionItem().shouldBe(visible).click();
-    rootOrganizationSuccessMetricsPage.should(appear);
-    rootOrganizationSuccessMetricsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
-    labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);
-    rootOrganizationSuccessMetricsPage.backButton().shouldBe(visible).shouldHave(text("Back to Success Metrics"))
-        .click();
-    successMetricsChartsPage.should(appear);
-  }
-
-  @Test
-  public void navigateToSuccessMetrics_noRootOrgConfigured() {
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-    refreshOrOpen(BaseUrl.uriBuilder().build().toString());
-    loginAsAdmin();
-
-    SuccessMetricsChartsPage successMetricsPage = new SuccessMetricsChartsPage();
-
-    MainHeader.labsNavigationButton().shouldBe(visible).click();
     successMetricsPage.should(appear);
-
-    successMetricsPage.noRootOrgWarning().shouldBe(visible);
-
-    successMetricsPage.rootOrganizationActionItem().shouldBe(visible).shouldHave(IQ_DISABLED).click();
-    new RootOrganizationSuccessMetricsPage().shouldNot(appear);
-    successMetricsPage.shouldBe(visible);
-  }
-
-  @Test
-  public void navigateToRootOrgSuccessMetricsCharts_noRootOrgConfigured() {
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
-    refreshOrOpen(RootOrganizationSuccessMetricsPage.URL);
-    loginAsAdmin();
-
-    new RootOrganizationSuccessMetricsPage().noRootOrgError().shouldBe(visible);
-    SummaryStatementTile.root().shouldNotBe(visible);
-    ApplicationCountsTile.root().shouldNotBe(visible);
-    MttrTile.root().shouldNotBe(visible);
+    labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);
+    successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(1);
+    successMetricsPage.successMetricsChartActionItems().element(0).click();
+    successMetricsChartsPage.should(appear);
+    successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
+    labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);
+    successMetricsChartsPage.backButton().shouldBe(visible).shouldHave(text("Back to Success Metrics")).click();
+    successMetricsPage.should(appear);
   }
 }

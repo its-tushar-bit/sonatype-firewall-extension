@@ -18,16 +18,16 @@ function configureRoutes($stateProvider) {
       })
       .state('labs.successMetrics', {
         url: '/successMetrics',
-        template: '<success-metrics></success-metrics>',
+        template: '<success-metrics-list></success-metrics-list>',
         data: {
           title: 'Success Metrics'
         }
       })
-      .state('labs.rootOrg', {
-        url: '/successMetrics/root-org',
-        template: '<root-organization></root-organization>',
+      .state('labs.successMetricsChart', {
+        url: '/successMetrics/:successMetricsId',
+        component: 'successMetricsChartPage',
         data: {
-          title: 'Success Metrics Root Organization'
+          title: 'Success Metrics Chart Page'
         }
       });
 }

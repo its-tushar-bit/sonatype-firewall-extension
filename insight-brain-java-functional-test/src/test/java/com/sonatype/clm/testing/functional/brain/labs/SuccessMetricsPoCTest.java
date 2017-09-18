@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.MttrTile;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.SummaryStatementTile;
-import com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.MttrTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ViolationAveragesTile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -20,6 +20,9 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsScopeDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -30,23 +33,33 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
-import static com.sonatype.clm.testing.functional.pages.RootOrganizationSuccessMetricsPage.NO_DATA_INFO_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.NO_DATA_INFO_TEXT;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 import static org.joda.time.DateTime.now;
 
-public class RootOrgSuccessMetricsPoCTest
+public class SuccessMetricsPoCTest
     extends AbstractFunctionalTest
 {
-  private RootOrganizationSuccessMetricsPage rootOrganizationSuccessMetricsPage = new RootOrganizationSuccessMetricsPage();
+  private SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
 
   private Application app;
+
   private Policy securityPolicy;
+
+  private SuccessMetrics successMetrics;
+
+  private String successMetricsChartsPageUrl;
 
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent("pocApp", "SuccessMetricsPoCTestApp");
     securityPolicy = tempEntity.newPolicy(app.getParentOwnerId(), "SuccessMetricsPoCTestSecurityPolicy");
+
+    successMetrics = tempEntity.newSuccessMetrics("admin", "Test Success Metric",
+        JsonUtils.format(new SuccessMetricsScopeDTO()));
+
+    successMetricsChartsPageUrl = SuccessMetricsChartPage.getUrl(successMetrics.getId());
   }
 
   @After
@@ -58,21 +71,21 @@ public class RootOrgSuccessMetricsPoCTest
   public void testPoCMode() {
     DateTime fakeNow = setTimeTo(now().withDayOfMonth(20));
 
-    refreshOrOpen(RootOrganizationSuccessMetricsPage.URL);
+    refreshOrOpen(successMetricsChartsPageUrl);
     loginAsAdmin();
-    rootOrganizationSuccessMetricsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
+    successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
 
     List<PolicyViolation> existingViolations = new ArrayList<>();
     createCriticalViolations(createEvaluation(fakeNow), 1, existingViolations);
 
     // The violation was discovered today, so no success metrics should be visible yet.
-    refreshOrOpen(RootOrganizationSuccessMetricsPage.URL);
-    rootOrganizationSuccessMetricsPage.noDataInfoPane().shouldBe(visible);
+    refreshOrOpen(successMetricsChartsPageUrl);
+    successMetricsChartsPage.noDataInfoPane().shouldBe(visible);
 
     // It should appear in results the next day.
     fakeNow = setTimeTo(fakeNow.plusDays(1));
-    refreshOrOpen(RootOrganizationSuccessMetricsPage.URL);
-    rootOrganizationSuccessMetricsPage.noDataInfoPane().shouldNotBe(visible);
+    refreshOrOpen(successMetricsChartsPageUrl);
+    successMetricsChartsPage.noDataInfoPane().shouldNotBe(visible);
     SummaryStatementTile.months().shouldBe(visible).shouldHave(text("1 month"));
     ViolationAveragesTile.averageEvaluations().shouldHave(text("1"));
     ViolationAveragesTile.averagePolicyViolations().shouldHave(text("1"));
@@ -85,7 +98,7 @@ public class RootOrgSuccessMetricsPoCTest
     createCriticalViolations(createEvaluation(fakeNow), 3, existingViolations);
 
     fakeNow = setTimeTo(fakeNow.plusDays(1));
-    refreshOrOpen(RootOrganizationSuccessMetricsPage.URL);
+    refreshOrOpen(successMetricsChartsPageUrl);
 
     SummaryStatementTile.months().shouldBe(visible).shouldHave(text("2 months"));
     ViolationAveragesTile.averageEvaluations().shouldHave(text("1"));
@@ -99,7 +112,7 @@ public class RootOrgSuccessMetricsPoCTest
     // Roll over to next month - out of PoC mode.
     setTimeTo(fakeNow.plusMonths(1).withDayOfMonth(1));
 
-    refreshOrOpen(RootOrganizationSuccessMetricsPage.URL);
+    refreshOrOpen(successMetricsChartsPageUrl);
 
     // We are now in normal mode, showing last two full months of data, including MTTR chart.
     SummaryStatementTile.months().shouldBe(visible).shouldHave(text("2 months"));

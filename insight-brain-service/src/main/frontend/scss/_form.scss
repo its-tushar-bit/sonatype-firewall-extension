@@ -169,6 +169,29 @@
   input[type=text].with-threat-dropdown {
     width: 421px !important;
   }
+
+  // Defining labels for groups of radio buttons or checkboxes is tricky - each individual radio has a <label>
+  // element, so it inappropriate to use a <label> for the group as a whole.  Instead, a <fieldset> and <legend> can
+  // be used, but you'll still typically want the <legend> styled the way a <label> on a text field would be.  This
+  // class implements that
+  fieldset {
+    &.iq-radio-group, &.iq-checkbox-group {
+
+      // override browser-default "min-content"
+      min-width: auto;
+
+      legend {
+        @include semi-bold();
+
+        // use the same styling as <label>s
+        border-style: none;
+        color: $iq-off-black;
+        font-size: 16px;
+        line-height: 20px;
+        margin-bottom: 7px;
+      }
+    }
+  }
 }
 
 .field {
@@ -215,10 +238,12 @@
     padding-left: 8px;
     padding-right: 8px;
 
-    & + input {
+    // NOTE [type=text] was necessary to increase specificity above that of some of the styles from clm-form
+    & + input[type=text] {
       border-left: none;
       box-shadow: none;
       border-radius: 0;
+      height: 20px;
 
       &::-ms-clear {
         height: 0;

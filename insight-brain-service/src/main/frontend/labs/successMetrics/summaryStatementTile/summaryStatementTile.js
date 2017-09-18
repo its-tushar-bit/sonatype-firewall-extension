@@ -8,6 +8,7 @@ export default {
   templateUrl: 'labs/successMetrics/summaryStatementTile/summaryStatementTile.html?' + clmBuildTimestamp,
   controllerAs: 'vm',
   bindings: {
-    averagesData: '<'
+    averagesData: '<',
+    successMetricsName: '<'
   }
 };

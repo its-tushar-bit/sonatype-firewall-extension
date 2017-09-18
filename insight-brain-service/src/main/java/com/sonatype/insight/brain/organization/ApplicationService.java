@@ -135,7 +135,7 @@ public class ApplicationService
     // Add organizationIds
     internalApplicationIds.addAll(getApplicationIdsByOrganizationIds(organizationIds));
 
-    if (isEmpty(internalApplicationIds)) {
+    if (isEmpty(internalApplicationIds) && !isEmpty(tagIds)) {
       return applicationDAO.getByTagIds(tagIds);
     }
     else if (isEmpty(tagIds)) {

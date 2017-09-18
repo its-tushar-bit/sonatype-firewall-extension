@@ -1,0 +1,258 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain.labs;
+
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsListPage;
+import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
+
+import org.joda.time.LocalDate;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.FOOTER_ERROR_CLASS;
+import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_ERROR_CLASS;
+import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_DISABLED_CLASS;
+
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+
+public class AddSuccessMetricsTest
+    extends AbstractFunctionalTest
+{
+  private static Organization organization1;
+
+  private static Organization organization2;
+
+  private static Organization emptyOrganization;
+
+  private static Application application1;
+
+  private static Application application2;
+
+  private static Application application3;
+
+  @BeforeClass
+  public static void createChartData() {
+    organization1 = staticTempEntity.newOrganization("Test Org 1");
+    organization2 = staticTempEntity.newOrganization("Test Org 2");
+    emptyOrganization = staticTempEntity.newOrganization("Empty Org");
+    application1 = staticTempEntity.newApplication("App1", "App1", organization1.getId());
+    application2 = staticTempEntity.newApplication("App2", "App2", organization1.getId());
+    application3 = staticTempEntity.newApplication("App3", "App3", organization2.getId());
+
+    staticTempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
+        "scan1", new LocalDate().minusDays(2).toDate());
+    staticTempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+        "scan2", new LocalDate().minusDays(2).toDate());
+    staticTempEntity.newPolicyEvaluation(application3.getId(), BuildStageType.ID,
+        "scan3", new LocalDate().minusDays(2).toDate());
+  }
+
+  @After
+  public void cleanup() {
+    SuccessMetricsDAO dao = new SuccessMetricsDAO();
+    for (SuccessMetrics successMetrics : dao.getByUsername("admin")) {
+      dao.delete(successMetrics);
+    }
+
+    logout();
+  }
+
+  @Test
+  public void testAddSuccessMetrics() {
+    refreshOrOpen(SuccessMetricsListPage.URL);
+    loginAsAdmin();
+
+    SuccessMetricsListPage page = new SuccessMetricsListPage();
+    page.addSuccessMetricsBtn().shouldBe(visible).click();
+
+    AddSuccessMetricsModal modal = new AddSuccessMetricsModal();
+
+    // First just test the cancel button.
+    modal.shouldBe(visible);
+    modal.cancelBtn().shouldBe(enabled).click();
+    modal.shouldNotBe(visible);
+
+    page.addSuccessMetricsBtn().shouldBe(visible).click();
+
+    // Add and test a Root Org SuccessMetrics.
+    modal.name().setValue("Root Org Chart");
+    modal.allApplicationsRadioBtn().shouldHave(text("All Applications")).shouldBe(selected);
+    modal.customRadioBtn().shouldHave(text("Custom")).shouldNotBe(selected);
+    modal.createBtn().shouldHave(text("Create")).click();
+
+    page.successMetricsChartActionItems().elements().shouldHaveSize(1);
+    page.successMetricsChartActionItems().element(0).shouldHave(text("Root Org Chart")).click();
+
+    SuccessMetricsChartPage chartPage = new SuccessMetricsChartPage();
+    chartPage.shouldBe(visible);
+    SuccessMetricsChartPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("3"));
+
+    // Then add and test a SuccessMetrics with an org selection.
+    chartPage.backButton().click();
+    page.addSuccessMetricsBtn().click();
+    modal.name().setValue("Organization Chart");
+    modal.customRadioBtn().click();
+
+    modal.appPicker().shouldBe(visible);
+    modal.orgPicker().shouldBe(visible);
+    modal.orgPickerCounter().shouldHave(text("3"));
+    modal.appPickerCounter().shouldHave(text("3"));
+    modal.orgPickerTrigger().click();
+    modal.nthOrg(1).shouldHave(text("All Organizations"));
+    modal.nthOrg(2).shouldHave(text(emptyOrganization.getName()));
+    modal.nthOrg(3).shouldHave(text(organization1.getName())).click();
+    modal.nthOrg(4).shouldHave(text(organization2.getName()));
+    modal.orgPickerCounter().shouldHave(text("1 of 3"));
+    modal.appPickerCounter().shouldHave(text("2 of 3"));
+    modal.appPickerTrigger().click();
+    modal.nthApp(1).shouldHave(text("All Applications")).shouldNotBe(selected);
+    modal.nthApp(2).shouldHave(text(application1.getName())).shouldBe(selected);
+    modal.nthApp(3).shouldHave(text(application2.getName())).shouldBe(selected);
+    modal.nthApp(4).shouldHave(text(application3.getName())).shouldNotBe(selected);
+
+    modal.createBtn().click();
+
+    page.successMetricsChartActionItems().elements().shouldHaveSize(2);
+    page.successMetricsChartActionItems().element(1).shouldHave(text("Organization Chart")).click();
+
+    chartPage = new SuccessMetricsChartPage();
+    chartPage.shouldBe(visible);
+    SuccessMetricsChartPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("2"));
+
+    // Then add and test a SuccessMetrics with an app selection.
+    chartPage.backButton().click();
+    page.addSuccessMetricsBtn().click();
+    modal.name().setValue("Application Chart");
+    modal.customRadioBtn().click();
+
+    modal.appPickerCounter().shouldHave(text("3"));
+    modal.appPickerTrigger().click();
+    modal.nthApp(1).shouldHave(text("All Applications"));
+    modal.nthApp(2).shouldHave(text(application1.getName()));
+    modal.nthApp(3).shouldHave(text(application2.getName())).click();
+    modal.nthApp(4).shouldHave(text(application3.getName()));
+    modal.appPickerCounter().shouldHave(text("1 of 3"));
+    modal.orgPickerCounter().shouldHave(text("3"));
+    modal.orgPickerTrigger().click();
+    modal.nthOrg(1).shouldHave(text("All Organizations")).shouldNotBe(selected);
+    modal.nthOrg(2).shouldHave(text(emptyOrganization.getName())).shouldNotBe(selected);
+    modal.nthOrg(3).shouldHave(text(organization1.getName())).shouldNotBe(selected);
+    modal.nthOrg(4).shouldHave(text(organization2.getName())).shouldNotBe(selected);
+    modal.createBtn().click();
+
+    page.successMetricsChartActionItems().elements().shouldHaveSize(3);
+    page.successMetricsChartActionItems().element(2).shouldHave(text("Application Chart")).click();
+
+    chartPage = new SuccessMetricsChartPage();
+    chartPage.shouldBe(visible);
+    SuccessMetricsChartPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("1"));
+
+    // Then add and test a SuccessMetrics with only an empty Organization selected.
+    chartPage.backButton().click();
+    page.addSuccessMetricsBtn().click();
+    modal.name().setValue("Empty Org Chart");
+    modal.customRadioBtn().click();
+
+    modal.orgPickerCounter().shouldHave(text("3"));
+    modal.orgPickerTrigger().click();
+    modal.nthOrg(2).shouldHave(text(emptyOrganization.getName())).click();
+    modal.orgPickerCounter().shouldHave(text("3"));
+    modal.createBtn().click();
+
+    page.successMetricsChartActionItems().elements().shouldHaveSize(4);
+    page.successMetricsChartActionItems().element(3).shouldHave(text("Empty Org Chart")).click();
+
+    chartPage = new SuccessMetricsChartPage();
+    chartPage.shouldBe(visible);
+    new SuccessMetricsChartPage().noDataInfoPane().shouldBe(visible);
+  }
+
+  @Test
+  public void testAddSuccessMetrics_Validation() {
+    refreshOrOpen(SuccessMetricsListPage.URL);
+    loginAsAdmin();
+
+    SuccessMetricsListPage page = new SuccessMetricsListPage();
+    page.addSuccessMetricsBtn().click();
+
+    AddSuccessMetricsModal modal = new AddSuccessMetricsModal();
+
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    modal.name().setValue("test");
+    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS)).click();
+    modal.shouldNotBe(visible);
+
+    page.addSuccessMetricsBtn().click();
+
+    // duplicate checking
+    modal.name().setValue("test");
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    // case-insensitive duplicate checking
+    modal.name().setValue("Test");
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    modal.name().setValue("Test 1");
+    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    // leading and trailing space checking
+    modal.name().setValue("Test 1 ");
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.name().setValue(" Test 1");
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    // doubled space checking
+    modal.name().setValue("Test  1");
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    // tab checking
+    modal.name().setValue("Test\t1");
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    // empty Custom selection checking
+    modal.name().setValue("Test 1");
+    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.customRadioBtn().click();
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.orgPickerTrigger().click();
+    modal.nthOrg(2).label().click();
+    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.nthOrg(2).label().click();
+    modal.orgPickerTrigger().click();
+    modal.appPickerTrigger().click();
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.nthApp(2).label().click();
+    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.nthApp(2).label().click();
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    // whitespace-insensitive dup checking - only implemented on the server
+    modal.allApplicationsRadioBtn().click();
+    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.name().setValue("Tes t");
+    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.createBtn().click();
+    modal.footer().shouldHave(cssClass(FOOTER_ERROR_CLASS));
+    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_ERROR_CLASS)).shouldHave(text("Retry"))
+      .shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+    modal.cancelBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
+
+    modal.cancelBtn().click();
+  }
+}

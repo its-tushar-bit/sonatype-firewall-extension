@@ -4,7 +4,6 @@ import './directives/module';
 import './components/iqRenderPlottable/iqRenderPlottable';
 import './components/iqBackButton/iqBackButton';
 import './labs/module';
-import './labs/successMetrics/successMetrics';
 import './ComponentDisplay/module';
 import './dashboard/dashboard.module';
 import './EditorTools';

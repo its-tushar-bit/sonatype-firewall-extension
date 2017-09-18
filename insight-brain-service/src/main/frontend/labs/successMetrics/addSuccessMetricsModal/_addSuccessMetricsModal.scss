@@ -1,0 +1,18 @@
+#add-success-metrics {
+  iq-org-app-picker {
+    $left-margin: 48px;
+    $right-margin: 8px;
+
+    margin: 0 $right-margin 0 $left-margin;
+    width: calc(100% - #{$right-margin + $left-margin});
+  }
+
+  .iq-tree-view--multi-select {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .iq-tree-view__filter {
+    padding-left: 22px;
+  }
+}

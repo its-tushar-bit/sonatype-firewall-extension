@@ -6,31 +6,32 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.ActionList;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class SuccessMetricsChartsPage
-    extends BasicElement<SuccessMetricsChartsPage>
+public class SuccessMetricsListPage
+    extends BasicElement<SuccessMetricsListPage>
 {
   public static final String URL = BaseUrl.uriBuilder().fragment("/labs/successMetrics").build().toString();
 
-  private static final String ROOT_SELECTOR = "success-metrics";
+  private static final String ROOT_SELECTOR = "success-metrics-list";
 
-  public SuccessMetricsChartsPage() {
+  public SuccessMetricsListPage() {
     super(ROOT_SELECTOR);
   }
 
-  public SelenideElement rootOrganizationActionItem() {
-    return child("#root-org-success-metrics-action");
+  public ActionList successMetricsChartActionItems() {
+    return new ActionList(ROOT_SELECTOR, ".iq-action-list");
   }
 
   public ErrorBox errorBox() {
     return new ErrorBox(childSelector(".iq-alert"));
   }
 
-  public SelenideElement noRootOrgWarning() {
-    return child("#no-root-org-warning");
+  public SelenideElement addSuccessMetricsBtn() {
+    return child("#add-success-metrics-btn");
   }
 }

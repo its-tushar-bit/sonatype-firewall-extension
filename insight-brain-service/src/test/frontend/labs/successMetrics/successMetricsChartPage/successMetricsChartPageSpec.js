@@ -1,5 +1,5 @@
 /* global PolicyViolationAggregationResourceMockData */
-describe('rootOrganizationSpec', function() {
+describe('successMetricsChartPageSpec', function() {
 
   beforeEach(function() {
     module('utility.services');
@@ -14,10 +14,12 @@ describe('rootOrganizationSpec', function() {
       checkSuccessMetricsEnabledDeferred,
       resetPromise,
       mockSuccessMetricsDataService,
+      mockStateParams = { successMetricsId: 'SuccessMetrics1' },
       getApplicationCountsDataDeferred,
       getMttrDataDeferred,
       getAveragesDataDeferred,
       getComponentCountsDataDeferred,
+      getSuccessMetricsForCurrentUserDeferred,
       applicationCountsData = {
         totalApplications: 5,
         activeApplications: 4,
@@ -83,7 +85,22 @@ describe('rootOrganizationSpec', function() {
           }
         ]
       },
-      componentCountsData = PolicyViolationAggregationResourceMockData.getComponentCountsData();
+      componentCountsData = PolicyViolationAggregationResourceMockData.getComponentCountsData(),
+      getSuccessMetricsForCurrentUserData = [{
+        id: 'SuccessMetrics1',
+        name: 'Success Metrics 1',
+        scope: {
+          organizationIds: ['1234', '5678'],
+          applicationIds: ['asdf', 'qwerty']
+        }
+      }, {
+        id: 'SuccessMetrics2',
+        name: 'Success Metrics 2',
+        scope: {
+          organizationIds: null,
+          applicationIds: null
+        }
+      }];
 
   beforeEach(inject(function($q, _$rootScope_, $componentController) {
     $scope = _$rootScope_.$new();
@@ -92,21 +109,27 @@ describe('rootOrganizationSpec', function() {
       mockSystemConfigurationPropertyService.checkSuccessMetricsEnabled = jasmine.createSpy().and.returnValue(
           checkSuccessMetricsEnabledDeferred.promise);
     };
+
     resetPromise();
     getApplicationCountsDataDeferred = $q.defer();
     getMttrDataDeferred = $q.defer();
     getAveragesDataDeferred = $q.defer();
     getComponentCountsDataDeferred = $q.defer();
+    getSuccessMetricsForCurrentUserDeferred = $q.defer();
+
     mockSuccessMetricsDataService = {
       getApplicationCountsData: jasmine.createSpy().and.returnValue(getApplicationCountsDataDeferred.promise),
       getMttrData: jasmine.createSpy().and.returnValue(getMttrDataDeferred.promise),
       getAveragesData: jasmine.createSpy().and.returnValue(getAveragesDataDeferred.promise),
       getComponentCountsData: jasmine.createSpy().and.returnValue(getComponentCountsDataDeferred.promise),
-      isRootOrgAvailable: jasmine.createSpy().and.returnValue(true)
+      getSuccessMetricsForCurrentUser:
+          jasmine.createSpy().and.returnValue(getSuccessMetricsForCurrentUserDeferred.promise)
     };
-    vm = $componentController('rootOrganization', {
+
+    vm = $componentController('successMetricsChartPage', {
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
-      successMetricsDataService: mockSuccessMetricsDataService
+      successMetricsDataService: mockSuccessMetricsDataService,
+      $stateParams: mockStateParams
     });
   }));
 
@@ -120,6 +143,7 @@ describe('rootOrganizationSpec', function() {
     getMttrDataDeferred.resolve(mttrData);
     getAveragesDataDeferred.resolve(averagesData);
     getComponentCountsDataDeferred.resolve(componentCountsData);
+    getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
     $scope.$digest();
 
     expect(vm.loaded).toBeTruthy();
@@ -129,6 +153,37 @@ describe('rootOrganizationSpec', function() {
     expect(vm.mttrData).toBe(mttrData);
     expect(vm.averagesData).toBe(averagesData);
     expect(vm.componentCountsData).toBe(componentCountsData);
+  });
+
+  it('uses the `successMetricsId` state param to find the right ids to send to the chart endpoints', function() {
+    checkSuccessMetricsEnabledDeferred.resolve(true);
+    getApplicationCountsDataDeferred.resolve(applicationCountsData);
+    getMttrDataDeferred.resolve(mttrData);
+    getAveragesDataDeferred.resolve(averagesData);
+    getComponentCountsDataDeferred.resolve(componentCountsData);
+    getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+    $scope.$digest();
+
+    expect(mockSuccessMetricsDataService.getApplicationCountsData)
+        .toHaveBeenCalledWith(getSuccessMetricsForCurrentUserData[0].scope);
+    expect(mockSuccessMetricsDataService.getMttrData)
+        .toHaveBeenCalledWith(getSuccessMetricsForCurrentUserData[0].scope);
+    expect(mockSuccessMetricsDataService.getAveragesData)
+        .toHaveBeenCalledWith(getSuccessMetricsForCurrentUserData[0].scope);
+    expect(mockSuccessMetricsDataService.getComponentCountsData)
+        .toHaveBeenCalledWith(getSuccessMetricsForCurrentUserData[0].scope);
+  });
+
+  it('sets the successMetricsChartName from the matched SuccessMetrics', function() {
+    checkSuccessMetricsEnabledDeferred.resolve(true);
+    getApplicationCountsDataDeferred.resolve(applicationCountsData);
+    getMttrDataDeferred.resolve(mttrData);
+    getAveragesDataDeferred.resolve(averagesData);
+    getComponentCountsDataDeferred.resolve(componentCountsData);
+    getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+    $scope.$digest();
+
+    expect(vm.successMetricsName).toBe('Success Metrics 1');
   });
 
   it('properly loads on disabled success metrics', function() {
@@ -152,6 +207,23 @@ describe('rootOrganizationSpec', function() {
     expect(vm.error).toBeUndefined();
   });
 
+  it('properly loads when the successMetricsId could not be found', function() {
+    checkSuccessMetricsEnabledDeferred.resolve(true);
+    getApplicationCountsDataDeferred.resolve(applicationCountsData);
+    getMttrDataDeferred.resolve(mttrData);
+    getAveragesDataDeferred.resolve(averagesData);
+    getComponentCountsDataDeferred.resolve(componentCountsData);
+    getSuccessMetricsForCurrentUserDeferred.resolve(angular.copy(getSuccessMetricsForCurrentUserData).slice(1));
+    $scope.$digest();
+
+    expect(mockSuccessMetricsDataService.getApplicationCountsData).not.toHaveBeenCalled();
+    expect(mockSuccessMetricsDataService.getMttrData).not.toHaveBeenCalled();
+    expect(mockSuccessMetricsDataService.getAveragesData).not.toHaveBeenCalled();
+    expect(mockSuccessMetricsDataService.getComponentCountsData).not.toHaveBeenCalled();
+    expect(vm.error).toBe('Could not find Success Metrics with id SuccessMetrics1');
+    expect(vm.loaded).toBe(true);
+  });
+
   describe('isMttrDisabled', function() {
     it('returns true before mttrData is bound', function() {
       expect(vm.isMttrDisabled()).toBe(true);
@@ -159,6 +231,7 @@ describe('rootOrganizationSpec', function() {
 
     it('returns true if mttrData is an empty list', function() {
       checkSuccessMetricsEnabledDeferred.resolve(true);
+      getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
       getMttrDataDeferred.resolve([]);
 
       $scope.$digest();
@@ -172,6 +245,7 @@ describe('rootOrganizationSpec', function() {
       getAveragesDataDeferred.resolve(averagesData);
       getApplicationCountsDataDeferred.resolve(applicationCountsData);
       getComponentCountsDataDeferred.resolve(componentCountsData);
+      getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
 
       $scope.$digest();
 

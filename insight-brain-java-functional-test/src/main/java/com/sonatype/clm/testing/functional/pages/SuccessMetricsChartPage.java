@@ -18,17 +18,15 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
-public class RootOrganizationSuccessMetricsPage
-    extends BasicElement<RootOrganizationSuccessMetricsPage>
+public class SuccessMetricsChartPage
+    extends BasicElement<SuccessMetricsChartPage>
 {
-  public static final String URL = BaseUrl.uriBuilder().fragment("/labs/successMetrics/root-org").build().toString();
-
-  private static final String ROOT_SELECTOR = "root-organization";
+  private static final String ROOT_SELECTOR = "success-metrics-chart-page";
 
   public static final Condition NO_DATA_INFO_TEXT = Condition.text(
       "There's not enough data to generate Success Metrics. Run some evaluations and check again tomorrow.");
 
-  public RootOrganizationSuccessMetricsPage() {
+  public SuccessMetricsChartPage() {
     super(ROOT_SELECTOR);
   }
 
@@ -40,12 +38,12 @@ public class RootOrganizationSuccessMetricsPage
     return new ErrorBox(childSelector(".iq-alert.iq-alert--error"));
   }
 
-  public SelenideElement noRootOrgError() {
-    return child("#no-root-org-warning");
-  }
-
   public SelenideElement noDataInfoPane() {
     return $("#no-data-warning");
+  }
+
+  public static String getUrl(String successMetricsId) {
+    return BaseUrl.uriBuilder().fragment("/labs/successMetrics/{successMetricsId}").build(successMetricsId).toString();
   }
 
   public static class SummaryStatementTile
@@ -54,6 +52,10 @@ public class RootOrganizationSuccessMetricsPage
 
     public static SelenideElement root() {
       return $(ROOT);
+    }
+
+    public static SelenideElement title() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-tile-header--chart"));
     }
 
     public static SelenideElement activeApplicationsCount() {

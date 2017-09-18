@@ -120,6 +120,14 @@ public class ApplicationServiceTest
   }
 
   @Test
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_OrgWithNoChildrenAndNullTagIds() {
+    Organization org = tempEntity.newOrganization();
+    List<Application> apps = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
+        Collections.singleton(org.getId()), null, null);
+    assertThat(apps, hasSize(0));
+  }
+
+  @Test
   public void testAddApplication_RootOrgIsNoValidParent() {
     Application app = new Application("appPublicId", "appName", Organization.ROOT_ORGANIZATION_ID);
     try {

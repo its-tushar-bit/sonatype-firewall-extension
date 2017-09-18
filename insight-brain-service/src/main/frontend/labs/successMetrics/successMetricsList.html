@@ -1,0 +1,26 @@
+<div id="success-metrics" class="tile-container tile-scroll-container">
+  <div class="iq-tile" load-wrapper="vm.error" loading="!vm.loaded" reload="vm.$onInit()">
+    <div class="iq-tile-header">
+      <div class="iq-tile-header__title">
+        <i class="fa fa-flask slate iq-tile-header__icon"></i>
+        <h1>Success Metrics</h1>
+      </div>
+      <button id="add-success-metrics-btn"
+              class="btn btn-tertiary iq-tile__actions"
+              ng-click="vm.openAddSuccessMetricsModal()">
+        <i class="fa fa-plus"></i>
+        Add Success Metrics
+      </button>
+    </div>
+    <div class="iq-action-list">
+      <ul>
+        <li class="iq-action-list__item"
+            ng-repeat="successMetric in vm.successMetricsList"
+            ng-click="vm.goToCharts(successMetric.id)">
+          <i class="fa fa-chevron-right iq-pull-right"></i>
+          {{::successMetric.name}}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

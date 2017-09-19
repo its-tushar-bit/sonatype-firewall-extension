@@ -95,6 +95,8 @@ public class ReportResource
 
   public static final String DOWNLOAD_BUNDLE_PATH = "downloadBundle";
 
+  public static final String PREPARE_PATH = "prepareReport";
+
   public static final String METADATA_PATH = "metadata";
 
   private static final Logger log = LoggerFactory.getLogger(ReportResource.class);
@@ -599,5 +601,20 @@ public class ReportResource
     ContainerNode<?> decodedKey = JsonUtils.parse(encodedKey.getBytes("UTF-8"));
     ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) decodedKey);
     return decodedKey;
+  }
+
+  /**
+   * Prepares the report for an expanded coverage scan to be available when the customer loads it in a browser.
+   * It waits for the report to become available on the HDS.
+   * 
+   * @since 1.37
+   */
+  @POST
+  @Path(PREPARE_PATH)
+  public void prepareExpandedCoverageReport(@PathParam("applicationPublicId") String applicationPublicId,
+                                            @PathParam("scanId") String scanId)
+      throws IOException
+  {
+    reportService.prepareExpandedCoverageReport(applicationPublicId, scanId);
   }
 }

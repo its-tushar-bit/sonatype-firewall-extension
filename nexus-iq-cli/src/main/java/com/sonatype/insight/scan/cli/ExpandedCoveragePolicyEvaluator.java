@@ -132,9 +132,14 @@ public class ExpandedCoveragePolicyEvaluator
     log.info("Awaiting expanded coverage report (ETA {}s)...", receipt.getTimeToReport());
     try {
       receipt.waitForReport();
+      restClient.prepareExpandedCoverageReport(params.getApplicationId(), receipt.getScanId());
     }
     catch (InterruptedException e) {
       log.error("The process was interrupted");
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
+    }
+    catch (IOException e) {
+      log.error("The server failed to prepare the report for scan ID {}.", receipt.getScanId(), e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
 

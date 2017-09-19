@@ -940,6 +940,7 @@
                 <include>**/TemporaryEntity*</include>
                 <include>**/HttpRequest*</include>
                 <include>**/HttpResponse*</include>
+                <include>**/Zipper*</include>
               </includes>
             </configuration>
           </execution>

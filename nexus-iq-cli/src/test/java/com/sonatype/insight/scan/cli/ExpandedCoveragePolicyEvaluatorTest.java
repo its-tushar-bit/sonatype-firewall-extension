@@ -15,7 +15,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -46,7 +45,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -146,10 +144,9 @@ public class ExpandedCoveragePolicyEvaluatorTest
         newApplicationSummaryList("the-app-id", "My App"));
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString())).thenReturn(
-        new PolicyEvaluationResult());
     evaluator.run(params);
     verify(restClient).uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE));
+    verify(restClient).prepareExpandedCoverageReport(eq("the-app-id"), eq("the-scan-id"));
   }
 
   private Matcher<Dependency> dependencyWithName(final String name) {

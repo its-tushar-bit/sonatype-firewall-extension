@@ -6,13 +6,18 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Map;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -226,6 +231,28 @@ public class ReportServiceTest
     assertThat(metadata.getApplication().getId(), is(app.getId()));
     assertThat(metadata.getReportTitle(), is("Expanded Coverage Report"));
     assertThat(metadata.getReportTime().getTime(), is(1503511338632l));
+  }
+
+  @Test
+  public void testPrepareExpandedCoverageReport() throws Exception {
+    HdsClient hdsClient = mock(HdsClient.class);
+    Map<String, String> queryParams = null;
+    // The tested method is supposed to wait for the report to become available on the HDS.
+    // We verify that it waits by returning NotFound on the first attempt to download the report for HDS.
+    // Only the second attempt is successful. If the tested method does not wait, then it fails on the first attempt.
+    when(hdsClient.get(eq(InputStream.class), eq(ReportDownloader.HDS_PATH), eq(queryParams), eq(scanId)))
+        .thenThrow(new NotFoundException("test exception"))
+        .thenReturn(new FileInputStream(zipReportDir("/ReportResourceTest/report-expanded_coverage")));
+    ReportDownloader reportDownloader = new ReportDownloader(hdsClient, new FileCleaner());
+    ReportService reportService = new ReportService(insightWork, reportDownloader, policyEvaluationDAO, insightConfig,
+        applicationDAO);
+
+    File reportFile = insightWork.getReportFile(app.getId(), scanId);
+    assertThat(reportFile.exists(), is(false));
+
+    reportService.prepareExpandedCoverageReport(app.getPublicId(), scanId);
+    
+    assertThat(reportFile.isFile(), is(true));
   }
 
   private void createReportFile() throws IOException {

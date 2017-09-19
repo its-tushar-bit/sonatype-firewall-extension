@@ -186,4 +186,20 @@ public class ReportService
     }
     return metadata;
   }
+
+  /**
+   * Prepares the report for an expanded coverage scan to be available when the customer loads it in a browser.
+   * It waits for the report to become available on the HDS.
+   * 
+   * @since 1.37
+   */
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  void prepareExpandedCoverageReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+                                     String scanId)
+      throws IOException
+  {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+
+    fetchReport(work, application.getId(), scanId, true /* waitForReport */);
+  }
 }

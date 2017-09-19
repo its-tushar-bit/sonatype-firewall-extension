@@ -1403,6 +1403,20 @@ public class ReportResourceTest
     }
   }
 
+  @Test
+  public void testPrepareExpandedCoverageReport() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("ReportResourceTestAppId");
+    String scanId = "ScanId";
+    mockReport(scanId, "/ReportResourceTest/report-expanded_coverage");
+
+    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(app.getId(), scanId);
+    assertThat(reportFile.exists(), is(false));
+
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.PREPARE_PATH).post();
+    assertResponseStatus(204, response);
+    assertThat(reportFile.isFile(), is(true));
+  }
+
   private int testLicenseThreatsApplyChanges(JsonNode licenses) {
     int countNotZero = 0;
     for (JsonNode licenseThreat : licenses) {

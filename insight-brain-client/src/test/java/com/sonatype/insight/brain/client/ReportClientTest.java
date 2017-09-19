@@ -11,7 +11,9 @@ import java.util.zip.ZipFile;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -88,6 +90,24 @@ public class ReportClientTest
     assertThat(retrievedFile.length(), is(greaterThan(0L)));
     // Verify that the file is in ZIP format
     new ZipFile(retrievedFile).close();
+  }
+
+  @Test
+  public void testPrepareExpandedCoverageReport() throws Exception {
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    setLicenseFingerprint(licenseFingerprint);
+
+    mockReport(scanId, "report-expanded-coverage");
+
+    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(app.getId(), scanId);
+    assertThat(reportFile.exists(), is(false));
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
+    ReportClient client = new ReportClient(config, applicationPublicId, scanId);
+    client.prepareExpandedCoverageReport();
+
+    assertThat(reportFile.isFile(), is(true));
   }
 
   @Test

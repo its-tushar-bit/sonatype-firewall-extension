@@ -32,9 +32,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -54,9 +52,6 @@ import static org.mockito.Mockito.when;
 public class ReportServiceTest
     extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
   private InsightWork insightWork;
 
   private Application app;
@@ -73,7 +68,7 @@ public class ReportServiceTest
   public void before() throws Exception {
     app = tempEntity.newApplicationWithParent("testAppPublicId");
 
-    File sonatypeWork = temporaryFolder.newFolder();
+    File sonatypeWork = tempDir.newFolder();
     String tempFolderPath = sonatypeWork.getAbsolutePath();
     insightConfig.setSonatypeWork(tempFolderPath);
     insightWork = new InsightWork(insightConfig);

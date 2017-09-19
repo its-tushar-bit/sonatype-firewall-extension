@@ -31,6 +31,7 @@ public class ReportServiceAuthzTest
 
     try {
       reportService.getReportMetadata(app.getPublicId(), "12345678");
+      fail("Expected exception");
     }
     catch (NotFoundException e) {
       assertThat(e.getMessage(), is("Could not download the report for scan ID 12345678"));

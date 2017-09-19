@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -81,7 +80,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
@@ -107,6 +106,12 @@ import static org.junit.Assert.fail;
 public class ReportResourceTest
     extends AbstractResourceTest
 {
+  private Application app;
+
+  @Before
+  public void before() throws Exception {
+    app = tempEntity.newApplicationWithParent("ReportResourceTest_AppId");
+  }
 
   private HttpRequest restRequest(String appId, String scanId) {
     return restRequest().path(ReportResource.RESOURCE_PATH).parameter(appId, scanId);
@@ -128,18 +133,12 @@ public class ReportResourceTest
     hashComponentIdentifier.setCreateTime(createTime);
     tempEntity.newClaimedComponent(hashComponentIdentifier);
 
-    String applicationPublicId = "testClaimedComponent_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
-
     String scanId = "testClaimedComponent_ScanId";
-    String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
     mockReport(scanId, "/ReportResourceTest/report");
 
-    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
+    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
 
-    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
     HttpResponse response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
     boolean foundClaimedComponent = false;
@@ -220,18 +219,12 @@ public class ReportResourceTest
     hashComponentIdentifier.setCreateTime(createTime);
     tempEntity.newClaimedComponent(hashComponentIdentifier);
 
-    String applicationPublicId = "testClaimedComponent_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
-
     String scanId = "testClaimedComponent_ScanId";
-    String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
     mockReport(scanId, "/ReportResourceTest/report");
 
-    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
+    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
 
-    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
     HttpResponse response = request.subpath("data.json").get();
 
     assertResponseStatus(200, response);
@@ -263,22 +256,16 @@ public class ReportResourceTest
     hashComponentIdentifier.setCreateTime(createTime);
     tempEntity.newClaimedComponent(hashComponentIdentifier);
 
-    String applicationPublicId = "testClaimedComponent_AppId";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
-
     String licenseId = new LicenseDAO().getByIdNotNull("GPL-3.0").getId(); // db lookup to make sure licenseId is valid
-    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
-        licenseId, "manual override");
+    tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, licenseId,
+        "manual override");
 
     String scanId = "testClaimedComponent_ScanId";
-    String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
     mockReport(scanId, "/ReportResourceTest/report");
 
-    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
+    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
 
-    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
     HttpResponse response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
     String licensesJsonData = response.getBodyText();
@@ -291,16 +278,11 @@ public class ReportResourceTest
 
   @Test
   public void testManuallyIdentifiedComponentInvalidatesCachedReportData() throws Exception {
-    String applicationPublicId = "testClaimedComponent_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testClaimedComponent_ScanId";
-    String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
     mockReport(scanId, "/ReportResourceTest/report");
 
     // populate JSON data cache before claiming the component
-    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
     HttpResponse response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
 
@@ -374,13 +356,8 @@ public class ReportResourceTest
 
   @Test
   public void testBrowseReportEntryExpirationDate() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
-    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
 
     mockReport(scanId, "/ReportResourceTest/report");
 
@@ -428,13 +405,8 @@ public class ReportResourceTest
 
   @Test
   public void testBrowseReport() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
-    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
 
     String reportResource = "/ReportResourceTest/report";
     mockReport(scanId, reportResource);
@@ -486,7 +458,7 @@ public class ReportResourceTest
       else if ("index.html".equals(entry)) {
         String actual = response.getBodyText();
         assertTrue("The app public id was not included in the report",
-            actual.contains("applicationId = '" + applicationPublicId + "'"));
+            actual.contains("applicationId = '" + app.getPublicId() + "'"));
       }
       else if ("bom.json".equals(entry)) {
         String actual = response.getBodyText();
@@ -502,23 +474,18 @@ public class ReportResourceTest
     }
     assertThat(verifiedFileCount, is(110));
 
-    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
+    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(app.getPublicId(), scanId)).get());
   }
 
   @Test
   public void testBrowseReport_NoDirectoryTraversal() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    final String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
     mockReport(scanId, "/ReportResourceTest/report");
-    File reportDir = getCLMServer().getReportDir(appId, scanId);
+    File reportDir = getCLMServer().getReportDir(app.getId(), scanId);
     reportDir.mkdirs();
     new File(reportDir, "restricted.txt").createNewFile();
 
-    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
 
     HttpResponse response = request.subpath("../restricted.txt").get();
     assertResponseStatus(404, response);
@@ -533,16 +500,13 @@ public class ReportResourceTest
   @Test
   public void testEmbedReport() throws Exception {
     String scanId = "abcdefg12345";
-    String appPublicId = "bom1-12345678";
-    tempEntity.newApplicationWithParent(appPublicId);
-
-    HttpResponse response = restRequest(appPublicId, scanId).path("embedReport/index.html").get();
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path("embedReport/index.html").get();
     assertResponseStatus(200, response);
 
     String content = response.getBodyText();
     assertTrue(content.contains(restRequest()
         .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
-        .parameter(appPublicId, scanId).getUrl()));
+        .parameter(app.getPublicId(), scanId).getUrl()));
     assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
   }
 
@@ -580,10 +544,7 @@ public class ReportResourceTest
   @Test
   public void testEmbedReport_Json() throws Exception {
     String scanId = "abcdefg12345";
-    String appPublicId = "bom1-12345678";
-    tempEntity.newApplicationWithParent(appPublicId);
-
-    HttpResponse response = restRequest(appPublicId, scanId)
+    HttpResponse response = restRequest(app.getPublicId(), scanId)
         .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).get();
     assertResponseStatus(404, response);
     assertEquals("Reports have been moved.  Clear cache and reload.", response.getBodyText());
@@ -619,19 +580,15 @@ public class ReportResourceTest
 
   @Test
   public void testPrintReport() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    final String appId = tempEntity.newApplicationWithParent(applicationPublicId, "Test Project").getId();
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-    createReportFile(appId, scanId);
-    tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
+    createReportFile(app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
     final HttpResponse response;
     try {
-      response = restRequest(applicationPublicId, scanId).path("printReport").get();
+      response = restRequest(app.getPublicId(), scanId).path("printReport").get();
       assertResponseStatus(200, response);
       assertThat(response.getHeader("Content-Disposition"),
-          stringContainsInOrder(Arrays.asList("attachment; filename=\"Test Project-Build-", ".pdf\"")));
+          stringContainsInOrder(Arrays.asList("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"")));
     }
     finally {
       Pdf.destroy();
@@ -644,22 +601,18 @@ public class ReportResourceTest
 
   @Test
   public void testPrintReport_AfterPreviousGenerationFailure() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    final String appId = tempEntity.newApplicationWithParent(applicationPublicId, "Test Project").getId();
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-    createReportFile(appId, scanId);
-    tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
+    createReportFile(app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
-    HttpRequest request = restRequest(applicationPublicId, scanId).path("printReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("printReport");
     HttpResponse response;
     try {
       response = request.get();
       assertResponseStatus(200, response);
 
       // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
-      File pdfFile = new File(getCLMServer().getReportDir(appId, scanId), "report.pdf");
+      File pdfFile = new File(getCLMServer().getReportDir(app.getId(), scanId), "report.pdf");
       assertTrue(pdfFile.getPath(), pdfFile.isFile());
       new FileOutputStream(pdfFile).close();
 
@@ -667,7 +620,7 @@ public class ReportResourceTest
       response = request.get();
       assertResponseStatus(200, response);
       assertThat(response.getHeader("Content-Disposition"),
-          stringContainsInOrder(Arrays.asList("attachment; filename=\"Test Project-Build-", ".pdf\"")));
+          stringContainsInOrder(Arrays.asList("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"")));
       assertThat(Long.parseLong(response.getHeader("Content-Length")), greaterThan(0L));
     }
     finally {
@@ -681,24 +634,19 @@ public class ReportResourceTest
 
   @Test
   public void testReevaluateReport() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    final Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
     mockReport(scanId, "/ReportResourceTest/report");
 
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
-        .getLastByApplicationIdAndScanId(application.getId(), scanId);
-    Assert.assertNull(policyEvaluation);
+        .getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertNull(policyEvaluation);
 
     final Constraint constraint = new Constraint("C1", "testReevaluateReport constraint 1", LogicalOperator.AND);
     final Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     constraint.addCondition(condition);
     final Policy policy = new Policy("P1", "testReevaluateReport policy1");
-    policy.setOwnerId(application.getId());
+    policy.setOwnerId(app.getId());
     policy.setThreatLevel(8);
     policy.addConstraint(constraint);
     policy.getNotifications().add(new UserNotification("manager@test.corp", Stage.ID_BUILD));
@@ -709,16 +657,16 @@ public class ReportResourceTest
     List<Message> notifications = Mailbox.get("manager@test.corp");
 
     // Evaluate policy
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
 
-    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
-    Assert.assertNotNull(policyEvaluation);
-    Assert.assertEquals(scanId, policyEvaluation.getScanId());
-    Assert.assertEquals(Stage.ID_BUILD, policyEvaluation.getStageTypeId());
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertNotNull(policyEvaluation);
+    assertEquals(scanId, policyEvaluation.getScanId());
+    assertEquals(Stage.ID_BUILD, policyEvaluation.getStageTypeId());
     assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
-    Assert.assertFalse(policyEvaluation.isReevaluation());
+    assertFalse(policyEvaluation.isReevaluation());
 
     assertNotifications(notifications, 1, 5000);
     notifications.clear();
@@ -728,14 +676,14 @@ public class ReportResourceTest
     // ReEvaluate
     policy.setName(policy.getName() + " Updated");
     policyDAO.update(policy);
-    response = restRequest(applicationPublicId, scanId).path("reevaluatePolicy").post();
+    response = restRequest(app.getPublicId(), scanId).path("reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
-    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(),
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
         scanId);
-    Assert.assertNotNull(policyReEvaluation);
-    Assert.assertEquals(scanId, policyReEvaluation.getScanId());
-    Assert.assertEquals(Stage.ID_BUILD, policyReEvaluation.getStageTypeId());
+    assertNotNull(policyReEvaluation);
+    assertEquals(scanId, policyReEvaluation.getScanId());
+    assertEquals(Stage.ID_BUILD, policyReEvaluation.getStageTypeId());
     assertTrue(policyReEvaluation.getTime().getTime() > policyEvaluation.getTime().getTime());
     assertTrue(policyReEvaluation.isReevaluation());
 
@@ -745,29 +693,24 @@ public class ReportResourceTest
     // reevaluation.
     scanId = "ReportResourceTest_ScanId1";
     mockReport(scanId, "/ReportResourceTest/report");
-    response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
+    response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
 
-    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
-    Assert.assertNotNull(policyEvaluation);
-    Assert.assertEquals(scanId, policyEvaluation.getScanId());
-    Assert.assertEquals(Stage.ID_BUILD, policyEvaluation.getStageTypeId());
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertNotNull(policyEvaluation);
+    assertEquals(scanId, policyEvaluation.getScanId());
+    assertEquals(Stage.ID_BUILD, policyEvaluation.getStageTypeId());
     assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
-    Assert.assertFalse(policyEvaluation.isReevaluation());
+    assertFalse(policyEvaluation.isReevaluation());
 
     assertNotifications(notifications, 1, 5000);
   }
 
   @Test
   public void test_LicenseOverrides_Organization() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
-    HttpRequest request = restRequest(applicationPublicId, scanId).subpath("browseReport", "licenses.json");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).subpath("browseReport", "licenses.json");
 
     mockReport(scanId, "/ReportResourceTest/report");
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-pool", "commons-pool",
@@ -786,13 +729,13 @@ public class ReportResourceTest
         found++;
       }
     }
-    Assert.assertEquals("Did not find expected license", 1, found);
+    assertEquals("Did not find expected license", 1, found);
 
     // Override the license at organization level
-    LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), componentIdentifier,
+    LicenseOverride orgLicenseOverride = new LicenseOverride(app.getOrganizationId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
     response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
-        .parameter(OwnerType.ORGANIZATION, application.getOrganizationId()).body(orgLicenseOverride).post();
+        .parameter(OwnerType.ORGANIZATION, app.getOrganizationId()).body(orgLicenseOverride).post();
     assertResponseStatus(200, response);
     orgLicenseOverride = response.getBody(LicenseOverride.class);
 
@@ -805,25 +748,25 @@ public class ReportResourceTest
       if (componentIdentifier
           .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
         String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
-        Assert.assertEquals("[\"GPL-3.0\"]", overridenLicenseNamesStr);
+        assertEquals("[\"GPL-3.0\"]", overridenLicenseNamesStr);
         int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
-        Assert.assertEquals(9, effectiveLicenseThreat);
+        assertEquals(9, effectiveLicenseThreat);
         int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
-        Assert.assertEquals(9, overriddenLicenseThreat);
+        assertEquals(9, overriddenLicenseThreat);
         String status = licenseJsonNode.get("status").asText();
-        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
+        assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
         String comment = licenseJsonNode.get("comment").asText();
-        Assert.assertEquals("My org license override", comment);
+        assertEquals("My org license override", comment);
         found++;
       }
     }
-    Assert.assertEquals("Did not find expected overridden license", 1, found);
+    assertEquals("Did not find expected overridden license", 1, found);
 
     // Override the license at application level
-    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
+    LicenseOverride appLicenseOverride = new LicenseOverride(app.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
     response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
-        .parameter(OwnerType.APPLICATION, application.getPublicId()).body(appLicenseOverride).post();
+        .parameter(OwnerType.APPLICATION, app.getPublicId()).body(appLicenseOverride).post();
     assertResponseStatus(200, response);
     appLicenseOverride = response.getBody(LicenseOverride.class);
 
@@ -836,30 +779,25 @@ public class ReportResourceTest
       if (componentIdentifier
           .equals(JsonUtils.asPojo(licenseJsonNode.get("componentIdentifier"), ComponentIdentifier.class))) {
         String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
-        Assert.assertEquals("[\"GPL-2.0\"]", overridenLicenseNamesStr);
+        assertEquals("[\"GPL-2.0\"]", overridenLicenseNamesStr);
         int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
-        Assert.assertEquals(9, effectiveLicenseThreat);
+        assertEquals(9, effectiveLicenseThreat);
         int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
-        Assert.assertEquals(9, overriddenLicenseThreat);
+        assertEquals(9, overriddenLicenseThreat);
         String status = licenseJsonNode.get("status").asText();
-        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
+        assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
         String comment = licenseJsonNode.get("comment").asText();
-        Assert.assertEquals("My app license override", comment);
+        assertEquals("My app license override", comment);
         found++;
       }
     }
-    Assert.assertEquals("Did not find expected overridden license", 1, found);
+    assertEquals("Did not find expected overridden license", 1, found);
   }
 
   @Test
   public void test_SecurityVulnerabilityOverrides() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
-    HttpRequest request = restRequest(applicationPublicId, scanId).subpath("browseReport", "security.json");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).subpath("browseReport", "security.json");
 
     mockReport(scanId, "/ReportResourceTest/report");
 
@@ -880,10 +818,10 @@ public class ReportResourceTest
     String source = "cve";
     String referenceId = "CVE-2009-1524";
     String comment = "My comment";
-    SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(application.getId(), hash,source ,
+    SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(app.getId(), hash, source,
         referenceId, SecurityVulnerabilityOverrideStatus.CONFIRMED, comment);
     response = restRequest().path(SecurityVulnerabilityOverrideResource.RESOURCE_PATH)
-        .parameter(OwnerType.APPLICATION, application.getPublicId()).body(override).put();
+        .parameter(OwnerType.APPLICATION, app.getPublicId()).body(override).put();
     assertResponseStatus(200, response);
     override = response.getBody(SecurityVulnerabilityOverride.class);
 
@@ -908,16 +846,12 @@ public class ReportResourceTest
     String path = "index.html?x=y&a=b";
     HttpResponse response = restRequest("appId", "scanId").path("brain", "index.html").query("x=y&a=b").get();
     assertResponseStatus(307, response);
-    Assert.assertEquals(getRestBaseUrl() + path, response.getHeader("Location"));
+    assertEquals(getRestBaseUrl() + path, response.getHeader("Location"));
   }
 
   @Test
   public void testDownloadBundle_LegacyFormat() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     mockReport(scanId, "/ReportResourceTest/standalone-legacy");
 
@@ -925,18 +859,18 @@ public class ReportResourceTest
         "commons-httpclient", "3.1.SONATYPE");
     HashComponentIdentifier claimedComponent = tempEntity.newClaimedComponent("f0776db1593e215146d2",
         componentIdentifier);
-    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(appId, claimedComponent.getComponentIdentifier(),
-        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
-    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId,
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(app.getId(),
+        claimedComponent.getComponentIdentifier(), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
+    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(app.getId(),
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
         LicenseOverrideStatus.OVERRIDDEN, "EPL-1.0");
-    Policy policy = tempEntity.newPolicy(appId, testName.getMethodName().replaceAll("[_]", ""));
+    Policy policy = tempEntity.newPolicy(app.getId(), testName.getMethodName().replaceAll("[_]", ""));
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
-    response = restRequest(applicationPublicId, scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
+    response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
@@ -1005,30 +939,25 @@ public class ReportResourceTest
 
   @Test
   public void testDownloadBundle_v2() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
     mockReport(scanId, "/ReportResourceTest/standalone-v2");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE", "", "jar");
     HashComponentIdentifier claimedComponent = tempEntity.newClaimedComponent("f0776db1593e215146d2",
         componentIdentifier);
-    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(appId, claimedComponent.getComponentIdentifier(),
-        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
-    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId,
-        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
-        LicenseOverrideStatus.OVERRIDDEN, "EPL-1.0");
-    Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(app.getId(),
+        claimedComponent.getComponentIdentifier(), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
+    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(app.getId(),
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"), LicenseOverrideStatus.OVERRIDDEN,
+        "EPL-1.0");
+    Policy policy = tempEntity.newPolicy(app.getId(), testName.getMethodName());
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
-    response = restRequest(applicationPublicId, scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
+    response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
@@ -1102,23 +1031,18 @@ public class ReportResourceTest
 
   @Test
   public void testDownloadBundle_v3() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
     mockReport(scanId, "/ReportResourceTest/standalone-v3/");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.webjars.npm",
         "reactivex:rxjs", "5.0.0-alpha.7", "", "jar");
-    Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
+    Policy policy = tempEntity.newPolicy(app.getId(), testName.getMethodName());
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
-    response = restRequest(applicationPublicId, scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
+    response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
@@ -1192,57 +1116,37 @@ public class ReportResourceTest
 
   @Test
   public void testGetReportMetadata() throws Exception {
-    // Create an application
-    final String applicationPublicId = "ReportResourceTest-getMetadataTest-AppId";
-    final String applicationName = "ReportResourceTest-getMetadataTest-Name";
-    final String licenseFingerprint = "ReportResourceTest-getMetadataTest-LicenseFingerprint";
-    final String organizationName = "OrgName";
-
-    Organization organization = tempEntity.newOrganization(organizationName);
-    Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
-    setLicenseFingerprint(licenseFingerprint);
-
     final String scanId = "ScanId";
 
     // ReportResource.fetchReport requires a report.zip to exist when evaluations exist
-    createReportFile(application.getId(), scanId, "/ReportResourceTest/report-expanded_coverage_false");
+    createReportFile(app.getId(), scanId, "/ReportResourceTest/report-expanded_coverage_false");
 
-    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
 
     // Verify Response for scan
-    HttpResponse response = restRequest(application.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
     assertResponseStatus(200, response);
     ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);
-    assertThat(metadata.getApplication().getId(), is(application.getId()));
+    assertThat(metadata.getApplication().getId(), is(app.getId()));
     assertThat(metadata.getReportTitle(), is("Build Report"));
     assertThat(metadata.getReportTime(), is(eval.getTime()));
 
     // Unknown scan id
-    response = restRequest(application.getPublicId(), "12345678").path(ReportResource.METADATA_PATH).get();
+    response = restRequest(app.getPublicId(), "12345678").path(ReportResource.METADATA_PATH).get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(), is("Could not download the report for scan ID 12345678"));
   }
 
   @Test
   public void testGetReportMetadata_expandedCoverage() throws Exception {
-    // Create an application
-    final String applicationPublicId = "ReportResourceTest-getMetadataTest-AppId";
-    final String applicationName = "ReportResourceTest-getMetadataTest-Name";
-    final String licenseFingerprint = "ReportResourceTest-getMetadataTest-LicenseFingerprint";
-    final String organizationName = "OrgName";
-
-    Organization organization = tempEntity.newOrganization(organizationName);
-    Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
-    setLicenseFingerprint(licenseFingerprint);
-
     final String scanId = "ScanId";
     mockReport(scanId, "/ReportResourceTest/report-expanded_coverage");
 
     // Verify Response for scan
-    HttpResponse response = restRequest(application.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path(ReportResource.METADATA_PATH).get();
     assertResponseStatus(200, response);
     ReportMetadataDTO metadata = response.getBody(ReportMetadataDTO.class);
-    assertThat(metadata.getApplication().getId(), is(application.getId()));
+    assertThat(metadata.getApplication().getId(), is(app.getId()));
     assertThat(metadata.getReportTitle(), is("Expanded Coverage Report"));
     assertThat(metadata.getReportTime().getTime(), is(1503511338632l));
   }
@@ -1283,10 +1187,10 @@ public class ReportResourceTest
             return;
           }
         }
-        Assert.fail("Failed to find LTG");
+        fail("Failed to find LTG");
       }
     }
-    Assert.fail("Failed to find component");
+    fail("Failed to find component");
   }
 
   private ComponentDetails findDetailsForComponent(ComponentDetailsList list, ComponentIdentifier componentIdentifier) {
@@ -1301,26 +1205,25 @@ public class ReportResourceTest
   private void testDataJsonApplyChanges(String json) throws IOException {
     final ContainerNode<?> data = JsonUtils.parse(json);
 
-    Assert.assertEquals(2, data.get("weakcopyleftLicenseCount").asInt());
-    Assert.assertEquals(2, data.get("nonStandardLicenseCount").asInt());
-    Assert.assertEquals(3, data.get("copyleftLicenseCount").asInt());
-    Assert.assertEquals(21, data.get("liberalLicenseCount").asInt());
-    Assert.assertEquals(1, data.get("notProvidedLicenseCount").asInt());
-    Assert.assertEquals("[11,0,1,0,0,11,2,0,0,4,0]", data.get("effectiveLicenseCounts").toString());
+    assertEquals(2, data.get("weakcopyleftLicenseCount").asInt());
+    assertEquals(2, data.get("nonStandardLicenseCount").asInt());
+    assertEquals(3, data.get("copyleftLicenseCount").asInt());
+    assertEquals(21, data.get("liberalLicenseCount").asInt());
+    assertEquals(1, data.get("notProvidedLicenseCount").asInt());
+    assertEquals("[11,0,1,0,0,11,2,0,0,4,0]", data.get("effectiveLicenseCounts").toString());
 
-    Assert.assertEquals(8, data.get("insecureArtifactCount").asInt());
-    Assert.assertEquals("[0,4,0,0,2,13,15,2,0,1]", data.get("securityCounts").toString());
+    assertEquals(8, data.get("insecureArtifactCount").asInt());
+    assertEquals("[0,4,0,0,2,13,15,2,0,1]", data.get("securityCounts").toString());
 
-    Assert.assertEquals("[0,0,0,0,0,0,0,0,0,0,0]", data.get("policyCounts").toString());
-    Assert.assertEquals(0, data.get("policyComponentCount").asInt());
+    assertEquals("[0,0,0,0,0,0,0,0,0,0,0]", data.get("policyCounts").toString());
+    assertEquals(0, data.get("policyComponentCount").asInt());
 
-    Assert.assertEquals("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]", data.get("securityPunchCard").toString());
-    Assert.assertEquals("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]", data.get("licensePunchCard").toString());
+    assertEquals("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]", data.get("securityPunchCard").toString());
+    assertEquals("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]", data.get("licensePunchCard").toString());
 
-    Assert.assertEquals(26, data.get("exactlyMatchedComponentCount").asInt());
-    Assert.assertEquals(28, data.get("knownArtifactCount").asInt());
-    Assert.assertEquals(2, data.get("partiallyMatchedComponentCount").asInt());
-
+    assertEquals(26, data.get("exactlyMatchedComponentCount").asInt());
+    assertEquals(28, data.get("knownArtifactCount").asInt());
+    assertEquals(2, data.get("partiallyMatchedComponentCount").asInt());
   }
 
   private void testLicensesJsonApplyChanges(String json) throws IOException {
@@ -1329,14 +1232,14 @@ public class ReportResourceTest
     int countNotZero = 0;
     for (JsonNode license : aaData) {
       JsonNode effectiveLicenseThreat = license.get("effectiveLicenseThreat");
-      Assert.assertNotNull(effectiveLicenseThreat);
+      assertNotNull(effectiveLicenseThreat);
       int threat = effectiveLicenseThreat.asInt();
-      Assert.assertTrue("Effective license threat between null and 10.", threat >= 0 && threat <= 10);
+      assertTrue("Effective license threat between null and 10.", threat >= 0 && threat <= 10);
       if (threat > 0) {
         countNotZero++;
       }
     }
-    Assert.assertTrue(countNotZero > 0);
+    assertTrue(countNotZero > 0);
   }
 
   private void testJsonApplyComponentChanges(String json) throws IOException {
@@ -1352,7 +1255,7 @@ public class ReportResourceTest
     final ContainerNode<?> licenseThreats = JsonUtils.parse(json);
     final JsonNode aaData = licenseThreats.get("aaData");
     int countNotZero = testLicenseThreatsApplyChanges(aaData);
-    Assert.assertTrue(countNotZero > 0);
+    assertTrue(countNotZero > 0);
   }
 
   private void testPartialMatchedJsonApplyChanges(String json) throws IOException {
@@ -1360,7 +1263,7 @@ public class ReportResourceTest
     final JsonNode aaNode = partialMatched.get("aaData");
     for (JsonNode license : aaNode) {
       final JsonNode matchedComponentNodes = license.get("matchDetails");
-      Assert.assertTrue(matchedComponentNodes.size() > 0);
+      assertTrue(matchedComponentNodes.size() > 0);
       testLicenseThreatsApplyChanges(matchedComponentNodes);
 
       for (JsonNode matchDetail : matchedComponentNodes) {
@@ -1377,26 +1280,26 @@ public class ReportResourceTest
     switch (componentIdentifier.getFormat()) {
       case ComponentIdentifier.FORMAT_MAVEN:
         assertThat(displayNameNode.size(), is(5));
-        Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));
-        Assert.assertThat(displayNameNode.get(0).get("value").textValue(), is(jsonNode.get("groupId").textValue()));
-        Assert.assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
-        Assert.assertThat(displayNameNode.get(1).get("value").textValue(), is(" : "));
-        Assert.assertThat(displayNameNode.get(2).get("field").textValue(), is("Artifact"));
-        Assert.assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("artifactId").textValue()));
-        Assert.assertThat(displayNameNode.get(3).get("field"), is(nullValue()));
-        Assert.assertThat(displayNameNode.get(3).get("value").textValue(), is(" : "));
-        Assert.assertThat(displayNameNode.get(4).get("field").textValue(), is("Version"));
-        Assert.assertThat(displayNameNode.get(4).get("value").textValue(), is(jsonNode.get("version").textValue()));
+        assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));
+        assertThat(displayNameNode.get(0).get("value").textValue(), is(jsonNode.get("groupId").textValue()));
+        assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
+        assertThat(displayNameNode.get(1).get("value").textValue(), is(" : "));
+        assertThat(displayNameNode.get(2).get("field").textValue(), is("Artifact"));
+        assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("artifactId").textValue()));
+        assertThat(displayNameNode.get(3).get("field"), is(nullValue()));
+        assertThat(displayNameNode.get(3).get("value").textValue(), is(" : "));
+        assertThat(displayNameNode.get(4).get("field").textValue(), is("Version"));
+        assertThat(displayNameNode.get(4).get("value").textValue(), is(jsonNode.get("version").textValue()));
         break;
       case ComponentIdentifier.FORMAT_ANAME:
         assertThat(displayNameNode.size(), is(3));
-        Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Name"));
-        Assert.assertThat(displayNameNode.get(0).get("value").textValue(),
+        assertThat(displayNameNode.get(0).get("field").textValue(), is("Name"));
+        assertThat(displayNameNode.get(0).get("value").textValue(),
             is(componentIdentifier.get(ComponentIdentifier.ANAME_NAME)));
-        Assert.assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
-        Assert.assertThat(displayNameNode.get(1).get("value").textValue(), is(" "));
-        Assert.assertThat(displayNameNode.get(2).get("field").textValue(), is("Version"));
-        Assert.assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("version").textValue()));
+        assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
+        assertThat(displayNameNode.get(1).get("value").textValue(), is(" "));
+        assertThat(displayNameNode.get(2).get("field").textValue(), is("Version"));
+        assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("version").textValue()));
         break;
       default:
         fail("Unexpected format " + componentIdentifier.getFormat());
@@ -1405,7 +1308,6 @@ public class ReportResourceTest
 
   @Test
   public void testPrepareExpandedCoverageReport() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("ReportResourceTestAppId");
     String scanId = "ScanId";
     mockReport(scanId, "/ReportResourceTest/report-expanded_coverage");
 
@@ -1421,7 +1323,7 @@ public class ReportResourceTest
     int countNotZero = 0;
     for (JsonNode licenseThreat : licenses) {
       int threat = licenseThreat.asInt();
-      Assert.assertTrue("Effective license threat between null and 10.", threat >= 0 && threat <= 10);
+      assertTrue("Effective license threat between null and 10.", threat >= 0 && threat <= 10);
       if (threat > 0) {
         countNotZero++;
       }

@@ -13,8 +13,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.organization.OrganizationService;
@@ -22,8 +20,6 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * @since 1.37
@@ -63,8 +59,6 @@ public class SuccessMetricsService
       successMetricsDTO.name = successMetrics.getName();
       successMetricsDTO.scope = dto;
 
-      pruneUnauthorizedApplicationIds(dto);
-      pruneUnauthorizedOrganizationIds(dto);
       successMetricsDTOs.add(successMetricsDTO);
     }
     return successMetricsDTOs;
@@ -102,26 +96,5 @@ public class SuccessMetricsService
               ".");
     }
     return successMetrics;
-  }
-
-  private void pruneUnauthorizedApplicationIds(SuccessMetricsScopeDTO dto) {
-    if (!isEmpty(dto.applicationIds)) {
-      List<Application> apps = applicationService
-          .getApplicationsByIdsAndOrganizationIdsAndTagIds(null, dto.applicationIds, null);
-      dto.applicationIds.clear();
-      for (Application app : apps) {
-        dto.applicationIds.add(app.getId());
-      }
-    }
-  }
-
-  private void pruneUnauthorizedOrganizationIds(SuccessMetricsScopeDTO dto) {
-    if (!isEmpty(dto.organizationIds)) {
-      List<Organization> orgs = organizationService.getOrganizationsByIds(dto.organizationIds);
-      dto.organizationIds.clear();
-      for (Organization org : orgs) {
-        dto.organizationIds.add(org.getId());
-      }
-    }
   }
 }

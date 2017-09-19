@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
-import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -41,12 +40,6 @@ public class OrganizationDAO
     String sQuery = "SELECT entity FROM Organization entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);
-  }
-
-  public List<Organization> getByIds(Set<String> organizationIds) {
-    String sQuery = "SELECT entity FROM Organization entity" + //
-        " WHERE entity.id IN (?1)";
-    return getList(sQuery, organizationIds);
   }
 
   public Organization getByIdNotNull(String id) {

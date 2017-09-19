@@ -131,26 +131,4 @@ public class OrganizationServiceTest
 
     eventBus.unregister(handler);
   }
-  
-  @Test
-  public void testGetOrganizationsByIds() {
-    Organization org1 = tempEntity.newOrganization("Org 1");
-    Organization org2 = tempEntity.newOrganization("Org 2");
-    List<Organization> orgs = organizationService
-        .getOrganizationsByIds(new HashSet<>(Arrays.asList(org1.getId(), org2.getId())));
-    assertThat(orgs, hasSize(2));
-    assertThat(Arrays.asList(orgs.get(0).getId(), orgs.get(1).getId()), containsInAnyOrder(org1.getId(), org2.getId()));
-  }
-
-  @Test
-  public void testGetOrganizationsByIds_Null() {
-    tempEntity.newOrganization("Org 1");
-    assertThat(organizationService.getOrganizationsByIds(null), is(empty()));
-  }
-
-  @Test
-  public void testGetOrganizationsByIds_Empty() {
-    tempEntity.newOrganization("Org 1");
-    assertThat(organizationService.getOrganizationsByIds(Collections.<String>emptySet()), is(empty()));
-  }
 }

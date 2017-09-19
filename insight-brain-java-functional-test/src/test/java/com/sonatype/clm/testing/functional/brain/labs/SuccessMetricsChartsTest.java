@@ -38,6 +38,8 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.NO_DATA_INFO_TEXT;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -248,5 +250,25 @@ public class SuccessMetricsChartsTest
     };
     componentsWithMostViolations.shouldHave(texts(componentGroupIdsWithMostViolations));
     componentsWithMostViolations.shouldHave(texts("5violations", "1violations"));
+  }
+
+  /**
+   * Test that navigating to a SuccessMetrics that has a specific app/org selection, but where that app/org selection
+   * has only invalid or unauthorized apps/orgs, causes "No Data" and not a totally unfiltered chart
+   */
+  @Test
+  public void testNonMatchSuccessMetrics() {
+    // create a SuccessMetrics with only non-existant app and org ids
+    SuccessMetricsScopeDTO invalidScopeDTO = new SuccessMetricsScopeDTO();
+    invalidScopeDTO.applicationIds = new HashSet<>(Arrays.asList("non-existent-app"));
+    invalidScopeDTO.organizationIds = new HashSet<>(Arrays.asList("non-existent-org"));
+    SuccessMetrics successMetrics = tempEntity.newSuccessMetrics("admin", "invalid metrics",
+        JsonUtils.format(invalidScopeDTO));
+
+    refreshOrOpen(SuccessMetricsChartPage.getUrl(successMetrics.getId()));
+
+    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    successMetricsChartsPage.should(appear);
+    successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
   }
 }

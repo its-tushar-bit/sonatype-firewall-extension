@@ -360,6 +360,15 @@ angularCommon.directive('autofill', ['$timeout', function($timeout) {
 angularCommon.directive('breadcrumb', ['$state', 'state.history.service', function($state, StateHistoryService) {
   var defaultState = 'dashboard.overview.violations';
   var parentStates = [defaultState, 'dashboard.overview.components'];
+
+  function getParentStateName(state) {
+    const { name } = state,
+        dotIndex = name.lastIndexOf('.'),
+        nameBeforeDot = dotIndex === -1 ? undefined : name.slice(0, dotIndex);
+
+    return nameBeforeDot;
+  }
+
   return {
     scope: {
       stateOverride: '=?'
@@ -395,7 +404,8 @@ angularCommon.directive('breadcrumb', ['$state', 'state.history.service', functi
               state: state.name
             });
           }
-          state = $state.get(state.parent);
+
+          state = $state.get(getParentStateName(state));
         }
         scope.states = states;
       }

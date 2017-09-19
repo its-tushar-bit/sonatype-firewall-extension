@@ -24,4 +24,12 @@ public class DashboardComponentDetails
   public SelenideElement header() {
     return child("h2");
   }
+
+  public SelenideElement breadCrumb() {
+    return child(" [breadcrumb]");
+  }
+
+  public SelenideElement breadCrumbLink() {
+    return child(" [breadcrumb] a");
+  }
 }

@@ -252,6 +252,23 @@ public class DashboardComponentsTest
     Tooltip.get().shouldNotBe(visible);
   }
 
+  @Test
+  public void testBreadCrumb() {
+    addComponentWithViolation("g", "a", "v", "hash-b", 7);
+
+    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    ComponentsResults table = DashboardPage.componentsView().results();
+
+    table.firstComponent().click();
+
+    DashboardComponentDetails dashboardComponentDetails = new DashboardComponentDetails();
+
+    dashboardComponentDetails.breadCrumb().shouldHave(text("Dashboard/ Component Details"));
+    dashboardComponentDetails.breadCrumbLink().shouldHave(text("Dashboard")).click();
+    DashboardPage.componentsView().results().shouldBe(visible);
+  }
+
   private void assertComponentsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
     assertEquals("Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low", lines[0]);

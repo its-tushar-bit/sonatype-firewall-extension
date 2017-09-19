@@ -7,8 +7,7 @@ describe('AngularCommon', function() {
         name: 'dashboard.component',
         data: {
           crumb: 'Component Details'
-        },
-        parent: 'dashboard'
+        }
       },
       get: function(name) {
         if (name === 'dashboard') {

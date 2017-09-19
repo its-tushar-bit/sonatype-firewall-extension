@@ -63,8 +63,6 @@ public class CompactCommandTest
     final File databaseFolder = temporaryFolder.newFolder("data");
     FileUtils.copyFileToDirectory(Paths.get("src", "test", "resources", "CompactCommandTest", "ods.h2.db").toFile(),
         databaseFolder);
-    FileUtils.copyFileToDirectory(Paths.get("src", "test", "resources", "CompactCommandTest", "ods.ver").toFile(),
-        databaseFolder);
     return Paths.get(databaseFolder.getPath(), "ods.h2.db");
   }
 }

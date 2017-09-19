@@ -36,7 +36,11 @@ public class OperationalDataStoreProvider
   private OperationalDataStoreProvider() {
   }
 
-  public static synchronized void init(DatabaseConfig _databaseConfig) {
+  public static void init(DatabaseConfig _databaseConfig) {
+    init(_databaseConfig, true /* migrateDatabase */);
+  }
+
+  public static synchronized void init(DatabaseConfig _databaseConfig, boolean migrateDatabase) {
     if (isInitialized) {
       return;
     }
@@ -46,8 +50,10 @@ public class OperationalDataStoreProvider
 
     databaseConfig = _databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
-    new H2DatabaseMigrator()
-        .migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION, 6 /* defaultCurrentVersion */);
+    if (migrateDatabase) {
+      new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION,
+          6 /* defaultCurrentVersion */);
+    }
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainODS", props);

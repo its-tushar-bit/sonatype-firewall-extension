@@ -47,7 +47,7 @@ public class CompactCommand
     final Path databaseFile = Paths.get(H2DatabaseUtil.getDatabasePath(databaseConfig).getAbsolutePath() + ".h2.db");
     try {
       final long originalSize = Files.size(databaseFile);
-      OperationalDataStoreProvider.init(databaseConfig);
+      OperationalDataStoreProvider.init(databaseConfig, false /* migrateDatabase */);
       DataSource dataSource = OperationalDataStoreProvider.getDataSource();
       log.info("Compacting {}", databaseFile);
       log.info("This might take a while, please be patient.");

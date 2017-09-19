@@ -18,14 +18,12 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.http.client.HttpResponseException;
-import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class ReportClientTest
@@ -39,16 +37,14 @@ public class ReportClientTest
 
   private static final String reportFileName = "report.zip";
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
   @Test
   public void testScanIdNull() {
     try {
       new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, null /* scanId */);
-      Assert.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
+      assertThat(expected.getMessage(), is("Cannot create a ReportClient without a scanId"));
     }
   }
 
@@ -56,9 +52,10 @@ public class ReportClientTest
   public void testScanIdEmpty() {
     try {
       new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, " " /* scanId */);
-      Assert.fail("Expected IllegalArgumentException");
+      fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
+      assertThat(expected.getMessage(), is("Cannot create a ReportClient without a scanId"));
     }
   }
 
@@ -69,17 +66,17 @@ public class ReportClientTest
     ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
     uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH).path(UserInterfaceLinksResource.REPORT_PATH);
-    Assert.assertEquals(reportClient.linkToReport(), uriBuilder.build(appId, scanId).toString());
+    assertEquals(reportClient.linkToReport(), uriBuilder.build(appId, scanId).toString());
   }
 
   @Test
   public void testDownloadBundle() throws Exception {
-    tempEntity.newApplicationWithParent(applicationPublicId).getId();
+    tempEntity.newApplicationWithParent(applicationPublicId);
     setLicenseFingerprint(licenseFingerprint);
 
     mockReport(scanId, reportFileName);
 
-    File retrievedFile = temporaryFolder.newFile();
+    File retrievedFile = tempDir.newFile();
 
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
@@ -112,12 +109,12 @@ public class ReportClientTest
 
   @Test
   public void testUnauthorizedError() throws Exception {
-    tempEntity.newApplicationWithParent(applicationPublicId).getId();
+    tempEntity.newApplicationWithParent(applicationPublicId);
     setLicenseFingerprint(licenseFingerprint);
 
     mockReport(scanId, reportFileName);
 
-    File retrievedFile = temporaryFolder.newFile();
+    File retrievedFile = tempDir.newFile();
 
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(null);

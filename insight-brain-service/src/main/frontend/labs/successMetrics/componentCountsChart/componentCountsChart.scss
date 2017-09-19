@@ -8,18 +8,27 @@
   span {
     &:first-child {
       @extend .truncate-ellipsis;
-      width: 309px;
+      width: 289px;
     }
     
     &:last-child {
       text-align: right;
     }
   }
+
+}
+
+.iq-chart__bar-label-tooltip--component-counts {
+  font-size: 20px;
+
+  .tooltip-inner {
+    max-width: 400px;
+  }
 }
 
 .iq-chart__highlight--component-counts {
   margin-right: 8px;
-  width: 50px;
+  width: 70px;
 }
 
 .iq-chart-title--component-counts {

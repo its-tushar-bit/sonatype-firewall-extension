@@ -10,6 +10,7 @@ import java.util.HashSet;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ApplicationCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ComponentCountsTile;
@@ -95,11 +96,12 @@ public class SuccessMetricsChartsTest
     staticTempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "app3Eval2", threeMonthsAgo.toDate());
 
     ApplicationComponent buildComponent = staticTempEntity
-        .newApplicationComponent(app1.getId(), BuildStageType.ID, "logbackhash",
-            ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-access", "0.6"));
+        .newApplicationComponent(app1.getId(), BuildStageType.ID, "shortnamehash",
+            ComponentIdentifier.createMavenCoordinates("short", "name", "0.6"));
     ApplicationComponent releaseComponent = staticTempEntity
-        .newApplicationComponent(app2.getId(), ReleaseStageType.ID, "jettyhash",
-            ComponentIdentifier.createMavenCoordinates("org.mortbay.jetty", "jetty", "6.1.15"));
+        .newApplicationComponent(app2.getId(), ReleaseStageType.ID, "longnamehash",
+            ComponentIdentifier.createMavenCoordinates("long.component.name.should.cause.tooltip", "artifact",
+              "1.2.3.4"));
 
     // add a few violations
     staticTempEntity.newPolicyViolation(buildEval4MonthsAgo, licensePolicy, 7,
@@ -238,15 +240,27 @@ public class SuccessMetricsChartsTest
     componentsWithMostViolations.shouldHaveSize(2);
 
     String[] componentGroupIdsInMostApplications = {
-        "ch.qos.logback", "org.mortbay.jetty"
+      "long.component.name.should.cause.tooltip : artifact : 1.2.3.4", "short : name : 0.6"
     };
     String expectedApplicationText = "1applications";
     componentsInMostApplications.shouldHave(texts(componentGroupIdsInMostApplications));
     componentsInMostApplications.shouldHave(
         texts(expectedApplicationText, expectedApplicationText));
 
+    componentsInMostApplications.get(0)
+        .shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4")).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4"));
+
+    componentsInMostApplications.get(1)
+        .shouldHave(text("short : name : 0.6")).hover();
+
+    // Tooltip is configured to appear after 300ms, so we need to wait at least that long to really make sure its
+    // not going to appear.  Without this sleep we'd just be testing that it hasn't appeared _yet_.
+    Thread.sleep(1000);
+    Tooltip.get().shouldNotBe(visible);
+
     String[] componentGroupIdsWithMostViolations = {
-        "ch.qos.logback", "org.mortbay.jetty"
+      "short : name : 0.6", "long.component.name.should.cause.tooltip : artifact : 1.2.3.4",
     };
     componentsWithMostViolations.shouldHave(texts(componentGroupIdsWithMostViolations));
     componentsWithMostViolations.shouldHave(texts("5violations", "1violations"));

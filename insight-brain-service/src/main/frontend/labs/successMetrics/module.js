@@ -15,10 +15,11 @@ import successMetricsChartPage from './successMetricsChartPage/successMetricsCha
 import chartUtilsService from './chartUtilsService';
 import CLMLocationModule from '../../util/CLMLocation';
 import productFeaturesModule from '../../util/ProductFeatures';
+import directivesModule from '../../directives/module';
 import commonServicesModule from '../../util/CommonServices';
 
-export default angular.module('successMetricsModule', ['components', CLMLocationModule.name,
-  productFeaturesModule.name, commonServicesModule.name])
+export default angular.module('successMetricsModule', ['components', CLMLocationModule.name, productFeaturesModule.name,
+  directivesModule.name, commonServicesModule.name])
     .service('successMetricsDataService', successMetricsDataService)
     .service('chartUtilsService', chartUtilsService)
     .component('successMetricsList', successMetricsList)

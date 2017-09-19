@@ -11,7 +11,11 @@
       <div class="iq-chart__bar-label iq-chart__bar-label--component-counts"
            ng-repeat="component in vm.componentData.componentsInTheMostApplications"
            ng-if="vm.showRow(component.componentDisplayName)">
-        <span>
+        <span iq-tooltip
+              tooltip-only-on-overflow="true"
+              tooltip-text="{{::component.componentDisplayName}}"
+              tooltip-attach-to-body
+              tooltip-class="iq-chart__bar-label-tooltip--component-counts">
           <strong>{{$index + 1}}.</strong> {{component.componentDisplayName}}
         </span>
         <span>
@@ -30,7 +34,11 @@
       <div class="iq-chart__bar-label iq-chart__bar-label--component-counts"
            ng-repeat="component in vm.componentData.componentsWithTheMostViolations"
            ng-if="vm.showRow(component.componentDisplayName)">
-        <span>
+        <span iq-tooltip
+              tooltip-only-on-overflow="true"
+              tooltip-text="{{::component.componentDisplayName}}"
+              tooltip-attach-to-body
+              tooltip-class="iq-chart__bar-label-tooltip--component-counts">
           <strong>{{$index + 1}}.</strong> {{component.componentDisplayName}}
         </span>
         <span>

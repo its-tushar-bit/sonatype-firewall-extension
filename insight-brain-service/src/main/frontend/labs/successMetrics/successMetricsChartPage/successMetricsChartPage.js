@@ -12,15 +12,18 @@ export default {
   controllerAs: 'vm'
 };
 
-function successMetricsChartPageController($q, $stateParams, systemConfigurationPropertyService, successMetricsDataService) {
+function successMetricsChartPageController($q, $state, $stateParams, systemConfigurationPropertyService,
+                                           successMetricsDataService)
+{
   const vm = this;
 
   vm.loaded = false;
   vm.error = undefined;
   vm.activeApplicationCount = undefined;
-  vm.successMetricsName = undefined;
+  vm.successMetrics = undefined;
   vm.doLoad = doLoad;
   vm.isMttrDisabled = isMttrDisabled;
+  vm.goToList = goToList;
 
   function doLoad() {
     const { successMetricsId } = $stateParams;
@@ -31,22 +34,19 @@ function successMetricsChartPageController($q, $stateParams, systemConfiguration
       systemConfigurationPropertyService.checkSuccessMetricsEnabled(),
       successMetricsDataService.getSuccessMetricsForCurrentUser()
     ]).then(function([, successMetricsList]) {
-      let serviceParameters;
-
       // this would be nicer if Array.prototype.find was available in all browsers
-      for (let i = 0; i < successMetricsList.length && serviceParameters === undefined; i++) {
+      for (let i = 0; i < successMetricsList.length && vm.successMetrics === undefined; i++) {
         if (successMetricsList[i].id === successMetricsId) {
-          serviceParameters = successMetricsList[i].scope;
-          vm.successMetricsName = successMetricsList[i].name;
+          vm.successMetrics = successMetricsList[i];
         }
       }
 
-      if (serviceParameters) {
+      if (vm.successMetrics) {
         return $q.all([
-          successMetricsDataService.getApplicationCountsData(serviceParameters),
-          successMetricsDataService.getMttrData(serviceParameters),
-          successMetricsDataService.getAveragesData(serviceParameters),
-          successMetricsDataService.getComponentCountsData(serviceParameters)
+          successMetricsDataService.getApplicationCountsData(vm.successMetrics.scope),
+          successMetricsDataService.getMttrData(vm.successMetrics.scope),
+          successMetricsDataService.getAveragesData(vm.successMetrics.scope),
+          successMetricsDataService.getComponentCountsData(vm.successMetrics.scope)
         ]);
       }
       else {
@@ -67,9 +67,13 @@ function successMetricsChartPageController($q, $stateParams, systemConfiguration
     return !vm.mttrData || vm.mttrData.length === 0;
   }
 
+  function goToList() {
+    $state.go('labs.successMetrics');
+  }
+
   doLoad();
 }
 
 successMetricsChartPageController.$inject = [
-  '$q', '$stateParams', 'systemConfigurationPropertyService', 'successMetricsDataService'
+  '$q', '$state', '$stateParams', 'systemConfigurationPropertyService', 'successMetricsDataService'
 ];

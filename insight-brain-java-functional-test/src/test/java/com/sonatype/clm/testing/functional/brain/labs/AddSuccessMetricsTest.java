@@ -6,6 +6,8 @@
 package com.sonatype.clm.testing.functional.brain.labs;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsListPage;
@@ -162,8 +164,16 @@ public class AddSuccessMetricsTest
     chartPage.shouldBe(visible);
     SuccessMetricsChartPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("1"));
 
+    // Delete this SuccessMetrics.
+    chartPage.deleteBtn().shouldBe(visible).click();
+    DeleteModal.body().shouldBe(visible).shouldHave(SuccessMetricsChartPage.confirmRemovalText("Application Chart"));
+    DeleteModal.header().shouldHave(SuccessMetricsChartPage.CONFIRM_REMOVAL_HEADER_TEXT);
+    DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+    DeleteModal.body().shouldNotBe(visible);
+    page.successMetricsChartActionItems().elements().shouldHaveSize(2);
+
     // Then add and test a SuccessMetrics with only an empty Organization selected.
-    chartPage.backButton().click();
     page.addSuccessMetricsBtn().click();
     modal.name().setValue("Empty Org Chart");
     modal.customRadioBtn().click();
@@ -174,12 +184,19 @@ public class AddSuccessMetricsTest
     modal.orgPickerCounter().shouldHave(text("3"));
     modal.createBtn().click();
 
-    page.successMetricsChartActionItems().elements().shouldHaveSize(4);
-    page.successMetricsChartActionItems().element(3).shouldHave(text("Empty Org Chart")).click();
+    page.successMetricsChartActionItems().elements().shouldHaveSize(3);
+    page.successMetricsChartActionItems().element(2).shouldHave(text("Empty Org Chart")).click();
 
     chartPage = new SuccessMetricsChartPage();
     chartPage.shouldBe(visible);
-    new SuccessMetricsChartPage().noDataInfoPane().shouldBe(visible);
+    chartPage.noDataInfoPane().shouldBe(visible);
+
+    // Now delete this empty SuccessMetrics.
+    chartPage.deleteBtn().shouldBe(visible).click();
+    DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+    DeleteModal.body().shouldNotBe(visible);
+    page.successMetricsChartActionItems().elements().shouldHaveSize(2);
   }
 
   @Test

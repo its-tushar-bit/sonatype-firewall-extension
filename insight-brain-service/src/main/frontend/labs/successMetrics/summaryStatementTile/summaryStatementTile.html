@@ -1,7 +1,12 @@
-<div class="iq-tile-header--chart">
-  <h2>{{::vm.successMetricsName}}</h2>
+<div class="iq-tile__actions iq-tile__actions--chart">
+  <button class="btn btn-tertiary" ng-click="vm.delete()" id="delete-success-metrics"><!--
+ --><i class="fa fa-trash"></i>Delete
+  </button>
 </div>
-<p class="iq-chart__averages">
+<div class="iq-tile-header--chart">
+  <h2>{{::vm.successMetrics.name}}</h2>
+</div>
+<p class="iq-chart__averages" ng-if="!vm.showNoDataMessage">
   Over the last
   <span id="success-metrics-summary-months">
     <span class="iq-chart__display-number"><!--
@@ -16,3 +21,7 @@
 --></span>
   applications.
 </p>
+<div ng-if="vm.showNoDataMessage" class="iq-alert iq-alert--info" id="no-data-warning">
+  <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check
+  again tomorrow.
+</div>

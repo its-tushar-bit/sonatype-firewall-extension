@@ -15,6 +15,7 @@ describe('successMetricsChartPageSpec', function() {
       resetPromise,
       mockSuccessMetricsDataService,
       mockStateParams = { successMetricsId: 'SuccessMetrics1' },
+      mockState = jasmine.createSpyObj('state', ['go']),
       getApplicationCountsDataDeferred,
       getMttrDataDeferred,
       getAveragesDataDeferred,
@@ -129,7 +130,8 @@ describe('successMetricsChartPageSpec', function() {
     vm = $componentController('successMetricsChartPage', {
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
       successMetricsDataService: mockSuccessMetricsDataService,
-      $stateParams: mockStateParams
+      $stateParams: mockStateParams,
+      $state: mockState
     });
   }));
 
@@ -183,7 +185,7 @@ describe('successMetricsChartPageSpec', function() {
     getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
     $scope.$digest();
 
-    expect(vm.successMetricsName).toBe('Success Metrics 1');
+    expect(vm.successMetrics.name).toBe('Success Metrics 1');
   });
 
   it('properly loads on disabled success metrics', function() {
@@ -252,4 +254,12 @@ describe('successMetricsChartPageSpec', function() {
       expect(vm.isMttrDisabled()).toBe(false);
     });
   });
+
+  describe('vm.goToList', function() {
+    it('redirects to SuccessMetrics list page', function() {
+      vm.goToList();
+
+      expect(mockState.go).toHaveBeenCalledWith('labs.successMetrics');
+    })
+  })
 });

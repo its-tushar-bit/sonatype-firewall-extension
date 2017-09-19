@@ -26,6 +26,8 @@ public class SuccessMetricsChartPage
   public static final Condition NO_DATA_INFO_TEXT = Condition.text(
       "There's not enough data to generate Success Metrics. Run some evaluations and check again tomorrow.");
 
+  public static final Condition CONFIRM_REMOVAL_HEADER_TEXT = Condition.text("Delete Success Metrics");
+
   public SuccessMetricsChartPage() {
     super(ROOT_SELECTOR);
   }
@@ -42,8 +44,16 @@ public class SuccessMetricsChartPage
     return $("#no-data-warning");
   }
 
+  public SelenideElement deleteBtn() {
+    return child("#delete-success-metrics");
+  }
+
   public static String getUrl(String successMetricsId) {
     return BaseUrl.uriBuilder().fragment("/labs/successMetrics/{successMetricsId}").build(successMetricsId).toString();
+  }
+
+  public static Condition confirmRemovalText(String successMetricsName) {
+    return Condition.text("You are about to delete " + successMetricsName + ". This action cannot be undone.");
   }
 
   public static class SummaryStatementTile

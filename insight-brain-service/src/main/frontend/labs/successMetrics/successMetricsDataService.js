@@ -17,6 +17,7 @@ function successMetricsDataService($http, CLMLocations) {
     getComponentCountsData: getComponentCountsData,
     getSuccessMetricsForCurrentUser: getSuccessMetricsForCurrentUser,
     createSuccessMetricsForCurrentUser: createSuccessMetricsForCurrentUser,
+    deleteSuccessMetrics: deleteSuccessMetrics,
     EMPTY_PREFIX: EMPTY_PREFIX
   };
 
@@ -160,6 +161,10 @@ function successMetricsDataService($http, CLMLocations) {
 
   function createSuccessMetricsForCurrentUser(successMetricConfiguration) {
     return $http.post(CLMLocations.getSuccessMetricsUrl(), successMetricConfiguration).then(getData);
+  }
+
+  function deleteSuccessMetrics(successMetricsId) {
+    return $http.delete(CLMLocations.getSingleSuccessMetricsUrl(successMetricsId));
   }
 }
 

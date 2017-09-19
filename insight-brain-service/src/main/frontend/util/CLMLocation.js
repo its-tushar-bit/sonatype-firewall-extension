@@ -358,7 +358,9 @@ angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory(
         return baseUrl.get() + '/rest/componentDetails/componentCounts';
       },
 
-      getSuccessMetricsUrl: () => `${baseUrl.get()}/rest/successMetrics`
+      getSuccessMetricsUrl: () => `${baseUrl.get()}/rest/successMetrics`,
+
+      getSingleSuccessMetricsUrl: (successMetricsId) => `${baseUrl.get()}/rest/successMetrics/${successMetricsId}`
     };
   }
 ]);

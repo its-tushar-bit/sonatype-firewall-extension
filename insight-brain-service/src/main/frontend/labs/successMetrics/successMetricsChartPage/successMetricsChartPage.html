@@ -3,11 +3,13 @@
      loading="!vm.loaded"
      reload="vm.doLoad()">
   <iq-back-button state="labs.successMetrics"></iq-back-button>
+  <div class="iq-tile iq-tile--chart" >
+    <summary-statement-tile averages-data="vm.averagesData"
+                            success-metrics="vm.successMetrics"
+                            on-delete="vm.goToList()">
+    </summary-statement-tile>
+  </div>
   <div ng-if="vm.activeApplicationCount !== 0">
-    <div class="iq-tile iq-tile--chart" >
-      <summary-statement-tile averages-data="vm.averagesData" success-metrics-name="vm.successMetricsName">
-      </summary-statement-tile>
-    </div>
     <div class="iq-tile iq-tile--chart">
       <violation-averages-chart averages-data="vm.averagesData"></violation-averages-chart>
     </div>
@@ -20,9 +22,5 @@
     <div class="iq-tile iq-tile--chart">
       <component-counts-chart component-data="vm.componentCountsData"></component-counts-chart>
     </div>
-  </div>
-  <div ng-if="vm.activeApplicationCount === 0" class="iq-alert iq-alert--info" id="no-data-warning">
-    <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check
-    again tomorrow.
   </div>
 </div>

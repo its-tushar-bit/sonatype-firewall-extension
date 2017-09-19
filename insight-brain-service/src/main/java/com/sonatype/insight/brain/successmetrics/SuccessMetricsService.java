@@ -14,8 +14,6 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsDAO;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
-import com.sonatype.insight.brain.organization.ApplicationService;
-import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -27,22 +25,14 @@ import com.sonatype.insight.json.store.JsonUtils;
 @Named
 public class SuccessMetricsService
 {
-  private final ApplicationService applicationService;
-
-  private final OrganizationService organizationService;
-
   private final SuccessMetricsDAO successMetricsDAO;
 
   private final CurrentUser currentUser;
 
   @Inject
-  public SuccessMetricsService(ApplicationService applicationService,
-                               OrganizationService organizationService,
-                               SuccessMetricsDAO successMetricsDAO,
+  public SuccessMetricsService(SuccessMetricsDAO successMetricsDAO,
                                CurrentUser currentUser)
   {
-    this.applicationService = applicationService;
-    this.organizationService = organizationService;
     this.successMetricsDAO = successMetricsDAO;
     this.currentUser = currentUser;
   }

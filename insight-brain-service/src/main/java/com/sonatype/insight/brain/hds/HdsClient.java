@@ -122,7 +122,7 @@ public class HdsClient
     loadVersion();
   }
 
-  public HttpResponse getResponse(HttpServletRequest request,
+  HttpResponse getResponse(HttpServletRequest request,
                                   String path,
                                   Map<String, String> queryParams,
                                   String... uriParams) throws IOException

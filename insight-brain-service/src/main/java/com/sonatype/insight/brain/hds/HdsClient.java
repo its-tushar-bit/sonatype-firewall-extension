@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -215,7 +216,7 @@ public class HdsClient
         return null;
       }
       else if (String.class.equals(clazz)) {
-        return clazz.cast(EntityUtils.toString(entity, "UTF-8"));
+        return clazz.cast(EntityUtils.toString(entity, StandardCharsets.UTF_8));
       }
       else if (InputStream.class.equals(clazz)) {
         usingStream = true;
@@ -294,7 +295,7 @@ public class HdsClient
     Header hdr = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
     if (hdr != null && hdr.getValue() != null && hdr.getValue().contains(ContentType.TEXT_PLAIN.getMimeType())
         && response.getEntity() != null) {
-      return EntityUtils.toString(response.getEntity(), "UTF-8");
+      return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
     }
     return response.getStatusLine().getReasonPhrase();
   }

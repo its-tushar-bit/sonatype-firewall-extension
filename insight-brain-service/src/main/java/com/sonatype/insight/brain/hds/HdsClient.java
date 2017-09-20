@@ -320,12 +320,12 @@ public class HdsClient
     else if ("POST".equals(request.getMethod())) {
       cloudReq = new HttpPost(url);
 
-      ((HttpPost) cloudReq).setEntity(new BufferedHttpEntity(buildEntity(request)));
+      ((HttpPost) cloudReq).setEntity(buildEntity(request));
     }
     else if ("PUT".equals(request.getMethod())) {
       cloudReq = new HttpPut(url);
 
-      ((HttpPut) cloudReq).setEntity(new BufferedHttpEntity(buildEntity(request)));
+      ((HttpPut) cloudReq).setEntity(buildEntity(request));
     }
     else if ("DELETE".equals(request.getMethod())) {
       cloudReq = new HttpDelete(url);
@@ -387,8 +387,7 @@ public class HdsClient
         throw new FileNotFoundException(uploadFile.getAbsolutePath());
       }
       HttpPut cloudReq = new HttpPut(buildUri(path, uriParams));
-      FileEntity fileEntity = new FileEntity(uploadFile, ContentType.DEFAULT_BINARY);
-      cloudReq.setEntity(new BufferedHttpEntity(fileEntity));
+      cloudReq.setEntity(new FileEntity(uploadFile, ContentType.DEFAULT_BINARY));
       populateRequest(null /* base request */, cloudReq, analytics);
       HttpResponse response = execute(cloudReq);
       return fromHttpResponse(response, clazz);
@@ -423,7 +422,7 @@ public class HdsClient
       return new FileEntity(uploadFile, contentType);
     }
 
-    return new InputStreamEntity(request.getInputStream());
+    return new BufferedHttpEntity(new InputStreamEntity(request.getInputStream()));
   }
 
   private void populateRequest(final HttpServletRequest orig, HttpUriRequest req, HdsClientAnalytics analytics) {

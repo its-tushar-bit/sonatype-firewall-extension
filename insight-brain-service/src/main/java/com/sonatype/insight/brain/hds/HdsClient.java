@@ -207,7 +207,7 @@ public class HdsClient
     }
   }
 
-  private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) throws IOException {
+  private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) {
     throwErrorIfNeeded(response);
     boolean usingStream = false;
     try {
@@ -249,7 +249,7 @@ public class HdsClient
     }
   }
 
-  private void throwErrorIfNeeded(HttpResponse response) throws IOException {
+  private void throwErrorIfNeeded(HttpResponse response) {
     try {
       int status = response.getStatusLine().getStatusCode();
       switch (status) {
@@ -285,17 +285,23 @@ public class HdsClient
           throw new BadGatewayException("The Sonatype HDS returned error " + status + ", please retry in a bit.");
       }
     }
-    catch (RuntimeException | IOException e) {
+    catch (RuntimeException e) {
       EntityUtils.consumeQuietly(response.getEntity());
       throw e;
     }
   }
 
-  private String getErrorMessage(HttpResponse response) throws IOException {
+  String getErrorMessage(HttpResponse response) {
     Header hdr = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
     if (hdr != null && hdr.getValue() != null && hdr.getValue().contains(ContentType.TEXT_PLAIN.getMimeType())
         && response.getEntity() != null) {
-      return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+      try {
+        return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+      }
+      catch (Exception e) {
+        log.error("Failed to read entity: {}, from response with status: {}", e.getMessage(), response.getStatusLine(),
+            e);
+      }
     }
     return response.getStatusLine().getReasonPhrase();
   }
@@ -457,7 +463,7 @@ public class HdsClient
     return clientUserAgent;
   }
 
-  private Response buildResponse(final HttpResponse response) throws IOException {
+  private Response buildResponse(final HttpResponse response) {
     throwErrorIfNeeded(response);
     ResponseBuilder builder = Response.status(response.getStatusLine().getStatusCode());
 

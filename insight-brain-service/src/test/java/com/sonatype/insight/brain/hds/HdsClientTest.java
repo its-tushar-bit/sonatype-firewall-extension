@@ -32,6 +32,10 @@ import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.test.SslProperties;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.jetty.http.HttpHeaders;
@@ -50,6 +54,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -575,6 +580,26 @@ public class HdsClientTest
     }
   }
 
+  @Test
+  public void testGetErrorMessage_CatchesException() throws Exception {
+    assertThat(client.getErrorMessage(createMockResponse(new IOException())), is(equalTo("reason")));
+    assertThat(client.getErrorMessage(createMockResponse(new RuntimeException())), is(equalTo("reason")));
+  }
+
+  private HttpResponse createMockResponse(Exception e) throws Exception {
+    HttpResponse mockResponse = mock(HttpResponse.class);
+    Header mockHeader = mock(Header.class);
+    when(mockHeader.getValue()).thenReturn("text/plain");
+    when(mockResponse.getFirstHeader(org.apache.http.HttpHeaders.CONTENT_TYPE)).thenReturn(mockHeader);
+    HttpEntity mockEntity = mock(HttpEntity.class);
+    when(mockEntity.getContent()).thenThrow(e);
+    when(mockResponse.getEntity()).thenReturn(mockEntity);
+    StatusLine mockStatusLine = mock(StatusLine.class);
+    when(mockStatusLine.getReasonPhrase()).thenReturn("reason");
+    when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
+    return mockResponse;
+  }
+  
   private static class ServletInputStreamImpl
       extends ServletInputStream
   {

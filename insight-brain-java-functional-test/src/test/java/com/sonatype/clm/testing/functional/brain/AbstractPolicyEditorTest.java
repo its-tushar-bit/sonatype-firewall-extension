@@ -596,6 +596,13 @@ public abstract class AbstractPolicyEditorTest
     assertThat(securityVulnerabilityCondition.getValue(), is("1"));
     assertThat(securityVulnerabilityCondition.getOperator(), is(">="));
 
+    // Check that severity can be set to 0 as well
+    constraintEdit.inputCondition(2).value().val("0");
+    PolicyEditorPage.endOfPagePill().click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.constraintsPill().click();
+
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled);
     constraintEdit.condition(1).deleteConditionButton().shouldBe(visible, enabled);
     constraintEdit.condition(2).deleteConditionButton().shouldBe(visible, enabled).click();

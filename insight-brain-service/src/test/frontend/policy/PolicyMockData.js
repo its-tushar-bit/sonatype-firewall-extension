@@ -36,7 +36,7 @@ PolicyMockData = {
         "id": "SecurityVulnerabilitySeverity",
         "supportedOperators": ["=", "<", "<=", ">", ">="],
         "valueTypeId": "FloatValueType",
-        "valueHint": "Enter value 1 to 10",
+        "valueHint": "Enter value 0 to 10",
         "valueType": {
           "dataType": "Float"
         }

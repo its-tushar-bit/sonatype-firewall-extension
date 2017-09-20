@@ -14,7 +14,7 @@ function NumberInputWithStringValue() {
     ngModelController.$formatters.push(formatToNumber);
 
     function parseToString(value) {
-      return value ? '' + value : undefined;
+      return value === null ? undefined : '' + value;
     }
 
     function formatToNumber(value) {

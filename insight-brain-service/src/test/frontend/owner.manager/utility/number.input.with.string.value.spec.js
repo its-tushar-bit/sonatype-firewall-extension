@@ -10,12 +10,18 @@ describe('number.input.with.string.value.spec.js', function() {
     scope.$digest();
   }));
   describe('Positive Cases', function() {
-    it('Input changes to String Value', function() {
+    it('Positive input changes to String Value', function() {
       inputElement.val(123);
       inputElement.trigger('input');
       expect(scope.numberModel).toBe('123');
     });
-    
+
+    it('Zero input changes to String Value', function() {
+      inputElement.val(0);
+      inputElement.trigger('input');
+      expect(scope.numberModel).toBe('0');
+    });
+
     describe('String Value changes to Input Number ', function() {
       it('with Integer', function() {
         scope.numberModel = '123';

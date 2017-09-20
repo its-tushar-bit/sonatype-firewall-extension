@@ -143,9 +143,19 @@
                              name="conditionIntegerValue-{{::constraint.id + $index}}" ng-switch-when="Integer"
                              ng-pattern="/^(\d|10)$/" messages="{pattern: 'Value must be from 0 to 10'}"
                              title="Please enter a whole number" number-input-with-string-value clm-input required>
-                      <input type="number" step="any" ng-model="condition.value" name="conditionFloatValue-{{::constraint.id + $index}}"
-                             ng-switch-when="Float" ng-pattern="/^\d+(\.\d+)?$/" messages="{pattern: 'Please enter a decimal number'}"
-                             title="Please enter a decimal number" number-input-with-string-value clm-input required>
+                      <input type="number"
+                             step="any"
+                             min="0"
+                             max="10"
+                             ng-model="condition.value"
+                             name="conditionFloatValue-{{::constraint.id + $index}}"
+                             ng-switch-when="Float"
+                             ng-pattern="/^\d+(\.\d+)?$/"
+                             messages="{pattern: 'Value must be from 0 to 10'}"
+                             title="Please enter a decimal number"
+                             number-input-with-string-value
+                             clm-input
+                             required>
                     </span>
                   </div>
                 </div>

@@ -140,8 +140,6 @@ public class HdsClientTest
 
     client.doProxy(request, testPath);
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
-    client.doProxy(request, testPath, null, new String[] {});
-    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
     // Method does not pass an original request, hence the null header.
     client.get(InputStream.class, testPath, null, new String[] {});
     assertNull(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER));
@@ -188,8 +186,6 @@ public class HdsClientTest
     when(request.getMethod()).thenReturn("GET");
 
     client.doProxy(request, testPath);
-    assertThat(headers, hasItem(userAgent));
-    client.doProxy(request, testPath, null, new String[] {});
     assertThat(headers, hasItem(userAgent));
     client.get(InputStream.class, testPath, null, new String[] {});
     assertThat(headers, hasItem(userAgent));

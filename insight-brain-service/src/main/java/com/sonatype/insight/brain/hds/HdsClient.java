@@ -301,13 +301,7 @@ public class HdsClient
   }
 
   public Response doProxy(HttpServletRequest request, String path, String... uriParams) throws IOException {
-    return doProxy(request, path, null, uriParams);
-  }
-
-  public Response doProxy(HttpServletRequest request, String path, Map<String, String> queryParams, String... uriParams)
-      throws IOException
-  {
-    HttpResponse response = getResponse(request, path, queryParams, uriParams);
+    HttpResponse response = getResponse(request, path, null, uriParams);
     return buildResponse(response);
   }
 

@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
@@ -20,9 +19,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -298,11 +294,6 @@ public class HdsClient
     return response.getStatusLine().getReasonPhrase();
   }
 
-  public Response doProxy(HttpServletRequest request, String path, String... uriParams) throws IOException {
-    HttpResponse response = getResponse(request, path, null, uriParams);
-    return buildResponse(response);
-  }
-
   private HttpResponse execute(HttpServletRequest request, String url, HdsClientAnalytics analytics) throws IOException
   {
     HttpUriRequest cloudReq;
@@ -453,41 +444,6 @@ public class HdsClient
       clientUserAgent = request.getHeader(HttpHeaders.USER_AGENT);
     }
     return clientUserAgent;
-  }
-
-  private Response buildResponse(final HttpResponse response) {
-    throwErrorIfNeeded(response);
-    ResponseBuilder builder = Response.status(response.getStatusLine().getStatusCode());
-
-    // pass-back response metadata+content to servlet
-    for (final Header h : response.getAllHeaders()) {
-      final String name = h.getName();
-      // ignore Transfer-Encoding since httpclient should have handled it
-      if (!HttpHeaders.TRANSFER_ENCODING.equalsIgnoreCase(name) && !HttpHeaders.CONTENT_ENCODING.equalsIgnoreCase(name)
-          && !HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name) && !HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
-        builder.header(name, h.getValue());
-      }
-    }
-
-    final HttpEntity entity = response.getEntity();
-    if (entity != null) {
-      if (entity.getContentEncoding() != null) {
-        builder.header(HttpHeaders.CONTENT_ENCODING, entity.getContentEncoding().getValue());
-      }
-      builder.header(HttpHeaders.CONTENT_LENGTH, entity.getContentLength());
-      if (entity.getContentType() != null) {
-        builder.header(HttpHeaders.CONTENT_TYPE, entity.getContentType().getValue());
-      }
-
-      builder.entity(new StreamingOutput()
-      {
-        @Override
-        public void write(OutputStream output) throws IOException {
-          entity.writeTo(output);
-        }
-      });
-    }
-    return builder.build();
   }
 
   private String buildUri(String path, String... uriParams) {

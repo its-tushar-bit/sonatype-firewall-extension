@@ -143,8 +143,6 @@ public class HdsClientTest
     when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn(testClmClientUserAgent);
     when(request.getMethod()).thenReturn("GET");
 
-    client.doProxy(request, testPath);
-    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
     // Method does not pass an original request, hence the null header.
     client.get(InputStream.class, testPath, null, new String[] {});
     assertNull(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER));
@@ -190,8 +188,6 @@ public class HdsClientTest
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
-    client.doProxy(request, testPath);
-    assertThat(headers, hasItem(userAgent));
     client.get(InputStream.class, testPath, null, new String[] {});
     assertThat(headers, hasItem(userAgent));
     client.get(request, InputStream.class, testPath, new String[] {});
@@ -234,7 +230,7 @@ public class HdsClientTest
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
-    client.doProxy(request, "/rest/test");
+    client.get(request, String.class, "/rest/test");
 
     assertThat(HttpHeaders.AUTHORIZATION.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat(HttpHeaders.PROXY_AUTHORIZATION.toLowerCase(Locale.ENGLISH), not(isIn(headers)));
@@ -267,7 +263,7 @@ public class HdsClientTest
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
-    client.doProxy(request, "/rest/test");
+    client.get(request, String.class, "/rest/test");
 
     assertThat("X-Forwarded-Host".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
     assertThat("X-Forwarded-Server".toLowerCase(Locale.ENGLISH), not(isIn(headers)));
@@ -303,7 +299,7 @@ public class HdsClientTest
     when(request.getContentLength()).thenReturn(1);
     when(request.getMethod()).thenReturn("POST");
 
-    client.doProxy(request, "/rest/test");
+    client.get(request, String.class, "/rest/test");
 
     assertThat(request.getContentLength(), not(Integer.parseInt(headers.get(HttpHeaders.CONTENT_LENGTH))));
     assertThat(headers.get(HttpHeaders.CONTENT_LENGTH), is(Integer.toString(test.length)));

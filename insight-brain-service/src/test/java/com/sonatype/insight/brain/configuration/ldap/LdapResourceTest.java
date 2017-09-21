@@ -390,7 +390,7 @@ public class LdapResourceTest
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    assertThat(status.getMessage(), allOf(containsString("Incorrect DN"), containsString(systemUserDN)));
+    assertThat(status.getMessage(), containsString("Invalid authentication"));
   }
 
   @Test

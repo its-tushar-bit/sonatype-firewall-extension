@@ -21,7 +21,7 @@ import org.apache.directory.api.ldap.model.constants.AuthenticationLevel;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.apache.directory.api.ldap.model.schema.SchemaManager;
-import org.apache.directory.api.ldap.schemamanager.impl.DefaultSchemaManager;
+import org.apache.directory.api.ldap.schema.manager.impl.DefaultSchemaManager;
 import org.apache.directory.server.constants.ServerDNConstants;
 import org.apache.directory.server.core.DefaultDirectoryService;
 import org.apache.directory.server.core.api.InstanceLayout;
@@ -184,7 +184,8 @@ public class EmbeddedLdapServer
   }
 
   private static void initPartitions(DefaultDirectoryService directoryService) throws Exception {
-    LdifPartition ldifPartition = new LdifPartition(directoryService.getSchemaManager());
+    LdifPartition ldifPartition = new LdifPartition(directoryService.getSchemaManager(),
+        directoryService.getDnFactory());
     ldifPartition
         .setPartitionPath(new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "schema").toURI());
     SchemaPartition schemaPartition = new SchemaPartition(directoryService.getSchemaManager());
@@ -192,35 +193,36 @@ public class EmbeddedLdapServer
     directoryService.setSchemaPartition(schemaPartition);
     PartitionFactory partitionFactory = new AvlPartitionFactory();
 
-    Partition systemPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "system",
-        ServerDNConstants.SYSTEM_DN, 500,
+    Partition systemPartition = partitionFactory.createPartition(directoryService.getSchemaManager(),
+        directoryService.getDnFactory(), "system", ServerDNConstants.SYSTEM_DN, 500,
         new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "system"));
     systemPartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(systemPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.setSystemPartition(systemPartition);
 
-    Partition sonatypePartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "sonatype",
-        "o=sonatype", 500, new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "sonatype"));
+    Partition sonatypePartition = partitionFactory.createPartition(directoryService.getSchemaManager(),
+        directoryService.getDnFactory(), "sonatype", "o=sonatype", 500,
+        new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "sonatype"));
     sonatypePartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(sonatypePartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.addPartition(sonatypePartition);
 
-    Partition groupsPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "groups",
-        "ou=groups,dc=company,dc=com", 500,
+    Partition groupsPartition = partitionFactory.createPartition(directoryService.getSchemaManager(),
+        directoryService.getDnFactory(), "groups", "ou=groups,dc=company,dc=com", 500,
         new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "groups"));
     groupsPartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(groupsPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.addPartition(groupsPartition);
 
-    Partition usersPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "users",
-        "ou=users,dc=company,dc=com", 500,
+    Partition usersPartition = partitionFactory.createPartition(directoryService.getSchemaManager(),
+        directoryService.getDnFactory(), "users", "ou=users,dc=company,dc=com", 500,
         new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "users"));
     usersPartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(usersPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.addPartition(usersPartition);
 
-    Partition acmeBrickPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "acme_brick",
-        "dc=acme brick,dc=com", 500,
+    Partition acmeBrickPartition = partitionFactory.createPartition(directoryService.getSchemaManager(),
+        directoryService.getDnFactory(), "acme_brick", "dc=acme brick,dc=com", 500,
         new File(directoryService.getInstanceLayout().getPartitionsDirectory(), "acme_brick"));
     acmeBrickPartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(acmeBrickPartition, SchemaConstants.OBJECT_CLASS_AT, 100);

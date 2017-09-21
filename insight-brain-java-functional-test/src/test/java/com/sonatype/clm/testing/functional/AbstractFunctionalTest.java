@@ -42,6 +42,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.NoAlertPresentException;
@@ -113,6 +114,9 @@ public abstract class AbstractFunctionalTest
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
 
   @BeforeClass
   public static void setup() {

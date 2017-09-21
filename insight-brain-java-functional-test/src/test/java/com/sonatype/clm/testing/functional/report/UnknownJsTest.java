@@ -25,18 +25,13 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.codeborne.selenide.Configuration;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 
 public class UnknownJsTest
     extends AbstractFunctionalTest
 {
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
-
   private static final String scanId = UUID.randomUUID().toString().replace("-", "");
 
   private static final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
@@ -59,7 +54,7 @@ public class UnknownJsTest
 
   @Test
   public void testViewWaivedPolicyViolations() throws Exception {
-    File report = TestReportUtil.setupReport("/UnknownJsTest", tempFolder.newFile());
+    File report = TestReportUtil.setupReport("/UnknownJsTest", tempDir.newFile());
 
     evaluator = new TestReportEvaluator(app, scanId, report.toURI().toURL(), Configuration.baseUrl, work);
     evaluator.evaluatePolicy();

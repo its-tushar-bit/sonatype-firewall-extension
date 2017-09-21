@@ -45,9 +45,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
@@ -68,9 +66,6 @@ import static org.junit.Assert.fail;
 public class ApplicationSummaryViewTest
     extends AbstractSummaryViewTest
 {
-  @Rule
-  public TemporaryFolder tmpDir = new TemporaryFolder();
-
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
   private Application application;
@@ -373,7 +368,7 @@ public class ApplicationSummaryViewTest
     File tempFile = null;
 
     try {
-      tempFile = tmpDir.newFile("mockApplicationBinary.war");
+      tempFile = tempDir.newFile("mockApplicationBinary.war");
     }
     catch (IOException e) {
       fail("Could not create temporary mock binary to evaluate. " + e.getMessage());

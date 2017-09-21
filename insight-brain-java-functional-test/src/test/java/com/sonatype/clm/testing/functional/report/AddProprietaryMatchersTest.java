@@ -27,9 +27,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.codeborne.selenide.Configuration;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -55,9 +53,6 @@ public class AddProprietaryMatchersTest
   private static final com.codeborne.selenide.Condition ERROR = cssClass("error");
 
   private ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
-
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
 
   private Application app;
 

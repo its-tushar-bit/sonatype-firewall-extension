@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
@@ -67,11 +67,13 @@ import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 public class UserDirectoryTest
     extends AbstractComponentTest
 {
-  @Rule
-  public TestLdapServer testLdapServer1;
+  public TestLdapServer testLdapServer1 = new TestLdapServer();
+
+  public TestLdapServer testLdapServer2 = new TestLdapServer();
 
   @Rule
-  public TestLdapServer testLdapServer2;
+  public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
+      .around(testLdapServer1).around(testLdapServer2);
 
   @Inject
   private LdapService ldapService;
@@ -81,8 +83,8 @@ public class UserDirectoryTest
 
   @Before
   public void before() {
-    testLdapServer1 = new TestLdapServer(new File(tempDir.getRoot(), "server1"), "/UserDirectoryTest/ldap_users1.ldif");
-    testLdapServer2 = new TestLdapServer(new File(tempDir.getRoot(), "server2"), "/UserDirectoryTest/ldap_users2.ldif");
+    testLdapServer1.setWorkingDirectory(tempDir).setLdifResourceName("/UserDirectoryTest/ldap_users1.ldif");
+    testLdapServer2.setWorkingDirectory(tempDir).setLdifResourceName("/UserDirectoryTest/ldap_users2.ldif");
   }
 
   private void configureAndStartNewLdapServer(TestLdapServer testLdapServer, String ldapServerName)

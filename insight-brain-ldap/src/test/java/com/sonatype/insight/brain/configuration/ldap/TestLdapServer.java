@@ -5,8 +5,9 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import java.io.File;
+import java.io.IOException;
 
+import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -21,11 +22,14 @@ public class TestLdapServer
     extends EmbeddedLdapServer
     implements TestRule
 {
-  public TestLdapServer() {
-  }
-
-  public TestLdapServer(File workingDirectory, String ldifResourceName) {
-    super(workingDirectory, ldifResourceName);
+  public TestLdapServer setWorkingDirectory(TemporaryFolder tempDir) {
+    try {
+      setWorkingDirectory(tempDir.newFolder());
+    }
+    catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+    return this;
   }
 
   @Override

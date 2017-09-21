@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -32,6 +31,7 @@ import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,19 +55,23 @@ public class LdapServiceTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
-  @Rule
-  public TestLdapServer testLdapServer1;
+  public TestLdapServer testLdapServer1 = new TestLdapServer();
+
+  public TestLdapServer testLdapServer2 = new TestLdapServer();
+
+  public TestLdapServer testLdapServer3 = new TestLdapServer();
 
   @Rule
-  public TestLdapServer testLdapServer2;
+  public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
+      .around(testLdapServer1).around(testLdapServer2).around(testLdapServer3);
 
   @Before
   public void before() {
-    testLdapServer1 = new TestLdapServer(new File(tempDir.getRoot(), "server1"), "/ldap_users1.ldif");
-    testLdapServer2 = new TestLdapServer(new File(tempDir.getRoot(), "server2"), "/ldap_users2.ldif");
+    testLdapServer1.setWorkingDirectory(tempDir).setLdifResourceName("/ldap_users1.ldif");
+    testLdapServer2.setWorkingDirectory(tempDir).setLdifResourceName("/ldap_users2.ldif");
+    testLdapServer3.setWorkingDirectory(tempDir).setLdifResourceName("/ldap_users2.ldif");
   }
 
   @Inject
@@ -295,32 +299,25 @@ public class LdapServiceTest
     final LdapConnection ldapConnection1 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server1");
     final LdapConnection ldapConnection2 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server2");
 
-    final TestLdapServer testLdapServer3 = new TestLdapServer(new File(tempDir.getRoot(), "server3"),
-        "/ldap_users2.ldif");
     loadLdapServer(testLdapServer3, "Test Server3");
-    try {
-      try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
-        try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
+    try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
+      try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
 
-          try {
-            ldapService.authenticateUser("any-user", "anything".toCharArray());
-            fail("magic string 'timeout' in any error message should fail");
-          }
-          catch (NamingException e) {
-            assertThat(e.getMessage(),
-                is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
-                    + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
+        try {
+          ldapService.authenticateUser("any-user", "anything".toCharArray());
+          fail("magic string 'timeout' in any error message should fail");
+        }
+        catch (NamingException e) {
+          assertThat(e.getMessage(),
+              is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
+                  + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
 
-            assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-            assertThat(e.getSuppressed()[1].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-            assertThat(e.getSuppressed()[2].getMessage(), is("LDAP user with username 'any-user' does not exist"));
-            assertThat(e.getSuppressed().length, is(3));
-          }
+          assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
+          assertThat(e.getSuppressed()[1].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
+          assertThat(e.getSuppressed()[2].getMessage(), is("LDAP user with username 'any-user' does not exist"));
+          assertThat(e.getSuppressed().length, is(3));
         }
       }
-    }
-    finally {
-      testLdapServer3.stop();
     }
   }
 
@@ -479,32 +476,25 @@ public class LdapServiceTest
     final LdapConnection ldapConnection1 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server1");
     final LdapConnection ldapConnection2 = createShortTimeoutLdapConnectionWithoutEmbeddedServer("Test Server2");
 
-    final TestLdapServer testLdapServer3 = new TestLdapServer(new File(tempDir.getRoot(), "server3"),
-        "/ldap_users2.ldif");
     loadLdapServer(testLdapServer3, "Test Server3");
-    try {
-      try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
-        try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
+    try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
+      try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
 
-          try {
-            ldapService.authenticateUserForReverseProxy("any-user");
-            fail("magic string 'timeout' in any error message should fail");
-          }
-          catch (NamingException e) {
-            assertThat(e.getMessage(),
-                is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
-                    + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
+        try {
+          ldapService.authenticateUserForReverseProxy("any-user");
+          fail("magic string 'timeout' in any error message should fail");
+        }
+        catch (NamingException e) {
+          assertThat(e.getMessage(),
+              is("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
+                  + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n"));
 
-            assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-            assertThat(e.getSuppressed()[1].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
-            assertThat(e.getSuppressed()[2].getMessage(), is("LDAP user with username 'any-user' does not exist"));
-            assertThat(e.getSuppressed().length, is(3));
-          }
+          assertThat(e.getSuppressed()[0].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
+          assertThat(e.getSuppressed()[1].getMessage(), is("LDAP response read timed out, timeout used:1000ms."));
+          assertThat(e.getSuppressed()[2].getMessage(), is("LDAP user with username 'any-user' does not exist"));
+          assertThat(e.getSuppressed().length, is(3));
         }
       }
-    }
-    finally {
-      testLdapServer3.stop();
     }
   }
 

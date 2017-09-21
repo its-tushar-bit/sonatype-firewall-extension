@@ -59,7 +59,7 @@ public class EmbeddedLdapServer
 
   private static final String LOCALHOST = "localhost";
 
-  private File workingDirectory;
+  private File workingDirectory = new File("target/apacheds", UUID.randomUUID().toString()).getAbsoluteFile();
 
   private DefaultDirectoryService directoryService;
 
@@ -79,25 +79,14 @@ public class EmbeddedLdapServer
 
   private String ldifResourceName;
 
-  /**
-   * @since 1.7
-   */
-  public EmbeddedLdapServer(File workingDirectory) {
-    this(workingDirectory, null /* ldifResourceName */);
+  public EmbeddedLdapServer setWorkingDirectory(File workingDirectory) {
+    this.workingDirectory = workingDirectory.getAbsoluteFile();
+    return this;
   }
 
-  public EmbeddedLdapServer(File workingDirectory, String ldifResourceName) {
-    log.debug("Creating EmbeddedLdapServer with workingDirectory={} and ldifResourceName={}",
-        workingDirectory == null ? null : workingDirectory.getAbsolutePath(), ldifResourceName);
-    this.workingDirectory = workingDirectory;
+  public EmbeddedLdapServer setLdifResourceName(String ldifResourceName) {
     this.ldifResourceName = ldifResourceName;
-  }
-
-  /**
-   * Creates new EmbeddedLdapServer instance with conventional work directory target/apacheds
-   */
-  public EmbeddedLdapServer() {
-    this(new File("target/apacheds", UUID.randomUUID().toString()));
+    return this;
   }
 
   /**
@@ -113,6 +102,9 @@ public class EmbeddedLdapServer
     if (port <= 0) {
       port = getRandomPort();
     }
+
+    log.debug("Starting EmbeddedLdapServer with working directory {} and LDIF {} on port {}", workingDirectory,
+        ldifResourceName, port);
 
     // an example that shows how to create and configure embedded apacheds instance
     // http://svn.apache.org/repos/asf/directory/apacheds/trunk/core-annotations/src/main/java/org/apache/directory/server/core/factory/DefaultDirectoryServiceFactory.java
@@ -346,7 +338,7 @@ public class EmbeddedLdapServer
   public static void main(String[] args) throws Exception {
     File workingDirectory = new File("target/apacheds");
     new FileCleaner().delete(workingDirectory);
-    EmbeddedLdapServer server = new EmbeddedLdapServer(workingDirectory);
+    EmbeddedLdapServer server = new EmbeddedLdapServer().setWorkingDirectory(workingDirectory);
     server.enableLdaps(SslProperties.SERVER_STORE_FILE, SslProperties.KEY_STORE_PASSWORD);
     server.start();
   }

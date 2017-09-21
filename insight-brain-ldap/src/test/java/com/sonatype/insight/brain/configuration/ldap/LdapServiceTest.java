@@ -870,17 +870,17 @@ public class LdapServiceTest
     createUserMapping(ldapServer2);
 
     List<LdapUser> users1 = ldapService.getUsers(ldapServer1,
-        new String[] { "test_user1_1", "test_user2_1", "test_user1_2" }, 100);
+        new String[] { "test_user1_1", "test_user2_1", "test_user1_2" });
     assertThat(users1.size(), is(2));
     Collections.sort(users1);
     assertThat(users1.get(0).getUsername(), is("test_user1_1"));
     assertThat(users1.get(1).getUsername(), is("test_user2_1"));
 
-    users1 = ldapService.getUsers(ldapServer1, new String[] { "foo" }, 100);
+    users1 = ldapService.getUsers(ldapServer1, new String[] { "foo" });
     assertThat(users1.size(), is(0));
 
     List<LdapUser> users2 = ldapService.getUsers(ldapServer2,
-        new String[] { "test_user1_1", "test_user2_1", "test_user1_2" }, 100);
+        new String[] { "test_user1_1", "test_user2_1", "test_user1_2" });
     assertThat(users2.size(), is(1));
     assertThat(users2.get(0).getUsername(), is("test_user1_2"));
   }
@@ -893,7 +893,7 @@ public class LdapServiceTest
 
     createUserMapping(ldapServer);
 
-    List<LdapUser> users = ldapService.getUsers(ldapServer, new String[] { "test_user*" }, 100);
+    List<LdapUser> users = ldapService.getUsers(ldapServer, new String[] { "test_user*" });
     assertThat(users.size(), is(0));
   }
 
@@ -911,14 +911,10 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "Gamma", "Theta" }, 100);
+    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "Gamma", "Theta" });
     assertThat(groups.size(), is(2));
 
-    // Test max results
-    groups = ldapService.getGroups(ldapServer, new String[] { "Gamma", "Theta" }, 1);
-    assertThat(groups.size(), is(1));
-
-    groups = ldapService.getGroups(ldapServer, new String[] { "foo" }, 100);
+    groups = ldapService.getGroups(ldapServer, new String[] { "foo" });
     assertThat(groups.size(), is(0));
   }
 
@@ -936,7 +932,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "*ta" }, 100);
+    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "*ta" });
     assertThat(groups.size(), is(0));
   }
 
@@ -952,13 +948,10 @@ public class LdapServiceTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "ab", "abc", "bc" }, 100);
+    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "ab", "abc", "bc" });
     assertThat(groups.size(), is(3));
 
-    groups = ldapService.getGroups(ldapServer, new String[] { "ab", "abc", "bc" }, 1);
-    assertThat(groups.size(), is(1));
-
-    groups = ldapService.getGroups(ldapServer, new String[] { "foo" }, 100);
+    groups = ldapService.getGroups(ldapServer, new String[] { "foo" });
     assertThat(groups.size(), is(0));
   }
 
@@ -974,7 +967,7 @@ public class LdapServiceTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "ab*" }, 100);
+    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "ab*" });
     assertThat(groups.size(), is(0));
   }
 

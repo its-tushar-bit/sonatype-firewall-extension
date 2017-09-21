@@ -59,7 +59,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -223,14 +222,7 @@ public class HdsClient
         return clazz.cast(entity.getContent());
       }
       else {
-        InputStream in = null;
-        try {
-          in = entity.getContent();
-          return JsonUtils.parse(IOUtil.toByteArray(in), clazz);
-        }
-        finally {
-          IOUtil.close(in);
-        }
+        return JsonUtils.parse(EntityUtils.toByteArray(entity), clazz);
       }
     }
     catch (IOException e) {

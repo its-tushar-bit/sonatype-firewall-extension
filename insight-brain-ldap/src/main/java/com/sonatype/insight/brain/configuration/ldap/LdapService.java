@@ -129,7 +129,7 @@ public class LdapService
 
   public List<LdapGroup> getGroups(LdapServer ldapServer, String[] names) throws NamingException {
     LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).getGroups(names, names.length);
+    return new LdapQuery(conn, getUserMapping(conn)).getGroups(names);
   }
 
   /**

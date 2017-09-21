@@ -268,11 +268,11 @@ class LdapQuery
     }
   }
 
-  public List<LdapGroup> getGroups(String[] names, long maxResults) throws NamingException {
+  public List<LdapGroup> getGroups(String[] names) throws NamingException {
     LdapContext ctx = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      return searchGroupsByGroupnames(ctx, names, maxResults);
+      return searchGroupsByGroupnames(ctx, names, 0);
     }
     finally {
       LdapUtils.closeContext(ctx);

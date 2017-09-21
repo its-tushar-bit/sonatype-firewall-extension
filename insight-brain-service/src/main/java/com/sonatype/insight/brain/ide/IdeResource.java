@@ -163,8 +163,9 @@ public class IdeResource
    */
   @GET
   @Path("component/versions")
-  public Response getVersions(@Context HttpServletRequest req) throws IOException {
-    return client.doProxy(req, "rest/ide/artifact/versions");
+  @Produces(MediaType.APPLICATION_JSON)
+  public String[] getVersions(@Context HttpServletRequest req) throws IOException {
+    return client.get(req, String[].class, "rest/ide/artifact/versions");
   }
 
   /**

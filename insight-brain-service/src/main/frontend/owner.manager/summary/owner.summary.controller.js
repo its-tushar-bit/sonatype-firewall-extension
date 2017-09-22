@@ -29,6 +29,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   vm.selectContact = selectContact;
   vm.changeApplicationId = changeApplicationId;
   vm.hasPermissionToChangeAppId = undefined;
+  vm.hasPermissionToEvaluateApp = undefined;
 
   var siblings,
       stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -66,6 +67,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
         vm.stages = results[2];
         vm.applicationSummary = results[3].data;
         getAppChangePermissions();
+        getAppEvaluatePermissions();
       }
     }, function(error) {
       vm.error = error;
@@ -80,6 +82,12 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
     });
   }
 
+  function getAppEvaluatePermissions() {
+    PermissionService.isContextAuthorized(['EVALUATE_APPLICATION'], 'application', vm.owner.id).then(function(hasPermission) {
+      vm.hasPermissionToEvaluateApp = hasPermission;
+    });
+  }
+
   function edit() {
     OwnerEditor.open(vm.owner, type, siblings);
   }
@@ -89,7 +97,9 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   }
 
   function evaluateApp() {
-    EvaluateApplicationModalService.open(vm.owner);
+    if (vm.hasPermissionToEvaluateApp) {
+      EvaluateApplicationModalService.open(vm.owner);
+    }
   }
 
   function importPolicy() {

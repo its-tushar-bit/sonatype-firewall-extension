@@ -28,6 +28,7 @@ import com.sonatype.clm.testing.functional.elements.RemoveModal;
 import com.sonatype.clm.testing.functional.elements.SelectContactModal;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -424,6 +425,29 @@ public class ApplicationSummaryViewTest
         WebDriverRunner.getWebDriver().close();
         switchToWindow(0);
       }
+    }
+  }
+
+  @Test
+  public void testEvaluateBinaryBtnDisabledWithoutPermissions() {
+    // log in as a user that doesn't have permission to evaluate this app
+    createUser();
+    grantPermissions(getUsername(), application.getId(), Permission.READ);
+
+    logout();
+    login();
+
+    try {
+      refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+      ActionDropDown.actionButton().click();
+      ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldHave(cssClass("disabled")).hover();
+      Tooltip.get().shouldBe(visible).shouldHave(text("Insufficient permissions to evaluate application"));
+      ActionDropDown.evaluateBinaryButton().click();
+      new EvaluateApplicationModal().shouldNotBe(visible);
+    }
+    finally {
+      logout();
+      loginAsAdmin();
     }
   }
 }

@@ -81,6 +81,7 @@ describe('owner.summary.controller.js', function() {
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
+      resolveApplicationEvaluatePermission(true);
       $timeout.flush();
 
       expect(vm.owner).toEqual(owner);
@@ -89,19 +90,22 @@ describe('owner.summary.controller.js', function() {
         expect(vm.stages).toEqual(MockData.getDashboardStageData());
         expect(vm.applicationSummary).toEqual(ApplicationResourceMockData.getApplicationSummaryUrl());
         expect(vm.hasPermissionToChangeAppId).toEqual(true);
+        expect(vm.hasPermissionToEvaluateApp).toEqual(true);
       }
     });
 
-    it('Properly loads hasPermissionToChangeAppId when it is false', function() {
+    it('Properly loads permissions when unauthorized', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(false);
+      resolveApplicationEvaluatePermission(false);
       $timeout.flush();
 
       if (isApp) {
         expect(vm.hasPermissionToChangeAppId).toEqual(false);
+        expect(vm.hasPermissionToEvaluateApp).toEqual(false);
       }
     });
 
@@ -264,6 +268,13 @@ describe('owner.summary.controller.js', function() {
     function resolveApplicationWritePermission(hasPermission) {
       if (isApp) {
         expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(['WRITE'], type, owner.id);
+        isContextAuthorizedDefer.resolve(hasPermission);
+      }
+    }
+
+    function resolveApplicationEvaluatePermission(hasPermission) {
+      if (isApp) {
+        expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(['EVALUATE_APPLICATION'], type, owner.id);
         isContextAuthorizedDefer.resolve(hasPermission);
       }
     }

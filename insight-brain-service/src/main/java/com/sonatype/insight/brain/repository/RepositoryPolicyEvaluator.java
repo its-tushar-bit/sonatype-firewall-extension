@@ -186,6 +186,10 @@ public class RepositoryPolicyEvaluator
     }
     if (repositoryComponent == null) {
       boolean quarantine = canBeQuarantined && shouldQuarantine(policyResults.getActiveAlerts(), component);
+      if (quarantine) {
+        log.debug("Component {} in repository {}:{} ({}) was quarantined", pathname,
+            repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
+      }
       Date quarantineTime = quarantine ? evaluationTime : null;
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),
           component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()

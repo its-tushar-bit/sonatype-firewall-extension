@@ -62,8 +62,7 @@ function successMetricsChartPageController($q, $state, $stateParams, systemConfi
           vm.successMetrics.scope.applicationIds.length === 1) &&
           (!vm.successMetrics.scope.organizationIds || vm.successMetrics.scope.organizationIds.length <= 1);
       if (vm.isSingleApplicationReport && vm.activeApplicationCount > 0) {
-        return $q.when(
-            successMetricsDataService.getApplicationByInternalId(vm.successMetrics.scope.applicationIds[0])).then(
+        return successMetricsDataService.getApplicationByInternalId(vm.successMetrics.scope.applicationIds[0]).then(
             function(owner) {
               vm.singleApplicationName = owner.name;
             });

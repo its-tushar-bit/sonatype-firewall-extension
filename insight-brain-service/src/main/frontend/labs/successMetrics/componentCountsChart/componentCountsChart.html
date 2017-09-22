@@ -1,10 +1,14 @@
 <h3 class="iq-chart-title">Components</h3>
-<p class="iq-chart__averages">
+<p ng-if="!vm.isSingleApplicationReport" class="iq-chart__averages">
   <strong>On average</strong>, there are
   <span class="iq-chart__display-number">{{::vm.componentData.componentsPerApplication}}</span> components per
   application.
 </p>
-<div ng-if="vm.componentData.componentsInTheMostApplications.length > 0">
+<p ng-if="vm.isSingleApplicationReport" class="iq-chart__averages">
+  <strong>{{::vm.singleApplicationName}}</strong> contains
+  <span class="iq-chart__display-number">{{::vm.componentData.componentsPerApplication}}</span> components.
+</p>
+<div ng-if="vm.componentData.componentsInTheMostApplications.length > 0 && !vm.isSingleApplicationReport">
   <h3 class="iq-chart-title iq-chart-title--component-counts">Components used across the most applications</h3>
   <div class="iq-chart iq-chart--component-counts iq-chart--horizontal-bar">
     <div id="component-in-most-applications" class="iq-chart__labels--horizontal-bar">

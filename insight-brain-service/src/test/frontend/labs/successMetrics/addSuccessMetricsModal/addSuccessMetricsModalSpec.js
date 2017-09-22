@@ -15,7 +15,7 @@ describe('addSuccessMetricsModal', function() {
       $rootScope,
       $q;
 
-  beforeEach(module('successMetricsModule'));
+  beforeEach(module('successMetricsModule', 'Stores'));
 
   beforeEach(inject(function(_$q_, $componentController, _$rootScope_) {
     $rootScope = _$rootScope_;

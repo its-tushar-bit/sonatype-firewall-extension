@@ -1,6 +1,6 @@
 /* global describe, beforeEach, it, expect, inject */
 describe('componentCountsChart', function() {
-  beforeEach(module('successMetricsModule', 'legacyConfiguration'));
+  beforeEach(module('successMetricsModule', 'legacyConfiguration', 'Stores'));
 
   var getVm,
       mockComponentData = {

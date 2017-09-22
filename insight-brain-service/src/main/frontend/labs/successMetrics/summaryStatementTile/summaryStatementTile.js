@@ -11,7 +11,8 @@ export default {
   bindings: {
     averagesData: '<',
     successMetrics: '<',
-    onDelete: '&'
+    onDelete: '&',
+    isSingleApplicationReport: '<'
   }
 };
 

@@ -19,7 +19,7 @@
   <span class="iq-chart__display-number" id="active-applications-count"><!--
  -->{{::vm.averagesData.activeApplicationCount}}<!--
 --></span>
-  applications.
+  application{{::(vm.isSingleApplicationReport ? '' : 's')}}.
 </p>
 <div ng-if="vm.showNoDataMessage" class="iq-alert iq-alert--info" id="no-data-warning">
   <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check

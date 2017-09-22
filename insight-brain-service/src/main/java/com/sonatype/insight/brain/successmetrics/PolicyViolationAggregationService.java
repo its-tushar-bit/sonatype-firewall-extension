@@ -186,7 +186,8 @@ public class PolicyViolationAggregationService
   }
 
   ApplicationCountsDTO getApplicationCounts(Set<String> organizationIds, Set<String> applicationIds) {
-    Set<String> applicationIdsToQuery = getApplicationIdsToQuery(organizationIds, applicationIds);
+    Collection<Application> applicationsToQuery = getApplicationsToQuery(organizationIds, applicationIds);
+    Set<String> applicationIdsToQuery = getApplicationIdsToQuery(applicationsToQuery);
     generatePolicyViolationAggregations(applicationIdsToQuery);
 
     ApplicationCountsByThreat applicationCounts = violationAggregationDAO
@@ -233,14 +234,19 @@ public class PolicyViolationAggregationService
   }
 
   private Set<String> getApplicationIdsToQuery(Set<String> organizationIds, Set<String> applicationIds) {
-    Collection<Application> applicationsToQuery = applicationService
-        .getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, null);
+    return getApplicationIdsToQuery(getApplicationsToQuery(organizationIds, applicationIds));
+  }
 
+  private Set<String> getApplicationIdsToQuery(Collection<Application> applicationsToQuery) {
     Set<String> applicationIdsToQuery = new HashSet<>();
     for (Application app : applicationsToQuery) {
       applicationIdsToQuery.add(app.getId());
     }
     return applicationIdsToQuery;
+  }
+
+  private Collection<Application> getApplicationsToQuery(Set<String> organizationIds, Set<String> applicationIds) {
+    return applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, null);
   }
 
   /**

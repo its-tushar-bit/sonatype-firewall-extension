@@ -133,7 +133,7 @@ public class SuccessMetricsChartsTest
 
     SuccessMetricsScopeDTO successMetricsScope = new SuccessMetricsScopeDTO();
     successMetricsScope.organizationIds = new HashSet<>(Arrays.asList(app1.getParentOwnerId()));
-    successMetricsScope.applicationIds = new HashSet<>(Arrays.asList(app2.getId()));
+    successMetricsScope.applicationIds = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
 
     // Include app2 using its app id and app1 using its parent org id. Do not include app3.
     SuccessMetrics successMetrics = staticTempEntity.newSuccessMetrics("admin", "Test",
@@ -157,8 +157,7 @@ public class SuccessMetricsChartsTest
     successMetricsChartsPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
     SummaryStatementTile.title().shouldHave(text("Test"));
-    SummaryStatementTile.activeApplicationsCount().shouldBe(visible).shouldBe(text("2"));
-    SummaryStatementTile.months().shouldBe(visible).shouldHave(text("4 months"));
+    SummaryStatementTile.averages().shouldHave(text("Over the last 4 months, Lifecycle evaluated 2 applications."));
   }
 
   @Test
@@ -167,9 +166,10 @@ public class SuccessMetricsChartsTest
 
     successMetricsChartsPage.should(appear);
     ViolationAveragesTile.root().shouldBe(visible);
-    ViolationAveragesTile.averageEvaluations().shouldBe(visible).shouldBe(text("1"));
-    ViolationAveragesTile.averagePolicyViolations().shouldBe(visible).shouldBe(text("2"));
-    ViolationAveragesTile.averageCriticalPolicyViolations().shouldBe(visible).shouldBe(text("1"));
+    ViolationAveragesTile.title()
+        .shouldHave(text("Average Number of Violations Discovered Per Month, Per Application"));
+    ViolationAveragesTile.averages().shouldHave(text(
+        "On average Lifecycle performed 1 evaluations per month, finding 2 policy violations per application, of which 1 were critical."));
   }
 
   @Test
@@ -234,6 +234,8 @@ public class SuccessMetricsChartsTest
     successMetricsChartsPage.should(appear);
     ComponentCountsTile.root().shouldBe(visible);
 
+    ComponentCountsTile.averages()
+        .shouldHave(text("On average, there are 1 components per application."));
     ElementsCollection componentsInMostApplications = ComponentCountsTile.componentsInMostApplications();
     componentsInMostApplications.shouldHaveSize(2);
     ElementsCollection componentsWithMostViolations = ComponentCountsTile.componentsWithMostViolations();

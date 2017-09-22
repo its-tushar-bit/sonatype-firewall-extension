@@ -1,15 +1,31 @@
 /* global inject, beforeEach, afterEach, it, describe, expect, PolicyViolationAggregationResourceMockData */
 describe('successMetricsDataService', function() {
-  beforeEach(module('successMetricsModule'));
-
   var $httpBackend,
       successMetricsDataService,
-      CLMLocations;
+      CLMLocations,
+      $timeout,
+      $q,
+      applicationStoreDeferred,
+      mockApplicationStore = {
+        get: function() {
+          return applicationStoreDeferred.promise;
+        }
+      };
 
-  beforeEach(inject(function(_$httpBackend_, _successMetricsDataService_, _CLMLocations_) {
+  beforeEach(module('successMetricsModule', 'Stores'));
+
+  beforeEach(module(function($provide) {
+    $provide.value("ApplicationStore", mockApplicationStore);
+  }));
+  
+  beforeEach(inject(function(_$q_, _$timeout_, _$httpBackend_, _successMetricsDataService_, _CLMLocations_) {
     $httpBackend = _$httpBackend_;
     successMetricsDataService = _successMetricsDataService_;
     CLMLocations = _CLMLocations_;
+    $q = _$q_;
+    $timeout = _$timeout_;
+    
+    applicationStoreDeferred = $q.defer();
   }));
 
   afterEach(function() {
@@ -351,5 +367,38 @@ describe('successMetricsDataService', function() {
     function assertComponentData(componentData, expectedCount) {
       expect(componentData.count).toBe(expectedCount);
     }
+  });
+
+  describe('getApplicationByInternalId', function() {
+    it('fetches application properly', function() {
+      var output;
+      var applications = [{id: 'app1', name: 'app 1'}, {id: 'app2', name: 'app 2'}];
+
+      applicationStoreDeferred.resolve(applications);
+      successMetricsDataService.getApplicationByInternalId('app1').then(function(result) {
+        output = result
+      });
+
+      $timeout.flush();
+
+      expect(output).toBeDefined();
+      expect(output.id).toBe('app1')
+      expect(output.name).toBe('app 1');
+    });
+
+    it('rejects promise if application not found', function() {
+      var caughtError;
+      var applications = [{id: 'app2', name: 'app 2'}];
+
+      applicationStoreDeferred.resolve(applications);
+      successMetricsDataService.getApplicationByInternalId('app1').catch(function(e) {
+        caughtError = e;
+      });
+
+      $timeout.flush();
+
+      expect(caughtError).toBeDefined();
+      expect(caughtError).toBe('Could not find Application with internal id app1');
+    })
   });
 });

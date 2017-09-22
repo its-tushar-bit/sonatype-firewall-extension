@@ -9,7 +9,7 @@ const EMPTY_PREFIX = '~empty~';
 const getData = ({ data }) => data;
 
 export default
-function successMetricsDataService($http, CLMLocations) {
+function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
   return {
     getMttrData: getMttrData,
     getAveragesData: getAveragesData,
@@ -18,6 +18,7 @@ function successMetricsDataService($http, CLMLocations) {
     getSuccessMetricsForCurrentUser: getSuccessMetricsForCurrentUser,
     createSuccessMetricsForCurrentUser: createSuccessMetricsForCurrentUser,
     deleteSuccessMetrics: deleteSuccessMetrics,
+    getApplicationByInternalId: getApplicationByInternalId,
     EMPTY_PREFIX: EMPTY_PREFIX
   };
 
@@ -166,6 +167,24 @@ function successMetricsDataService($http, CLMLocations) {
   function deleteSuccessMetrics(successMetricsId) {
     return $http.delete(CLMLocations.getSingleSuccessMetricsUrl(successMetricsId));
   }
+
+  // ApplicationStore is configured to lookup by public id not internal id
+  function getApplicationByInternalId(id) {
+    return ApplicationStore.get().then(function(owners) {
+      let result = undefined;
+      owners.some(function(owner) {
+        if (owner.id === id) {
+          result = owner;
+          return true;
+        }
+      });
+
+      if (!result) {
+        return $q.reject(`Could not find Application with internal id ${id}`);
+      }
+      return result;
+    });
+  }
 }
 
-successMetricsDataService.$inject = ['$http', 'CLMLocations'];
+successMetricsDataService.$inject = ['$q', '$http', 'CLMLocations', 'ApplicationStore'];

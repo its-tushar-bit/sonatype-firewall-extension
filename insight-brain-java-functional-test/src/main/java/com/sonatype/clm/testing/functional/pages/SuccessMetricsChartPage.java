@@ -68,6 +68,10 @@ public class SuccessMetricsChartPage
       return $(SelectorUtils.createSelector(ROOT, ".iq-tile-header--chart"));
     }
 
+    public static SelenideElement averages() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
+    }
+
     public static SelenideElement activeApplicationsCount() {
       return $("#active-applications-count");
     }
@@ -95,6 +99,14 @@ public class SuccessMetricsChartPage
 
     public static SelenideElement root() {
       return $(ROOT);
+    }
+
+    public static SelenideElement title() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart-title"));
+    }
+
+    public static SelenideElement averages() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
     }
 
     public static SelenideElement averageEvaluations() {
@@ -203,6 +215,10 @@ public class SuccessMetricsChartPage
 
     public static SelenideElement root() {
       return $(ROOT);
+    }
+
+    public static SelenideElement averages() {
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
     }
 
     public static ElementsCollection componentsInMostApplications() {

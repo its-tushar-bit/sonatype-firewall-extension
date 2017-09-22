@@ -21,6 +21,8 @@ function successMetricsChartPageController($q, $state, $stateParams, systemConfi
   vm.error = undefined;
   vm.activeApplicationCount = undefined;
   vm.successMetrics = undefined;
+  vm.singleApplicationName = undefined;
+  vm.isSingleApplicationReport = undefined;
   vm.doLoad = doLoad;
   vm.isMttrDisabled = isMttrDisabled;
   vm.goToList = goToList;
@@ -56,6 +58,16 @@ function successMetricsChartPageController($q, $state, $stateParams, systemConfi
       angular.extend(vm, { applicationCountsData, mttrData, averagesData, componentCountsData });
 
       vm.activeApplicationCount = applicationCountsData.activeApplications;
+      vm.isSingleApplicationReport = !!(vm.successMetrics && vm.successMetrics.scope.applicationIds &&
+          vm.successMetrics.scope.applicationIds.length === 1) &&
+          (!vm.successMetrics.scope.organizationIds || vm.successMetrics.scope.organizationIds.length <= 1);
+      if (vm.isSingleApplicationReport && vm.activeApplicationCount > 0) {
+        return $q.when(
+            successMetricsDataService.getApplicationByInternalId(vm.successMetrics.scope.applicationIds[0])).then(
+            function(owner) {
+              vm.singleApplicationName = owner.name;
+            });
+      }
     }).catch(function(error) {
       vm.error = error;
     }).finally(function() {

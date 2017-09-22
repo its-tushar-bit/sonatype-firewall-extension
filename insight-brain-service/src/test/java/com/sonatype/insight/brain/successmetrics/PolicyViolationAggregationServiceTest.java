@@ -817,6 +817,7 @@ public class PolicyViolationAggregationServiceTest
     ApplicationCountsDTO result = service.getApplicationCounts(null, Collections.singleton(application.getId()));
 
     ApplicationCountsDTO expected = new ApplicationCountsDTO();
+    expected.activeApplications = 0;
     expected.totalApplications = 1;
 
     assertApplicationCountsDTO(result, expected);

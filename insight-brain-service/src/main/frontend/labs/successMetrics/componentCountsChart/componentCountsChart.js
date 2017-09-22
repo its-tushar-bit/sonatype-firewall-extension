@@ -12,7 +12,9 @@ export default {
   controller: componentCountsChartController,
   controllerAs: 'vm',
   bindings: {
-    componentData: '<'
+    componentData: '<',
+    isSingleApplicationReport: '<',
+    singleApplicationName: '<'
   }
 };
 

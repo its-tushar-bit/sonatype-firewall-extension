@@ -101,7 +101,8 @@ describe('successMetricsChartPageSpec', function() {
           organizationIds: null,
           applicationIds: null
         }
-      }];
+      }],
+      applicationStoreDeferred;
 
   beforeEach(inject(function($q, _$rootScope_, $componentController) {
     $scope = _$rootScope_.$new();
@@ -117,6 +118,7 @@ describe('successMetricsChartPageSpec', function() {
     getAveragesDataDeferred = $q.defer();
     getComponentCountsDataDeferred = $q.defer();
     getSuccessMetricsForCurrentUserDeferred = $q.defer();
+    applicationStoreDeferred = $q.defer();
 
     mockSuccessMetricsDataService = {
       getApplicationCountsData: jasmine.createSpy().and.returnValue(getApplicationCountsDataDeferred.promise),
@@ -124,7 +126,8 @@ describe('successMetricsChartPageSpec', function() {
       getAveragesData: jasmine.createSpy().and.returnValue(getAveragesDataDeferred.promise),
       getComponentCountsData: jasmine.createSpy().and.returnValue(getComponentCountsDataDeferred.promise),
       getSuccessMetricsForCurrentUser:
-          jasmine.createSpy().and.returnValue(getSuccessMetricsForCurrentUserDeferred.promise)
+          jasmine.createSpy().and.returnValue(getSuccessMetricsForCurrentUserDeferred.promise),
+      getApplicationByInternalId: jasmine.createSpy().and.returnValue(applicationStoreDeferred.promise)
     };
 
     vm = $componentController('successMetricsChartPage', {
@@ -262,4 +265,157 @@ describe('successMetricsChartPageSpec', function() {
       expect(mockState.go).toHaveBeenCalledWith('labs.successMetrics');
     })
   })
+
+  describe('single application', function() {
+
+    it('sets singleApplicationName as undefined and isSingleApplicationReport is false before successMetrics ' +
+        'is bound', function() {
+      expect(vm.isSingleApplicationReport).toBeUndefined();
+      expect(vm.singleApplicationName).toBeUndefined();
+      expect(vm.successMetrics).toBeUndefined();
+    });
+
+    it('sets singleApplicationName as undefined and isSingleApplicationReport is false if applicationIds is null',
+        function() {
+          checkSuccessMetricsEnabledDeferred.resolve(true);
+          getSuccessMetricsForCurrentUserDeferred.resolve(
+              [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: null}}]);
+          getApplicationCountsDataDeferred.resolve({singleApplicationName: 'Test'});
+          getMttrDataDeferred.resolve(mttrData);
+          getAveragesDataDeferred.resolve(averagesData);
+          getComponentCountsDataDeferred.resolve(componentCountsData);
+          getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+
+          $scope.$digest();
+
+          expect(vm.isSingleApplicationReport).toBe(false);
+          expect(vm.singleApplicationName).toBeUndefined();
+        })
+
+    it('sets singleApplicationName as undefined and isSingleApplicationReport is false if applicationIds is empty',
+        function() {
+          checkSuccessMetricsEnabledDeferred.resolve(true);
+          getSuccessMetricsForCurrentUserDeferred.resolve(
+              [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: []}}]);
+          getApplicationCountsDataDeferred.resolve({singleApplicationName: 'Test'});
+          getMttrDataDeferred.resolve(mttrData);
+          getAveragesDataDeferred.resolve(averagesData);
+          getComponentCountsDataDeferred.resolve(componentCountsData);
+          getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+
+          $scope.$digest();
+
+          expect(vm.isSingleApplicationReport).toBe(false);
+          expect(vm.singleApplicationName).toBeUndefined();
+        })
+
+    it('sets singleApplicationName as undefined and isSingleApplicationReport is false if applicationIds array ' +
+        'length is more than 1',
+        function() {
+          checkSuccessMetricsEnabledDeferred.resolve(true);
+          getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+          getApplicationCountsDataDeferred.resolve(applicationCountsData);
+          getMttrDataDeferred.resolve(mttrData);
+          getAveragesDataDeferred.resolve(averagesData);
+          getComponentCountsDataDeferred.resolve(componentCountsData);
+          getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+
+          $scope.$digest();
+
+          expect(vm.isSingleApplicationReport).toBe(false);
+          expect(vm.singleApplicationName).toBeUndefined();
+        });
+
+    it('sets singleApplicationName and isSingleApplicationReport is true if applicationIds array length is 1',
+        function() {
+          checkSuccessMetricsEnabledDeferred.resolve(true);
+          getSuccessMetricsForCurrentUserDeferred.resolve(
+              [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: ['app1']}}]);
+          getApplicationCountsDataDeferred.resolve(applicationCountsData);
+          getMttrDataDeferred.resolve(mttrData);
+          getAveragesDataDeferred.resolve(averagesData);
+          getComponentCountsDataDeferred.resolve(componentCountsData);
+          getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+          applicationStoreDeferred.resolve({id: 'app1', name: 'app 1'});
+
+          $scope.$digest();
+
+          expect(vm.isSingleApplicationReport).toBe(true);
+          expect(vm.singleApplicationName).toBe('app 1');
+        });
+
+    it('sets singleApplicationName and isSingleApplicationReport is true if applicationIds array length is 1 and ' +
+        'organizationIds array length is 1',
+        function() {
+          checkSuccessMetricsEnabledDeferred.resolve(true);
+          getSuccessMetricsForCurrentUserDeferred.resolve(
+              [{id: 'SuccessMetrics1', scope: {organizationIds: ['org1'], applicationIds: ['app1']}}]);
+          getApplicationCountsDataDeferred.resolve(applicationCountsData);
+          getMttrDataDeferred.resolve(mttrData);
+          getAveragesDataDeferred.resolve(averagesData);
+          getComponentCountsDataDeferred.resolve(componentCountsData);
+          getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+          applicationStoreDeferred.resolve({id: 'app1', name: 'app 1'});
+
+          $scope.$digest();
+
+          expect(vm.isSingleApplicationReport).toBe(true);
+          expect(vm.singleApplicationName).toBe('app 1');
+        });
+
+    it('sets singleApplicationName as undefined and isSingleApplicationReport is false if applicationIds array ' +
+         'length is 1 and organizationIds array length is more than 1',
+        function() {
+          checkSuccessMetricsEnabledDeferred.resolve(true);
+          getSuccessMetricsForCurrentUserDeferred.resolve(
+              [{id: 'SuccessMetrics1', scope: {organizationIds: ['org1', 'org2'], applicationIds: ['app1']}}]);
+          getApplicationCountsDataDeferred.resolve(applicationCountsData);
+          getMttrDataDeferred.resolve(mttrData);
+          getAveragesDataDeferred.resolve(averagesData);
+          getComponentCountsDataDeferred.resolve(componentCountsData);
+          getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+
+          $scope.$digest();
+
+          expect(vm.isSingleApplicationReport).toBe(false);
+          expect(vm.singleApplicationName).toBeUndefined();
+        });
+
+    it('sets error when singleApplicationName not found', function() {
+      checkSuccessMetricsEnabledDeferred.resolve(true);
+      getSuccessMetricsForCurrentUserDeferred.resolve(
+          [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: ['app1']}}]);
+      getApplicationCountsDataDeferred.resolve(applicationCountsData);
+      getMttrDataDeferred.resolve(mttrData);
+      getAveragesDataDeferred.resolve(averagesData);
+      getComponentCountsDataDeferred.resolve(componentCountsData);
+      getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+      applicationStoreDeferred.reject('Could not find Application with internal id app1');
+
+      $scope.$digest();
+
+      expect(vm.isSingleApplicationReport).toBe(true);
+      expect(vm.singleApplicationName).toBeUndefined();
+      expect(vm.error).toBe('Could not find Application with internal id app1');
+    });
+
+    it('does not call getApplicationByInternalId if activeApplicationCount is 0', function() {
+      checkSuccessMetricsEnabledDeferred.resolve(true);
+      getSuccessMetricsForCurrentUserDeferred.resolve(
+          [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: ['app1']}}]);
+      getApplicationCountsDataDeferred.resolve({activeApplications: 0});
+      getMttrDataDeferred.resolve(mttrData);
+      getAveragesDataDeferred.resolve(averagesData);
+      getComponentCountsDataDeferred.resolve(componentCountsData);
+      getSuccessMetricsForCurrentUserDeferred.resolve(getSuccessMetricsForCurrentUserData);
+
+      $scope.$digest();
+
+      expect(vm.activeApplicationCount).toBe(0);
+      expect(mockSuccessMetricsDataService.getApplicationByInternalId).not.toHaveBeenCalled();
+      expect(vm.error).toBeUndefined();
+      expect(vm.singleApplicationName).toBeUndefined();
+      expect(vm.isSingleApplicationReport).toBe(true);
+    });
+  });
 });

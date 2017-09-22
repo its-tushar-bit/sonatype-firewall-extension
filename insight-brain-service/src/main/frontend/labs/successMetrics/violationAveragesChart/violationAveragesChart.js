@@ -11,7 +11,8 @@ export default {
   controller: violationAveragesChartController,
   controllerAs: 'vm',
   bindings: {
-    averagesData: '<'
+    averagesData: '<',
+    isSingleApplicationReport: '<'
   }
 };
 

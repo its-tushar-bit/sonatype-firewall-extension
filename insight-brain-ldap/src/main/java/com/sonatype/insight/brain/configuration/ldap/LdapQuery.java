@@ -247,14 +247,14 @@ class LdapQuery
   /**
    * Queries LDAP for list of users whose UserID attribute matches one of the names provided by the names parameter
    */
-  public List<LdapUser> getUsers(String[] names, long maxResults) throws NamingException {
+  public List<LdapUser> getUsers(String[] names) throws NamingException {
     String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
         umap.getUserEmailAttribute());
     LdapContext ctx = null;
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      results = searchUsersByUsernames(ctx, names, attributes, maxResults);
+      results = searchUsersByUsernames(ctx, names, attributes, 0);
       List<LdapUser> ldapUsers = new ArrayList<>();
       while (results.hasMoreElements()) {
         SearchResult result = results.nextElement();
@@ -741,31 +741,31 @@ class LdapQuery
    * 
    * @since 1.14.0
    */
-  public List<LdapUser> queryUsersByGroup(String groupName, long maxResults) throws NamingException {
+  public List<LdapUser> queryUsersByGroup(String groupName) throws NamingException {
     LdapContext ctx = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      return searchUsersByGroups(ctx, new String[] { groupName }, maxResults);
+      return searchUsersByGroups(ctx, new String[] { groupName });
     }
     finally {
       LdapUtils.closeContext(ctx);
     }
   }
 
-  private List<LdapUser> searchUsersByGroups(LdapContext ctx, String[] groupNames, long maxResults)
+  private List<LdapUser> searchUsersByGroups(LdapContext ctx, String[] groupNames)
       throws NamingException
   {
     switch (umap.getGroupMappingType()) {
       case DYNAMIC:
-        return searchUsersByDynamicGroups(ctx, groupNames, maxResults);
+        return searchUsersByDynamicGroups(ctx, groupNames);
       case STATIC:
-        return searchUsersByStaticGroups(ctx, groupNames, maxResults);
+        return searchUsersByStaticGroups(ctx, groupNames);
       default:
         throw new IllegalStateException("Attempting to search for users by group with no group mapping defined.");
     }
   }
 
-  private List<LdapUser> searchUsersByStaticGroups(LdapContext ctx, String[] groupNames, long maxResults)
+  private List<LdapUser> searchUsersByStaticGroups(LdapContext ctx, String[] groupNames)
       throws NamingException
   {
     String[] attributes = pickAttributes(umap.getGroupIDAttribute(), umap.getGroupMemberAttribute());
@@ -773,19 +773,17 @@ class LdapQuery
     attributeValues.putAll(escapeAttribute(umap.getGroupIDAttribute(), false),
         escapeAttributeList(Arrays.asList(groupNames), false));
 
-    long limit = maxResults;
     List<LdapUser> users = new ArrayList<>();
-    NamingEnumeration<SearchResult> results = searchGroupsByAttributes(ctx, attributeValues, attributes, limit);
-    while (results.hasMoreElements() && (maxResults <= 0 || users.size() < limit)) {
+    NamingEnumeration<SearchResult> results = searchGroupsByAttributes(ctx, attributeValues, attributes, 0);
+    while (results.hasMoreElements()) {
       SearchResult result = results.next();
-      Set<String> members = getAttributeValues(result.getAttributes(), umap.getGroupMemberAttribute(), limit);
-      queryUsersFromGroupMembers(ctx, users, umap.getGroupMemberFormat(), members, limit);
-      limit = (maxResults <= 0) ? maxResults : limit - users.size();
+      Set<String> members = getAttributeValues(result.getAttributes(), umap.getGroupMemberAttribute());
+      queryUsersFromGroupMembers(ctx, users, umap.getGroupMemberFormat(), members);
     }
     return users;
   }
 
-  private List<LdapUser> searchUsersByDynamicGroups(LdapContext ctx, String[] groupNames, long maxResults)
+  private List<LdapUser> searchUsersByDynamicGroups(LdapContext ctx, String[] groupNames)
       throws NamingException
   {
     String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
@@ -793,7 +791,7 @@ class LdapQuery
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
     attributeValues.putAll(escapeAttribute(umap.getUserMemberOfGroupAttribute(), false),
         escapeAttributeList(Arrays.asList(groupNames), false));
-    NamingEnumeration<SearchResult> results = searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
+    NamingEnumeration<SearchResult> results = searchUsersByAttributes(ctx, attributeValues, attributes, 0);
     List<LdapUser> ldapUsers = new ArrayList<>();
     while (results.hasMoreElements()) {
       SearchResult result = results.nextElement();
@@ -805,8 +803,7 @@ class LdapQuery
   private void queryUsersFromGroupMembers(LdapContext ctx,
                                           List<LdapUser> users,
                                           String memberFormat,
-                                          Set<String> members,
-                                          long maxResults) throws NamingException
+                                          Set<String> members) throws NamingException
   {
     if (StringUtils.isBlank(memberFormat)) {
       log.debug("Member format is null or blank, unable to look up LDAP users.");
@@ -814,7 +811,7 @@ class LdapQuery
     }
 
     if (memberFormat.equals("${username}")) {
-      users.addAll(getUsers(members.toArray(new String[members.size()]), maxResults));
+      users.addAll(getUsers(members.toArray(new String[members.size()])));
     }
     else if (memberFormat.equals("${dn}")) {
       users.addAll(lookupUsersByDn(ctx, members));
@@ -825,7 +822,7 @@ class LdapQuery
           .replaceAll("\\$\\{username\\}", ".*").replaceAll("\\$\\{dn\\}", ".*");
       Pattern usernamePattern = Pattern.compile(usernameRegex, Pattern.CASE_INSENSITIVE);
       List<String> usernames = parseGroupMembers(usernamePattern, members);
-      users.addAll(getUsers(usernames.toArray(new String[usernames.size()]), maxResults));
+      users.addAll(getUsers(usernames.toArray(new String[usernames.size()])));
     }
     else if (memberFormat.contains("${dn}")) {
       String dnRegex = memberFormat.replaceFirst("\\$\\{dn\\}", "(.*)").replaceAll("\\$\\{dn\\}", ".*");
@@ -966,22 +963,13 @@ class LdapQuery
    * Returns all values under the given attribute name; null if the named attribute doesn't exist.
    */
   private static Set<String> getAttributeValues(Attributes attributes, String name) throws NamingException {
-    return getAttributeValues(attributes, name, 0);
-  }
-
-  /**
-   * Returns all values under the given attribute name; null if the named attribute doesn't exist.
-   */
-  private static Set<String> getAttributeValues(Attributes attributes, String name, long maxResults)
-      throws NamingException
-  {
     if (name != null) {
       Attribute attribute = attributes.get(name);
       if (attribute != null) {
         Set<String> values = new LinkedHashSet<>();
         NamingEnumeration<?> en = attribute.getAll();
         try {
-          while (en.hasMoreElements() && (maxResults <= 0 || values.size() < maxResults)) {
+          while (en.hasMoreElements()) {
             values.add(String.valueOf(en.nextElement()));
           }
         }

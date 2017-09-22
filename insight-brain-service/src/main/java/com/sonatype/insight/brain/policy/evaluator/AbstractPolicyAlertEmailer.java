@@ -165,8 +165,7 @@ public abstract class AbstractPolicyAlertEmailer
       if (MemberType.GROUP == member.getType()) {
         for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
           try {
-            for (LdapUser ldapUser : ldapService.findUsersByGroup(ldapServer, member.getInternalName(),
-                0 /* no max results */)) {
+            for (LdapUser ldapUser : ldapService.findUsersByGroup(ldapServer, member.getInternalName())) {
               emailAddresses.add(ldapUser.getEmail());
             }
           }

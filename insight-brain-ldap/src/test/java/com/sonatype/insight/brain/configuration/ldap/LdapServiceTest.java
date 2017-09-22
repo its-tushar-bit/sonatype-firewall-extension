@@ -1169,7 +1169,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("${dn}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Epsilon", 100);
+    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Epsilon");
     assertThat(users, hasSize(2));
   }
 
@@ -1187,7 +1187,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Delta", 100);
+    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Delta");
     assertThat(users, hasSize(2));
   }
 
@@ -1205,41 +1205,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("dc=company,${dn},dc=com,${dn}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Lambda", 100);
-    assertThat(users, hasSize(2));
-  }
-
-  @Test
-  public void testFindUsersByGroup_Static_Dn_MaxResults() throws Exception {
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    startLdapServer(testLdapServer1, ldapConnection);
-
-    LdapUserMapping umap = createUserMapping(ldapServer);
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
-    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
-    umap.setGroupObjectClass("groupOfNames");
-    umap.setGroupMemberAttribute("member");
-    umap.setGroupMemberFormat("${dn}");
-    userMappingDAO.update(umap);
-
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Epsilon", 1);
-    assertThat(users, hasSize(1));
-    users = ldapService.findUsersByGroup(ldapServer, "Epsilon", 0);
-    assertThat(users, hasSize(2));
-  }
-
-  @Test
-  public void testFindUsersByGroup_Static_Username_MaxResults() throws Exception {
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    startLdapServer(testLdapServer1, ldapConnection);
-
-    createStaticGroupMapping(ldapServer);
-
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Theta", 1);
-    assertThat(users, hasSize(1));
-    users = ldapService.findUsersByGroup(ldapServer, "Theta", 0);
+    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Lambda");
     assertThat(users, hasSize(2));
   }
 
@@ -1257,7 +1223,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Delt*", 100);
+    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Delt*");
     assertThat(users, hasSize(0));
   }
 
@@ -1272,7 +1238,7 @@ public class LdapServiceTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     new LdapUserMappingDAO().update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "a*", 100);
+    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "a*");
     assertThat(users, hasSize(0));
   }
 
@@ -1581,7 +1547,7 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     // Group with one user
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "xb", 0 /* maxResults */);
+    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "xb");
     assertThat(users, hasSize(1));
     LdapUser user = users.get(0);
     assertThat(user.getUsername(), is("test_user1_1"));
@@ -1589,7 +1555,7 @@ public class LdapServiceTest
     assertThat(user.getEmail(), is("test.user1_1@company.com"));
 
     // Group with two users
-    users = ldapService.findUsersByGroup(ldapServer, "ab", 0 /* maxResults */);
+    users = ldapService.findUsersByGroup(ldapServer, "ab");
     Set<String> usernames = new HashSet<>();
     for (LdapUser user1 : users) {
       usernames.add(user1.getUsername());
@@ -1597,23 +1563,8 @@ public class LdapServiceTest
     assertThat(usernames, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
 
     // Group without users
-    users = ldapService.findUsersByGroup(ldapServer, "no such group", 0 /* maxResults */);
+    users = ldapService.findUsersByGroup(ldapServer, "no such group");
     assertThat(users, hasSize(0));
-  }
-
-  @Test
-  public void testFindUsersByGroup_Dynamic_MaxResults() throws Exception {
-    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
-    LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    startLdapServer(testLdapServer1, ldapConnection);
-
-    createDynamicGroupMapping(ldapServer);
-
-    // Group with two users
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "ab", 0 /* maxResults */);
-    assertThat(users, hasSize(3));
-    users = ldapService.findUsersByGroup(ldapServer, "ab", 1 /* maxResults */);
-    assertThat(users, hasSize(1));
   }
 
   private static int getRandomPort() {

@@ -124,7 +124,7 @@ public class LdapService
    */
   public List<LdapUser> getUsers(LdapServer ldapServer, String[] names) throws NamingException {
     LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).getUsers(names, 0);
+    return new LdapQuery(conn, getUserMapping(conn)).getUsers(names);
   }
 
   public List<LdapGroup> getGroups(LdapServer ldapServer, String[] names) throws NamingException {
@@ -153,9 +153,9 @@ public class LdapService
    * 
    * @since 1.14.0
    */
-  public List<LdapUser> findUsersByGroup(LdapServer ldapServer, String groupName, long maxResults) throws NamingException {
+  public List<LdapUser> findUsersByGroup(LdapServer ldapServer, String groupName) throws NamingException {
     LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).queryUsersByGroup(groupName, maxResults);
+    return new LdapQuery(conn, getUserMapping(conn)).queryUsersByGroup(groupName);
   }
 
   /**

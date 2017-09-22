@@ -8,6 +8,7 @@
   width: 100%;
 }
 
+@import './successMetrics/successMetricsList';
 @import './successMetrics/charts';
 @import './successMetrics/applicationCountsChart/applicationCountsChart';
 @import './successMetrics/summaryStatementTile/summaryStatementTile';

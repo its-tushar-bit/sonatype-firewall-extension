@@ -49,8 +49,6 @@ function addSuccessMetricsModalController($q, ApplicationStore, OrganizationStor
     },
 
     onOrgAppSelectionChange(selectedOrganizations, selectedApplications) {
-      vm.error = undefined;
-
       vm.selectedOrganizations = selectedOrganizations;
       vm.selectedApplications = selectedApplications;
     },

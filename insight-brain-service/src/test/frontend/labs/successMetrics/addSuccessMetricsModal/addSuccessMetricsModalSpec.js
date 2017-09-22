@@ -141,16 +141,6 @@ describe('addSuccessMetricsModal', function() {
       expect(vm.selectedApplications).toBe(selectedApplications);
       expect(vm.selectedOrganizations).toBe(selectedOrganizations);
     });
-
-    it('clears vm.error', function() {
-      var vm = getVm();
-
-      vm.error = 'error';
-
-      vm.onOrgAppSelectionChange(new Set(), new Set());
-
-      expect(vm.error).toBeUndefined();
-    });
   });
 
   describe('onSubmit', function() {

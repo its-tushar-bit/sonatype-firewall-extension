@@ -9,13 +9,14 @@ import CLMLocationModule from '../util/CLMLocation';
 
 var reportListModule = angular.module('ReportViolations', [angularCommonModule.name, CLMLocationModule.name, 'vs-repeat']);
 
-reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',
-  function($scope, $http, $q, clmLocations) {
+reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations', '$filter',
+  function($scope, $http, $q, clmLocations, $filter) {
+    let allApplications = undefined;
 
-    $scope.isVisible = function (item) {
-      return !$scope.appFilter ||
-            item.name.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1 ||
-            item.organizationName.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1;
+    const isVisible = appFilter => item => {
+      return !appFilter ||
+          item.name.toLowerCase().indexOf(appFilter.toLowerCase()) > -1 ||
+          item.organizationName.toLowerCase().indexOf(appFilter.toLowerCase()) > -1;
     };
 
     $scope.encodeURIComponent = window.encodeURIComponent;
@@ -30,10 +31,35 @@ reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$
 
       $q.all(promises).then(function(results) {
         $scope.stages = results[0].data;
-        $scope.applications = results[1].data;
+        allApplications = results[1].data;
+        $scope.noReports = allApplications.length === 0;
+        $scope.showReports = allApplications.length > 0;
+        $scope.applications = sortAndIndex(allApplications);
       }, function() {
         $scope.error = arguments[0];
       });
     };
     $scope.doLoad();
+
+    $scope.$watch('[appFilter, getSortField()[0]]', () => {
+      if (allApplications) {
+        $scope.applications = sortAndIndex(filter(allApplications));
+      }
+    });
+
+    function sortAndIndex(apps) {
+      return index(sort(apps));
+    }
+
+    function filter(apps) {
+      return apps.filter(isVisible($scope.appFilter));
+    }
+
+    function sort(apps) {
+      return $filter('orderBy')(apps, $scope.getSortField());
+    }
+
+    function index(apps) {
+      return apps.map((app, index) => ({...app, index}));
+    }
   }]);

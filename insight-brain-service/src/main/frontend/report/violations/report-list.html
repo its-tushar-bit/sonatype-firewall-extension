@@ -4,12 +4,12 @@
   <div load-error='error' reload='doLoad()'></div>
   <div class="report-list-container" ng-hide='error'>
     <div ng-hide='stages'><h5><i class='icon icon-time'></i> Loading...</h5></div>
-    <div ng-show='applications.length == 0'>
+    <div ng-show='noReports'>
       <h5 id="clm-welcome-message">
         No reports available yet. <a class="link" ui-sref="management.view">Configure an organization and an application</a>, then evaluate the application to create a report.
       </h5>
     </div>
-    <div ng-show='applications.length > 0'>
+    <div ng-show='showReports'>
       <div class="scrollable-container-header">
         <div class='input-prepend'>
           <span class='add-on'><i ng-class="{'icon-search': !appFilter, 'icon-remove': appFilter}" ng-click="appFilter = ''"></i></span>
@@ -18,7 +18,7 @@
       </div>
       <div class='scrollable-container border-top' maximize-height>
         <div class='scrollable-container-inner'>
-          <table id='report-list-table' class='table clm-table-stripe' sortable="name">
+          <table id='report-list-table' class='table' sortable="name">
             <thead>
               <tr id='report-list-headers'>
                 <th id='report-list-header-app'>
@@ -34,7 +34,7 @@
               </tr>
             </thead>
             <tbody vs-repeat vs-scroll-parent=".scrollable-container-inner">
-            <tr ng-repeat='application in applications | filter: isVisible | orderBy:getSortField()'>
+            <tr ng-repeat='application in applications' ng-class="application.index % 2 == 0? 'even' : 'odd'">
               <td>
                 <a ui-sref="management.view.application({applicationPublicId: application.publicId})">
                   <img ng-src='../rest/application/icon/{{::encodeURIComponent(application.publicId)}}'

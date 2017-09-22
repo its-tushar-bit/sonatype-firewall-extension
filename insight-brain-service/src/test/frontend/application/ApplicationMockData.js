@@ -9,35 +9,51 @@ ApplicationMockData = {
       }
     ];
   },
-  getApplicationSummaryData: function(stage) {
-    var result = {
+  getApplicationSummaryData: function() {
+    var results = [{
       "id": "78c1d44c07584e57945f04890c672e82",
-      "name": "applicationName",
+      "name": "application3",
       "publicId": "bom1-12345678",
-      "organizationId": "organizationId",
+      "organizationId": "1",
       "organizationName" : "Ye Ole Organization",
       "policyEvaluations": {},
       "policyEvaluationsResults": {}
-    };
+    }, {
+      "id": "9999999c07584e57945f04890c672e99",
+      "name": "application2",
+      "publicId": "bom1-12345678",
+      "organizationId": "2",
+      "organizationName" : "Big Org",
+      "policyEvaluations": {},
+      "policyEvaluationsResults": {}
+    }, {
+      "id": "053e89a476b34d7dac5d97665d2d241e",
+      "name": "app1",
+      "publicId": "bom1-12345678",
+      "organizationId": "3",
+      "organizationName" : "Big Org",
+      "policyEvaluations": {},
+      "policyEvaluationsResults": {}
+    }];
     
-    if (!stage) {
-      stage = 'build';
-    }
-    
-    result.policyEvaluations[stage] = {
-      "stageTypeId": stage,
-      "scanId": "2e12e6a9811347a78031b8969b604c49",
-      "time": 1371487786570,
-      "user": "anonymous"
-    };
-    result.policyEvaluationsResults[stage] = {
-      "alerts": [],
-      "affectedComponentCount": 0,
-      "criticalComponentCount": 0,
-      "severeComponentCount": 0,
-      "moderateComponentCount": 0
-    };
-    return [result];
+    var stage = 'build';
+
+    results.forEach(function(result) {
+      result.policyEvaluations[stage] = {
+        "stageTypeId": stage,
+        "scanId": "2e12e6a9811347a78031b8969b604c49",
+        "time": 1371487786570,
+        "user": "anonymous"
+      };
+      result.policyEvaluationsResults[stage] = {
+        "alerts": [],
+        "affectedComponentCount": 0,
+        "criticalComponentCount": 0,
+        "severeComponentCount": 0,
+        "moderateComponentCount": 0
+      };
+    });
+    return results;
   },
   getApplicablePolicies: function() {
     return {

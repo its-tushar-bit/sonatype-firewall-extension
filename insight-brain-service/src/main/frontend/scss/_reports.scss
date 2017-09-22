@@ -71,8 +71,14 @@
   text-decoration: none;
 }
 
-/* I don't want the component details page to get this striping as well, so scoping to report list only */
-#report-list-table > tbody > tr:nth-child(even) {
-  background-color: #F4F4F4;
+#report-list-table > tbody {
+
+  > tr.even {
+    background-color: $iq-grey-1;
+  }
+
+  > tr.odd {
+    background-color: $iq-grey-2;
+  }
 }
 // End CSS from insight.css

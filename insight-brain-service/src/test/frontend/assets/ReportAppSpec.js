@@ -1,83 +1,148 @@
 describe('reportApp', function() {
-  var scope, state;
-  
-  beforeEach(module('ReportModule', 'ReportViolations', 'MainModule', function($provide) {
-    $provide.value('$window', {
-      location: {
-        reload: function(){}
-      },
-      navigator: {
-        userAgent:{}
-      },
-      document: {
-        createElement: function(){ return null ;}
-      }
-    });
+  var scope, state, $httpBackend, CLMLocations, $controller;
 
-    $provide.value('initService', {
-      start: angular.noop
-    });
-  }));
-  
-  beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
+  beforeEach(module('ReportModule', 'MainModule'));
+
+  beforeEach(inject(function($rootScope, $state, _$controller_, _$httpBackend_, _CLMLocations_) {
     $rootScope.licensed = true;
     scope = $rootScope.$new();
+    scope.getSortField = jasmine.createSpy('getSortField').and.returnValue(['name']);
     state = $state;
-
-    $state.go('violations');
-
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
-    $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(ApplicationMockData.getApplicationSummaryData());
-    $httpBackend.expectGET('report/violations/report-list.html?').respond('<div></div>');
-
-    $controller('ReportViolationsController', { $scope: scope, $state: state });
-
-    $httpBackend.flush();
+    $httpBackend = _$httpBackend_;
+    CLMLocations = _CLMLocations_;
+    $controller = _$controller_;
   }));
 
-  afterEach(inject(function($httpBackend) {
+  afterEach(function() {
     scope.$destroy();
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
-  }));
-
-  it('loads data', function () {
-    var mockStageData = MockData.getActionStageData();
-    var mockApplicationSummaryData = ApplicationMockData.getApplicationSummaryData();
-
-    expect(scope.stages).not.toBeUndefined();
-    expect(scope.stages.length).toEqual(mockStageData.length);
-    expect(scope.stages[0].id).toEqual(mockStageData[0].id);
-    expect(scope.stages[scope.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
-
-    expect(scope.applications).not.toBeUndefined();
-    expect(scope.applications.length).toEqual(mockApplicationSummaryData.length);
-    expect(scope.applications[0].id).toEqual(mockApplicationSummaryData[0].id);
   });
 
-  describe('Filters', function () {
-    it('Application Name', function () {
-      scope.appFilter = 'appl';
-      expect(scope.isVisible(scope.applications[0])).toBeTruthy();
-      scope.appFilter = 'foobar';
-      expect(scope.isVisible(scope.applications[0])).toBeFalsy();
+  describe('doLoad', function() {
+    it('handles no reports', function() {
+      var mockStageData = MockData.getActionStageData();
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(mockStageData);
+      $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond([]);
+      $controller('ReportViolationsController', { $scope: scope, $state: state });
+
+      expect(scope.stages).toBeUndefined();
+      expect(scope.applications).toBeUndefined();
+      expect(scope.noReports).toBeUndefined();
+      expect(scope.showReports).toBeUndefined();
+
+      $httpBackend.flush();
+
+      expect(scope.stages).toBeDefined();
+      expect(scope.stages.length).toEqual(mockStageData.length);
+      expect(scope.stages[0].id).toEqual(mockStageData[0].id);
+      expect(scope.stages[scope.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
+
+      expect(scope.applications).toBeDefined();
+      expect(scope.applications.length).toBe(0);
+      expect(scope.noReports).toBe(true);
+      expect(scope.showReports).toBe(false);
     });
 
-    it('Organization Name', function () {
-      scope.appFilter = 'OLE'; // triggers case sensitivity vs Ole
-      expect(scope.isVisible(scope.applications[0])).toBeTruthy();
-      scope.appFilter = 'foobar';
-      expect(scope.isVisible(scope.applications[0])).toBeFalsy();
+    it('loads reports, sorts and assigns index', function() {
+      var mockStageData = MockData.getActionStageData();
+      var mockApplicationSummaryData = ApplicationMockData.getApplicationSummaryData();
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(mockStageData);
+      $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(
+          mockApplicationSummaryData);
+      $controller('ReportViolationsController', { $scope: scope, $state: state });
+
+      expect(scope.stages).toBeUndefined();
+      expect(scope.applications).toBeUndefined();
+      expect(scope.noReports).toBeUndefined();
+      expect(scope.showReports).toBeUndefined();
+
+      $httpBackend.flush();
+
+      expect(scope.stages).toBeDefined();
+      expect(scope.stages.length).toEqual(mockStageData.length);
+      expect(scope.stages[0].id).toEqual(mockStageData[0].id);
+      expect(scope.stages[scope.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
+
+      expect(scope.applications).toBeDefined();
+      expect(scope.applications.length).toBe(mockApplicationSummaryData.length);
+      // should ne sorted by name
+      expect(scope.applications[0].id).toBe(mockApplicationSummaryData[2].id);
+      // should index
+      expect(scope.applications[0].index).toBe(0);
+
+      expect(scope.noReports).toBe(false);
+      expect(scope.showReports).toBe(true);
+    });
+  });
+
+  describe('$watch', function () {
+    beforeEach(function() {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(
+          ApplicationMockData.getApplicationSummaryData());
+      $controller('ReportViolationsController', { $scope: scope, $state: state });
+      $httpBackend.flush();
     });
 
-    it('Null', function () {
-      // App filter starts empty, we shouldn't explode a
-      expect(scope.isVisible(scope.applications[0])).toBeTruthy();
+    describe('when filter changes', function () {
+      it('filters by Application Name, sorts and assigns index', function() {
+        scope.appFilter = 'appl';
+        scope.$digest();
+        expect(scope.applications.length).toBe(2);
+        expect(scope.applications[0].name).toBe('application2');
+        expect(scope.applications[0].index).toBe(0);
+        expect(scope.applications[1].name).toBe('application3');
+        expect(scope.applications[1].index).toBe(1);
+        scope.appFilter = 'foobar';
+        scope.$digest();
+        expect(scope.applications.length).toBe(0);
+      });
+
+      it('filters by Organization Name, sorts and assigns index', function() {
+        scope.appFilter = 'big'; // case insensitive
+        scope.$digest();
+        expect(scope.applications.length).toBe(2);
+        expect(scope.applications[0].name).toBe('app1');
+        expect(scope.applications[0].index).toBe(0);
+        expect(scope.applications[1].name).toBe('application2');
+        expect(scope.applications[1].index).toBe(1);
+        scope.appFilter = 'foobar';
+        scope.$digest();
+        expect(scope.applications.length).toBe(0);
+      });
+
+      it('does not filter if app filter is Null', function() {
+        scope.appFilter = null;
+        scope.$digest();
+        expect(scope.applications.length).toBe(3);
+      });
+
+      it('does not filter if app filter is Empty', function() {
+        scope.appFilter = '';
+        scope.$digest();
+        expect(scope.applications.length).toBe(3);
+      });
     });
 
-    it('Empty', function () {
-      scope.appFilter = '';
-      expect(scope.isVisible(scope.applications[0])).toBeTruthy();
+    describe('when sort field changes', function() {
+      it('filters, sorts and assigns index', function() {
+        var mockApplicationSummaryData = ApplicationMockData.getApplicationSummaryData();
+        scope.appFilter = 'big';
+        scope.$digest();
+        expect(scope.applications.length).toBe(2);
+        expect(scope.applications[0].id).toBe(mockApplicationSummaryData[2].id);
+        expect(scope.applications[0].index).toBe(0);
+        expect(scope.applications[1].index).toBe(1);
+
+        scope.getSortField.and.returnValue(['-name']);
+        scope.$digest();
+
+        expect(scope.applications.length).toBe(2);
+        expect(scope.applications[0].id).toBe(mockApplicationSummaryData[1].id);
+        expect(scope.applications[0].index).toBe(0);
+        expect(scope.applications[1].index).toBe(1);
+      });
     });
   });
 });

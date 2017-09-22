@@ -979,9 +979,14 @@ class LdapQuery
       Attribute attribute = attributes.get(name);
       if (attribute != null) {
         Set<String> values = new LinkedHashSet<>();
-        for (NamingEnumeration<?> e = attribute.getAll(); e.hasMoreElements()
-            && (maxResults <= 0 || values.size() < maxResults);) {
-          values.add(String.valueOf(e.nextElement()));
+        NamingEnumeration<?> en = attribute.getAll();
+        try {
+          while (en.hasMoreElements() && (maxResults <= 0 || values.size() < maxResults)) {
+            values.add(String.valueOf(en.nextElement()));
+          }
+        }
+        finally {
+          LdapUtils.closeEnumeration(en);
         }
         return values;
       }

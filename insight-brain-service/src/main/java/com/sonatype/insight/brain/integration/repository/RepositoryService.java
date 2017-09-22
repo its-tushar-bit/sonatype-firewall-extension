@@ -379,9 +379,10 @@ public class RepositoryService
     RepositoryComponentEvaluationDataList result = repositoryPolicyEvaluator.evaluate(repository,
         componentEvaluationDataRequestList, withQuarantine, clientUserAgent);
 
-    log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) in {} ms.",
+    log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) because of {} in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),
-        repository.getPublicId(), repository.getId(), System.currentTimeMillis() - start);
+        repository.getPublicId(), repository.getId(), componentEvaluationDataRequestList.cause,
+        System.currentTimeMillis() - start);
 
     return result;
   }

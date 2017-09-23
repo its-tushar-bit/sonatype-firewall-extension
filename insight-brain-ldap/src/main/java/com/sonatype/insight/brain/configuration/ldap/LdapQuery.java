@@ -486,8 +486,6 @@ class LdapQuery
           String[] attributes = pickAttributes(umap.getUserMemberOfGroupAttribute());
           Multimap<String, String> attributeValues = ArrayListMultimap.create();
           attributeValues.put(escapeAttribute(umap.getUserIDAttribute(), false), "*");
-          attributeValues.put(escapeAttribute(umap.getUserMemberOfGroupAttribute(), false),
-              escapeAttribute(groupName, true));
 
           // Max results is ignored since all users must be returned to deduce unique dynamic groups
           results = searchUsersByAttributes(ctx, attributeValues, attributes, 0);

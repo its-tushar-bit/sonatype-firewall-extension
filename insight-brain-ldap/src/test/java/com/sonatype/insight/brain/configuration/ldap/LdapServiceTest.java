@@ -857,7 +857,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testGetUsers() throws Exception {
+  public void testGetUsersByName() throws Exception {
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server1");
     LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server2");
 
@@ -869,36 +869,36 @@ public class LdapServiceTest
     createUserMapping(ldapServer1);
     createUserMapping(ldapServer2);
 
-    List<LdapUser> users1 = ldapService.getUsers(ldapServer1,
+    List<LdapUser> users1 = ldapService.getUsersByName(ldapServer1,
         new String[] { "test_user1_1", "test_user2_1", "test_user1_2" });
     assertThat(users1.size(), is(2));
     Collections.sort(users1);
     assertThat(users1.get(0).getUsername(), is("test_user1_1"));
     assertThat(users1.get(1).getUsername(), is("test_user2_1"));
 
-    users1 = ldapService.getUsers(ldapServer1, new String[] { "foo" });
+    users1 = ldapService.getUsersByName(ldapServer1, new String[] { "foo" });
     assertThat(users1.size(), is(0));
 
-    List<LdapUser> users2 = ldapService.getUsers(ldapServer2,
+    List<LdapUser> users2 = ldapService.getUsersByName(ldapServer2,
         new String[] { "test_user1_1", "test_user2_1", "test_user1_2" });
     assertThat(users2.size(), is(1));
     assertThat(users2.get(0).getUsername(), is("test_user1_2"));
   }
 
   @Test
-  public void testGetUsers_wildcardMatchingNotExpected() throws Exception {
+  public void testGetUsersByName_wildcardMatchingNotExpected() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
 
     createUserMapping(ldapServer);
 
-    List<LdapUser> users = ldapService.getUsers(ldapServer, new String[] { "test_user*" });
+    List<LdapUser> users = ldapService.getUsersByName(ldapServer, new String[] { "test_user*" });
     assertThat(users.size(), is(0));
   }
 
   @Test
-  public void testGetGroups_Static() throws Exception {
+  public void testGetGroupsByName_Static() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -911,15 +911,15 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "Gamma", "Theta" });
+    List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "Gamma", "Theta" });
     assertThat(groups.size(), is(2));
 
-    groups = ldapService.getGroups(ldapServer, new String[] { "foo" });
+    groups = ldapService.getGroupsByName(ldapServer, new String[] { "foo" });
     assertThat(groups.size(), is(0));
   }
 
   @Test
-  public void testGetGroups_Static_wildcardMatchingNotExpected() throws Exception {
+  public void testGetGroupsByName_Static_wildcardMatchingNotExpected() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -932,12 +932,12 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "*ta" });
+    List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "*ta" });
     assertThat(groups.size(), is(0));
   }
 
   @Test
-  public void testGetGroups_Dynamic() throws Exception {
+  public void testGetGroupsByName_Dynamic() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -948,15 +948,15 @@ public class LdapServiceTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "ab", "abc", "bc" });
+    List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "ab", "abc", "bc" });
     assertThat(groups.size(), is(3));
 
-    groups = ldapService.getGroups(ldapServer, new String[] { "foo" });
+    groups = ldapService.getGroupsByName(ldapServer, new String[] { "foo" });
     assertThat(groups.size(), is(0));
   }
 
   @Test
-  public void testGetGroups_Dynamic_wildcardMatchingNotExpected() throws Exception {
+  public void testGetGroupsByName_Dynamic_wildcardMatchingNotExpected() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
     startLdapServer(testLdapServer1, ldapConnection);
@@ -967,7 +967,7 @@ public class LdapServiceTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.update(umap);
 
-    List<LdapGroup> groups = ldapService.getGroups(ldapServer, new String[] { "ab*" });
+    List<LdapGroup> groups = ldapService.getGroupsByName(ldapServer, new String[] { "ab*" });
     assertThat(groups.size(), is(0));
   }
 
@@ -1169,7 +1169,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("${dn}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Epsilon");
+    List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
     assertThat(users, hasSize(2));
   }
 
@@ -1187,7 +1187,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Delta");
+    List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Delta");
     assertThat(users, hasSize(2));
   }
 
@@ -1205,7 +1205,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("dc=company,${dn},dc=com,${dn}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Lambda");
+    List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Lambda");
     assertThat(users, hasSize(2));
   }
 
@@ -1223,7 +1223,7 @@ public class LdapServiceTest
     umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
     userMappingDAO.update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "Delt*");
+    List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Delt*");
     assertThat(users, hasSize(0));
   }
 
@@ -1238,7 +1238,7 @@ public class LdapServiceTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     new LdapUserMappingDAO().update(umap);
 
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "a*");
+    List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "a*");
     assertThat(users, hasSize(0));
   }
 
@@ -1547,7 +1547,7 @@ public class LdapServiceTest
     createDynamicGroupMapping(ldapServer);
 
     // Group with one user
-    List<LdapUser> users = ldapService.findUsersByGroup(ldapServer, "xb");
+    List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "xb");
     assertThat(users, hasSize(1));
     LdapUser user = users.get(0);
     assertThat(user.getUsername(), is("test_user1_1"));
@@ -1555,7 +1555,7 @@ public class LdapServiceTest
     assertThat(user.getEmail(), is("test.user1_1@company.com"));
 
     // Group with two users
-    users = ldapService.findUsersByGroup(ldapServer, "ab");
+    users = ldapService.getUsersByGroup(ldapServer, "ab");
     Set<String> usernames = new HashSet<>();
     for (LdapUser user1 : users) {
       usernames.add(user1.getUsername());
@@ -1563,7 +1563,7 @@ public class LdapServiceTest
     assertThat(usernames, containsInAnyOrder("test_user1_1", "test_user2_1", "test*user1_1"));
 
     // Group without users
-    users = ldapService.findUsersByGroup(ldapServer, "no such group");
+    users = ldapService.getUsersByGroup(ldapServer, "no such group");
     assertThat(users, hasSize(0));
   }
 

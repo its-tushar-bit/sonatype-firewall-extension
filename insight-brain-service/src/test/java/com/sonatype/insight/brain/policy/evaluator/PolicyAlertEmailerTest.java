@@ -357,7 +357,7 @@ public class PolicyAlertEmailerTest
     Throwable expectedException = new NamingException("Naming exception!");
     LdapService ldapServiceSpy = Mockito.spy(ldapService);
     doThrow(expectedException).when(ldapServiceSpy)
-        .findUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
+        .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
     InsightConfig appConfig = new InsightConfig();

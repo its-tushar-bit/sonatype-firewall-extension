@@ -130,7 +130,7 @@ public class UserDirectory
         String ldapName = ldapServer.getName();
         if (ldapService.isGroupSearchEnabled(ldapServer)) {
           try {
-            for (LdapGroup group : ldapService.getGroups(ldapServer,
+            for (LdapGroup group : ldapService.getGroupsByName(ldapServer,
                 groupNames.toArray(new String[groupNames.size()]))) {
               final String groupName = group.getGroupname();
               Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
@@ -208,7 +208,7 @@ public class UserDirectory
           String ldapName = ldapServer.getName();
 
           for (LdapUser user : ldapService
-              .getUsers(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]))) {
+              .getUsersByName(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]))) {
             members.add(
                 new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName));
             sortedUserNames.remove(user.getUsername());
@@ -356,7 +356,7 @@ public class UserDirectory
   public boolean isLdapUser(final User user) throws NamingException {
     String[] userNames = { user.getUsername() };
     for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
-      if (ldapService.isLdapEnabled(ldapServer) && !ldapService.getUsers(ldapServer, userNames).isEmpty()) {
+      if (ldapService.isLdapEnabled(ldapServer) && !ldapService.getUsersByName(ldapServer, userNames).isEmpty()) {
         return true;
       }
     }

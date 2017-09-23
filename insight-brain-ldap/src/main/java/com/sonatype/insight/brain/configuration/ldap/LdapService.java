@@ -122,53 +122,53 @@ public class LdapService
    *
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> getUsers(LdapServer ldapServer, String[] names) throws NamingException {
+  public List<LdapUser> getUsersByName(LdapServer ldapServer, String[] usernames) throws NamingException {
     LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).getUsers(names);
+    return new LdapQuery(conn, getUserMapping(conn)).getUsersByName(usernames);
   }
 
-  public List<LdapGroup> getGroups(LdapServer ldapServer, String[] names) throws NamingException {
+  public List<LdapGroup> getGroupsByName(LdapServer ldapServer, String[] groupNames) throws NamingException {
     LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).getGroups(names);
+    return new LdapQuery(conn, getUserMapping(conn)).getGroupsByName(groupNames);
   }
 
   /**
    * Find a list of users, searching the displayName attribute.
    * 
    * @param ldapServer The LDAP server to query
-   * @param name String to match against
+   * @param query String to match against
    * @param maxResults Limit on the number of results to return
    * @return List of LdapUser objects that match the search criteria
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> findUsersByName(LdapServer ldapServer, String name, long maxResults) throws NamingException {
+  public List<LdapUser> findUsersByName(LdapServer ldapServer, String query, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).queryUsersByName(name, maxResults);
+    return new LdapQuery(conn, getUserMapping(conn)).findUsersByName(query, maxResults);
   }
 
   /**
-   * Retrieve users that are members of the specified group.
+   * Retrieve all users that are members of the specified group.
    *
    * @throws NamingException if there is a problem with the mapping or the credentials
    * 
    * @since 1.14.0
    */
-  public List<LdapUser> findUsersByGroup(LdapServer ldapServer, String groupName) throws NamingException {
+  public List<LdapUser> getUsersByGroup(LdapServer ldapServer, String groupName) throws NamingException {
     LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).queryUsersByGroup(groupName);
+    return new LdapQuery(conn, getUserMapping(conn)).getUsersByGroup(groupName);
   }
 
   /**
    * Find a list of groups, searching the Group ID attribute.
    *
    * @param ldapServer The ldap server to query against
-   * @param name       String to match against
+   * @param query       String to match against
    * @param maxResults Limit on the number of results to return
    * @return List of LdapGroup objects that match the search criteria
    */
-  public List<LdapGroup> findGroupsByName(LdapServer ldapServer, String name, long maxResults) throws NamingException {
+  public List<LdapGroup> findGroupsByName(LdapServer ldapServer, String query, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).queryGroupsByName(name, maxResults);
+    return new LdapQuery(conn, getUserMapping(conn)).findGroupsByName(query, maxResults);
   }
 
   // User authentication

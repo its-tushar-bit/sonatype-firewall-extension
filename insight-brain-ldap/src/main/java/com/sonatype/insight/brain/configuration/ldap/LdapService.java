@@ -104,7 +104,7 @@ public class LdapService
    */
   public List<LdapUser> testUserMapping(LdapUserMapping umap, long maxResults) throws NamingException {
     LdapServer ldapServer = serverDao.getById(umap.getServerId());
-    return new LdapQuery(getDecryptedConnection(ldapServer), umap).getUsers(maxResults, true);
+    return new LdapQuery(getDecryptedConnection(ldapServer), umap).getUsers(maxResults);
   }
 
   /**

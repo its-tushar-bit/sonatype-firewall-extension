@@ -196,7 +196,7 @@ class LdapQuery
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      results = searchUsersByUsername(ctx, username, attributes, 1, true);
+      results = searchUsersByUsernames(ctx, new String[] { username != null ? username : "" }, attributes, 1);
       if (results.hasMoreElements()) {
         SearchResult result = results.nextElement();
         return createUser(ctx, result.getNameInNamespace(), result.getAttributes(), withMembership);
@@ -210,38 +210,15 @@ class LdapQuery
   }
 
   /**
-   * Queries LDAP for all users up to a limited number; result never includes stored credentials.
+   * Queries LDAP for all users up to a limited number; result never includes stored credentials but does include group
+   * memberships.
    * 
    * @param maxResults maximum number of results to pull from ldap, don't want to overload the system
-   * @param withMembership when true include group membership, otherwise don't
    * @return List of LdapUser objects
    * @throws NamingException if there are problems accessing the ldap context
    */
-  public List<LdapUser> getUsers(long maxResults, boolean withMembership) throws NamingException {
-    String[] attributes = pickAttributes( //
-        umap.getUserIDAttribute(), //
-        umap.getUserRealNameAttribute(), //
-        umap.getUserEmailAttribute(), //
-        withMembership ? umap.getUserMemberOfGroupAttribute() : null //
-    );
-
-    LdapContext ctx = null;
-    NamingEnumeration<SearchResult> results = null;
-    try {
-      ctx = ctxFactory.getSystemLdapContext();
-      String username = "*";
-      results = searchUsersByUsername(ctx, username, attributes, maxResults, false);
-      List<LdapUser> ldapUsers = new ArrayList<>();
-      while (results.hasMoreElements()) {
-        SearchResult result = results.nextElement();
-        ldapUsers.add(createUser(ctx, result.getNameInNamespace(), result.getAttributes(), withMembership));
-      }
-      return ldapUsers;
-    }
-    finally {
-      LdapUtils.closeEnumeration(results);
-      LdapUtils.closeContext(ctx);
-    }
+  public List<LdapUser> getUsers(long maxResults) throws NamingException {
+    return findUsersByName("*", maxResults, true);
   }
 
   /**
@@ -289,10 +266,15 @@ class LdapQuery
    * @throws NamingException if there are problems accessing the ldap context
    */
   public List<LdapUser> findUsersByName(String query, long maxResults) throws NamingException {
+    return findUsersByName(query, maxResults, false);
+  }
+
+  private List<LdapUser> findUsersByName(String query, long maxResults, boolean withMembership) throws NamingException {
     String[] attributes = pickAttributes( //
         umap.getUserIDAttribute(), //
         umap.getUserRealNameAttribute(), //
-        umap.getUserEmailAttribute() //
+        umap.getUserEmailAttribute(), //
+        withMembership ? umap.getUserMemberOfGroupAttribute() : null //
     );
 
     LdapContext ctx = null;
@@ -303,7 +285,7 @@ class LdapQuery
       List<LdapUser> ldapUsers = new ArrayList<>();
       while (results.hasMoreElements()) {
         SearchResult result = results.nextElement();
-        ldapUsers.add(createUser(ctx, result.getNameInNamespace(), result.getAttributes(), false));
+        ldapUsers.add(createUser(ctx, result.getNameInNamespace(), result.getAttributes(), withMembership));
       }
       return ldapUsers;
     }
@@ -416,21 +398,6 @@ class LdapQuery
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
     attributeValues.put(escapeAttribute(umap.getUserRealNameAttribute(), false),
         query != null ? escapeAttribute(query, true) : "");
-    return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
-  }
-
-  /**
-   * Search ldap server for all users whose userid attribute matches the supplied name
-   */
-  private NamingEnumeration<SearchResult> searchUsersByUsername(LdapContext ctx,
-                                                                String username,
-                                                                String[] attributes,
-                                                                long maxResults,
-                                                                boolean exact) throws NamingException
-  {
-    Multimap<String, String> attributeValues = ArrayListMultimap.create();
-    attributeValues.put(escapeAttribute(umap.getUserIDAttribute(), false),
-        username != null ? escapeAttribute(username, !exact) : ""); // mandatory username
     return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
 

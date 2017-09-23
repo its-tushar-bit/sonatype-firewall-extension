@@ -344,7 +344,7 @@ class LdapQuery
    */
   private Set<String> getUserMembership(LdapContext ctx, LdapUser user) throws NamingException {
     String groupIdAttribute = umap.getGroupIDAttribute();
-    try (SearchResults results = searchGroups(ctx, user, pickAttributes(groupIdAttribute));) {
+    try (SearchResults results = searchGroups(ctx, user, pickAttributes(groupIdAttribute))) {
       Set<String> membership = new LinkedHashSet<>();
       while (results.hasMoreElements()) {
         Attributes attributes = results.nextElement().getAttributes();
@@ -501,7 +501,6 @@ class LdapQuery
     LdapGroup group = new LdapGroup();
     group.setDn(result.getNameInNamespace());
     group.setGroupname(groupName);
-
     return group;
   }
 
@@ -528,36 +527,17 @@ class LdapQuery
       controls.setCountLimit(maxResults);
     }
 
-    String baseDN = StringUtils.defaultString(umap.getUserBaseDN());
-
     StringBuilder ldapFilter = new StringBuilder("(&");
-
     // select user objects
     ldapFilter.append("(objectClass=").append(escapeAttribute(umap.getUserObjectClass(), false)).append(')');
-
-    if (attributeValues.size() > 1) {
-      ldapFilter.append("(|");
-    }
-    for (Entry<String, String> entry : attributeValues.entries()) {
-      ldapFilter.append('(').append(entry.getKey()).append('=').append(entry.getValue()).append(')');
-    }
-    if (attributeValues.size() > 1) {
-      ldapFilter.append(')');
-    }
-
+    appendAttributeValues(ldapFilter, attributeValues);
     // optional user filter
     if (StringUtils.isNotBlank(umap.getUserFilter())) {
       ldapFilter.append('(').append(umap.getUserFilter()).append(')');
     }
-
     ldapFilter.append(')');
 
-    String ldapFilterString = ldapFilter.toString();
-    if (log.isDebugEnabled()) {
-      log.debug("Executing LdapQuery searchUsersByAttributes with ldapFilter: {}", ldapFilterString);
-    }
-
-    return new SearchResults(ctx.search(baseDN, ldapFilterString, controls));
+    return search(ctx, umap.getUserBaseDN(), ldapFilter.toString(), controls);
   }
 
   /**
@@ -579,12 +559,15 @@ class LdapQuery
       controls.setCountLimit(maxResults);
     }
 
-    String baseDN = StringUtils.defaultString(umap.getGroupBaseDN());
-
     StringBuilder ldapFilter = new StringBuilder("(&");
-
     ldapFilter.append("(objectClass=").append(escapeAttribute(umap.getGroupObjectClass(), false)).append(')');
+    appendAttributeValues(ldapFilter, attributeValues);
+    ldapFilter.append(')');
 
+    return search(ctx, umap.getGroupBaseDN(), ldapFilter.toString(), controls);
+  }
+
+  private void appendAttributeValues(StringBuilder ldapFilter, Multimap<String, String> attributeValues) {
     if (attributeValues.size() > 1) {
       ldapFilter.append("(|");
     }
@@ -594,15 +577,6 @@ class LdapQuery
     if (attributeValues.size() > 1) {
       ldapFilter.append(')');
     }
-
-    ldapFilter.append(')');
-
-    String ldapFilterString = ldapFilter.toString();
-    if (log.isDebugEnabled()) {
-      log.debug("Executing LdapQuery searchGroupsByAttributes with ldapFilter: {}", ldapFilterString);
-    }
-
-    return new SearchResults(ctx.search(baseDN, ldapFilterString, controls));
   }
 
   /**
@@ -614,7 +588,6 @@ class LdapQuery
     controls.setSearchScope(umap.isGroupSubtree() ? SearchControls.SUBTREE_SCOPE : SearchControls.ONELEVEL_SCOPE);
     controls.setReturningAttributes(attributes);
 
-    String baseDN = StringUtils.defaultString(umap.getGroupBaseDN());
     String member = escapeAttribute(umap.getGroupMemberFormat(), true);
     if (StringUtils.isNotBlank(member)) {
       member = member.replace("${username}", escapeAttribute(user.getUsername(), false)).replace("${dn}",
@@ -638,12 +611,16 @@ class LdapQuery
 
     ldapFilter.append(')');
 
-    String ldapFilterString = ldapFilter.toString();
-    if (log.isDebugEnabled()) {
-      log.debug("Executing LdapQuery searchGroups with ldapFilter: {}", ldapFilterString);
-    }
+    return search(ctx, umap.getGroupBaseDN(), ldapFilter.toString(), controls);
+  }
 
-    return new SearchResults(ctx.search(baseDN, ldapFilterString, controls));
+  private SearchResults search(LdapContext ctx, String baseDN, String filter, SearchControls controls)
+      throws NamingException
+  {
+    baseDN = StringUtils.defaultString(baseDN);
+    log.debug("Executing LDAP query with filter {} in context {} with scope {} and limit {}", filter, baseDN,
+        controls.getSearchScope(), controls.getCountLimit());
+    return new SearchResults(ctx.search(baseDN, filter, controls));
   }
 
   /**

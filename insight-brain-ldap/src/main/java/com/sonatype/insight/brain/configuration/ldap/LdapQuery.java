@@ -312,7 +312,7 @@ class LdapQuery
     user.setEmail(getAttributeValue(attributes, umap.getUserEmailAttribute()));
 
     if (withMembership) {
-      user.setMembership(getSimpleNames(getGroupMemberships(ctx, user, attributes)));
+      user.setMembership(getGroupMemberships(ctx, user, attributes));
     }
 
     return user;

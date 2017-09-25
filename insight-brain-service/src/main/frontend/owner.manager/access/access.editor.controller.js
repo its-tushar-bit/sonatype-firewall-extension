@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function AccessEditorController($rootScope, $scope, $stateParams, Messages, LocalRoleService,
-                                SameOwnerStateNavigationService, DeleteModalService, RoleMappingService)
-{
+                                SameOwnerStateNavigationService, DeleteModalService, RoleMappingService) {
   var ownerType,
       isNavigatingAfterRemove,
       vm = this;

@@ -84,7 +84,8 @@ function SelectApplicationContactController($scope, $http, CLMAppLocations, owne
   function isDirty() {
     if (!vm.selected) {
       return false;
-    } else {
+    }
+    else {
       return vm.owner.contact ? vm.selected.internalName !== vm.owner.contact.internalName : true;
     }
   }

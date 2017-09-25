@@ -13,8 +13,7 @@ export default {
 };
 
 function successMetricsChartPageController($q, $state, $stateParams, systemConfigurationPropertyService,
-                                           successMetricsDataService)
-{
+                                           successMetricsDataService) {
   const vm = this;
 
   vm.loaded = false;

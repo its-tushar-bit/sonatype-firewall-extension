@@ -49,7 +49,8 @@ function testRequest($scope, $http, resourceUrl, requestData) {
         type: 'success',
         msg: 'Success!'
       });
-    } else {
+    }
+    else {
       showAlert($scope.alerts, {
         type: 'error',
         msg: result.message
@@ -77,7 +78,8 @@ module.controller('LdapConfigurationController', [
     function isDirty() {
       if ($scope.ldapNameForm && $scope.ldapNameForm.$visible) {
         return true;
-      } else if ($scope.ldap) {
+      }
+      else if ($scope.ldap) {
         return $scope.ldap.isDirty();
       }
       return false;
@@ -223,7 +225,8 @@ module.controller('LdapConnectionController', [
     $scope.$watch('ldapConn.protocol', function(newProtocol) {
       if (newProtocol === 'LDAP' && (!$scope.ldapConn.port || $scope.ldapConn.port === 636)) {
         $scope.ldapConn.port = 389;
-      } else if (newProtocol === 'LDAPS' && (!$scope.ldapConn.port || $scope.ldapConn.port === 389)) {
+      }
+      else if (newProtocol === 'LDAPS' && (!$scope.ldapConn.port || $scope.ldapConn.port === 389)) {
         $scope.ldapConn.port = 636;
       }
     });

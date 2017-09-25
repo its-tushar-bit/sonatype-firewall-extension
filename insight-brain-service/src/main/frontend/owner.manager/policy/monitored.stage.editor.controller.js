@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonitoringStore, Messages,
-                                        MonitoredStageService, ProductFeatures)
-{
+                                        MonitoredStageService, ProductFeatures) {
   var originalStage,
       vm = this;
 

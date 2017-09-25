@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations,
-                                              SameOwnerStateNavigationService, EventNameConstant)
-{
+                                              SameOwnerStateNavigationService, EventNameConstant) {
   var vm = this;
 
   vm.areAnyCategoriesDefined = undefined;

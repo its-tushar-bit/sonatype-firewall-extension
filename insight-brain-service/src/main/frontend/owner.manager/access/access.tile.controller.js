@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function AccessTileController($scope, RoleMappingService, SameOwnerStateNavigationService, LocalRoleService,
-                              EventNameConstant)
-{
+                              EventNameConstant) {
   var vm = this;
   vm.ownerName = undefined;
   vm.membersByRole = undefined;

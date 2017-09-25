@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations,
-                                             PolicyHierarchyStore)
-{
+                                             PolicyHierarchyStore) {
   var originalCategoryArray,
       vm = this;
 

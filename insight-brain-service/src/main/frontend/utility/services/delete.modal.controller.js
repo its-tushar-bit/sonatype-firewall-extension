@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default function DeleteModalController($scope, Messages, resourceType, resourceName, resource, headerText,
-                                              bodyText, maskText, continueAction, dismissOnError)
-{
+                                              bodyText, maskText, continueAction, dismissOnError) {
   var vm = this;
 
   vm.deleteResource = deleteResource;

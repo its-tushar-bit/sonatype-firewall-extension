@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function DeleteFiltersModalController($scope, $http, CLMLocations, savedNamedFilters, DeleteModalService, DashboardFilterService)
-{
+function DeleteFiltersModalController($scope, $http, CLMLocations, savedNamedFilters, DeleteModalService, DashboardFilterService) {
   var vm = this,
       originalFilters;
   vm.deleteError = undefined;

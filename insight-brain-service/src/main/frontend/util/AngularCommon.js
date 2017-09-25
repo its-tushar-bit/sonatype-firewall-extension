@@ -68,7 +68,8 @@ angularCommon.directive('isDuplicate', [
             if (!caseSensitive || caseSensitive === 'false') {
               return idFieldParser(item) !== modelIdValue && modelFieldParser(item) &&
                   modelFieldParser(item).toLowerCase() === value.toLowerCase();
-            } else {
+            }
+            else {
               return idFieldParser(item) !== modelIdValue && modelFieldParser(item) === value;
             }
           }).length <= 0;
@@ -434,7 +435,8 @@ angularCommon.service('Dialog', ['Modal', function (Modal) {
     return function () {
       if (dismiss) {
         scope.$dismiss();
-      } else {
+      }
+      else {
         scope.$close();
       }
       if (fn) {
@@ -618,7 +620,8 @@ angularCommon.directive('multiSelect', ['$compile', '$timeout', function($compil
         if (scope.selected[id]) {
           /* add */
           scope.selectedIds.push(effectiveId);
-        } else if (scope.selectedIds) {
+        }
+        else if (scope.selectedIds) {
           /* remove */
           var index = scope.selectedIds.indexOf(effectiveId);
           if (index !== -1) {
@@ -647,13 +650,17 @@ angularCommon.directive('threatClass', function() {
       var clazz;
       if (scope.threatClass >= 8) {
         clazz = 'critical';
-      } else if (scope.threatClass >= 4) {
+      }
+      else if (scope.threatClass >= 4) {
         clazz = 'severe';
-      } else if (scope.threatClass >= 2) {
+      }
+      else if (scope.threatClass >= 2) {
         clazz = 'moderate';
-      } else if (scope.threatClass === 1) {
+      }
+      else if (scope.threatClass === 1) {
         clazz = 'none';
-      } else {
+      }
+      else {
         clazz = 'ignore';
       }
       element.addClass(clazz);
@@ -691,7 +698,8 @@ angularCommon.service('maximizeHeightService', ['$timeout', '$window', function 
       var me = this;
       if (element.is(':visible')) {
         me.setDimensions(element, options);
-      } else {
+      }
+      else {
         return $timeout(function () {
           me.updateDimensions(element, options);
         }, 100);

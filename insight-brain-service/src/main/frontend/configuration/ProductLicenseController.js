@@ -47,7 +47,8 @@ module.controller('ProductLicenseController', [
               status: errorResponse.status,
               data: errorResponse.data
             };
-          } else {
+          }
+          else {
             $scope.license = false;
           }
         });

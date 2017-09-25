@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHierarchyStore)
-{
+function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHierarchyStore) {
   var vm = this,
       PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
 

@@ -5,8 +5,7 @@
  */
 function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
                               PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
-                              ProprietaryConfigHierarchyStore, CLMAppLocations, ProductFeatures)
-{
+                              ProprietaryConfigHierarchyStore, CLMAppLocations, ProductFeatures) {
   var vm = this;
   vm.ownerName = undefined;
   vm.policiesByOwner = undefined;

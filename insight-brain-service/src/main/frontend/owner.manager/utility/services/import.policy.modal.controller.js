@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $cookies, Messages, CLMAppLocations,
-                                     PolicyHierarchyStore)
-{
+                                     PolicyHierarchyStore) {
   var vm = this,
       ieDeferred;
 

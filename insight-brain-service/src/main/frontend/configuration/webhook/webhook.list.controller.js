@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function WebhookListController($state, WebhookStore)
-{
+function WebhookListController($state, WebhookStore) {
   var vm = this;
   vm.newWebhook = newWebhook;
   vm.doLoad = doLoad;

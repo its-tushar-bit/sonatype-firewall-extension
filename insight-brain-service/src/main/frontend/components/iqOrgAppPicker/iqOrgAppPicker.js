@@ -72,7 +72,8 @@ function IqOrgAppPickerController() {
     if (selectedOrgs.has(orgId)) {
       // if Org is selected - select all related apps
       return apps;
-    } else {
+    }
+    else {
       // if Org is not selected && all related apps are selected - deselect all related apps
       if (areAllSelected(vm.selectedApplications, apps)) {
         return [];

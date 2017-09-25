@@ -83,7 +83,8 @@ export var unauthenticatedResponseHttpInterceptor = angular.module('Unauthentica
       // again
       if (response.config && response.config.clmLogin) {
         deferred.reject(response);
-      } else {
+      }
+      else {
         // add a new function to the queue that will handle resolving the promise retrieved from event emitter
         UnauthenticatedRequestQueueService.addRequest(function() {
           // simply replay the request

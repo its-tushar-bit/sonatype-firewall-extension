@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function WebhookEditController($q, $scope, $http, $stateParams, $state, CLMLocations, WebhookStore,
-                               DeleteModalService)
-{
+                               DeleteModalService) {
   var vm = this;
 
   vm.dirtyWebhook = undefined;

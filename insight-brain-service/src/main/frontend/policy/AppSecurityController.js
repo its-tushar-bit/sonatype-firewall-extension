@@ -31,7 +31,8 @@ var showGroupings = function(grouping, mappings) {
           return true;
         }
       }
-    } else {
+    }
+    else {
       if (mapping.type === grouping.type) {
         return true;
       }
@@ -114,7 +115,8 @@ function AppSecurityEditorController($scope, $http, Dialog, clmAppLocations, Mes
           type: 'cancel'
         }]
       });
-    } else {
+    }
+    else {
       $scope.hide();
     }
   };
@@ -136,7 +138,8 @@ function AppSecurityEditorController($scope, $http, Dialog, clmAppLocations, Mes
               msg: Messages.getHttpErrorMessage(error)
             });
           });
-    } else {
+    }
+    else {
       $scope.hide();
     }
   };

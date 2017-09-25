@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMAppLocations, DeleteModalService,
-                               SameOwnerStateNavigationService)
-{
+                               SameOwnerStateNavigationService) {
   var vm = this;
 
   vm.dirtyLabel = undefined;
@@ -42,7 +41,8 @@ function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMA
 
       if (!$stateParams.labelId) {
         vm.dirtyLabel = LabelStore.create();
-      } else {
+      }
+      else {
         results[0].forEach(function(labelCandidate) {
           if (labelCandidate.id === $stateParams.labelId) {
             vm.dirtyLabel = labelCandidate.$clone();

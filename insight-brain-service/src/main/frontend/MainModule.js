@@ -84,8 +84,7 @@ angular.module('InitModule', [
   'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
   '$q', '$urlRouter', 'Modal', '$timeout', 'state.history.service', 'SessionSecurityService',
   function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q,
-           $urlRouter, Modal, $timeout, StateHistoryService, SessionSecurityService)
-  {
+           $urlRouter, Modal, $timeout, StateHistoryService, SessionSecurityService) {
     var savedState = null,
         stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
           //as we init the system, we mix the preventing of $stateChangeStart events and $locationChangeStart events

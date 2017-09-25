@@ -5,8 +5,7 @@
  */
 /* global angular, clmServerVersion, clmBuildTimestamp */
 function MainHeaderController($state, $scope, ProductFeatures, PermissionService,
-                              systemConfigurationPropertyService)
-{
+                              systemConfigurationPropertyService) {
   var vm = this;
 
   vm.$state = $state;

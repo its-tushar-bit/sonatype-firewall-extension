@@ -5,8 +5,7 @@
  */
 function CategoryEditorController($scope, $stateParams, Modal, TagStore, DeleteModalService,
                                   SameOwnerStateNavigationService, $q, PolicyTagStore, PolicyHierarchyStore,
-                                  ApplicationStore)
-{
+                                  ApplicationStore) {
   var vm = this,
       store,
       associatedAppNames = [],

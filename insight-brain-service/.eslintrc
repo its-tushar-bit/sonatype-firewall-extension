@@ -118,6 +118,7 @@
     ],
     "no-console": ["error", { "allow": ["warn", "error"] }],
     "array-bracket-spacing": ["error", "never"],
-    "object-property-newline": ["error", { "allowMultiplePropertiesPerLine": true }]
+    "object-property-newline": ["error", { "allowMultiplePropertiesPerLine": true }],
+    "brace-style": ["error", "stroustrup", { "allowSingleLine": true }]
   }
 }

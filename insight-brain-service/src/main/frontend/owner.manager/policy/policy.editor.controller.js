@@ -5,8 +5,7 @@
  */
 function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, TagStore, DeleteModalService,
                                 SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant,
-                                $state)
-{
+                                $state) {
   var vm = this,
       originalCategories,
       originalHasPolicyCategories,

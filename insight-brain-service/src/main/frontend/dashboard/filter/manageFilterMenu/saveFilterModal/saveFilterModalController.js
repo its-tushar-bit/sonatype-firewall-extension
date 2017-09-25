@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filterName, existingFilters, $timeout, Messages)
-{
+function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filterName, existingFilters, $timeout, Messages) {
   var vm = this,
       confirmed = false;
 

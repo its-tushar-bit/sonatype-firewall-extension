@@ -5,8 +5,7 @@
  */
 /*global angular, AngularUtils*/
 function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope, DeleteModalService,
-                            Modal, $q, isAuthorized, $state)
-{
+                            Modal, $q, isAuthorized, $state) {
   var username = null;
 
   $scope.context = {

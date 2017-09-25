@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function ChangeApplicationIdController($scope, $rootScope, $state, owner, siblings, Messages, ApplicationStore,
-                                       OwnerConstant, EventNameConstant)
-{
+                                       OwnerConstant, EventNameConstant) {
   var vm = this;
 
   vm.isDirty = isDirty;

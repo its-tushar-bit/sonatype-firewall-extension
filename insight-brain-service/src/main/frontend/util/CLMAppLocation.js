@@ -135,7 +135,8 @@ locationModule.factory('CLMAppLocations', [
         var servicePath = null;
         if (type && typeId) {
           servicePath = window.encodeURIComponent(type) + '/' + window.encodeURIComponent(typeId);
-        } else {
+        }
+        else {
           servicePath = getServicePathWithId();
         }
         return baseUrl.get() + '/rest/user/' + servicePath + '/query';

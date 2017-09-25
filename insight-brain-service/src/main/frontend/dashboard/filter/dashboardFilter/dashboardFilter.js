@@ -14,8 +14,7 @@ var dashboardFilter = {
 export default dashboardFilter;
 
 function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
-                                   OrganizationStore, EventNameConstant, filterService, $state)
-{
+                                   OrganizationStore, EventNameConstant, filterService, $state) {
   var vm = this,
       appliedFilter,
       appliedFilterName,

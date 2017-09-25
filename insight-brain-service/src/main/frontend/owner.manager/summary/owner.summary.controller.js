@@ -7,8 +7,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
                                 OrganizationStore, CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
                                 SelectApplicationContactService, EvaluateApplicationModalService,
                                 ImportPolicyModalService, ownerConstant, MoveApplicationModal, EventNameConstant,
-                                ChangeApplicationIdService, PermissionService)
-{
+                                ChangeApplicationIdService, PermissionService) {
   var vm = this;
 
   vm.error = undefined;

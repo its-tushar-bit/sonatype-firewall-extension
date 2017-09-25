@@ -6,8 +6,7 @@
 export default
 function MoveApplicationModalController($rootScope, $scope, currentApplication, MoveApplicationService,
                                         MoveApplicationErrorModal, EventNameConstant,
-                                        MoveApplicationSuccessModalService)
-{
+                                        MoveApplicationSuccessModalService) {
   var vm = this;
 
   vm.formMask = undefined;

@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function PolicyEditorNotificationsController($scope, $q, RoleMappingService, StageTypeStore, JiraService,
-                                             ProductFeatures)
-{
+                                             ProductFeatures) {
   var vm = this,
       availableRoles,
       roleNames,

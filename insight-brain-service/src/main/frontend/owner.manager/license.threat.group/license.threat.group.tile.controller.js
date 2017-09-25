@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function LicenseThreatGroupTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService,
-                                          EventNameConstant)
-{
+                                          EventNameConstant) {
   var vm = this;
   vm.ownerName = undefined;
   vm.applicableLicenseGroups = undefined;

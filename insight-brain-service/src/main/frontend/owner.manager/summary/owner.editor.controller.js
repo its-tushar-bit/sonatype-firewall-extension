@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings,
-                               messages, CLMAppLocations, EventNameConstant)
-{
+                               messages, CLMAppLocations, EventNameConstant) {
   var vm = this,
       deferred,
       preventDismiss = false,
@@ -139,7 +138,8 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
     }, function(error) {
       if (!vm.iconWarning) {
         vm.error = messages.getHttpErrorMessage(error);
-      } else {
+      }
+      else {
         preventDismiss = true;
         $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, vm.dirtyOwner, ownerType, isNew);
         $state.go('management.view.' + ownerType, ownerType === 'application' ? {

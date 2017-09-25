@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function PolicyEditorActionsController(StageTypeStore)
-{
+function PolicyEditorActionsController(StageTypeStore) {
   var vm = this;
 
   vm.doLoad = doLoad;

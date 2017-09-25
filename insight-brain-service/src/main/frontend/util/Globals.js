@@ -16,9 +16,11 @@ window.AngularUtils = {
         var aProp = sortProperty ? a[sortProperty] : a, bProp = sortProperty ? b[sortProperty] : b;
         if (aProp < bProp) {
           return descending ? 1 : -1;
-        } else if (aProp > bProp) {
+        }
+        else if (aProp > bProp) {
           return descending ? -1 : 1;
-        } else {
+        }
+        else {
           return 0;
         }
       });
@@ -27,7 +29,8 @@ window.AngularUtils = {
   hasFlash: function() {
     try {
       if (new ActiveXObject('ShockwaveFlash.ShockwaveFlash')) { return true; }
-    } catch (e) {
+    }
+    catch (e) {
       if (navigator.mimeTypes['application/x-shockwave-flash'] !== undefined) { return true; }
     }
     return false;

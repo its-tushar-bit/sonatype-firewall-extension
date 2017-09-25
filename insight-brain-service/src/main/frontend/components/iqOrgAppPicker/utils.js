@@ -28,7 +28,8 @@ export function groupAppsByOrgId(apps) {
   const appsMappedToOrgId = apps.reduce((obj, app) => {
     if (obj[app.organizationId]) {
       obj[app.organizationId].push(app);
-    } else {
+    }
+    else {
       obj[app.organizationId] = [app];
     }
     return obj;

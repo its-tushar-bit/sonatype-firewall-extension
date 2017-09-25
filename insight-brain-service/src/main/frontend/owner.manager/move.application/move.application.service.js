@@ -5,8 +5,7 @@
  */
 export default
 function MoveApplicationService($http, Messages, ApplicationStore, $q, CLMLocations,
-                                moveApplicationMessages)
-{
+                                moveApplicationMessages) {
 
   return {
     getDestinationOrganizations: getDestinationOrganizations,

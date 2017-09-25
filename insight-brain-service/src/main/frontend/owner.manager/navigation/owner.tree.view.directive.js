@@ -5,8 +5,7 @@
  */
 function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLocations, organizationStore,
                                  applicationStore, OwnerEditor, PermissionService, ownerConstant, EventNameConstant,
-                                 LastSelectedOrganization)
-{
+                                 LastSelectedOrganization) {
   var vm = this;
 
   vm.filter = {

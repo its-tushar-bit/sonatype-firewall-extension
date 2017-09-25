@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, CLMAppLocations, ApplicationStore,
-                                       OrganizationStore, LocalRoleService, ProductFeatures)
-{
+                                       OrganizationStore, LocalRoleService, ProductFeatures) {
   var vm = this;
 
   vm.areAnyCategoriesDefined = undefined;

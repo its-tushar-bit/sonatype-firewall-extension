@@ -164,8 +164,7 @@ module.controller('DeleteRoleController', ['$scope', '$state', '$stateParams', '
     });
   }
 
-  $scope.deleteRole = function ()
-  {
+  $scope.deleteRole = function () {
     Dialog.open({
       title: 'Delete Role',
       body: 'Are you sure you want to delete the Role <strong>' + $('<div/>').text($scope.role.name).html() +

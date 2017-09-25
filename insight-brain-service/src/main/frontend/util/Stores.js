@@ -16,8 +16,7 @@ storesModule.service('ApplicationStore', [
   '$rootScope', 'CLMLocations', 'StoreFactory', 'LastSelectedOrganization', 'OrganizationStore',
   'store.observe.type.constant',
   function($rootScope, clmLocations, StoreFactory, LastSelectedOrganization, OrganizationStore,
-           StoreObserveTypeConstant)
-  {
+           StoreObserveTypeConstant) {
     var applicationStore = StoreFactory.getStore({
       id: 'publicId',
       url: clmLocations.getApplicationsUrl(),

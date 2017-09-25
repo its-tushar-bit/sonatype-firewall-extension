@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $timeout, $window, $cookies, Messages,
-                                            CLMLocations, selectedApplication, StageTypeStore)
-{
+                                            CLMLocations, selectedApplication, StageTypeStore) {
   var validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'],
       vm = this;
 

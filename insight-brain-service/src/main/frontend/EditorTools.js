@@ -73,7 +73,8 @@ module.directive('clmEditable', ['$parse', 'regexFactory', function ($parse, reg
           scope.$applyAsync(function () {
             if (val) {
               scope.myForm.$setError(null, scope.check(val) || '');
-            } else {
+            }
+            else {
               scope.invalid = true;
             }
           });

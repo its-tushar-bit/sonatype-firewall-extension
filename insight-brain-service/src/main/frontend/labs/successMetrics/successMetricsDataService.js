@@ -92,32 +92,22 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
         return [threatCategoryAccessor, pairsToObj(threatLevelPairs)];
       });
 
-      var unroundedAverages = pairsToObj(threatCategoryPairs);
-
-      // Result starts off as the rounded equivalent of unroundedAverages, then we add more properties to it
-      // afterwards.
-      var result = pairsToObj(threatCategoryAccessors.map(threatCategoryAccessor => [
-        threatCategoryAccessor,
-        pairsToObj(threatLevelAccessors.map(threatLevelAccessor => [
-          threatLevelAccessor,
-          Math.round(unroundedAverages[threatCategoryAccessor][threatLevelAccessor])
-        ]))
-      ]));
+      var result = pairsToObj(threatCategoryPairs);
 
       result.monthCount = monthAverages.length;
       result.activeApplicationCount = response.data.activeApplicationCount;
       result.averageEvaluations = monthAverages.reduce(function(acc, monthData) {
         return acc + monthData.evaluationCount;
       }, 0) / monthAverages.length || 0;
-      result.averagePolicyViolations = Math.round(threatCategoryAccessors.reduce(function(categoryAcc, threatCategoryAccessor) {
+      result.averagePolicyViolations = threatCategoryAccessors.reduce(function(categoryAcc, threatCategoryAccessor) {
         return categoryAcc + threatLevelAccessors.reduce(function(levelAcc, threatLevelAccessor) {
-          return levelAcc + unroundedAverages[threatCategoryAccessor][threatLevelAccessor];
+          return levelAcc + result[threatCategoryAccessor][threatLevelAccessor];
         }, 0);
-      }, 0)) || 0;
-      result.averageCriticalPolicyViolations = Math.round(threatCategoryAccessors.reduce(
+      }, 0) || 0;
+      result.averageCriticalPolicyViolations = threatCategoryAccessors.reduce(
           function(categoryAcc, threatCategoryAccessor) {
-            return categoryAcc + unroundedAverages[threatCategoryAccessor].averageDiscoveredCritical;
-          }, 0)) || 0;
+            return categoryAcc + result[threatCategoryAccessor].averageDiscoveredCritical;
+          }, 0) || 0;
       return result;
     });
   }

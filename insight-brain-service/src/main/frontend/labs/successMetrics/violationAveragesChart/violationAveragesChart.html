@@ -18,34 +18,34 @@
   <div class="iq-chart__labels--horizontal-bar">
     <div class="iq-chart__bar-label">
       <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredSecurity}}</strong>Security Violations
+        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredSecurity | number: 0}}</strong>Security Violations
       </span>
       <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredSecurityCritical}}</strong>Critical
-      </span>
-    </div>
-    <div class="iq-chart__bar-label">
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredLicense}}</strong>License Violations
-      </span>
-      <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredLicenseCritical}}</strong>Critical
+        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredSecurityCritical | number: 0}}</strong>Critical
       </span>
     </div>
     <div class="iq-chart__bar-label">
       <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredQuality}}</strong>Quality Violations
+        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredLicense | number: 0}}</strong>License Violations
       </span>
       <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredQualityCritical}}</strong>Critical
+        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredLicenseCritical | number: 0}}</strong>Critical
       </span>
     </div>
     <div class="iq-chart__bar-label">
       <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredOther}}</strong>Other Violations
+        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredQuality | number: 0}}</strong>Quality Violations
       </span>
       <span>
-        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredOtherCritical}}</strong>Critical
+        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredQualityCritical | number: 0}}</strong>Critical
+      </span>
+    </div>
+    <div class="iq-chart__bar-label">
+      <span>
+        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredOther | number: 0}}</strong>Other Violations
+      </span>
+      <span>
+        <strong class="iq-chart__highlight">{{::vm.averageDiscoveredOtherCritical | number: 0}}</strong>Critical
       </span>
     </div>
   </div>

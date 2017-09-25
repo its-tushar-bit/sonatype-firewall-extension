@@ -52,11 +52,11 @@ var columns = {
 
 function makeChart(data) {
   var criticalDataset = new Plottable.Dataset(Object.keys(columns).map(function(field) {
-        return {y: field, x: data[field].averageDiscoveredCritical};
+        return {y: field, x: Math.round(data[field].averageDiscoveredCritical)};
       }), {className: 'iq-chart__dataset--critical'}),
 
       overallDataset = new Plottable.Dataset(Object.keys(columns).map(function(field) {
-        return {y: field, x: sumColumn(data[field])};
+        return {y: field, x: Math.round(sumColumn(data[field]))};
       }), {className: 'iq-chart__dataset--overall'}),
 
       max = overallDataset.data()

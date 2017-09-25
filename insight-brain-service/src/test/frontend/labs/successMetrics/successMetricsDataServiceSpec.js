@@ -35,7 +35,7 @@ describe('successMetricsDataService', function() {
 
   describe('getAveragesData', function() {
 
-    it('fetches averages data from the backend and merges into into a single record with rounded values', function() {
+    it('fetches averages data from the backend and merges into a single record', function() {
       var output;
 
       $httpBackend.expectPOST(CLMLocations.getViolationAveragesUrl()).respond(
@@ -50,13 +50,13 @@ describe('successMetricsDataService', function() {
       expect(output).toBeDefined();
       expect(output.activeApplicationCount).toBe(12);
       expect(output.averageEvaluations).toBe(1.8333333333333333);
-      expect(output.averagePolicyViolations).toBe(37);
-      expect(output.averageCriticalPolicyViolations).toBe(8);
+      expect(output.averagePolicyViolations).toBe(37.233333333333334);
+      expect(output.averageCriticalPolicyViolations).toBe(8.241666666666667);
       expect(output.security).toBeDefined();
       expect(output.security.averageDiscoveredLow).toBe(0);
       expect(output.security.averageDiscoveredModerate).toBe(2);
       expect(output.security.averageDiscoveredSevere).toBe(6);
-      expect(output.security.averageDiscoveredCritical).toBe(3);
+      expect(output.security.averageDiscoveredCritical).toBe(2.533333333333333);
       expect(output.license).toBeDefined();
       expect(output.license.averageDiscoveredLow).toBe(12);
       expect(output.license.averageDiscoveredModerate).toBe(3);
@@ -66,12 +66,12 @@ describe('successMetricsDataService', function() {
       expect(output.quality.averageDiscoveredLow).toBe(0);
       expect(output.quality.averageDiscoveredModerate).toBe(0);
       expect(output.quality.averageDiscoveredSevere).toBe(0);
-      expect(output.quality.averageDiscoveredCritical).toBe(1);
+      expect(output.quality.averageDiscoveredCritical).toBe(0.6666666666666666);
       expect(output.other).toBeDefined();
       expect(output.other.averageDiscoveredLow).toBe(1);
-      expect(output.other.averageDiscoveredModerate).toBe(2);
+      expect(output.other.averageDiscoveredModerate).toBe(1.9916666666666665);
       expect(output.other.averageDiscoveredSevere).toBe(3);
-      expect(output.other.averageDiscoveredCritical).toBe(4);
+      expect(output.other.averageDiscoveredCritical).toBe(4.041666666666667);
     });
 
     it('fetches empty averages data properly', function() {

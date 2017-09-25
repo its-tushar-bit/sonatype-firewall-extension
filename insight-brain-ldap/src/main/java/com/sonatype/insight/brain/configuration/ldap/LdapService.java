@@ -94,7 +94,7 @@ public class LdapService
    * @throws NamingException if there is a problem with the connection
    */
   public void testConnection(LdapConnection conn) throws NamingException {
-    new LdapQuery(restorePassword(conn), null).testConnection();
+    newLdapQuery(restorePassword(conn), null).testConnection();
   }
 
   /**
@@ -103,8 +103,7 @@ public class LdapService
    * @throws NamingException if there is a problem with the mapping
    */
   public List<LdapUser> testUserMapping(LdapUserMapping umap, long maxResults) throws NamingException {
-    LdapServer ldapServer = serverDao.getById(umap.getServerId());
-    return new LdapQuery(getDecryptedConnection(ldapServer), umap).getUsers(maxResults);
+    return newLdapQuery(umap).getUsers(maxResults);
   }
 
   /**
@@ -113,8 +112,7 @@ public class LdapService
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
   public void testUserLogin(LdapUserMapping umap, String username, char[] password) throws NamingException {
-    LdapServer ldapServer = serverDao.getByIdNotNull(umap.getServerId());
-    new LdapQuery(getDecryptedConnection(ldapServer), umap).authenticateUser(username, password, false);
+    newLdapQuery(umap).authenticateUser(username, password, false);
   }
 
   /**
@@ -123,13 +121,11 @@ public class LdapService
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
   public List<LdapUser> getUsersByName(LdapServer ldapServer, String[] usernames) throws NamingException {
-    LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).getUsersByName(usernames);
+    return newLdapQuery(ldapServer).getUsersByName(usernames);
   }
 
   public List<LdapGroup> getGroupsByName(LdapServer ldapServer, String[] groupNames) throws NamingException {
-    LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).getGroupsByName(groupNames);
+    return newLdapQuery(ldapServer).getGroupsByName(groupNames);
   }
 
   /**
@@ -142,8 +138,7 @@ public class LdapService
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
   public List<LdapUser> findUsersByName(LdapServer ldapServer, String query, long maxResults) throws NamingException {
-    LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).findUsersByName(query, maxResults);
+    return newLdapQuery(ldapServer).findUsersByName(query, maxResults);
   }
 
   /**
@@ -154,8 +149,7 @@ public class LdapService
    * @since 1.14.0
    */
   public List<LdapUser> getUsersByGroup(LdapServer ldapServer, String groupName) throws NamingException {
-    LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).getUsersByGroup(groupName);
+    return newLdapQuery(ldapServer).getUsersByGroup(groupName);
   }
 
   /**
@@ -167,8 +161,7 @@ public class LdapService
    * @return List of LdapGroup objects that match the search criteria
    */
   public List<LdapGroup> findGroupsByName(LdapServer ldapServer, String query, long maxResults) throws NamingException {
-    LdapConnection conn = getDecryptedConnection(ldapServer);
-    return new LdapQuery(conn, getUserMapping(conn)).findGroupsByName(query, maxResults);
+    return newLdapQuery(ldapServer).findGroupsByName(query, maxResults);
   }
 
   // User authentication
@@ -265,7 +258,7 @@ public class LdapService
       final LdapConnection conn = getDecryptedConnection(server);
       checkValidConnection(conn);
       try {
-        LdapUser user = new LdapQuery(conn, getUserMapping(conn)).authenticateUser(username, password, true);
+        LdapUser user = newLdapQuery(conn).authenticateUser(username, password, true);
         resetConnectionFailures(conn);
         return user;
       }
@@ -295,7 +288,7 @@ public class LdapService
         final LdapConnection conn = getDecryptedConnection(server);
         checkValidConnection(conn);
         try {
-          LdapUser user = new LdapQuery(conn, getUserMapping(conn)).getUser(username, true);
+          LdapUser user = newLdapQuery(conn).getUser(username, true);
           resetConnectionFailures(conn);
           return user;
         }
@@ -311,7 +304,24 @@ public class LdapService
 
     throw LdapServerExceptionWrapper.getSomethingToThrow(ldapServerExceptionWrappers);
   }
-  
+
+  private LdapQuery newLdapQuery(LdapServer server) {
+    return newLdapQuery(getDecryptedConnection(server));
+  }
+
+  private LdapQuery newLdapQuery(LdapConnection connection) {
+    return newLdapQuery(connection, getUserMapping(connection));
+  }
+
+  private LdapQuery newLdapQuery(LdapUserMapping userMapping) {
+    LdapServer ldapServer = serverDao.getByIdNotNull(userMapping.getServerId());
+    return newLdapQuery(getDecryptedConnection(ldapServer), userMapping);
+  }
+
+  private LdapQuery newLdapQuery(LdapConnection connection, LdapUserMapping userMapping) {
+    return new LdapQuery(connection, userMapping);
+  }
+
   /**
    * Returns the current stored connection details with the password decrypted for the specified LDAP server.
    */

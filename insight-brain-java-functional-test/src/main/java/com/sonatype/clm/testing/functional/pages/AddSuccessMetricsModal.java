@@ -23,30 +23,30 @@ public class AddSuccessMetricsModal
 
   public static final String SUBMIT_BUTTON_DISABLED_CLASS = "disabled";
 
-  private static final String ROOT_SELECTOR = "#add-success-metrics";
+  private static final String ROOT_SELECTOR = "#add-success-metrics-report";
 
   public AddSuccessMetricsModal() {
     super(ROOT_SELECTOR);
   }
 
   public SelenideElement name() {
-    return child("#add-success-metrics-name");
+    return child("#add-success-metrics-report-name");
   }
 
   public IqRadio allApplicationsRadioBtn() {
-    return new IqRadio(child("#add-success-metrics-all-applications"));
+    return new IqRadio(child("#add-success-metrics-report-all-applications"));
   }
 
   public IqRadio customRadioBtn() {
-    return new IqRadio(child("#add-success-metrics-custom"));
+    return new IqRadio(child("#add-success-metrics-report-custom"));
   }
 
   public SelenideElement createBtn() {
-    return child("#add-success-metrics-submit-btn");
+    return child("#add-success-metrics-report-submit-btn");
   }
 
   public SelenideElement cancelBtn() {
-    return child("#add-success-metrics-cancel-btn");
+    return child("#add-success-metrics-report-cancel-btn");
   }
 
   public SelenideElement orgPicker() {

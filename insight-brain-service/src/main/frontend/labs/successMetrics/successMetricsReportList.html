@@ -1,15 +1,15 @@
-<div id="success-metrics" class="tile-container tile-scroll-container">
+<div id="success-metrics-list" class="tile-container tile-scroll-container">
   <div class="iq-tile" load-wrapper="vm.error" loading="!vm.loaded" reload="vm.$onInit()">
     <div class="iq-tile-header">
       <div class="iq-tile-header__title">
         <i class="fa fa-flask slate iq-tile-header__icon"></i>
         <h1>Success Metrics</h1>
       </div>
-      <button id="add-success-metrics-btn"
+      <button id="add-success-metrics-report-btn"
               class="btn btn-tertiary iq-tile__actions"
-              ng-click="vm.openAddSuccessMetricsModal()">
+              ng-click="vm.openAddSuccessMetricsReportModal()">
         <i class="fa fa-plus"></i>
-        Add Success Metrics
+        Add Report
       </button>
       <div class="iq-tile-header__subtitle">
         Success Metrics is an experimental feature providing high level statistics on the value you are realizing from
@@ -19,10 +19,10 @@
     <div class="iq-action-list">
       <ul>
         <li class="iq-action-list__item"
-            ng-repeat="successMetric in vm.successMetricsList"
-            ng-click="vm.goToCharts(successMetric.id)">
+            ng-repeat="report in vm.successMetricsReports"
+            ng-click="vm.goToCharts(report.id)">
           <i class="fa fa-chevron-right iq-pull-right"></i>
-          {{::successMetric.name}}
+          {{::report.name}}
         </li>
       </ul>
     </div>

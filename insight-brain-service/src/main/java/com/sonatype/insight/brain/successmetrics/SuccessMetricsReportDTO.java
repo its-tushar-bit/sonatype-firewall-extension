@@ -8,18 +8,18 @@ package com.sonatype.insight.brain.successmetrics;
 /**
  * @since 1.37
  */
-public class SuccessMetricsDTO
+public class SuccessMetricsReportDTO
 {
   public String id;
 
   public String name;
 
-  public SuccessMetricsScopeDTO scope;
+  public SuccessMetricsReportScopeDTO scope;
 
-  public SuccessMetricsDTO() {
+  public SuccessMetricsReportDTO() {
   }
 
-  public SuccessMetricsDTO(final String name, final SuccessMetricsScopeDTO scope) {
+  public SuccessMetricsReportDTO(final String name, final SuccessMetricsReportScopeDTO scope) {
     this.name = name;
     this.scope = scope;
   }

@@ -18,7 +18,7 @@ describe('summaryStatementTileSpec', function() {
     deleteDeferred = $q.defer();
     mockOnDelete = jasmine.createSpy('onDelete');
     mockSuccessMetricsDataService = {
-      deleteSuccessMetrics: jasmine.createSpy('deleteSuccessMetrics')
+      deleteSuccessMetricsReport: jasmine.createSpy('deleteSuccessMetricsReport')
     };
     mockDeleteModalService = {
       deleteCustom: jasmine.createSpy('deleteCustom').and.returnValue(deleteDeferred.promise)
@@ -53,7 +53,7 @@ describe('summaryStatementTileSpec', function() {
     var vm = getVm({
       onDelete: mockOnDelete,
       averagesData: { activeApplicationCount: 1 },
-      successMetrics: { id: '1', name: 'foo' }
+      successMetricsReport: { id: '1', name: 'foo' }
     });
     vm.$onInit();
     deleteDeferred.resolve();
@@ -62,10 +62,10 @@ describe('summaryStatementTileSpec', function() {
 
     $rootScope.$digest();
 
-    expect(mockDeleteModalService.deleteCustom).toHaveBeenCalledWith('Delete Success Metrics',
+    expect(mockDeleteModalService.deleteCustom).toHaveBeenCalledWith('Delete Report',
         jasmine.stringMatching('foo'), jasmine.any(String), jasmine.any(Function));
     mockDeleteModalService.deleteCustom.calls.argsFor(0)[3]();
-    expect(mockSuccessMetricsDataService.deleteSuccessMetrics).toHaveBeenCalledWith('1');
+    expect(mockSuccessMetricsDataService.deleteSuccessMetricsReport).toHaveBeenCalledWith('1');
     expect(mockOnDelete).toHaveBeenCalled();
   });
 });

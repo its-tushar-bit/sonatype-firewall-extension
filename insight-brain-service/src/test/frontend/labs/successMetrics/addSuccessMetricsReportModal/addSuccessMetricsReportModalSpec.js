@@ -1,4 +1,4 @@
-describe('addSuccessMetricsModal', function() {
+describe('addSuccessMetricsReportModal', function() {
   var getVm,
       applicationStoreDeferred,
       organizationStoreDeferred,
@@ -22,7 +22,7 @@ describe('addSuccessMetricsModal', function() {
     $q = _$q_;
 
     getVm = function(bindings, inject) {
-      return $componentController('addSuccessMetricsModal', Object.assign({
+      return $componentController('addSuccessMetricsReportModal', Object.assign({
         ApplicationStore: mockApplicationStore,
         OrganizationStore: mockOrganizationStore
       }, inject), bindings);
@@ -147,7 +147,7 @@ describe('addSuccessMetricsModal', function() {
     it('does nothing if isCreateEnabled is false', function() {
       var close = jasmine.createSpy('close'),
           mockSuccessMetricsDataService = {
-            createSuccessMetricsForCurrentUser: jasmine.createSpy('createSuccessMetricsForCurrentUser')
+            createSuccessMetricsReportForCurrentUser: jasmine.createSpy('createSuccessMetricsReportForCurrentUser')
           },
           vm = getVm({ close: close }, { successMetricsDataService: mockSuccessMetricsDataService });
 
@@ -156,16 +156,16 @@ describe('addSuccessMetricsModal', function() {
       vm.onSubmit();
 
       expect(close).not.toHaveBeenCalled();
-      expect(mockSuccessMetricsDataService.createSuccessMetricsForCurrentUser).not.toHaveBeenCalled();
+      expect(mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser).not.toHaveBeenCalled();
     });
 
-    it('calls successMetricsDataService.createSuccessMetricsForCurrentUser and then calls close with the result',
+    it('calls successMetricsDataService.createSuccessMetricsReportForCurrentUser and then calls close with the result',
         function() {
           var result = { one: 1 },
               close = jasmine.createSpy('close'),
               createDeferred = $q.defer(),
               mockSuccessMetricsDataService = {
-                createSuccessMetricsForCurrentUser: function() {
+                createSuccessMetricsReportForCurrentUser: function() {
                   return createDeferred.promise;
                 }
               },
@@ -177,7 +177,7 @@ describe('addSuccessMetricsModal', function() {
           vm.maskController = mockMaskController;
 
           // to make isCreateEnabled return true
-          vm.addSuccessMetricsForm = {};
+          vm.addSuccessMetricsReportForm = {};
           vm.name = 'test';
 
           expect(vm.isCreateEnabled()).toBe(true);
@@ -193,7 +193,7 @@ describe('addSuccessMetricsModal', function() {
         }
     );
 
-    it('passes the name and scope to successMetricsDataService.createSuccessMetricsForCurrentUser when not ' +
+    it('passes the name and scope to successMetricsDataService.createSuccessMetricsReportForCurrentUser when not ' +
       'isAllApplications', function() {
       var createDeferred = $q.defer(),
           name = 'test name',
@@ -202,8 +202,8 @@ describe('addSuccessMetricsModal', function() {
           selectedOrganizations = ['asdf', 'qwerty'],
           selectedOrganizationsSet = new Set(selectedOrganizations),
           mockSuccessMetricsDataService = {
-            createSuccessMetricsForCurrentUser: jasmine.createSpy('createSuccessMetricsForCurrentUser').and.returnValue(
-                createDeferred.promise)
+            createSuccessMetricsReportForCurrentUser: jasmine.createSpy('createSuccessMetricsReportForCurrentUser')
+                .and.returnValue(createDeferred.promise)
           },
           mockMaskController = {
             wrap: function(promise) { return promise; }
@@ -213,7 +213,7 @@ describe('addSuccessMetricsModal', function() {
       vm.maskController = mockMaskController;
 
       // to make isCreateEnabled return true
-      vm.addSuccessMetricsForm = {};
+      vm.addSuccessMetricsReportForm = {};
 
       vm.name = name;
       vm.selectedApplications = selectedApplicationsSet;
@@ -224,7 +224,7 @@ describe('addSuccessMetricsModal', function() {
 
       vm.onSubmit();
 
-      expect(mockSuccessMetricsDataService.createSuccessMetricsForCurrentUser).toHaveBeenCalledWith({
+      expect(mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser).toHaveBeenCalledWith({
         name: name,
         scope: {
           organizationIds: selectedOrganizations,
@@ -239,8 +239,8 @@ describe('addSuccessMetricsModal', function() {
           selectedApplications = new Set(['1234', '5678']),
           selectedOrganizations = new Set(['asdf', 'qwerty']),
           mockSuccessMetricsDataService = {
-            createSuccessMetricsForCurrentUser: jasmine.createSpy('createSuccessMetricsForCurrentUser').and.returnValue(
-                createDeferred.promise)
+            createSuccessMetricsReportForCurrentUser: jasmine.createSpy('createSuccessMetricsReportForCurrentUser')
+                .and.returnValue(createDeferred.promise)
           },
           mockMaskController = {
             wrap: function(promise) { return promise; }
@@ -250,7 +250,7 @@ describe('addSuccessMetricsModal', function() {
       vm.maskController = mockMaskController;
 
       // to make isCreateEnabled return true
-      vm.addSuccessMetricsForm = {};
+      vm.addSuccessMetricsReportForm = {};
 
       vm.name = name;
       vm.selectedApplications = selectedApplications;
@@ -261,7 +261,7 @@ describe('addSuccessMetricsModal', function() {
 
       vm.onSubmit();
 
-      expect(mockSuccessMetricsDataService.createSuccessMetricsForCurrentUser).toHaveBeenCalledWith({
+      expect(mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser).toHaveBeenCalledWith({
         name: name,
         scope: {}
       });
@@ -272,7 +272,7 @@ describe('addSuccessMetricsModal', function() {
           close = jasmine.createSpy('close'),
           createDeferred = $q.defer(),
           mockSuccessMetricsDataService = {
-            createSuccessMetricsForCurrentUser: function() {
+            createSuccessMetricsReportForCurrentUser: function() {
               return createDeferred.promise;
             }
           },
@@ -284,7 +284,7 @@ describe('addSuccessMetricsModal', function() {
       vm.maskController = mockMaskController;
 
       // to make isCreateEnabled return true
-      vm.addSuccessMetricsForm = {};
+      vm.addSuccessMetricsReportForm = {};
       vm.name = 'test';
 
       expect(vm.isCreateEnabled()).toBe(true);
@@ -306,7 +306,7 @@ describe('addSuccessMetricsModal', function() {
           wrapPromise = wrapDeferred.promise,
           close = jasmine.createSpy('close'),
           mockSuccessMetricsDataService = {
-            createSuccessMetricsForCurrentUser: function() {
+            createSuccessMetricsReportForCurrentUser: function() {
               return servicePromise;
             }
           },
@@ -318,7 +318,7 @@ describe('addSuccessMetricsModal', function() {
       vm.maskController = mockMaskController;
 
       // to make isCreateEnabled return true
-      vm.addSuccessMetricsForm = {};
+      vm.addSuccessMetricsReportForm = {};
       vm.name = 'test';
 
       expect(mockMaskController.wrap).not.toHaveBeenCalled();
@@ -344,7 +344,7 @@ describe('addSuccessMetricsModal', function() {
     it('returns false if the successMetricsForm is not bound', function() {
       var vm = getVm();
 
-      expect(vm.addSuccessMetricsForm).toBeUndefined();
+      expect(vm.addSuccessMetricsReportForm).toBeUndefined();
       expect(vm.isCreateEnabled()).toBe(false);
     });
 
@@ -352,7 +352,7 @@ describe('addSuccessMetricsModal', function() {
       var vm = getVm();
 
       vm.isAllApplications = true;
-      vm.addSuccessMetricsForm = { $invalid: false };
+      vm.addSuccessMetricsReportForm = { $invalid: false };
 
       expect(vm.isCreateEnabled()).toBe(true);
     });
@@ -362,7 +362,7 @@ describe('addSuccessMetricsModal', function() {
 
       vm.isAllApplications = false;
       vm.selectedApplications = new Set(['12354']);
-      vm.addSuccessMetricsForm = { $invalid: false };
+      vm.addSuccessMetricsReportForm = { $invalid: false };
 
       expect(vm.isCreateEnabled()).toBe(true);
     });
@@ -372,7 +372,7 @@ describe('addSuccessMetricsModal', function() {
 
       vm.isAllApplications = false;
       vm.selectedOrganizations = new Set(['12354']);
-      vm.addSuccessMetricsForm = { $invalid: false };
+      vm.addSuccessMetricsReportForm = { $invalid: false };
 
       expect(vm.isCreateEnabled()).toBe(true);
     });
@@ -384,7 +384,7 @@ describe('addSuccessMetricsModal', function() {
           vm.isAllApplications = false;
           vm.selectedOrganizations = new Set(['12354']);
           vm.selectedApplications = new Set(['asdf']);
-          vm.addSuccessMetricsForm = { $invalid: false };
+          vm.addSuccessMetricsReportForm = { $invalid: false };
 
           expect(vm.isCreateEnabled()).toBe(true);
         }
@@ -396,7 +396,7 @@ describe('addSuccessMetricsModal', function() {
       vm.isAllApplications = false;
       vm.selectedOrganizations = new Set(['12354']);
       vm.selectedApplications = new Set(['asdf']);
-      vm.addSuccessMetricsForm = { $invalid: true };
+      vm.addSuccessMetricsReportForm = { $invalid: true };
       expect(vm.isCreateEnabled()).toBe(false);
 
       vm.selectedOrganizations = new Set();

@@ -9,13 +9,13 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsListPage;
-import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsDAO;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
+import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 
 import org.joda.time.LocalDate;
 import org.junit.After;
@@ -66,9 +66,9 @@ public class AddSuccessMetricsTest
 
   @After
   public void cleanup() {
-    SuccessMetricsDAO dao = new SuccessMetricsDAO();
-    for (SuccessMetrics successMetrics : dao.getByUsername("admin")) {
-      dao.delete(successMetrics);
+    SuccessMetricsReportDAO dao = new SuccessMetricsReportDAO();
+    for (SuccessMetricsReport successMetricsReport : dao.getByUsername("admin")) {
+      dao.delete(successMetricsReport);
     }
 
     logout();
@@ -76,10 +76,10 @@ public class AddSuccessMetricsTest
 
   @Test
   public void testAddSuccessMetrics() {
-    refreshOrOpen(SuccessMetricsListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.URL);
     loginAsAdmin();
 
-    SuccessMetricsListPage page = new SuccessMetricsListPage();
+    SuccessMetricsReportListPage page = new SuccessMetricsReportListPage();
     page.addSuccessMetricsBtn().shouldBe(visible).click();
 
     AddSuccessMetricsModal modal = new AddSuccessMetricsModal();
@@ -91,7 +91,7 @@ public class AddSuccessMetricsTest
 
     page.addSuccessMetricsBtn().shouldBe(visible).click();
 
-    // Add and test a Root Org SuccessMetrics.
+    // Add and test a Root Org SuccessMetricsReport.
     modal.name().setValue("Root Org Chart");
     modal.allApplicationsRadioBtn().shouldHave(text("All Applications")).shouldBe(selected);
     modal.customRadioBtn().shouldHave(text("Custom")).shouldNotBe(selected);
@@ -100,11 +100,11 @@ public class AddSuccessMetricsTest
     page.successMetricsChartActionItems().elements().shouldHaveSize(1);
     page.successMetricsChartActionItems().element(0).shouldHave(text("Root Org Chart")).click();
 
-    SuccessMetricsChartPage chartPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage chartPage = new SuccessMetricsReportPage();
     chartPage.shouldBe(visible);
-    SuccessMetricsChartPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("3"));
+    SuccessMetricsReportPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("3"));
 
-    // Then add and test a SuccessMetrics with an org selection.
+    // Then add and test a SuccessMetricsReport with an org selection.
     chartPage.backButton().click();
     page.addSuccessMetricsBtn().click();
     modal.name().setValue("Organization Chart");
@@ -132,11 +132,11 @@ public class AddSuccessMetricsTest
     page.successMetricsChartActionItems().elements().shouldHaveSize(2);
     page.successMetricsChartActionItems().element(1).shouldHave(text("Organization Chart")).click();
 
-    chartPage = new SuccessMetricsChartPage();
+    chartPage = new SuccessMetricsReportPage();
     chartPage.shouldBe(visible);
-    SuccessMetricsChartPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("2"));
+    SuccessMetricsReportPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("2"));
 
-    // Then add and test a SuccessMetrics with an app selection.
+    // Then add and test a SuccessMetricsReport with an app selection.
     chartPage.backButton().click();
     page.addSuccessMetricsBtn().click();
     modal.name().setValue("Application Chart");
@@ -160,20 +160,20 @@ public class AddSuccessMetricsTest
     page.successMetricsChartActionItems().elements().shouldHaveSize(3);
     page.successMetricsChartActionItems().element(2).shouldHave(text("Application Chart")).click();
 
-    chartPage = new SuccessMetricsChartPage();
+    chartPage = new SuccessMetricsReportPage();
     chartPage.shouldBe(visible);
-    SuccessMetricsChartPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("1"));
+    SuccessMetricsReportPage.SummaryStatementTile.activeApplicationsCount().shouldHave(text("1"));
 
-    // Delete this SuccessMetrics.
+    // Delete this SuccessMetricsReport.
     chartPage.deleteBtn().shouldBe(visible).click();
-    DeleteModal.body().shouldBe(visible).shouldHave(SuccessMetricsChartPage.confirmRemovalText("Application Chart"));
-    DeleteModal.header().shouldHave(SuccessMetricsChartPage.CONFIRM_REMOVAL_HEADER_TEXT);
+    DeleteModal.body().shouldBe(visible).shouldHave(SuccessMetricsReportPage.confirmRemovalText("Application Chart"));
+    DeleteModal.header().shouldHave(SuccessMetricsReportPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
     DeleteModal.body().shouldNotBe(visible);
     page.successMetricsChartActionItems().elements().shouldHaveSize(2);
 
-    // Then add and test a SuccessMetrics with only an empty Organization selected.
+    // Then add and test a SuccessMetricsReport with only an empty Organization selected.
     page.addSuccessMetricsBtn().click();
     modal.name().setValue("Empty Org Chart");
     modal.customRadioBtn().click();
@@ -187,11 +187,11 @@ public class AddSuccessMetricsTest
     page.successMetricsChartActionItems().elements().shouldHaveSize(3);
     page.successMetricsChartActionItems().element(2).shouldHave(text("Empty Org Chart")).click();
 
-    chartPage = new SuccessMetricsChartPage();
+    chartPage = new SuccessMetricsReportPage();
     chartPage.shouldBe(visible);
     chartPage.noDataInfoPane().shouldBe(visible);
 
-    // Now delete this empty SuccessMetrics.
+    // Now delete this empty SuccessMetricsReport.
     chartPage.deleteBtn().shouldBe(visible).click();
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -201,10 +201,10 @@ public class AddSuccessMetricsTest
 
   @Test
   public void testAddSuccessMetrics_Validation() {
-    refreshOrOpen(SuccessMetricsListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.URL);
     loginAsAdmin();
 
-    SuccessMetricsListPage page = new SuccessMetricsListPage();
+    SuccessMetricsReportListPage page = new SuccessMetricsReportListPage();
     page.addSuccessMetricsBtn().click();
 
     AddSuccessMetricsModal modal = new AddSuccessMetricsModal();

@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.MttrTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.SummaryStatementTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
-import com.sonatype.insight.brain.successmetrics.SuccessMetricsScopeDTO;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.DateTime;
@@ -33,7 +33,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
-import static com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.NO_DATA_INFO_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 import static org.joda.time.DateTime.now;
@@ -41,13 +41,13 @@ import static org.joda.time.DateTime.now;
 public class SuccessMetricsPoCTest
     extends AbstractFunctionalTest
 {
-  private SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+  private SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
   private Application app;
 
   private Policy securityPolicy;
 
-  private SuccessMetrics successMetrics;
+  private SuccessMetricsReport successMetricsReport;
 
   private String successMetricsChartsPageUrl;
 
@@ -56,10 +56,10 @@ public class SuccessMetricsPoCTest
     app = tempEntity.newApplicationWithParent("pocApp", "SuccessMetricsPoCTestApp");
     securityPolicy = tempEntity.newPolicy(app.getParentOwnerId(), "SuccessMetricsPoCTestSecurityPolicy");
 
-    successMetrics = tempEntity.newSuccessMetrics("admin", "Test Success Metric",
-        JsonUtils.format(new SuccessMetricsScopeDTO()));
+    successMetricsReport = tempEntity.newSuccessMetricsReport("admin", "Test Success Metric",
+        JsonUtils.format(new SuccessMetricsReportScopeDTO()));
 
-    successMetricsChartsPageUrl = SuccessMetricsChartPage.getUrl(successMetrics.getId());
+    successMetricsChartsPageUrl = SuccessMetricsReportPage.getUrl(successMetricsReport.getId());
   }
 
   @After

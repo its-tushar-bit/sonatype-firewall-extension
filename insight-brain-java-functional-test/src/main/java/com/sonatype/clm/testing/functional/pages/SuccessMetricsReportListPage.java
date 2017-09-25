@@ -12,14 +12,14 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class SuccessMetricsListPage
-    extends BasicElement<SuccessMetricsListPage>
+public class SuccessMetricsReportListPage
+    extends BasicElement<SuccessMetricsReportListPage>
 {
   public static final String URL = BaseUrl.uriBuilder().fragment("/labs/successMetrics").build().toString();
 
-  private static final String ROOT_SELECTOR = "success-metrics-list";
+  private static final String ROOT_SELECTOR = "success-metrics-report-list";
 
-  public SuccessMetricsListPage() {
+  public SuccessMetricsReportListPage() {
     super(ROOT_SELECTOR);
   }
 
@@ -32,6 +32,6 @@ public class SuccessMetricsListPage
   }
 
   public SelenideElement addSuccessMetricsBtn() {
-    return child("#add-success-metrics-btn");
+    return child("#add-success-metrics-report-btn");
   }
 }

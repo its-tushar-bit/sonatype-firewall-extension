@@ -112,7 +112,7 @@
     <class>com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation</class>
     <class>com.sonatype.insight.brain.model.HasComponentId</class>
     <class>com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState</class>
-    <class>com.sonatype.insight.brain.model.successmetrics.SuccessMetrics</class>
+    <class>com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

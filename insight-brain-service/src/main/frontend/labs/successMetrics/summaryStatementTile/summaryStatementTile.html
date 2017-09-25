@@ -1,10 +1,10 @@
 <div class="iq-tile__actions iq-tile__actions--chart">
-  <button class="btn btn-tertiary" ng-click="vm.delete()" id="delete-success-metrics"><!--
+  <button class="btn btn-tertiary" ng-click="vm.delete()" id="delete-success-metrics-report"><!--
  --><i class="fa fa-trash"></i>Delete
   </button>
 </div>
 <div class="iq-tile-header--chart">
-  <h2>{{::vm.successMetrics.name}}</h2>
+  <h2>{{::vm.successMetricsReport.name}}</h2>
 </div>
 <p class="iq-chart__averages" ng-if="!vm.showNoDataMessage">
   Over the last
@@ -22,6 +22,6 @@
   application{{::(vm.isSingleApplicationReport ? '' : 's')}}.
 </p>
 <div ng-if="vm.showNoDataMessage" class="iq-alert iq-alert--info" id="no-data-warning">
-  <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check
-  again tomorrow.
+  <i class="fa fa-info-circle"></i>There's not enough data to generate this report. Run some evaluations and check again
+  tomorrow.
 </div>

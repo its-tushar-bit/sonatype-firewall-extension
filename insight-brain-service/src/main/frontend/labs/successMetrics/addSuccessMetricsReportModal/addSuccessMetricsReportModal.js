@@ -4,21 +4,21 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import template from './addSuccessMetricsModal.html';
+import template from './addSuccessMetricsReportModal.html';
 
 export default {
   template,
-  controller: addSuccessMetricsModalController,
+  controller: addSuccessMetricsReportModalController,
   controllerAs: 'vm',
   bindings: {
     close: '&',
     dismiss: '&',
-    existingSuccessMetrics: '<'
+    existingReports: '<'
   }
 };
 
-function addSuccessMetricsModalController($q, ApplicationStore, OrganizationStore, successMetricsDataService,
-                                          Messages) {
+function addSuccessMetricsReportModalController($q, ApplicationStore, OrganizationStore, successMetricsDataService,
+                                                Messages) {
   const vm = this;
 
   Object.assign(vm, {
@@ -32,8 +32,8 @@ function addSuccessMetricsModalController($q, ApplicationStore, OrganizationStor
     selectedOrganizations: new Set(),
     isAllApplications: true,
 
-    // gets set by form-mask directive in template
-    maskController: undefined,
+    maskController: undefined, // gets set by form-mask directive in template
+    addSuccessMetricsReportForm: undefined, // gets set by name attr on form element
 
     $onInit() {
       vm.error = undefined;
@@ -69,7 +69,7 @@ function addSuccessMetricsModalController($q, ApplicationStore, OrganizationStor
       }
 
       vm.maskController.wrap(successMetricsDataService
-          .createSuccessMetricsForCurrentUser({
+          .createSuccessMetricsReportForCurrentUser({
             name: vm.name,
             scope: vm.isAllApplications ? {} : {
               organizationIds: toArray(vm.selectedOrganizations),
@@ -81,7 +81,7 @@ function addSuccessMetricsModalController($q, ApplicationStore, OrganizationStor
     },
 
     isCreateEnabled() {
-      const form = vm.addSuccessMetricsForm;
+      const form = vm.addSuccessMetricsReportForm;
 
       return !!(form && !form.$invalid && (vm.isAllApplications ||
           (vm.selectedApplications.size + vm.selectedOrganizations.size > 0)));
@@ -93,6 +93,6 @@ function addSuccessMetricsModalController($q, ApplicationStore, OrganizationStor
   });
 }
 
-addSuccessMetricsModalController.$inject = [
+addSuccessMetricsReportModalController.$inject = [
   '$q', 'ApplicationStore', 'OrganizationStore', 'successMetricsDataService', 'Messages'
 ];

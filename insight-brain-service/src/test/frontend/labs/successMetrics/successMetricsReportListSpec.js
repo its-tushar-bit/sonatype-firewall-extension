@@ -1,4 +1,4 @@
-describe('successMetricsList component', function() {
+describe('successMetricsReportList component', function() {
   beforeEach(module('successMetricsModule'));
 
   var vm,
@@ -9,12 +9,12 @@ describe('successMetricsList component', function() {
         checkSuccessMetricsEnabled: undefined
       },
       mockSuccessMetricsDataService = {
-        getSuccessMetricsForCurrentUser: undefined
+        getSuccessMetricsReportsForCurrentUser: undefined
       },
       checkSuccessMetricsEnabledDeferred,
-      getSuccessMetricsForCurrentUserDeferred,
+      getSuccessMetricsReportsForCurrentUserDeferred,
       resetCheckSuccessMetricsEnabledPromise,
-      resetGetSuccessMetricsForCurrentUserPromise;
+      resetGetSuccessMetricsReportsForCurrentUserPromise;
 
   beforeEach(inject(function(_$state_, _$q_, _$rootScope_, $componentController) {
     $scope = _$rootScope_.$new();
@@ -27,16 +27,16 @@ describe('successMetricsList component', function() {
           checkSuccessMetricsEnabledDeferred.promise);
     };
 
-    resetGetSuccessMetricsForCurrentUserPromise = function() {
-      getSuccessMetricsForCurrentUserDeferred = $q.defer();
-      mockSuccessMetricsDataService.getSuccessMetricsForCurrentUser = jasmine.createSpy().and.returnValue(
-          getSuccessMetricsForCurrentUserDeferred.promise);
+    resetGetSuccessMetricsReportsForCurrentUserPromise = function() {
+      getSuccessMetricsReportsForCurrentUserDeferred = $q.defer();
+      mockSuccessMetricsDataService.getSuccessMetricsReportsForCurrentUser = jasmine.createSpy().and.returnValue(
+          getSuccessMetricsReportsForCurrentUserDeferred.promise);
     };
 
     resetCheckSuccessMetricsEnabledPromise();
-    resetGetSuccessMetricsForCurrentUserPromise();
+    resetGetSuccessMetricsReportsForCurrentUserPromise();
 
-    vm = $componentController('successMetricsList', {
+    vm = $componentController('successMetricsReportList', {
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
       successMetricsDataService: mockSuccessMetricsDataService
     });
@@ -50,7 +50,7 @@ describe('successMetricsList component', function() {
     it('properly loads on enabled success metrics', function() {
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsForCurrentUserDeferred.resolve([]);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
       $scope.$digest();
 
       expect(vm.loaded).toBeTruthy();
@@ -60,39 +60,39 @@ describe('successMetricsList component', function() {
     it('properly loads on disabled success metrics', function() {
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.reject('disabled');
-      getSuccessMetricsForCurrentUserDeferred.resolve([]);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
       $scope.$digest();
 
       expect(vm.loaded).toBeTruthy();
       expect(vm.error).toBe('disabled');
     });
 
-    it('properly loads the successMetricsList', function() {
-      const successMetricsList = [{
+    it('properly loads the successMetricsReports', function() {
+      const successMetricsReports = [{
         name: 'Empty',
         scope: {}
       }];
 
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsForCurrentUserDeferred.resolve(successMetricsList);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve(successMetricsReports);
       $scope.$digest();
 
-      expect(vm.successMetricsList).toBe(successMetricsList);
+      expect(vm.successMetricsReports).toBe(successMetricsReports);
     });
 
     it('resets error on load', function() {
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.reject('disabled');
-      getSuccessMetricsForCurrentUserDeferred.resolve([]);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
       $scope.$digest();
       expect(vm.error).toBeDefined();
 
       resetCheckSuccessMetricsEnabledPromise();
-      resetGetSuccessMetricsForCurrentUserPromise();
+      resetGetSuccessMetricsReportsForCurrentUserPromise();
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsForCurrentUserDeferred.resolve([]);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
       $scope.$digest();
 
       expect(vm.error).toBeUndefined();
@@ -106,13 +106,13 @@ describe('successMetricsList component', function() {
       spyOn($state, 'go');
       vm.$onInit();
       vm.goToCharts(id);
-      expect($state.go).toHaveBeenCalledWith('labs.successMetricsChart', { successMetricsId: '12345' });
+      expect($state.go).toHaveBeenCalledWith('labs.successMetricsReport', { successMetricsReportId: '12345' });
     });
   });
 
   describe('openAddSuccessMetricsModal', function() {
-    it('opens a modal and then adds its result onto the end of the successMetricsList', inject(function(Modal) {
-      const successMetricsList = {
+    it('opens a modal and then adds its result onto the end of the successMetricsReports', inject(function(Modal) {
+      const successMetricsReports = {
             name: 'Empty',
             scope: {}
           },
@@ -125,19 +125,19 @@ describe('successMetricsList component', function() {
 
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsForCurrentUserDeferred.resolve([successMetricsList]);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve([successMetricsReports]);
       $scope.$digest();
 
-      vm.openAddSuccessMetricsModal();
+      vm.openAddSuccessMetricsReportModal();
 
       expect(Modal.open).toHaveBeenCalled();
 
       modalDeferred.resolve(modalResult);
       $scope.$digest();
 
-      expect(vm.successMetricsList.length).toBe(2);
-      expect(vm.successMetricsList[0]).toBe(successMetricsList);
-      expect(vm.successMetricsList[1]).toBe(modalResult);
+      expect(vm.successMetricsReports.length).toBe(2);
+      expect(vm.successMetricsReports[0]).toBe(successMetricsReports);
+      expect(vm.successMetricsReports[1]).toBe(modalResult);
     }));
   });
 });

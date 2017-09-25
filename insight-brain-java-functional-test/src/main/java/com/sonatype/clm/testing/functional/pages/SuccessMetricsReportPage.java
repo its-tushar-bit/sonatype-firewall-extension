@@ -18,17 +18,17 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
-public class SuccessMetricsChartPage
-    extends BasicElement<SuccessMetricsChartPage>
+public class SuccessMetricsReportPage
+    extends BasicElement<SuccessMetricsReportPage>
 {
-  private static final String ROOT_SELECTOR = "success-metrics-chart-page";
+  private static final String ROOT_SELECTOR = "success-metrics-report";
 
   public static final Condition NO_DATA_INFO_TEXT = Condition.text(
-      "There's not enough data to generate Success Metrics. Run some evaluations and check again tomorrow.");
+      "There's not enough data to generate this report. Run some evaluations and check again tomorrow.");
 
-  public static final Condition CONFIRM_REMOVAL_HEADER_TEXT = Condition.text("Delete Success Metrics");
+  public static final Condition CONFIRM_REMOVAL_HEADER_TEXT = Condition.text("Delete Report");
 
-  public SuccessMetricsChartPage() {
+  public SuccessMetricsReportPage() {
     super(ROOT_SELECTOR);
   }
 
@@ -45,7 +45,7 @@ public class SuccessMetricsChartPage
   }
 
   public SelenideElement deleteBtn() {
-    return child("#delete-success-metrics");
+    return child("#delete-success-metrics-report");
   }
 
   public static String getUrl(String successMetricsId) {

@@ -21,12 +21,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class SuccessMetricsResourceTest
+public class SuccessMetricsReportResourceTest
     extends AbstractResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(SuccessMetricsResource.RESOURCE_PATH);
+    return super.restRequest().path(SuccessMetricsReportResource.RESOURCE_PATH);
   }
 
   @Test
@@ -36,23 +36,23 @@ public class SuccessMetricsResourceTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
 
-    SuccessMetricsScopeDTO successMetricsScopeDTO = new SuccessMetricsScopeDTO(
+    SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(
         new HashSet<>(Arrays.asList(app.getId())), null);
-    SuccessMetricsDTO successMetricsDTO = new SuccessMetricsDTO(metricsName, successMetricsScopeDTO);
+    SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(metricsName, successMetricsScopeDTO);
     
     // Create
     HttpRequest request = restRequest().auth(tempUser.getUsername(), tempUser.getPassword());
     HttpResponse response = request.body(successMetricsDTO).post();
     assertResponseStatus(200, response);
-    SuccessMetricsDTO result = response.getBody(SuccessMetricsDTO.class);
+    SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
     assertThat(result, notNullValue());
     assertThat(result.id, notNullValue());
     assertThat(result.name, is(successMetricsDTO.name));
     
-    // Get the SuccessMetrics
+    // Get the SuccessMetricsReport
     response = request.get();
     assertResponseStatus(200, response);
-    SuccessMetricsDTO[] results = response.getBody(SuccessMetricsDTO[].class);
+    SuccessMetricsReportDTO[] results = response.getBody(SuccessMetricsReportDTO[].class);
     assertThat(results.length, is(1));
     assertThat(results[0].name, is(metricsName));
 
@@ -67,10 +67,10 @@ public class SuccessMetricsResourceTest
         .parameter(results[0].id).delete();
     assertResponseStatus(204, response);
 
-    // Get the SuccessMetrics
+    // Get the SuccessMetricsReport
     response = request.get();
     assertResponseStatus(200, response);
-    results = response.getBody(SuccessMetricsDTO[].class);
+    results = response.getBody(SuccessMetricsReportDTO[].class);
     assertThat(results.length, is(0));
   }
 }

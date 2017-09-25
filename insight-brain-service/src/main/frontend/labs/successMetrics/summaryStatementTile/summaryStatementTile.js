@@ -10,7 +10,7 @@ export default {
   controller: summaryStatementTileController,
   bindings: {
     averagesData: '<',
-    successMetrics: '<',
+    successMetricsReport: '<',
     onDelete: '&',
     isSingleApplicationReport: '<'
   }
@@ -28,10 +28,12 @@ function summaryStatementTileController(DeleteModalService, successMetricsDataSe
   };
 
   function deleteSuccessMetrics() {
-    DeleteModalService.deleteCustom('Delete Success Metrics',
-        `You are about to delete ${vm.successMetrics.name}. This action cannot be undone.`, 'Deleting', function() {
-          return successMetricsDataService.deleteSuccessMetrics(vm.successMetrics.id);
-        }).then(function() {
+    DeleteModalService.deleteCustom('Delete Report',
+        `You are about to delete ${vm.successMetricsReport.name}. This action cannot be undone.`, 'Deleting',
+        function() {
+          return successMetricsDataService.deleteSuccessMetricsReport(vm.successMetricsReport.id);
+        }
+    ).then(function() {
       vm.onDelete();
     });
   }

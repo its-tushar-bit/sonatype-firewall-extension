@@ -19,12 +19,12 @@ import com.sonatype.insight.model.HasStringId;
  * @since 1.37
  */
 @Entity
-@Table(name = "success_metrics")
-public class SuccessMetrics
+@Table(name = "success_metrics_report")
+public class SuccessMetricsReport
     implements HasStringId
 {
   @Id
-  @Column(name = "success_metrics_id")
+  @Column(name = "success_metrics_report_id")
   private String id;
 
   @Column(name = "username")
@@ -42,10 +42,10 @@ public class SuccessMetrics
   @Column(name = "create_time")
   private Date createTime;
 
-  public SuccessMetrics() {
+  public SuccessMetricsReport() {
   }
 
-  public SuccessMetrics(final String name) {
+  public SuccessMetricsReport(final String name) {
     setName(name);
   }
 

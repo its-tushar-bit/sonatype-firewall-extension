@@ -11,13 +11,13 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ApplicationCountsTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.SummaryStatementTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsListPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsConfigurationPage;
-import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
-import com.sonatype.insight.brain.successmetrics.SuccessMetricsScopeDTO;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.BeforeClass;
@@ -42,9 +42,9 @@ public class SuccessMetricsConfigurationTest
 
   private final SuccessMetricsConfigurationPage metricsConfigPage = new SuccessMetricsConfigurationPage();
 
-  private SuccessMetricsListPage successMetricsPage = new SuccessMetricsListPage();
+  private SuccessMetricsReportListPage successMetricsPage = new SuccessMetricsReportListPage();
 
-  private SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+  private SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
   @BeforeClass
   public static void startup() {
@@ -54,9 +54,9 @@ public class SuccessMetricsConfigurationTest
 
   @Test
   public void testSuccessMetricsConfiguration() {
-    SuccessMetrics successMetrics = tempEntity.newSuccessMetrics("admin", "Test Success Metrics",
-        JsonUtils.format(new SuccessMetricsScopeDTO()));
-    String successMetricsChartsPageUrl = SuccessMetricsChartPage.getUrl(successMetrics.getId());
+    SuccessMetricsReport successMetricsReport = tempEntity.newSuccessMetricsReport("admin", "Test Success Metrics",
+        JsonUtils.format(new SuccessMetricsReportScopeDTO()));
+    String successMetricsChartsPageUrl = SuccessMetricsReportPage.getUrl(successMetricsReport.getId());
 
     systemConfigMenu.menu().click();
     systemConfigMenu.successMetrics().parent().shouldNotHave(cssClass("active"));
@@ -103,8 +103,8 @@ public class SuccessMetricsConfigurationTest
     MainHeader.labsNavigationButton().shouldNot(exist);
 
     // ... the success metrics list page,
-    refreshOrOpen(SuccessMetricsListPage.URL);
-    waitUntilUrl(SuccessMetricsListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.URL);
+    waitUntilUrl(SuccessMetricsReportListPage.URL);
     successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(0);
     successMetricsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
     successMetricsPage.addSuccessMetricsBtn().shouldNotBe(visible);
@@ -124,8 +124,8 @@ public class SuccessMetricsConfigurationTest
 
     // check that it worked on the header,
     MainHeader.labsNavigationButton().should(exist);
-    refreshOrOpen(SuccessMetricsListPage.URL);
-    waitUntilUrl(SuccessMetricsListPage.URL);
+    refreshOrOpen(SuccessMetricsReportListPage.URL);
+    waitUntilUrl(SuccessMetricsReportListPage.URL);
 
     // ... the success metrics list page,
     successMetricsPage.errorBox().shouldNotBe(visible);

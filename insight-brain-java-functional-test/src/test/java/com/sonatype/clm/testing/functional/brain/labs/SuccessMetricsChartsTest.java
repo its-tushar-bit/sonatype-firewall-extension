@@ -11,12 +11,12 @@ import java.util.HashSet;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ApplicationCountsTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ComponentCountsTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.MttrTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.SummaryStatementTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ComponentCountsTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
-import com.sonatype.insight.brain.successmetrics.SuccessMetricsScopeDTO;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -40,7 +40,7 @@ import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
-import static com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.NO_DATA_INFO_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -131,15 +131,15 @@ public class SuccessMetricsChartsTest
     staticTempEntity.newPolicyViolation(app3Eval1, app3Policy, 10,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
 
-    SuccessMetricsScopeDTO successMetricsScope = new SuccessMetricsScopeDTO();
+    SuccessMetricsReportScopeDTO successMetricsScope = new SuccessMetricsReportScopeDTO();
     successMetricsScope.organizationIds = new HashSet<>(Arrays.asList(app1.getParentOwnerId()));
     successMetricsScope.applicationIds = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
 
     // Include app2 using its app id and app1 using its parent org id. Do not include app3.
-    SuccessMetrics successMetrics = staticTempEntity.newSuccessMetrics("admin", "Test",
+    SuccessMetricsReport successMetricsReport = staticTempEntity.newSuccessMetricsReport("admin", "Test",
         JsonUtils.format(successMetricsScope));
 
-    successMetricsChartsPageUrl = SuccessMetricsChartPage.getUrl(successMetrics.getId());
+    successMetricsChartsPageUrl = SuccessMetricsReportPage.getUrl(successMetricsReport.getId());
 
     refreshOrOpen(successMetricsChartsPageUrl);
     loginAsAdmin();
@@ -152,7 +152,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testSummaryStatementTile() {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
     successMetricsChartsPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
@@ -162,7 +162,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testViolationAveragesTile() {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
     successMetricsChartsPage.should(appear);
     ViolationAveragesTile.root().shouldBe(visible);
@@ -174,7 +174,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testApplicationCountsTile() throws Exception {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
     ApplicationCountsTile.root().scrollTo();
 
@@ -195,7 +195,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testMttrTile() {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
     MttrTile.root().scrollTo();
 
@@ -227,7 +227,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testComponentCountsTile() throws Exception {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
     ComponentCountsTile.root().scrollTo();
 
@@ -269,21 +269,21 @@ public class SuccessMetricsChartsTest
   }
 
   /**
-   * Test that navigating to a SuccessMetrics that has a specific app/org selection, but where that app/org selection
-   * has only invalid or unauthorized apps/orgs, causes "No Data" and not a totally unfiltered chart
+   * Test that navigating to a SuccessMetricsReport that has a specific app/org selection, but where that app/org
+   * selection has only invalid or unauthorized apps/orgs, causes "No Data" and not a totally unfiltered chart
    */
   @Test
   public void testNonMatchSuccessMetrics() {
-    // create a SuccessMetrics with only non-existant app and org ids
-    SuccessMetricsScopeDTO invalidScopeDTO = new SuccessMetricsScopeDTO();
+    // create a SuccessMetricsReport with only non-existant app and org ids
+    SuccessMetricsReportScopeDTO invalidScopeDTO = new SuccessMetricsReportScopeDTO();
     invalidScopeDTO.applicationIds = new HashSet<>(Arrays.asList("non-existent-app"));
     invalidScopeDTO.organizationIds = new HashSet<>(Arrays.asList("non-existent-org"));
-    SuccessMetrics successMetrics = tempEntity.newSuccessMetrics("admin", "invalid metrics",
+    SuccessMetricsReport successMetricsReport = tempEntity.newSuccessMetricsReport("admin", "invalid metrics",
         JsonUtils.format(invalidScopeDTO));
 
-    refreshOrOpen(SuccessMetricsChartPage.getUrl(successMetrics.getId()));
+    refreshOrOpen(SuccessMetricsReportPage.getUrl(successMetricsReport.getId()));
 
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
     successMetricsChartsPage.should(appear);
     successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
   }

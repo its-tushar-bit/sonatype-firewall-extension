@@ -8,10 +8,10 @@ package com.sonatype.clm.testing.functional.brain.labs;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsListPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
-import com.sonatype.insight.brain.successmetrics.SuccessMetricsScopeDTO;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
@@ -21,7 +21,7 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton.CLASS_ACTIVE;
-import static com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.NO_DATA_INFO_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT;
 
 public class SuccessMetricsChartsNavigationTest
     extends AbstractFunctionalTest
@@ -34,13 +34,14 @@ public class SuccessMetricsChartsNavigationTest
 
   @Test
   public void navigateToSuccessMetricsCharts() {
-    tempEntity.newSuccessMetrics("admin", "Test Success Metrics", JsonUtils.format(new SuccessMetricsScopeDTO()));
+    tempEntity.newSuccessMetricsReport("admin", "Test Success Metrics",
+        JsonUtils.format(new SuccessMetricsReportScopeDTO()));
 
     refreshOrOpen(BaseUrl.uriBuilder().build().toString());
     loginAsAdmin();
 
-    SuccessMetricsListPage successMetricsPage = new SuccessMetricsListPage();
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportListPage successMetricsPage = new SuccessMetricsReportListPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
     MainHeaderNavigationButton labsNavigationButton = MainHeader.labsNavigationButton();
     labsNavigationButton.shouldBe(visible).shouldNotHave(CLASS_ACTIVE).click();

@@ -8,10 +8,10 @@
   width: 100%;
 }
 
-@import './successMetrics/successMetricsList';
+@import './successMetrics/successMetricsReportList';
 @import './successMetrics/charts';
 @import './successMetrics/applicationCountsChart/applicationCountsChart';
 @import './successMetrics/summaryStatementTile/summaryStatementTile';
 @import './successMetrics/mttrChart/mttrChart';
 @import './successMetrics/componentCountsChart/componentCountsChart';
-@import './successMetrics/addSuccessMetricsModal/addSuccessMetricsModal';
+@import './successMetrics/addSuccessMetricsReportModal/addSuccessMetricsReportModal';

@@ -10,20 +10,20 @@ import java.util.HashSet;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ApplicationCountsTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ComponentCountsTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.MttrTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.SummaryStatementTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsChartPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ComponentCountsTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.successmetrics.SuccessMetrics;
-import com.sonatype.insight.brain.successmetrics.SuccessMetricsScopeDTO;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.DateTime;
@@ -43,7 +43,7 @@ public class SuccessMetricsChartsSingleApplicationTest
 {
   private static final DateTime threeMonthsAgo = now().minusMonths(3);
 
-  private static String successMetricsChartsPageUrl;
+  private static String successMetricsReportPageUrl;
 
   @BeforeClass
   public static void startup() {
@@ -62,28 +62,28 @@ public class SuccessMetricsChartsSingleApplicationTest
     staticTempEntity.newPolicyViolation(buildEval3MonthsAgo, licensePolicy, 6,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
 
-    SuccessMetricsScopeDTO successMetricsScope = new SuccessMetricsScopeDTO();
+    SuccessMetricsReportScopeDTO successMetricsScope = new SuccessMetricsReportScopeDTO();
     successMetricsScope.applicationIds = new HashSet<>(Collections.singleton(app1.getId()));
 
-    SuccessMetrics successMetrics = staticTempEntity.newSuccessMetrics("admin", "Test",
+    SuccessMetricsReport successMetrics = staticTempEntity.newSuccessMetricsReport("admin", "Test",
         JsonUtils.format(successMetricsScope));
 
-    successMetricsChartsPageUrl = SuccessMetricsChartPage.getUrl(successMetrics.getId());
+    successMetricsReportPageUrl = SuccessMetricsReportPage.getUrl(successMetrics.getId());
 
-    refreshOrOpen(successMetricsChartsPageUrl);
+    refreshOrOpen(successMetricsReportPageUrl);
     loginAsAdmin();
   }
 
   @Before
   public void navigate() {
-    refreshOrOpen(successMetricsChartsPageUrl);
+    refreshOrOpen(successMetricsReportPageUrl);
   }
 
   @Test
   public void testSummaryStatementTile() {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
 
-    successMetricsChartsPage.should(appear);
+    successMetricsReportPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
     SummaryStatementTile.title().shouldHave(text("Test"));
     SummaryStatementTile.averages().shouldHave(text("Over the last 3 months, Lifecycle evaluated 1 application."));
@@ -91,9 +91,9 @@ public class SuccessMetricsChartsSingleApplicationTest
 
   @Test
   public void testViolationAveragesTile() {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
 
-    successMetricsChartsPage.should(appear);
+    successMetricsReportPage.should(appear);
     ViolationAveragesTile.root().shouldBe(visible);
     ViolationAveragesTile.title()
         .shouldHave(text("Average Number of Violations Discovered Per Month"));
@@ -103,17 +103,17 @@ public class SuccessMetricsChartsSingleApplicationTest
 
   @Test
   public void testApplicationCountsTile() {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
     
-    successMetricsChartsPage.should(appear);
+    successMetricsReportPage.should(appear);
     ApplicationCountsTile.root().shouldNot(exist);
   }
 
   @Test
   public void testMttrTile() {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
 
-    successMetricsChartsPage.should(appear);
+    successMetricsReportPage.should(appear);
 
     MttrTile.root().scrollTo();
     MttrTile.root().shouldBe(visible);
@@ -122,9 +122,9 @@ public class SuccessMetricsChartsSingleApplicationTest
 
   @Test
   public void testComponentCountsTile() {
-    SuccessMetricsChartPage successMetricsChartsPage = new SuccessMetricsChartPage();
+    SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
 
-    successMetricsChartsPage.should(appear);
+    successMetricsReportPage.should(appear);
 
     ComponentCountsTile.root().scrollTo();
     ComponentCountsTile.root().shouldBe(visible);

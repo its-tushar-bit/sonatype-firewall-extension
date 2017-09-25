@@ -15,9 +15,9 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
     getAveragesData: getAveragesData,
     getApplicationCountsData: getApplicationCountsData,
     getComponentCountsData: getComponentCountsData,
-    getSuccessMetricsForCurrentUser: getSuccessMetricsForCurrentUser,
-    createSuccessMetricsForCurrentUser: createSuccessMetricsForCurrentUser,
-    deleteSuccessMetrics: deleteSuccessMetrics,
+    getSuccessMetricsReportsForCurrentUser: getSuccessMetricsReportsForCurrentUser,
+    createSuccessMetricsReportForCurrentUser: createSuccessMetricsReportForCurrentUser,
+    deleteSuccessMetricsReport: deleteSuccessMetricsReport,
     getApplicationByInternalId: getApplicationByInternalId,
     EMPTY_PREFIX: EMPTY_PREFIX
   };
@@ -146,16 +146,16 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
     }
   }
 
-  function getSuccessMetricsForCurrentUser() {
-    return $http.get(CLMLocations.getSuccessMetricsUrl()).then(getData);
+  function getSuccessMetricsReportsForCurrentUser() {
+    return $http.get(CLMLocations.getSuccessMetricsReportsUrl()).then(getData);
   }
 
-  function createSuccessMetricsForCurrentUser(successMetricConfiguration) {
-    return $http.post(CLMLocations.getSuccessMetricsUrl(), successMetricConfiguration).then(getData);
+  function createSuccessMetricsReportForCurrentUser(successMetricConfiguration) {
+    return $http.post(CLMLocations.getSuccessMetricsReportsUrl(), successMetricConfiguration).then(getData);
   }
 
-  function deleteSuccessMetrics(successMetricsId) {
-    return $http.delete(CLMLocations.getSingleSuccessMetricsUrl(successMetricsId));
+  function deleteSuccessMetricsReport(successMetricsReportId) {
+    return $http.delete(CLMLocations.getSuccessMetricsReportUrl(successMetricsReportId));
   }
 
   // ApplicationStore is configured to lookup by public id not internal id

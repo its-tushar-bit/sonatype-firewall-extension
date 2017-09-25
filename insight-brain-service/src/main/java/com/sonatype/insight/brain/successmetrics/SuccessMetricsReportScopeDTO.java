@@ -10,16 +10,16 @@ import java.util.Set;
 /**
  * @since 1.37
  */
-public class SuccessMetricsScopeDTO
+public class SuccessMetricsReportScopeDTO
 {
   public Set<String> applicationIds;
 
   public Set<String> organizationIds;
 
-  public SuccessMetricsScopeDTO() {
+  public SuccessMetricsReportScopeDTO() {
   }
 
-  public SuccessMetricsScopeDTO(final Set<String> applicationIds, final Set<String> organizationIds) {
+  public SuccessMetricsReportScopeDTO(final Set<String> applicationIds, final Set<String> organizationIds) {
     this.applicationIds = applicationIds;
     this.organizationIds = organizationIds;
   }

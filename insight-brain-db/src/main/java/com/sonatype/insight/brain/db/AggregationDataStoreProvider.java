@@ -24,7 +24,7 @@ public class AggregationDataStoreProvider
 {
   private static final Logger log = LoggerFactory.getLogger(AggregationDataStoreProvider.class);
 
-  public static final int DESIRED_DATABASE_VERSION = 3;
+  public static final int DESIRED_DATABASE_VERSION = 4;
 
   public static final String ID = "insight_brain_aggregation";
 

@@ -90,8 +90,7 @@ function IqOrgAppPickerController() {
     const relatedApps = vm.applications.filter(app => app.organizationId === org.id);
     const hasApps = relatedApps.length !== 0;
 
-    // Org is selected if all related apps are selected.
-    // If it doesn't have any related app, do not deselect.
-    return areAllSelected(selectedApps, relatedApps) && (hasApps || vm.selectedOrganizations.has(org.id));
+    // deselect an Org only if it has apps and not all of them are selected
+    return (areAllSelected(selectedApps, relatedApps) || !hasApps) ? vm.selectedOrganizations.has(org.id) : false;
   };
 }

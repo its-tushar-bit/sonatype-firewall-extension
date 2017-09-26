@@ -117,14 +117,14 @@ describe('iqOrgAppPicker', function() {
   });
 
   describe('onSelectedApplicationsChange()', function() {
-    it('selects an org when all related apps are selected', function() {
+    it('does not select an org when all related apps are selected', function() {
       var selectedApplications = new Set(['fooApp1']);
       var selectedOrganizations = new Set();
 
       var vm = getVm(selectedOrganizations, selectedApplications);
 
       var newSelectedApplications = new Set(['fooApp1', 'fooApp2']);
-      var expectedSelectedOrganizations = new Set(['fooOrg']);
+      var expectedSelectedOrganizations = new Set();
 
       vm.onSelectedApplicationsChange(newSelectedApplications);
       expect(onChange).toHaveBeenCalledWith({

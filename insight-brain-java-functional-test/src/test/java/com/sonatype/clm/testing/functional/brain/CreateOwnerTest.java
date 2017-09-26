@@ -49,6 +49,7 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.junit.Assert.assertArrayEquals;
@@ -378,6 +379,8 @@ public class CreateOwnerTest
   }
 
   private void testNoDirtyState() {
+    OwnerEditorDialog.defaultIcon().shouldBe(visible).shouldBe(selected);
+
     UnsavedModal unsavedModal = new UnsavedModal();
     refreshOrOpen(ReportListPage.URL);
     unsavedModal.shouldNotBe(visible);

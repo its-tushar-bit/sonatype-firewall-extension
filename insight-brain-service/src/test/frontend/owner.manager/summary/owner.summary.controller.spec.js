@@ -23,51 +23,51 @@ describe('owner.summary.controller.js', function() {
         mockChangeApplicationIdService;
 
     beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_, StageTypeStore) {
-          $timeout = _$timeout_;
-          $httpBackend = _$httpBackend_;
-          CLMLocations = _CLMLocations_;
-          CLMAppLocations = _CLMAppLocations_;
-          stageTypeStoreDefer = $q.defer();
-          deleteOwnerDefer = $q.defer();
-          isContextAuthorizedDefer = $q.defer();
-          mockDeleteService = {
-            deleteResource: function() {
-              return deleteOwnerDefer.promise;
-            }
-          };
-          mockPermissionService = {
-            isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise)
-          };
-          mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
-
-          spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-          spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
-          spyOn(CLMAppLocations, 'isApplication').and.returnValue(isApp);
-
-          mockState = {
-            current: {
-              name: 'management.' + type + '-view'
-            },
-            params: isApp ? {applicationPublicId: owner.publicId} : {organizationId: owner.id},
-            href: function() {
-            },
-            go: function(state, params) {}
-          };
-
-          mockWindow = {
-            open: function() {
-            }
-          };
-
-          vm = $controller('OwnerSummaryController', {
-            $scope: {$on: angular.noop},
-            $state: mockState,
-            $window: mockWindow,
-            DeleteModalService: mockDeleteService,
-            PermissionService: mockPermissionService,
-            'change.application.id.service': mockChangeApplicationIdService
-          });
+      $timeout = _$timeout_;
+      $httpBackend = _$httpBackend_;
+      CLMLocations = _CLMLocations_;
+      CLMAppLocations = _CLMAppLocations_;
+      stageTypeStoreDefer = $q.defer();
+      deleteOwnerDefer = $q.defer();
+      isContextAuthorizedDefer = $q.defer();
+      mockDeleteService = {
+        deleteResource: function() {
+          return deleteOwnerDefer.promise;
         }
+      };
+      mockPermissionService = {
+        isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise)
+      };
+      mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
+
+      spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
+      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
+      spyOn(CLMAppLocations, 'isApplication').and.returnValue(isApp);
+
+      mockState = {
+        current: {
+          name: 'management.' + type + '-view'
+        },
+        params: isApp ? {applicationPublicId: owner.publicId} : {organizationId: owner.id},
+        href: function() {
+        },
+        go: function() {}
+      };
+
+      mockWindow = {
+        open: function() {
+        }
+      };
+
+      vm = $controller('OwnerSummaryController', {
+        $scope: {$on: angular.noop},
+        $state: mockState,
+        $window: mockWindow,
+        DeleteModalService: mockDeleteService,
+        PermissionService: mockPermissionService,
+        'change.application.id.service': mockChangeApplicationIdService
+      });
+    }
     ));
 
     afterEach(function() {
@@ -109,7 +109,7 @@ describe('owner.summary.controller.js', function() {
       }
     });
 
-    it('Properly routing to Build Report', inject(function($window) {
+    it('Properly routing to Build Report', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
@@ -129,7 +129,7 @@ describe('owner.summary.controller.js', function() {
         });
         expect(mockWindow.open).toHaveBeenCalled();
       }
-    }));
+    });
 
     it('Properly Displaying Error', function() {
       mockOwnerStore.resolveGet([{}, {}]);
@@ -182,7 +182,7 @@ describe('owner.summary.controller.js', function() {
     it('StageTypeStore Loading Error', function() {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
-      stageTypeStoreDefer.reject('Error')
+      stageTypeStoreDefer.reject('Error');
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 
@@ -204,10 +204,10 @@ describe('owner.summary.controller.js', function() {
 
       if (isApp) {
         owner.organizationId = owner.id;
-      } 
+      }
       else {
         owner.parentOrganizationId = owner.id;
-      } 
+      }
 
       spyOn(mockState, 'go');
       vm.deleteOwner();

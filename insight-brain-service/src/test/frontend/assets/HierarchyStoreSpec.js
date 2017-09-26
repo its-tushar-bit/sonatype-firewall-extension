@@ -1,5 +1,4 @@
 describe('HierarchyStoreFactory', function() {
-  'use strict';
   var store,
       storeUrl = 'http://localhost:8234/rest/policy',
       storeResult = {
@@ -21,7 +20,7 @@ describe('HierarchyStoreFactory', function() {
   function getUnexpectedErrorHandler() {
     return function(e) {
       expect(e).toBeNull();
-    }
+    };
   }
 
   beforeEach(module('ResourceModule', 'CLMAppLocation'));

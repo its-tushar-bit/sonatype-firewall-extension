@@ -19,7 +19,7 @@ describe('sort.column.directive.spec.js', function() {
   it('Test initial sort with no default', function() {
     element = $compile('<table sort="" class="policy-list" cols="8"><tr class="simple">' +
         '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
-    
+
     isolatedScope = element.isolateScope();
     isolatedScope.$digest();
 
@@ -38,7 +38,7 @@ describe('sort.column.directive.spec.js', function() {
   it('Test initial sort with default', function() {
     element = $compile('<table sort="foo"><tr">' +
         '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
-    
+
     isolatedScope = element.isolateScope();
     isolatedScope.$digest();
 
@@ -57,7 +57,7 @@ describe('sort.column.directive.spec.js', function() {
   it('Check initial sort with inverted', function() {
     element = $compile('<table sort="foo"><tr>' +
         '<th sort-column="foo" sort-inverted="true"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
-    
+
     isolatedScope = element.isolateScope();
     isolatedScope.$digest();
 
@@ -76,7 +76,7 @@ describe('sort.column.directive.spec.js', function() {
   it('Test sort calls', function() {
     element = $compile('<table sort=""><tr>' +
         '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
-    
+
     isolatedScope = element.isolateScope();
     isolatedScope.$digest();
 

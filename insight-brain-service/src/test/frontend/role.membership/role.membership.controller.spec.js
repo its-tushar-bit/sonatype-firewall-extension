@@ -1,6 +1,5 @@
 /* globals describe, beforeEach, afterEach, inject, AccessMockData, it, expect, SpecUtil, jasmine */
 describe('role.membership.controller.spec.js', function() {
-  'use strict';
 
   var vm,
       scope,
@@ -95,7 +94,7 @@ describe('role.membership.controller.spec.js', function() {
       vm.search();
 
       $httpBackend.expectGET(CLMAppLocations.getFindUsersUrl() + '?q=testSearch')
-        .respond(AccessMockData.getQueryResults());
+          .respond(AccessMockData.getQueryResults());
     }
 
     it('sets search in progress flag', function() {
@@ -108,31 +107,29 @@ describe('role.membership.controller.spec.js', function() {
       expect(vm.searchInProgress).toBeFalsy();
     });
 
-    it('adds search users to the members array without re-adding or unpicking pre-existing picked members',
-      function() {
-        vm.members.some(function(member) {
-          if (member.internalName === 'userTest1') {
-            member.picked = true;
-            return true;
-          }
-        });
+    it('adds search users to the members array without re-adding or unpicking pre-existing picked members', function() {
+      vm.members.some(function(member) {
+        if (member.internalName === 'userTest1') {
+          member.picked = true;
+          return true;
+        }
+      });
 
-        doSearch();
-        $httpBackend.flush();
+      doSearch();
+      $httpBackend.flush();
 
-        //would be 6 if the duplicate detection wasn't working
-        expect(vm.members.length).toBe(5);
+      //would be 6 if the duplicate detection wasn't working
+      expect(vm.members.length).toBe(5);
 
-        //wouldn't be true if the members list was just wiped out and reset from search results
-        var userTest1Exists = vm.members.some(function(member) {
-          if (member.internalName === 'userTest1') {
-            expect(member.picked).toBe(true);
-            return true;
-          }
-        });
-        expect(userTest1Exists).toBe(true);
-      }
-    );
+      //wouldn't be true if the members list was just wiped out and reset from search results
+      var userTest1Exists = vm.members.some(function(member) {
+        if (member.internalName === 'userTest1') {
+          expect(member.picked).toBe(true);
+          return true;
+        }
+      });
+      expect(userTest1Exists).toBe(true);
+    });
   });
 
   it('creates correct tooltip message', function() {

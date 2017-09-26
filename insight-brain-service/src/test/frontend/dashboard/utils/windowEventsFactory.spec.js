@@ -11,7 +11,7 @@ describe('windowEventsFactory.spec', function() {
         return {
           resize: angular.noop
         };
-      })());
+      }()));
     });
   });
 

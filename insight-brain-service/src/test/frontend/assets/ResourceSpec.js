@@ -1,5 +1,4 @@
 describe('Resource', function() {
-  'use strict';
   var storeUrl = 'http://localhost:8234/';
   var relatedStoreUrl = function(result) {
     return 'http://localhost:8234/related/' + result.id;
@@ -167,8 +166,7 @@ describe('Resource', function() {
           url: storeUrl,
           template: { id: null}
         }),
-        spy = jasmine.createSpy('spy'),
-        result = null;
+        spy = jasmine.createSpy('spy');
 
     $httpBackend.expectGET(storeUrl).respond([
       { id: 'foo' },
@@ -315,8 +313,7 @@ describe('Resource', function() {
       }
     });
 
-    var spy = jasmine.createSpy('spy'),
-        errorSpy = jasmine.createSpy('errorSpy'),
+    var errorSpy = jasmine.createSpy('errorSpy'),
         firstObj = store.create();
 
     firstObj.data.push('foo');
@@ -333,7 +330,7 @@ describe('Resource', function() {
     $httpBackend.expectPUT(relatedStoreUrl({ id: 'bar' })).respond([
       { relatedId: 'relatedBar', relatedData: ['relatedFoo'] }
     ]);
-    firstObj.$save().then(function(result) {
+    firstObj.$save().then(function() {
       expect(firstObj.related).not.toBeUndefined();
       expect(firstObj.data).toEqual(['foo']);
       expect(firstObj.related[0].relatedData).toEqual(['relatedFoo']);
@@ -550,13 +547,13 @@ describe('Resource', function() {
     it('Properties with empty string, null or undefined values', function() {
       data[0].$updateOriginal({id: undefined, name: 'foo', arr: ['a', 'b'], obj: {id: 'bar', name: 'bar'}});
       expect(data[0].isDirty()).toEqual(false);
-      data[0].id = "";
+      data[0].id = '';
       expect(data[0].isDirty()).toEqual(false);
       data[0].id = null;
       expect(data[0].isDirty()).toEqual(false);
       data[0].id = undefined;
       expect(data[0].isDirty()).toEqual(false);
-      data[0].id = "123";
+      data[0].id = '123';
       expect(data[0].isDirty()).toEqual(true);
     });
   });
@@ -656,9 +653,6 @@ describe('Resource', function() {
     var store;
 
     beforeEach(inject(function(StoreFactory, $httpBackend) {
-      var contents = null,
-          spy = jasmine.createSpy('spy'),
-          errorSpy = jasmine.createSpy('errorSpy');
 
       store = StoreFactory.getStore({
         id: 'id',
@@ -671,7 +665,7 @@ describe('Resource', function() {
     }));
 
     describe('Store already loaded', function() {
-      beforeEach(inject(function($httpBackend, $timeout) {
+      beforeEach(inject(function($httpBackend) {
         store.get();
         $httpBackend.flush();
       }));

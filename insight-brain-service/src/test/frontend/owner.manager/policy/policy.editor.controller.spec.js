@@ -13,8 +13,8 @@ describe('policy.editor.controller.spec.js', function() {
       params: {},
       reload: angular.noop
     };
-    $provide.value('$state', $state)
-    $provide.value('$stateParams', $state.params)
+    $provide.value('$state', $state);
+    $provide.value('$stateParams', $state.params);
   }));
 
   function createTests(type, storeName, owner) {
@@ -24,31 +24,26 @@ describe('policy.editor.controller.spec.js', function() {
         scope,
         $timeout,
         CLMAppLocations,
-        CLMLocations,
         deleteServiceResourceDefer,
         isApp = type === 'application',
         mockDeleteService,
         mockCategoryOwners,
         mockPolicyTags,
         $httpBackend,
-        $controller,
         SameOwnerStateNavigationService = {
           goEdit: angular.noop
         },
         mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
         mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(PolicyResourceMockData
-          .getApplicablePolicies(type, owner.id, owner.name), 'policiesByOwner'),
+            .getApplicablePolicies(type, owner.id, owner.name), 'policiesByOwner'),
         mockPolicy = ResourceUtils().createMockResource();
 
-    beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$controller_, _$httpBackend_, _CLMAppLocations_, _CLMLocations_)
-    {
+    beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMAppLocations_) {
       scope = $rootScope.$new();
       $q = _$q_;
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
-      $controller = _$controller_;
       CLMAppLocations = _CLMAppLocations_;
-      CLMLocations = _CLMLocations_;
 
       deleteServiceResourceDefer = $q.defer();
 
@@ -362,7 +357,7 @@ describe('policy.editor.controller.spec.js', function() {
         }
       }
 
-      if (!expectError  && (!isApp || policyStoreData.length > 1 && policyStoreData[1].policies.some(function(policy) { return policyId === policy.id }))) {
+      if (!expectError && (!isApp || policyStoreData.length > 1 && policyStoreData[1].policies.some(function(policy) { return policyId === policy.id; }))) {
         $httpBackend.expectGET(CLMAppLocations.getCategoriesUrl()).respond(mockCategoryOwners);
 
         if (policyId) {

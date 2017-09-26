@@ -12,21 +12,20 @@ describe('repositories.configuration.tile.controller.spec.js', function() {
   }));
 
   beforeEach(inject(function($q, $controller, _$httpBackend_, _CLMLocations_) {
-        $httpBackend = _$httpBackend_;
-        CLMLocations = _CLMLocations_;
+    $httpBackend = _$httpBackend_;
+    CLMLocations = _CLMLocations_;
 
-        deleteServiceResourceDefer = $q.defer();
-        mockDeleteService = {
-          deleteCustom: function() {
-            return deleteServiceResourceDefer.promise;
-          }
-        };
-
-        vm = $controller('repositories.configuration.tile.controller', {
-          DeleteModalService: mockDeleteService
-        });
+    deleteServiceResourceDefer = $q.defer();
+    mockDeleteService = {
+      deleteCustom: function() {
+        return deleteServiceResourceDefer.promise;
       }
-  ));
+    };
+
+    vm = $controller('repositories.configuration.tile.controller', {
+      DeleteModalService: mockDeleteService
+    });
+  }));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();

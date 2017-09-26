@@ -22,6 +22,6 @@ describe('chartUtilsService', function() {
 
     it('returns 1 if maxValue is 0', function() {
       expect(chartUtilsService.calculateTickInterval(4, 0)).toBe(1);
-    })
+    });
   });
 });

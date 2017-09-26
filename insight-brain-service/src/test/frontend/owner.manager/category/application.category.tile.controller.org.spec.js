@@ -12,8 +12,8 @@ describe('application.category.tile.controller.org.spec.js', function() {
       },
       params: {}
     };
-    $provide.value('$state', $state)
-    $provide.value('$stateParams', $state.params)
+    $provide.value('$state', $state);
+    $provide.value('$stateParams', $state.params);
   }));
 
   function createTests(type, storeName, owner) {

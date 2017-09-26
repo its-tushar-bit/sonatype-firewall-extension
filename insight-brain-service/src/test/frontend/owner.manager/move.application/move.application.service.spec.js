@@ -11,7 +11,7 @@ describe('move.application.service.js', function() {
 
   beforeEach(module(function($provide) {
     applicationStore = jasmine.createSpyObj('applicationStore', ['refresh']);
-    $provide.value("ApplicationStore", applicationStore);
+    $provide.value('ApplicationStore', applicationStore);
   }));
 
   beforeEach(inject(function($injector) {
@@ -112,7 +112,7 @@ describe('move.application.service.js', function() {
 
       applicationStore.refresh.and.returnValue(refreshPromise.promise);
 
-      moveApplicationService.moveApplication(1, 2).then(function(messages) {
+      moveApplicationService.moveApplication(1, 2).then(function() {
         throw 'promise should not have been resolved';
       });
 

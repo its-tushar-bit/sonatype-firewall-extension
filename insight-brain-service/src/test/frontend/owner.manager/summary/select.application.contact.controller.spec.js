@@ -18,16 +18,16 @@ describe('select.application.contact.controller.spec.js', function() {
       mockOwner = ResourceUtils().createMockResource();
 
   beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_) {
-      scope = $rootScope.$new();
-      $q = _$q_;
-      $timeout = _$timeout_;
-      deleteServiceResourceDefer = $q.defer();
-      mockDeleteService = {
-        deleteCustom: function() {
-          return deleteServiceResourceDefer.promise;
-        }
-      };
-      $httpBackend = _$httpBackend_;
+    scope = $rootScope.$new();
+    $q = _$q_;
+    $timeout = _$timeout_;
+    deleteServiceResourceDefer = $q.defer();
+    mockDeleteService = {
+      deleteCustom: function() {
+        return deleteServiceResourceDefer.promise;
+      }
+    };
+    $httpBackend = _$httpBackend_;
   }));
 
   it('Selects current user in search results', function() {
@@ -35,7 +35,7 @@ describe('select.application.contact.controller.spec.js', function() {
       vm = $controller('select.application.contact.controller', {$scope: scope, owner: {contact: {internalName: 'JohnDoe'}}});
     });
     vm.search();
-    $httpBackend.whenGET("/rest/user/global/global/query?groups=false").respond({members: [{internalName: 'Foo'}, {internalName: 'JohnDoe'}]});
+    $httpBackend.whenGET('/rest/user/global/global/query?groups=false').respond({members: [{internalName: 'Foo'}, {internalName: 'JohnDoe'}]});
     $httpBackend.flush();
     $timeout.flush();
     expect(vm.selected).toBeDefined();
@@ -53,7 +53,7 @@ describe('select.application.contact.controller.spec.js', function() {
     vm.updateContact();
     mockOwner.resolveSave();
     $timeout.flush();
-    $timeout(function(){}, 1000); // mask delay = 0.8s
+    $timeout(function() {}, 1000); // mask delay = 0.8s
     $timeout.flush();
     expect(vm.owner.contactInternalName).toBe('Foo Bar');
     expect(scope.$close).toHaveBeenCalled();
@@ -114,4 +114,4 @@ describe('select.application.contact.controller.spec.js', function() {
       expect(scope.$dismiss).toHaveBeenCalled();
     });
   });
-})
+});

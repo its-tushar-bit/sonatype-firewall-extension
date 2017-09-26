@@ -1,5 +1,5 @@
 describe('AngularCommon', function() {
-  var scope, compile, httpBackend, regex, form;
+  var scope, compile, httpBackend, regex;
 
   beforeEach(module('AngularCommon', 'CommonServices', 'utility.services', function($provide) {
     var $state = {
@@ -16,7 +16,7 @@ describe('AngularCommon', function() {
             data: {
               crumb: 'Dashboard'
             }
-          }
+          };
         }
       },
       href: angular.noop
@@ -24,12 +24,11 @@ describe('AngularCommon', function() {
     $provide.value('$state', $state);
   }));
 
-  beforeEach(inject(function($httpBackend, $rootScope, $compile, regexFactory, $timeout) {
+  beforeEach(inject(function($httpBackend, $rootScope, $compile, regexFactory) {
     scope = $rootScope.$new();
     compile = $compile;
     httpBackend = $httpBackend;
     regex = regexFactory;
-    timeout = $timeout;
     scope.mockModel = {
       name: null
     };
@@ -51,7 +50,7 @@ describe('AngularCommon', function() {
   });
 
   it('validates valid name characters controls', function() {
-    var element = compile("<ng-form id='form' name='form'><input id='control' name='control' type='text' ng-model='alpha' valid-name-characters /></ng-form>")(scope);
+    var element = compile('<ng-form id="form" name="form"><input id="control" name="control" type="text" ng-model="alpha" valid-name-characters /></ng-form>')(scope);
     scope.$digest();
     scope.$apply(function() {
       scope.alpha = '!!!!';
@@ -78,11 +77,11 @@ describe('AngularCommon', function() {
 
   it('isDuplicate should respect casesensitive param', function() {
     var elm = angular.element(
-        "<form name='form'>" +
-            "<input ng-model='app.name' name='name' " +
-            " is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='name' is-Duplicate-Case-Sensitive='false'>" +
-            "</input>" +
-            "</form>"
+        '<form name="form">' +
+        '<input ng-model="app.name" name="name" ' +
+        ' is-Duplicate is-Duplicate-Array="applications" is-Duplicate-Id-Field="name" is-Duplicate-Case-Sensitive="false">' +
+        '</input>' +
+        '</form>'
 
     );
     scope.app = {name: null};
@@ -107,51 +106,87 @@ describe('AngularCommon', function() {
       ago = $filter('ago');
     }));
     var testCases = [
-      { input: function() {
-        return new Date();
-      }, expected: 'seconds ago' },
-      { input: function() {
-        return new Date().getTime();
-      }, expected: 'seconds ago' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
-      }, expected: '2 years ago' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30, today.getHours() - 6);
-      }, expected: '3 months ago' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, today.getHours() - 6);
-      }, expected: '10 days ago' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getTime() - (23 * 60 + 30) * 60 * 1000 );
-      }, expected: '23 hours ago' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
-          today.getMinutes() - 58);
-      }, expected: '5[8|9] minutes ago' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
-          today.getMinutes() - 1);
-      }, expected: '[1|2] minute[s]? ago' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
-      }, expected: 'seconds ago' },
-      { input: function() {
-        return null;
-      }, expected: '' },
-      { input: function() {
-        return undefined;
-      }, expected: '' },
-      { input: function() {
-        return '';
-      }, expected: '' }
+      {
+        input: function() {
+          return new Date();
+        },
+        expected: 'seconds ago'
+      },
+      {
+        input: function() {
+          return new Date().getTime();
+        },
+        expected: 'seconds ago'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
+        },
+        expected: '2 years ago'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30, today.getHours() - 6);
+        },
+        expected: '3 months ago'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, today.getHours() - 6);
+        },
+        expected: '10 days ago'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getTime() - (23 * 60 + 30) * 60 * 1000);
+        },
+        expected: '23 hours ago'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+              today.getMinutes() - 58);
+        },
+        expected: '5[8|9] minutes ago'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+              today.getMinutes() - 1);
+        },
+        expected: '[1|2] minute[s]? ago'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
+        },
+        expected: 'seconds ago'
+      },
+      {
+        input: function() {
+          return null;
+        },
+        expected: ''
+      },
+      {
+        input: function() {
+          return undefined;
+        },
+        expected: ''
+      },
+      {
+        input: function() {
+          return '';
+        },
+        expected: ''
+      }
     ];
     function validateFilter(input, expected) {
       it('should filter to: ' + expected, function() {
@@ -170,51 +205,87 @@ describe('AngularCommon', function() {
       ago = $filter('terseAgo');
     }));
     var testCases = [
-      { input: function() {
-        return new Date();
-      }, expected: '1min' },
-      { input: function() {
-        return new Date().getTime();
-      }, expected: '1min' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
-      }, expected: '2y' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30, today.getHours() - 6);
-      }, expected: '3m' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, today.getHours() - 6);
-      }, expected: '10d' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getTime() - (23 * 60 + 30) * 60 * 1000 );
-      }, expected: '23h' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
-            today.getMinutes() - 58);
-      }, expected: '5[8|9]min' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
-            today.getMinutes() - 1);
-      }, expected: '[1|2]min' },
-      { input: function() {
-        var today = new Date();
-        return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
-      }, expected: '1min' },
-      { input: function() {
-        return null;
-      }, expected: '' },
-      { input: function() {
-        return undefined;
-      }, expected: '' },
-      { input: function() {
-        return '';
-      }, expected: '' }
+      {
+        input: function() {
+          return new Date();
+        },
+        expected: '1min'
+      },
+      {
+        input: function() {
+          return new Date().getTime();
+        },
+        expected: '1min'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
+        },
+        expected: '2y'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30, today.getHours() - 6);
+        },
+        expected: '3m'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, today.getHours() - 6);
+        },
+        expected: '10d'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getTime() - (23 * 60 + 30) * 60 * 1000);
+        },
+        expected: '23h'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+              today.getMinutes() - 58);
+        },
+        expected: '5[8|9]min'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+              today.getMinutes() - 1);
+        },
+        expected: '[1|2]min'
+      },
+      {
+        input: function() {
+          var today = new Date();
+          return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
+        },
+        expected: '1min'
+      },
+      {
+        input: function() {
+          return null;
+        },
+        expected: ''
+      },
+      {
+        input: function() {
+          return undefined;
+        },
+        expected: ''
+      },
+      {
+        input: function() {
+          return '';
+        },
+        expected: ''
+      }
     ];
     function validateFilter(input, expected) {
       it('should filter to: ' + expected, function() {
@@ -225,7 +296,7 @@ describe('AngularCommon', function() {
       var testCase = testCases[i];
       validateFilter(testCase.input, testCase.expected);
     }
-  })
+  });
 
   describe('agoLastDay filter', function() {
     var filter, filteredAnswer = 'Less than a day ago';
@@ -233,67 +304,67 @@ describe('AngularCommon', function() {
       filter = $filter('agoLastDay');
     }));
 
-    it('Should filter anything in the last few seconds', function(){
+    it('Should filter anything in the last few seconds', function() {
       expect(filter('seconds ago')).toBe(filteredAnswer);
     });
-    it('Should filter anything in the last few minutes', function(){
+    it('Should filter anything in the last few minutes', function() {
       expect(filter('59 minutes ago')).toBe(filteredAnswer);
     });
-    it('Should filter anything in the last few hours', function(){
+    it('Should filter anything in the last few hours', function() {
       expect(filter('1 hour ago')).toBe(filteredAnswer);
     });
   });
 
   describe('chiclet directive', function() {
     var compileElement = function(template) {
-        var element = angular.element(template);
-        compile(element)(scope);
-        angular.element('body').append(element);
-        scope.$digest();
-        return element;
-      },
-      chicletElement = null;
+          var element = angular.element(template);
+          compile(element)(scope);
+          angular.element('body').append(element);
+          scope.$digest();
+          return element;
+        },
+        chicletElement = null;
 
     afterEach(function () {
       chicletElement.remove();
     });
 
-    it('should show all defined chiclets with a default margin', function(){
+    it('should show all defined chiclets with a default margin', function() {
       chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1"></div>');
       expect(chicletElement.scope().$$childTail.style.margin).toBe('2px');
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
-      angular.forEach(chiclets, function(chiclet){
+      angular.forEach(chiclets, function(chiclet) {
         expect($(chiclet).text()).toBe('1');
         expect($(chiclet).is(':visible')).toBeTruthy();
       });
     });
-    it('should show all chiclets even if not set when "alwaysShow" specified', function(){
+    it('should show all chiclets even if not set when "alwaysShow" specified', function() {
       chicletElement = compileElement('<div chiclets always-show="true"></div>');
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
-      angular.forEach(chiclets, function(chiclet){
+      angular.forEach(chiclets, function(chiclet) {
         expect($(chiclet).text()).toBe('');
         expect($(chiclet).is(':visible')).toBeTruthy();
       });
     });
-    it('should show nothing if there is no chiclet data', function(){
+    it('should show nothing if there is no chiclet data', function() {
       chicletElement = compileElement('<div chiclets></div>');
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
-      angular.forEach(chiclets, function(chiclet){
+      angular.forEach(chiclets, function(chiclet) {
         expect($(chiclet).is(':visible')).toBeFalsy();
       });
     });
-    it('should set a default margin if one is not specified', function(){
+    it('should set a default margin if one is not specified', function() {
       chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1"></div>');
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
-      angular.forEach(chiclets, function(chiclet){
+      angular.forEach(chiclets, function(chiclet) {
         expect($(chiclet).css('margin-top')).toBe('2px');
       });
     });
-    it('should respect a provided margin', function(){
+    it('should respect a provided margin', function() {
       chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1" margin="5cm"></div>');
       expect(chicletElement.scope().$$childTail.style.margin).toBe('5cm');
     });
@@ -304,17 +375,17 @@ describe('AngularCommon', function() {
     beforeEach(inject(function($filter) {
       truncate = $filter('truncate');
     }));
-    it('Should filter strings longer than 25 characters by default', function(){
+    it('Should filter strings longer than 25 characters by default', function() {
       var truncated = truncate('A string longer than 25 characters');
       expect(truncated).toBe('A string longer than 2...');
       expect(truncated.length).toBe(25);
     });
-    it('Should allow for specifying a length', function(){
+    it('Should allow for specifying a length', function() {
       var truncated = truncate('A string longer than 30 characters', 30);
       expect(truncated).toBe('A string longer than 30 cha...');
       expect(truncated.length).toBe(30);
     });
-    it('Should not filter strings that fit in its set length', function(){
+    it('Should not filter strings that fit in its set length', function() {
       var truncated = truncate('bumfuzzled');
       expect(truncated).toBe('bumfuzzled');
       expect(truncated.length).toBe(10);
@@ -338,12 +409,12 @@ describe('AngularCommon', function() {
 
     beforeEach(inject(function ($compile) {
       var element = angular.element('<div  multi-select items="tags" selected-ids="appliedTagIds"></div>');
-      scope.tags = [{ id : 'foo', name : 'Foo' }, { id : 'bar', name : 'Bar' }];
+      scope.tags = [{ id: 'foo', name: 'Foo' }, { id: 'bar', name: 'Bar' }];
       scope.appliedTagIds = [];
       scope.$apply(function () {
         $compile(element)(scope);
       });
-      directiveScope = scope.$$childHead
+      directiveScope = scope.$$childHead;
     }));
 
     it('can handle getText being called before the watcher on selectedIds', function () {
@@ -386,7 +457,7 @@ describe('AngularCommon', function() {
       expect(scope.appliedTagIds).toEqual(['foo']);
     });
   });
-  
+
   describe('LastSelectedOrganization', function() {
     it('Set/Get/Clear', inject(function(LastSelectedOrganization) {
       expect(LastSelectedOrganization.get()).toEqual({});
@@ -414,20 +485,20 @@ describe('AngularCommon', function() {
           threatLevels: [1]
         }, {
           clazz: 'moderate',
-          threatLevels: [2,3]
+          threatLevels: [2, 3]
         }, {
           clazz: 'severe',
-          threatLevels: [4,5,6,7]
+          threatLevels: [4, 5, 6, 7]
         }, {
           clazz: 'critical',
-          threatLevels: [8,9,10]
-        },
+          threatLevels: [8, 9, 10]
+        }
       ];
 
       angular.forEach(expectedResults, function(result) {
         angular.forEach(result.threatLevels, function(threatLevel) {
           scope.threatLevel = threatLevel;
-          element = angular.element('<div threat-class="threatLevel"></div>');
+          var element = angular.element('<div threat-class="threatLevel"></div>');
           element = $compile(element)(scope);
           expect(element.attr('class')).toContain(result.clazz);
         });
@@ -501,42 +572,78 @@ describe('AngularCommon', function() {
       fileNameFilter = $filter('fileName');
     }));
     var testCases = [
-      { input: function() {
-        return '/';
-      }, expected: '/' },
-      { input: function() {
-        return '//';
-      }, expected: '' },
-      { input: function() {
-        return '///';
-      }, expected: '' },
-      { input: function() {
-        return 'test/path/fileName';
-      }, expected: 'fileName' },
-      { input: function() {
-        return '/test/path/fileName';
-      }, expected: 'fileName' },
-      { input: function() {
-        return 'test/path/fileName/';
-      }, expected: 'fileName' },
-      { input: function() {
-        return '/test/path/fileName/';
-      }, expected: 'fileName' },
-      { input: function() {
-        return '/fileName';
-      }, expected: 'fileName' },
-      { input: function() {
-        return 'fileName/';
-      }, expected: 'fileName' },
-      { input: function() {
-        return 'fileName';
-      }, expected: 'fileName' },
-      { input: function() {
-        return null;
-      }, expected: 'null' },
-      { input: function() {
-        return '';
-      }, expected: '' }
+      {
+        input: function() {
+          return '/';
+        },
+        expected: '/'
+      },
+      {
+        input: function() {
+          return '//';
+        },
+        expected: ''
+      },
+      {
+        input: function() {
+          return '///';
+        },
+        expected: ''
+      },
+      {
+        input: function() {
+          return 'test/path/fileName';
+        },
+        expected: 'fileName'
+      },
+      {
+        input: function() {
+          return '/test/path/fileName';
+        },
+        expected: 'fileName'
+      },
+      {
+        input: function() {
+          return 'test/path/fileName/';
+        },
+        expected: 'fileName'
+      },
+      {
+        input: function() {
+          return '/test/path/fileName/';
+        },
+        expected: 'fileName'
+      },
+      {
+        input: function() {
+          return '/fileName';
+        },
+        expected: 'fileName'
+      },
+      {
+        input: function() {
+          return 'fileName/';
+        },
+        expected: 'fileName'
+      },
+      {
+        input: function() {
+          return 'fileName';
+        },
+        expected: 'fileName'
+      },
+      {
+        input: function() {
+          return null;
+        },
+        expected: 'null'
+      },
+      {
+        input: function() {
+          return '';
+        },
+        expected: ''
+      }
     ];
     function validateFilter(input, expected) {
       it('should filter to: ' + expected, function() {

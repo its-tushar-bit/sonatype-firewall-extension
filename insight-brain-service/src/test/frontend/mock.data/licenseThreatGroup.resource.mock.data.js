@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 var LicenseThreatGroupResourceMockData = {
   getApplicableLicenseGroupsUrl: function() {
     return {
@@ -20,7 +21,8 @@ var LicenseThreatGroupResourceMockData = {
                   licenseThreatGroupId: '29a73283622245d59fd49cbf963d192e',
                   ownerId: 'f3cea033acf84984ae08d9250db4aa7b'
                 }
-              ], name: 'LTG1',
+              ],
+              name: 'LTG1',
               threatLevel: 6
             }
           ],

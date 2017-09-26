@@ -20,7 +20,7 @@ describe('iq-back-button component', function() {
 
     getVm = function(bindings) {
       return $componentController('iqBackButton', {$state: $state}, bindings);
-    }
+    };
   }));
 
   it('linkText is using page title for given state', function() {

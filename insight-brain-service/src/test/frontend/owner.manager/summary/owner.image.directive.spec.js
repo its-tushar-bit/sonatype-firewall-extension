@@ -34,13 +34,12 @@ describe('owner.image.directive.spec.js', function() {
   });
 
   it('Refreshes image after owner update event', inject(['event.name.constant', function(EventNameConstant) {
-      var previousUrl = ownerImageScope.ownerUrl;
+    var previousUrl = ownerImageScope.ownerUrl;
 
-      scope.$broadcast(EventNameConstant.OWNER_UPDATED, scope.owner);
-      scope.$digest();
+    scope.$broadcast(EventNameConstant.OWNER_UPDATED, scope.owner);
+    scope.$digest();
 
-      expect(ownerImageScope.ownerUrl).not.toEqual(previousUrl);
-      expect(ownerImageScope.ownerUrl).toMatch(/^.*\?timestamp=.*/);
-    }
-  ]));
+    expect(ownerImageScope.ownerUrl).not.toEqual(previousUrl);
+    expect(ownerImageScope.ownerUrl).toMatch(/^.*\?timestamp=.*/);
+  }]));
 });

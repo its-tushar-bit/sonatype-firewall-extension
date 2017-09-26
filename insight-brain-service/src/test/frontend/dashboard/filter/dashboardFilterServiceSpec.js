@@ -18,14 +18,14 @@ describe('dashboardFilterService', function() {
     it('properly parses multiple errors', function() {
       $httpBackend.expectPOST(CLMLocations.getDashboardDeleteFiltersUrl()).respond(500, [
         {
-          "name": "Test1",
-          "errorMessage": "foo",
-          "status": 404
+          'name': 'Test1',
+          'errorMessage': 'foo',
+          'status': 404
         },
         {
-          "name": "Test2",
-          "errorMessage": "bar",
-          "status": 500
+          'name': 'Test2',
+          'errorMessage': 'bar',
+          'status': 500
         }
       ]);
 
@@ -39,7 +39,7 @@ describe('dashboardFilterService', function() {
     });
 
     it('properly parses single error', function() {
-      $httpBackend.expectPOST(CLMLocations.getDashboardDeleteFiltersUrl()).respond(404, "not found");
+      $httpBackend.expectPOST(CLMLocations.getDashboardDeleteFiltersUrl()).respond(404, 'not found');
 
       dashboardFilterService.deleteSavedFilters(['Test1']).then(function() {
         throw 'promise should have been rejected';

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 var StoreUtils = function() {
   var me = {
     createMockStore: createMockStore,
@@ -56,7 +57,7 @@ var StoreUtils = function() {
     function resolvePromise(promiseName) {
       return function(value) {
         if (!promises) {
-          throw "Promises not defined. Make sure to call resolve in an 'it'";
+          throw 'Promises not defined. Make sure to call resolve in an \'it\'';
         }
 
         expect(promises[promiseName].promise.then).toHaveBeenCalled();
@@ -68,7 +69,7 @@ var StoreUtils = function() {
     function rejectPromise(promiseName) {
       return function(value) {
         if (!promises) {
-          throw "Promises not defined. Make sure to call resolve in an 'it'";
+          throw 'Promises not defined. Make sure to call resolve in an \'it\'';
         }
 
         promises[promiseName].reject(value);

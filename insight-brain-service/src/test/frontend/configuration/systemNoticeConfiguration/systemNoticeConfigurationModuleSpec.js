@@ -24,7 +24,7 @@ describe('systemNoticeConfigurationModuleSpec.js', function() {
     expect($state.get('systemNotice').resolve.isAuthorized[0]).toEqual('PermissionService');
     var permissionServiceFunction = $state.get('systemNotice').resolve.isAuthorized[1];
     var permissionServiceMock = {
-      isAuthorized: function(arg1, arg2) {
+      isAuthorized: function() {
       }
     };
     spyOn(permissionServiceMock, 'isAuthorized');

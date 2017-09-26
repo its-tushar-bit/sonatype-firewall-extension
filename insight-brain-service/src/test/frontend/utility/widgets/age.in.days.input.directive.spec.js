@@ -21,7 +21,7 @@ describe('age.in.days.input.directive.spec.js', function() {
     SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/age.in.days.input.directive.html');
 
     scope = angular.extend(scope, {
-      ageModel: "3"
+      ageModel: '3'
     });
 
     element = $compile('<form name="testform"><age-in-days-input ng-model="ageModel"></age-in-days-input></form>')(scope).children();
@@ -32,7 +32,7 @@ describe('age.in.days.input.directive.spec.js', function() {
   }));
 
   it('Directive formats days into the correct age and parses age into days', function() {
-    expect(element.find('input[type="number"]').val()).toEqual("3");
+    expect(element.find('input[type="number"]').val()).toEqual('3');
 
     expect(vm.modifierTypes.length).toBe(3);
     vm.modifierTypes.forEach(function(modifierType) {
@@ -40,25 +40,25 @@ describe('age.in.days.input.directive.spec.js', function() {
       isolatedScope.$digest();
       scope.$digest();
       expect(scope.ageModel).toEqual((3 * vm.modifier).toString());
-      expect(element.find('input[type="number"]').val()).toEqual("3");
+      expect(element.find('input[type="number"]').val()).toEqual('3');
     });
   });
 
   it('Directive parses age into correct number of days after changing input', function() {
-    expect(scope.ageModel).toEqual("3");
+    expect(scope.ageModel).toEqual('3');
     vm.modifier = 30;
     isolatedScope.$digest();
     element.find('input[type="number"]').val(10).trigger('input');
-    expect(element.find('input[type="number"]').val()).toEqual("10");
-    expect(scope.ageModel).toEqual("300");
+    expect(element.find('input[type="number"]').val()).toEqual('10');
+    expect(scope.ageModel).toEqual('300');
   });
 
   it('Directive formats days into the correct age after changing model', function() {
     vm.modifier = 30;
     isolatedScope.$digest();
-    scope.ageModel = "3000";
+    scope.ageModel = '3000';
     scope.$digest();
-    expect(element.find('input[type="number"]').val()).toEqual("100");
-    expect(vm.ageInDaysModel).toEqual("3000");
+    expect(element.find('input[type="number"]').val()).toEqual('100');
+    expect(vm.ageInDaysModel).toEqual('3000');
   });
 });

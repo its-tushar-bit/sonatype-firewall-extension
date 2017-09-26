@@ -74,8 +74,7 @@ describe('PolicyTrendController.spec', function() {
   }));
 
   function assertPolicySummaryBlock(name, counts, average, ninetyPercentile, delta, barchartData, sparklineData,
-                                    naturalOrder, policySummaryBlock)
-  {
+                                    naturalOrder, policySummaryBlock) {
     expect(policySummaryBlock.name).toEqual(name);
     expect(policySummaryBlock.counts).toEqual(counts);
     expect(policySummaryBlock.avg).toEqual(average);

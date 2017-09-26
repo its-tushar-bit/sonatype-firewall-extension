@@ -3,7 +3,7 @@ describe('sortable.directive.spec', function() {
   beforeEach(module('ReportViolations'));
 
   describe('sortable', function() {
-    var barScope, fooScope, invertedScope;
+    var barScope, fooScope, invertedScope, scope;
 
     beforeEach(inject(function($rootScope, $compile) {
       scope = $rootScope.$new();
@@ -92,7 +92,7 @@ describe('sortable.directive.spec', function() {
   });
 
   describe('sortable with secondary sort', function() {
-    var barScope, fooScope;
+    var barScope, scope, fooScope;
 
     beforeEach(inject(function($rootScope, $compile) {
       scope = $rootScope.$new();

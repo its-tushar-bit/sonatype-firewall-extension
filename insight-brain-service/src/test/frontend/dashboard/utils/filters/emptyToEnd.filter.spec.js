@@ -21,6 +21,6 @@ describe('emptyToEnd.filter.spec', function() {
   });
 
   it('should filter all null values to the end when given a compound key', function() {
-    expect(emptyToEnd(data, ['key','key2'])).toEqual(expectedResult);
+    expect(emptyToEnd(data, ['key', 'key2'])).toEqual(expectedResult);
   });
 });

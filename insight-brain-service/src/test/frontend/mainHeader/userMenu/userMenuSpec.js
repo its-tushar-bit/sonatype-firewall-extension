@@ -1,22 +1,17 @@
 describe('userMenu', function() {
-  var scope, vm,
-    parentScope = null,
-    dialogScope = null,
-    currentUserSuccess = null,
-    currentUserFail = null;
+  var scope, vm, currentUserSuccess, dialogScope, parentScope;
 
   beforeEach(module('mainHeader', function($provide) {
 
     $provide.value('CurrentUser', {
-      then : function (success, fail) {
+      then: function (success) {
         currentUserSuccess = success;
-        currentUserFail = fail;
         return this;
       }
     });
 
     $provide.value('ProductFeatures', {
-      isDashboardLicensed : function() {
+      isDashboardLicensed: function() {
         return true;
       }
     });
@@ -32,7 +27,7 @@ describe('userMenu', function() {
         });
         return {
           result: {
-            then: function(success, failure) {
+            then: function(success) {
               success();
             }
           }
@@ -53,7 +48,8 @@ describe('userMenu', function() {
   afterEach(inject(function($httpBackend) {
     if (parentScope) {
       parentScope.$destroy();
-    } else if (scope) {
+    }
+    else if (scope) {
       scope.$destroy();
     }
     delete window.clmServerVersion;
@@ -63,7 +59,7 @@ describe('userMenu', function() {
 
   describe('logout()', function () {
 
-    it('provides the ability to log out', inject(function($httpBackend, CLMLocations){
+    it('provides the ability to log out', inject(function($httpBackend, CLMLocations) {
       var spy = jasmine.createSpy();
       parentScope.$on('logout', spy);
 
@@ -96,17 +92,17 @@ describe('userMenu', function() {
     });
     it('CLM User', function () {
       currentUserSuccess({
-        username : 'foo',
-        authenticated : true,
-        clmUser : true
+        username: 'foo',
+        authenticated: true,
+        clmUser: true
       });
       expect(vm.canChangePassword()).toBeTruthy();
     });
     it('Not CLM User', function () {
       currentUserSuccess({
-        username : 'foo',
-        authenticated : true,
-        clmUser : false
+        username: 'foo',
+        authenticated: true,
+        clmUser: false
       });
       expect(vm.canChangePassword()).toBeFalsy();
     });
@@ -115,19 +111,19 @@ describe('userMenu', function() {
   describe('Change Password Dialog', function () {
     beforeEach(inject(function () {
       currentUserSuccess({
-        username : 'foo',
-        authenticated : true,
-        clmUser : true
+        username: 'foo',
+        authenticated: true,
+        clmUser: true
       });
       vm.changePassword();
 
       dialogScope.result = {
-        originalPassword : 'bar',
-        newPassword : 'xxx',
-        confirmPassword : 'xxx'
+        originalPassword: 'bar',
+        newPassword: 'xxx',
+        confirmPassword: 'xxx'
       };
       dialogScope.passwordForm = {
-        $valid : true // form validation
+        $valid: true // form validation
       };
     }));
 
@@ -140,7 +136,7 @@ describe('userMenu', function() {
       expect(dialogScope.$close).toHaveBeenCalled();
     }));
 
-    it('With Invalid Auth', inject(function ($httpBackend, CLMLocations, Messages) {
+    it('With Invalid Auth', inject(function ($httpBackend, CLMLocations) {
       $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400, 'Super Fail');
 
       dialogScope.save();

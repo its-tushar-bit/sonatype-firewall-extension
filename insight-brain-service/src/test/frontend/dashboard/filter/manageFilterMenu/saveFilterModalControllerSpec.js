@@ -12,7 +12,7 @@ describe('saveFilterModalController', function() {
         existingFilters: existingFilters
       });
       scope.$close = jasmine.createSpy('$close').and.callFake(angular.noop);
-      scope.vm.formMask = { wrap : jasmine.createSpy('formMask').and.callFake(function (x) { return x; }) };
+      scope.vm.formMask = { wrap: jasmine.createSpy('formMask').and.callFake(function (x) { return x; }) };
       scope.$digest();
     });
 
@@ -33,12 +33,12 @@ describe('saveFilterModalController', function() {
   });
 
   it('Passed in name is set', function() {
-    var scope = createController({ x : 1 }, 'foo', []);
+    var scope = createController({ x: 1 }, 'foo', []);
     expect(scope.vm.filterName).toEqual('foo');
   });
 
   it('saves filter', inject(function($httpBackend, $timeout, CLMLocations) {
-    var scope = createController({ x : 1 }, 'foo', []);
+    var scope = createController({ x: 1 }, 'foo', []);
     $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
       name: 'foo',
       filter: {
@@ -46,7 +46,7 @@ describe('saveFilterModalController', function() {
       }
     }).respond(204);
     scope.vm.saveFilter();
-    expect(scope.vm.confirm).toBeFalsy()
+    expect(scope.vm.confirm).toBeFalsy();
     $timeout.flush();
     $httpBackend.flush();
 
@@ -54,7 +54,7 @@ describe('saveFilterModalController', function() {
   }));
 
   it('saves filter', inject(function($httpBackend, $timeout, CLMLocations) {
-    var scope = createController({ x : 1 }, 'foo', []);
+    var scope = createController({ x: 1 }, 'foo', []);
     $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
       name: 'foo',
       filter: {
@@ -70,7 +70,7 @@ describe('saveFilterModalController', function() {
   }));
 
   it('overwrites filter', inject(function($httpBackend, $timeout, CLMLocations) {
-    var scope = createController({ x : 1 }, 'foo', [{ name: 'foo'}]);
+    var scope = createController({ x: 1 }, 'foo', [{ name: 'foo'}]);
 
     scope.vm.saveFilter();
     expect(scope.vm.confirm).toBeTruthy();

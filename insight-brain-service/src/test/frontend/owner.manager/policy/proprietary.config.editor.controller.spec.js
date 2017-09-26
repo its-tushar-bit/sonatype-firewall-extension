@@ -1,4 +1,4 @@
-describe("proprietary.config.editor.controller.spec.js", function() {
+describe('proprietary.config.editor.controller.spec.js', function() {
 
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {
@@ -7,6 +7,7 @@ describe("proprietary.config.editor.controller.spec.js", function() {
   }));
 
   var vm,
+      $q,
       scope,
       $httpBackend,
       $timeout,
@@ -14,22 +15,20 @@ describe("proprietary.config.editor.controller.spec.js", function() {
       CLMAppLocations,
       mockProprietaryConfig = ResourceUtils().createMockResource();
 
-  beforeEach(inject(function(_$rootScope_, $injector, _$q_, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_)
-      {
-        $rootScope = _$rootScope_;
-        scope = $rootScope.$new();
-        $q = _$q_;
-        $httpBackend = _$httpBackend_;
-        $timeout = _$timeout_;
-        CLMAppLocations = _CLMAppLocations_;
+  beforeEach(inject(function(_$rootScope_, $injector, _$q_, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_) {
+    $rootScope = _$rootScope_;
+    scope = $rootScope.$new();
+    $q = _$q_;
+    $httpBackend = _$httpBackend_;
+    $timeout = _$timeout_;
+    CLMAppLocations = _CLMAppLocations_;
 
-        vm = $controller('proprietary.config.editor.controller', {
-          $scope: scope
-        });
+    vm = $controller('proprietary.config.editor.controller', {
+      $scope: scope
+    });
 
-        vm.proprietaryConfigEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
-      }
-  ));
+    vm.proprietaryConfigEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+  }));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();
@@ -40,7 +39,7 @@ describe("proprietary.config.editor.controller.spec.js", function() {
     beforeEach(inject(function() {
       $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(ProprietaryMockData.getProprietaryConfiguration());
       $httpBackend.flush();
-      vm.dirtyProprietaryConfig = mockProprietaryConfig
+      vm.dirtyProprietaryConfig = mockProprietaryConfig;
       vm.dirtyProprietaryConfig.isDirty = angular.noop;
     }));
 
@@ -68,10 +67,10 @@ describe("proprietary.config.editor.controller.spec.js", function() {
     expect(vm.proprietaryConfigs.length).toEqual(2);
 
     expect(vm.proprietaryConfigs[0].proprietaryConfig[0].packages).toEqual(['com.sonatype', 'com.local']);
-    expect(vm.proprietaryConfigs[0].proprietaryConfig[0].regexes).toEqual(['.*\/test\\.zip']);
+    expect(vm.proprietaryConfigs[0].proprietaryConfig[0].regexes).toEqual(['.*/test\\.zip']);
 
     expect(vm.proprietaryConfigs[1].proprietaryConfig[0].packages).toEqual([]);
-    expect(vm.proprietaryConfigs[1].proprietaryConfig[0].regexes).toEqual(['.*\/foo\\.zip']);
+    expect(vm.proprietaryConfigs[1].proprietaryConfig[0].regexes).toEqual(['.*/foo\\.zip']);
 
     expect(vm.dirtyProprietaryConfig.packages.length).toEqual(2);
     expect(vm.dirtyProprietaryConfig.regexes.length).toEqual(1);
@@ -81,7 +80,7 @@ describe("proprietary.config.editor.controller.spec.js", function() {
     expect(vm.localMatchers[1].type).toEqual(vm.matcherTypes.PACKAGE);
     expect(vm.localMatchers[1].matcher).toEqual('com.local');
     expect(vm.localMatchers[2].type).toEqual(vm.matcherTypes.REGEX);
-    expect(vm.localMatchers[2].matcher).toEqual('.*\/test\\.zip');
+    expect(vm.localMatchers[2].matcher).toEqual('.*/test\\.zip');
   });
 
   it('Save fails with successful retry', function() {
@@ -100,7 +99,7 @@ describe("proprietary.config.editor.controller.spec.js", function() {
   });
 
   it('proprietary config editor fails to load data', function() {
-    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(500, "foo");
+    $httpBackend.expectGET(CLMAppLocations.getProprietaryConfigUrl()).respond(500, 'foo');
     $httpBackend.flush();
     $timeout.flush();
     expect(vm.loadError).toEqual('foo');
@@ -112,15 +111,15 @@ describe("proprietary.config.editor.controller.spec.js", function() {
 
     expect(vm.localMatchers.length).toBe(3);
     expect(vm.dirtyProprietaryConfig.packages).toEqual(['com.sonatype', 'com.local']);
-    expect(vm.dirtyProprietaryConfig.regexes).toEqual(['.*\/test\\.zip']);
+    expect(vm.dirtyProprietaryConfig.regexes).toEqual(['.*/test\\.zip']);
     expect(vm.localMatchers[0].type).toBe(vm.matcherTypes.PACKAGE);
-    expect(vm.localMatchers[1].type).toBe(vm.matcherTypes.PACKAGE)
+    expect(vm.localMatchers[1].type).toBe(vm.matcherTypes.PACKAGE);
     expect(vm.localMatchers[1].matcher).toBe('com.local');
 
     vm.removeMatcher(vm.localMatchers[1]);
     expect(vm.localMatchers.length).toBe(2);
     expect(vm.dirtyProprietaryConfig.packages).toEqual(['com.sonatype']);
-    expect(vm.dirtyProprietaryConfig.regexes).toEqual(['.*\/test\\.zip']);
+    expect(vm.dirtyProprietaryConfig.regexes).toEqual(['.*/test\\.zip']);
   });
 
   it('removes regex matcher from local array and updates vm.dirtyProprietaryConfig.regexes', function() {
@@ -148,7 +147,7 @@ describe("proprietary.config.editor.controller.spec.js", function() {
     vm.matcherType = vm.matcherTypes.REGEX;
     vm.regexMatcher = 'com.sonatype';
     vm.addMatcher();
-    
+
     expect(vm.localMatchers.length).toBe(4);
     expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
     expect(vm.dirtyProprietaryConfig.regexes.length).toBe(2);

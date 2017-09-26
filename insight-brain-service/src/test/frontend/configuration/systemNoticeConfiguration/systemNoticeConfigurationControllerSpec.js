@@ -25,8 +25,8 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
     getSystemNoticeDeferred = $q.defer();
     saveSystemNoticeDeferred = $q.defer();
     $controller = _$controller_;
-    spyOn(systemNoticeService, "getSystemNotice").and.returnValue(getSystemNoticeDeferred.promise);
-    spyOn(systemNoticeService, "saveSystemNotice").and.returnValue(saveSystemNoticeDeferred.promise);
+    spyOn(systemNoticeService, 'getSystemNotice').and.returnValue(getSystemNoticeDeferred.promise);
+    spyOn(systemNoticeService, 'saveSystemNotice').and.returnValue(saveSystemNoticeDeferred.promise);
     vm = $controller('systemNoticeConfigurationController', {
       $scope: $scope,
       isAuthorized: true
@@ -61,7 +61,7 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
     it('deletes any error', function() {
       getSystemNoticeDeferred.resolve(SystemNoticeMockData.getSystemNotice('message', true));
       $scope.$apply();
-      vm.error = "error";
+      vm.error = 'error';
       vm.load();
 
       expect(systemNoticeService.getSystemNotice.calls.count()).toBe(2);
@@ -108,7 +108,7 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
     it('deletes any error', function() {
       getSystemNoticeDeferred.resolve(SystemNoticeMockData.getSystemNotice('message', true));
       $scope.$apply();
-      vm.error = "error";
+      vm.error = 'error';
       vm.save();
       saveSystemNoticeDeferred.resolve({status: 204, data: 'no content'});
       $scope.$apply();

@@ -1,39 +1,40 @@
+// eslint-disable-next-line no-unused-vars
 var LabelMockData = {
   getApplicableLabels: function() {
     return {
-      "labelsByOwner": [
+      'labelsByOwner': [
         {
-          "ownerId": "appownerid",
-          "ownerName": "appname",
-          "ownerType": "application",
-          "labels": [
+          'ownerId': 'appownerid',
+          'ownerName': 'appname',
+          'ownerType': 'application',
+          'labels': [
             {
-              "id": "applabelid",
-              "ownerId": "appownerid",
-              "label": "AppLabel",
-              "labelLowercase": "applabel",
-              "color": "red"
+              'id': 'applabelid',
+              'ownerId': 'appownerid',
+              'label': 'AppLabel',
+              'labelLowercase': 'applabel',
+              'color': 'red'
             },
             {
-              "id": "applabelid_01",
-              "ownerId": "appownerid",
-              "label": "AnotherAppLabel",
-              "labelLowercase": "anotherapplabel",
-              "color": "red"
+              'id': 'applabelid_01',
+              'ownerId': 'appownerid',
+              'label': 'AnotherAppLabel',
+              'labelLowercase': 'anotherapplabel',
+              'color': 'red'
             }
           ]
         },
         {
-          "ownerId": "orgownerid",
-          "ownerName": "orgname",
-          "ownerType": "organization",
-          "labels": [
+          'ownerId': 'orgownerid',
+          'ownerName': 'orgname',
+          'ownerType': 'organization',
+          'labels': [
             {
-              "id": "orglabelid",
-              "ownerId": "orgownerid",
-              "label": "OrgLabel",
-              "labelLowercase": "orglabel",
-              "color": "red"
+              'id': 'orglabelid',
+              'ownerId': 'orgownerid',
+              'label': 'OrgLabel',
+              'labelLowercase': 'orglabel',
+              'color': 'red'
             }
           ]
         }

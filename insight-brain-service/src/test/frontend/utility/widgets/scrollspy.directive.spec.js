@@ -1,5 +1,5 @@
 describe('scrollspy.directive.spec.js', function() {
-  var spy;
+  var spy, controllerScope;
   beforeEach(module('utility'));
 
   beforeEach(module('utility.services', function($provide) {
@@ -22,11 +22,11 @@ describe('scrollspy.directive.spec.js', function() {
     return el;
   }
 
-  beforeEach(inject(function($rootScope){
+  beforeEach(inject(function($rootScope) {
     controllerScope = $rootScope.$new();
   }));
 
-  afterEach(function(){
+  afterEach(function() {
     controllerScope.$destroy();
     angular.element('#toRemove').remove();
   });
@@ -52,7 +52,7 @@ describe('scrollspy.directive.spec.js', function() {
     expect(spy.calls.count()).toBe(1);
   }));
 
-  it('Validate scrollspy applied when dom inserted after initialization', inject(function($compile, $timeout){
+  it('Validate scrollspy applied when dom inserted after initialization', inject(function($compile, $timeout) {
     spy = spyOn($.fn.scrollspy, 'Constructor');
     var element = getPartialElement();
     expect(spy).not.toHaveBeenCalled();

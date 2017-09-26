@@ -1,11 +1,10 @@
 describe('CLMAppLocation', function () {
-  'use strict';
   var appId, orgId, state;
 
   function setApplicationState(newAppId) {
     angular.extend(state, {
-      current : {
-        name : 'application'
+      current: {
+        name: 'application'
       }
     });
     appId = newAppId;
@@ -14,22 +13,14 @@ describe('CLMAppLocation', function () {
 
   function setOrganizationState(newOrgId) {
     angular.extend(state, {
-      current : {
-        name : 'organization'
+      current: {
+        name: 'organization'
       }
     });
     appId = null;
     orgId = newOrgId;
   }
 
-  function setGlobalState() {
-    angular.extend(state, {
-      current : {
-        name : ''
-      }
-    });
-  }
-  
   beforeEach(module('CLMAppLocation', function($provide) {
     state = {};
 
@@ -55,12 +46,12 @@ describe('CLMAppLocation', function () {
   }));
 
   it('Application', inject(function (CLMAppLocations) {
-    setApplicationState("bom1-12345678");
+    setApplicationState('bom1-12345678');
     expect(CLMAppLocations.getFindUsersUrl()).toEqual('/rest/user/application/bom1-12345678/query');
   }));
 
   it('Organization', inject(function (CLMAppLocations) {
-    setOrganizationState("bom1-12345678");
+    setOrganizationState('bom1-12345678');
     expect(CLMAppLocations.getFindUsersUrl()).toEqual('/rest/user/organization/bom1-12345678/query');
   }));
 });

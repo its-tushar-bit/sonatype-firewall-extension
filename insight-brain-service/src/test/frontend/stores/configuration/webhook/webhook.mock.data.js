@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 var WebhookMockData = {
   getWebhooks: function() {
     return [
@@ -29,6 +30,6 @@ var WebhookMockData = {
   },
 
   getWebhookEventTypes: function() {
-    return ['MANAGEMENT', 'APPLICATION_EVALUATION', 'COMPONENT']
+    return ['MANAGEMENT', 'APPLICATION_EVALUATION', 'COMPONENT'];
   }
 };

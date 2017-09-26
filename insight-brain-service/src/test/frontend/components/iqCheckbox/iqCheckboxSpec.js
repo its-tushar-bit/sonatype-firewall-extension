@@ -7,7 +7,7 @@ describe('iq-checkbox component', function() {
     $scope = $rootScope.$new();
     getVm = function(bindings) {
       return $componentController('iqCheckbox', {$scope: $scope}, bindings);
-    }
+    };
   }));
 
   describe('getId()', function() {

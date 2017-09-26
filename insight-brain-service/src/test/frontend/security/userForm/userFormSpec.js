@@ -1,7 +1,6 @@
 /* global describe, beforeEach, it, expect, spyOn */
 /* global module, inject */
 describe('userForm', function() {
-  'use strict';
 
   var $componentController,
       $rootScope,
@@ -137,7 +136,7 @@ describe('userForm', function() {
     });
 
     it('clears alerts when saving', function() {
-      controller.alerts = [1,2,3];
+      controller.alerts = [1, 2, 3];
 
       controller.saveClick();
       expect(controller.alerts).toBeFalsy();

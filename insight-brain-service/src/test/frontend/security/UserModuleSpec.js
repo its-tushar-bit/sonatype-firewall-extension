@@ -7,7 +7,7 @@ describe('UserModuleSpec.js', function() {
       listScope = $rootScope.$new();
       $controller('UserListController', {
         $scope: listScope,
-        isAuthorized : true
+        isAuthorized: true
       });
     });
   }
@@ -19,7 +19,7 @@ describe('UserModuleSpec.js', function() {
     $provide.factory('CurrentUser', ['$q', function ($q) {
       var deferred = $q.defer();
       deferred.resolve({
-        username : 'user'
+        username: 'user'
       });
       return deferred.promise;
     }]);
@@ -35,7 +35,7 @@ describe('UserModuleSpec.js', function() {
         });
         return {
           result: {
-            then: function(success, failure) {
+            then: function(success) {
               success();
             }
           }
@@ -56,21 +56,21 @@ describe('UserModuleSpec.js', function() {
   }));
 
   var data = [{
-    "id": "ADMIN",
-    "username": "admin",
-    "usernameLowercase": "admin",
-    "password": "#~FAKE~PASSWORD~#",
-    "firstName": "Admin",
-    "lastName": "BuiltIn",
-    "email": "myemail@mail.com"
+    'id': 'ADMIN',
+    'username': 'admin',
+    'usernameLowercase': 'admin',
+    'password': '#~FAKE~PASSWORD~#',
+    'firstName': 'Admin',
+    'lastName': 'BuiltIn',
+    'email': 'myemail@mail.com'
   }, {
-    "id": "16399c07447d48b9bd00b19522bb5a66",
-    "username": "admin2",
-    "usernameLowercase": "admin2",
-    "password": "#~FAKE~PASSWORD~#",
-    "firstName": "clm",
-    "lastName": "clm22",
-    "email": "test@test.net"
+    'id': '16399c07447d48b9bd00b19522bb5a66',
+    'username': 'admin2',
+    'usernameLowercase': 'admin2',
+    'password': '#~FAKE~PASSWORD~#',
+    'firstName': 'clm',
+    'lastName': 'clm22',
+    'email': 'test@test.net'
   }];
 
   it('get list', inject(function($httpBackend, CLMLocations) {
@@ -99,7 +99,7 @@ describe('UserModuleSpec.js', function() {
     expect(listScope.error).toBeFalsy();
     expect(listScope.context.users.length).toEqual(2);
   }));
-  
+
   it('reset password', inject(function($httpBackend, CLMLocations) {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getUserUrl())).respond(data);
     setupControllers();
@@ -108,24 +108,24 @@ describe('UserModuleSpec.js', function() {
     listScope.resetPasswordClick({
       id: 'test-id'
     });
-    
+
     expect(dialogScope.state).toEqual('ready');
-    
+
     $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/reset')).respond({
       newPassword: '1234567890ab'
     });
-    
+
     dialogScope.resetClick();
     expect(dialogScope.state).toEqual('pending');
     $httpBackend.flush();
-    
+
     expect(dialogScope.newPassword).toEqual('1234567890ab');
     expect(dialogScope.state).toEqual('complete');
     // server failure
     $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/reset')).respond(500, 'Error resetting');
     dialogScope.resetClick();
     $httpBackend.flush();
-    
+
     expect(dialogScope.error).toEqual('Error resetting');
     expect(dialogScope.state).toEqual('failed');
   }));

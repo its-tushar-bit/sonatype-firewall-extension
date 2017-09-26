@@ -1,4 +1,3 @@
-/* global describe, beforeEach, it, expect, inject, Plottable */
 describe('mttr-chart component', function() {
   beforeEach(module('successMetricsModule', 'legacyConfiguration'));
 

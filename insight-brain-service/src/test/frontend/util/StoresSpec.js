@@ -7,8 +7,8 @@ describe('Stores', function() {
     beforeEach(inject(function(CachedStore) {
       getUrlSpy = jasmine.createSpy('getUrl').and.returnValue('http://foo.bar');
       var template = {
-              getUrl: getUrlSpy,
-              template: { id: null }
+        getUrl: getUrlSpy,
+        template: {id: null}
       };
       cachedStore = CachedStore.get(template);
     }));
@@ -55,7 +55,7 @@ describe('Stores', function() {
   describe('Stage stores are a copy', function() {
     // see CLM-6352
     function createTest(storeMethod) {
-      it(storeMethod, inject(function($httpBackend, StageTypeStore, CLMLocations) {
+      it(storeMethod, inject(function($httpBackend, StageTypeStore) {
         var copyOne, copyTwo;
         $httpBackend.expectGET().respond(200, [{stageTypeId: 'BUILD', stageName: 'Build'}]);
         StageTypeStore[storeMethod]().then(function(stages) {

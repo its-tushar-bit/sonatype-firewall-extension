@@ -30,10 +30,10 @@ describe('dashboard.data.service.spec', function() {
                 },
                 stageDetails: [
                   {
-                    stageTypeId: "stage-release",
+                    stageTypeId: 'stage-release',
                     time: 123456789
                   }, {
-                    stageTypeId: "build",
+                    stageTypeId: 'build',
                     time: 0
                   }
                 ]
@@ -118,7 +118,7 @@ describe('dashboard.data.service.spec', function() {
           filter = {
             filterParam: 'filter value'
           },
-          spy = jasmine.createSpy("response");
+          spy = jasmine.createSpy('response');
 
       $httpBackend.expectPOST(CLMLocations.getApplicationRisksUrl(), filter).respond({
         dashboardResults: [

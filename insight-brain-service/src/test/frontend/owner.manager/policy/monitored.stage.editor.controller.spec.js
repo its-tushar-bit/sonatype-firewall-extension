@@ -16,15 +16,14 @@ describe('monitored.stage.editor.controller.spec.js', function() {
       $httpBackend,
       mockStageTypeStore = StoreUtils().createMockStore('StageTypeStore'),
       mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
-      ProductFeatures,
-      mockMonitoredStageService;
+      mockMonitoredStageService,
+      CLMLocations;
 
-  beforeEach(inject(function($rootScope, $q, _$timeout_, _$httpBackend_, $controller, _ProductFeatures_, _CLMLocations_) {
+  beforeEach(inject(function($rootScope, $q, _$timeout_, _$httpBackend_, $controller, _CLMLocations_) {
     scope = $rootScope.$new();
     $timeout = _$timeout_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
-    ProductFeatures = _ProductFeatures_;
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
     mockMonitoredStageService = {
       createInheritOrNoMonitorOption: function() {

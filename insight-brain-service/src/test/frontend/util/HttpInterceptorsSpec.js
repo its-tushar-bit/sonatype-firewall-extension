@@ -18,7 +18,7 @@ describe('HttpInterceptors.js', function() {
         });
         return {
           result: {
-            then: function(success, failure) {
+            then: function(success) {
               modalSuccess = success;
             }
           }
@@ -26,39 +26,30 @@ describe('HttpInterceptors.js', function() {
       }
     });
   }));
-  
+
   beforeEach(inject(function($rootScope) {
     scope = $rootScope.$new();
   }));
-  
+
   it('Validate that a failed request is in the queue', inject(function($q, $http, $httpBackend, UnauthenticatedRequestQueueService) {
     expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
     $httpBackend.expectPOST('test').respond(401);
-    
-    var success = false;
-    var error = false;
-    $http.post('test').then(function(){
-      success = true;
-    }, function(){
-      error = true;
-    });
-    
+    $http.post('test');
     $httpBackend.flush();
-    
     expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(1);
   }));
-  
-  it('Validate that a GET/POST/PUT/DELETE request has a timestamp param', inject(function($q, $http, $httpBackend, $rootScope) {
+
+  it('Validate that a GET/POST/PUT/DELETE request has a timestamp param', inject(function($q, $http, $httpBackend) {
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/test')).respond(200);
     $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/test')).respond(200);
     $httpBackend.expectPUT(SpecUtil.toRegExp('/rest/test')).respond(200);
     $httpBackend.expectDELETE(SpecUtil.toRegExp('/rest/test')).respond(200);
-    
+
     $http.get('/rest/test');
     $http.post('/rest/test');
     $http.put('/rest/test');
     $http['delete']('/rest/test');
-    
+
     $httpBackend.flush();
   }));
 
@@ -100,22 +91,22 @@ describe('HttpInterceptors.js', function() {
         // else it is currently a spy wrapped around the original, and jasmine will automatically clean the spy
       })
   );
-  
-  it('Validate that /rest/ and .json paths contains cachebuster, others ignored', inject(function($http, $httpBackend){
+
+  it('Validate that /rest/ and .json paths contains cachebuster, others ignored', inject(function($http, $httpBackend) {
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/test')).respond(200);
     $httpBackend.expectPOST(SpecUtil.toRegExp('/test/rest/test')).respond(200);
     $httpBackend.expectGET(SpecUtil.toRegExp('test.json')).respond(200);
     $httpBackend.expectGET('/unrest/test').respond(200);
     $httpBackend.expectPOST('/test/unrest/test').respond(200);
     $httpBackend.expectGET('test.notjson').respond(200);
-    
+
     $http.get('/rest/test');
     $http.post('/test/rest/test');
     $http.get('test.json');
     $http.get('/unrest/test');
     $http.post('/test/unrest/test');
     $http.get('test.notjson');
-    
+
     $httpBackend.flush();
   }));
 
@@ -124,11 +115,8 @@ describe('HttpInterceptors.js', function() {
         $httpBackend.expectPOST('test').respond(401);
 
         var success = false;
-        var error = false;
-        $http.post('test').then(function(){
+        $http.post('test').then(function() {
           success = true;
-        }, function(){
-          error = true;
         });
 
         $httpBackend.flush();

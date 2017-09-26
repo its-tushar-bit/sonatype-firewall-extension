@@ -84,7 +84,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.qualifier).toEqual('*');
       expect(directiveScope.vm.coordinates.version).toBeUndefined();
     });
-    
+
     it('name, version specific values', function() {
       initialize('a-name:jquery::1.4');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
@@ -102,7 +102,7 @@ describe('coordinates.input.directive.spec', function() {
     });
 
     it('name, qualifier, version specific values', function() {
-      initialize('a-name:jquery:min:1.4')
+      initialize('a-name:jquery:min:1.4');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toEqual('jquery');
       expect(directiveScope.vm.coordinates.qualifier).toEqual('min');
@@ -110,7 +110,7 @@ describe('coordinates.input.directive.spec', function() {
     });
 
     it('name, qualifier, version wildcard values', function() {
-      initialize('a-name:*:*:*')
+      initialize('a-name:*:*:*');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toEqual('*');
       expect(directiveScope.vm.coordinates.qualifier).toEqual('*');
@@ -159,7 +159,6 @@ describe('coordinates.input.directive.spec', function() {
       directiveScope.vm.coordinates.groupId = '';
       directiveScope.$apply();
       expect(scope.value).toEqual('maven::::*:*');
-
 
       directiveScope.vm.coordinates.groupId = 'org.apache.axis';
       directiveScope.$apply();

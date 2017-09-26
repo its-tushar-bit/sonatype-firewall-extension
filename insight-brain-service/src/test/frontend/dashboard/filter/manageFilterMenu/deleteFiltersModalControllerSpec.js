@@ -12,8 +12,8 @@ describe('deleteFiltersModalController', function() {
       CLMLocations,
       savedFilterData = [
         {
-          "name": "Test1",
-          "filter": {}
+          'name': 'Test1',
+          'filter': {}
         }
       ];
 

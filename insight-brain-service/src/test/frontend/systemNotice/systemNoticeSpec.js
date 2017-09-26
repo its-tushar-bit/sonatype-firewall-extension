@@ -16,7 +16,7 @@ describe('systemNoticeSpec', function() {
     $scope = $rootScope.$new();
     systemNoticeService = _systemNoticeService_;
     getSystemNoticeDeferred = $q.defer();
-    spyOn(systemNoticeService, "getSystemNotice").and.returnValue(getSystemNoticeDeferred.promise);
+    spyOn(systemNoticeService, 'getSystemNotice').and.returnValue(getSystemNoticeDeferred.promise);
     vm = $componentController('systemNotice', {
       systemNoticeService: systemNoticeService,
       $scope: $scope

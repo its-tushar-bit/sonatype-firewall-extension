@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 var SidebarResourceMockData = {
   getOwnerListUrl: function() {
     return {
@@ -83,7 +84,6 @@ var SidebarResourceMockData = {
     };
   },
 
-
   getOwnerListUrl_onlySynthetic: function() {
     return {
       'organizations': [
@@ -122,7 +122,6 @@ var SidebarResourceMockData = {
       ]
     };
   },
-
 
   getOwnerDetailsUrl: function() {
     return {

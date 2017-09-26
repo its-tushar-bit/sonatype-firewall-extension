@@ -13,6 +13,6 @@ describe('wrapWith.filter.spec', function() {
   });
 
   it('should return emtpy string if applied on one', function() {
-    expect(wrapWith('', 'pre-','-post')).toEqual('');
+    expect(wrapWith('', 'pre-', '-post')).toEqual('');
   });
 });

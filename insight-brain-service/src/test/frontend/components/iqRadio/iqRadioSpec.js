@@ -7,7 +7,7 @@ describe('iq-radio component', function() {
     $scope = $rootScope.$new();
     getVm = function(bindings) {
       return $componentController('iqRadio', {$scope: $scope}, bindings);
-    }
+    };
   }));
 
   describe('getId()', function() {

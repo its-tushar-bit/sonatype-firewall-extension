@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 var PolicyResourceMockData = {
   getApplicablePolicies: function(ownerType, ownerId, ownerName) {
     return {

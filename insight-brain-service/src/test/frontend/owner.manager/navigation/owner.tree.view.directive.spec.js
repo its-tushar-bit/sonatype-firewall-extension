@@ -5,7 +5,7 @@ describe('owner.tree-view.directive.spec.js', function() {
     // $state stub for spying
     $provide.service('$state', function() {
       return {
-        includes: function(state, params) {
+        includes: function() {
         }
       };
     });
@@ -26,8 +26,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       var ownerList = SidebarResourceMockData.getOwnerListUrl();
 
       beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
-                                 _CLMAppLocations_, $injector)
-      {
+                                 _CLMAppLocations_, $injector) {
         $timeout = _$timeout_;
         $httpBackend = _$httpBackend_;
         $state = _$state_;
@@ -346,11 +345,10 @@ describe('owner.tree-view.directive.spec.js', function() {
 
   describe('organization and policy link', function() {
     var $timeout,
-        options = { location : 'replace' };
+        options = { location: 'replace' };
 
     beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
-                               _CLMAppLocations_)
-    {
+                               _CLMAppLocations_) {
       $httpBackend = _$httpBackend_;
       $state = _$state_;
       $timeout = _$timeout_;
@@ -388,7 +386,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       $httpBackend.flush();
 
       expect(scope.vm.error).toBeDefined();
-      expect(scope.vm.error.data).toEqual("Bad Request");
+      expect(scope.vm.error.data).toEqual('Bad Request');
       expect(scope.vm.error.status).toEqual(400);
 
       scope.vm.doLoad();

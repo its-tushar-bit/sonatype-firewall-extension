@@ -16,7 +16,7 @@ describe('classybrew.factory.spec', function() {
             this.setSeries = jasmine.createSpy();
           }
         };
-      })());
+      }()));
     });
   });
 

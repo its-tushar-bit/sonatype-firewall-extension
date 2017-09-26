@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 var JiraServiceMockData = {
   getJiraProjectsUrl: function() {
     return [

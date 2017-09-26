@@ -3,7 +3,7 @@ describe('stageTypeSort.filter.spec', function () {
   beforeEach(module('dashboard.utils'));
 
   it('sort by id', inject(function ($filter) {
-    var result = $filter('stageTypeSort')([{ id : 'operate' }, { id : 'build' }, { id : 'release' }, { id : 'stage-release' }]);
+    var result = $filter('stageTypeSort')([{ id: 'operate' }, { id: 'build' }, { id: 'release' }, { id: 'stage-release' }]);
     expect(result[0].id).toEqual('build');
     expect(result[1].id).toEqual('stage-release');
     expect(result[2].id).toEqual('release');
@@ -11,17 +11,17 @@ describe('stageTypeSort.filter.spec', function () {
   }));
   it('sort by stageTypeId', inject(function ($filter) {
     var result = $filter('stageTypeSort')([{
-      id : 'build',
-      stageTypeId : 'operate'
+      id: 'build',
+      stageTypeId: 'operate'
     }, {
-      id : 'operate',
-      stageTypeId : 'build'
+      id: 'operate',
+      stageTypeId: 'build'
     }, {
-      id : 'stage-release',
-      stageTypeId : 'release'
+      id: 'stage-release',
+      stageTypeId: 'release'
     }, {
-      id : 'release',
-      stageTypeId : 'stage-release'
+      id: 'release',
+      stageTypeId: 'stage-release'
     }]);
     expect(result[0].stageTypeId).toEqual('build');
     expect(result[1].stageTypeId).toEqual('stage-release');

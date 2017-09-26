@@ -13,7 +13,7 @@ describe('dashboardFilterDimension', function() {
     scope = $rootScope.$new();
     scope.available = [entity('1', 'bar'), entity('2', 'foo'), entity('3', 'aaa')];
     scope.selected = {'3': true};
-    
+
     $templateCache.put('entity-filter-template', '<div/>');
 
     var element = $compile('<dashboard-filter-dimension available="available" selected="selected" short-name="foo" long-name="bar"></dashboard-filter-dimension>')(scope);

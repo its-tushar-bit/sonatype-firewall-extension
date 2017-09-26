@@ -33,7 +33,7 @@ describe('PermissionService.js', function() {
 
     it('Multiple Perms, Allowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
       $httpBackend.expectPUT(CLMAppLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2']).respond(
-              ['ADMIN', 'ADMIN2']);
+          ['ADMIN', 'ADMIN2']);
       PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(true);

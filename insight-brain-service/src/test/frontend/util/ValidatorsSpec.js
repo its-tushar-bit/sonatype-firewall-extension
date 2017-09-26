@@ -1,5 +1,4 @@
 describe('ValidatorsSpec', function() {
-  'use strict';
 
   beforeEach(module('Validators'));
 
@@ -56,7 +55,7 @@ describe('ValidatorsSpec', function() {
   });
 
   describe('Input Validator', function() {
-    var testCases = [ true, false ], scope;
+    var testCases = [true, false];
 
     angular.forEach(testCases, function(testCase) {
       it('Supports a ' + testCase + ' validator', inject(function($rootScope, $compile) {

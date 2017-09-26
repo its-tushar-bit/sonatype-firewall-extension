@@ -3,17 +3,13 @@ describe('mainHeaderSpec', function() {
   beforeEach(module('mainHeader', 'legacyConfiguration'));
 
   var $scope,
-      CLMAppLocations,
-      CLMLocations,
       $rootScope,
       mockSystemConfigurationPropertyService,
       isSuccessMetricsEnabledDeferred,
       vm;
 
-  beforeEach(inject(function(_$rootScope_, $q, _CLMAppLocations_, _CLMLocations_, $componentController) {
+  beforeEach(inject(function(_$rootScope_, $q, $componentController) {
     $scope = _$rootScope_.$new();
-    CLMAppLocations = _CLMAppLocations_;
-    CLMLocations = _CLMLocations_;
     $rootScope = _$rootScope_;
     isSuccessMetricsEnabledDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {

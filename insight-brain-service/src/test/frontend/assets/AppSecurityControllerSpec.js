@@ -11,7 +11,7 @@ describe('AppSecurityControllerSpec', function() {
     $provide.value('CLMAppLocations', mockCLMAppLocations);
   }));
 
-  describe('AppSecurityController', function(){
+  describe('AppSecurityController', function() {
     var scope = null, parentScope = null, role1 = null, role2 = null;
 
     beforeEach(inject(function ($rootScope, $httpBackend, CLMAppLocations, $controller) {
@@ -21,11 +21,11 @@ describe('AppSecurityControllerSpec', function() {
       role2 = MockData.getRoleTwoData();
 
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getRoleMappingUrl())).respond({
-        "membersByRole": [role1, role2]
+        'membersByRole': [role1, role2]
       });
       $controller('AppSecurityController', {
-        $scope : scope,
-        isAuthorized : true
+        $scope: scope,
+        isAuthorized: true
       });
       $httpBackend.flush();
       expect(scope.context.roles.length).toEqual(2);
@@ -51,7 +51,7 @@ describe('AppSecurityControllerSpec', function() {
 
       var found;
 
-      for ( var i = 0; i < scope.context.roles.length; i++) {
+      for (var i = 0; i < scope.context.roles.length; i++) {
         if (scope.context.roles[i].roleId === role1.roleId) {
           expect(scope.context.roles[i].membersByOwner[0].members).toEqual(MockData.getRoleSaveCompleteEventMemberList());
           found = true;
@@ -64,8 +64,7 @@ describe('AppSecurityControllerSpec', function() {
   });
 
   describe('AppSecurityEditorController', function () {
-    var controller,
-        scope,
+    var scope,
         dialogClickHandler,
         role1Id = MockData.getRoleOneData().roleId;
 
@@ -73,7 +72,7 @@ describe('AppSecurityControllerSpec', function() {
       scope = $rootScope.$new();
       scope.role = MockData.getRoleOneData();
 
-      controller = $controller('AppSecurityEditorController', {
+      $controller('AppSecurityEditorController', {
         $scope: scope,
         Dialog: {
           //mock impl of Dialog that exposes the click handler of its first `primary` button
@@ -116,35 +115,37 @@ describe('AppSecurityControllerSpec', function() {
       expect(originalMembers[1].internalName).toBe('plynch');
     });
 
-    it('updates the originalMembers scope prop whenever the role is changed',
-      function() {
-        var originalMembers;
+    it('updates the originalMembers scope prop whenever the role is changed', function() {
+      var originalMembers;
 
-        scope.role = MockData.getRoleTwoData();
-        scope.$digest();
+      scope.role = MockData.getRoleTwoData();
+      scope.$digest();
 
-        originalMembers = scope.originalMembers;
+      originalMembers = scope.originalMembers;
 
-        expect(originalMembers.length).toBe(4);
-        expect(originalMembers[0].internalName).toBe('bfox');
-        expect(originalMembers[1].internalName).toBe('dbradicich');
-        expect(originalMembers[2].internalName).toBe('jduggan');
-        expect(originalMembers[3].internalName).toBe('jorlina');
-      }
-    );
+      expect(originalMembers.length).toBe(4);
+      expect(originalMembers[0].internalName).toBe('bfox');
+      expect(originalMembers[1].internalName).toBe('dbradicich');
+      expect(originalMembers[2].internalName).toBe('jduggan');
+      expect(originalMembers[3].internalName).toBe('jorlina');
+    });
 
     it('prevents the default action when it receives a pageChangeStarted event and its isDirty method returns true',
-      inject(function($rootScope) {
-        var evt, evt2;
+        inject(function($rootScope) {
+          var evt, evt2;
 
-        scope.isDirty = function() { return true; };
-        evt = $rootScope.$broadcast('pageChangeStarted');
-        expect(evt.defaultPrevented).toBe(true);
+          scope.isDirty = function() {
+            return true;
+          };
+          evt = $rootScope.$broadcast('pageChangeStarted');
+          expect(evt.defaultPrevented).toBe(true);
 
-        scope.isDirty = function() { return false; };
-        evt2 = $rootScope.$broadcast('pageChangeStarted');
-        expect(evt2.defaultPrevented).toBe(false);
-      })
+          scope.isDirty = function() {
+            return false;
+          };
+          evt2 = $rootScope.$broadcast('pageChangeStarted');
+          expect(evt2.defaultPrevented).toBe(false);
+        })
     );
 
     it('calls scope.hide when cancelled and not dirty', function() {
@@ -179,29 +180,33 @@ describe('AppSecurityControllerSpec', function() {
       expect(hide).toHaveBeenCalled();
     });
 
-    it('saves the roles if save is called when dirty, and then emits roleSaveComplete and hides', 
-      inject(function($rootScope, $httpBackend) {
-        var currentMembers = MockData.getRoleTwoData().membersByOwner[0].members;
-        scope.getCurrentMembers = function() { return currentMembers };
-        scope.isDirty = function() { return true };
-        var hide = scope.hide = jasmine.createSpy();
-        var eventSpy = jasmine.createSpy();
+    it('saves the roles if save is called when dirty, and then emits roleSaveComplete and hides',
+        inject(function($rootScope, $httpBackend) {
+          var currentMembers = MockData.getRoleTwoData().membersByOwner[0].members;
+          scope.getCurrentMembers = function() {
+            return currentMembers;
+          };
+          scope.isDirty = function() {
+            return true;
+          };
+          var hide = scope.hide = jasmine.createSpy();
+          var eventSpy = jasmine.createSpy();
 
-        $rootScope.$on('roleSaveComplete', eventSpy);
+          $rootScope.$on('roleSaveComplete', eventSpy);
 
-        scope.save();
+          scope.save();
 
-        $httpBackend.expectPUT(SpecUtil.toRegExp(mockCLMAppLocations.getRoleMappingUrl(role1Id))).respond();
-        expect(hide).not.toHaveBeenCalled();
-        expect(eventSpy).not.toHaveBeenCalled();
+          $httpBackend.expectPUT(SpecUtil.toRegExp(mockCLMAppLocations.getRoleMappingUrl(role1Id))).respond();
+          expect(hide).not.toHaveBeenCalled();
+          expect(eventSpy).not.toHaveBeenCalled();
 
-        $httpBackend.flush();
+          $httpBackend.flush();
 
-        expect(hide).toHaveBeenCalled();
-        expect(eventSpy).toHaveBeenCalled();
-        expect(eventSpy.calls.mostRecent().args[1]).toBe(role1Id);
-        expect(eventSpy.calls.mostRecent().args[2]).toBe(currentMembers);
-      })
+          expect(hide).toHaveBeenCalled();
+          expect(eventSpy).toHaveBeenCalled();
+          expect(eventSpy.calls.mostRecent().args[1]).toBe(role1Id);
+          expect(eventSpy.calls.mostRecent().args[2]).toBe(currentMembers);
+        })
     );
   });
 });

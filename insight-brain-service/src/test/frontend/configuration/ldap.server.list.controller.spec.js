@@ -29,14 +29,14 @@ describe('ldap.server.list.controller.spec.js', function() {
 
       $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond([
         {
-          "id": "123",
-          "name": "ldap1",
-          "nameLowercaseNoWhitespace": "ldap1"
+          'id': '123',
+          'name': 'ldap1',
+          'nameLowercaseNoWhitespace': 'ldap1'
         },
         {
-          "id": "456",
-          "name": "ldap2",
-          "nameLowercaseNoWhitespace": "ldap2"
+          'id': '456',
+          'name': 'ldap2',
+          'nameLowercaseNoWhitespace': 'ldap2'
         }
       ]);
       $httpBackend.flush();
@@ -50,7 +50,7 @@ describe('ldap.server.list.controller.spec.js', function() {
     });
 
     it('fails to load ldap server data', function() {
-      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond(500, "foo");
+      $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond(500, 'foo');
       $httpBackend.flush();
       expect(vm.error.data).toEqual('foo');
 
@@ -75,7 +75,7 @@ describe('ldap.server.list.controller.spec.js', function() {
     }));
 
     it('Does not refresh on cancelled reorder', inject(function(LdapConfigurationStore, LdapServerOrderingModal, $q,
-            $timeout) {
+                                                                $timeout) {
       $httpBackend.expectGET(CLMLocations.getLdapConfig()).respond([]);
       $httpBackend.flush();
       spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.reject());
@@ -97,7 +97,7 @@ describe('ldap.server.list.controller.spec.js', function() {
     }));
 
     it('Should not trigger HTTP request', function() {
-      $httpBackend.verifyNoOutstandingRequest()
+      $httpBackend.verifyNoOutstandingRequest();
 
       expect(vm.ldapList).toBeUndefined();
     });

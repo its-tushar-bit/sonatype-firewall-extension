@@ -1,4 +1,5 @@
-PolicyMonitoringMockData = {
+// eslint-disable-next-line no-unused-vars
+var PolicyMonitoringMockData = {
   policyMonitoringByOwner: [
     {
       ownerName: 'Dummy App',
@@ -10,16 +11,16 @@ PolicyMonitoringMockData = {
     }, {
       ownerName: 'Dummy Org',
       policyMonitoring: {
-        id: "policyMonitoringDummyOrgId",
-        ownerId: "3fd6498a8a0d4488a76a54adf41d297b",
-        stageTypeId: "develop"
+        id: 'policyMonitoringDummyOrgId',
+        ownerId: '3fd6498a8a0d4488a76a54adf41d297b',
+        stageTypeId: 'develop'
       }
     }, {
       ownerName: 'Dummy Root Org',
       policyMonitoring: {
-        id: "policyMonitoringDummyRootOrgId",
-        ownerId: "ROOT_ORGANIZATION_ID",
-        stageTypeId: "release"
+        id: 'policyMonitoringDummyRootOrgId',
+        ownerId: 'ROOT_ORGANIZATION_ID',
+        stageTypeId: 'release'
       }
     }
   ]

@@ -15,16 +15,16 @@ describe('successMetricsDataService', function() {
   beforeEach(module('successMetricsModule', 'Stores'));
 
   beforeEach(module(function($provide) {
-    $provide.value("ApplicationStore", mockApplicationStore);
+    $provide.value('ApplicationStore', mockApplicationStore);
   }));
-  
+
   beforeEach(inject(function(_$q_, _$timeout_, _$httpBackend_, _successMetricsDataService_, _CLMLocations_) {
     $httpBackend = _$httpBackend_;
     successMetricsDataService = _successMetricsDataService_;
     CLMLocations = _CLMLocations_;
     $q = _$q_;
     $timeout = _$timeout_;
-    
+
     applicationStoreDeferred = $q.defer();
   }));
 
@@ -219,7 +219,7 @@ describe('successMetricsDataService', function() {
       expect(output).toBeDefined();
       expect(output.length).toBe(12);
 
-      var date = new Date("June 1, 2016 00:00:00");
+      var date = new Date('June 1, 2016 00:00:00');
 
       // first 7 months are padded
       for (var i = 0; i < 7; i++) {
@@ -270,8 +270,7 @@ describe('successMetricsDataService', function() {
       expect(caughtError.status).toBe(403);
     });
 
-    function assertMttrData(mttr, expectedDate, expectedMttrInSeconds, expectedCriticalMttrInSeconds)
-    {
+    function assertMttrData(mttr, expectedDate, expectedMttrInSeconds, expectedCriticalMttrInSeconds) {
       expect(new Date(mttr.timePeriodStart).getMonth()).toBe(expectedDate.getMonth());
       expect(mttr.mttrInSeconds).toBe(expectedMttrInSeconds);
       expect(mttr.criticalMttrInSeconds).toBe(expectedCriticalMttrInSeconds);
@@ -376,13 +375,13 @@ describe('successMetricsDataService', function() {
 
       applicationStoreDeferred.resolve(applications);
       successMetricsDataService.getApplicationByInternalId('app1').then(function(result) {
-        output = result
+        output = result;
       });
 
       $timeout.flush();
 
       expect(output).toBeDefined();
-      expect(output.id).toBe('app1')
+      expect(output.id).toBe('app1');
       expect(output.name).toBe('app 1');
     });
 
@@ -399,6 +398,6 @@ describe('successMetricsDataService', function() {
 
       expect(caughtError).toBeDefined();
       expect(caughtError).toBe('Could not find Application with internal id app1');
-    })
+    });
   });
 });

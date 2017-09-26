@@ -1,5 +1,4 @@
 describe('dashboard.filter.controller', function() {
-  "use strict";
 
   var $rootScope, $scope, $componentController, vm, $httpBackend, CLMLocations, mockState;
 
@@ -72,17 +71,17 @@ describe('dashboard.filter.controller', function() {
       ],
       tagData = [
         {
-          id: "tagId1",
+          id: 'tagId1',
           organizationId: 'orgId1',
-          name: "TagOne",
-          nameLowercaseNoWhitespace: "tagone",
-          description: "Tag One Description"
+          name: 'TagOne',
+          nameLowercaseNoWhitespace: 'tagone',
+          description: 'Tag One Description'
         }, {
-          id: "tagId2",
+          id: 'tagId2',
           organizationId: 'orgId2',
-          name: "TagTwo",
-          nameLowercaseNoWhitespace: "tagtwo",
-          description: "Tag Two Description"
+          name: 'TagTwo',
+          nameLowercaseNoWhitespace: 'tagtwo',
+          description: 'Tag Two Description'
         }
       ],
       filterData = {
@@ -98,15 +97,15 @@ describe('dashboard.filter.controller', function() {
       },
       savedFilterData = [
         {
-          "name": "Test1",
-          "filter": filterData
+          'name': 'Test1',
+          'filter': filterData
         }
       ],
       appliedDirtyFilterData = {
-        "name": "",
-        "basedOnFilterName": "Test1",
-        "filter": filterData,
-        "needsAcknowledgement": false
+        'name': '',
+        'basedOnFilterName': 'Test1',
+        'filter': filterData,
+        'needsAcknowledgement': false
       };
 
   describe('successful load', function() {
@@ -164,7 +163,7 @@ describe('dashboard.filter.controller', function() {
     $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
 
     // note that we are not including the second tag in the tag data
-    $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData.slice(0,1));
+    $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData.slice(0, 1));
     $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(appliedDirtyFilterData);
     $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
     $httpBackend.flush();
@@ -417,7 +416,7 @@ describe('dashboard.filter.controller', function() {
       vm.onActiveFilterDeleted();
       expect(vm.activeFilterName).toBe(undefined);
     });
-    
+
     it('onFilterSaved()', function() {
       vm.activeFilterName = 'Test1';
       vm.onFilterSaved('Test2');
@@ -505,7 +504,6 @@ describe('dashboard.filter.controller', function() {
       });
     });
 
-
     it('only shows the age filter when the flag is turned on', function() {
       $httpBackend.whenGET(CLMLocations.getDashboardFilters()).respond({filter: {maxDaysOld: 30}});
       $httpBackend.flush(15); // (3 controllers here + 1 at the top scope) * 3 endpoint calls + 3 store calls
@@ -541,7 +539,7 @@ describe('dashboard.filter.controller', function() {
       $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(appliedDirtyFilterData);
       $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
       $httpBackend.flush();
-      
+
       expect(vm.isDirty()).toBe(false);
       expect(vm.needsAcknowledgement).toBe(false);
       delete vm.selected.organizations.orgId1;
@@ -568,7 +566,7 @@ describe('dashboard.filter.controller', function() {
           filter: {
             minPolicyThreatLevel: 9,
             maxPolicyThreatLevel: 10
-          },
+          }
         };
 
         spyOn(vm, 'loadFilterFromJson');
@@ -606,7 +604,7 @@ describe('dashboard.filter.controller', function() {
               falseEventReceived = true;
             }
             else {
-              throw new Error("value should be true or false");
+              throw new Error('value should be true or false');
             }
           });
 

@@ -12,16 +12,15 @@ describe('access.tile.controller.spec.js', function() {
   }));
 
   beforeEach(inject(function(_$rootScope_, $controller, $injector, _$httpBackend_, _CLMAppLocations_) {
-        $httpBackend = _$httpBackend_;
-        CLMAppLocations = _CLMAppLocations_;
-        EventNameConstant = $injector.get('event.name.constant');
-        $rootScope = _$rootScope_;
+    $httpBackend = _$httpBackend_;
+    CLMAppLocations = _CLMAppLocations_;
+    EventNameConstant = $injector.get('event.name.constant');
+    $rootScope = _$rootScope_;
 
-        vm = $controller('AccessTileController', {
-          $scope: $rootScope.$new()
-        });
-      }
-  ));
+    vm = $controller('AccessTileController', {
+      $scope: $rootScope.$new()
+    });
+  }));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();

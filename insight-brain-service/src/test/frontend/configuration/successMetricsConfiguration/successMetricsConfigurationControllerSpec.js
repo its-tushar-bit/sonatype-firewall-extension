@@ -1,8 +1,7 @@
 describe('successMetricsConfigurationSpec.js', function() {
   beforeEach(module('successMetricsConfigurationModule', function($provide) {
-        SpecUtil.mockPermissionService($provide);
-      })
-  );
+    SpecUtil.mockPermissionService($provide);
+  }));
 
   var $scope,
       isSuccessMetricsEnabledDeferred,

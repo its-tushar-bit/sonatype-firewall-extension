@@ -40,7 +40,7 @@ describe('dashboard.results.directives.spec', function() {
         scope.filtersAreDirty = false;
         directiveScope = scope.$new();
 
-        dashboardDataServiceMock =  jasmine.createSpyObj('dashboardDataService', [directive.serviceMethod]);
+        dashboardDataServiceMock = jasmine.createSpyObj('dashboardDataService', [directive.serviceMethod]);
         maskControllerMock = jasmine.createSpyObj('maskController', ['activateMask', 'removeMask']);
 
         scope.maskController = maskControllerMock;

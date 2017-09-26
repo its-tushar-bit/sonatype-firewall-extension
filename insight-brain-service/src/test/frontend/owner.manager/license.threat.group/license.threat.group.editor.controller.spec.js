@@ -193,7 +193,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
       $state: $state,
       DeleteModalService: mockDeleteService
     });
-    
+
     vm.isApp = true;
 
     $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
@@ -209,7 +209,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     deleteServiceResourceDefer.resolve();
     $timeout.flush();
 
-    expect($state.go).toHaveBeenCalledWith('management.view.application', {applicationPublicId : '123'});
+    expect($state.go).toHaveBeenCalledWith('management.view.application', {applicationPublicId: '123'});
   }));
 
   it('Picks the licenses that are already included with the LTG', inject(function($controller) {

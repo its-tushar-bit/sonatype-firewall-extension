@@ -23,10 +23,12 @@
 
     var lintSrc = [
       '<%= config.frontend %>/**/*.js',
+      '<%= config.test %>/**/*.js',
       '!<%= config.frontend %>/lib/**/*',
       '!<%= config.frontend %>/cip/**/*',
       '!<%= config.frontend %>/audit-report/**/*',
       '!<%= config.frontend %>/version-graph/**/*',
+      '!<%= config.test %>/assets/lib/**/*',
       'rollup/**/*.js'
     ];
 
@@ -40,6 +42,7 @@
         buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
         gallery: 'src/main/component-gallery/app',
+        test: 'src/test/frontend',
         generated: 'target/classes/assets',
         temp: '.tmp',
         templates: '**/*.tpl.html'

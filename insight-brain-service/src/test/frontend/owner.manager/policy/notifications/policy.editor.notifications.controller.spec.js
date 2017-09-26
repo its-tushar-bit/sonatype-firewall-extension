@@ -1,4 +1,4 @@
-describe("policy.editor.notifications.controller.spec.js", function() {
+describe('policy.editor.notifications.controller.spec.js', function() {
 
   beforeEach(module('ProductFeaturesModule'));
 
@@ -62,17 +62,15 @@ describe("policy.editor.notifications.controller.spec.js", function() {
   var initController,
       scope,
       CLMLocations,
-      ProductFeatures,
       jiraProjects = JiraServiceMockData.getJiraProjectsUrl();
 
   beforeEach(module('owner.manager.module'));
 
   var jiraServiceResolver = createJiraServiceResolver();
 
-  beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations, _CLMLocations_, _ProductFeatures_) {
+  beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations, _CLMLocations_) {
     scope = $rootScope.$new();
     CLMLocations = _CLMLocations_;
-    ProductFeatures = _ProductFeatures_;
 
     initController = function(notifications, jiraEnabled) {
       var ctrlFn = $controller('policy.editor.notifications.controller', {

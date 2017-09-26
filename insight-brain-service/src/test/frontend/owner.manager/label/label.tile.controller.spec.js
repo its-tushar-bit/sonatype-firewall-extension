@@ -13,17 +13,16 @@ describe('label.tile.controller.spec.js', function() {
   }));
 
   beforeEach(inject(function(_$rootScope_, $injector, $controller, _$httpBackend_, _CLMAppLocations_) {
-        $rootScope = _$rootScope_;
-        $httpBackend = _$httpBackend_;
-        CLMAppLocations = _CLMAppLocations_;
-        scope = $rootScope.$new();
-        EventNameConstant = $injector.get('event.name.constant');
+    $rootScope = _$rootScope_;
+    $httpBackend = _$httpBackend_;
+    CLMAppLocations = _CLMAppLocations_;
+    scope = $rootScope.$new();
+    EventNameConstant = $injector.get('event.name.constant');
 
-        vm = $controller('LabelTileController', {
-          $scope: scope
-        });
-      }
-  ));
+    vm = $controller('LabelTileController', {
+      $scope: scope
+    });
+  }));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();

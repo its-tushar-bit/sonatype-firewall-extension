@@ -14,26 +14,25 @@ describe('category.editor.controller.spec.js', function() {
       $timeout,
       deleteServiceResourceDefer,
       mockDeleteService,
-      SameOwnerStateNavigationService = {goEdit: function(to, params) {}},
+      SameOwnerStateNavigationService = {goEdit: function() {}},
       mockCategoryStore = StoreUtils().createMockStore('TagStore'),
       mockApplicationStore = StoreUtils().createMockStore('ApplicationStore'),
       mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
       mockPolicyTagStore = StoreUtils().createMockStore('PolicyTagStore'),
       mockCategory = ResourceUtils().createMockResource(),
-      mockOwner = {store: {create: function(){return 'stub';}}, tags: [mockCategory]};
+      mockOwner = {store: {create: function() {return 'stub';}}, tags: [mockCategory]};
 
   beforeEach(inject(function($rootScope, _$q_, _$timeout_) {
-        scope = $rootScope.$new();
-        $timeout = _$timeout_;
-        $q = _$q_;
-        deleteServiceResourceDefer = $q.defer();
-        mockDeleteService = {
-          deleteCustom: function() {
-            return deleteServiceResourceDefer.promise;
-          }
-        }
+    scope = $rootScope.$new();
+    $timeout = _$timeout_;
+    $q = _$q_;
+    deleteServiceResourceDefer = $q.defer();
+    mockDeleteService = {
+      deleteCustom: function() {
+        return deleteServiceResourceDefer.promise;
       }
-  ));
+    };
+  }));
 
   it('Creates new on load', function() {
     spyOn(mockOwner.store, 'create');
@@ -49,7 +48,7 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
-    resolveLoad([{store: {create: function(){}}, tags: [{id: 'a'},{id: 'b'}]},{tags: [{id: 'c'}]}]);
+    resolveLoad([{store: {create: function() {}}, tags: [{id: 'a'}, {id: 'b'}]}, {tags: [{id: 'c'}]}]);
     $timeout.flush();
     expect(vm.siblings.length).toBe(3);
     expect(vm.siblings[0].id).toBe('a');
@@ -95,17 +94,17 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
-    resolveLoad([{store: {create: function(){}}, tags:[]}]);
+    resolveLoad([{store: {create: function() {}}, tags: []}]);
     $timeout.flush();
     mockCategory.$new = true;
     vm.dirtyCategory = mockCategory;
-    vm.categoryEditor = {$setPristine: function(){}};
+    vm.categoryEditor = {$setPristine: function() {}};
     vm.categoryEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();
     mockCategory.resolveSave();
     $timeout.flush();
-    $timeout(function(){}, 1000); // mask delay = 0.8s
+    $timeout(function() {}, 1000); // mask delay = 0.8s
     $timeout.flush();
     expect(vm.siblings).toContain(mockCategory);
     expect(vm.siblings.length).toBe(1);
@@ -131,7 +130,7 @@ describe('category.editor.controller.spec.js', function() {
       $scope: scope
     });
 
-    resolveLoad([{tags: [{id:'123'}, {id:'456'}]}]);
+    resolveLoad([{tags: [{id: '123'}, {id: '456'}]}]);
     $timeout.flush();
     expect(vm.dirtyCategory).toBeUndefined();
     expect(vm.loadError).toBeDefined();
@@ -209,10 +208,10 @@ describe('category.editor.controller.spec.js', function() {
         }) || mockCategoryStore.rejectGetById('some error');
       }
     });
-    categoryStorePayload.forEach(function(owner){
+    categoryStorePayload.forEach(function(owner) {
       owner.tags.forEach(function(cat) {
-      cat.$clone = jasmine.createSpy().and.returnValue(cat);
-    });
+        cat.$clone = jasmine.createSpy().and.returnValue(cat);
+      });
     });
 
     mockCategoryStore.resolveGet(categoryStorePayload);

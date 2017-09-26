@@ -8,20 +8,16 @@ describe('webhook.list.controller.spec.js', function() {
 
   var vm,
       $httpBackend,
-      $rootScope,
       CLMLocations;
 
-  beforeEach(inject(function(_$rootScope_, $controller, _$httpBackend_, _CLMLocations_) {
-        $rootScope = _$rootScope_;
-        $httpBackend = _$httpBackend_;
-        CLMLocations = _CLMLocations_;
-        scope = $rootScope.$new();
+  beforeEach(inject(function($controller, _$httpBackend_, _CLMLocations_) {
+    $httpBackend = _$httpBackend_;
+    CLMLocations = _CLMLocations_;
 
-        vm = $controller('webhook.list.controller', {
-          isAuthorized: true
-        });
-      }
-  ));
+    vm = $controller('webhook.list.controller', {
+      isAuthorized: true
+    });
+  }));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();

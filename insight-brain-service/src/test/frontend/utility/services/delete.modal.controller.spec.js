@@ -94,7 +94,7 @@ describe('delete.modal.controller.spec.js', function() {
         maskText: 'mask',
         continueAction: continueAction,
         dismissOnError: null});
-      
+
       vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
       scope.$dismiss = jasmine.createSpy();
     });

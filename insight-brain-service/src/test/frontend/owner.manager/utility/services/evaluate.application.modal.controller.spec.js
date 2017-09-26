@@ -209,5 +209,5 @@ describe('evaluate.application.modal.controller.spec.js', function() {
       });
       $httpBackend.flush();
     });
-  })
+  });
 });

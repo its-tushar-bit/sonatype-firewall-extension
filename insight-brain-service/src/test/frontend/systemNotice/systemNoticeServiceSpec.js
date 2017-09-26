@@ -7,13 +7,15 @@ describe('systemNoticeServiceSpec.js', function() {
   var systemNoticeService,
       $httpBackend,
       successSpy,
-      failSpy;
+      failSpy,
+      CLMLocations;
 
-  beforeEach(inject(function(_systemNoticeService_, _$httpBackend_) {
+  beforeEach(inject(function(_systemNoticeService_, _$httpBackend_, _CLMLocations_) {
     systemNoticeService = _systemNoticeService_;
     $httpBackend = _$httpBackend_;
     successSpy = jasmine.createSpy('successSpy');
     failSpy = jasmine.createSpy('failSpy');
+    CLMLocations = _CLMLocations_;
   }));
 
   afterEach(function() {

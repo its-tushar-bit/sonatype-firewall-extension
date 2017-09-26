@@ -11,8 +11,8 @@ describe('owner.editor.service.spec.js', function () {
 
   it('open', inject(function (OwnerEditorService, Modal) {
     var owner = {
-      id : 'foo',
-      name : 'bar'
+      id: 'foo',
+      name: 'bar'
     };
 
     OwnerEditorService.open(owner, 'organization');

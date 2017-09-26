@@ -264,8 +264,8 @@ describe('successMetricsReportSpec', function() {
       vm.goToList();
 
       expect(mockState.go).toHaveBeenCalledWith('labs.successMetrics');
-    })
-  })
+    });
+  });
 
   describe('single application', function() {
 
@@ -290,7 +290,7 @@ describe('successMetricsReportSpec', function() {
 
           expect(vm.isSingleApplicationReport).toBe(false);
           expect(vm.singleApplicationName).toBeUndefined();
-        })
+        });
 
     it('sets singleApplicationName as undefined and isSingleApplicationReport is false if applicationIds is empty',
         function() {
@@ -306,23 +306,22 @@ describe('successMetricsReportSpec', function() {
 
           expect(vm.isSingleApplicationReport).toBe(false);
           expect(vm.singleApplicationName).toBeUndefined();
-        })
+        });
 
     it('sets singleApplicationName as undefined and isSingleApplicationReport is false if applicationIds array ' +
-        'length is more than 1',
-        function() {
-          checkSuccessMetricsEnabledDeferred.resolve(true);
-          getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
-          getApplicationCountsDataDeferred.resolve(applicationCountsData);
-          getMttrDataDeferred.resolve(mttrData);
-          getAveragesDataDeferred.resolve(averagesData);
-          getComponentCountsDataDeferred.resolve(componentCountsData);
+        'length is more than 1', function() {
+      checkSuccessMetricsEnabledDeferred.resolve(true);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
+      getApplicationCountsDataDeferred.resolve(applicationCountsData);
+      getMttrDataDeferred.resolve(mttrData);
+      getAveragesDataDeferred.resolve(averagesData);
+      getComponentCountsDataDeferred.resolve(componentCountsData);
 
-          $scope.$digest();
+      $scope.$digest();
 
-          expect(vm.isSingleApplicationReport).toBe(false);
-          expect(vm.singleApplicationName).toBeUndefined();
-        });
+      expect(vm.isSingleApplicationReport).toBe(false);
+      expect(vm.singleApplicationName).toBeUndefined();
+    });
 
     it('sets singleApplicationName and isSingleApplicationReport is true if applicationIds array length is 1',
         function() {
@@ -342,21 +341,20 @@ describe('successMetricsReportSpec', function() {
         });
 
     it('sets singleApplicationName as undefined and isSingleApplicationReport is false if applicationIds array ' +
-         'length is 1 and organizationIds array length is more than 0',
-        function() {
-          checkSuccessMetricsEnabledDeferred.resolve(true);
-          getSuccessMetricsReportsForCurrentUserDeferred.resolve(
-              [{id: 'SuccessMetrics1', scope: {organizationIds: ['org1'], applicationIds: ['app1']}}]);
-          getApplicationCountsDataDeferred.resolve(applicationCountsData);
-          getMttrDataDeferred.resolve(mttrData);
-          getAveragesDataDeferred.resolve(averagesData);
-          getComponentCountsDataDeferred.resolve(componentCountsData);
+        'length is 1 and organizationIds array length is more than 0', function() {
+      checkSuccessMetricsEnabledDeferred.resolve(true);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve(
+          [{id: 'SuccessMetrics1', scope: {organizationIds: ['org1'], applicationIds: ['app1']}}]);
+      getApplicationCountsDataDeferred.resolve(applicationCountsData);
+      getMttrDataDeferred.resolve(mttrData);
+      getAveragesDataDeferred.resolve(averagesData);
+      getComponentCountsDataDeferred.resolve(componentCountsData);
 
-          $scope.$digest();
+      $scope.$digest();
 
-          expect(vm.isSingleApplicationReport).toBe(false);
-          expect(vm.singleApplicationName).toBeUndefined();
-        });
+      expect(vm.isSingleApplicationReport).toBe(false);
+      expect(vm.singleApplicationName).toBeUndefined();
+    });
 
     it('sets error when singleApplicationName not found', function() {
       checkSuccessMetricsEnabledDeferred.resolve(true);

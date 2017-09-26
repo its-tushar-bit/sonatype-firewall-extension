@@ -7,7 +7,7 @@ describe('ProductFeatures.js', function() {
     $httpBackend.flush();
     expect(ProductFeatures.isAvailable('some-feature')).toEqual(true);
   }));
-  
+
   it('Test that a feature not from server is properly missing in UI', inject(function(ProductFeatures, CLMLocations, $httpBackend) {
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['some-feature']);
     ProductFeatures.load();

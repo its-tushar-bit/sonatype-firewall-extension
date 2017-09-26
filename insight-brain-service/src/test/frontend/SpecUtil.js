@@ -5,7 +5,7 @@ window.clmBuildTimestamp = '';
 window.angularDebug = true;
 var SpecUtil = {
   setupProviders: function(applicationId, organizationId) {
-    angular.module('ApplicationIdProvider', []).service('ApplicationId',function() {
+    angular.module('ApplicationIdProvider', []).service('ApplicationId', function() {
       // TODO Are ui-router parameters encoded or decoded?
       return {
         encoded: function() {
@@ -13,12 +13,12 @@ var SpecUtil = {
         }
       };
     }).service('OrganizationId', function() {
-          return {
-            encoded: function() {
-              return organizationId;
-            }
-          };
-        });
+      return {
+        encoded: function() {
+          return organizationId;
+        }
+      };
+    });
   },
   getTemplate: function(url) {
     // Karma Html2Js stores these html snippets on the window
@@ -62,8 +62,8 @@ var SpecUtil = {
     //to make sure the timestamp param is in the proper position
     if (parts.length > 1) {
       parts = parts[1].split('&');
-      
-      for (var i = 0 ; i < parts.length ; i++) {
+
+      for (var i = 0; i < parts.length; i++) {
         if ('timestamp' < parts[i]) {
           url = url.replace(parts[i], 'timestamp=[0-9]+&' + parts[i]);
           addedTimestamp = true;
@@ -71,7 +71,7 @@ var SpecUtil = {
         }
       }
     }
-    
+
     return new RegExp(url.replace('?', '\\?') + (!addedTimestamp ? ((url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+') : ''));
   },
 
@@ -114,13 +114,13 @@ var SpecUtil = {
   },
 
   expectStateChangePrevented: function($scope) {
-    var event =  $scope.$broadcast('pageChangeStarted');
+    var event = $scope.$broadcast('pageChangeStarted');
 
     expect(event.defaultPrevented).toBeTruthy();
   },
 
   expectStateChangeNotPrevented: function($scope) {
-    var event =  $scope.$broadcast('pageChangeStarted');
+    var event = $scope.$broadcast('pageChangeStarted');
 
     expect(event.defaultPrevented).toBeFalsy();
   }

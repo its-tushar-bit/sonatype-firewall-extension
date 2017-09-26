@@ -26,20 +26,19 @@ describe('application.category.tile.controller.app.spec.js', function() {
       EventNameConstant = $injector.get('event.name.constant');
 
       mockCLMAppLocations = {
-            isApplication: function() {
-              return isApp;
-            },
-            getEntityId: function() {
-              return isApp ? owner.publicId : owner.id;
-            }
-          };
-
-          vm = $controller('ApplicationCategoryTileControllerApp', {
-            CLMAppLocations: mockCLMAppLocations,
-            $scope: scope
-          });
+        isApplication: function() {
+          return isApp;
+        },
+        getEntityId: function() {
+          return isApp ? owner.publicId : owner.id;
         }
-    ));
+      };
+
+      vm = $controller('ApplicationCategoryTileControllerApp', {
+        CLMAppLocations: mockCLMAppLocations,
+        $scope: scope
+      });
+    }));
 
     afterEach(function() {
       $httpBackend.verifyNoOutstandingExpectation();
@@ -71,16 +70,16 @@ describe('application.category.tile.controller.app.spec.js', function() {
       });
 
       it('Missing Categories', function() {
-            mockApplicationStore.resolveGet([owner]);
-            $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(400,
-                'Bad Request');
-            $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);
-            $timeout.flush();
-            $httpBackend.flush();
+        mockApplicationStore.resolveGet([owner]);
+        $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(400,
+            'Bad Request');
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond(
+            []);
+        $timeout.flush();
+        $httpBackend.flush();
 
-            expect(vm.error).toBeDefined();
-          }
-      );
+        expect(vm.error).toBeDefined();
+      });
 
       it('Reloads on broadcasted owner summary reload event', function() {
         expectLoadAndReturnProperData();
@@ -101,7 +100,7 @@ describe('application.category.tile.controller.app.spec.js', function() {
       });
     }
 
-    function expectLoadAndReturnProperData(){
+    function expectLoadAndReturnProperData() {
       mockApplicationStore.resolveGet([owner]);
       $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(TagResourceMockData.getApplicationTagUrl());
       $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);

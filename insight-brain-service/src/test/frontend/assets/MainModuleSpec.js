@@ -2,10 +2,9 @@
 window.angularDebug = true;
 
 describe('mainModuleSpec', function() {
-  'use strict';
-  var scope, state;
+  var scope;
 
-  beforeEach(module('InitModule', function($provide){
+  beforeEach(module('InitModule', function($provide) {
     $provide.value('$window', {
       location: {
         href: 'http://blah',
@@ -14,9 +13,8 @@ describe('mainModuleSpec', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $state) {
+  beforeEach(inject(function($rootScope) {
     scope = $rootScope.$new();
-    state = $state;
   }));
 
   afterEach(inject(function($httpBackend) {
@@ -35,9 +33,9 @@ describe('mainModuleSpec', function() {
     }));
   });
 
-  describe('Validate requests made on initService start', function(){
-    it('validate state after all requests succeed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures){
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username:'myname'});
+  describe('Validate requests made on initService start', function() {
+    it('validate state after all requests succeed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       $httpBackend.expectGET('dashboard/dashboard.view.html?').respond('<div></div>');
@@ -52,8 +50,8 @@ describe('mainModuleSpec', function() {
       expect($rootScope.initialized).toEqual(true);
     }));
 
-    it('validate state after license check fails because unlicensed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window){
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username:'myname'});
+    it('validate state after license check fails because unlicensed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
@@ -64,7 +62,7 @@ describe('mainModuleSpec', function() {
       expect($rootScope.initialized).toBeFalsy();
     }));
 
-    it('validate state after logged in check error', inject(function($httpBackend, CLMLocations, initService, $rootScope){
+    it('validate state after logged in check error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(500);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
@@ -75,8 +73,8 @@ describe('mainModuleSpec', function() {
       expect($rootScope.initialized).toBeFalsy();
     }));
 
-    it('validate state after license check error', inject(function($httpBackend, CLMLocations, initService, $rootScope){
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username:'myname'});
+    it('validate state after license check error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(500);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       $rootScope.error = undefined;
@@ -86,8 +84,8 @@ describe('mainModuleSpec', function() {
       expect($rootScope.initialized).toBeFalsy();
     }));
 
-    it('validate state after product feature error', inject(function($httpBackend, CLMLocations, initService, $rootScope){
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username:'myname'});
+    it('validate state after product feature error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username: 'myname'});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(500);
       $rootScope.error = undefined;

@@ -1,39 +1,40 @@
+// eslint-disable-next-line no-unused-vars
 var ProprietaryMockData = {
   getProprietaryConfigurationStoreMockData: function() {
     return {
-      "proprietaryConfigByOwners": [
+      'proprietaryConfigByOwners': [
         {
-          "ownerId": "ownerID",
-          "ownerName": "App Name",
-          "ownerType": "application",
-          "proprietaryConfig":
+          'ownerId': 'ownerID',
+          'ownerName': 'App Name',
+          'ownerType': 'application',
+          'proprietaryConfig':
           [
             {
-              "id": "configId",
-              "ownerId": "ownerId",
-              "packages": [
-                "com.sonatype",
-                "com.local"
+              'id': 'configId',
+              'ownerId': 'ownerId',
+              'packages': [
+                'com.sonatype',
+                'com.local'
               ],
-              "regexes": [
-                ".*\/test\\.zip"
+              'regexes': [
+                '.*/test\\.zip'
               ]
             }
           ]
         },
         {
-          "ownerId": "ROOT_ORGANIZATION_ID",
-          "ownerName": "Root Organization",
-          "ownerType": "organization",
-          "proprietaryConfig":
+          'ownerId': 'ROOT_ORGANIZATION_ID',
+          'ownerName': 'Root Organization',
+          'ownerType': 'organization',
+          'proprietaryConfig':
           [
             {
-              "id": null,
-              "ownerId": "ROOT_ORGANIZATION_ID",
-              "packages": [
+              'id': null,
+              'ownerId': 'ROOT_ORGANIZATION_ID',
+              'packages': [
               ],
-              "regexes": [
-                ".*\/foo\\.zip"
+              'regexes': [
+                '.*/foo\\.zip'
               ]
             }
           ]
@@ -43,33 +44,33 @@ var ProprietaryMockData = {
   },
   getProprietaryConfiguration: function() {
     return {
-      "proprietaryConfigByOwners": [
+      'proprietaryConfigByOwners': [
         {
-          "ownerId": "ownerID",
-          "ownerName": "App Name",
-          "ownerType": "application",
-          "proprietaryConfig": {
-            "id": "configId",
-            "ownerId": "ownerId",
-            "packages": [
-              "com.sonatype",
-              "com.local"
+          'ownerId': 'ownerID',
+          'ownerName': 'App Name',
+          'ownerType': 'application',
+          'proprietaryConfig': {
+            'id': 'configId',
+            'ownerId': 'ownerId',
+            'packages': [
+              'com.sonatype',
+              'com.local'
             ],
-            "regexes": [
-              ".*\/test\\.zip"
+            'regexes': [
+              '.*/test\\.zip'
             ]
           }
         },
         {
-          "ownerId": "ROOT_ORGANIZATION_ID",
-          "ownerName": "Root Organization",
-          "ownerType": "organization",
-          "proprietaryConfig": {
-            "id": null,
-            "ownerId": "ROOT_ORGANIZATION_ID",
-            "packages": [],
-            "regexes": [
-              ".*\/foo\\.zip"
+          'ownerId': 'ROOT_ORGANIZATION_ID',
+          'ownerName': 'Root Organization',
+          'ownerType': 'organization',
+          'proprietaryConfig': {
+            'id': null,
+            'ownerId': 'ROOT_ORGANIZATION_ID',
+            'packages': [],
+            'regexes': [
+              '.*/foo\\.zip'
             ]
           }
         }

@@ -26,9 +26,9 @@ describe('ComponentDisplay', function() {
         },
         pathnames: []
       };
-      var element = $compile(angular.element("<div component-display component='component'></div>"))(scope);
+      var element = $compile(angular.element('<div component-display component="component"></div>'))(scope);
       scope.$digest();
-      expect(element.text()).toContain("foo : bar : 1.0");
+      expect(element.text()).toContain('foo : bar : 1.0');
     });
 
     it('Can show an element with a pathname', function() {
@@ -36,18 +36,17 @@ describe('ComponentDisplay', function() {
         displayName: null,
         pathnames: ['foo.jar', 'bar.jar']
       };
-      var element = $compile(angular.element("<div component-display component='component'></div>"))(scope);
+      var element = $compile(angular.element('<div component-display component="component"></div>'))(scope);
       scope.$digest();
-      expect(element.text()).toContain("foo.jar");
+      expect(element.text()).toContain('foo.jar');
     });
 
     it('Can show an element with no identifiers', function() {
       scope.component = { };
-      var element = $compile(angular.element("<div component-display component='component'></div>"))(scope);
+      var element = $compile(angular.element('<div component-display component="component"></div>'))(scope);
       scope.$digest();
-      expect(element.text()).toContain("Unknown");
+      expect(element.text()).toContain('Unknown');
     });
-
 
   });
 
@@ -71,7 +70,7 @@ describe('ComponentDisplay', function() {
         })).toBe('foo : bar');
       });
     });
-    
+
     describe('deriveComponentName()', function() {
       it('renders displayName to string if displayName available', function() {
         var component = {
@@ -89,8 +88,8 @@ describe('ComponentDisplay', function() {
       it('uses first entry in pathnames if displayName is not available', function() {
         var component = {
           pathnames: [
-              'path/to/foo.jar',
-              'path/to/bar.jar'
+            'path/to/foo.jar',
+            'path/to/bar.jar'
           ]
         };
         expect(util.deriveComponentName(component)).toBe('foo.jar');
@@ -100,7 +99,7 @@ describe('ComponentDisplay', function() {
         expect(util.deriveComponentName({})).toBe('Unknown');
       });
     });
-    
+
   });
 
   describe('periodDelimiter Filter', function() {
@@ -113,5 +112,5 @@ describe('ComponentDisplay', function() {
           'org.' + zeroWidthSpace + 'apache.' + zeroWidthSpace + 'geronimo.' + zeroWidthSpace +
           'framework:geronimo-security:2.1');
     }));
-  })
+  });
 });

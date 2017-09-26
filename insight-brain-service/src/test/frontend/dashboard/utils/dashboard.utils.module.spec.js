@@ -10,7 +10,7 @@ describe('dashboard.utils.module', function() {
     }));
 
     it('sets maxResults incremented by 1', function() {
-      expect(filterToParams(null, 1)).toEqual({maxResults: 2})
+      expect(filterToParams(null, 1)).toEqual({maxResults: 2});
     });
 
     it('converts policyThreatLevel to string', function() {

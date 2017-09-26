@@ -13,17 +13,17 @@ describe('uninstall.license.controller.spec.js', function () {
     });
   }));
 
-  afterEach(inject(function($httpBackend) {
+  afterEach(function() {
     scope.$destroy();
-  }));
+  });
 
   it('uninstall failure', inject(function($httpBackend, CLMLocations) {
-    $httpBackend.expectDELETE(CLMLocations.getLicenseUploadUrl()).respond(500, "failed");
+    $httpBackend.expectDELETE(CLMLocations.getLicenseUploadUrl()).respond(500, 'failed');
 
     vm.uninstall();
     $httpBackend.flush();
 
-    expect(vm.error).toEqual("failed");
+    expect(vm.error).toEqual('failed');
   }));
 
   it('uninstall', inject(function($httpBackend, CLMLocations) {

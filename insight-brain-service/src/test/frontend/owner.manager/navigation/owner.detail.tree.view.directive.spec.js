@@ -15,16 +15,14 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
         $httpBackend,
         CLMLocations,
         CLMAppLocations,
-        mockOwnerStore = storeName ? StoreUtils().createMockStore(storeName) : null,
-        ProductFeatures;
+        mockOwnerStore = storeName ? StoreUtils().createMockStore(storeName) : null;
 
-    beforeEach(inject(function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_, _ProductFeatures_) {
+    beforeEach(inject(function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_) {
       $scope = $rootScope.$new();
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
       CLMLocations = _CLMLocations_;
       CLMAppLocations = _CLMAppLocations_;
-      ProductFeatures = _ProductFeatures_;
 
       spyOn(CLMAppLocations, 'isApplication').and.returnValue(type === 'application');
       spyOn(CLMAppLocations, 'isRepositories').and.returnValue(type === 'repositories');
@@ -33,7 +31,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       vm = $controller('OwnerDetailTreeViewController', {
         $scope: $scope,
         $state: {
-          $current: {name: ""}
+          $current: {name: ''}
         }
       });
     }));
@@ -75,7 +73,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       }
       else {
         expect(vm.ownerName).toBe('Repositories');
-        expect(vm.error).toBeFalsy()
+        expect(vm.error).toBeFalsy();
       }
     });
 

@@ -15,7 +15,6 @@ describe('policy.tile.controller.spec.js', function() {
       $httpBackend,
       $timeout,
       $rootScope,
-      CLMAppLocations,
       mockPolicyHierarchyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
       mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(PolicyTileMockData
           .getApplicablePolicies(), 'policiesByOwner'),
@@ -24,36 +23,30 @@ describe('policy.tile.controller.spec.js', function() {
       MonitoredStageService,
       mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
       CLMLocations,
-      ProductFeatures,
       mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore('ProprietaryConfigHierarchyStore'),
       mockProprietaryConfigurationHierarchyStoreData = StoreUtils().createMockHierarchyStoreData(ProprietaryMockData
           .getProprietaryConfigurationStoreMockData(), 'proprietaryConfigByOwners');
 
   beforeEach(inject(['monitored.stage.service', function(_MonitoredStageService_) {
-        MonitoredStageService = _MonitoredStageService_;
-      }]
-  ));
+    MonitoredStageService = _MonitoredStageService_;
+  }]));
 
-  beforeEach(inject(function(_$rootScope_, $injector, $q, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_,
-                             StageTypeStore, _ProductFeatures_, _CLMLocations_)
-      {
-        $rootScope = _$rootScope_;
-        scope = $rootScope.$new();
-        $httpBackend = _$httpBackend_;
-        $timeout = _$timeout_;
-        CLMAppLocations = _CLMAppLocations_;
-        CLMLocations = _CLMLocations_;
-        ProductFeatures = _ProductFeatures_;
-        EventNameConstant = $injector.get('event.name.constant');
-        stageTypeStoreDefer = $q.defer();
-        spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-        spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
-        $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
-        vm = $controller('policy.tile.controller', {
-          $scope: scope
-        });
-      }
-  ));
+  beforeEach(inject(function(_$rootScope_, $injector, $q, $controller, _$timeout_, _$httpBackend_, StageTypeStore,
+                             _CLMLocations_) {
+    $rootScope = _$rootScope_;
+    scope = $rootScope.$new();
+    $httpBackend = _$httpBackend_;
+    $timeout = _$timeout_;
+    CLMLocations = _CLMLocations_;
+    EventNameConstant = $injector.get('event.name.constant');
+    stageTypeStoreDefer = $q.defer();
+    spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
+    spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
+    vm = $controller('policy.tile.controller', {
+      $scope: scope
+    });
+  }));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();
@@ -99,7 +92,7 @@ describe('policy.tile.controller.spec.js', function() {
   });
 
   it('Missing Owner Policies', function() {
-    mockPolicyHierarchyStore.rejectGet("dagnabbit");
+    mockPolicyHierarchyStore.rejectGet('dagnabbit');
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
@@ -107,7 +100,7 @@ describe('policy.tile.controller.spec.js', function() {
     $timeout.flush();
     $httpBackend.flush();
 
-    expect(vm.error).toBe("dagnabbit");
+    expect(vm.error).toBe('dagnabbit');
 
     vm.doLoad();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);

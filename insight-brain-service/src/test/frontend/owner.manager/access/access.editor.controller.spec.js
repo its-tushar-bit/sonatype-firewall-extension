@@ -1,6 +1,7 @@
 describe('access.editor.controller.spec.js', function() {
   var vm,
       $q,
+      scope,
       $httpBackend,
       deleteServiceResourceDefer,
       $timeout,
@@ -45,7 +46,9 @@ describe('access.editor.controller.spec.js', function() {
 
   it('Sets roles and originalMembers', function() {
     inject(function($controller) {
-      vm = $controller('access.editor.controller', {$scope: scope, $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'},
+      vm = $controller('access.editor.controller', {
+        $scope: scope,
+        $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'},
         isAuthorized: true});
     });
 
@@ -92,8 +95,14 @@ describe('access.editor.controller.spec.js', function() {
 
   it('Remove frees the role, broadcasts update and transfers to create new', function() {
     inject(function($controller) {
-      vm = $controller('access.editor.controller', {$scope: scope, DeleteModalService: mockDeleteService, $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'}, isAuthorized: true,
-      $rootScope: mockRootScope, SameOwnerStateNavigationService: mockSameOwnerStateNavigationService});
+      vm = $controller('access.editor.controller', {
+        $scope: scope,
+        DeleteModalService: mockDeleteService,
+        $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'},
+        isAuthorized: true,
+        $rootScope: mockRootScope,
+        SameOwnerStateNavigationService: mockSameOwnerStateNavigationService
+      });
     });
     $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
@@ -110,8 +119,12 @@ describe('access.editor.controller.spec.js', function() {
 
   it('Adding the last role removes it from available, broadcasts update and transfers to edit', function() {
     inject(function($controller) {
-      vm = $controller('access.editor.controller', {$scope: scope, isAuthorized: true,
-        $rootScope: mockRootScope, SameOwnerStateNavigationService: mockSameOwnerStateNavigationService});
+      vm = $controller('access.editor.controller', {
+        $scope: scope,
+        isAuthorized: true,
+        $rootScope: mockRootScope,
+        SameOwnerStateNavigationService: mockSameOwnerStateNavigationService
+      });
     });
     $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
     $httpBackend.flush();
@@ -124,7 +137,7 @@ describe('access.editor.controller.spec.js', function() {
     vm.save();
     $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(vm.role.roleId)).respond(200);
     $httpBackend.flush();
-    $timeout(function(){}, 1000); // mask delay = 0.8s
+    $timeout(function() {}, 1000); // mask delay = 0.8s
     $timeout.flush();
 
     expect(vm.availableRoles.length).toBe(0);

@@ -1,7 +1,6 @@
 /* global describe, it, expect, spyOn, beforeEach */
 /* global module, inject */
 describe('IqHttpInterceptors', function() {
-  'use strict';
 
   var $httpBackend,
       $http;

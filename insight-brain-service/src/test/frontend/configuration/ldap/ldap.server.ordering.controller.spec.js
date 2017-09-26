@@ -1,18 +1,15 @@
 describe('ldap.server.ordering.controller.spec.js', function() {
-  'use strict';
 
   var scope;
 
   beforeEach(module('ldap.module'));
 
-  beforeEach(inject(function($httpBackend, $controller, $rootScope, LdapConfigurationStore, CLMLocations, $q) {
-    $httpBackend.whenGET(CLMLocations.getLdapConfig()).respond([{
-        id:'b', priority:2
-      }, {
-        id:'a', priority:1
-      }, {
-        id:'c', priority:3
-      }]);
+  beforeEach(inject(function($httpBackend, $controller, $rootScope, LdapConfigurationStore, CLMLocations) {
+    $httpBackend.whenGET(CLMLocations.getLdapConfig()).respond([
+      {id: 'b', priority: 2},
+      {id: 'a', priority: 1},
+      {id: 'c', priority: 3}
+    ]);
 
     scope = $rootScope.$new();
     scope.vm = $controller('LdapServerOrderingController', {
@@ -110,7 +107,7 @@ describe('ldap.server.ordering.controller.spec.js', function() {
       scope.vm.moveDown(scope.vm.store[1]);
     });
 
-    it('successful', inject(function($httpBackend, CLMLocations, LdapConfigurationStore) {
+    it('successful', inject(function($httpBackend, CLMLocations) {
       $httpBackend.expectPUT(CLMLocations.getLdapPriority(), ['a', 'c', 'b']).respond(204, '');
       scope.vm.save();
       $httpBackend.flush();
@@ -119,7 +116,7 @@ describe('ldap.server.ordering.controller.spec.js', function() {
       expect(scope.vm.error).toBeFalsy();
     }));
 
-    it('error', inject(function($httpBackend, CLMLocations, LdapConfigurationStore) {
+    it('error', inject(function($httpBackend, CLMLocations) {
       $httpBackend.expectPUT(CLMLocations.getLdapPriority(), ['a', 'c', 'b']).respond(404, 'Some Error Occurred');
       scope.vm.save();
       $httpBackend.flush();

@@ -8,68 +8,68 @@ describe('violationsTableRow.spec', function() {
 
   var riskDataMultipleStages =
   {
-    "stageDetails": [
+    'stageDetails': [
       {
-        "stageTypeId": "build",
-        "stageTypeName": null,
-        "time": 1492397030700,
-        "actionTypeId": null,
-        "scanId": "164c8128857b4d62a8649350ced3f9a6"
+        'stageTypeId': 'build',
+        'stageTypeName': null,
+        'time': 1492397030700,
+        'actionTypeId': null,
+        'scanId': '164c8128857b4d62a8649350ced3f9a6'
       },
       {
-        "stageTypeId": "stage-release",
-        "stageTypeName": null,
-        "time": 1492397082307,
-        "actionTypeId": null,
-        "scanId": "5d6a9955588f482a9e48d2d93f2236f0"
+        'stageTypeId': 'stage-release',
+        'stageTypeName': null,
+        'time': 1492397082307,
+        'actionTypeId': null,
+        'scanId': '5d6a9955588f482a9e48d2d93f2236f0'
       },
       {
-        "stageTypeId": "release",
-        "stageTypeName": null,
-        "time": 1492397030701,
-        "actionTypeId": null,
-        "scanId": null
+        'stageTypeId': 'release',
+        'stageTypeName': null,
+        'time': 1492397030701,
+        'actionTypeId': null,
+        'scanId': null
       },
       {
-        "stageTypeId": "operate",
-        "stageTypeName": null,
-        "time": 1492397030702,
-        "actionTypeId": null,
-        "scanId": null
+        'stageTypeId': 'operate',
+        'stageTypeName': null,
+        'time': 1492397030702,
+        'actionTypeId': null,
+        'scanId': null
       }
     ]
   };
 
   var riskDataSingleStage =
   {
-    "stageDetails": [
+    'stageDetails': [
       {
-        "stageTypeId": "build",
-        "stageTypeName": null,
-        "time": null,
-        "actionTypeId": null,
-        "scanId": "164c8128857b4d62a8649350ced3f9a6"
+        'stageTypeId': 'build',
+        'stageTypeName': null,
+        'time': null,
+        'actionTypeId': null,
+        'scanId': '164c8128857b4d62a8649350ced3f9a6'
       },
       {
-        "stageTypeId": "stage-release",
-        "stageTypeName": null,
-        "time": null,
-        "actionTypeId": null,
-        "scanId": "5d6a9955588f482a9e48d2d93f2236f0"
+        'stageTypeId': 'stage-release',
+        'stageTypeName': null,
+        'time': null,
+        'actionTypeId': null,
+        'scanId': '5d6a9955588f482a9e48d2d93f2236f0'
       },
       {
-        "stageTypeId": "release",
-        "stageTypeName": null,
-        "time": null,
-        "actionTypeId": null,
-        "scanId": null
+        'stageTypeId': 'release',
+        'stageTypeName': null,
+        'time': null,
+        'actionTypeId': null,
+        'scanId': null
       },
       {
-        "stageTypeId": "operate",
-        "stageTypeName": null,
-        "time": 1492397030702,
-        "actionTypeId": null,
-        "scanId": null
+        'stageTypeId': 'operate',
+        'stageTypeName': null,
+        'time': 1492397030702,
+        'actionTypeId': null,
+        'scanId': null
       }
     ]
   };
@@ -101,7 +101,7 @@ describe('violationsTableRow.spec', function() {
         scope.$digest();
 
         return element.controller('violationsTableRow');
-      }
+      };
     }
   ]));
 
@@ -132,7 +132,7 @@ describe('violationsTableRow.spec', function() {
     });
 
     it('Gets the latest report', function() {
-      expect(violationsTableRow.latestReport).toEqual(riskDataMultipleStages.stageDetails[1])
+      expect(violationsTableRow.latestReport).toEqual(riskDataMultipleStages.stageDetails[1]);
     });
   });
 
@@ -144,7 +144,7 @@ describe('violationsTableRow.spec', function() {
           $httpBackend.flush();
         }
       ]);
-      expect(violationsTableRow.latestReport).toEqual(riskDataSingleStage.stageDetails[3])
+      expect(violationsTableRow.latestReport).toEqual(riskDataSingleStage.stageDetails[3]);
     });
   });
 

@@ -51,7 +51,7 @@ describe('import.policy.modal.controller.spec.js', function() {
 
       vm.doSubmit();
       $httpBackend.flush();
-      
+
       expect(vm.error).toBeDefined();
     });
 
@@ -64,7 +64,7 @@ describe('import.policy.modal.controller.spec.js', function() {
       });
       spyOn(PolicyHierarchyStore, 'refresh');
 
-      vm.doSubmit()
+      vm.doSubmit();
       $httpBackend.flush();
 
       expect(scope.$close).toHaveBeenCalled();

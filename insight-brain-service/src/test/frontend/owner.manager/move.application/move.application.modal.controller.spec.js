@@ -2,19 +2,18 @@ describe('move.application.modal.controller.js', function() {
 
   var mockDestinations = [
     {
-      "id": "1",
-      "parentOrganizationId": "ROOT_ORGANIZATION_ID",
-      "name": "Org 3",
-      "nameLowercaseNoWhitespace": "org3"
+      'id': '1',
+      'parentOrganizationId': 'ROOT_ORGANIZATION_ID',
+      'name': 'Org 3',
+      'nameLowercaseNoWhitespace': 'org3'
     },
     {
-      "id": "2",
-      "parentOrganizationId": "ROOT_ORGANIZATION_ID",
-      "name": "Test Organization",
-      "nameLowercaseNoWhitespace": "testorganization"
+      'id': '2',
+      'parentOrganizationId': 'ROOT_ORGANIZATION_ID',
+      'name': 'Test Organization',
+      'nameLowercaseNoWhitespace': 'testorganization'
     }
   ];
-
 
   var $q,
       initController,
@@ -36,7 +35,7 @@ describe('move.application.modal.controller.js', function() {
 
   beforeEach(module('owner.manager.module', 'legacyConfiguration'));
 
-  beforeEach(inject(function(_$rootScope_, $controller, _$q_, $injector) {
+  beforeEach(inject(function(_$rootScope_, $controller, _$q_) {
     $rootScope = _$rootScope_;
     $q = _$q_;
     scope = $rootScope.$new();
@@ -44,7 +43,7 @@ describe('move.application.modal.controller.js', function() {
     moveApplicationErrorModal = jasmine.createSpyObj('errorModal', ['open']);
     moveApplicationSuccessModal = jasmine.createSpyObj('successModal', ['open']);
 
-    initController = function(){
+    initController = function() {
       return $controller('move.application.modal.controller', {
         $scope: scope,
         $state: jasmine.createSpyObj('$state', ['go']),
@@ -57,16 +56,13 @@ describe('move.application.modal.controller.js', function() {
 
   }));
 
-
   describe('initialization', function() {
 
     describe('event handlers', function() {
 
-      var vm;
-
       beforeEach(function() {
         destinationsPromise = $q.resolve(mockDestinations);
-        vm = initController();
+        initController();
       });
 
       describe('pageChangeAccepted event', function() {
@@ -139,7 +135,7 @@ describe('move.application.modal.controller.js', function() {
           expect(vm.isLoading()).toBeTruthy();
           scope.$apply(); // resolve promises
           expect(vm.isLoading()).toBeFalsy();
-        })
+        });
       });
     });
 
@@ -151,7 +147,7 @@ describe('move.application.modal.controller.js', function() {
       destinationsPromise = $q.resolve(mockDestinations);
       vm = initController();
       vm.selectedOrganization = { id: 1 };
-      vm.formMask = { wrap: function(promise) {return promise} };
+      vm.formMask = { wrap: function(promise) {return promise;} };
       vm.moveApplicationForm = { $valid: true };
     });
 

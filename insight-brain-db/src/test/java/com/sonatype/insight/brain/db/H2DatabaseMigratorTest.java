@@ -84,6 +84,28 @@ public class H2DatabaseMigratorTest
   }
 
   @Test
+  public void testMigrateAggregationDataStore() throws Exception {
+    File databaseDir = new File("target/H2DatabaseMigratorTest/testMigrateAggregationDataStore");
+    new FileCleaner().delete(databaseDir);
+    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateAggregationDataStore"),
+        databaseDir);
+    File databaseVersionFile = new File(databaseDir, "aggregation.ver");
+    assertTrue(databaseVersionFile.exists());
+    assertEquals("1", FileUtils.fileRead(databaseVersionFile));
+
+    DatabaseConfig aggDatabaseConfig = new DatabaseConfig();
+    aggDatabaseConfig.setDriverClassName("org.h2.Driver");
+    aggDatabaseConfig
+        .setUrl("jdbc:h2:target/H2DatabaseMigratorTest/testMigrateAggregationDataStore/aggregation;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    aggDatabaseConfig.setUsername("sa");
+    aggDatabaseConfig.setPassword("");
+    aggDatabaseConfig.setMaxConnections(50);
+    AggregationDataStoreProvider.init(aggDatabaseConfig);
+    assertEquals(String.valueOf(AggregationDataStoreProvider.DESIRED_DATABASE_VERSION),
+        FileUtils.fileRead(databaseVersionFile));
+  }
+
+  @Test
   public void testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     File databaseDir = temporaryFolder.newFolder("db");
     FileUtils

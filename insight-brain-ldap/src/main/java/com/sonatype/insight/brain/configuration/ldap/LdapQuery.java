@@ -620,7 +620,15 @@ class LdapQuery
     baseDN = StringUtils.defaultString(baseDN);
     log.debug("Executing LDAP query with filter {} in context {} with scope {} and limit {}", filter, baseDN,
         controls.getSearchScope(), controls.getCountLimit());
-    return new SearchResults(ctx.search(baseDN, filter, controls));
+    NamingEnumeration<SearchResult> results;
+    if (controls.getCountLimit() > 0) {
+      results = ctx.search(baseDN, filter, controls);
+    }
+    else {
+      // when asking for all results, use paged search to overcome server-side result limits (usually 1000)
+      results = new PagedNamingEnumeration(ctx, baseDN, filter, controls, 100);
+    }
+    return new SearchResults(results);
   }
 
   /**

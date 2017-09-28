@@ -35,23 +35,22 @@ function controller(chartUtilsService) {
     const maxDays = max / secondsInDay;
 
     // This is needed to avoid truncation of max and min scatter points.
-    // It's equivalent to calling yScale.padProportion(0.05),
+    // It's equivalent to calling yScale.padProportion(0.08),
     // except padProportion() doesn't work properly if domainMin is set (plottable bug).
-    const padding = 0.05 * maxDays;
+    const padding = 0.08 * maxDays;
 
     const xScale = new Plottable.Scales.Category();
 
     const yScaleTickInterval = chartUtilsService.calculateTickInterval(NUMBER_OF_TICKS, maxDays);
     const yScaleTickGenerator = Plottable.Scales.TickGenerators.intervalTickGenerator(yScaleTickInterval);
+    // the `< 1` is to handle the case where the domain size is less than 1. 
+    // In this case we bump the value to 1 for display purposes.
+    const yDomainMax = Math.max(1, maxDays) + padding;
 
     const yScale = new Plottable.Scales.Linear()
         .domainMin(0 - padding)
         .tickGenerator(yScaleTickGenerator)
-
-        // the `|| 1` is to handle the case where the data only contains null
-        // values.  With a domain of 0 size, they still show up so we need to
-        // make the domain (0, 1) in that case
-        .domainMax((maxDays + padding) || 1);
+        .domainMax(yDomainMax);
 
     const colorScale = new Plottable.Scales.Color()
         .domain(['All', 'Critical']);

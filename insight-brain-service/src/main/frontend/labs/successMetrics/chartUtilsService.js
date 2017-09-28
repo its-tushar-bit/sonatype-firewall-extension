@@ -19,6 +19,11 @@ function calculateTickInterval(numberOfTicks, maxValue) {
     return 1;
   }
 
+  // if max Value is less than or equal to 1 - use 2 decimals for multiples
+  if (maxValue <= 1) {
+    return Math.round((1 / numberOfTicks) * 100) / 100;
+  }
+
   var tickInterval = maxValue / numberOfTicks;
 
   // if tickInterval is more then 5 - make it multiples of 5

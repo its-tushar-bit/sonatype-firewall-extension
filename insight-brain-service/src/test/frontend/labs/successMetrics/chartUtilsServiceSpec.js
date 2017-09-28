@@ -23,5 +23,13 @@ describe('chartUtilsService', function() {
     it('returns 1 if maxValue is 0', function() {
       expect(chartUtilsService.calculateTickInterval(4, 0)).toBe(1);
     });
+
+    it('returns .25 if maxValue is less than or equal to 1 and 4 ticks requested', function() {
+      expect(chartUtilsService.calculateTickInterval(4, 1)).toBe(0.25);
+    });
+
+    it('returns .33 if maxValue is less than 1 and 3 ticks requested', function() {
+      expect(chartUtilsService.calculateTickInterval(3, .99)).toBe(0.33);
+    });
   });
 });

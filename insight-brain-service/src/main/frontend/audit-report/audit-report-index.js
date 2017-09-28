@@ -10,7 +10,7 @@ import '../lib/angular-ui-router/release/stateEvents';
 import '../lib/protovis/protovis-tipsy';
 import './lib/date.format';
 import './lib/jquery/jquery.tipsy';
-import './lib/slickgrid/jquery.event.drag-2.0.min';
+import './lib/slickgrid/jquery.event.drag-2.2';
 
 
 import '../version-graph/appcheck';

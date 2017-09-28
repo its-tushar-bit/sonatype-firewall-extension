@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.CategoryFilter;
@@ -25,6 +26,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations.Violatio
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
@@ -79,12 +81,17 @@ public class DashboardFilterTest
   private static final ComponentIdentifier DEFAULT_COMPONENT_IDENTIFIER = createMavenCoordinates("Group1", "Artifact1",
       "Version1");
 
+  private static ApplicationDAO appDAO = new ApplicationDAO();
+
+  private static Organization org;
   private static Application firstApp;
 
   private static Tag firstAppCategory1;
   private static Tag firstAppCategory2;
 
   private static Application secondApp;
+
+  private static Policy policy;
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -110,7 +117,7 @@ public class DashboardFilterTest
   }
 
   private static void setupData() {
-    Organization org = staticTempEntity.newOrganization("DashboardTest");
+    org = staticTempEntity.newOrganization("DashboardTest");
     firstApp = staticTempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
     firstAppCategory1 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory1", Color.dark_blue);
     firstAppCategory2 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory2", Color.dark_red);
@@ -119,7 +126,7 @@ public class DashboardFilterTest
 
     secondApp = staticTempEntity.newApplication("DashboardTestAppTwo", "DashboardTestAppTwo", org.getId());
 
-    Policy policy = staticTempEntity.newPolicy(org.getId(), "DashboardTestPolicy");
+    policy = staticTempEntity.newPolicy(org.getId(), "DashboardTestPolicy");
 
     DateTime now = DateTime.now();
 
@@ -680,6 +687,35 @@ public class DashboardFilterTest
     refreshOrOpen(VIOLATIONS_URL);
 
     assertNeedsAcknowledgementPostFilterState(filterName);
+  }
+
+  @Test
+  public void testOrgFilterIncludesNewApplications() {
+    refreshOrOpen(APPLICATIONS_URL);
+
+    // filter by Org
+    DashboardFilters.organizationFilter().twisty().click();
+    DashboardFilters.organizationFilter().checkboxItem(2).click();
+    DashboardFilters.apply();
+
+    ApplicationsResults results = DashboardPage.applicationsView().results();
+    results.applications().shouldHaveSize(2);
+
+    // add new App to same Org
+    Application thirdApp = staticTempEntity.newApplication("DashboardTestAppThree", "DashboardTestAppThree",
+        org.getId());
+    PolicyEvaluation appThreePolicyEvaluation = staticTempEntity.newPolicyEvaluation(thirdApp.getId(),
+        BuildStageType.ID, "DashboardTestEvaluationForAppThree", DateTime.now().minusDays(1).toDate());
+    staticTempEntity.newPolicyViolation(appThreePolicyEvaluation, policy, 5, PolicyThreatCategory.LICENSE, "Group1",
+        "Artifact1", "Version1", "hash", FailActionType.ID);
+
+    // new App should be included in results
+    refreshOrOpen(APPLICATIONS_URL);
+    results.applications().shouldHaveSize(3);
+
+    appDAO.delete(thirdApp);
+    refreshOrOpen(APPLICATIONS_URL);
+    results.applications().shouldHaveSize(2);
   }
   
   private void assertNeedsAcknowledgementPostFilterState(String filterName) {

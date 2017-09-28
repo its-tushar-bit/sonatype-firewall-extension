@@ -81,7 +81,7 @@ describe('dashboard.results.controller.spec', function() {
 
   it('getFilterJson() converts filters to json string', function() {
     scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, {
-      organizationFilters: [],
+      organizationFilters: ['org1'],
       applicationFilters: ['app1', 'app2'],
       policyThreatCategoryFilters: [],
       stageTypeFilters: [],
@@ -89,7 +89,8 @@ describe('dashboard.results.controller.spec', function() {
       minPolicyThreatLevel: 3,
       maxPolicyThreatLevel: 8
     });
-    var json = '{"applicationIds":["app1","app2"],"stageIds":[],"tagIds":[],"policyThreatLevelRange":"3,8"}';
+    var json = '{"organizationIds":["org1"],"applicationIds":["app1","app2"],"stageIds":[],"tagIds":[],' +
+        '"policyThreatLevelRange":"3,8"}';
     expect(scope.getFilterJson()).toBe(json);
   });
 

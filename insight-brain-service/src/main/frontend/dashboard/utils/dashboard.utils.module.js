@@ -45,6 +45,7 @@ function filterToParams(filter, maxResults) {
     params.maxResults = maxResults + 1;
   }
   if (filter) {
+    params.organizationIds = filter.organizationFilters;
     params.applicationIds = filter.applicationFilters;
     params.stageIds = filter.stageTypeFilters;
     params.tagIds = filter.tagFilters;

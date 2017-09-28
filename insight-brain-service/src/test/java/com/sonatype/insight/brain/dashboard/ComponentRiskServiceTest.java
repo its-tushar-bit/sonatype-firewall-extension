@@ -469,6 +469,16 @@ public class ComponentRiskServiceTest
   }
 
   @Test
+  public void testGetComponentRisks_FilterByEmptyOrganization() throws Exception {
+    Organization emptyOrg = tempEntity.newOrganization();
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
+        .getComponentRisks(Collections.singleton(emptyOrg.getId()), null, null, null, null, null, null, 1000);
+
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
+  }
+
+  @Test
   public void testGetComponentRisks_FilterByStage() throws Exception {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, app1Policy);

@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
+import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.CategoryFilter;
@@ -118,6 +119,7 @@ public class DashboardFilterTest
 
   private static void setupData() {
     org = staticTempEntity.newOrganization("DashboardTest");
+    staticTempEntity.newOrganization("DashboardTestEmptyOrg");
     firstApp = staticTempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
     firstAppCategory1 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory1", Color.dark_blue);
     firstAppCategory2 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory2", Color.dark_red);
@@ -716,6 +718,28 @@ public class DashboardFilterTest
     appDAO.delete(thirdApp);
     refreshOrOpen(APPLICATIONS_URL);
     results.applications().shouldHaveSize(2);
+  }
+
+  @Test
+  public void testNoResultsShownForEmptyOrg() {
+    // filter by Empty Org
+    DashboardFilters.organizationFilter().twisty().click();
+    DashboardFilters.organizationFilter().checkboxItem(3).click();
+    DashboardFilters.apply();
+
+    ViolationsResults violationsResults = DashboardPage.violationsView().results();
+    violationsResults.violations().shouldHaveSize(0);
+    violationsResults.noDataMessage().shouldBe(visible);
+
+    refreshOrOpen(APPLICATIONS_URL);
+    ApplicationsResults applicationsResults = DashboardPage.applicationsView().results();
+    applicationsResults.applications().shouldHaveSize(0);
+    applicationsResults.noDataMessage().shouldBe(visible);
+
+    refreshOrOpen(COMPONENTS_URL);
+    ComponentsResults componentsResults = DashboardPage.componentsView().results();
+    componentsResults.components().shouldHaveSize(0);
+    componentsResults.noDataMessage().shouldBe(visible);
   }
   
   private void assertNeedsAcknowledgementPostFilterState(String filterName) {

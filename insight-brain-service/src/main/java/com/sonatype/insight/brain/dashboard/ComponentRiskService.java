@@ -46,6 +46,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 @Named
 public class ComponentRiskService
@@ -100,13 +101,7 @@ public class ComponentRiskService
 
     long start = System.currentTimeMillis();
 
-    Set<String> internalApplicationIds = new HashSet<>();
-    if (applicationIds != null) {
-      internalApplicationIds.addAll(applicationIds);
-    }
-    internalApplicationIds.addAll(applicationService.getApplicationIdsByOrganizationIds(organizationIds));
-
-    List<PolicyViolationDTO> violations = getPolicyViolations(internalApplicationIds, stageIds, tagIds,
+    List<PolicyViolationDTO> violations = getPolicyViolations(organizationIds, applicationIds, stageIds, tagIds,
         policyThreatCategoryFilter, policyThreatLevelFilter, policyViolationStateFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
     for (PolicyViolationDTO violation : violations) {
@@ -167,7 +162,8 @@ public class ComponentRiskService
    * Gets the policy violations matching the specified filter criteria. Empty or null filter criteria generally mean
    * "all available" violations for that aspect.
    */
-  private List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationIds,
+  private List<PolicyViolationDTO> getPolicyViolations(Set<String> organizationIds,
+                                                       Set<String> applicationIds,
                                                        Set<String> stageIds,
                                                        Set<String> tagIds,
                                                        PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -177,11 +173,22 @@ public class ComponentRiskService
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
-    if (applicationIds == null || applicationIds.isEmpty()) {
+    // only of both Orgs and Apps filters are empty, return "all available" violations
+    if (isEmpty(applicationIds) && isEmpty(organizationIds)) {
       return getPolicyViolations(stageIds, tagIds, filter);
     }
 
-    return getPolicyViolationsByApplicationIds(applicationIds, stageIds, tagIds, filter);
+    Set<String> internalApplicationIds = new HashSet<>();
+    if (applicationIds != null) {
+      internalApplicationIds.addAll(applicationIds);
+    }
+    internalApplicationIds.addAll(applicationService.getApplicationIdsByOrganizationIds(organizationIds));
+
+    if (isEmpty(internalApplicationIds)) {
+      return Collections.emptyList();
+    }
+
+    return getPolicyViolationsByApplicationIds(internalApplicationIds, stageIds, tagIds, filter);
   }
 
   /**

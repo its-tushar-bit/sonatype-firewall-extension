@@ -7,13 +7,13 @@
 export default
 function getDashboardResultsDirective(serviceMethod) {
   return [
-    'dashboard.data.service', 'filterToParams',
-    function(dashboardDataService, filterToParams) {
+    'dashboard.data.service', 'createDashboardDataRequestPayload',
+    function(dashboardDataService, createDashboardDataRequestPayload) {
       function createFilterWatch($scope, $rootScope, Dialog, ApplicationStore, Messages) {
         return function(newFilter) {
           if (newFilter && !$scope.needsAcknowledgement) {
             $scope.error = $scope.data = null;
-            var params = filterToParams($scope.filters, $scope.maxResults);
+            var params = createDashboardDataRequestPayload($scope.filters, $scope.maxResults);
 
             dashboardDataService[serviceMethod](params).then(function(results) {
               if (angular.equals(newFilter, $scope.filters)) {

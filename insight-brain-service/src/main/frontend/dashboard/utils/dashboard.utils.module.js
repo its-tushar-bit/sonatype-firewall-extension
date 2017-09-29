@@ -21,7 +21,7 @@ import storesModule from '../../util/Stores';
 
 export default angular.module('dashboard.utils',
     ['ui.router', storesModule.name, angularCommonModule.name, 'ComponentModule', 'ComponentDisplay'])
-    .value('filterToParams', filterToParams)
+    .value('createDashboardDataRequestPayload', createDashboardDataRequestPayload)
     .value('extractColumn', extractColumn)
     .factory('ClassyBrew', ClassyBrew)
     .factory('windowEventsFactory', windowEventsFactory)
@@ -39,7 +39,7 @@ export default angular.module('dashboard.utils',
     .component('dashboardTabs', dashboardTabs)
 ;
 
-function filterToParams(filter, maxResults) {
+function createDashboardDataRequestPayload(filter, maxResults) {
   var params = {};
   if (maxResults) {
     params.maxResults = maxResults + 1;

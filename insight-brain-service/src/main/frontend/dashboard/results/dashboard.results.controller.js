@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default
-function DashboardResultsController($scope, Modal, EventNameConstant, $state, filterToParams, CLMLocations) {
+function DashboardResultsController($scope, Modal, EventNameConstant, $state, createDashboardDataRequestPayload, CLMLocations) {
   $scope.maxResults = 100;
   $scope.maxDaysOld = 30;
   $scope.showTrendDialog = showTrendDialog;
@@ -67,7 +67,7 @@ function DashboardResultsController($scope, Modal, EventNameConstant, $state, fi
   }
 
   function getFilterJson() {
-    var filterJson = filterToParams($scope.filters);
+    var filterJson = createDashboardDataRequestPayload($scope.filters);
     return JSON.stringify(filterJson);
   }
 
@@ -77,5 +77,5 @@ function DashboardResultsController($scope, Modal, EventNameConstant, $state, fi
 }
 
 DashboardResultsController.$inject = [
-  '$scope', 'Modal', 'event.name.constant', '$state', 'filterToParams', 'CLMLocations'
+  '$scope', 'Modal', 'event.name.constant', '$state', 'createDashboardDataRequestPayload', 'CLMLocations'
 ];

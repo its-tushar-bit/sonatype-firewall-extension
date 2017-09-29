@@ -5,7 +5,7 @@
  */
 
 export default
-function policyTrendController($scope, CLMLocations, $http, filters, filterToParams) {
+function policyTrendController($scope, CLMLocations, $http, filters, createDashboardDataRequestPayload) {
   function delta(counts) {
     return counts.reduce(function(a, b) {
       return a + b;
@@ -77,11 +77,12 @@ function policyTrendController($scope, CLMLocations, $http, filters, filterToPar
   $scope.doLoad = function() {
     $scope.data = null;
     $scope.error = null;
-    $http.post(CLMLocations.getPolicySummaryUrl(), filterToParams($scope.filters)).then(function(response) {
-      $scope.policySummaryData = generateModel(response.data);
-    }, function(error) {
-      $scope.error = error;
-    });
+    $http.post(CLMLocations.getPolicySummaryUrl(), createDashboardDataRequestPayload($scope.filters))
+        .then(function(response) {
+          $scope.policySummaryData = generateModel(response.data);
+        }, function(error) {
+          $scope.error = error;
+        });
   };
 
   $scope.$on('pageChangeAccepted', function() {
@@ -92,4 +93,4 @@ function policyTrendController($scope, CLMLocations, $http, filters, filterToPar
   $scope.doLoad();
 }
 
-policyTrendController.$inject = ['$scope', 'CLMLocations', '$http', 'filters', 'filterToParams'];
+policyTrendController.$inject = ['$scope', 'CLMLocations', '$http', 'filters', 'createDashboardDataRequestPayload'];

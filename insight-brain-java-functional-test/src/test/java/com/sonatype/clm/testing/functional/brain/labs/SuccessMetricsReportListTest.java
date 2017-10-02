@@ -6,19 +6,24 @@
 package com.sonatype.clm.testing.functional.brain.labs;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ActionList;
+import com.sonatype.clm.testing.functional.elements.ActionList.ActionListElement;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.LocalDate;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -32,7 +37,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
-public class AddSuccessMetricsTest
+public class SuccessMetricsReportListTest
     extends AbstractFunctionalTest
 {
   private static Organization organization1;
@@ -64,6 +69,12 @@ public class AddSuccessMetricsTest
         "scan3", new LocalDate().minusDays(2).toDate());
   }
 
+  @Before
+  public void before() {
+    refreshOrOpen(SuccessMetricsReportListPage.URL);
+    loginAsAdmin();
+  }
+
   @After
   public void cleanup() {
     SuccessMetricsReportDAO dao = new SuccessMetricsReportDAO();
@@ -75,10 +86,30 @@ public class AddSuccessMetricsTest
   }
 
   @Test
-  public void testAddSuccessMetrics() {
-    refreshOrOpen(SuccessMetricsReportListPage.URL);
-    loginAsAdmin();
+  public void testSuccessMetricsReportList() {
+    SuccessMetricsReportListPage successMetricsReportListPage = new SuccessMetricsReportListPage();
+    successMetricsReportListPage.shouldBe(visible);
 
+    ActionList reportList = successMetricsReportListPage.successMetricsChartActionItems();
+
+    reportList.elements().shouldHaveSize(0);
+    reportList.emptyDescriptor().shouldBe(visible).shouldHave(SuccessMetricsReportListPage.EMPTY_TEXT);
+
+    tempEntity.newSuccessMetricsReport("admin", "Test Success Metric",
+        JsonUtils.format(new SuccessMetricsReportScopeDTO()));
+    
+    refresh();
+
+    reportList.emptyDescriptor().shouldNotBe(visible);
+    reportList.elements().shouldHaveSize(1);
+
+    ActionListElement row = reportList.element(0);
+    row.chevron().shouldBe(visible);
+    row.shouldBe(visible).shouldHave(text("Test Success Metric"));
+  }
+
+  @Test
+  public void testAddSuccessMetrics() {
     SuccessMetricsReportListPage page = new SuccessMetricsReportListPage();
     page.addSuccessMetricsBtn().shouldBe(visible).click();
 
@@ -201,9 +232,6 @@ public class AddSuccessMetricsTest
 
   @Test
   public void testAddSuccessMetrics_Validation() {
-    refreshOrOpen(SuccessMetricsReportListPage.URL);
-    loginAsAdmin();
-
     SuccessMetricsReportListPage page = new SuccessMetricsReportListPage();
     page.addSuccessMetricsBtn().click();
 

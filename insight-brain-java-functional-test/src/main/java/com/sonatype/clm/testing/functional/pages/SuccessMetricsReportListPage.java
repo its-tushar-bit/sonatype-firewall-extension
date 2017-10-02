@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.ActionList;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 public class SuccessMetricsReportListPage
@@ -18,6 +19,8 @@ public class SuccessMetricsReportListPage
   public static final String URL = BaseUrl.uriBuilder().fragment("/labs/successMetrics").build().toString();
 
   private static final String ROOT_SELECTOR = "success-metrics-report-list";
+
+  public static final Condition EMPTY_TEXT = Condition.text("No reports have been created.");
 
   public SuccessMetricsReportListPage() {
     super(ROOT_SELECTOR);
@@ -33,5 +36,9 @@ public class SuccessMetricsReportListPage
 
   public SelenideElement addSuccessMetricsBtn() {
     return child("#add-success-metrics-report-btn");
+  }
+
+  public SelenideElement emptyDescriptor() {
+    return child("li.iq-action-list__item--empty");
   }
 }

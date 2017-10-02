@@ -18,6 +18,9 @@
     </div>
     <div class="iq-action-list">
       <ul>
+        <li class="iq-action-list__item iq-action-list__item--empty" ng-if="vm.successMetricsReports.length <= 0">
+          No reports have been created.
+        </li>
         <li class="iq-action-list__item"
             ng-repeat="report in vm.successMetricsReports"
             ng-click="vm.goToCharts(report.id)">

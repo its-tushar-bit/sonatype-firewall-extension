@@ -46,8 +46,8 @@ function IqOrgAppPickerController() {
     vm.onChange({selectedOrganizations, selectedApplications});
   }
 
-  function onSelectedOrganizationsChange(selectedOrganizations) {
-    const selectedApplications = selectApplications(selectedOrganizations);
+  function onSelectedOrganizationsChange(selectedOrganizations, toggledOrg) {
+    const selectedApplications = selectApplications(selectedOrganizations, toggledOrg);
     vm.onChange({selectedOrganizations, selectedApplications});
   }
 
@@ -57,9 +57,9 @@ function IqOrgAppPickerController() {
         .reduce((selected, {id}) => selected.add(id), new Set());
   }
 
-  function selectApplications(selectedOrganizations) {
+  function selectApplications(selectedOrganizations, toggledOrg) {
     return groupAppsByOrgId(vm.applications)
-        .map(getSelectedApps(selectedOrganizations))
+        .map(getSelectedApps(selectedOrganizations, toggledOrg))
         .reduce((allApps, apps) => [...allApps, ...apps], []) // flatten array of arrays
         .reduce((selected, {id}) => selected.add(id), new Set());
   }
@@ -67,15 +67,16 @@ function IqOrgAppPickerController() {
   /**
    * Given map of selected orgs, returns function that will extract only selected apps from the org
    * @param selectedOrgs map of selected orgs
+   * @param toggledOrg the id of toggled Org
    */
-  const getSelectedApps = selectedOrgs => ({orgId, apps}) => {
+  const getSelectedApps = (selectedOrgs, toggledOrg) => ({orgId, apps}) => {
     if (selectedOrgs.has(orgId)) {
       // if Org is selected - select all related apps
       return apps;
     }
     else {
-      // if Org is not selected && all related apps are selected - deselect all related apps
-      if (areAllSelected(vm.selectedApplications, apps)) {
+      // if Org was toggled and deselected && all related apps are selected - deselect all related apps
+      if (orgId === toggledOrg && areAllSelected(vm.selectedApplications, apps)) {
         return [];
       }
       return apps.filter(isSelected(vm.selectedApplications));

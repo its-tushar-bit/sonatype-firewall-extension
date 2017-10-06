@@ -100,17 +100,17 @@ describe('iqTreeViewMultiSelect', function() {
   });
 
   describe('toggle()', function() {
-    it('when selected, calls onChange with the id added to selected map', function() {
+    it('when selected, calls onChange with the updated selected Set and toggledId', function() {
       expect(vm.selected.has('foo')).toBe(false);
       vm.toggle('foo');
-      expect(onChange).toHaveBeenCalledWith({selected: new Set(['foo'])});
+      expect(onChange).toHaveBeenCalledWith({selected: new Set(['foo']), toggledId: 'foo'});
     });
 
-    it('when unselected, calls onChange with the id removed from selected map', function() {
+    it('when unselected, calls onChange with the updated selected Set and toggledId', function() {
       vm.$onChanges({selected: {currentValue: new Set(['foo'])}});
       expect(vm.selected.has('foo')).toBe(true);
       vm.toggle('foo');
-      expect(onChange).toHaveBeenCalledWith({selected: new Set()});
+      expect(onChange).toHaveBeenCalledWith({selected: new Set(), toggledId: 'foo'});
     });
   });
 

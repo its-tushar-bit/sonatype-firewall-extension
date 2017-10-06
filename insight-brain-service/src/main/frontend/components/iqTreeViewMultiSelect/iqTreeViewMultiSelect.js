@@ -103,7 +103,7 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
       selected.add(id);
     }
 
-    vm.onChange({selected});
+    vm.onChange({selected, toggledId: id});
   }
 }
 

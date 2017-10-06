@@ -18,8 +18,8 @@ export default function iqTreeViewMultipleChoiceFilterExampleController() {
 
   vm.reset();
 
-  vm.onChange = function(selected) {
-    console.log('onChange', selected);
+  vm.onChange = function(selected, toggledId) {
+    console.log('onChange', selected, toggledId);
 
     // update iqTreeViewMultiSelect component with new state
     vm.selected = selected;

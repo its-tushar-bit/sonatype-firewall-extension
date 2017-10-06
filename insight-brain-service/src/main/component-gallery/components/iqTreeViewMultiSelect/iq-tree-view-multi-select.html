@@ -15,7 +15,7 @@
     :--- | :--- | :---
     available | [{id:String, name:String}] | Array of available options
     selected  | Set | Set of ids of selected options
-    on-change | callback expression | called with the Set of ids of currently selected options. Context: {selected:Set}
+    on-change | callback expression | called with the Set of ids of currently selected options and an Id of toggled option. Context: {selected:Set, toggledId:String}
     filter-placeholder | String | Placeholder to be used in options filter input
     filter-threshold   | Number | optional - default is 10. If number of options is greater then filter-threshold - allows filtering the options.
     name | String | name to be used in disabled tooltip and in "select all" option label
@@ -36,7 +36,7 @@
 
     <iq-tree-view-multi-select available="vm.available"
                                selected="vm.selected"
-                               on-change="vm.onChange(selected)"
+                               on-change="vm.onChange(selected, toggledId)"
                                tooltip-generator="'in ' + entity.organizationName"
                                filter-placeholder="Application Name"
                                filter-threshold="5"

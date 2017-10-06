@@ -76,7 +76,7 @@ describe('iqOrgAppPicker', function() {
       });
     });
 
-    describe('when an org is not selected', function() {
+    describe('when an org is toggled to be deselected', function() {
       describe('when all related apps are selected', function() {
         it('deselects related apps', function() {
           var selectedOrganizations = new Set(['fooOrg']);
@@ -86,7 +86,7 @@ describe('iqOrgAppPicker', function() {
 
           var newSelectedOrganizations = new Set();
           var expectedSelectedApplications = new Set(['barApp1']);
-          vm.onSelectedOrganizationsChange(newSelectedOrganizations);
+          vm.onSelectedOrganizationsChange(newSelectedOrganizations, 'fooOrg');
 
           expect(onChange).toHaveBeenCalledWith({
             selectedOrganizations: newSelectedOrganizations,
@@ -94,7 +94,9 @@ describe('iqOrgAppPicker', function() {
           });
         });
       });
+    });
 
+    describe('when an org is not selected and was not toggled', function() {
       describe('when not all related apps are selected', function() {
         it('does not deselect related apps', function() {
           var selectedOrganizations = new Set();
@@ -102,10 +104,10 @@ describe('iqOrgAppPicker', function() {
 
           var vm = getVm(selectedOrganizations, selectedApplications);
 
-          var newSelectedOrganizations = new Set();
-          var expectedSelectedApplications = new Set(['fooApp1']);
+          var newSelectedOrganizations = new Set(['barOrg']);
+          var expectedSelectedApplications = new Set(['fooApp1', 'barApp1', 'barApp2']);
 
-          vm.onSelectedOrganizationsChange(newSelectedOrganizations);
+          vm.onSelectedOrganizationsChange(newSelectedOrganizations, 'barOrg');
           expect(onChange).toHaveBeenCalledWith({
             selectedOrganizations: newSelectedOrganizations,
             selectedApplications: expectedSelectedApplications
@@ -113,6 +115,22 @@ describe('iqOrgAppPicker', function() {
         });
       });
 
+      // this is to fix CLM-8852
+      describe('when all related apps are selected', function() {
+        it('does not deselect related apps', function() {
+          var selectedApplications = new Set(['fooApp1', 'fooApp2']);
+          var vm = getVm(new Set(), selectedApplications);
+
+          var newSelectedOrganizations = new Set(['barOrg']);
+          var expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
+
+          vm.onSelectedOrganizationsChange(newSelectedOrganizations, 'barOrg');
+          expect(onChange).toHaveBeenCalledWith({
+            selectedOrganizations: newSelectedOrganizations,
+            selectedApplications: expectedSelectedApplications
+          });
+        });
+      });
     });
   });
 

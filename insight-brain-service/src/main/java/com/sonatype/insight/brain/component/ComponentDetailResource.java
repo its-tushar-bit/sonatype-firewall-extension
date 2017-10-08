@@ -58,6 +58,9 @@ public class ComponentDetailResource
     return componentDetailService.getComponentNameByHash(hash);
   }
 
+  /**
+   * @since 1.35
+   */
   @POST
   @Path(GET_COMPONENT_COUNTS)
   @Produces(MediaType.APPLICATION_JSON)

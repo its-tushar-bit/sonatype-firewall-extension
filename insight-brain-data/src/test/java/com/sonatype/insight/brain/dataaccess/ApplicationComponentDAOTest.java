@@ -128,60 +128,6 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetNonProprietaryByApplicationIdsAndStageTypeIds_AppFiltering() {
-    String app1 = application.getId();
-    String app2 = tempEntity.newApplication(organization.getId()).getId();
-
-    String componentId1 = tempEntity
-        .newApplicationComponent(app1, BuildStageType.ID, "hash-1", MatchState.EXACT, false).getId();
-    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-2", MatchState.EXACT, true);
-    String componentId2 = tempEntity
-        .newApplicationComponent(app2, BuildStageType.ID, "hash-1", MatchState.EXACT, false).getId();
-
-    Collection<String> stageTypeIds = Arrays.asList(BuildStageType.ID);
-    List<ApplicationComponent> components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(null, stageTypeIds);
-    assertThat(components, hasSize(0));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(Arrays.<String> asList(), stageTypeIds);
-    assertThat(components, hasSize(0));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(Arrays.asList("missing"), stageTypeIds);
-    assertThat(components, hasSize(0));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(Arrays.asList(app1), stageTypeIds);
-    assertThat(components, hasSize(1));
-    assertThat(components.get(0).getId(), is(componentId1));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(Arrays.asList(app2), stageTypeIds);
-    assertThat(components, hasSize(1));
-    assertThat(components.get(0).getId(), is(componentId2));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(Arrays.asList(app1, app2), stageTypeIds);
-    assertThat(components, hasSize(2));
-  }
-
-  @Test
-  public void testGetNonProprietaryByApplicationIdsAndStageTypeIds_StageFiltering() {
-    String componentId1 = tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-1",
-        MatchState.EXACT, false).getId();
-    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-2", MatchState.EXACT, true);
-    String componentId2 = tempEntity.newApplicationComponent(application.getId(), ReleaseStageType.ID, "hash-1",
-        MatchState.EXACT, false).getId();
-
-    Collection<String> appIds = Arrays.asList(application.getId());
-    List<ApplicationComponent> components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds, null);
-    assertThat(components, hasSize(0));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds, Arrays.<String> asList());
-    assertThat(components, hasSize(0));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds, Arrays.asList("missing"));
-    assertThat(components, hasSize(0));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds, Arrays.asList(BuildStageType.ID));
-    assertThat(components, hasSize(1));
-    assertThat(components.get(0).getId(), is(componentId1));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds, Arrays.asList(ReleaseStageType.ID));
-    assertThat(components, hasSize(1));
-    assertThat(components.get(0).getId(), is(componentId2));
-    components = dao.getNonProprietaryByApplicationIdsAndStageTypeIds(appIds,
-        Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
-    assertThat(components, hasSize(2));
-  }
-
-  @Test
   public void testGetByApplicationIdAndStageTypeIdAndHash() {
     String app1 = application.getId();
     String app2 = tempEntity.newApplication(organization.getId()).getId();

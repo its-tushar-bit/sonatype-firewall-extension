@@ -82,14 +82,6 @@ public class ApplicationComponentDAO
     return getSingle(Number.class, sQuery, appIds, stageTypeIds).intValue();
   }
 
-  public List<ApplicationComponent> getNonProprietaryByApplicationIdsAndStageTypeIds(Collection<String> appIds,
-                                                                                     Collection<String> stageTypeIds)
-  {
-    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
-        " WHERE entity.proprietary=false AND entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";
-    return getList(sQuery, appIds, stageTypeIds);
-  }
-
   public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(Collection<String> applicationIds,
                                                                             Collection<String> stageTypeIds,
                                                                             Date date)

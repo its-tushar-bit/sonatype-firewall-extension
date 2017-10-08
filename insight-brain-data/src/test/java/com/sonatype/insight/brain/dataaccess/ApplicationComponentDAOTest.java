@@ -88,46 +88,6 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetUniqueCountByApplicationIdsAndStageTypeIds_AppFiltering() {
-    String app1 = application.getId();
-    String app2 = tempEntity.newApplication(organization.getId()).getId();
-
-    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-1",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
-    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-2",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "2"));
-    tempEntity.newApplicationComponent(app2, BuildStageType.ID, "hash-1",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "1.1"));
-
-    Collection<String> stageTypeIds = Arrays.asList(BuildStageType.ID);
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(null, stageTypeIds), is(0));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(Arrays.<String> asList(), stageTypeIds), is(0));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(Arrays.asList("missing"), stageTypeIds), is(0));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(Arrays.asList(app1), stageTypeIds), is(2));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(Arrays.asList(app2), stageTypeIds), is(1));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(Arrays.asList(app1, app2), stageTypeIds), is(2));
-  }
-
-  @Test
-  public void testGetUniqueCountByApplicationIdsAndStageTypeIds_StageFiltering() {
-    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-1",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
-    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-2",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "2"));
-    tempEntity.newApplicationComponent(application.getId(), ReleaseStageType.ID, "hash-1",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "1.1"));
-
-    Collection<String> appIds = Arrays.asList(application.getId());
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(appIds, null), is(0));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(appIds, Arrays.<String> asList()), is(0));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(appIds, Arrays.asList("missing")), is(0));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(appIds, Arrays.asList(BuildStageType.ID)), is(2));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(appIds, Arrays.asList(ReleaseStageType.ID)), is(1));
-    assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(appIds,
-        Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), is(2));
-  }
-
-  @Test
   public void testGetByApplicationIdAndStageTypeIdAndHash() {
     String app1 = application.getId();
     String app2 = tempEntity.newApplication(organization.getId()).getId();

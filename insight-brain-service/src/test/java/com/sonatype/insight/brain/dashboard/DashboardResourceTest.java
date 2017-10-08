@@ -216,15 +216,6 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetFilterSummary() throws Exception {
-    HttpResponse response = restRequest().path(DashboardResource.FILTERS_SUMMARY_PATH)
-        .body(new RisksFilterDTO()).post();
-    assertResponseStatus(200, response);
-    FilterSummaryDTO dto = response.getBody(FilterSummaryDTO.class);
-    assertThat(dto, is(notNullValue()));
-  }
-
-  @Test
   public void testGetNewestRisksExport() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");

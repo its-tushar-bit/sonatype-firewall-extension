@@ -8,29 +8,20 @@ package com.sonatype.insight.brain.dashboard;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
-import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -116,76 +107,6 @@ public class DashboardFilterServiceTest
     tempEntity.newApplicationTag(app1.getId(), tag1.getId());
     tempEntity.newApplicationTag(app1.getId(), tag2.getId());
     tempEntity.newUser(USERNAME);
-  }
-  
-  @Test
-  public void testGetFilterSummary_NoFilter() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null, null, null);
-    assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.matchedPolicies, is(3));
-    assertThat(summary.matchedComponents, is(4));
-  }
-
-  @Test
-  public void testGetFilterSummary_FilterByApp() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, Collections.singleton(app2.getId()), null,
-        null, null, null);
-    assertThat(summary.matchedApplications, is(1));
-    assertThat(summary.matchedPolicies, is(2));
-    assertThat(summary.matchedComponents, is(1));
-  }
-
-  @Test
-  public void testGetFilterSummary_FilterByOrg() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(Collections.singleton(app2.getParentOwnerId()),
-        null, null, null, null, null);
-    assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.matchedPolicies, is(3));
-    assertThat(summary.matchedComponents, is(4));
-  }
-
-  @Test
-  public void testGetFilterSummary_FilterByTag() throws Exception {
-    Tag app2Tag = tempEntity.newTag(org.getId());
-    tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
-
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null,
-        Collections.singleton(app2Tag.getId()), null, null);
-    assertThat(summary.matchedApplications, is(1));
-    assertThat(summary.matchedPolicies, is(2));
-    assertThat(summary.matchedComponents, is(1));
-  }
-
-  @Test
-  public void testGetFilterSummary_FilterByPolicyThreatLevel() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null, null,
-        new PolicyThreatLevelFilter(orgPolicy.getThreatLevel(), orgPolicy.getThreatLevel()));
-    assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.matchedPolicies, is(1));
-    assertThat(summary.matchedComponents, is(4));
-  }
-
-  @Test
-  public void testGetFilterSummary_FilterByPolicyThreatCategory() throws Exception {
-    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
-    orgPolicy.setConstraints(Collections.singletonList(constraint));
-    new PolicyDAO().update(orgPolicy);
-
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null,
-        new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), null);
-    assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.matchedPolicies, is(1));
-    assertThat(summary.matchedComponents, is(4));
-  }
-
-  @Test
-  public void testGetFilterSummary_FilterByStage() throws Exception {
-    FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null,
-        Collections.singleton(ReleaseStageType.ID), null, null, null);
-    assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.matchedPolicies, is(3));
-    assertThat(summary.matchedComponents, is(2));
   }
 
   @Test
@@ -518,8 +439,8 @@ public class DashboardFilterServiceTest
     CurrentUser currentUserMock = Mockito.mock(CurrentUser.class);
     DashboardUtils dashboardUtilsMock = Mockito.mock(DashboardUtils.class);
 
-    DashboardFilterService dashboardFilterService = new DashboardFilterService(null, null, null, null,
-        dashboardFilterDaoSpy, currentUserMock, dashboardUtilsMock, null, insightConfig);
+    DashboardFilterService dashboardFilterService = new DashboardFilterService(null, dashboardFilterDaoSpy,
+        currentUserMock, dashboardUtilsMock, insightConfig);
 
     when(currentUserMock.getUsername()).thenReturn(USERNAME);
     when(dashboardFilterDaoSpy.getByUsernameAndName(USERNAME, filterName1)).thenReturn(dashboardFilter1);

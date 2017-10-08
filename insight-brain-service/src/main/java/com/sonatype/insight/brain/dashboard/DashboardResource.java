@@ -53,8 +53,6 @@ public class DashboardResource
   
   public static final String DELETE_NAMED_FILTERS_PATH = NAMED_FILTERS_PATH + "/delete";
 
-  public static final String FILTERS_SUMMARY_PATH = "filters/summary";
-
   private final ApplicationRiskService applicationRiskService;
 
   private final ComponentRiskService componentRiskService;
@@ -200,18 +198,6 @@ public class DashboardResource
         return Integer.compare(dto1.status, dto2.status);
       }
     }).status;
-  }
-
-  @POST
-  @Path(FILTERS_SUMMARY_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
-  @ExceptionMetered(name = "getFilterSummaryExceptionMeter")
-  public FilterSummaryDTO getFilterSummary(RisksFilterDTO risksFilterDTO) {
-    return dashboardFilterService.getFilterSummary(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
-        risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-        risksFilterDTO.policyThreatLevelRange);
   }
 
   @POST

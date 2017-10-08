@@ -76,12 +76,6 @@ public class ApplicationComponentDAO
     return createQuery(sQuery, hash).forceSingleResult().get();
   }
 
-  public int getUniqueCountByApplicationIdsAndStageTypeIds(Collection<String> appIds, Collection<String> stageTypeIds) {
-    String sQuery = "SELECT COUNT(DISTINCT entity.hash) FROM ApplicationComponent entity" + //
-        " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";
-    return getSingle(Number.class, sQuery, appIds, stageTypeIds).intValue();
-  }
-
   public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(Collection<String> applicationIds,
                                                                             Collection<String> stageTypeIds,
                                                                             Date date)

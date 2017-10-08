@@ -7,38 +7,23 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
-import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,15 +36,7 @@ public class DashboardFilterService
 
   public static final String ACTIVE_FILTER_NAME = "";
 
-  private final OwnerDAO ownerDAO;
-
   private final ApplicationDAO applicationDAO;
-
-  private final ApplicationComponentDAO applicationComponentDAO;
-
-  private final ApplicationService applicationService;
-
-  private final PolicyDAO policyDAO;
 
   private final DashboardFilterDAO dashboardFilterDAO;
 
@@ -71,20 +48,12 @@ public class DashboardFilterService
 
   @Inject
   public DashboardFilterService(ApplicationDAO applicationDAO,
-                                ApplicationComponentDAO applicationComponentDAO,
-                                ApplicationService applicationService,
-                                PolicyDAO policyDAO,
                                 DashboardFilterDAO dashboardFilterDAO,
                                 CurrentUser currentUser,
                                 DashboardUtils dashboardUtils,
-                                OwnerDAO ownerDAO,
                                 InsightConfig insightConfig)
   {
-    this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
-    this.applicationComponentDAO = applicationComponentDAO;
-    this.applicationService = applicationService;
-    this.policyDAO = policyDAO;
     this.dashboardFilterDAO = dashboardFilterDAO;
     this.currentUser = currentUser;
     this.dashboardUtils = dashboardUtils;
@@ -252,75 +221,6 @@ public class DashboardFilterService
       }
     }
     return errorMessages;
-  }
-  
-  /**
-   * Calculates how many of the entities accessible to the current user are matched by the specified dashboard filter
-   * settings.
-   */
-  public FilterSummaryDTO getFilterSummary(Set<String> organizationIds,
-                                           Set<String> applicationIds,
-                                           Set<String> stageIds,
-                                           Set<String> tagIds,
-                                           PolicyThreatCategoryFilter policyThreatCategoryFilter,
-                                           PolicyThreatLevelFilter policyThreatLevelFilter)
-  {
-    dashboardUtils.validateDashboardLicensed();
-
-    long start = System.currentTimeMillis();
-
-    FilterSummaryDTO summary = new FilterSummaryDTO();
-
-    Collection<Application> matchedApplications = applicationService
-        .getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
-    log.debug("getFilterSummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
-        matchedApplications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
-    summary.matchedApplications = matchedApplications.size();
-
-    Collection<StageType> matchedStageTypes = dashboardUtils.getStageTypes(stageIds);
-    summary.matchedComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
-        dashboardUtils.getApplicationIds(matchedApplications), dashboardUtils.getStageTypeIds(matchedStageTypes));
-
-    Collection<Policy> matchedPolicies = policyDAO.getByOwnerIds(getPolicyOwnerIds(matchedApplications));
-
-    Predicate<Policy> policyFilter = buildPolicyFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
-    if (policyFilter != null) {
-      matchedPolicies = Collections2.filter(matchedPolicies, policyFilter);
-    }
-    summary.matchedPolicies = matchedPolicies.size();
-
-    log.debug("Calculated filter summary in {} ms", System.currentTimeMillis() - start);
-
-    return summary;
-  }
-
-  private Set<String> getPolicyOwnerIds(Collection<Application> applications) {
-    Set<String> policyOwnerIds = new HashSet<>(applications.size() * 2);
-    for (Application app : applications) {
-      policyOwnerIds.add(app.getId());
-      if (policyOwnerIds.add(app.getOrganizationId())) {
-        for (Owner owner : ownerDAO.walkHierarchy(app.getOrganizationId())) {
-          if (owner.getParentOwnerId() == null || !policyOwnerIds.add(owner.getParentOwnerId())) {
-            break;
-          }
-        }
-      }
-    }
-    return policyOwnerIds;
-  }
-
-  private Predicate<Policy> buildPolicyFilter(PolicyThreatCategoryFilter threatCategoryFilter,
-                                              PolicyThreatLevelFilter threatLevelFilter)
-  {
-    if (threatCategoryFilter == null && threatLevelFilter == null) {
-      return null;
-    }
-    else if (threatCategoryFilter != null && threatLevelFilter != null) {
-      return Predicates.and(threatCategoryFilter.asPolicyPredicate(), threatLevelFilter.asPolicyPredicate());
-    }
-
-    return (threatCategoryFilter != null) ? threatCategoryFilter.asPolicyPredicate() : threatLevelFilter
-        .asPolicyPredicate();
   }
 
   private void pruneUnauthorizedApplicationIds(DashboardFilterDTO dto) {

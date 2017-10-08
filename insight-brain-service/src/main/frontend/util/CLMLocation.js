@@ -228,10 +228,6 @@ angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory(
         return baseUrl.get() + '/rest/dashboard/filters/named';
       },
 
-      getDashboardViewingSummaryUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/filters/summary';
-      },
-
       getDashboardDeleteFiltersUrl: function() {
         return baseUrl.get() + '/rest/dashboard/filters/named/delete';
       },

@@ -24,11 +24,6 @@ public class DashboardFilterServiceNotLicensedTest
   }
   
   @Test(expected = InvalidLicenseException.class)
-  public void testGetFilterSummary_Unlicensed() throws Exception {
-    dashboardFilterService.getFilterSummary(null, null, null, null, null, null);
-  }
-  
-  @Test(expected = InvalidLicenseException.class)
   public void testDeleteDashboardFiltersForCurrentUserByFilterName_Unlicensed() {
     dashboardFilterService.deleteDashboardFiltersForCurrentUserByFilterName(null);
   }

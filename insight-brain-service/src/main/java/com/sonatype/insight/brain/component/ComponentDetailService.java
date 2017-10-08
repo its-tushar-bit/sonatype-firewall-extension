@@ -386,7 +386,7 @@ public class ComponentDetailService
   public ComponentDisplayName getComponentNameByHash(String hash) {
     validateDashboardLicensed();
 
-    ApplicationComponent applicationComponent = new ApplicationComponentDAO().getLastByHash(hash);
+    ApplicationComponent applicationComponent = applicationComponentDAO.getLastByHash(hash);
     if (applicationComponent == null) {
       throw new BadRequestException("Unknown component with hash " + hash + ".");
     }

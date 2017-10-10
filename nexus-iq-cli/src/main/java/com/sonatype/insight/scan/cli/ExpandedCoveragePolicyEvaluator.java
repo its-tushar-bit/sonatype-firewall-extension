@@ -8,6 +8,7 @@ package com.sonatype.insight.scan.cli;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -79,9 +80,8 @@ public class ExpandedCoveragePolicyEvaluator
     log.info(EXPANDED_COVERAGE_SCAN_DISCLAIMER);
     log.info("*********************************************************************************************");
     log.info("");
-
-    setExpandedCoverageConfiguration();
-    try (Engine engine = new Engine(Mode.EVIDENCE_COLLECTION)) {
+    
+    try (Engine engine = new Engine(Mode.EVIDENCE_COLLECTION, getExpandedCoverageConfiguration())) {
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
 
       Scan scan = new Scan();
@@ -102,7 +102,7 @@ public class ExpandedCoveragePolicyEvaluator
           }
           log.warn(e.getMessage(), e);
         }
-        List<Dependency> xcItems = engine.getDependencies();
+        List<Dependency> xcItems = Arrays.asList(engine.getDependencies());
         log.info("Found {} items.", xcItems.size());
 
         ExpandedCoverage expandedCoverage = new ExpandedCoverage();
@@ -151,15 +151,16 @@ public class ExpandedCoveragePolicyEvaluator
     log.info("*********************************************************************************************");
   }
 
-  private void setExpandedCoverageConfiguration() {
-    Settings.initialize();
+  Settings getExpandedCoverageConfiguration() {
+    Settings settings = new Settings();
     // Enable the experimental analyzers.
-    Settings.setBoolean(KEYS.ANALYZER_EXPERIMENTAL_ENABLED, true);
+    settings.setBoolean(KEYS.ANALYZER_EXPERIMENTAL_ENABLED, true);
     // Disable analyzers that connect to external resources.
-    Settings.setBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED, false);
-    Settings.setBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED, false);
-    Settings.setBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED, false);
-    Settings.setBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED, false);
+    settings.setBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED, false);
+    settings.setBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED, false);
+    settings.setBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED, false);
+    settings.setBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED, false);
+    return settings;
   }
 
   private String getExpandedCoverageVersion() throws IOException {
@@ -175,7 +176,7 @@ public class ExpandedCoveragePolicyEvaluator
     // The json serialization configuration used here MUST match the json de-serialization on the server side.
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.setVisibility(objectMapper.getVisibilityChecker().withFieldVisibility(JsonAutoDetect.Visibility.ANY)
-        .withGetterVisibility(JsonAutoDetect.Visibility.NONE));
+        .withGetterVisibility(JsonAutoDetect.Visibility.NONE).withIsGetterVisibility(JsonAutoDetect.Visibility.NONE));
     objectMapper.setSerializationInclusion(Include.NON_NULL);
     objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     return objectMapper;

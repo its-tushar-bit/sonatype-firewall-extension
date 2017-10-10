@@ -32,6 +32,7 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
 import org.owasp.dependencycheck.dependency.Dependency;
 import org.owasp.dependencycheck.dependency.Evidence;
+import org.owasp.dependencycheck.dependency.EvidenceType;
 import org.owasp.dependencycheck.utils.Settings;
 import org.owasp.dependencycheck.utils.Settings.KEYS;
 
@@ -47,6 +48,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,36 +86,29 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
     logOutput.assertInfo("Found 1 items.");
     assertThat(dependencies, hasSize(1));
-    assertThat(dependencies, hasItem(dependencyWithName("cmake/CMakeLists.txt")));
+    assertThat(dependencies, hasItem(dependencyWithName("zlib")));
   }
 
   @Test
   public void testScan_Directory() throws Exception {
     List<Dependency> dependencies = testScan("");
 
-    logOutput.assertInfo("Found 19 items.");
-    assertThat(dependencies, hasSize(19));
-    assertThat(dependencies, hasItem(dependencyWithName("cmake/CMakeLists.txt")));
+    logOutput.assertInfo("Found 14 items.");
+    assertThat(dependencies, hasSize(14));
+    assertThat(dependencies, hasItem(dependencyWithName("zlib")));
     assertThat(dependencies, hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar")));
     assertThat(dependencies,
         hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/com.example/uber/pom.xml")));
     assertThat(dependencies,
         hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar/META-INF/maven/org.apache.commons/commons-lang3/pom.xml")));
     assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg")));
-    assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg: ActionSheet.nuspec")));
+    assertThat(dependencies, hasItem(dependencyWithName("ActionSheet:1.0.0")));
     assertThat(dependencies, hasItem(dependencyWithName("actionsheet.1.0.0.mod.nupkg: ActionSheet.dll")));
-    assertThat(dependencies, hasItem(dependencyWithName("noBytes.jar")));
-    assertThat(dependencies,
-        hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: a_macMetaDataHash1.jar")));
     assertThat(dependencies,
         hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: b_jarWithStruts2pom.jar")));
-    assertThat(dependencies,
-        hasItem(dependencyWithName("unreadableJarsAroundReadableJar.zip: c_macMetaDataHash2.jar")));
-    assertThat(dependencies, hasItem(dependencyWithName("test/._OpenCVDetectPython.cmake")));
-    assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: ._uber-1.1-SNAPSHOT.jar")));
-    assertThat(dependencies, hasItem(dependencyWithName("test/OpenCVDetectPython.cmake")));
+    assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: ._OpenCVDetectPython.cmake")));
+    assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: OpenCVDetectPython.cmake")));
     assertThat(dependencies, hasItem(dependencyWithName("test/opensslv.h")));
-    assertThat(dependencies, hasItem(dependencyWithName("test/package.json")));
     assertThat(dependencies, hasItem(dependencyWithName("macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar")));
     assertThat(dependencies, hasItem(dependencyWithName(
         "macCompressWithMetaData.zip: uber-1.1-SNAPSHOT.jar/META-INF/maven/com.example/uber/pom.xml")));
@@ -126,7 +121,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
     List<Dependency> dependencies = testScan("actionsheet.1.0.0.mod.nupkg");
     Set<String> values = new HashSet<>();
     for (Dependency dependency : dependencies) {
-      for (Evidence evidence : dependency.getVendorEvidence().getEvidence()) {
+      for (Evidence evidence : dependency.getEvidence(EvidenceType.VENDOR)) {
         assertThat(evidence.getValue(), is(notNullValue()));
         values.add(evidence.getValue());
       }
@@ -170,15 +165,23 @@ public class ExpandedCoveragePolicyEvaluatorTest
 
   @Test
   public void testScan_AnalyzersThatConnectToExternalResourcesAreDisabled() throws Exception {
-    testScan("java");
+    ExpandedCoveragePolicyEvaluator spiedEvaluator = spy(evaluator);
+    Settings settings = evaluator.getExpandedCoverageConfiguration();
+    when(spiedEvaluator.getExpandedCoverageConfiguration()).thenReturn(settings);
+    
+    testScan("java", spiedEvaluator);
 
-    assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED), is(false));
-    assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED), is(false));
-    assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED), is(false));
-    assertThat(Settings.getBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED), is(false));
   }
 
   private List<Dependency> testScan(String scanTarget) throws Exception {
+    return testScan(scanTarget, evaluator);
+  }
+
+  private List<Dependency> testScan(String scanTarget, ExpandedCoveragePolicyEvaluator evaluator) throws Exception {
     Parameters params = new Parameters("-o", tmpDir.newFolder().getAbsolutePath(),
         getClass().getResource("/" + getClass().getSimpleName() + "/" + scanTarget).getFile());
 

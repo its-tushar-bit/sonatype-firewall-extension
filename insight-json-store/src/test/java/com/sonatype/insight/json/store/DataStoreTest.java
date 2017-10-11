@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,15 +21,15 @@ import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 public class DataStoreTest
 {
   @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder(new File("target"));
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private File file;
 
   private JsonStore store;
 
   @Before
-  public void setUp() {
-    file = FileUtils.createTempFile("audit", "test", temporaryFolder.getRoot());
+  public void setUp() throws Exception {
+    file = temporaryFolder.newFile();
     store = new JsonFileStore(file.getParentFile());
   }
 

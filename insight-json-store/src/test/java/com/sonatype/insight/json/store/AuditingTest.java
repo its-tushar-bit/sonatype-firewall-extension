@@ -8,7 +8,6 @@ package com.sonatype.insight.json.store;
 import java.io.File;
 import java.io.IOException;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,13 +22,13 @@ import static org.junit.Assert.assertNull;
 public class AuditingTest
 {
   @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder(new File("target"));
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private JsonStore store;
 
   @Before
-  public void setUp() {
-    store = new JsonFileStore(FileUtils.createTempFile("audit", "test", temporaryFolder.getRoot()));
+  public void setUp() throws Exception {
+    store = new JsonFileStore(new File(temporaryFolder.getRoot(), "audit-test"));
   }
 
   @Test

@@ -26,7 +26,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class JsonFileStore
+final class JsonFileStore
     implements JsonStore
 {
   private static final Logger log = LoggerFactory.getLogger(JsonFileStore.class);
@@ -87,8 +87,7 @@ public final class JsonFileStore
     }
   }
 
-  @Override
-  public Iterable<String> list() throws IOException {
+  private Iterable<String> list() throws IOException {
     if (folder.exists()) {
       final List<String> filenames = FileUtils.getFileNames(folder, null, null, false);
       final String[] elements = filenames.toArray(new String[filenames.size()]);

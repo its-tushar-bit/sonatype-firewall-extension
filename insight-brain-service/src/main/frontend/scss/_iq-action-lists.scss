@@ -43,15 +43,15 @@
     border-top: 1px solid $iq-grey-3;
   }
   
-  &:hover:not(.iq-disabled):not([disabled]), 
-  &:focus:not(.iq-disabled):not([disabled]) {
+  &:hover:not(.iq-action-list__item--empty):not(.iq-disabled):not([disabled]), 
+  &:focus:not(.iq-action-list__item--empty):not(.iq-disabled):not([disabled]) {
     border-top: 1px solid $iq-grey-4;
     border-bottom: 1px solid $iq-grey-4;
     color: $iq-off-black;
     cursor: pointer;
   }
   
-  &:active:not(.iq-disabled):not([disabled]) {
+  &:active:not(.iq-action-list__item--empty):not(.iq-disabled):not([disabled]) {
     background-color: $iq-grey-1; 
     border-top: 1px solid $iq-grey-4;
     border-bottom: 1px solid $iq-grey-4;
@@ -105,7 +105,12 @@
 // End Bootstrap specific styles
 
 .iq-action-list__item--empty {
+  @include regular();
+
   border-top: 1px solid $iq-grey-3; // assume it's always the first item
+  border-bottom: 1px solid $iq-grey-1;
+  font-size: 14px;
+  text-align: center;
 }
 
 .iq-action-list__item--disabled {

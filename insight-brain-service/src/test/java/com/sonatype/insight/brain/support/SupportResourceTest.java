@@ -43,7 +43,8 @@ public class SupportResourceTest
       try (final ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
         final ZipEntry zipEntry = zipInputStream.getNextEntry();
         assertThat(zipEntry.getName(), startsWith("support-"));
-        assertThat(zipEntry.getName(), endsWith("/" + SupportFileType.CONFIG.getDirName() + "/filtered-config-test.yml"));
+        assertThat(zipEntry.getName(),
+            endsWith("/" + SupportFileType.CONFIG.getDirName() + "/filtered-config-test.yml"));
 
         final String served = IOUtil.toString(zipInputStream, "UTF-8").replace("\r\n", "\n");
         assertThat(served, is("showRootOrganization: true\n" +

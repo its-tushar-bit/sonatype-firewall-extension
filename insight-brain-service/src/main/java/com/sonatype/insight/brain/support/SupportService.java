@@ -200,7 +200,8 @@ class SupportService
     addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
         SupportFileType.CONFIG, true);
 
-    addFileIfExists(filesToZip, writeTextToFile(systemInfo.getSystemInfoJson(requestUrl), new File(workDir, "sysinfo.json")),
+    addFileIfExists(filesToZip,
+        writeTextToFile(systemInfo.getSystemInfoJson(requestUrl), new File(workDir, "sysinfo.json")),
         "sysinfo.json", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,

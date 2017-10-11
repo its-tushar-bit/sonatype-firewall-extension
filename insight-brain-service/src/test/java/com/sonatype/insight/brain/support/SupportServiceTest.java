@@ -284,7 +284,7 @@ public class SupportServiceTest
         "licenseThreatGroupLicense",
         "policy",
         "policyMonitoring"
-        };
+    };
     final File[] expectedFiles = createExpectedFiles(workDir, basenames);
     assertThat(workDir.listFiles(), arrayContainingInAnyOrder(expectedFiles));
   }

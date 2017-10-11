@@ -80,7 +80,7 @@ public class SystemInfoTest
     config.getHttpConfiguration().setRequestLogConfiguration(requestLoggingConfiguration);
   }
 
-    @Test
+  @Test
   public void testIsSensitiveKey() {
     assertThat(systemInfo.isSensitiveKey("myPasswordLikePropertyName"), is(true));
     assertThat(systemInfo.isSensitiveKey("myPassPhrasePropertyName"), is(true));
@@ -211,7 +211,8 @@ public class SystemInfoTest
     try {
       InsightBrainService.setConfigFile(expectedConfigFile);
       entry = systemInfo.getInstallInfo();
-    } finally {
+    }
+    finally {
       InsightBrainService.setConfigFile(originalConfigFile);
     }
     assertThat(entry.getKey(), is("install-info"));
@@ -258,8 +259,8 @@ public class SystemInfoTest
     final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries.size(), greaterThan(0));
 
-    @SuppressWarnings("unchecked")
-    final Map<String, Object> fileStoresEntry = (Map<String, Object>) entries.get(entries.firstKey());
+    @SuppressWarnings("unchecked") final Map<String, Object> fileStoresEntry = (Map<String, Object>) entries
+        .get(entries.firstKey());
     assertThat(fileStoresEntry.get("description"), notNullValue());
     assertThat(fileStoresEntry.get("type"), notNullValue());
     assertThat(fileStoresEntry.get("totalSpace"), notNullValue());

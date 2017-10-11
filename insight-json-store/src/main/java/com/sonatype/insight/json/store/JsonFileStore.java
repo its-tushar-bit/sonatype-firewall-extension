@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,13 +87,17 @@ final class JsonFileStore
   }
 
   private Iterable<String> list() throws IOException {
-    if (folder.exists()) {
-      final List<String> filenames = FileUtils.getFileNames(folder, null, null, false);
-      final String[] elements = filenames.toArray(new String[filenames.size()]);
-      Arrays.sort(elements);
-      return Arrays.asList(elements);
+    List<String> filenames = new ArrayList<>();
+    File[] files = folder.listFiles();
+    if (files != null) {
+      for (File file : files) {
+        if (file.isFile()) {
+          filenames.add(file.getName());
+        }
+      }
+      Collections.sort(filenames);
     }
-    return Collections.emptyList();
+    return filenames;
   }
 
   @Override

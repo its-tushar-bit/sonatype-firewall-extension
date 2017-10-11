@@ -363,7 +363,7 @@ public class SystemInfoTest
 
   @Test
   public void testGetSystemInfo() throws Exception {
-    final List<Entry<String, SortedMap<String, Object>>> list = systemInfo.getSystemInfo();
+    final List<Entry<String, SortedMap<String, Object>>> list = systemInfo.getSystemInfo(null);
     int i = 0;
     assertThat(list.get(i++).getKey(), is("system-time"));
     assertThat(list.get(i++).getKey(), is("install-info"));
@@ -371,8 +371,9 @@ public class SystemInfoTest
     assertThat(list.get(i++).getKey(), is("system-environment"));
     assertThat(list.get(i++).getKey(), is("system-runtime"));
     assertThat(list.get(i++).getKey(), is("system-network"));
-    assertThat(list.get(i).getKey(), is("system-filestores"));
-    assertThat(list, hasSize(7));
+    assertThat(list.get(i++).getKey(), is("system-filestores"));
+    assertThat(list.get(i).getKey(), is("client-info"));
+    assertThat(list, hasSize(8));
   }
 
   @Test
@@ -414,5 +415,13 @@ public class SystemInfoTest
   public void testGetLdapConfigEmpty() throws Exception {
     final List<LdapConfig> ldapServers = new ArrayList<>();
     assertThat(systemInfo.getLdapConfig(ldapServers), is("[ ]"));
+  }
+
+  @Test
+  public void testGetClientInfo() throws Exception {
+    final String requestUrl = "myRequestUrl";
+    final Entry<String, SortedMap<String, Object>> entry = systemInfo.getClientInfo(requestUrl);
+    final SortedMap<String, Object> entries = entry.getValue();
+    assertThat(entries.get("requestUrl").toString(), is(requestUrl));
   }
 }

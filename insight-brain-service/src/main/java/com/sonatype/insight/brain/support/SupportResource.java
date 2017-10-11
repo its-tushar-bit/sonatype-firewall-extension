@@ -10,10 +10,12 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -39,8 +41,12 @@ public class SupportResource
 
   @GET
   @Produces("application/zip")
-  public Response createSupportZip(@QueryParam("includeDb") final boolean includeDb) throws IOException {
-    final File supportZip = supportService.createSupportZip(includeDb);
+  public Response createSupportZip(@QueryParam("includeDb") final boolean includeDb,
+                                   @Context final HttpServletRequest request) throws IOException
+  {
+    final String requestUrl = request.getRequestURL().toString();
+
+    final File supportZip = supportService.createSupportZip(includeDb, requestUrl);
 
     final ResponseBuilder response = Response.ok();
     response.entity(supportZip);

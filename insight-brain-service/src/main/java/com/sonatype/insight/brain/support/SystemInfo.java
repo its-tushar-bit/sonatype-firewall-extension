@@ -312,7 +312,7 @@ class SystemInfo
     return items;
   }
 
-  List<Entry<String, SortedMap<String, Object>>> getSystemInfo() {
+  List<Entry<String, SortedMap<String, Object>>> getSystemInfo(final String requestUrl) {
     final List<Entry<String, SortedMap<String, Object>>> entries = new ArrayList<>();
 
     entries.add(getReportTime());
@@ -322,12 +322,13 @@ class SystemInfo
     entries.add(getSystemRuntime());
     entries.add(getNetworkInterfaces());
     entries.add(getFileStores());
+    entries.add(getClientInfo(requestUrl));
 
     return entries;
   }
 
-  String getSystemInfoJson() {
-    final List<Entry<String, SortedMap<String, Object>>> entries = getSystemInfo();
+  String getSystemInfoJson(final String requestUrl) {
+    final List<Entry<String, SortedMap<String, Object>>> entries = getSystemInfo(requestUrl);
     return JsonUtils.format(entries);
   }
 
@@ -356,5 +357,13 @@ class SystemInfo
 
   String getLdapConfig(final List<LdapConfig> ldapServers) {
     return JsonUtils.format(ldapServers);
+  }
+
+  Entry<String, SortedMap<String, Object>> getClientInfo(final String requestUrl) {
+    final SortedMap<String, Object> entries = new TreeMap<>();
+
+    entries.put("requestUrl", requestUrl);
+
+    return wrapEntry("client-info", entries);
   }
 }

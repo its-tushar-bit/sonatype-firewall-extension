@@ -178,7 +178,7 @@ class SupportService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  synchronized File createSupportZip(final boolean includeDb) throws IOException {
+  synchronized File createSupportZip(final boolean includeDb, final String requestUrl) throws IOException {
     final File workDir = getWorkDir();
     if (!workDir.exists()) {
       if (!workDir.mkdirs()) {
@@ -200,7 +200,7 @@ class SupportService
     addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
         SupportFileType.CONFIG, true);
 
-    addFileIfExists(filesToZip, writeTextToFile(systemInfo.getSystemInfoJson(), new File(workDir, "sysinfo.json")),
+    addFileIfExists(filesToZip, writeTextToFile(systemInfo.getSystemInfoJson(requestUrl), new File(workDir, "sysinfo.json")),
         "sysinfo.json", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,

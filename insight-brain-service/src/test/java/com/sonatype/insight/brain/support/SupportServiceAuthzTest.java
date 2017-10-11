@@ -28,17 +28,17 @@ public class SupportServiceAuthzTest
   @Test
   public void testCreateSupportZip_Authorized() throws Exception {
     grantConfigureSystemPermission();
-    assertThat(supportService.createSupportZip(false), notNullValue());
+    assertThat(supportService.createSupportZip(false, null), notNullValue());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testCreateSupportZip_Unauthorized() throws Exception {
     login();
-    supportService.createSupportZip(false);
+    supportService.createSupportZip(false, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testCreateSupportZip_Unauthenticated() throws Exception {
-    supportService.createSupportZip(false);
+    supportService.createSupportZip(false, null);
   }
 }

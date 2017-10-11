@@ -53,7 +53,7 @@ public class SupportServiceTest
 
   @Test
   public void testCreateSupportZip() throws Exception {
-    assertThat(supportService.createSupportZip(false), notNullValue());
+    assertThat(supportService.createSupportZip(false, null), notNullValue());
   }
 
   @Test
@@ -61,20 +61,20 @@ public class SupportServiceTest
     final String now = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
     final String nowPrefix = now.substring(0, now.indexOf("-"));
 
-    final File firstZip = supportService.createSupportZip(false);
+    final File firstZip = supportService.createSupportZip(false, null);
     final String firstFilename = firstZip.getName();
     assertThat(firstFilename, startsWith("support-" + nowPrefix));
     final int zipIndex = firstFilename.indexOf(".zip");
     final int counterValue = Integer.parseInt(firstFilename.substring(zipIndex - 1, zipIndex));
 
-    final File secondZip = supportService.createSupportZip(false);
+    final File secondZip = supportService.createSupportZip(false, null);
     assertThat(secondZip.getName(), startsWith("support-" + nowPrefix));
     assertThat(secondZip.getName(), endsWith(("-" + (counterValue + 1) + ".zip")));
   }
 
   @Test
   public void testCreateSupportZip_UsesSubDir() throws Exception {
-    supportService.createSupportZip(false);
+    supportService.createSupportZip(false, null);
     assertThat(supportService.getWorkDir().exists(), is(true));
   }
 
@@ -84,7 +84,7 @@ public class SupportServiceTest
     final File origArg = InsightBrainService.getConfigFile();
     try {
       InsightBrainService.setConfigFile(configYml);
-      supportService.createSupportZip(false);
+      supportService.createSupportZip(false, null);
       final File filteredConfigYml = new File(supportService.getWorkDir(), "filtered-" + configYml.getName());
       assertThat(filteredConfigYml.exists(), is(false));
     }
@@ -102,7 +102,7 @@ public class SupportServiceTest
 
       insightConfig.getSupportConfig().setReadLimitBytes(500);
 
-      final File supportZip = supportService.createSupportZip(false);
+      final File supportZip = supportService.createSupportZip(false, null);
       // read file from zip and assert token suffix
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -132,7 +132,7 @@ public class SupportServiceTest
 
       insightConfig.getSupportConfig().setReadLimitBytes(5);
 
-      final File supportZip = supportService.createSupportZip(false);
+      final File supportZip = supportService.createSupportZip(false, null);
       // read zip and assert truncated entry
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -177,7 +177,7 @@ public class SupportServiceTest
     final File origArg = InsightBrainService.getConfigFile();
     try {
       InsightBrainService.setConfigFile(configYml);
-      final File supportZip = supportService.createSupportZip(false);
+      final File supportZip = supportService.createSupportZip(false, null);
       // read file from zip and assert no config file entry
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -195,7 +195,7 @@ public class SupportServiceTest
     final File origArg = InsightBrainService.getConfigFile();
     try {
       InsightBrainService.setConfigFile(new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile()));
-      final File supportZip = supportService.createSupportZip(false);
+      final File supportZip = supportService.createSupportZip(false, null);
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
         if (InsightBrainService.getConfigFile() != null) {
@@ -217,7 +217,7 @@ public class SupportServiceTest
     final File origArg = InsightBrainService.getConfigFile();
     try {
       InsightBrainService.setConfigFile(new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile()));
-      final File supportZip = supportService.createSupportZip(false);
+      final File supportZip = supportService.createSupportZip(false, null);
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
         if (InsightBrainService.getConfigFile() != null) {

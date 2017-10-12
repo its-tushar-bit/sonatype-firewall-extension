@@ -12,12 +12,10 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.LocalDate;
 
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -40,10 +38,6 @@ public class PolicyViolationAggregationDataHelper
     // the logic that limits the returned data to just 12 months
     LocalDate beginningOfMonth = today.withDayOfMonth(1).minusMonths(13);
     Date beginningOfMonthDate = toDate(beginningOfMonth);
-
-    // PoC mode is based on oldest evaluation date. This aggregation dataset is definitely not PoC.
-    tempEntity.newPolicyEvaluation(tempEntity.newApplication(ROOT_ORGANIZATION_ID).getId(), StageTypes.BUILD.getId(),
-        "oldScan", beginningOfMonthDate);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[0], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] { 5000, 6000, 7000 }), //
@@ -525,8 +519,35 @@ public class PolicyViolationAggregationDataHelper
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
 
+    // add some data for current month to test option for including latest data
+    beginningOfMonth = beginningOfMonth.plusMonths(1);
+    beginningOfMonthDate = toDate(beginningOfMonth);
+
+    Date now = new Date();
+    tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[0], beginningOfMonthDate, now, //
+        new DescriptiveStatistics(new double[] { 3000 }), //
+        new DescriptiveStatistics(new double[] { 4000 }), //
+        new DescriptiveStatistics(new double[] { 5000 }), //
+        new DescriptiveStatistics(new double[] { 6000 }), //
+        1, 2, 3, 4, //
+        1, 2, 3, 4, //
+        1, 2, 3, 4, //
+        1, 2, 3, 4, //
+        1);
+
+    tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, now, //
+        new DescriptiveStatistics(new double[] { 5000 }), //
+        new DescriptiveStatistics(new double[] { 6000 }), //
+        new DescriptiveStatistics(new double[] { 7000 }), //
+        new DescriptiveStatistics(new double[] { 8000 }), //
+        3, 4, 5, 6, //
+        3, 4, 5, 6, //
+        3, 4, 5, 6, //
+        3, 4, 5, 6, //
+        3);
+
     // sanity check
-    assertThat(beginningOfMonth.plusMonths(1), is(today.withDayOfMonth(1)));
+    assertThat(beginningOfMonth, is(today.withDayOfMonth(1)));
 
     return new HashSet<>(Arrays.asList(APPLICATION_IDS));
   }
@@ -912,17 +933,34 @@ public class PolicyViolationAggregationDataHelper
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
 
+    // add some data for current month to test option for including latest data
+    beginningOfMonth = beginningOfMonth.plusMonths(1);
+    beginningOfMonthDate = toDate(beginningOfMonth);
+
+    Date now = new Date();
+    tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[0], beginningOfMonthDate, now, //
+        emptyStats, emptyStats, emptyStats, emptyStats, //
+        1, 0, 0, 0, //
+        0, 2, 0, 0, //
+        0, 0, 3, 0, //
+        0, 0, 0, 4, //
+        1);
+
+    tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, now, //
+        emptyStats, emptyStats, emptyStats, emptyStats, //
+        5, 0, 0, 0, //
+        0, 6, 0, 0, //
+        0, 0, 7, 0, //
+        0, 0, 0, 8, //
+        3);
+
     // sanity check
-    assertThat(beginningOfMonth.plusMonths(1), is(today.withDayOfMonth(1)));
+    assertThat(beginningOfMonth, is(today.withDayOfMonth(1)));
 
     Organization org = tempEntity.newOrganizationWithSpecificId(ORG_ID);
     for (String appId : APPLICATION_IDS) {
       tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
     }
-
-    // PoC mode is based on oldest evaluation date. This aggregation dataset is definitely not PoC.
-    tempEntity.newPolicyEvaluation(APPLICATION_IDS[0], StageTypes.BUILD.getId(), "oldScan",
-        new LocalDate().minusYears(2).toDate());
 
     return new HashSet<>(Arrays.asList(APPLICATION_IDS));
   }

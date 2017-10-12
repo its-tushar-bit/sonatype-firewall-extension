@@ -16,9 +16,7 @@ describe('successMetricsReportSpec', function() {
       mockSuccessMetricsDataService,
       mockStateParams = { successMetricsReportId: 'SuccessMetrics1' },
       mockState = jasmine.createSpyObj('state', ['go']),
-      getApplicationCountsDataDeferred,
-      getMttrDataDeferred,
-      getAveragesDataDeferred,
+      getChartDataDeferred,
       getComponentCountsDataDeferred,
       getSuccessMetricsReportsForCurrentUserDeferred,
       applicationCountsData = {
@@ -93,14 +91,16 @@ describe('successMetricsReportSpec', function() {
         scope: {
           organizationIds: ['1234', '5678'],
           applicationIds: ['asdf', 'qwerty']
-        }
+        },
+        includeLatestData: false
       }, {
         id: 'SuccessMetrics2',
         name: 'Success Metrics 2',
         scope: {
           organizationIds: null,
           applicationIds: null
-        }
+        },
+        includeLatestData: false
       }],
       applicationStoreDeferred;
 
@@ -113,17 +113,13 @@ describe('successMetricsReportSpec', function() {
     };
 
     resetPromise();
-    getApplicationCountsDataDeferred = $q.defer();
-    getMttrDataDeferred = $q.defer();
-    getAveragesDataDeferred = $q.defer();
+    getChartDataDeferred = $q.defer();
     getComponentCountsDataDeferred = $q.defer();
     getSuccessMetricsReportsForCurrentUserDeferred = $q.defer();
     applicationStoreDeferred = $q.defer();
 
     mockSuccessMetricsDataService = {
-      getApplicationCountsData: jasmine.createSpy().and.returnValue(getApplicationCountsDataDeferred.promise),
-      getMttrData: jasmine.createSpy().and.returnValue(getMttrDataDeferred.promise),
-      getAveragesData: jasmine.createSpy().and.returnValue(getAveragesDataDeferred.promise),
+      getChartData: jasmine.createSpy().and.returnValue(getChartDataDeferred.promise),
       getComponentCountsData: jasmine.createSpy().and.returnValue(getComponentCountsDataDeferred.promise),
       getSuccessMetricsReportsForCurrentUser:
           jasmine.createSpy().and.returnValue(getSuccessMetricsReportsForCurrentUserDeferred.promise),
@@ -144,9 +140,11 @@ describe('successMetricsReportSpec', function() {
 
   it('properly loads on enabled success metrics', function() {
     checkSuccessMetricsEnabledDeferred.resolve(true);
-    getApplicationCountsDataDeferred.resolve(applicationCountsData);
-    getMttrDataDeferred.resolve(mttrData);
-    getAveragesDataDeferred.resolve(averagesData);
+    getChartDataDeferred.resolve({
+      mttrData: mttrData,
+      averagesData: averagesData,
+      applicationCountsData: applicationCountsData
+    });
     getComponentCountsDataDeferred.resolve(componentCountsData);
     getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
     $scope.$digest();
@@ -162,28 +160,28 @@ describe('successMetricsReportSpec', function() {
 
   it('uses the `successMetricsId` state param to find the right ids to send to the chart endpoints', function() {
     checkSuccessMetricsEnabledDeferred.resolve(true);
-    getApplicationCountsDataDeferred.resolve(applicationCountsData);
-    getMttrDataDeferred.resolve(mttrData);
-    getAveragesDataDeferred.resolve(averagesData);
+    getChartDataDeferred.resolve({
+      mttrData: mttrData,
+      averagesData: averagesData,
+      applicationCountsData: applicationCountsData
+    });
     getComponentCountsDataDeferred.resolve(componentCountsData);
     getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
     $scope.$digest();
 
-    expect(mockSuccessMetricsDataService.getApplicationCountsData)
-        .toHaveBeenCalledWith(getSuccessMetricsReportsForCurrentUserData[0].scope);
-    expect(mockSuccessMetricsDataService.getMttrData)
-        .toHaveBeenCalledWith(getSuccessMetricsReportsForCurrentUserData[0].scope);
-    expect(mockSuccessMetricsDataService.getAveragesData)
-        .toHaveBeenCalledWith(getSuccessMetricsReportsForCurrentUserData[0].scope);
+    expect(mockSuccessMetricsDataService.getChartData).toHaveBeenCalledWith(
+        angular.extend({}, getSuccessMetricsReportsForCurrentUserData[0].scope, { includeLatestData: false }));
     expect(mockSuccessMetricsDataService.getComponentCountsData)
         .toHaveBeenCalledWith(getSuccessMetricsReportsForCurrentUserData[0].scope);
   });
 
   it('sets the successMetricsChartName from the matched SuccessMetrics', function() {
     checkSuccessMetricsEnabledDeferred.resolve(true);
-    getApplicationCountsDataDeferred.resolve(applicationCountsData);
-    getMttrDataDeferred.resolve(mttrData);
-    getAveragesDataDeferred.resolve(averagesData);
+    getChartDataDeferred.resolve({
+      mttrData: mttrData,
+      averagesData: averagesData,
+      applicationCountsData: applicationCountsData
+    });
     getComponentCountsDataDeferred.resolve(componentCountsData);
     getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
     $scope.$digest();
@@ -214,17 +212,17 @@ describe('successMetricsReportSpec', function() {
 
   it('properly loads when the successMetricsId could not be found', function() {
     checkSuccessMetricsEnabledDeferred.resolve(true);
-    getApplicationCountsDataDeferred.resolve(applicationCountsData);
-    getMttrDataDeferred.resolve(mttrData);
-    getAveragesDataDeferred.resolve(averagesData);
+    getChartDataDeferred.resolve({
+      mttrData: mttrData,
+      averagesData: averagesData,
+      applicationCountsData: applicationCountsData
+    });
     getComponentCountsDataDeferred.resolve(componentCountsData);
     getSuccessMetricsReportsForCurrentUserDeferred.resolve(angular.copy(getSuccessMetricsReportsForCurrentUserData)
         .slice(1));
     $scope.$digest();
 
-    expect(mockSuccessMetricsDataService.getApplicationCountsData).not.toHaveBeenCalled();
-    expect(mockSuccessMetricsDataService.getMttrData).not.toHaveBeenCalled();
-    expect(mockSuccessMetricsDataService.getAveragesData).not.toHaveBeenCalled();
+    expect(mockSuccessMetricsDataService.getChartData).not.toHaveBeenCalled();
     expect(mockSuccessMetricsDataService.getComponentCountsData).not.toHaveBeenCalled();
     expect(vm.error).toBe('Could not find report with id SuccessMetrics1');
     expect(vm.loaded).toBe(true);
@@ -238,7 +236,13 @@ describe('successMetricsReportSpec', function() {
     it('returns true if mttrData is an empty list', function() {
       checkSuccessMetricsEnabledDeferred.resolve(true);
       getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
-      getMttrDataDeferred.resolve([]);
+      getChartDataDeferred.resolve({
+        mttrData: [],
+        averagesData: {
+          activeApplicationCount: 0,
+          averageDiscoveredPolicyViolations: []
+        }
+      });
 
       $scope.$digest();
 
@@ -247,9 +251,11 @@ describe('successMetricsReportSpec', function() {
 
     it('returns false if mttrData is a non-empty list', function() {
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getMttrDataDeferred.resolve(mttrData);
-      getAveragesDataDeferred.resolve(averagesData);
-      getApplicationCountsDataDeferred.resolve(applicationCountsData);
+      getChartDataDeferred.resolve({
+        mttrData: mttrData,
+        averagesData: averagesData,
+        applicationCountsData: applicationCountsData
+      });
       getComponentCountsDataDeferred.resolve(componentCountsData);
       getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
 
@@ -281,9 +287,12 @@ describe('successMetricsReportSpec', function() {
           checkSuccessMetricsEnabledDeferred.resolve(true);
           getSuccessMetricsReportsForCurrentUserDeferred.resolve(
               [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: null}}]);
-          getApplicationCountsDataDeferred.resolve({singleApplicationName: 'Test'});
-          getMttrDataDeferred.resolve(mttrData);
-          getAveragesDataDeferred.resolve(averagesData);
+          getChartDataDeferred.resolve({
+            mttrData: mttrData,
+            averagesData: averagesData,
+            applicationCountsData: { singleApplicationName: 'Test' }
+          });
+
           getComponentCountsDataDeferred.resolve(componentCountsData);
 
           $scope.$digest();
@@ -297,9 +306,12 @@ describe('successMetricsReportSpec', function() {
           checkSuccessMetricsEnabledDeferred.resolve(true);
           getSuccessMetricsReportsForCurrentUserDeferred.resolve(
               [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: []}}]);
-          getApplicationCountsDataDeferred.resolve({singleApplicationName: 'Test'});
-          getMttrDataDeferred.resolve(mttrData);
-          getAveragesDataDeferred.resolve(averagesData);
+          getChartDataDeferred.resolve({
+            mttrData: mttrData,
+            averagesData: averagesData,
+            applicationCountsData: { singleApplicationName: 'Test' }
+          });
+
           getComponentCountsDataDeferred.resolve(componentCountsData);
 
           $scope.$digest();
@@ -312,9 +324,11 @@ describe('successMetricsReportSpec', function() {
         'length is more than 1', function() {
       checkSuccessMetricsEnabledDeferred.resolve(true);
       getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
-      getApplicationCountsDataDeferred.resolve(applicationCountsData);
-      getMttrDataDeferred.resolve(mttrData);
-      getAveragesDataDeferred.resolve(averagesData);
+      getChartDataDeferred.resolve({
+        mttrData: mttrData,
+        averagesData: averagesData,
+        applicationCountsData: applicationCountsData
+      });
       getComponentCountsDataDeferred.resolve(componentCountsData);
 
       $scope.$digest();
@@ -328,9 +342,11 @@ describe('successMetricsReportSpec', function() {
           checkSuccessMetricsEnabledDeferred.resolve(true);
           getSuccessMetricsReportsForCurrentUserDeferred.resolve(
               [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: ['app1']}}]);
-          getApplicationCountsDataDeferred.resolve(applicationCountsData);
-          getMttrDataDeferred.resolve(mttrData);
-          getAveragesDataDeferred.resolve(averagesData);
+          getChartDataDeferred.resolve({
+            mttrData: mttrData,
+            averagesData: averagesData,
+            applicationCountsData: applicationCountsData
+          });
           getComponentCountsDataDeferred.resolve(componentCountsData);
           applicationStoreDeferred.resolve({id: 'app1', name: 'app 1'});
 
@@ -345,9 +361,11 @@ describe('successMetricsReportSpec', function() {
       checkSuccessMetricsEnabledDeferred.resolve(true);
       getSuccessMetricsReportsForCurrentUserDeferred.resolve(
           [{id: 'SuccessMetrics1', scope: {organizationIds: ['org1'], applicationIds: ['app1']}}]);
-      getApplicationCountsDataDeferred.resolve(applicationCountsData);
-      getMttrDataDeferred.resolve(mttrData);
-      getAveragesDataDeferred.resolve(averagesData);
+      getChartDataDeferred.resolve({
+        mttrData: mttrData,
+        averagesData: averagesData,
+        applicationCountsData: applicationCountsData
+      });
       getComponentCountsDataDeferred.resolve(componentCountsData);
 
       $scope.$digest();
@@ -360,9 +378,12 @@ describe('successMetricsReportSpec', function() {
       checkSuccessMetricsEnabledDeferred.resolve(true);
       getSuccessMetricsReportsForCurrentUserDeferred.resolve(
           [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: ['app1']}}]);
-      getApplicationCountsDataDeferred.resolve(applicationCountsData);
-      getMttrDataDeferred.resolve(mttrData);
-      getAveragesDataDeferred.resolve(averagesData);
+      getChartDataDeferred.resolve({
+        mttrData: mttrData,
+        averagesData: averagesData,
+        applicationCountsData: applicationCountsData
+      });
+
       getComponentCountsDataDeferred.resolve(componentCountsData);
       applicationStoreDeferred.reject('Could not find Application with internal id app1');
 
@@ -377,9 +398,11 @@ describe('successMetricsReportSpec', function() {
       checkSuccessMetricsEnabledDeferred.resolve(true);
       getSuccessMetricsReportsForCurrentUserDeferred.resolve(
           [{id: 'SuccessMetrics1', scope: {organizationIds: null, applicationIds: ['app1']}}]);
-      getApplicationCountsDataDeferred.resolve({activeApplications: 0});
-      getMttrDataDeferred.resolve(mttrData);
-      getAveragesDataDeferred.resolve(averagesData);
+      getChartDataDeferred.resolve({
+        mttrData: mttrData,
+        averagesData: averagesData,
+        applicationCountsData: {activeApplications: 0}
+      });
       getComponentCountsDataDeferred.resolve(componentCountsData);
 
       $scope.$digest();

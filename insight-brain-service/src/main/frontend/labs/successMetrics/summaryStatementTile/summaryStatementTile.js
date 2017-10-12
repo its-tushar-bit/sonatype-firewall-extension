@@ -12,7 +12,8 @@ export default {
     averagesData: '<',
     successMetricsReport: '<',
     onDelete: '&',
-    isSingleApplicationReport: '<'
+    isSingleApplicationReport: '<',
+    lastUpdated: '<'
   }
 };
 
@@ -21,10 +22,12 @@ function summaryStatementTileController(DeleteModalService, successMetricsDataSe
   const vm = this;
 
   vm.showNoDataMessage = undefined;
+  vm.dateFormat = undefined;
   vm.delete = deleteSuccessMetrics;
 
   vm.$onInit = function() {
     vm.showNoDataMessage = vm.averagesData.activeApplicationCount === 0;
+    vm.dateFormat = vm.successMetricsReport.includeLatestData ? 'medium' : 'mediumDate';
   };
 
   function deleteSuccessMetrics() {

@@ -42,6 +42,9 @@ public class SuccessMetricsReport
   @Column(name = "create_time")
   private Date createTime;
 
+  @Column(name = "include_latest_data")
+  private boolean includeLatestData;
+
   public SuccessMetricsReport() {
   }
 
@@ -106,5 +109,13 @@ public class SuccessMetricsReport
 
   public void setCreateTime(Date createTime) {
     this.createTime = createTime;
+  }
+
+  public boolean getIncludeLatestData() {
+    return includeLatestData;
+  }
+
+  public void setIncludeLatestData(boolean includeLatestData) {
+    this.includeLatestData = includeLatestData;
   }
 }

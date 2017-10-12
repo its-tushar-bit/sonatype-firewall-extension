@@ -19,9 +19,9 @@
   <span class="iq-chart__display-number" id="active-applications-count"><!--
  -->{{::vm.averagesData.activeApplicationCount}}<!--
 --></span>
-  application{{::(vm.isSingleApplicationReport ? '' : 's')}}.
+  application{{::(vm.isSingleApplicationReport ? '' : 's')}}. Last updated {{::vm.lastUpdated | date: vm.dateFormat}}.
 </p>
 <div ng-if="vm.showNoDataMessage" class="iq-alert iq-alert--info" id="no-data-warning">
-  <i class="fa fa-info-circle"></i>There's not enough data to generate this report. Run some evaluations and check again
-  tomorrow.
+  <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check
+  again{{::vm.successMetricsReport.includeLatestData ? '' : ' next month'}}.
 </div>

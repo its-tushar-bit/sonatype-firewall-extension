@@ -17,12 +17,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
 import org.joda.time.LocalDate;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.empty;
@@ -42,29 +40,34 @@ public class PolicyViolationAggregationServiceAuthzTest
 
   private LocalDate today = new LocalDate();
 
-  @Before
-  public void before() {
-    // Snap out of PoC mode.
-    String appId = tempEntity.newApplication(Organization.ROOT_ORGANIZATION_ID).getId();
-    Date twoYearsAgo = new LocalDate().minusYears(2).toDate(); // outside the 12 month window for success metrics
-    tempEntity.newPolicyEvaluation(appId, StageTypes.STAGE_RELEASE.getId(), "scanId", twoYearsAgo);
-  }
-
   @Test
-  public void testGetMttrs_ExplicitApplicationFilter_Unauthenticated() {
+  public void testGetChartData_ExplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getMttrs(null, Collections.singleton(app.getId())));
+    assertEmptyResults(policyViolationAggregationService.getChartData(null, Collections.singleton(app.getId())));
   }
 
   @Test
-  public void testGetMttrs_ExplicitApplicationFilter_Unauthorized() {
+  public void testGetChartData_ExplicitApplicationFilter_Unauthorized() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     login();
-    assertEmptyResults(policyViolationAggregationService.getMttrs(null, Collections.singleton(app.getId())));
+    assertEmptyResults(policyViolationAggregationService.getChartData(null, Collections.singleton(app.getId())));
   }
 
   @Test
-  public void testGetMttrs_ExplicitApplicationFilter_Authorized() {
+  public void testGetChartData_ExplicitOrganizationFilter_Unauthenticated() {
+    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    assertEmptyResults(policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null));
+  }
+
+  @Test
+  public void testGetChartData_ExplicitOrganizationFilter_Unauthorized() {
+    createPolicyViolation(app.getId(), today, ONE_HOUR);
+    login();
+    assertEmptyResults(policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null));
+  }
+
+  @Test
+  public void testGetChartData_Mttrs_ExplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today, ONE_HOUR);
@@ -72,35 +75,22 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(app.getId());
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
-    assertMttrResults(policyViolationAggregationService.getMttrs(null, appIds), today);
+    assertMttrResults(policyViolationAggregationService.getChartData(null, appIds).mttrs, today);
   }
 
   @Test
-  public void testGetMttrs_ExplicitOrganizationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getMttrs(Collections.singleton(org.getId()), null));
-  }
-
-  @Test
-  public void testGetMttrs_ExplicitOrganizationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    login();
-    assertEmptyResults(policyViolationAggregationService.getMttrs(Collections.singleton(org.getId()), null));
-  }
-
-  @Test
-  public void testGetMttrs_ExplicitOrganizationFilter_Authorized() {
+  public void testGetChartData_Mttrs_ExplicitOrganizationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
 
     grantReadPermission(app.getId());
-    assertMttrResults(policyViolationAggregationService.getMttrs(Collections.singleton(org.getId()), null), today);
+    assertMttrResults(policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null).mttrs, today);
   }
 
   @Test
-  public void testGetMttrs_ExplicitOrganizationFilter_AuthorizedOneOrg() {
+  public void testGetChartData_Mttrs_ExplicitOrganizationFilter_AuthorizedOneOrg() {
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
@@ -110,47 +100,34 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(org.getId());
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
-    assertMttrResults(policyViolationAggregationService.getMttrs(orgIds, null), today);
+    assertMttrResults(policyViolationAggregationService.getChartData(orgIds, null).mttrs, today);
   }
 
   @Test
-  public void testGetMttrs_ImplicitApplicationFilter_Unauthenticated() {
+  public void testGetChartData_ImplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getMttrs(null, null));
+    assertEmptyResults(policyViolationAggregationService.getChartData(null, null));
   }
 
   @Test
-  public void testGetMttrs_ImplicitApplicationFilter_Unauthorized() {
+  public void testGetChartData_ImplicitApplicationFilter_Unauthorized() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     login();
-    assertEmptyResults(policyViolationAggregationService.getMttrs(null, null));
+    assertEmptyResults(policyViolationAggregationService.getChartData(null, null));
   }
 
   @Test
-  public void testGetMttrs_ImplicitApplicationFilter_Authorized() {
+  public void testGetChartData_Mttrs_ImplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
-    assertMttrResults(policyViolationAggregationService.getMttrs(null, null), today);
+    assertMttrResults(policyViolationAggregationService.getChartData(null, null).mttrs, today);
   }
 
   @Test
-  public void testGetAverages_ExplicitApplicationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getAverages(null, Collections.singleton(app.getId())));
-  }
-
-  @Test
-  public void testGetAverages_ExplicitApplicationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    login();
-    assertEmptyResults(policyViolationAggregationService.getAverages(null, Collections.singleton(app.getId())));
-  }
-
-  @Test
-  public void testGetAverages_ExplicitApplicationFilter_Authorized() {
+  public void testGetChartData_Averages__ExplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today);
@@ -159,36 +136,23 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(app.getId());
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
-    assertAveragesResults(policyViolationAggregationService.getAverages(null, appIds), today);
+    assertAveragesResults(policyViolationAggregationService.getChartData(null, appIds).averages, today);
   }
 
   @Test
-  public void testGetAverages_ExplicitOrganizationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getAverages(Collections.singleton(org.getId()), null));
-  }
-
-  @Test
-  public void testGetAverages_ExplicitOrganizationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    login();
-    assertEmptyResults(policyViolationAggregationService.getAverages(Collections.singleton(org.getId()), null));
-  }
-
-  @Test
-  public void testGetAverages_ExplicitOrganizationFilter_Authorized() {
+  public void testGetChartData_Averages__ExplicitOrganizationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today);
     createPolicyViolation(app2.getId(), today);
 
     grantReadPermission(app.getId());
-    assertAveragesResults(policyViolationAggregationService.getAverages(Collections.singleton(org.getId()), null),
+    assertAveragesResults(policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null).averages,
         today);
   }
 
   @Test
-  public void testGetAverages_ExplicitOrganizationFilter_AuthorizedOneOrg() {
+  public void testGetChartData_Averages__ExplicitOrganizationFilter_AuthorizedOneOrg() {
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
@@ -198,49 +162,21 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(org.getId());
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
-    assertAveragesResults(policyViolationAggregationService.getAverages(orgIds, null), today);
+    assertAveragesResults(policyViolationAggregationService.getChartData(orgIds, null).averages, today);
   }
 
   @Test
-  public void testGetAverages_ImplicitApplicationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getAverages(null, null));
-  }
-
-  @Test
-  public void testGetAverages_ImplicitApplicationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today, ONE_HOUR);
-    login();
-    assertEmptyResults(policyViolationAggregationService.getAverages(null, null));
-  }
-
-  @Test
-  public void testGetAverages_ImplicitApplicationFilter_Authorized() {
+  public void testGetChartData_Averages__ImplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
-    assertAveragesResults(policyViolationAggregationService.getAverages(null, null), today);
+    assertAveragesResults(policyViolationAggregationService.getChartData(null, null).averages, today);
   }
 
   @Test
-  public void testGetApplicationCounts_ExplicitApplicationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today);
-    assertEmptyResults(
-        policyViolationAggregationService.getApplicationCounts(null, Collections.singleton(app.getId())));
-  }
-
-  @Test
-  public void testGetApplicationCounts_ExplicitApplicationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today);
-    login();
-    assertEmptyResults(
-        policyViolationAggregationService.getApplicationCounts(null, Collections.singleton(app.getId())));
-  }
-
-  @Test
-  public void testGetApplicationCounts_ExplicitApplicationFilter_Authorized() {
+  public void testGetChartData_ApplicationCounts_ExplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today);
@@ -248,26 +184,11 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(app.getId());
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
-    assertApplicationCountsResult(policyViolationAggregationService.getApplicationCounts(null, appIds));
+    assertApplicationCountsResult(policyViolationAggregationService.getChartData(null, appIds).applicationCounts);
   }
 
   @Test
-  public void testGetApplicationCounts_ExplicitOrganizationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today);
-    assertEmptyResults(
-        policyViolationAggregationService.getApplicationCounts(Collections.singleton(org.getId()), null));
-  }
-
-  @Test
-  public void testGetApplicationCounts_ExplicitOrganizationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today);
-    login();
-    assertEmptyResults(
-        policyViolationAggregationService.getApplicationCounts(Collections.singleton(org.getId()), null));
-  }
-
-  @Test
-  public void testGetApplicationCounts_ExplicitOrganizationFilter_Authorized() {
+  public void testGetChartData_ApplicationCounts_ExplicitOrganizationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today);
@@ -275,11 +196,11 @@ public class PolicyViolationAggregationServiceAuthzTest
 
     grantReadPermission(app.getId());
     assertApplicationCountsResult(
-        policyViolationAggregationService.getApplicationCounts(Collections.singleton(org.getId()), null));
+        policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null).applicationCounts);
   }
 
   @Test
-  public void testGetApplicationCounts_ExplicitOrganizationFilter_AuthorizedOneOrg() {
+  public void testGetChartData_ApplicationCounts_ExplicitOrganizationFilter_AuthorizedOneOrg() {
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
@@ -289,30 +210,17 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(org.getId());
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
-    assertApplicationCountsResult(policyViolationAggregationService.getApplicationCounts(orgIds, null));
+    assertApplicationCountsResult(policyViolationAggregationService.getChartData(orgIds, null).applicationCounts);
   }
 
   @Test
-  public void testGetApplicationCounts_ImplicitApplicationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId(), today);
-    assertEmptyResults(policyViolationAggregationService.getApplicationCounts(null, null));
-  }
-
-  @Test
-  public void testGetApplicationCounts_ImplicitApplicationFilter_Unauthorized() {
-    createPolicyViolation(app.getId(), today);
-    login();
-    assertEmptyResults(policyViolationAggregationService.getApplicationCounts(null, null));
-  }
-
-  @Test
-  public void testGetApplicationCounts_ImplicitApplicationFilter_Authorized() {
+  public void testGetChartData_ApplicationCounts_ImplicitApplicationFilter_Authorized() {
     Application app2 = tempEntity.newApplication(org.getId());
 
     createPolicyViolation(app.getId(), today);
     createPolicyViolation(app2.getId(), today);
     grantReadPermission(app.getId());
-    assertApplicationCountsResult(policyViolationAggregationService.getApplicationCounts(null, null));
+    assertApplicationCountsResult(policyViolationAggregationService.getChartData(null, null).applicationCounts);
   }
 
   private void createPolicyViolation(String appId, LocalDate today) {
@@ -367,6 +275,12 @@ public class PolicyViolationAggregationServiceAuthzTest
     assertThat(dto.quality.applicationsWithCriticalViolations, is(0));
     assertThat(dto.other.applicationsWithViolations, is(0));
     assertThat(dto.other.applicationsWithCriticalViolations, is(0));
+  }
+
+  private void assertEmptyResults(SuccessMetricsChartDataDTO chartDataDTO) {
+    assertEmptyResults(chartDataDTO.mttrs);
+    assertEmptyResults(chartDataDTO.averages);
+    assertEmptyResults(chartDataDTO.applicationCounts);
   }
 
   private void assertEmptyResults(SuccessMetricsAveragesDTO dto) {

@@ -62,11 +62,11 @@ public class SuccessMetricsReportListTest
     application3 = staticTempEntity.newApplication("App3", "App3", organization2.getId());
 
     staticTempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
-        "scan1", new LocalDate().minusDays(2).toDate());
+        "scan1", new LocalDate().minusMonths(1).toDate());
     staticTempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
-        "scan2", new LocalDate().minusDays(2).toDate());
+        "scan2", new LocalDate().minusMonths(1).toDate());
     staticTempEntity.newPolicyEvaluation(application3.getId(), BuildStageType.ID,
-        "scan3", new LocalDate().minusDays(2).toDate());
+        "scan3", new LocalDate().minusMonths(1).toDate());
   }
 
   @Before
@@ -124,6 +124,8 @@ public class SuccessMetricsReportListTest
 
     // Add and test a Root Org SuccessMetricsReport.
     modal.name().setValue("Root Org Chart");
+    modal.byCalendarMonthRadioBtn().shouldBe(selected);
+    modal.byMostRecentRadioBtn().shouldNotBe(selected);
     modal.allApplicationsRadioBtn().shouldHave(text("All Applications")).shouldBe(selected);
     modal.customRadioBtn().shouldHave(text("Custom")).shouldNotBe(selected);
     modal.createBtn().shouldHave(text("Create")).click();

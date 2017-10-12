@@ -15,12 +15,19 @@ public class SuccessMetricsReportDTO
   public String name;
 
   public SuccessMetricsReportScopeDTO scope;
+    
+  public boolean includeLatestData;
 
   public SuccessMetricsReportDTO() {
   }
 
   public SuccessMetricsReportDTO(final String name, final SuccessMetricsReportScopeDTO scope) {
+    this(name, scope, false);
+  }
+    
+  public SuccessMetricsReportDTO(final String name, final SuccessMetricsReportScopeDTO scope, final boolean includeLatestData) {
     this.name = name;
     this.scope = scope;
+    this.includeLatestData = includeLatestData;
   }
 }

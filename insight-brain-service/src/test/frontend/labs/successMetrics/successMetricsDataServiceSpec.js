@@ -33,16 +33,16 @@ describe('successMetricsDataService', function() {
     $httpBackend.verifyNoOutstandingExpectation();
   });
 
-  describe('getAveragesData', function() {
+  describe('getChartData', function() {
 
     it('fetches averages data from the backend and merges into a single record', function() {
       var output;
 
-      $httpBackend.expectPOST(CLMLocations.getViolationAveragesUrl()).respond(
-          PolicyViolationAggregationResourceMockData.getAverages());
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(
+          PolicyViolationAggregationResourceMockData.getFullChartData());
 
-      successMetricsDataService.getAveragesData().then(function(o) {
-        output = o;
+      successMetricsDataService.getChartData().then(function(o) {
+        output = o.averagesData;
       });
 
       $httpBackend.flush();
@@ -77,11 +77,11 @@ describe('successMetricsDataService', function() {
     it('fetches empty averages data properly', function() {
       var output;
 
-      $httpBackend.expectPOST(CLMLocations.getViolationAveragesUrl()).respond(
-          PolicyViolationAggregationResourceMockData.getEmptyAverages());
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(
+          PolicyViolationAggregationResourceMockData.getPartialChartData());
 
-      successMetricsDataService.getAveragesData().then(function(o) {
-        output = o;
+      successMetricsDataService.getChartData().then(function(o) {
+        output = o.averagesData;
       });
 
       $httpBackend.flush();
@@ -113,25 +113,7 @@ describe('successMetricsDataService', function() {
       expect(output.other.averageDiscoveredCritical).toBe(0);
     });
 
-    it('passes on a rejected promise', function() {
-      var caughtError;
-
-      $httpBackend.expectPOST(CLMLocations.getViolationAveragesUrl()).respond(403, 'Forbidden');
-
-      successMetricsDataService.getAveragesData().catch(function(e) {
-        caughtError = e;
-      });
-
-      $httpBackend.flush();
-
-      expect(caughtError).toBeDefined();
-      expect(caughtError.data).toBe('Forbidden');
-      expect(caughtError.status).toBe(403);
-    });
-  });
-
-  describe('getApplicationCountsData', function() {
-    it('fetches the Application Counts URL and returns a Promise of the parsed JSON response', function() {
+    it('fetches application counts data', function() {
       var output,
           response = {
             totalApplications: 5,
@@ -158,10 +140,14 @@ describe('successMetricsDataService', function() {
             }
           };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsApplicationCountsUrl()).respond(response);
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond({
+        mttrs: [],
+        averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
+        applicationCounts: response
+      });
 
-      successMetricsDataService.getApplicationCountsData().then(function(o) {
-        output = o;
+      successMetricsDataService.getChartData().then(function(o) {
+        output = o.applicationCountsData;
       });
 
       $httpBackend.flush();
@@ -169,33 +155,14 @@ describe('successMetricsDataService', function() {
       expect(output).toEqual(response);
     });
 
-    it('passes on a rejected promise', function() {
-      var caughtError;
-
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsApplicationCountsUrl()).respond(403, 'Forbidden');
-
-      successMetricsDataService.getApplicationCountsData().catch(function(e) {
-        caughtError = e;
-      });
-
-      $httpBackend.flush();
-
-      expect(caughtError).toBeDefined();
-      expect(caughtError.data).toBe('Forbidden');
-      expect(caughtError.status).toBe(403);
-    });
-  });
-
-  describe('getMttrData', function() {
-
     it('fetches mttr data', function() {
       var output;
 
-      $httpBackend.expectPOST(CLMLocations.getMttrUrl()).respond(
-          PolicyViolationAggregationResourceMockData.getMttrData());
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(
+          PolicyViolationAggregationResourceMockData.getFullChartData());
 
-      successMetricsDataService.getMttrData().then(function(o) {
-        output = o;
+      successMetricsDataService.getChartData().then(function(o) {
+        output = o.mttrData;
       });
 
       $httpBackend.flush();
@@ -207,11 +174,11 @@ describe('successMetricsDataService', function() {
     it('fetches mttr data and properly pads missing results', function() {
       var output;
 
-      $httpBackend.expectPOST(CLMLocations.getMttrUrl()).respond(
-          PolicyViolationAggregationResourceMockData.getPartialMttrData());
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(
+          PolicyViolationAggregationResourceMockData.getPartialChartData());
 
-      successMetricsDataService.getMttrData().then(function(o) {
-        output = o;
+      successMetricsDataService.getChartData().then(function(o) {
+        output = o.mttrData;
       });
 
       $httpBackend.flush();
@@ -240,10 +207,13 @@ describe('successMetricsDataService', function() {
     it('fetches empty mttr data does not pad it', function() {
       var output;
 
-      $httpBackend.expectPOST(CLMLocations.getMttrUrl()).respond([]);
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond({
+        averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
+        mttrs: []
+      });
 
-      successMetricsDataService.getMttrData().then(function(o) {
-        output = o;
+      successMetricsDataService.getChartData().then(function(o) {
+        output = o.mttrData;
       });
 
       $httpBackend.flush();
@@ -257,9 +227,9 @@ describe('successMetricsDataService', function() {
     it('passes on a rejected promise', function() {
       var caughtError;
 
-      $httpBackend.expectPOST(CLMLocations.getMttrUrl()).respond(403, 'Forbidden');
+      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(403, 'Forbidden');
 
-      successMetricsDataService.getMttrData().catch(function(e) {
+      successMetricsDataService.getChartData().catch(function(e) {
         caughtError = e;
       });
 

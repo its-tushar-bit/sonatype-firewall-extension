@@ -46,6 +46,7 @@ public class SuccessMetricsReportService
       SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO();
       successMetricsDTO.id = successMetricsReport.getId();
       successMetricsDTO.name = successMetricsReport.getName();
+      successMetricsDTO.includeLatestData = successMetricsReport.getIncludeLatestData();
       successMetricsDTO.scope = dto;
 
       successMetricsDTOs.add(successMetricsDTO);
@@ -63,6 +64,7 @@ public class SuccessMetricsReportService
     SuccessMetricsReport successMetricsReport = new SuccessMetricsReport(successMetricsDTO.name);
     successMetricsReport.setScopeJson(JsonUtils.format(successMetricsDTO.scope));
     successMetricsReport.setUsername(username);
+    successMetricsReport.setIncludeLatestData(successMetricsDTO.includeLatestData);
     successMetricsReportDAO.insert(successMetricsReport);
 
     successMetricsDTO.id = successMetricsReport.getId();

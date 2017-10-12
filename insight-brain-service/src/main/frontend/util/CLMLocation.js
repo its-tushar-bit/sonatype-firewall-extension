@@ -338,16 +338,8 @@ angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory(
         return baseUrl.get() + '/rest/config/systemConfigurationProperty';
       },
 
-      getMttrUrl: function() {
-        return baseUrl.get() + '/rest/aggregation/policyViolation/mttr';
-      },
-
-      getViolationAveragesUrl: function() {
-        return baseUrl.get() + '/rest/aggregation/policyViolation/averages';
-      },
-
-      getSuccessMetricsApplicationCountsUrl: function() {
-        return baseUrl.get() + '/rest/aggregation/policyViolation/applicationCounts';
+      getSuccessMetricsChartDataUrl: function() {
+        return baseUrl.get() + '/rest/aggregation/policyViolation';
       },
 
       getSuccessMetricsComponentCountsUrl: function() {

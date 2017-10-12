@@ -219,6 +219,7 @@ describe('addSuccessMetricsReportModal', function() {
       vm.selectedApplications = selectedApplicationsSet;
       vm.selectedOrganizations = selectedOrganizationsSet;
       vm.isAllApplications = false;
+      vm.includeLatestData = true;
 
       expect(vm.isCreateEnabled()).toBe(true);
 
@@ -229,7 +230,8 @@ describe('addSuccessMetricsReportModal', function() {
         scope: {
           organizationIds: selectedOrganizations,
           applicationIds: selectedApplications
-        }
+        },
+        includeLatestData: true
       });
     });
 
@@ -263,7 +265,8 @@ describe('addSuccessMetricsReportModal', function() {
 
       expect(mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser).toHaveBeenCalledWith({
         name: name,
-        scope: {}
+        scope: {},
+        includeLatestData: false
       });
     });
 

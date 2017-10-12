@@ -532,26 +532,28 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
-  public void testGetSinceDateByApplicationIdAndStageIds() {
+  public void testGetBetweenDatesByApplicationIdAndStageIds() {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
-    Date date2 = new Date();
-    Date date1 = new Date(date2.getTime() - 1000);
-    Date date3 = new Date(date2.getTime() + 1000);
+    Date now = new Date();
+    Date earlier = new Date(now.getTime() - 1000);
+    Date later = new Date(now.getTime() + 1000);
+    Date latest = new Date(now.getTime() + 2000);
 
     Application app = tempEntity.newApplicationWithParent("test");
     Application otherApp = tempEntity.newApplicationWithParent("other");
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1", date1);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1", earlier);
 
     // insert these chronologically backwards to have extra assurance that the DAO deliberately sorts them
-    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan3", date3);
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan2", date2);
+    PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan4", latest);
+    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan3", later);
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan2", now);
 
     // an evaluation in another stage, and one in another app. These should not be returned
-    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan4", date3);
-    tempEntity.newPolicyEvaluation(otherApp.getId(), BuildStageType.ID, "scan5", date3);
+    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan4", later);
+    tempEntity.newPolicyEvaluation(otherApp.getId(), BuildStageType.ID, "scan5", later);
 
-    List<PolicyEvaluation> results = dao.getSinceDateByApplicationIdAndStageIds(date2, app.getId(),
+    List<PolicyEvaluation> results = dao.getBetweenDatesByApplicationIdAndStageIds(now, latest, app.getId(),
         Collections.singleton(BuildStageType.ID));
 
     assertThat(results, hasSize(2));

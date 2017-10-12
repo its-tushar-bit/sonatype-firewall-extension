@@ -15,20 +15,17 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.AverageDiscoveredThreatCategoryPolicyViolationsDTO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.AverageDiscoveredThreatCategoryPolicyViolationsDTO;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -42,8 +39,11 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.array;
 import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
+import static org.joda.time.DateTime.now;
 import static org.junit.Assert.assertThat;
 
 public class PolicyViolationAggregationServiceTest
@@ -60,7 +60,7 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
-  public void testGetMttrs_AggregationsAlreadyExist() {
+  public void testGetChartData_Mttrs_AggregationsAlreadyExist() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -68,13 +68,13 @@ public class PolicyViolationAggregationServiceTest
       tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
     }
 
-    List<MttrDTO> results = service.getMttrs(new HashSet<String>(), applicationIds);
+    List<MttrDTO> results = service.getChartData(new HashSet<String>(), applicationIds).mttrs;
 
     assertAggregationHistory(results);
   }
 
   @Test
-  public void testGetMttrs_AggregationsAlreadyExist_ByOrganizationId() {
+  public void testGetChartData_Mttrs_AggregationsAlreadyExist_ByOrganizationId() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -97,26 +97,26 @@ public class PolicyViolationAggregationServiceTest
     tempEntity.newPolicyEvaluation(appId2, stageType.getId(), "app2Eval2", app2Eval2Date);
     tempEntity.newPolicyViolation(app2Eval1, app2Policy);
 
-    List<MttrDTO> results = service.getMttrs(Collections.singleton(org.getId()), new HashSet<String>());
+    List<MttrDTO> results = service.getChartData(Collections.singleton(org.getId()), new HashSet<String>()).mttrs;
 
     assertAggregationHistory(results);
   }
 
   @Test
-  public void testGetMttrs_AggregationsAlreadyExist_SpecificApplicationId() {
+  public void testGetChartData_Mttrs_AggregationsAlreadyExist_SpecificApplicationId() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     String appId = PolicyViolationAggregationDataHelper.APPLICATION_IDS[2];
 
     Organization org = tempEntity.newOrganization();
     tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
 
-    List<MttrDTO> results = service.getMttrs(new HashSet<String>(), Collections.singleton(appId));
+    List<MttrDTO> results = service.getChartData(new HashSet<String>(), Collections.singleton(appId)).mttrs;
 
     assertAggregationHistoryForThirdApp(results);
   }
 
   @Test
-  public void testGetMttrs_EmptyArguments() {
+  public void testGetChartData_Mttrs_EmptyArguments() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -124,13 +124,13 @@ public class PolicyViolationAggregationServiceTest
       tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
     }
 
-    List<MttrDTO> results = service.getMttrs(new HashSet<String>(), new HashSet<String>());
+    List<MttrDTO> results = service.getChartData(new HashSet<String>(), new HashSet<String>()).mttrs;
 
     assertAggregationHistory(results);
   }
 
   @Test
-  public void testGetMttrs_NullArguments() {
+  public void testGetChartData_Mttrs_NullArguments() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -138,24 +138,22 @@ public class PolicyViolationAggregationServiceTest
       tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
     }
 
-    List<MttrDTO> results = service.getMttrs(null, null);
+    List<MttrDTO> results = service.getChartData(null, null).mttrs;
 
     assertAggregationHistory(results);
   }
 
   @Test
-  public void testGetMttrs_NoData() {
+  public void testGetChartData_Mttrs_NoData() {
     Application application = tempEntity.newApplicationWithParent("no-evals-app");
-    DateTimeUtils.setCurrentMillisFixed(DateTime.now().minusMonths(3).getMillis());
 
-    List<MttrDTO> results = service.getMttrs(null, Collections.singleton(application.getId()));
+    List<MttrDTO> results = service.getChartData(null, Collections.singleton(application.getId())).mttrs;
 
-    // Having no data puts it in PoC mode which is indicated by a null return.
     assertThat(results.size(), is(0));
   }
 
   @Test
-  public void testGetMttrs_GenerateAggregationsWithResolvedViolations() {
+  public void testGetChartData_Mttrs_GenerateAggregationsWithResolvedViolations() {
     LocalDate today = new LocalDate();
 
     Application application = tempEntity.newApplicationWithParent("aggregation-generation-app");
@@ -183,7 +181,7 @@ public class PolicyViolationAggregationServiceTest
     tempEntity.newPolicyViolation(eval4, policy2);
     // no violation in eval5
 
-    List<MttrDTO> results = service.getMttrs(null, Collections.singleton(appId));
+    List<MttrDTO> results = service.getChartData(null, Collections.singleton(appId)).mttrs;
 
     List<MttrDTO> expected = new ArrayList<>(5);
 
@@ -224,7 +222,7 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
-  public void testGetMttrs_GenerateAggregationsWithWaivedViolations() {
+  public void testGetChartData_Mttrs_GenerateAggregationsWithWaivedViolations() {
     LocalDate today = new LocalDate();
 
     Application application = tempEntity.newApplicationWithParent("aggregation-generation-app");
@@ -257,7 +255,7 @@ public class PolicyViolationAggregationServiceTest
     tempEntity.newWaivedPolicyViolation(tempEntity.newPolicyViolation(eval5, policy1), waiver1);
     tempEntity.newWaivedPolicyViolation(tempEntity.newPolicyViolation(eval5, policy2), waiver2);
 
-    List<MttrDTO> results = service.getMttrs(null, Collections.singleton(appId));
+    List<MttrDTO> results = service.getChartData(null, Collections.singleton(appId)).mttrs;
 
     List<MttrDTO> expected = new ArrayList<>(5);
 
@@ -298,7 +296,7 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
-  public void testGetMttrs_GenerateAggregationsWithMixedStages() {
+  public void testGetChartData_Mttrs_GenerateAggregationsWithMixedStages() {
     LocalDate today = new LocalDate();
 
     Application application = tempEntity.newApplicationWithParent("aggregation-generation-app");
@@ -307,7 +305,7 @@ public class PolicyViolationAggregationServiceTest
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), "scan1",
         toDate(today.minusMonths(5)));
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId,  StageTypes.STAGE_RELEASE.getId(), "scan2",
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId, StageTypes.STAGE_RELEASE.getId(), "scan2",
         toDate(today.minusMonths(4)));
     // Generate a policy violation in the develop stage so we can check that it is filtered out
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(appId, StageTypes.DEVELOP.getId(), "scan3",
@@ -315,7 +313,7 @@ public class PolicyViolationAggregationServiceTest
     tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), "scan4", toDate(today.minusMonths(3)));
     tempEntity.newPolicyEvaluation(appId, StageTypes.OPERATE.getId(), "scan5", toDate(today.minusMonths(2)));
 
-    PolicyEvaluation eval6 = tempEntity.newPolicyEvaluation(appId,  StageTypes.STAGE_RELEASE.getId(), "scan6",
+    PolicyEvaluation eval6 = tempEntity.newPolicyEvaluation(appId, StageTypes.STAGE_RELEASE.getId(), "scan6",
         toDate(today.minusMonths(1)));
 
     // violation appears in eval1, eval2 and eval3
@@ -323,7 +321,7 @@ public class PolicyViolationAggregationServiceTest
     tempEntity.newPolicyViolation(eval2, policy1);
     tempEntity.newPolicyViolation(eval3, policy1);
 
-    List<MttrDTO> results = service.getMttrs(null, Collections.singleton(appId));
+    List<MttrDTO> results = service.getChartData(null, Collections.singleton(appId)).mttrs;
     List<MttrDTO> expected = new ArrayList<>(5);
 
     MttrDTO dto = new MttrDTO();
@@ -363,7 +361,7 @@ public class PolicyViolationAggregationServiceTest
   // simulate multiple runs of getMttrs at different points in time to ensure that the
   // PolicyViolationResolutionState mechanism is working correctly
   @Test
-  public void testGetMttrs_GenerateAggregationsInMultipleBatches() {
+  public void testGetChartData_Mttrs_GenerateAggregationsInMultipleBatches() {
     LocalDate today = new LocalDate();
 
     Application application = tempEntity.newApplicationWithParent("aggregation-generation-app");
@@ -380,7 +378,7 @@ public class PolicyViolationAggregationServiceTest
       // tell joda time to pretend we are at the beginning of the month 2 months ago
       DateTimeUtils.setCurrentMillisFixed(today.minusMonths(2).withDayOfMonth(1).toDateTimeAtStartOfDay().getMillis());
 
-      results1 = service.getMttrs(null, Collections.singleton(appId));
+      results1 = service.getChartData(null, Collections.singleton(appId)).mttrs;
     }
     finally {
       // tell joda time to come back to the present
@@ -411,7 +409,7 @@ public class PolicyViolationAggregationServiceTest
     // the violation that first appeared in eval1 continues to appear in eval2 but disappears in eval3
     tempEntity.newPolicyViolation(eval2, policy1);
 
-    List<MttrDTO> results2 = service.getMttrs(null, Collections.singleton(appId));
+    List<MttrDTO> results2 = service.getChartData(null, Collections.singleton(appId)).mttrs;
     List<MttrDTO> expected2 = new ArrayList<>(3);
 
     dto = new MttrDTO();
@@ -442,7 +440,7 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
-  public void testGetMttrs_GenerateAggregationsWithMultipleEvaluationsPerMonth() {
+  public void testGetChartData_Mttrs_GenerateAggregationsWithMultipleEvaluationsPerMonth() {
     LocalDate today = new LocalDate();
 
     Application application = tempEntity.newApplicationWithParent("aggregation-generation-app");
@@ -460,7 +458,7 @@ public class PolicyViolationAggregationServiceTest
     tempEntity.newPolicyViolation(eval1, policy1);
     tempEntity.newPolicyViolation(eval2, policy1);
 
-    List<MttrDTO> results = service.getMttrs(null, Collections.singleton(appId));
+    List<MttrDTO> results = service.getChartData(null, Collections.singleton(appId)).mttrs;
     List<MttrDTO> expected = new ArrayList<>(1);
 
     MttrDTO dto = new MttrDTO();
@@ -476,7 +474,7 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
-  public void testGetAverages_AggregationsAlreadyExist() {
+  public void testGetChartData_Averages_AggregationsAlreadyExist() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -484,13 +482,13 @@ public class PolicyViolationAggregationServiceTest
       tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
     }
 
-    SuccessMetricsAveragesDTO result = service.getAverages(new HashSet<String>(), applicationIds);
+    SuccessMetricsAveragesDTO result = service.getChartData(new HashSet<String>(), applicationIds).averages;
 
     assertAggregationAverageHistory(result);
   }
 
   @Test
-  public void testGetAverages_AggregationsAlreadyExist_ByOrganizationId() {
+  public void testGetChartData_Averages_AggregationsAlreadyExist_ByOrganizationId() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -513,26 +511,28 @@ public class PolicyViolationAggregationServiceTest
     tempEntity.newPolicyEvaluation(appId2, stageType.getId(), "app2Eval2", app2Eval2Date);
     tempEntity.newPolicyViolation(app2Eval1, app2Policy);
 
-    SuccessMetricsAveragesDTO result = service.getAverages(Collections.singleton(org.getId()), new HashSet<String>());
+    SuccessMetricsAveragesDTO result = service
+        .getChartData(Collections.singleton(org.getId()), new HashSet<String>()).averages;
 
     assertAggregationAverageHistory(result);
   }
 
   @Test
-  public void testGetAverages_AggregationsAlreadyExist_SpecificApplicationId() {
+  public void testGetChartData_Averages_AggregationsAlreadyExist_SpecificApplicationId() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
     String appId = PolicyViolationAggregationDataHelper.APPLICATION_IDS[2];
 
     Organization org = tempEntity.newOrganization();
     tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
 
-    SuccessMetricsAveragesDTO result = service.getAverages(new HashSet<String>(), Collections.singleton(appId));
+    SuccessMetricsAveragesDTO result = service
+        .getChartData(new HashSet<String>(), Collections.singleton(appId)).averages;
 
     assertAggregationAverageHistoryForThirdApp(result);
   }
 
   @Test
-  public void testGetAverages_EmptyArguments() {
+  public void testGetChartData_Averages_EmptyArguments() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -540,13 +540,13 @@ public class PolicyViolationAggregationServiceTest
       tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
     }
 
-    SuccessMetricsAveragesDTO result = service.getAverages(new HashSet<String>(), new HashSet<String>());
+    SuccessMetricsAveragesDTO result = service.getChartData(new HashSet<String>(), new HashSet<String>()).averages;
 
     assertAggregationAverageHistory(result);
   }
 
   @Test
-  public void testGetAverages_NullArguments() {
+  public void testGetChartData_Averages_NullArguments() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -554,24 +554,24 @@ public class PolicyViolationAggregationServiceTest
       tempEntity.newApplicationWithSpecificId(appId, "app-" + appId, appId, org.getId());
     }
 
-    SuccessMetricsAveragesDTO result = service.getAverages(null, null);
+    SuccessMetricsAveragesDTO result = service.getChartData(null, null).averages;
 
     assertAggregationAverageHistory(result);
   }
 
   @Test
-  public void testGetAverages_NoData() {
+  public void testGetChartData_Averages_NoData() {
     Application application = tempEntity.newApplicationWithParent("no-evals-app");
-    DateTimeUtils.setCurrentMillisFixed(DateTime.now().minusMonths(3).getMillis());
+    DateTimeUtils.setCurrentMillisFixed(now().minusMonths(3).getMillis());
 
-    SuccessMetricsAveragesDTO result = service.getAverages(null, Collections.singleton(application.getId()));
+    SuccessMetricsAveragesDTO result = service.getChartData(null, Collections.singleton(application.getId())).averages;
 
     assertThat(result.averageDiscoveredPolicyViolations, hasSize(0));
     assertThat(result.activeApplicationCount, is(0));
   }
 
   @Test
-  public void testGetAverages_ExcludesDevelopmentStage() {
+  public void testGetChartData_Averages_ExcludesDevelopmentStage() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
     Organization org = tempEntity.newOrganization();
@@ -581,7 +581,7 @@ public class PolicyViolationAggregationServiceTest
 
     Application application = tempEntity.newApplicationWithParent("averages-app");
     String appId = application.getId();
-    
+
     Policy policy = tempEntity.newPolicy(appId, "policy", 5);
     Date fiveMonthsAgo = new LocalDate().withDayOfMonth(1).minusMonths(5).toDate();
 
@@ -589,148 +589,105 @@ public class PolicyViolationAggregationServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(appId, StageTypes.DEVELOP.getId(), "eval", fiveMonthsAgo);
     tempEntity.newPolicyViolation(eval, policy);
 
-    SuccessMetricsAveragesDTO result = service.getAverages(new HashSet<String>(), new HashSet<String>());
+    SuccessMetricsAveragesDTO result = service.getChartData(new HashSet<String>(), new HashSet<String>()).averages;
 
     assertAggregationAverageHistory(result);
   }
 
   @Test
-  public void testPoCMode() {
+  public void testGetChartData_Averages_UpdateAggregationsAfterSeveralMonths() {
+    Application app = tempEntity.newApplicationWithParent("appId");
+    String stageId = StageTypes.BUILD.getId();
+    DateTime now = now();
+    tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan1", now.minusMonths(3).toDate());
+    setTimeTo(now.minusMonths(2));
+
+    SuccessMetricsAveragesDTO result = service.getChartData(null, null).averages;
+
+    LocalDate aggregationStart = now.minusMonths(3).withDayOfMonth(1).toLocalDate();
+    AverageDiscoveredPolicyViolationsDTO expectedFirstMonth = createAverageMonth(aggregationStart, 1, 0);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(expectedFirstMonth));
+
+    tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan2", now.minusMonths(2).toDate());
+    tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan3", now.toDate());
+
+    setTimeTo(now.plusDays(1));
+
+    result = service.getChartData(null, null).averages;
+
+    AverageDiscoveredPolicyViolationsDTO expectedSecondMonth = createAverageMonth(aggregationStart.plusMonths(1), 1, 0);
+    AverageDiscoveredPolicyViolationsDTO expectedThirdMonth = createAverageMonth(aggregationStart.plusMonths(2), 0, 0);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
+        asList(expectedFirstMonth, expectedSecondMonth, expectedThirdMonth));
+  }
+
+
+  @Test
+  public void testIncludeLatestData() {
+    LocalDate startOfMonth = now().withDayOfMonth(1).toLocalDate();
     Policy policy = tempEntity.newPolicy("some policy");
-    LocalDate fakeNow = setTimeTo(LocalDate.now().withDayOfMonth(15));
     Application app = tempEntity.newApplicationWithParent("appy");
 
+    DateTime fakeNow = setTimeTo(now());
     String stageTypeId = StageTypes.RELEASE.getId();
     PolicyEvaluation firstEval = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "scan1", fakeNow.toDate());
     tempEntity.newPolicyViolation(firstEval, policy, "arti", "fact", "1", "artifact1hash", null);
 
-    // In PoC mode aggregations are gathered for full days instead of months.
-    // Since the first evaluation happened today, we should get a blank result at this point.
-    SuccessMetricsAveragesDTO result = service.getAverages(null, null);
+    // With 'on load' reports we should get the violation data immediately.
+    fakeNow = setTimeTo(fakeNow.plusSeconds(1));
+    SuccessMetricsAveragesDTO result = service.getChartData(null, null, true).averages;
 
-    assertThat(result.activeApplicationCount, is(0));
-
-    fakeNow = setTimeTo(fakeNow.plusDays(1));
-    // Now that we have a full day's worth of evaluation data, we should see it in results.
-    result = service.getAverages(null, null);
-
-    AverageDiscoveredPolicyViolationsDTO firstMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 1, 1);
+    AverageDiscoveredPolicyViolationsDTO firstMonthAverage = createAverageMonth(startOfMonth, 1, 1);
     assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(firstMonthAverage));
 
-    // The aggregations should not change just because some other app received its first evaluation.
+    // We should see new violations for the same app.
+    fakeNow = setTimeTo(fakeNow.plusSeconds(1));
+    PolicyEvaluation secondEval = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "scan1", fakeNow.toDate());
+    tempEntity.newPolicyViolation(secondEval, policy, "arti", "fact", "2", "artifact2hash", null);
+    setTimeTo(fakeNow.plusSeconds(1));
+    result = service.getChartData(null, null, true).averages;
+    firstMonthAverage = createAverageMonth(startOfMonth, 2, 2);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(firstMonthAverage));
+
+    // We should also see violations for a different app.
+    fakeNow = setTimeTo(fakeNow.plusSeconds(1));
     Application anotherApp = tempEntity.newApplicationWithParent("poppy");
     PolicyEvaluation firstEvalForAnotherApp = tempEntity
         .newPolicyEvaluation(anotherApp.getId(), stageTypeId, "anotherScan", fakeNow.toDate());
-    tempEntity.newPolicyViolation(firstEvalForAnotherApp, policy, "another", "fact", "1", "anotherfact1hash", null);
-
-    result = service.getAverages(null, null);
-
+    tempEntity.newPolicyViolation(firstEvalForAnotherApp, policy, "arti", "fact", "3", "artifact3hash", null);
+    fakeNow = setTimeTo(fakeNow.plusSeconds(1));
+    result = service.getChartData(null, null, true).averages;
+    firstMonthAverage = createAverageMonth(startOfMonth, 3, 1.5);
     assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(firstMonthAverage));
 
-    // Aggregations should be updated for all applications on day rollover.
-    PolicyEvaluation secondEval = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "scan2", fakeNow.toDate());
-    tempEntity.newPolicyViolation(secondEval, policy, "arti", "fact", "2", "artifact2hash", null);
-    fakeNow = setTimeTo(fakeNow.plusDays(1));
+    // Make sure that without the flag we get nothing.
+    result = service.getChartData(null, null, false).averages;
+    assertThat(result.activeApplicationCount, is(0));
 
-    result = service.getAverages(null, null);
+    // Now roll over to the next month.
+    fakeNow = setTimeTo(now().plusMonths(1).withDayOfMonth(1));
+    startOfMonth = startOfMonth.plusMonths(1);
 
-    AverageDiscoveredPolicyViolationsDTO updatedFirstMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 3,
-        1.5);
-    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(updatedFirstMonthAverage));
+    // We should see first month's data without the flag now.
+    result = service.getChartData(null, null, false).averages;
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(firstMonthAverage));
 
-    // Run an evaluation in month 2.
-    fakeNow = setTimeTo(fakeNow.plusMonths(1).withDayOfMonth(1));
-    PolicyEvaluation thirdEval = tempEntity
-        .newPolicyEvaluation(app.getId(), stageTypeId, "scan3", fakeNow.toDate());
-    tempEntity.newPolicyViolation(thirdEval, policy, "arti", "fact", "3", "artifact3hash", null);
+    // With the flag on, we should also get results for today (none right now).
+    result = service.getChartData(null, null, true).averages;
+    AverageDiscoveredPolicyViolationsDTO emptyMonth = createAverageMonth(startOfMonth, 0, 0);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, asList(firstMonthAverage, emptyMonth));
 
-    // The only evaluation this month so far happened today, on the 1st day of the month.
-    // Since we're lacking a full day's worth of data, there should be no results for this month yet.
-    result = service.getAverages(null, null);
+    // New evaluations should show up if the flag is on.
+    PolicyEvaluation thirdEval = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "scan2", fakeNow.toDate());
+    tempEntity.newPolicyViolation(thirdEval, policy, "arti", "fact", "4", "artifact4hash", null);
+    setTimeTo(fakeNow.plusSeconds(1));
+    result = service.getChartData(null, null, true).averages;
+    AverageDiscoveredPolicyViolationsDTO secondMonthAverage = createAverageMonth(startOfMonth, 1, 1);
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, asList(firstMonthAverage, secondMonthAverage));
 
-    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(updatedFirstMonthAverage));
-
-    fakeNow = setTimeTo(fakeNow.plusDays(12));
-
-    // The third evaluation should show up in the results now
-    result = service.getAverages(null, null);
-
-    AverageDiscoveredPolicyViolationsDTO secondMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 1, 1);
-    assertAverageDTOs(result.averageDiscoveredPolicyViolations, asList(updatedFirstMonthAverage, secondMonthAverage));
-
-    PolicyEvaluation fourthEval = tempEntity
-        .newPolicyEvaluation(app.getId(), stageTypeId, "scan4", fakeNow.toDate());
-    tempEntity.newPolicyViolation(fourthEval, policy, "arti", "fact", "4", "artifact4hash", null);
-    fakeNow = setTimeTo(fakeNow.plusDays(1));
-
-    // The results should include all updates up to current day.
-    result = service.getAverages(null, null);
-    AverageDiscoveredPolicyViolationsDTO updatedSecondMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 2,
-        2);
-    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
-        asList(updatedFirstMonthAverage, updatedSecondMonthAverage));
-
-    // Check that data does not change just because we're out of PoC mode.
-    fakeNow = fakeNow.plusMonths(1).withDayOfMonth(1);
-
-    result = service.getAverages(null, null);
-    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
-        asList(updatedFirstMonthAverage, updatedSecondMonthAverage));
-
-    // Because we're out of PoC mode, evaluations in current month should not show up.
-    PolicyEvaluation fifthEval = tempEntity
-        .newPolicyEvaluation(app.getId(), stageTypeId, "scan5", fakeNow.toDate());
-    tempEntity.newPolicyViolation(fifthEval, policy, "arti", "fact", "5", "artifact5hash", null);
-
-    setTimeTo(fakeNow.plusDays(1));
-    result = service.getAverages(null, null);
-
-    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
-        asList(updatedFirstMonthAverage, updatedSecondMonthAverage));
-
-    // Make sure that aggregations are updated when the month rolls over.
-    AverageDiscoveredPolicyViolationsDTO thirdMonthAverage = createAverageMonth(fakeNow.withDayOfMonth(1), 1, 1);
-
-    setTimeTo(fakeNow.plusMonths(1).withDayOfMonth(1));
-    result = service.getAverages(null, null);
-
-    assertAverageDTOs(result.averageDiscoveredPolicyViolations,
-        asList(updatedFirstMonthAverage, updatedSecondMonthAverage, thirdMonthAverage));
-  }
-
-  @Test
-  public void testUpgradingFromReleaseWithoutPoCModeToReleaseWithPoCModeWithinPoCModeWindow() {
-    LocalDate startOfLastMonth = new LocalDate().minusMonths(1).withDayOfMonth(1);
-
-    // The user had previously run a version of IQ with Success Metrics but without PoC mode.
-    // The first evaluation happened last month and normal monthly aggregation has been created for that month.
-    String appId = tempEntity.newApplicationWithParent("app").getId();
-    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(appId, Stage.ID_RELEASE, "scan1", startOfLastMonth.toDate());
-    Policy policy = tempEntity.newPolicy("policy");
-    tempEntity.newPolicyViolation(eval, policy, 5, PolicyThreatCategory.OTHER);
-    tempEntity.newPolicyViolationAggregation(appId, startOfLastMonth.toDate(), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 1, 0, //
-        1);
-
-    // The user has upgraded to IQ with PoC mode while in the PoC window (second month).
-    // He should now see results being updated for this month.
-    LocalDate startOfThisMonth = setTimeTo(startOfLastMonth.plusMonths(1));
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId, Stage.ID_RELEASE, "scan2", startOfThisMonth.toDate());
-    tempEntity.newPolicyViolation(eval2, policy, 5, PolicyThreatCategory.OTHER);
-    setTimeTo(startOfThisMonth.plusDays(1));
-
-    AverageDiscoveredPolicyViolationsDTO averageLastMonth = createAverageMonth(startOfLastMonth, 1, 1);
-    AverageDiscoveredPolicyViolationsDTO averageThisMonth = createAverageMonth(startOfThisMonth, 1, 1);
-
-    SuccessMetricsAveragesDTO result = service.getAverages(null, null);
-    assertAverageDTOs(result.averageDiscoveredPolicyViolations, asList(averageLastMonth, averageThisMonth));
+    // They should not show up without the flag though.
+    result = service.getChartData(null, null, false).averages;
+    assertAverageDTOs(result.averageDiscoveredPolicyViolations, singletonList(firstMonthAverage));
   }
 
   private AverageDiscoveredPolicyViolationsDTO createAverageMonth(LocalDate localDate,
@@ -753,7 +710,7 @@ public class PolicyViolationAggregationServiceTest
     Set<String> applicationIds = PolicyViolationAggregationDataHelper
         .createApplicationCountAggregationHistory(tempEntity);
 
-    ApplicationCountsDTO result = service.getApplicationCounts(null, applicationIds);
+    ApplicationCountsDTO result = service.getChartData(null, applicationIds).applicationCounts;
 
     assertApplicationCountsDTO(result, makeAggregationHistoryCountsDTO());
   }
@@ -762,7 +719,8 @@ public class PolicyViolationAggregationServiceTest
   public void testGetApplicationsCounts_AggregationsAlreadyExist_ByOrganizationId() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
-    ApplicationCountsDTO result = service.getApplicationCounts(Collections.singleton(PolicyViolationAggregationDataHelper.ORG_ID), null);
+    ApplicationCountsDTO result = service
+        .getChartData(Collections.singleton(PolicyViolationAggregationDataHelper.ORG_ID), null).applicationCounts;
 
     assertApplicationCountsDTO(result, makeAggregationHistoryCountsDTO());
   }
@@ -772,7 +730,7 @@ public class PolicyViolationAggregationServiceTest
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
     String appId = PolicyViolationAggregationDataHelper.APPLICATION_IDS[2];
 
-    ApplicationCountsDTO result = service.getApplicationCounts(null, Collections.singleton(appId));
+    ApplicationCountsDTO result = service.getChartData(null, Collections.singleton(appId)).applicationCounts;
 
     ApplicationCountsDTO expected = new ApplicationCountsDTO();
 
@@ -793,28 +751,29 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
-  public void testGetApplicationCounts_EmptyArguments() {
+  public void testGetChartData_ApplicationCounts_EmptyArguments() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
-    ApplicationCountsDTO result = service.getApplicationCounts(new HashSet<String>(), new HashSet<String>());
+    ApplicationCountsDTO result = service.getChartData(new HashSet<String>(), new HashSet<String>()).applicationCounts;
 
     assertApplicationCountsDTO(result, makeAggregationHistoryCountsDTO());
   }
 
   @Test
-  public void testGetApplicationCounts_NullArguments() {
+  public void testGetChartData_ApplicationCounts_NullArguments() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
-    ApplicationCountsDTO result = service.getApplicationCounts(null, null);
+    ApplicationCountsDTO result = service.getChartData(null, null).applicationCounts;
 
     assertApplicationCountsDTO(result, makeAggregationHistoryCountsDTO());
   }
 
   @Test
-  public void testGetApplicationCounts_NoData() {
+  public void testGetChartData_ApplicationCounts_NoData() {
     Application application = tempEntity.newApplicationWithParent("no-evals-app");
 
-    ApplicationCountsDTO result = service.getApplicationCounts(null, Collections.singleton(application.getId()));
+    ApplicationCountsDTO result = service
+        .getChartData(null, Collections.singleton(application.getId())).applicationCounts;
 
     ApplicationCountsDTO expected = new ApplicationCountsDTO();
     expected.activeApplications = 0;
@@ -824,7 +783,7 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
-  public void testGetApplicationCounts_ExcludesDevelopmentStage() {
+  public void testGetChartData_ApplicationCounts_ExcludesDevelopmentStage() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
     Application application = tempEntity.newApplicationWithParent("counts-app");
@@ -837,13 +796,35 @@ public class PolicyViolationAggregationServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(appId, StageTypes.DEVELOP.getId(), "eval", fiveMonthsAgo);
     tempEntity.newPolicyViolation(eval, policy);
 
-    ApplicationCountsDTO result = service.getApplicationCounts(new HashSet<String>(), new HashSet<String>());
+    ApplicationCountsDTO result = service.getChartData(new HashSet<String>(), new HashSet<String>()).applicationCounts;
     ApplicationCountsDTO expected = makeAggregationHistoryCountsDTO();
-  
+
     // total should increase but nothing else
     expected.totalApplications++;
 
     assertApplicationCountsDTO(result, expected);
+  }
+
+  @Test
+  public void testGetChartData_lastUpdatedTimestamp_includingLatestData() {
+    PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
+
+    Date result = service
+        .getChartData(Collections.<String>emptySet(), Collections.<String>emptySet(), true).lastUpdated;
+
+    int millisFromNow = (int) (new Date().getTime() - result.getTime());
+    assertThat(millisFromNow, lessThan(5000));
+  }
+
+  @Test
+  public void testGetChartData_lastUpdatedTimestamp_monthlyData() {
+    PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
+
+    Date result = service
+        .getChartData(Collections.<String>emptySet(), Collections.<String>emptySet(), false).lastUpdated;
+
+    Date startOfThisMonth = new LocalDate().withDayOfMonth(1).toDate();
+    assertThat(result, equalTo(startOfThisMonth));
   }
 
   /**
@@ -1365,8 +1346,8 @@ public class PolicyViolationAggregationServiceTest
     return localDate.toDateTimeAtStartOfDay().toDate();
   }
 
-  private LocalDate setTimeTo(LocalDate fakeNow) {
-    DateTimeUtils.setCurrentMillisFixed(fakeNow.toDateTimeAtStartOfDay().getMillis());
+  private DateTime setTimeTo(DateTime fakeNow) {
+    DateTimeUtils.setCurrentMillisFixed(fakeNow.getMillis());
     return fakeNow;
   }
 }

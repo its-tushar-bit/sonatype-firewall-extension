@@ -30,6 +30,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.ElementsCollection;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,8 +41,7 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-
-import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT_MONTHLY;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -157,7 +158,9 @@ public class SuccessMetricsChartsTest
     successMetricsChartsPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
     SummaryStatementTile.title().shouldHave(text("Test"));
-    SummaryStatementTile.averages().shouldHave(text("Over the last 4 months, Lifecycle evaluated 2 applications."));
+    String startOfMonth = DateTimeFormat.forPattern("MMM d, YYYY").print(LocalDate.now().withDayOfMonth(1));
+    SummaryStatementTile.averages().shouldHave(
+        text("Over the last 4 months, Lifecycle evaluated 2 applications. Last updated " + startOfMonth + "."));
   }
 
   @Test
@@ -285,6 +288,6 @@ public class SuccessMetricsChartsTest
 
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
     successMetricsChartsPage.should(appear);
-    successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
+    successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT_MONTHLY);
   }
 }

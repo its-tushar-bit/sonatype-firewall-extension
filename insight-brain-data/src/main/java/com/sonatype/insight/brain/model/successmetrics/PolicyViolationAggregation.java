@@ -352,4 +352,83 @@ public class PolicyViolationAggregation
   public void setEvaluationCount(int evaluationCount) {
     this.evaluationCount = evaluationCount;
   }
+  
+  public int getDiscoveredCount(PolicyThreatCategory threatCategory, ThreatLevel threatLevel) {
+    switch (threatCategory) {
+      case SECURITY:
+        return getDiscoveredCountSecurity(threatLevel);
+      case LICENSE:
+        return getDiscoveredCountLicense(threatLevel);
+      case QUALITY:
+        return getDiscoveredCountQuality(threatLevel);
+      case OTHER:
+        return getDiscoveredCountOther(threatLevel);
+      default:
+        throw new IllegalArgumentException("Unsupported Threat Category: " + threatCategory);
+    }
+  }
+
+  private int getDiscoveredCountSecurity(ThreatLevel threatLevel) {
+    switch (threatLevel) {
+      case LOW:
+        return discoveredCountSecurityLowThreat;
+      case MODERATE:
+        return discoveredCountSecurityModerateThreat;
+      case SEVERE:
+        return discoveredCountSecuritySevereThreat;
+      case CRITICAL:
+        return discoveredCountSecurityCriticalThreat;
+      default:
+        throw new IllegalArgumentException("Unsupported Threat Level: " + threatLevel);
+    }
+  }
+
+  public int getDiscoveredCountLicense(ThreatLevel threatLevel) {
+    switch (threatLevel) {
+      case LOW:
+        return discoveredCountLicenseLowThreat;
+      case MODERATE:
+        return discoveredCountLicenseModerateThreat;
+      case SEVERE:
+        return discoveredCountLicenseSevereThreat;
+      case CRITICAL:
+        return discoveredCountLicenseCriticalThreat;
+      default:
+        throw new IllegalArgumentException("Unsupported Threat Level: " + threatLevel);
+    }
+  }
+
+  public int getDiscoveredCountQuality(ThreatLevel threatLevel) {
+    switch (threatLevel) {
+      case LOW:
+        return discoveredCountQualityLowThreat;
+      case MODERATE:
+        return discoveredCountQualityModerateThreat;
+      case SEVERE:
+        return discoveredCountQualitySevereThreat;
+      case CRITICAL:
+        return discoveredCountQualityCriticalThreat;
+      default:
+        throw new IllegalArgumentException("Unsupported Threat Level: " + threatLevel);
+    }
+  }
+
+  public int getDiscoveredCountOther(ThreatLevel threatLevel) {
+    switch (threatLevel) {
+      case LOW:
+        return discoveredCountOtherLowThreat;
+      case MODERATE:
+        return discoveredCountOtherModerateThreat;
+      case SEVERE:
+        return discoveredCountOtherSevereThreat;
+      case CRITICAL:
+        return discoveredCountOtherCriticalThreat;
+      default:
+        throw new IllegalArgumentException("Unsupported Threat Level: " + threatLevel);
+    }
+  }
+  
+  public int getEvaluationCount() {
+    return evaluationCount;
+  }
 }

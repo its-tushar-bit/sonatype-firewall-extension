@@ -382,5 +382,19 @@ var PolicyViolationAggregationResourceMockData = {
         {componentDisplayName: 'org.mortbay.jetty : jetty : 6.1.15', count: 1}
       ]
     };
+  },
+  getFullChartData: function() {
+    return {
+      mttrs: PolicyViolationAggregationResourceMockData.getMttrData(),
+      averages: PolicyViolationAggregationResourceMockData.getAverages(),
+      componentCounts: PolicyViolationAggregationResourceMockData.getComponentCountsData()
+    };
+  },
+  getPartialChartData: function() {
+    return {
+      mttrs: PolicyViolationAggregationResourceMockData.getPartialMttrData(),
+      averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
+      componentCounts: PolicyViolationAggregationResourceMockData.getPartialComponentCountsData()
+    };
   }
 };

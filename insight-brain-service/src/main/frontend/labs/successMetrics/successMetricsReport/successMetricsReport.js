@@ -44,17 +44,16 @@ function successMetricsReportController($q, $state, $stateParams, systemConfigur
 
       if (vm.successMetricsReport) {
         return $q.all([
-          successMetricsDataService.getApplicationCountsData(vm.successMetricsReport.scope),
-          successMetricsDataService.getMttrData(vm.successMetricsReport.scope),
-          successMetricsDataService.getAveragesData(vm.successMetricsReport.scope),
+          successMetricsDataService.getChartData(
+              { ...vm.successMetricsReport.scope, includeLatestData: vm.successMetricsReport.includeLatestData }),
           successMetricsDataService.getComponentCountsData(vm.successMetricsReport.scope)
         ]);
       }
       else {
         return $q.reject(`Could not find report with id ${successMetricsReportId}`);
       }
-    }).then(function([applicationCountsData, mttrData, averagesData, componentCountsData]) {
-      angular.extend(vm, { applicationCountsData, mttrData, averagesData, componentCountsData });
+    }).then(function([{applicationCountsData, mttrData, averagesData, lastUpdated}, componentCountsData]) {
+      angular.extend(vm, { applicationCountsData, mttrData, averagesData, lastUpdated, componentCountsData });
 
       vm.activeApplicationCount = applicationCountsData.activeApplications;
       vm.isSingleApplicationReport = !!(vm.successMetricsReport && vm.successMetricsReport.scope.applicationIds &&

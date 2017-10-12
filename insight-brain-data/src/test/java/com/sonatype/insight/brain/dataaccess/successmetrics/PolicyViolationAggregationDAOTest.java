@@ -128,7 +128,7 @@ public class PolicyViolationAggregationDAOTest
 
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    List<MttrMonth> results = dao.getMttrMonthlyAverages(applicationIds);
+    List<MttrMonth> results = dao.getMttrMonthlyAverages(applicationIds, false);
 
     MttrMonth[] expectedResults = {
         new MttrMonth(toDate(beginningOfMonthLastYear), 1000L, 3000L, 2000L, 2000L, 1, 1, 2, 1),
@@ -152,19 +152,50 @@ public class PolicyViolationAggregationDAOTest
   }
 
   @Test
+  public void testGetMttrMonthlyAverages_includeLatestData() {
+    LocalDate today = new LocalDate();
+    LocalDate beginningOfMonthLastYear = today.withDayOfMonth(1).minusYears(1);
+
+    Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
+
+    List<MttrMonth> results = dao.getMttrMonthlyAverages(applicationIds, true);
+
+    MttrMonth[] expectedResults = {
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(1)), 2500L, 2500L, null, null, 2, 1, 0, 0),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(2)), null, null, null, null, 0, 0, 0, 0),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(3)), 1000L, 1000L, null, null, 5, 3, 0, 0),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(4)), null, null, null, null, 0, 0, 0, 0),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(5)), 5000L, null, null, 5000L, 2, 0, 0, 1),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(6)), 16000L, 16000L, 16000L, 16000L, 3, 1, 2, 52),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(7)), null, null, null, null, 0, 0, 0, 0),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(8)), 5000L, 10000L, 15000L, 20000L, 1, 1, 1, 3),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(9)), 50000L, 25000L, null, null, 3, 3, 0, 0),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(10)), null, null, 5000L, null, 0, 0, 1, 0),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(11)), 7000L, 8000L, 9000L, 10000L, 4, 4, 4, 4),
+        new MttrMonth(toDate(beginningOfMonthLastYear.plusMonths(12)), 4000L, 5000L, 6000L, 7000L, 2, 2, 2, 2)
+    };
+
+    // check that only the most recent 12 months are included, including current month
+    assertThat(results.size(), is(12));
+    for (int i = 0; i < 12; i++) {
+      assertMttrMonth(results.get(i), expectedResults[i]);
+    }
+  }
+
+  @Test
   public void testGetMttrMonthlyAverages_NoAggregations() {
     Set<String> applicationIds = new HashSet<>();
     applicationIds.add("1");
     applicationIds.add("2");
 
-    List<MttrMonth> results = dao.getMttrMonthlyAverages(applicationIds);
+    List<MttrMonth> results = dao.getMttrMonthlyAverages(applicationIds, false);
 
     assertThat(results, hasSize(0));
   }
 
   @Test
   public void testGetMttrMonthlyAverages_EmptyApplicationIdSet() {
-    List<MttrMonth> results = dao.getMttrMonthlyAverages(new HashSet<String>());
+    List<MttrMonth> results = dao.getMttrMonthlyAverages(new HashSet<String>(), false);
 
     assertThat(results, hasSize(0));
   }
@@ -214,7 +245,7 @@ public class PolicyViolationAggregationDAOTest
         asList(0, 0, 0, 0), //
         0);
 
-    List<AverageMonth> results = dao.getMonthlyAverages(getApplicationIds(testApp1, testApp2));
+    List<AverageMonth> results = dao.getMonthlyAverages(getApplicationIds(testApp1, testApp2), false);
 
     assertThat(results, hasSize(3));
     assertThat(results.get(0).timePeriodStart, is(aggregationStart.toDate()));
@@ -259,7 +290,42 @@ public class PolicyViolationAggregationDAOTest
           asList(4, 5, 6, 7), //
           1);
     }
-    List<AverageMonth> results = dao.getMonthlyAverages(getApplicationIds(testApp));
+    List<AverageMonth> results = dao.getMonthlyAverages(getApplicationIds(testApp), false);
+
+    assertThat(results, hasSize(12));
+    for (int i = 0; i < 12; i++) {
+      AverageMonth month = results.get(i);
+      assertThat(month.timePeriodStart, is(aggregationStart.plusMonths(i).toDate()));
+      assertThat(month.evaluationCount, is(1));
+      assertAverages(month.security, 1, 2, 3, 4);
+      assertAverages(month.license, 2, 3, 4, 5);
+      assertAverages(month.quality, 3, 4, 5, 6);
+      assertAverages(month.other, 4, 5, 6, 7);
+    }
+  }
+
+  @Test
+  public void testGetMonthlyAverages_onlyLast12AggregationsCounted_includingCurrentMonthForLatestData() {
+    LocalDate today = new LocalDate();
+    // Note the aggregation start date is 1 month later than in the test above.
+    LocalDate aggregationStart = today.withDayOfMonth(1).minusMonths(11);
+
+    Application testApp = tempEntity.newApplication(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newPolicyViolationAggregation(testApp.getId(), aggregationStart.minusMonths(1), //
+        asList(2, 3, 4, 5), //
+        asList(3, 4, 5, 6), //
+        asList(4, 5, 6, 7), //
+        asList(5, 6, 7, 8), //
+        5);
+    for (int i = 0; i < 12; i++) {
+      tempEntity.newPolicyViolationAggregation(testApp.getId(), aggregationStart.plusMonths(i), //
+          asList(1, 2, 3, 4), //
+          asList(2, 3, 4, 5), //
+          asList(3, 4, 5, 6), //
+          asList(4, 5, 6, 7), //
+          1);
+    }
+    List<AverageMonth> results = dao.getMonthlyAverages(getApplicationIds(testApp), true);
 
     assertThat(results, hasSize(12));
     for (int i = 0; i < 12; i++) {
@@ -279,14 +345,14 @@ public class PolicyViolationAggregationDAOTest
     applicationIds.add("1");
     applicationIds.add("2");
 
-    List<AverageMonth> results = dao.getMonthlyAverages(applicationIds);
+    List<AverageMonth> results = dao.getMonthlyAverages(applicationIds, false);
 
     assertThat(results, hasSize(0));
   }
 
   @Test
   public void testGetMonthlyAverages_EmptyApplicationIdSet() {
-    List<AverageMonth> monthlyAverages = dao.getMonthlyAverages(new HashSet<String>());
+    List<AverageMonth> monthlyAverages = dao.getMonthlyAverages(new HashSet<String>(), false);
 
     assertThat(monthlyAverages, hasSize(0));
   }
@@ -295,7 +361,7 @@ public class PolicyViolationAggregationDAOTest
   public void testGetActiveApplicationCount() {
     Set<String> applicationIds = PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    int result = dao.getActiveApplicationCount(applicationIds);
+    int result = dao.getActiveApplicationCount(applicationIds, false);
 
     assertThat(result, is(4));
   }
@@ -304,7 +370,7 @@ public class PolicyViolationAggregationDAOTest
   public void testGetActiveApplicationCount_EmptyApplicationIdSet() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    int result = dao.getActiveApplicationCount(new HashSet<String>());
+    int result = dao.getActiveApplicationCount(new HashSet<String>(), false);
 
     assertThat(result, is(0));
   }
@@ -314,7 +380,7 @@ public class PolicyViolationAggregationDAOTest
     Set<String> applicationIds = PolicyViolationAggregationDataHelper
         .createApplicationCountAggregationHistory(tempEntity);
 
-    ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(applicationIds);
+    ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(applicationIds, false);
 
     assertThat(result.countAnyThreat, is(4));
     assertThat(result.countAnyCriticalThreat, is(3));
@@ -329,10 +395,29 @@ public class PolicyViolationAggregationDAOTest
   }
 
   @Test
+  public void testGetApplicationCountsByThreatByApplicationIds_IncludeLatestData() {
+    Set<String> applicationIds = PolicyViolationAggregationDataHelper
+        .createApplicationCountAggregationHistory(tempEntity);
+
+    ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(applicationIds, true);
+
+    assertThat(result.countAnyThreat, is(4));
+    assertThat(result.countAnyCriticalThreat, is(4));
+    assertThat(result.countSecurityThreat, is(4));
+    assertThat(result.countSecurityCriticalThreat, is(2));
+    assertThat(result.countLicenseThreat, is(4));
+    assertThat(result.countLicenseCriticalThreat, is(1));
+    assertThat(result.countQualityThreat, is(3));
+    assertThat(result.countQualityCriticalThreat, is(0));
+    assertThat(result.countOtherThreat, is(3));
+    assertThat(result.countOtherCriticalThreat, is(3));
+  }
+
+  @Test
   public void testGetApplicationCountsByThreatByApplicationIds_EmptyApplicationIdSet() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
-    ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(new HashSet<String>());
+    ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(new HashSet<String>(), false);
 
     assertThat(result.countAnyThreat, is(0));
     assertThat(result.countAnyCriticalThreat, is(0));
@@ -346,40 +431,10 @@ public class PolicyViolationAggregationDAOTest
     assertThat(result.countOtherCriticalThreat, is(0));
   }
 
-  @Test
-  public void testDeletePartialMonthsUpTo_OnlyDeletesForSuppliedAppId() {
-    LocalDate startOfLastMonth = LocalDate.now().withDayOfMonth(1).minusMonths(1);
-    LocalDate midOfLastMonth = startOfLastMonth.withDayOfMonth(15);
-    createPolicyViolationAggregation("app1", startOfLastMonth, midOfLastMonth);
-    createPolicyViolationAggregation("app2", startOfLastMonth, midOfLastMonth);
-
-    dao.deletePartialMonthsUpTo("app1", LocalDate.now());
-
-    assertThat(dao.getByApplicationId("app1"), hasSize(0));
-    assertThat(dao.getByApplicationId("app2"), hasSize(1));
-  }
-
-  @Test
-  public void testDeletePartialMonthsUpTo_OnlyDeletesPartialMonthsUpToSuppliedDate() {
-    LocalDate now = LocalDate.now();
-    LocalDate startOfLastMonth = now.minusMonths(1).withDayOfMonth(1);
-    LocalDate endOfLastMonth = startOfLastMonth.dayOfMonth().withMaximumValue();
-    LocalDate startOfThisMonth = startOfLastMonth.plusMonths(1);
-
-    createPolicyViolationAggregation("app1", startOfLastMonth, endOfLastMonth);
-    createPolicyViolationAggregation("app1", startOfThisMonth, now);
-
-    dao.deletePartialMonthsUpTo("app1", now);
-
-    List<PolicyViolationAggregation> results = dao.getByApplicationId("app1");
-    assertThat(results, hasSize(1));
-    assertThat(results.get(0).getTimePeriodEnd(), is(now.toDate()));
-  }
-
   private void createPolicyViolationAggregation(String appId, LocalDate periodStart, LocalDate periodEnd) {
     DescriptiveStatistics emptyStats = new DescriptiveStatistics();
 
-    tempEntity.newPolicyViolationAggregation(appId, periodStart.toDate(), periodEnd.toDate(),//
+    tempEntity.newPolicyViolationAggregation(appId, periodStart.toDate(), periodEnd != null ? periodEnd.toDate() : null,
         emptyStats, emptyStats, emptyStats, emptyStats, //
         0, 0, 0, 0, //
         0, 0, 0, 0, //

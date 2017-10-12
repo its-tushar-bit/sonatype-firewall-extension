@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.successmetrics;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -21,10 +21,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.joda.time.LocalDate;
-import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -35,20 +33,6 @@ import static org.junit.Assert.assertThat;
 public class PolicyViolationAggregationResourceTest
     extends AbstractResourceTest
 {
-  protected HttpRequest restRequest(String path) {
-    return super.restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH, path);
-  }
-
-  @Before
-  public void before() {
-    // create an evaluation long time ago to make sure we are not in PoC mode
-    Application app = tempEntity.newApplicationWithParent("app");
-    Date date = new LocalDate().minusMonths(22).toDate();
-    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy", 5);
-    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "oldEvaluation", date);
-    tempEntity.newPolicyViolation(eval, policy);
-  }
-
   @Test
   public void testGetMttrs() throws Exception {
     /*
@@ -82,13 +66,13 @@ public class PolicyViolationAggregationResourceTest
     // test that app ids are passed
     Map<String, Object> requestBody = new HashMap<>();
     requestBody.put("applicationIds", appIds);
-    HttpResponse response = restRequest(PolicyViolationAggregationResource.GET_MTTRS).body(requestBody).post();
+    HttpResponse response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
     assertMttrResponse(response, date1);
 
     // test that org ids are passed
     requestBody = new HashMap<>();
     requestBody.put("organizationIds", orgIds);
-    response = restRequest(PolicyViolationAggregationResource.GET_MTTRS).body(requestBody).post();
+    response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
     assertMttrResponse(response, date1);
   }
 
@@ -113,13 +97,13 @@ public class PolicyViolationAggregationResourceTest
     // test that app ids are passed
     Map<String, Object> requestBody = new HashMap<>();
     requestBody.put("applicationIds", appIds);
-    HttpResponse response = restRequest(PolicyViolationAggregationResource.GET_AVERAGES).body(requestBody).post();
+    HttpResponse response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
     assertAveragesResponse(response, startOfMonth);
 
     // test that org ids are passed
     requestBody = new HashMap<>();
     requestBody.put("organizationIds", orgIds);
-    response = restRequest(PolicyViolationAggregationResource.GET_AVERAGES).body(requestBody).post();
+    response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
     assertAveragesResponse(response, startOfMonth);
   }
 
@@ -143,27 +127,29 @@ public class PolicyViolationAggregationResourceTest
     // test that app ids are passed
     Map<String, Object> requestBody = new HashMap<>();
     requestBody.put("applicationIds", appIds);
-    HttpResponse response = restRequest(PolicyViolationAggregationResource.GET_APPLICATION_COUNTS).body(requestBody).post();
+    HttpResponse response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
     assertApplicationCountsResponse(response);
 
     // test that org ids are passed
     requestBody = new HashMap<>();
     requestBody.put("organizationIds", orgIds);
-    response = restRequest(PolicyViolationAggregationResource.GET_APPLICATION_COUNTS).body(requestBody).post();
+    response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
     assertApplicationCountsResponse(response);
   }
 
   private void assertMttrResponse(HttpResponse response, Date date) {
-    MttrDTO[] dtos = response.getBody(MttrDTO[].class);
+    SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
+    List<MttrDTO> dtos = chartDto.mttrs;
 
-    assertThat(dtos, arrayWithSize(1));
-    assertThat(dtos[0].timePeriodStart, is(date));
-    assertThat(dtos[0].mttrInSeconds, is(1));
-    assertThat(dtos[0].criticalMttrInSeconds, is(nullValue()));
+    assertThat(dtos, hasSize(1));
+    assertThat(dtos.get(0).timePeriodStart, is(date));
+    assertThat(dtos.get(0).mttrInSeconds, is(1));
+    assertThat(dtos.get(0).criticalMttrInSeconds, is(nullValue()));
   }
 
   private void assertAveragesResponse(HttpResponse response, Date date) {
-    SuccessMetricsAveragesDTO dto = response.getBody(SuccessMetricsAveragesDTO.class);
+    SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
+    SuccessMetricsAveragesDTO dto = chartDto.averages;
 
     assertThat(dto, is(notNullValue()));
     assertThat(dto.activeApplicationCount, is(1));
@@ -175,7 +161,8 @@ public class PolicyViolationAggregationResourceTest
   }
 
   private void assertApplicationCountsResponse(HttpResponse response) {
-    ApplicationCountsDTO dto = response.getBody(ApplicationCountsDTO.class);
+    SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
+    ApplicationCountsDTO dto = chartDto.applicationCounts;
 
     assertThat(dto, is(notNullValue()));
     assertThat(dto.totalApplications, is(1));

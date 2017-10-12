@@ -31,22 +31,32 @@ describe('summaryStatementTileSpec', function() {
     };
   }));
 
-  it('Initializes properly with active applications', function() {
-    var vm = getVm({ averagesData: { activeApplicationCount: 1 } });
+  it('Initializes properly with monthly report with active applications', function() {
+    var vm = getVm({
+      averagesData: { activeApplicationCount: 1 },
+      successMetricsReport: { includeLatestData: false }
+    });
+
     vm.$onInit();
 
     $rootScope.$digest();
 
     expect(vm.showNoDataMessage).toBe(false);
+    expect(vm.dateFormat).toBe('mediumDate');
   });
 
-  it('Initializes properly without active applications', function() {
-    var vm = getVm({ averagesData: { activeApplicationCount: 0 } });
+  it('Initializes properly with "latest data" report without active applications', function() {
+    var vm = getVm({
+      averagesData: { activeApplicationCount: 0 },
+      successMetricsReport: { includeLatestData: true }
+    });
+
     vm.$onInit();
 
     $rootScope.$digest();
 
     expect(vm.showNoDataMessage).toBe(true);
+    expect(vm.dateFormat).toBe('medium');
   });
 
   it('Uses DeleteModalService correctly and invokes onDelete callback upon successful delete', function() {

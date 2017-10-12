@@ -69,6 +69,7 @@ CREATE TABLE success_metrics_report (
   name_lowercase_no_whitespace VARCHAR(60) NOT NULL,
   scope_json CLOB NOT NULL, -- The scope (app/org ids) stored in json format
   create_time DATETIME NOT NULL,
+  include_latest_data BOOLEAN NOT NULL DEFAULT true,
   CONSTRAINT success_metrics_report_pk PRIMARY KEY (success_metrics_report_id),
   CONSTRAINT success_metrics_report_uk UNIQUE KEY (username, name_lowercase_no_whitespace)
 );

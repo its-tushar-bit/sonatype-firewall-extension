@@ -11,9 +11,7 @@ const getData = ({ data }) => data;
 export default
 function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
   return {
-    getMttrData: getMttrData,
-    getAveragesData: getAveragesData,
-    getApplicationCountsData: getApplicationCountsData,
+    getChartData: getChartData,
     getComponentCountsData: getComponentCountsData,
     getSuccessMetricsReportsForCurrentUser: getSuccessMetricsReportsForCurrentUser,
     createSuccessMetricsReportForCurrentUser: createSuccessMetricsReportForCurrentUser,
@@ -22,37 +20,46 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
     EMPTY_PREFIX: EMPTY_PREFIX
   };
 
-  function getMttrData(postData) {
-    return $http.post(CLMLocations.getMttrUrl(), postData).then(function({ data }) {
-      const monthsOfMttr = data.length;
-
-      if (monthsOfMttr === 0) {
-        return data;
-      }
-      else {
-        if (monthsOfMttr < 12) {
-          var paddedMonths = [];
-          var missingMonthCount = 12 - monthsOfMttr;
-          var paddedDate = new Date(data[0].timePeriodStart);
-
-          for (var i = 0; i < missingMonthCount; i++) {
-            /*
-             * The second parameter sets the day to the first to avoid wrapping. For example, if the date is the 30th of
-             * the given month, when March is hit it would show up twice since Feb 30th isn't a valid date. (it wraps to
-             * March) This is only a problem when the mttr data is empty.
-             */
-            paddedDate.setMonth(paddedDate.getMonth() - 1, 1);
-            paddedMonths.unshift({timePeriodStart: paddedDate.getTime()});
-          }
-
-          return paddedMonths.concat(data);
-        }
-        return data;
-      }
+  function getChartData(postData) {
+    return $http.post(CLMLocations.getSuccessMetricsChartDataUrl(), postData).then(function({data}) {
+      return {
+        mttrData: getMttrData(data.mttrs),
+        averagesData: getAveragesData(data.averages),
+        applicationCountsData: data.applicationCounts,
+        lastUpdated: data.lastUpdated
+      };
     });
   }
 
-  function getAveragesData(postData) {
+  function getMttrData(data) {
+    const monthsOfMttr = data.length;
+
+    if (monthsOfMttr === 0) {
+      return data;
+    }
+    else {
+      if (monthsOfMttr < 12) {
+        var paddedMonths = [];
+        var missingMonthCount = 12 - monthsOfMttr;
+        var paddedDate = new Date(data[0].timePeriodStart);
+
+        for (var i = 0; i < missingMonthCount; i++) {
+          /*
+           * The second parameter sets the day to the first to avoid wrapping. For example, if the date is the 30th of
+           * the given month, when March is hit it would show up twice since Feb 30th isn't a valid date. (it wraps to
+           * March) This is only a problem when the mttr data is empty.
+           */
+          paddedDate.setMonth(paddedDate.getMonth() - 1, 1);
+          paddedMonths.unshift({timePeriodStart: paddedDate.getTime()});
+        }
+
+        return paddedMonths.concat(data);
+      }
+      return data;
+    }
+  }
+
+  function getAveragesData(data) {
     var threatCategoryAccessors = ['security', 'license', 'quality', 'other'],
         threatLevelAccessors = [
           'averageDiscoveredLow', 'averageDiscoveredModerate', 'averageDiscoveredSevere',
@@ -73,49 +80,41 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
       return retval;
     }
 
-    return $http.post(CLMLocations.getViolationAveragesUrl(), postData).then(function(response) {
-      var monthAverages = response.data.averageDiscoveredPolicyViolations;
+    var monthAverages = data.averageDiscoveredPolicyViolations;
 
-      // the rest endpoint returns separate data for each month.  We need to combine into overall averages
-      var threatCategoryPairs = threatCategoryAccessors.map(function(threatCategoryAccessor) {
+    // the rest endpoint returns separate data for each month.  We need to combine into overall averages
+    var threatCategoryPairs = threatCategoryAccessors.map(function(threatCategoryAccessor) {
 
-        var threatLevelPairs = threatLevelAccessors.map(function(threatLevelAccessor) {
+      var threatLevelPairs = threatLevelAccessors.map(function(threatLevelAccessor) {
 
-          // average this value across all months
-          var average = monthAverages.reduce(function(acc, monthData) {
-            return acc + monthData[threatCategoryAccessor][threatLevelAccessor];
-          }, 0) / monthAverages.length || 0;
+        // average this value across all months
+        var average = monthAverages.reduce(function(acc, monthData) {
+          return acc + monthData[threatCategoryAccessor][threatLevelAccessor];
+        }, 0) / monthAverages.length || 0;
 
-          return [threatLevelAccessor, average];
-        });
-
-        return [threatCategoryAccessor, pairsToObj(threatLevelPairs)];
+        return [threatLevelAccessor, average];
       });
 
-      var result = pairsToObj(threatCategoryPairs);
-
-      result.monthCount = monthAverages.length;
-      result.activeApplicationCount = response.data.activeApplicationCount;
-      result.averageEvaluations = monthAverages.reduce(function(acc, monthData) {
-        return acc + monthData.evaluationCount;
-      }, 0) / monthAverages.length || 0;
-      result.averagePolicyViolations = threatCategoryAccessors.reduce(function(categoryAcc, threatCategoryAccessor) {
-        return categoryAcc + threatLevelAccessors.reduce(function(levelAcc, threatLevelAccessor) {
-          return levelAcc + result[threatCategoryAccessor][threatLevelAccessor];
-        }, 0);
-      }, 0) || 0;
-      result.averageCriticalPolicyViolations = threatCategoryAccessors.reduce(
-          function(categoryAcc, threatCategoryAccessor) {
-            return categoryAcc + result[threatCategoryAccessor].averageDiscoveredCritical;
-          }, 0) || 0;
-      return result;
+      return [threatCategoryAccessor, pairsToObj(threatLevelPairs)];
     });
-  }
 
-  function getApplicationCountsData(postData) {
-    return $http.post(CLMLocations.getSuccessMetricsApplicationCountsUrl(), postData).then(function(response) {
-      return response.data;
-    });
+    var result = pairsToObj(threatCategoryPairs);
+
+    result.monthCount = monthAverages.length;
+    result.activeApplicationCount = data.activeApplicationCount;
+    result.averageEvaluations = monthAverages.reduce(function(acc, monthData) {
+      return acc + monthData.evaluationCount;
+    }, 0) / monthAverages.length || 0;
+    result.averagePolicyViolations = threatCategoryAccessors.reduce(function(categoryAcc, threatCategoryAccessor) {
+      return categoryAcc + threatLevelAccessors.reduce(function(levelAcc, threatLevelAccessor) {
+        return levelAcc + result[threatCategoryAccessor][threatLevelAccessor];
+      }, 0);
+    }, 0) || 0;
+    result.averageCriticalPolicyViolations = threatCategoryAccessors.reduce(
+        function(categoryAcc, threatCategoryAccessor) {
+          return categoryAcc + result[threatCategoryAccessor].averageDiscoveredCritical;
+        }, 0) || 0;
+    return result;
   }
 
   function getComponentCountsData(postData) {

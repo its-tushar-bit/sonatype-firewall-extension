@@ -21,7 +21,7 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton.CLASS_ACTIVE;
-import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT;
+import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT_MONTHLY;
 
 public class SuccessMetricsChartsNavigationTest
     extends AbstractFunctionalTest
@@ -50,7 +50,7 @@ public class SuccessMetricsChartsNavigationTest
     successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(1);
     successMetricsPage.successMetricsChartActionItems().element(0).click();
     successMetricsChartsPage.should(appear);
-    successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT);
+    successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT_MONTHLY);
     labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);
     successMetricsChartsPage.backButton().shouldBe(visible).shouldHave(text("Back to Success Metrics")).click();
     successMetricsPage.should(appear);

@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.successmetrics;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,32 +24,33 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.AverageDiscoveredThreatCategoryPolicyViolationsDTO;
 import com.sonatype.insight.brain.dashboard.DashboardUtils;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageMonth;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
-import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
+import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
+import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.AverageDiscoveredThreatCategoryPolicyViolationsDTO;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.cache.CacheBuilder;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +90,8 @@ public class PolicyViolationAggregationService
   private final ConcurrentMap<String, Lock> applicationIdLocks = CacheBuilder.newBuilder().weakValues()
       .<String, Lock> build().asMap();
 
+  private final Set<String> stageTypeIds;
+
   @Inject
   public PolicyViolationAggregationService(ApplicationService applicationService,
                                            StageTypeService stageTypeService,
@@ -105,23 +108,43 @@ public class PolicyViolationAggregationService
     this.violationAggregationDAO = violationAggregationDAO;
     this.policyViolationResolutionStateDAO = policyViolationResolutionStateDAO;
     this.dashboardUtils = dashboardUtils;
+
+    List<StageType> stageTypes = new ArrayList<>();
+
+    for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
+      if (!StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())) {
+        stageTypes.add(stageType);
+      }
+    }
+    stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
   }
 
-  /**
-   * @return the list of MttrDTOs which will be empty if the MTTR functionality is disabled
-   * (ie, due to being in PoC mode)
-   */
-  public List<MttrDTO> getMttrs(Set<String> organizationIds, Set<String> applicationIds) {
-    if (isInPoCMode()) {
-      return Arrays.asList();
-    }
+  public SuccessMetricsChartDataDTO getChartData(Set<String> organizationIds, Set<String> applicationIds) {
+    return getChartData(organizationIds, applicationIds, false);
+  }
 
+  public SuccessMetricsChartDataDTO getChartData(Set<String> organizationIds,
+                                                 Set<String> applicationIds,
+                                                 boolean includeLatestData)
+  {
     Set<String> applicationIdsToQuery = getApplicationIdsToQuery(organizationIds, applicationIds);
     // make sure the aggregations data is up to date before we query it
-    generatePolicyViolationAggregations(applicationIdsToQuery);
+    DateTime currentDateTime = new DateTime();
+    generatePolicyViolationAggregations(applicationIdsToQuery, currentDateTime, includeLatestData);
 
+    SuccessMetricsChartDataDTO result = new SuccessMetricsChartDataDTO();
+    result.mttrs = getMttrs(applicationIdsToQuery, includeLatestData);
+    result.averages = getAverages(applicationIdsToQuery, includeLatestData);
+    result.applicationCounts = getApplicationCounts(applicationIdsToQuery, includeLatestData);
+    result.lastUpdated = includeLatestData ? currentDateTime.toDate() : currentDateTime.withDayOfMonth(1).millisOfDay()
+        .withMinimumValue().toDate();
+
+    return result;
+  }
+
+  private List<MttrDTO> getMttrs(Set<String> applicationIdsToQuery, boolean includeLatestData) {
     List<PolicyViolationAggregationDAO.MttrMonth> queryResults = violationAggregationDAO
-        .getMttrMonthlyAverages(applicationIdsToQuery);
+        .getMttrMonthlyAverages(applicationIdsToQuery, includeLatestData);
 
     List<MttrDTO> retval = new ArrayList<>(queryResults.size());
     for (PolicyViolationAggregationDAO.MttrMonth mttrMonth : queryResults) {
@@ -153,12 +176,9 @@ public class PolicyViolationAggregationService
     return retval;
   }
 
-  SuccessMetricsAveragesDTO getAverages(Set<String> organizationIds, Set<String> applicationIds) {
-    Set<String> applicationIdsToQuery = getApplicationIdsToQuery(organizationIds, applicationIds);
-    // make sure the aggregations data is up to date before we query it
-    generatePolicyViolationAggregations(applicationIdsToQuery);
-
-    List<AverageMonth> queryResults = violationAggregationDAO.getMonthlyAverages(applicationIdsToQuery);
+  private SuccessMetricsAveragesDTO getAverages(Set<String> applicationIdsToQuery, boolean includeLatestData) {
+    List<AverageMonth> queryResults = violationAggregationDAO
+        .getMonthlyAverages(applicationIdsToQuery, includeLatestData);
 
     List<AverageDiscoveredPolicyViolationsDTO> averageDiscoveredPolicyViolations = new ArrayList<>(queryResults.size());
     for (AverageMonth averageMonth : queryResults) {
@@ -180,22 +200,21 @@ public class PolicyViolationAggregationService
       averageDiscoveredPolicyViolations.add(dto);
     }
 
-    int activeApplications = violationAggregationDAO.getActiveApplicationCount(applicationIdsToQuery);
+    int activeApplications = violationAggregationDAO
+        .getActiveApplicationCount(applicationIdsToQuery, includeLatestData);
 
     return new SuccessMetricsAveragesDTO(activeApplications, averageDiscoveredPolicyViolations);
   }
 
-  ApplicationCountsDTO getApplicationCounts(Set<String> organizationIds, Set<String> applicationIds) {
-    Collection<Application> applicationsToQuery = getApplicationsToQuery(organizationIds, applicationIds);
-    Set<String> applicationIdsToQuery = getApplicationIdsToQuery(applicationsToQuery);
-    generatePolicyViolationAggregations(applicationIdsToQuery);
+  private ApplicationCountsDTO getApplicationCounts(Set<String> applicationIdsToQuery, boolean includeLatestData) {
 
     ApplicationCountsByThreat applicationCounts = violationAggregationDAO
-        .getApplicationCountsByThreatByApplicationIds(applicationIdsToQuery);
+        .getApplicationCountsByThreatByApplicationIds(applicationIdsToQuery, includeLatestData);
 
     ApplicationCountsDTO retval = new ApplicationCountsDTO();
     retval.totalApplications = applicationIdsToQuery.size();
-    retval.activeApplications = violationAggregationDAO.getActiveApplicationCount(applicationIdsToQuery);
+    retval.activeApplications = violationAggregationDAO
+        .getActiveApplicationCount(applicationIdsToQuery, includeLatestData);
 
     retval.total = new ApplicationCountsDTO.ThreatCategoryApplicationCount( //
         applicationCounts.countAnyThreat, //
@@ -216,28 +235,10 @@ public class PolicyViolationAggregationService
     return retval;
   }
 
-  private boolean isInPoCMode() {
-    Set<String> applicableStageTypes = new HashSet<>();
-    for (StageType stageType : StageTypes.getAll()) {
-      if (!StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())) {
-        applicableStageTypes.add(stageType.getId());
-      }
-    }
-
-    PolicyEvaluation oldestEvaluation = policyEvaluationDAO.getOldest(applicableStageTypes);
-    if (oldestEvaluation == null) {
-      return true;
-    }
-    LocalDate oldestEvaluationDate = new LocalDate(oldestEvaluation.getTime());
-    LocalDate startOfPreviousMonth = new LocalDate().withDayOfMonth(1).minusMonths(1);
-    return oldestEvaluationDate.compareTo(startOfPreviousMonth) >= 0;
-  }
-
   private Set<String> getApplicationIdsToQuery(Set<String> organizationIds, Set<String> applicationIds) {
-    return getApplicationIdsToQuery(getApplicationsToQuery(organizationIds, applicationIds));
-  }
+    Collection<Application> applicationsToQuery = applicationService
+        .getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, null);
 
-  private Set<String> getApplicationIdsToQuery(Collection<Application> applicationsToQuery) {
     Set<String> applicationIdsToQuery = new HashSet<>();
     for (Application app : applicationsToQuery) {
       applicationIdsToQuery.add(app.getId());
@@ -245,36 +246,24 @@ public class PolicyViolationAggregationService
     return applicationIdsToQuery;
   }
 
-  private Collection<Application> getApplicationsToQuery(Set<String> organizationIds, Set<String> applicationIds) {
-    return applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, null);
-  }
-
   /**
    * Update PolicyViolationAggregation rows for each of the specified applications. This determines the most recent
    * time period that was already aggregated for each application and then creates all necessary aggregations
    * for the time periods since then.
    */
-  private void generatePolicyViolationAggregations(Set<String> applicationIds) {
+  private void generatePolicyViolationAggregations(Set<String> applicationIds,
+                                                   DateTime currentDateTime,
+                                                   boolean includeLatestData)
+  {
     log.debug("Starting update of Policy Violation Aggregations for {} applications", applicationIds.size());
 
     long start = System.currentTimeMillis();
-
-    // current date, in the local timezone
-    LocalDate currentDate = new LocalDate();
-
-    List<StageType> stageTypes = new ArrayList<>();
-    for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
-      if (!StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())) {
-        stageTypes.add(stageType);
-      }
-    }
-    Set<String> stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
 
     for (String applicationId : applicationIds) {
       Lock lock = acquireLockForApplication(applicationId);
 
       try {
-        generatePolicyViolationAggregations(applicationId, stageTypeIds, currentDate);
+        generatePolicyViolationAggregations(applicationId, currentDateTime, includeLatestData);
       }
       finally {
         lock.unlock();
@@ -377,20 +366,20 @@ public class PolicyViolationAggregationService
    * Generate the newer PolicyViolationAggregation rows for the given application
    */
   private void generatePolicyViolationAggregations(String applicationId,
-                                                   Set<String> allStageTypeIds,
-                                                   LocalDate currentDate)
+                                                   DateTime currentDateTime,
+                                                   boolean includeLatestData)
   {
-    int numDeletedPartialMonths = violationAggregationDAO.deletePartialMonthsUpTo(applicationId, currentDate);
-    if (numDeletedPartialMonths != 0) {
-      policyViolationResolutionStateDAO.deleteByApplicationId(applicationId);
-    }
-    boolean pocMode = isInPoCMode();
-
     log.trace("Generating Violation Aggregations for {}", applicationId);
 
     PolicyViolationAggregation mostRecentPriorAggregation = violationAggregationDAO
         .getMostRecentByApplicationId(applicationId);
 
+    if (isPartial(mostRecentPriorAggregation)) {
+      mostRecentPriorAggregation = updatePartialAggregation(mostRecentPriorAggregation, currentDateTime, applicationId,
+          includeLatestData);
+    }
+
+    LocalDate currentDate = currentDateTime.toLocalDate();
     LocalDate startOfCurrentMonth = currentDate.withDayOfMonth(1);
 
     // start the next new aggregation at the beginning of the month after the last aggregation, or at the beginning
@@ -403,26 +392,14 @@ public class PolicyViolationAggregationService
         mostRecentPriorAggregation.getTimePeriodStart()).plusMonths(1);
     LocalDate startOfNextAggregation = startOfNewAggregation.plusMonths(1);
 
-    if (pocMode) {
-      if (mostRecentPriorAggregation != null &&
-          currentDate.toDate().equals(mostRecentPriorAggregation.getTimePeriodEnd())) {
-        // aggregations are already done up to today
-        return;
-      }
-      else if (oldestEvaluation == null || currentDate.toDate().equals(oldestEvaluationDate)) {
-        // no evaluations or oldest evaluation is within current day
-        return;
-      }
-    }
-    else {
-      if (startOfNewAggregation.compareTo(startOfCurrentMonth) >= 0) {
-        // aggregations are already done up to this month
-        return;
-      }
+    if (includeLatestData && isPartial(mostRecentPriorAggregation) ||
+        !includeLatestData && startOfNewAggregation.compareTo(startOfCurrentMonth) >= 0) {
+      // aggregations are already up to date
+      return;
     }
 
-    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getSinceDateByApplicationIdAndStageIds(
-        localDateToTimestamp(startOfNewAggregation), applicationId, allStageTypeIds);
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getBetweenDatesByApplicationIdAndStageIds(
+        localDateToTimestamp(startOfNewAggregation), currentDateTime.toDate(), applicationId, stageTypeIds);
 
     MttrStats mttrStats = new MttrStats();
     DiscoveredStats discoveredStats = new DiscoveredStats();
@@ -434,23 +411,9 @@ public class PolicyViolationAggregationService
       for (PolicyEvaluation evaluation : policyEvaluations) {
         LocalDate evaluationDate = new LocalDate(evaluation.getTime());
 
-        if (pocMode) {
-          if (evaluationDate.compareTo(currentDate) >= 0) {
-            // evaluation is within current day. Skip it and the rest
-            break;
-          }
-        }
-        else {
-          if (evaluationDate.compareTo(startOfCurrentMonth) >= 0) {
-            // evaluation is within current month. Skip it and the rest
-            break;
-          }
-        }
-
         while (evaluationDate.compareTo(startOfNextAggregation) >= 0) {
           // evaluation is too recent for the current evaluation record, start a new one
-          saveViolationAggregation(applicationId, startOfNewAggregation, pocMode ? currentDate : null, mttrStats,
-              discoveredStats);
+          saveViolationAggregation(applicationId, startOfNewAggregation, null, mttrStats, discoveredStats);
           startOfNewAggregation = startOfNextAggregation;
           startOfNextAggregation = startOfNewAggregation.plusMonths(1);
 
@@ -464,14 +427,94 @@ public class PolicyViolationAggregationService
 
     // insert the last aggregation from the loop above and any others necessary to bring things up to the
     // start of the current month
-    while (startOfNewAggregation.compareTo(pocMode ? currentDate : startOfCurrentMonth) < 0) {
-      saveViolationAggregation(applicationId, startOfNewAggregation, pocMode ? currentDate : null, mttrStats,
-          discoveredStats);
+    while (includeLatestData ?
+        startOfNewAggregation.compareTo(currentDate) <= 0 : startOfNewAggregation.compareTo(startOfCurrentMonth) < 0) {
+      DateTime endDateTime = null;
+      if (includeLatestData && currentDate.withDayOfMonth(1).equals(startOfNewAggregation)) {
+        endDateTime = currentDateTime;
+      }
+      saveViolationAggregation(applicationId, startOfNewAggregation, endDateTime, mttrStats, discoveredStats);
       startOfNewAggregation = startOfNextAggregation;
       startOfNextAggregation = startOfNewAggregation.plusMonths(1);
       mttrStats = new MttrStats();
       discoveredStats = new DiscoveredStats();
     }
+  }
+
+  private boolean isPartial(PolicyViolationAggregation mostRecentPriorAggregation) {
+    return mostRecentPriorAggregation != null && mostRecentPriorAggregation.getTimePeriodEnd() != null;
+  }
+
+  /**
+   * Updates the supplied partial aggregation with latest data. If we have a full month's worth of data then the
+   * aggregation's timePeriodEnd will be removed, making it a regular aggregation.
+   */
+  private PolicyViolationAggregation updatePartialAggregation(PolicyViolationAggregation partialAggregation,
+                                                              DateTime currentTime,
+                                                              String applicationId,
+                                                              boolean includeLatestData)
+  {
+    LocalDate startOfNextAggregation = new LocalDate(partialAggregation.getTimePeriodStart()).plusMonths(1)
+        .withDayOfMonth(1);
+    boolean isLastAggregation = currentTime.isBefore(startOfNextAggregation.toDateTimeAtStartOfDay());
+
+    if (!includeLatestData && isLastAggregation) {
+      return partialAggregation; // no need to update current month
+    }
+
+    Date from = partialAggregation.getTimePeriodEnd();
+    Date upTo = new LocalDate(from).plusMonths(1).withDayOfMonth(1).toDateTimeAtStartOfDay().toDate();
+
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO
+        .getBetweenDatesByApplicationIdAndStageIds(from, upTo, applicationId, stageTypeIds);
+
+    MttrStats mttrStats = recreateMttrStats(partialAggregation);
+    DiscoveredStats discoveredStats = recreateDiscoveredStats(partialAggregation);
+
+    if (!policyEvaluations.isEmpty()) {
+      SortedSet<PolicyViolationResolutionState> resolutionStates = getPolicyViolationResolutionStates(applicationId);
+      for (PolicyEvaluation evaluation : policyEvaluations) {
+        processPolicyEvaluation(evaluation, mttrStats, discoveredStats, resolutionStates, applicationId);
+      }
+    }
+    LocalDate timePeriodStart = new LocalDate(partialAggregation.getTimePeriodStart());
+    DateTime timePeriodEnd = isLastAggregation ? currentTime : null;
+    return saveViolationAggregation(applicationId, timePeriodStart, timePeriodEnd, mttrStats, discoveredStats,
+        partialAggregation.getId());
+  }
+
+  private DiscoveredStats recreateDiscoveredStats(PolicyViolationAggregation mostRecentPriorAggregation) {
+    DiscoveredStats result = new DiscoveredStats();
+    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
+      Map<ThreatLevel, Integer> threatLevelToCounts = new HashMap<>();
+      for (ThreatLevel threatLevel : ThreatLevel.values()) {
+        threatLevelToCounts.put(threatLevel, mostRecentPriorAggregation.getDiscoveredCount(category, threatLevel));
+      }
+      result.threatCategoryToThreatLevelToCounts.put(category, threatLevelToCounts);
+    }
+    result.evaluationCount = mostRecentPriorAggregation.getEvaluationCount();
+    return result;
+  }
+
+  /**
+   * Aggregations only persist the MTTR values, not the individual numbers they are a product of.
+   * This is a naive attempt to recreate the MTTRStats that only works because we currently persist the arithmetic mean.
+   */
+  private MttrStats recreateMttrStats(PolicyViolationAggregation mostRecentPriorAggregation) {
+    MttrStats result = new MttrStats();
+    for (int i = 0; i < mostRecentPriorAggregation.getResolvedCountLowThreat(); i++) {
+      result.mttrLowThreatStats.addValue(mostRecentPriorAggregation.getMttrLowThreat());
+    }
+    for (int i = 0; i < mostRecentPriorAggregation.getResolvedCountModerateThreat(); i++) {
+      result.mttrModerateThreatStats.addValue(mostRecentPriorAggregation.getMttrModerateThreat());
+    }
+    for (int i = 0; i < mostRecentPriorAggregation.getResolvedCountSevereThreat(); i++) {
+      result.mttrSevereThreatStats.addValue(mostRecentPriorAggregation.getMttrSevereThreat());
+    }
+    for (int i = 0; i < mostRecentPriorAggregation.getResolvedCountCriticalThreat(); i++) {
+      result.mttrCriticalThreatStats.addValue(mostRecentPriorAggregation.getMttrCriticalThreat());
+    }
+    return result;
   }
 
   private void processPolicyEvaluation(PolicyEvaluation evaluation,
@@ -552,15 +595,25 @@ public class PolicyViolationAggregationService
     return resolutionStates;
   }
 
-  private void saveViolationAggregation(String applicationId,
+  private PolicyViolationAggregation saveViolationAggregation(String applicationId,
                                         LocalDate timePeriodStart,
-                                        LocalDate timePeriodEnd,
+                                        DateTime timePeriodEnd,
                                         MttrStats mttrStats,
                                         DiscoveredStats discoveredStats)
   {
+    return saveViolationAggregation(applicationId, timePeriodStart, timePeriodEnd, mttrStats, discoveredStats, null);
+  }
+
+  private PolicyViolationAggregation saveViolationAggregation(String applicationId,
+                                        LocalDate timePeriodStart,
+                                        DateTime timePeriodEnd,
+                                        MttrStats mttrStats,
+                                        DiscoveredStats discoveredStats,
+                                        String aggregationToUpdateId)
+  {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, //
         localDateToTimestamp(timePeriodStart), //
-        localDateToTimestamp(timePeriodEnd), //
+        timePeriodEnd == null ? null : timePeriodEnd.toDate(), //
         mttrStats.mttrLowThreatStats, //
         mttrStats.mttrModerateThreatStats, //
         mttrStats.mttrSevereThreatStats, //
@@ -583,6 +636,12 @@ public class PolicyViolationAggregationService
         discoveredStats.getCount(OTHER, CRITICAL), //
         discoveredStats.getEvaluationCount());
 
-    violationAggregationDAO.insert(aggregation);
+    if (aggregationToUpdateId != null) {
+      aggregation.setId(aggregationToUpdateId);
+      violationAggregationDAO.update(aggregation);
+    } else {
+      violationAggregationDAO.insert(aggregation);
+    }
+    return aggregation;
   }
 }

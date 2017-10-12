@@ -31,6 +31,7 @@ function addSuccessMetricsReportModalController($q, ApplicationStore, Organizati
     selectedApplications: new Set(),
     selectedOrganizations: new Set(),
     isAllApplications: true,
+    includeLatestData: false,
 
     maskController: undefined, // gets set by form-mask directive in template
     addSuccessMetricsReportForm: undefined, // gets set by name attr on form element
@@ -74,7 +75,8 @@ function addSuccessMetricsReportModalController($q, ApplicationStore, Organizati
             scope: vm.isAllApplications ? {} : {
               organizationIds: toArray(vm.selectedOrganizations),
               applicationIds: toArray(vm.selectedApplications)
-            }
+            },
+            includeLatestData: vm.includeLatestData
           }))
           .then(result => vm.close({ result }))
           .catch(error => vm.error = error);

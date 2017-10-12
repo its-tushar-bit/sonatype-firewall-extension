@@ -5,16 +5,19 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.util.Set;
+import java.util.Date;
+import java.util.List;
 
 /**
- * @since 1.33
+ * @since 1.37
  */
-public class OwnerFilterDTO
+public class SuccessMetricsChartDataDTO
 {
-  public Set<String> organizationIds;
+  public List<MttrDTO> mttrs;
 
-  public Set<String> applicationIds;
+  public SuccessMetricsAveragesDTO averages;
 
-  public boolean includeLatestData;
+  public ApplicationCountsDTO applicationCounts;
+
+  public Date lastUpdated;
 }

@@ -205,17 +205,18 @@ public class PolicyEvaluationDAO
   }
 
   /**
-   * @since 1.33
+   * @since 1.39
    */
-  public List<PolicyEvaluation> getSinceDateByApplicationIdAndStageIds(Date date,
-                                                                       String appId,
-                                                                       Set<String> stageTypeIds)
+  public List<PolicyEvaluation> getBetweenDatesByApplicationIdAndStageIds(Date sinceDate,
+                                                                          Date toDate,
+                                                                          String appId,
+                                                                          Set<String> stageTypeIds)
   {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2) AND entity.time >= ?3" + //
-        "   AND entity.isForObsoleteScan = false" + //
+        "  AND entity.time < ?4 AND entity.isForObsoleteScan = false" + //
         " ORDER BY entity.time";
-    return getList(sQuery, appId, stageTypeIds, date);
+    return getList(sQuery, appId, stageTypeIds, sinceDate, toDate);
   }
 
   /**

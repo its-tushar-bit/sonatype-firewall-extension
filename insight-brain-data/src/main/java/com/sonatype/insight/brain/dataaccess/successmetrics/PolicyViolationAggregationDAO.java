@@ -38,26 +38,6 @@ public class PolicyViolationAggregationDAO
     return createQuery(sQuery, applicationId).forceSingleResult().get();
   }
 
-  /**
-   * Delete partial aggregations generated while in PoC mode.
-   *
-   * @return Number of deleted aggregations.
-   * @since 1.36
-   */
-  public int deletePartialMonthsUpTo(String applicationId, LocalDate timePeriodEnd) {
-    String sQuery = "SELECT entity FROM PolicyViolationAggregation entity" + //
-        " WHERE entity.applicationId = ?1 AND entity.timePeriodEnd < ?2";
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      List<PolicyViolationAggregation> partialMonths = getList(tx, sQuery, applicationId, timePeriodEnd.toDate());
-      for (PolicyViolationAggregation partialMonth : partialMonths) {
-        delete(tx, partialMonth);
-      }
-      tx.commit();
-      return partialMonths.size();
-    }
-  }
-
   public static class MttrMonth
   {
     public final Date monthStart;
@@ -147,7 +127,7 @@ public class PolicyViolationAggregationDAO
   /**
    * Get MTTR monthly averages for the specified applications, for the 12 most recent months
    */
-  public List<MttrMonth> getMttrMonthlyAverages(Set<String> applicationIds) {
+  public List<MttrMonth> getMttrMonthlyAverages(Set<String> applicationIds, boolean includeLatestData) {
     // compute an overall average MTTR for these applications for each month
     String sQuery = "SELECT agg.timePeriodStart, " + //
         " SUM(agg.mttrLowThreat * agg.resolvedCountLowThreat) / SUM(agg.resolvedCountLowThreat)," + //
@@ -158,6 +138,7 @@ public class PolicyViolationAggregationDAO
         " SUM(agg.resolvedCountSevereThreat), SUM(agg.resolvedCountCriticalThreat)" + //
         " FROM PolicyViolationAggregation agg" + //
         " WHERE agg.applicationId IN (?1)" + //
+        (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
         " GROUP BY agg.timePeriodStart" + //
         " ORDER BY agg.timePeriodStart DESC";
 
@@ -199,7 +180,7 @@ public class PolicyViolationAggregationDAO
   /**
    * Get discovered violations monthly averages for the specified applications, for the 12 most recent months
    */
-  public List<AverageMonth> getMonthlyAverages(Set<String> applicationIds) {
+  public List<AverageMonth> getMonthlyAverages(Set<String> applicationIds, boolean includeLatestData) {
     // compute an overall average discovered for these applications for each month
     String sQuery = "SELECT agg.timePeriodStart, " + //
         " SUM(CASE WHEN agg.evaluationCount > 0 THEN 1 ELSE 0 END)," + //
@@ -222,6 +203,7 @@ public class PolicyViolationAggregationDAO
         " SUM(agg.evaluationCount)" + //
         " FROM PolicyViolationAggregation agg" + //
         " WHERE agg.applicationId IN (?1)" + //
+        (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
         " GROUP BY agg.timePeriodStart" + //
         " ORDER BY agg.timePeriodStart DESC";
 
@@ -283,10 +265,13 @@ public class PolicyViolationAggregationDAO
   /**
    * @return the number of applications from the specified set which had at least one evaluation in the last 12 months
    */
-  public int getActiveApplicationCount(Set<String> applicationIds) {
+  public int getActiveApplicationCount(Set<String> applicationIds, boolean includeLatestData) {
     String sQuery = "SELECT COUNT(DISTINCT agg.applicationId)" + //
         " FROM PolicyViolationAggregation agg" + //
-        " WHERE agg.applicationId IN (?1) AND agg.timePeriodStart >= ?2 AND agg.evaluationCount > 0";
+        " WHERE agg.applicationId IN (?1)" +
+        " AND agg.timePeriodStart >= ?2" +
+        (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
+        " AND agg.evaluationCount > 0";
 
     return getSingle(Number.class, sQuery, applicationIds, getAggregationQueryStartDate()).intValue();
   }
@@ -309,7 +294,9 @@ public class PolicyViolationAggregationDAO
     public int countOtherCriticalThreat = 0;
   }
 
-  public ApplicationCountsByThreat getApplicationCountsByThreatByApplicationIds(Set<String> applicationIds) {
+  public ApplicationCountsByThreat getApplicationCountsByThreatByApplicationIds(Set<String> applicationIds,
+                                                                                boolean includeLatestData)
+  {
     // query that returns the summed discovered violation counts across the past
     // year for a given app in each row
     String sQuery = "SELECT" + //
@@ -331,6 +318,7 @@ public class PolicyViolationAggregationDAO
         "  SUM(agg.discoveredCountOtherCriticalThreat)" + //
         " FROM PolicyViolationAggregation agg" + //
         " WHERE agg.applicationId IN (?1) AND agg.timePeriodStart >= ?2" + //
+        (includeLatestData ? "" : " AND agg.timePeriodEnd IS NULL") + //
         " GROUP BY agg.applicationId";
 
     try (TransactionContext tx = createTransactionContext()) {

@@ -580,21 +580,4 @@ public class PolicyEvaluationDAOTest
     assertThat(results, is(notNullValue()));
     assertThat(results.getId(), is(eval2.getId()));
   }
-
-  @Test
-  public void testGetOldest() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-    Application app = tempEntity.newApplicationWithParent("test");
-    Date now = new Date();
-    Date notThatOld = new Date(now.getTime() - 1000);
-    Date older = new Date(now.getTime() - 2000);
-    Date oldest = new Date(now.getTime() - 3000);
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.OPERATE.getId(), "scanId1", older);
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.OPERATE.getId(), "scanId2", notThatOld);
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId3", oldest);
-
-    PolicyEvaluation result = dao.getOldest(Collections.singleton(StageTypes.OPERATE.getId()));
-
-    assertThat(result.getScanId(), is("scanId1"));
-  }
 }

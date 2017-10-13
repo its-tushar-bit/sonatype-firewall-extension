@@ -232,18 +232,6 @@ public class PolicyEvaluationDAO
     return createQuery(sQuery, applicationId).forceSingleResult().get();
   }
 
-  /**
-   * Get the oldest policy evaluation in the system.
-   *
-   * @since 1.36
-   */
-  public PolicyEvaluation getOldest(Collection<String> stageTypeIds) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" +
-        " WHERE entity.stageTypeId IN ?1" +
-        " ORDER BY entity.time";
-    return createQuery(sQuery, stageTypeIds).forceSingleResult().get();
-  }
-
   @Override
   public void update(TransactionContext tx, PolicyEvaluation entity) {
     throw new UnsupportedOperationException("The PolicyEvaluation table does not support update operations");

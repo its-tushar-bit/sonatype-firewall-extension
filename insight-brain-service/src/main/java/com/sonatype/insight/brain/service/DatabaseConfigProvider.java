@@ -18,12 +18,21 @@ import org.slf4j.LoggerFactory;
  */
 public class DatabaseConfigProvider
 {
+  private static final long MAX_CACHE_SIZE_BYTES = 7L * 1024 * 1024 * 1024;
+
   private static final Logger log = LoggerFactory.getLogger(DatabaseConfigProvider.class);
 
   private final InsightConfig config;
 
+  private final Runtime runtime;
+
   public DatabaseConfigProvider(InsightConfig config) {
+    this(config, Runtime.getRuntime());
+  }
+
+  DatabaseConfigProvider(InsightConfig config, Runtime runtime) {
     this.config = config;
+    this.runtime = runtime;
   }
 
   public DatabaseConfig getDatabaseConfig(DatabaseName databaseName) {
@@ -38,7 +47,14 @@ public class DatabaseConfigProvider
       // NOTE: H2 uses previous setting if not set in URL, so be explicit about the default size
       long dbCacheSizeInBytes = 16L * 1024 * 1024;
       if (config.getDbCacheSizePercent() != null) {
-        dbCacheSizeInBytes = Runtime.getRuntime().maxMemory() * config.getDbCacheSizePercent() / 100;
+        dbCacheSizeInBytes = runtime.maxMemory() * config.getDbCacheSizePercent() / 100;
+        // CLM-8847 enforce a maximum cache size due to a possible overflow problem in h2 
+        // see https://github.com/h2database/h2database/issues/630 for more details
+        if (dbCacheSizeInBytes > MAX_CACHE_SIZE_BYTES) {
+          log.info("Cache size {} bytes for ods h2 database is too large, restricting to {} bytes", dbCacheSizeInBytes,
+              MAX_CACHE_SIZE_BYTES);
+          dbCacheSizeInBytes = MAX_CACHE_SIZE_BYTES;
+        }
       }
       urlBuilder.append(";CACHE_SIZE=").append(dbCacheSizeInBytes / 1024);
     }

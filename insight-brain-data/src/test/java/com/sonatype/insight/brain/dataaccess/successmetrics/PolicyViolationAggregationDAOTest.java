@@ -11,8 +11,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageMonth;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageThreatCategoryMonth;
+import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.MttrMonth;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
@@ -21,8 +23,6 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.LocalDate;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
-import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.MttrMonth;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -429,18 +429,6 @@ public class PolicyViolationAggregationDAOTest
     assertThat(result.countQualityCriticalThreat, is(0));
     assertThat(result.countOtherThreat, is(0));
     assertThat(result.countOtherCriticalThreat, is(0));
-  }
-
-  private void createPolicyViolationAggregation(String appId, LocalDate periodStart, LocalDate periodEnd) {
-    DescriptiveStatistics emptyStats = new DescriptiveStatistics();
-
-    tempEntity.newPolicyViolationAggregation(appId, periodStart.toDate(), periodEnd != null ? periodEnd.toDate() : null,
-        emptyStats, emptyStats, emptyStats, emptyStats, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0);
   }
 
   private void assertAverages(AverageThreatCategoryMonth actual, double low, double moderate, double severe, double critical) {

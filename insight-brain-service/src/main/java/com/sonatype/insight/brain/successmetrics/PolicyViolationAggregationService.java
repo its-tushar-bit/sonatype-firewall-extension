@@ -75,8 +75,6 @@ public class PolicyViolationAggregationService
 
   private final ApplicationService applicationService;
 
-  private final StageTypeService stageTypeService;
-
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
@@ -84,8 +82,6 @@ public class PolicyViolationAggregationService
   private final PolicyViolationAggregationDAO violationAggregationDAO;
 
   private final PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO;
-
-  private final DashboardUtils dashboardUtils;
 
   private final ConcurrentMap<String, Lock> applicationIdLocks = CacheBuilder.newBuilder().weakValues()
       .<String, Lock> build().asMap();
@@ -102,12 +98,10 @@ public class PolicyViolationAggregationService
                                            DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
-    this.stageTypeService = stageTypeService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.violationAggregationDAO = violationAggregationDAO;
     this.policyViolationResolutionStateDAO = policyViolationResolutionStateDAO;
-    this.dashboardUtils = dashboardUtils;
 
     List<StageType> stageTypes = new ArrayList<>();
 

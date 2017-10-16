@@ -545,7 +545,7 @@ public class PolicyEvaluationDAOTest
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan1", earlier);
 
     // insert these chronologically backwards to have extra assurance that the DAO deliberately sorts them
-    PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan4", latest);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan4", latest);
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan3", later);
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan2", now);
 

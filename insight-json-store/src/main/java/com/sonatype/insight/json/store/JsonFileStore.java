@@ -86,7 +86,7 @@ final class JsonFileStore
     }
   }
 
-  private Iterable<String> list() throws IOException {
+  private Iterable<String> list() {
     List<String> filenames = new ArrayList<>();
     File[] files = folder.listFiles();
     if (files != null) {

@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO.ThreatCategoryApplicationCount;
+import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.ThreatCategoryPolicyViolationsDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -39,10 +41,7 @@ import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.ThreatCategoryPolicyViolationsDTO;
-import static com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO.ThreatCategoryApplicationCount;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsReportDataService.isReportDataOutOfDate;
-
 import static org.hamcrest.Matchers.array;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.equalTo;
@@ -1016,7 +1015,7 @@ public class SuccessMetricsReportDataServiceTest
     // test differences in applicationIdsToInclude
 
     // the two application ids that are in the report, plus another one
-    Set<String> moreApplicationIds = new HashSet<String>(Arrays.asList("1234", "5678", "asdf"));
+    Set<String> moreApplicationIds = new HashSet<>(Arrays.asList("1234", "5678", "asdf"));
 
     assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, reportApplicationIds), is(false));
     assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, Collections.<String> emptySet()), is(true));

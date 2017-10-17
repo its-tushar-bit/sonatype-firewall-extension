@@ -5,41 +5,59 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.util.Date;
-
 /**
  * @since 1.33
  */
 public class AverageDiscoveredPolicyViolationsDTO
 {
-  public Date timePeriodStart;
+  public double evaluationCount;
 
-  public AverageDiscoveredThreatCategoryPolicyViolationsDTO security;
-  public AverageDiscoveredThreatCategoryPolicyViolationsDTO license;
-  public AverageDiscoveredThreatCategoryPolicyViolationsDTO quality;
-  public AverageDiscoveredThreatCategoryPolicyViolationsDTO other;
-  public int evaluationCount;
+  public ThreatCategoryPolicyViolationsDTO totalViolations;
 
-  static class AverageDiscoveredThreatCategoryPolicyViolationsDTO
+  public ThreatCategoryPolicyViolationsDTO securityViolations;
+
+  public ThreatCategoryPolicyViolationsDTO licenseViolations;
+
+  public ThreatCategoryPolicyViolationsDTO qualityViolations;
+
+  public ThreatCategoryPolicyViolationsDTO otherViolations;
+
+  static class ThreatCategoryPolicyViolationsDTO
   {
-    public double averageDiscoveredLow;
-    public double averageDiscoveredModerate;
-    public double averageDiscoveredSevere;
+    public double averageDiscovered;
+
     public double averageDiscoveredCritical;
 
-    public AverageDiscoveredThreatCategoryPolicyViolationsDTO() {
-      // for jackson
+    public ThreatCategoryPolicyViolationsDTO() {
     }
 
-    public AverageDiscoveredThreatCategoryPolicyViolationsDTO(double averageDiscoveredLow,
-                                                              double averageDiscoveredModerate,
-                                                              double averageDiscoveredSevere,
-                                                              double averageDiscoveredCritical)
-    {
-      this.averageDiscoveredLow = averageDiscoveredLow;
-      this.averageDiscoveredModerate = averageDiscoveredModerate;
-      this.averageDiscoveredSevere = averageDiscoveredSevere;
+    public ThreatCategoryPolicyViolationsDTO(double averageDiscovered, double averageDiscoveredCritical) {
+      this.averageDiscovered = averageDiscovered;
       this.averageDiscoveredCritical = averageDiscoveredCritical;
     }
+  }
+
+  public AverageDiscoveredPolicyViolationsDTO() {
+    this.totalViolations = new ThreatCategoryPolicyViolationsDTO();
+    this.securityViolations = new ThreatCategoryPolicyViolationsDTO();
+    this.licenseViolations = new ThreatCategoryPolicyViolationsDTO();
+    this.qualityViolations = new ThreatCategoryPolicyViolationsDTO();
+    this.otherViolations = new ThreatCategoryPolicyViolationsDTO();
+  }
+
+  public AverageDiscoveredPolicyViolationsDTO(double evaluationCount,
+                                              ThreatCategoryPolicyViolationsDTO totalViolations,
+                                              ThreatCategoryPolicyViolationsDTO securityViolations,
+                                              ThreatCategoryPolicyViolationsDTO licenseViolations,
+                                              ThreatCategoryPolicyViolationsDTO qualityViolations,
+                                              ThreatCategoryPolicyViolationsDTO otherViolations)
+  {
+    this.evaluationCount = evaluationCount;
+
+    this.totalViolations = totalViolations;
+    this.securityViolations = securityViolations;
+    this.licenseViolations = licenseViolations;
+    this.qualityViolations = qualityViolations;
+    this.otherViolations = otherViolations;
   }
 }

@@ -73,12 +73,15 @@ public class SuccessMetricsReportService
   }
 
   void deleteSuccessMetricsReportForCurrentUser(String successMetricsId) {
-    SuccessMetricsReport successMetricsReport = findSuccessMetricsByIdReportForCurrentUser(successMetricsId);
+    SuccessMetricsReport successMetricsReport = findSuccessMetricsReportByIdForCurrentUser(successMetricsId);
 
     successMetricsReportDAO.delete(successMetricsReport);
   }
 
-  private SuccessMetricsReport findSuccessMetricsByIdReportForCurrentUser(String successMetricsId) {
+  /**
+   * @since 1.39
+   */
+  public SuccessMetricsReport findSuccessMetricsReportByIdForCurrentUser(String successMetricsId) {
     SuccessMetricsReport successMetricsReport = successMetricsReportDAO.getById(successMetricsId);
 
     if (successMetricsReport == null || (!currentUser.getUsername().equals(successMetricsReport.getUsername()))) {

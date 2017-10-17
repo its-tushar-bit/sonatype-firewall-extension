@@ -9,11 +9,12 @@ export default {
   controllerAs: 'vm',
   controller: summaryStatementTileController,
   bindings: {
-    averagesData: '<',
+    activeApplicationCount: '<',
     successMetricsReport: '<',
     onDelete: '&',
     isSingleApplicationReport: '<',
-    lastUpdated: '<'
+    lastUpdated: '<',
+    monthCount: '<'
   }
 };
 
@@ -26,7 +27,7 @@ function summaryStatementTileController(DeleteModalService, successMetricsDataSe
   vm.delete = deleteSuccessMetrics;
 
   vm.$onInit = function() {
-    vm.showNoDataMessage = vm.averagesData.activeApplicationCount === 0;
+    vm.showNoDataMessage = vm.activeApplicationCount === 0;
     vm.dateFormat = vm.successMetricsReport.includeLatestData ? 'medium' : 'mediumDate';
   };
 

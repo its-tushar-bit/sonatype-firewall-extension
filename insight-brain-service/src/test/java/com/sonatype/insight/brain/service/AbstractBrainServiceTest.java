@@ -327,4 +327,8 @@ public abstract class AbstractBrainServiceTest
     licenseManager.setProducts(products);
     installLicense();
   }
+
+  protected String getUsername() {
+    return getCLMServer().getClientConfiguration().getServerAuth().getUsername();
+  }
 }

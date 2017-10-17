@@ -116,4 +116,8 @@ public class AbstractServiceAuthzTest
   protected void grantManageProprietaryPermission(String contextId) {
     grantPermission(contextId, Permission.MANAGE_PROPRIETARY);
   }
+
+  protected String getUsername() {
+    return user.getUsername();
+  }
 }

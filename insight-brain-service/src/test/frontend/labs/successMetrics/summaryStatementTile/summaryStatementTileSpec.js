@@ -33,7 +33,7 @@ describe('summaryStatementTileSpec', function() {
 
   it('Initializes properly with monthly report with active applications', function() {
     var vm = getVm({
-      averagesData: { activeApplicationCount: 1 },
+      activeApplicationCount: 1,
       successMetricsReport: { includeLatestData: false }
     });
 
@@ -47,7 +47,7 @@ describe('summaryStatementTileSpec', function() {
 
   it('Initializes properly with "latest data" report without active applications', function() {
     var vm = getVm({
-      averagesData: { activeApplicationCount: 0 },
+      activeApplicationCount: 0,
       successMetricsReport: { includeLatestData: true }
     });
 
@@ -62,7 +62,7 @@ describe('summaryStatementTileSpec', function() {
   it('Uses DeleteModalService correctly and invokes onDelete callback upon successful delete', function() {
     var vm = getVm({
       onDelete: mockOnDelete,
-      averagesData: { activeApplicationCount: 1 },
+      activeApplicationCount: 1,
       successMetricsReport: { id: '1', name: 'foo' }
     });
     vm.$onInit();

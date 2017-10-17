@@ -10,14 +10,14 @@
   Over the last
   <span id="success-metrics-summary-months">
     <span class="iq-chart__display-number"><!--
-   -->{{::vm.averagesData.monthCount}}<!--
+   -->{{::vm.monthCount}}<!--
  --></span>
-    {{::(vm.averagesData.monthCount === 1 ? 'month' : 'months')}}<!--
+    {{::(vm.monthCount === 1 ? 'month' : 'months')}}<!--
 --></span><!--
 
 -->, Lifecycle evaluated
   <span class="iq-chart__display-number" id="active-applications-count"><!--
- -->{{::vm.averagesData.activeApplicationCount}}<!--
+ -->{{::vm.activeApplicationCount}}<!--
 --></span>
   application{{::(vm.isSingleApplicationReport ? '' : 's')}}. Last updated {{::vm.lastUpdated | date: vm.dateFormat}}.
 </p>

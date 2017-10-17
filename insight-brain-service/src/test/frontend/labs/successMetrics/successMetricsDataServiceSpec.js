@@ -35,86 +35,46 @@ describe('successMetricsDataService', function() {
 
   describe('getChartData', function() {
 
-    it('fetches averages data from the backend and merges into a single record', function() {
-      var output;
+    it('fetches the lastUpdated and monthCount values from the backend', function() {
+      var output,
+          reportId = '1234',
+          includeLatestData = true,
+          serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond(
           PolicyViolationAggregationResourceMockData.getFullChartData());
 
-      successMetricsDataService.getChartData().then(function(o) {
-        output = o.averagesData;
-      });
+      successMetricsDataService.getChartData(serviceParams).then(function(o) { output = o; });
 
       $httpBackend.flush();
 
-      expect(output).toBeDefined();
-      expect(output.activeApplicationCount).toBe(12);
-      expect(output.averageEvaluations).toBe(1.8333333333333333);
-      expect(output.averagePolicyViolations).toBe(37.233333333333334);
-      expect(output.averageCriticalPolicyViolations).toBe(8.241666666666667);
-      expect(output.security).toBeDefined();
-      expect(output.security.averageDiscoveredLow).toBe(0);
-      expect(output.security.averageDiscoveredModerate).toBe(2);
-      expect(output.security.averageDiscoveredSevere).toBe(6);
-      expect(output.security.averageDiscoveredCritical).toBe(2.533333333333333);
-      expect(output.license).toBeDefined();
-      expect(output.license.averageDiscoveredLow).toBe(12);
-      expect(output.license.averageDiscoveredModerate).toBe(3);
-      expect(output.license.averageDiscoveredSevere).toBe(0);
-      expect(output.license.averageDiscoveredCritical).toBe(1);
-      expect(output.quality).toBeDefined();
-      expect(output.quality.averageDiscoveredLow).toBe(0);
-      expect(output.quality.averageDiscoveredModerate).toBe(0);
-      expect(output.quality.averageDiscoveredSevere).toBe(0);
-      expect(output.quality.averageDiscoveredCritical).toBe(0.6666666666666666);
-      expect(output.other).toBeDefined();
-      expect(output.other.averageDiscoveredLow).toBe(1);
-      expect(output.other.averageDiscoveredModerate).toBe(1.9916666666666665);
-      expect(output.other.averageDiscoveredSevere).toBe(3);
-      expect(output.other.averageDiscoveredCritical).toBe(4.041666666666667);
+      expect(output.monthCount).toBe(11);
+      expect(output.lastUpdated).toBe(1507218887089);
     });
 
-    it('fetches empty averages data properly', function() {
-      var output;
+    it('fetches averages data from the backend', function() {
+      var output,
+          reportId = '1234',
+          includeLatestData = true,
+          serviceParams = { id: reportId, includeLatestData: includeLatestData },
+          mockData = PolicyViolationAggregationResourceMockData.getFullChartData();
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(
-          PolicyViolationAggregationResourceMockData.getPartialChartData());
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond(mockData);
 
-      successMetricsDataService.getChartData().then(function(o) {
+      successMetricsDataService.getChartData(serviceParams).then(function(o) {
         output = o.averagesData;
       });
 
       $httpBackend.flush();
 
-      expect(output).toBeDefined();
-      expect(output.activeApplicationCount).toBe(0);
-      expect(output.averageEvaluations).toBe(0);
-      expect(output.averagePolicyViolations).toBe(0);
-      expect(output.averageCriticalPolicyViolations).toBe(0);
-      expect(output.security).toBeDefined();
-      expect(output.security.averageDiscoveredLow).toBe(0);
-      expect(output.security.averageDiscoveredModerate).toBe(0);
-      expect(output.security.averageDiscoveredSevere).toBe(0);
-      expect(output.security.averageDiscoveredCritical).toBe(0);
-      expect(output.license).toBeDefined();
-      expect(output.license.averageDiscoveredLow).toBe(0);
-      expect(output.license.averageDiscoveredModerate).toBe(0);
-      expect(output.license.averageDiscoveredSevere).toBe(0);
-      expect(output.license.averageDiscoveredCritical).toBe(0);
-      expect(output.quality).toBeDefined();
-      expect(output.quality.averageDiscoveredLow).toBe(0);
-      expect(output.quality.averageDiscoveredModerate).toBe(0);
-      expect(output.quality.averageDiscoveredSevere).toBe(0);
-      expect(output.quality.averageDiscoveredCritical).toBe(0);
-      expect(output.other).toBeDefined();
-      expect(output.other.averageDiscoveredLow).toBe(0);
-      expect(output.other.averageDiscoveredModerate).toBe(0);
-      expect(output.other.averageDiscoveredSevere).toBe(0);
-      expect(output.other.averageDiscoveredCritical).toBe(0);
+      expect(output).toEqual(mockData.averages);
     });
 
     it('fetches application counts data', function() {
       var output,
+          reportId = '1234',
+          includeLatestData = true,
+          serviceParams = { id: reportId, includeLatestData: includeLatestData },
           response = {
             totalApplications: 5,
             activeApplications: 4,
@@ -140,13 +100,13 @@ describe('successMetricsDataService', function() {
             }
           };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond({
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond({
         mttrs: [],
         averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
         applicationCounts: response
       });
 
-      successMetricsDataService.getChartData().then(function(o) {
+      successMetricsDataService.getChartData(serviceParams).then(function(o) {
         output = o.applicationCountsData;
       });
 
@@ -156,12 +116,15 @@ describe('successMetricsDataService', function() {
     });
 
     it('fetches mttr data', function() {
-      var output;
+      var output,
+          reportId = '1234',
+          includeLatestData = true,
+          serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond(
           PolicyViolationAggregationResourceMockData.getFullChartData());
 
-      successMetricsDataService.getChartData().then(function(o) {
+      successMetricsDataService.getChartData(serviceParams).then(function(o) {
         output = o.mttrData;
       });
 
@@ -172,12 +135,15 @@ describe('successMetricsDataService', function() {
     });
 
     it('fetches mttr data and properly pads missing results', function() {
-      var output;
+      var output,
+          reportId = '1234',
+          includeLatestData = true,
+          serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond(
           PolicyViolationAggregationResourceMockData.getPartialChartData());
 
-      successMetricsDataService.getChartData().then(function(o) {
+      successMetricsDataService.getChartData(serviceParams).then(function(o) {
         output = o.mttrData;
       });
 
@@ -205,14 +171,17 @@ describe('successMetricsDataService', function() {
     });
 
     it('fetches empty mttr data does not pad it', function() {
-      var output;
+      var output,
+          reportId = '1234',
+          includeLatestData = true,
+          serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond({
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond({
         averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
         mttrs: []
       });
 
-      successMetricsDataService.getChartData().then(function(o) {
+      successMetricsDataService.getChartData(serviceParams).then(function(o) {
         output = o.mttrData;
       });
 
@@ -225,11 +194,15 @@ describe('successMetricsDataService', function() {
     });
 
     it('passes on a rejected promise', function() {
-      var caughtError;
+      var caughtError,
+          reportId = '1234',
+          includeLatestData = true,
+          serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
-      $httpBackend.expectPOST(CLMLocations.getSuccessMetricsChartDataUrl()).respond(403, 'Forbidden');
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData))
+          .respond(403, 'Forbidden');
 
-      successMetricsDataService.getChartData().catch(function(e) {
+      successMetricsDataService.getChartData(serviceParams).catch(function(e) {
         caughtError = e;
       });
 

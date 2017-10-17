@@ -4,11 +4,12 @@
      reload="vm.doLoad()">
   <iq-back-button state="labs.successMetrics"></iq-back-button>
   <div class="iq-tile iq-tile--chart" >
-    <summary-statement-tile averages-data="vm.averagesData"
+    <summary-statement-tile active-application-count="vm.activeApplicationCount"
                             success-metrics-report="vm.successMetricsReport"
                             on-delete="vm.goToList()"
                             is-single-application-report="vm.isSingleApplicationReport"
-                            last-updated="vm.lastUpdated">
+                            last-updated="vm.lastUpdated"
+                            month-count="vm.monthCount">
     </summary-statement-tile>
   </div>
   <div ng-if="vm.activeApplicationCount !== 0">

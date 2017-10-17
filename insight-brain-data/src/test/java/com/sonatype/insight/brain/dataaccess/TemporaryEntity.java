@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -58,6 +59,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -213,6 +215,8 @@ public class TemporaryEntity
 
   private final SuccessMetricsReportDAO successMetricsReportDAO = new SuccessMetricsReportDAO();
 
+  private final SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -257,6 +261,8 @@ public class TemporaryEntity
 
   private Collection<SuccessMetricsReport> successMetricsReports;
 
+  private Collection<SuccessMetricsReportData> successMetricsReportDatas;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -281,6 +287,7 @@ public class TemporaryEntity
     policyViolationAggregations = new ArrayList<>();
     policyViolationResolutionStates = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
+    successMetricsReportDatas = new ArrayList<>();
   }
 
   @Override
@@ -408,6 +415,12 @@ public class TemporaryEntity
       if ((policyViolationResolutionState = policyViolationResolutionStateDAO
           .getById(policyViolationResolutionState.getId())) != null) {
         policyViolationResolutionStateDAO.delete(policyViolationResolutionState);
+      }
+    }
+
+    for (SuccessMetricsReportData successMetricsReportData : this.successMetricsReportDatas) {
+      if ((successMetricsReportData = successMetricsReportDataDAO.getById(successMetricsReportData.getId())) != null) {
+        successMetricsReportDataDAO.delete(successMetricsReportData);
       }
     }
 
@@ -1647,6 +1660,7 @@ public class TemporaryEntity
   public SuccessMetricsReport newSuccessMetricsReport(String username,
                                                       String metricsName,
                                                       String scopeJson,
+                                                      boolean includeLatestData,
                                                       Date createTime)
   {
     SuccessMetricsReport successMetricsReport = new SuccessMetricsReport();
@@ -1654,12 +1668,40 @@ public class TemporaryEntity
     successMetricsReport.setScopeJson(scopeJson);
     successMetricsReport.setName(metricsName);
     successMetricsReport.setCreateTime(createTime);
+    successMetricsReport.setIncludeLatestData(includeLatestData);
     successMetricsReportDAO.insert(successMetricsReport);
     this.successMetricsReports.add(successMetricsReport);
     return successMetricsReport;
   }
 
+  public SuccessMetricsReport newSuccessMetricsReport(String username,
+                                                      String metricsName,
+                                                      String scopeJson,
+                                                      Date createTime)
+  {
+    return newSuccessMetricsReport(username, metricsName, scopeJson, false, createTime);
+  }
+
+  public SuccessMetricsReport newSuccessMetricsReport(String username,
+                                                      String metricsName,
+                                                      String scopeJson,
+                                                      boolean includeLatestData)
+  {
+    return newSuccessMetricsReport(username, metricsName, scopeJson, includeLatestData, null);
+  }
+
   public SuccessMetricsReport newSuccessMetricsReport(String username, String metricsName, String scopeJson) {
-    return newSuccessMetricsReport(username, metricsName, scopeJson, null);
+    return newSuccessMetricsReport(username, metricsName, scopeJson, false);
+  }
+
+  public SuccessMetricsReportData newSuccessMetricsReportData(String successMetricsReportId) {
+    SuccessMetricsReportData successMetricsReportData = new SuccessMetricsReportData();
+    successMetricsReportData.setId(successMetricsReportId);
+    successMetricsReportData.setLastUpdated(new Date());
+    successMetricsReportData.setIncludedApplicationIds(Collections.singleton("1234"));
+
+    this.successMetricsReportDatas.add(successMetricsReportData);
+    this.successMetricsReportDataDAO.insert(successMetricsReportData);
+    return successMetricsReportData;
   }
 }

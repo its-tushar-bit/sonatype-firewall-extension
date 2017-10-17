@@ -22,7 +22,7 @@ import org.joda.time.LocalDate;
 public class PolicyViolationAggregationDAO
     extends AbstractAggregationSqlDAO<PolicyViolationAggregation>
 {
-  private static final int NUM_MONTHS = 12;
+  public static final int NUM_MONTHS = 12;
 
   @Override
   public PolicyViolationAggregation getById(String id) {
@@ -121,6 +121,11 @@ public class PolicyViolationAggregationDAO
       this.averageDiscoveredModerateThreat = averageDiscoveredModerateThreat;
       this.averageDiscoveredSevereThreat = averageDiscoveredSevereThreat;
       this.averageDiscoveredCriticalThreat = averageDiscoveredCriticalThreat;
+    }
+
+    public double getSum() {
+      return averageDiscoveredLowThreat + averageDiscoveredModerateThreat + averageDiscoveredSevereThreat
+          + averageDiscoveredCriticalThreat;
     }
   }
 

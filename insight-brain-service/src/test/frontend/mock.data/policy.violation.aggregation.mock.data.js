@@ -2,326 +2,52 @@
 var PolicyViolationAggregationResourceMockData = {
   getAverages: function() {
     return {
-      activeApplicationCount: 12,
-      averageDiscoveredPolicyViolations: [{
-        evaluationCount: 3,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 1,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1.9
-        },
-        license: {
-          averageDiscoveredLow: 144,
-          averageDiscoveredModerate: 6,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 8
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 1.9,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 2,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 2,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 3,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 2.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 6,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 4,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 1,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 2,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 6,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 2,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 3,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 1.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 2,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 1,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 6,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 1,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 1,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 3,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 6,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 1,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 1,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 1,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 6,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4
-        }
-      }, {
-        evaluationCount: 1,
-        security: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 3,
-          averageDiscoveredSevere: 6,
-          averageDiscoveredCritical: 3.5
-        },
-        license: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 1
-        },
-        quality: {
-          averageDiscoveredLow: 0,
-          averageDiscoveredModerate: 0,
-          averageDiscoveredSevere: 0,
-          averageDiscoveredCritical: 0
-        },
-        other: {
-          averageDiscoveredLow: 1,
-          averageDiscoveredModerate: 2,
-          averageDiscoveredSevere: 3,
-          averageDiscoveredCritical: 4.5
-        }
-      }]
+      evaluationCount: 3,
+      securityViolations: {
+        averageDiscovered: 1,
+        averageDiscoveredCritical: 1
+      },
+      licenseViolations: {
+        averageDiscovered: 12,
+        averageDiscoveredCritical: 8
+      },
+      qualityViolations: {
+        averageDiscovered: 6,
+        averageDiscoveredCritical: 2
+      },
+      otherViolations: {
+        averageDiscovered: 12,
+        averageDiscoveredCritical: 11
+      },
+      totalViolations: {
+        averageDiscovered: 31,
+        averageDiscoveredCritical: 22
+      }
     };
   },
   getEmptyAverages: function() {
     return {
-      activeApplicationCount: 0,
-      averageDiscoveredPolicyViolations: []
+      evaluationCount: 0,
+      securityViolations: {
+        averageDiscovered: 0,
+        averageDiscoveredCritical: 0
+      },
+      licenseViolations: {
+        averageDiscovered: 0,
+        averageDiscoveredCritical: 0
+      },
+      qualityViolations: {
+        averageDiscovered: 0,
+        averageDiscoveredCritical: 0
+      },
+      otherViolations: {
+        averageDiscovered: 0,
+        averageDiscoveredCritical: 0
+      },
+      totalViolations: {
+        averageDiscovered: 0,
+        averageDiscoveredCritical: 0
+      }
     };
   },
   getMttrData: function() {
@@ -387,7 +113,9 @@ var PolicyViolationAggregationResourceMockData = {
     return {
       mttrs: PolicyViolationAggregationResourceMockData.getMttrData(),
       averages: PolicyViolationAggregationResourceMockData.getAverages(),
-      componentCounts: PolicyViolationAggregationResourceMockData.getComponentCountsData()
+      componentCounts: PolicyViolationAggregationResourceMockData.getComponentCountsData(),
+      monthCount: 11,
+      lastUpdated: 1507218887089
     };
   },
   getPartialChartData: function() {

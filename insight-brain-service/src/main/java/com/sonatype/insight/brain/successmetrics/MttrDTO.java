@@ -18,6 +18,15 @@ public class MttrDTO
 
   public Integer criticalMttrInSeconds;
 
+  public MttrDTO() {
+  }
+
+  public MttrDTO(Date timePeriodStart, Integer mttrInSeconds, Integer criticalMttrInSeconds) {
+    this.timePeriodStart = timePeriodStart;
+    this.mttrInSeconds = mttrInSeconds;
+    this.criticalMttrInSeconds = criticalMttrInSeconds;
+  }
+
   // mainly present to help debug automated tests
   @Override
   public String toString() {

@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,10 +27,7 @@ import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.ApplicationCountsByThreat;
-import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.AverageMonth;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationResolutionStateDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -40,12 +36,10 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationResolutionState;
-import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
-import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.AverageDiscoveredThreatCategoryPolicyViolationsDTO;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.cache.CacheBuilder;
@@ -69,11 +63,9 @@ import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
  */
 @Named
 @Singleton
-public class PolicyViolationAggregationService
+class PolicyViolationAggregationService
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyViolationAggregationService.class);
-
-  private final ApplicationService applicationService;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -89,15 +81,13 @@ public class PolicyViolationAggregationService
   private final Set<String> stageTypeIds;
 
   @Inject
-  public PolicyViolationAggregationService(ApplicationService applicationService,
-                                           StageTypeService stageTypeService,
+  public PolicyViolationAggregationService(StageTypeService stageTypeService,
                                            PolicyEvaluationDAO policyEvaluationDAO,
                                            PolicyViolationDAO policyViolationDAO,
                                            PolicyViolationAggregationDAO violationAggregationDAO,
                                            PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO,
                                            DashboardUtils dashboardUtils)
   {
-    this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.violationAggregationDAO = violationAggregationDAO;
@@ -113,141 +103,14 @@ public class PolicyViolationAggregationService
     stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
   }
 
-  public SuccessMetricsChartDataDTO getChartData(Set<String> organizationIds, Set<String> applicationIds) {
-    return getChartData(organizationIds, applicationIds, false);
-  }
-
-  public SuccessMetricsChartDataDTO getChartData(Set<String> organizationIds,
-                                                 Set<String> applicationIds,
-                                                 boolean includeLatestData)
-  {
-    Set<String> applicationIdsToQuery = getApplicationIdsToQuery(organizationIds, applicationIds);
-    // make sure the aggregations data is up to date before we query it
-    DateTime currentDateTime = new DateTime();
-    generatePolicyViolationAggregations(applicationIdsToQuery, currentDateTime, includeLatestData);
-
-    SuccessMetricsChartDataDTO result = new SuccessMetricsChartDataDTO();
-    result.mttrs = getMttrs(applicationIdsToQuery, includeLatestData);
-    result.averages = getAverages(applicationIdsToQuery, includeLatestData);
-    result.applicationCounts = getApplicationCounts(applicationIdsToQuery, includeLatestData);
-    result.lastUpdated = includeLatestData ? currentDateTime.toDate() : currentDateTime.withDayOfMonth(1).millisOfDay()
-        .withMinimumValue().toDate();
-
-    return result;
-  }
-
-  private List<MttrDTO> getMttrs(Set<String> applicationIdsToQuery, boolean includeLatestData) {
-    List<PolicyViolationAggregationDAO.MttrMonth> queryResults = violationAggregationDAO
-        .getMttrMonthlyAverages(applicationIdsToQuery, includeLatestData);
-
-    List<MttrDTO> retval = new ArrayList<>(queryResults.size());
-    for (PolicyViolationAggregationDAO.MttrMonth mttrMonth : queryResults) {
-      MttrDTO dto = new MttrDTO();
-      int totalResolved = mttrMonth.resolvedCountLowThreat + mttrMonth.resolvedCountModerateThreat
-          + mttrMonth.resolvedCountSevereThreat + mttrMonth.resolvedCountCriticalThreat;
-      double mttrLowThreat = mttrMonth.mttrLowThreat != null ? mttrMonth.mttrLowThreat.doubleValue() : 0;
-      double mttrModerateThreat = mttrMonth.mttrModerateThreat != null ? mttrMonth.mttrModerateThreat.doubleValue() : 0;
-      double mttrSevereThreat = mttrMonth.mttrSevereThreat != null ? mttrMonth.mttrSevereThreat.doubleValue() : 0;
-      double mttrCriticalThreat = mttrMonth.mttrCriticalThreat != null ? mttrMonth.mttrCriticalThreat.doubleValue() : 0;
-
-      // NOTE: DTO values are in seconds while MttrMonth values are in milliseconds hence the division by 1000
-      if (totalResolved != 0) {
-        // combine MTTRs for all threat levels using a weighted average
-        dto.mttrInSeconds = (int) ((mttrLowThreat * mttrMonth.resolvedCountLowThreat + //
-            mttrModerateThreat * mttrMonth.resolvedCountModerateThreat + //
-            mttrSevereThreat * mttrMonth.resolvedCountSevereThreat + //
-            mttrCriticalThreat * mttrMonth.resolvedCountCriticalThreat) / totalResolved / 1000);
-      }
-      // else leave it null
-
-      dto.timePeriodStart = mttrMonth.monthStart;
-      dto.criticalMttrInSeconds = mttrMonth.mttrCriticalThreat != null
-          ? (int) (mttrMonth.mttrCriticalThreat.doubleValue() / 1000) : null;
-
-      retval.add(dto);
-    }
-
-    return retval;
-  }
-
-  private SuccessMetricsAveragesDTO getAverages(Set<String> applicationIdsToQuery, boolean includeLatestData) {
-    List<AverageMonth> queryResults = violationAggregationDAO
-        .getMonthlyAverages(applicationIdsToQuery, includeLatestData);
-
-    List<AverageDiscoveredPolicyViolationsDTO> averageDiscoveredPolicyViolations = new ArrayList<>(queryResults.size());
-    for (AverageMonth averageMonth : queryResults) {
-      AverageDiscoveredPolicyViolationsDTO dto = new AverageDiscoveredPolicyViolationsDTO();
-      dto.timePeriodStart = averageMonth.timePeriodStart;
-      dto.security = new AverageDiscoveredThreatCategoryPolicyViolationsDTO(averageMonth.security.averageDiscoveredLowThreat,
-          averageMonth.security.averageDiscoveredModerateThreat, averageMonth.security.averageDiscoveredSevereThreat,
-          averageMonth.security.averageDiscoveredCriticalThreat);
-      dto.license = new AverageDiscoveredThreatCategoryPolicyViolationsDTO(averageMonth.license.averageDiscoveredLowThreat,
-          averageMonth.license.averageDiscoveredModerateThreat, averageMonth.license.averageDiscoveredSevereThreat,
-          averageMonth.license.averageDiscoveredCriticalThreat);
-      dto.quality = new AverageDiscoveredThreatCategoryPolicyViolationsDTO(averageMonth.quality.averageDiscoveredLowThreat,
-          averageMonth.quality.averageDiscoveredModerateThreat, averageMonth.quality.averageDiscoveredSevereThreat,
-          averageMonth.quality.averageDiscoveredCriticalThreat);
-      dto.other = new AverageDiscoveredThreatCategoryPolicyViolationsDTO(averageMonth.other.averageDiscoveredLowThreat,
-          averageMonth.other.averageDiscoveredModerateThreat, averageMonth.other.averageDiscoveredSevereThreat,
-          averageMonth.other.averageDiscoveredCriticalThreat);
-      dto.evaluationCount = averageMonth.evaluationCount;
-      averageDiscoveredPolicyViolations.add(dto);
-    }
-
-    int activeApplications = violationAggregationDAO
-        .getActiveApplicationCount(applicationIdsToQuery, includeLatestData);
-
-    return new SuccessMetricsAveragesDTO(activeApplications, averageDiscoveredPolicyViolations);
-  }
-
-  private ApplicationCountsDTO getApplicationCounts(Set<String> applicationIdsToQuery, boolean includeLatestData) {
-
-    ApplicationCountsByThreat applicationCounts = violationAggregationDAO
-        .getApplicationCountsByThreatByApplicationIds(applicationIdsToQuery, includeLatestData);
-
-    ApplicationCountsDTO retval = new ApplicationCountsDTO();
-    retval.totalApplications = applicationIdsToQuery.size();
-    retval.activeApplications = violationAggregationDAO
-        .getActiveApplicationCount(applicationIdsToQuery, includeLatestData);
-
-    retval.total = new ApplicationCountsDTO.ThreatCategoryApplicationCount( //
-        applicationCounts.countAnyThreat, //
-        applicationCounts.countAnyCriticalThreat);
-    retval.security = new ApplicationCountsDTO.ThreatCategoryApplicationCount( //
-        applicationCounts.countSecurityThreat, //
-        applicationCounts.countSecurityCriticalThreat);
-    retval.license = new ApplicationCountsDTO.ThreatCategoryApplicationCount( //
-        applicationCounts.countLicenseThreat, //
-        applicationCounts.countLicenseCriticalThreat);
-    retval.quality = new ApplicationCountsDTO.ThreatCategoryApplicationCount( //
-        applicationCounts.countQualityThreat, //
-        applicationCounts.countQualityCriticalThreat);
-    retval.other = new ApplicationCountsDTO.ThreatCategoryApplicationCount( //
-        applicationCounts.countOtherThreat, //
-        applicationCounts.countOtherCriticalThreat);
-
-    return retval;
-  }
-
-  private Set<String> getApplicationIdsToQuery(Set<String> organizationIds, Set<String> applicationIds) {
-    Collection<Application> applicationsToQuery = applicationService
-        .getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, null);
-
-    Set<String> applicationIdsToQuery = new HashSet<>();
-    for (Application app : applicationsToQuery) {
-      applicationIdsToQuery.add(app.getId());
-    }
-    return applicationIdsToQuery;
-  }
-
   /**
    * Update PolicyViolationAggregation rows for each of the specified applications. This determines the most recent
    * time period that was already aggregated for each application and then creates all necessary aggregations
    * for the time periods since then.
    */
-  private void generatePolicyViolationAggregations(Set<String> applicationIds,
-                                                   DateTime currentDateTime,
-                                                   boolean includeLatestData)
+  void generatePolicyViolationAggregations(Set<String> applicationIds,
+                                           DateTime currentDateTime,
+                                           boolean includeLatestData)
   {
     log.debug("Starting update of Policy Violation Aggregations for {} applications", applicationIds.size());
 

@@ -10,11 +10,11 @@ public class ApplicationCountsDTO
   public int totalApplications;
   public int activeApplications;
 
-  public ThreatCategoryApplicationCount total = new ThreatCategoryApplicationCount();
-  public ThreatCategoryApplicationCount security = new ThreatCategoryApplicationCount();
-  public ThreatCategoryApplicationCount license = new ThreatCategoryApplicationCount();
-  public ThreatCategoryApplicationCount quality = new ThreatCategoryApplicationCount();
-  public ThreatCategoryApplicationCount other = new ThreatCategoryApplicationCount();
+  public ThreatCategoryApplicationCount total;
+  public ThreatCategoryApplicationCount security;
+  public ThreatCategoryApplicationCount license;
+  public ThreatCategoryApplicationCount quality;
+  public ThreatCategoryApplicationCount other;
 
   static class ThreatCategoryApplicationCount
   {
@@ -30,5 +30,30 @@ public class ApplicationCountsDTO
       this.applicationsWithViolations = applicationsWithViolations;
       this.applicationsWithCriticalViolations = applicationsWithCriticalViolations;
     }
+  }
+
+  public ApplicationCountsDTO() {
+    this.total = new ThreatCategoryApplicationCount();
+    this.security = new ThreatCategoryApplicationCount();
+    this.license = new ThreatCategoryApplicationCount();
+    this.quality = new ThreatCategoryApplicationCount();
+    this.other = new ThreatCategoryApplicationCount();
+  }
+
+  public ApplicationCountsDTO(int totalApplications,
+                              int activeApplications,
+                              ThreatCategoryApplicationCount total,
+                              ThreatCategoryApplicationCount security,
+                              ThreatCategoryApplicationCount license,
+                              ThreatCategoryApplicationCount quality,
+                              ThreatCategoryApplicationCount other)
+  {
+    this.totalApplications = totalApplications;
+    this.activeApplications = activeApplications;
+    this.total = total;
+    this.security = security;
+    this.license = license;
+    this.quality = quality;
+    this.other = other;
   }
 }

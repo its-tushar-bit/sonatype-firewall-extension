@@ -6,11 +6,11 @@
 --></span>
   evaluations per month, finding
   <span class="iq-chart__display-number" id="average-policy-violations"><!--
- -->{{::vm.averagePolicyViolations | number: 0}}<!--
+ -->{{::vm.averageDiscoveredTotal | number: 0}}<!--
 --></span>
   policy violations{{::(vm.isSingleApplicationReport ? ',' : ' per application,')}} of which
   <span class="iq-chart__display-number" id="average-critical-policy-violations"><!--
- -->{{::vm.averageCriticalPolicyViolations | number: 0}}<!--
+ -->{{::vm.averageDiscoveredTotalCritical | number: 0}}<!--
 --></span>
   were <strong>critical</strong>.
 </p>

@@ -7,9 +7,7 @@ package com.sonatype.insight.brain.successmetrics;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpResponse;
@@ -18,7 +16,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.LocalDate;
 import org.junit.Test;
@@ -34,7 +35,7 @@ public class PolicyViolationAggregationResourceTest
     extends AbstractResourceTest
 {
   @Test
-  public void testGetMttrs() throws Exception {
+  public void testGetChartData() throws Exception {
     /*
      * create two apps in two separate orgs. Each app has two evaluations - one that has a violation and a later
      * one that doesn't (ie, the violation is resolved in the later evaluation). The amount of time between the two
@@ -60,81 +61,22 @@ public class PolicyViolationAggregationResourceTest
     tempEntity.newPolicyViolation(eval1, policy1);
     tempEntity.newPolicyViolation(eval2, policy1);
 
-    Set<String> orgIds = Collections.singleton(orgId1);
-    Set<String> appIds = Collections.singleton(appId1);
+    SuccessMetricsReport report = createSuccessMetricsReport(null, Collections.singleton(appId1));
 
-    // test that app ids are passed
-    Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("applicationIds", appIds);
-    HttpResponse response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
-    assertMttrResponse(response, date1);
+    HttpResponse response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).path(report.getId())
+        .get();
 
-    // test that org ids are passed
-    requestBody = new HashMap<>();
-    requestBody.put("organizationIds", orgIds);
-    response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
     assertMttrResponse(response, date1);
+    assertAveragesResponse(response, date1);
+    assertApplicationCountsResponse(response);
   }
 
-  @Test
-  public void testGetAverages() throws Exception {
-    // create two apps in two orgs
-    Application app1 = tempEntity.newApplicationWithParent("appId1", "app 1", "test org 1");
-    Application app2 = tempEntity.newApplicationWithParent("appId2", "app 2", "test org 2");
-    Date startOfMonth = new LocalDate().minusMonths(1).withDayOfMonth(1).toDate();
-    Date middleOfMonth = new LocalDate().minusMonths(1).withDayOfMonth(15).toDate();
+  private SuccessMetricsReport createSuccessMetricsReport(Set<String> organizationIds, Set<String> applicationIds) {
+    SuccessMetricsReportScopeDTO scope = new SuccessMetricsReportScopeDTO();
+    scope.organizationIds = organizationIds;
+    scope.applicationIds = applicationIds;
 
-    // an evaluation for each app, with one violation each
-    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy1", 5);
-    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scan1", middleOfMonth);
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan2", middleOfMonth);
-    tempEntity.newPolicyViolation(eval1, policy1);
-    tempEntity.newPolicyViolation(eval2, policy1);
-
-    Set<String> orgIds = Collections.singleton(app1.getOrganizationId());
-    Set<String> appIds = Collections.singleton(app1.getId());
-
-    // test that app ids are passed
-    Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("applicationIds", appIds);
-    HttpResponse response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
-    assertAveragesResponse(response, startOfMonth);
-
-    // test that org ids are passed
-    requestBody = new HashMap<>();
-    requestBody.put("organizationIds", orgIds);
-    response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
-    assertAveragesResponse(response, startOfMonth);
-  }
-
-  @Test
-  public void testGetApplicationCounts() throws Exception {
-    // create two apps in two orgs
-    Application app1 = tempEntity.newApplicationWithParent("appId1", "app 1", "test org 1");
-    Application app2 = tempEntity.newApplicationWithParent("appId2", "app 2", "test org 2");
-    Date middleOfMonth = new LocalDate().minusMonths(1).withDayOfMonth(15).toDate();
-
-    // an evaluation for each app, with one violation each
-    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy1", 5);
-    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scan1", middleOfMonth);
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan2", middleOfMonth);
-    tempEntity.newPolicyViolation(eval1, policy1);
-    tempEntity.newPolicyViolation(eval2, policy1);
-
-    Set<String> orgIds = Collections.singleton(app1.getOrganizationId());
-    Set<String> appIds = Collections.singleton(app1.getId());
-
-    // test that app ids are passed
-    Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("applicationIds", appIds);
-    HttpResponse response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
-    assertApplicationCountsResponse(response);
-
-    // test that org ids are passed
-    requestBody = new HashMap<>();
-    requestBody.put("organizationIds", orgIds);
-    response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).body(requestBody).post();
-    assertApplicationCountsResponse(response);
+    return tempEntity.newSuccessMetricsReport(getUsername(), "report", JsonUtils.format(scope));
   }
 
   private void assertMttrResponse(HttpResponse response, Date date) {
@@ -149,15 +91,12 @@ public class PolicyViolationAggregationResourceTest
 
   private void assertAveragesResponse(HttpResponse response, Date date) {
     SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
-    SuccessMetricsAveragesDTO dto = chartDto.averages;
+    AverageDiscoveredPolicyViolationsDTO dto = chartDto.averages;
 
     assertThat(dto, is(notNullValue()));
-    assertThat(dto.activeApplicationCount, is(1));
-    assertThat(dto.averageDiscoveredPolicyViolations, hasSize(1));
-    assertThat(dto.averageDiscoveredPolicyViolations.get(0).timePeriodStart, is(date));
-    assertThat(dto.averageDiscoveredPolicyViolations.get(0).license.averageDiscoveredSevere, closeTo(1.0, 0.0001));
-    assertThat(dto.averageDiscoveredPolicyViolations.get(0).license.averageDiscoveredCritical, closeTo(0.0, 0.0001));
-    assertThat(dto.averageDiscoveredPolicyViolations.get(0).evaluationCount, is(1));
+    assertThat(dto.licenseViolations.averageDiscovered, closeTo(1.0, 0.0001));
+    assertThat(dto.licenseViolations.averageDiscoveredCritical, closeTo(0.0, 0.0001));
+    assertThat(dto.evaluationCount, closeTo(2.0, 0.0001));
   }
 
   private void assertApplicationCountsResponse(HttpResponse response) {

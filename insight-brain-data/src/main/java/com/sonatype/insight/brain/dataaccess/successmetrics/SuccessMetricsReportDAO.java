@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -65,5 +66,18 @@ public class SuccessMetricsReportDAO
   @Override
   public void update(TransactionContext tx, SuccessMetricsReport successMetrics) {
     throw new UnsupportedOperationException("SuccessMetricsReport does not support update operations.");
+  }
+
+  @Override
+  public void delete(TransactionContext tx, SuccessMetricsReport successMetricsReport) {
+    SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
+    SuccessMetricsReportData successMetricsReportData = successMetricsReportDataDAO
+        .getById(successMetricsReport.getId());
+
+    if (successMetricsReportData != null) {
+      successMetricsReportDataDAO.delete(tx, successMetricsReportData);
+    }
+
+    super.delete(tx, successMetricsReport);
   }
 }

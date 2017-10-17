@@ -17,53 +17,89 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO;
+import com.sonatype.insight.brain.successmetrics.MttrDTO;
+import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Sets;
 import org.joda.time.LocalDate;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
-public class PolicyViolationAggregationServiceAuthzTest
+public class SuccessMetricsReportDataServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   // one hour in milliseconds
   private static final int ONE_HOUR = 1000 * 60 * 60;
 
   @Inject
-  private PolicyViolationAggregationService policyViolationAggregationService;
+  private SuccessMetricsReportDataService successMetricsReportDataService;
 
   private LocalDate today = new LocalDate();
+
+  private SuccessMetricsReport createSuccessMetricsReport(Set<String> organizationIds, Set<String> applicationIds) {
+    SuccessMetricsReportScopeDTO scope = new SuccessMetricsReportScopeDTO();
+    scope.organizationIds = organizationIds;
+    scope.applicationIds = applicationIds;
+
+    return tempEntity.newSuccessMetricsReport(getUsername(), "report", JsonUtils.format(scope));
+  }
 
   @Test
   public void testGetChartData_ExplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getChartData(null, Collections.singleton(app.getId())));
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
+
+    try {
+      successMetricsReportDataService.getChartData(successMetricsReport.getId());
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException e) {
+      // can't look up SuccessMetricsReport if the user isn't logged in
+      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
+    }
   }
 
   @Test
   public void testGetChartData_ExplicitApplicationFilter_Unauthorized() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     login();
-    assertEmptyResults(policyViolationAggregationService.getChartData(null, Collections.singleton(app.getId())));
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
+    assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
   }
 
   @Test
   public void testGetChartData_ExplicitOrganizationFilter_Unauthenticated() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null));
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
+
+    try {
+      successMetricsReportDataService.getChartData(successMetricsReport.getId());
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException e) {
+      // can't look up SuccessMetricsReport if the user isn't logged in
+      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
+    }
   }
 
   @Test
   public void testGetChartData_ExplicitOrganizationFilter_Unauthorized() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     login();
-    assertEmptyResults(policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null));
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
+    assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
   }
 
   @Test
@@ -75,7 +111,8 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(app.getId());
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
-    assertMttrResults(policyViolationAggregationService.getChartData(null, appIds).mttrs, today);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, appIds);
+    assertMttrResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).mttrs, today);
   }
 
   @Test
@@ -86,7 +123,8 @@ public class PolicyViolationAggregationServiceAuthzTest
     createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
 
     grantReadPermission(app.getId());
-    assertMttrResults(policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null).mttrs, today);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
+    assertMttrResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).mttrs, today);
   }
 
   @Test
@@ -100,20 +138,31 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(org.getId());
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
-    assertMttrResults(policyViolationAggregationService.getChartData(orgIds, null).mttrs, today);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(orgIds, null);
+    assertMttrResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).mttrs, today);
   }
 
   @Test
   public void testGetChartData_ImplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
-    assertEmptyResults(policyViolationAggregationService.getChartData(null, null));
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
+
+    try {
+      successMetricsReportDataService.getChartData(successMetricsReport.getId());
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException e) {
+      // can't look up SuccessMetricsReport if the user isn't logged in
+      assertThat(e.getMessage(), containsString("Cannot find a success metrics report"));
+    }
   }
 
   @Test
   public void testGetChartData_ImplicitApplicationFilter_Unauthorized() {
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     login();
-    assertEmptyResults(policyViolationAggregationService.getChartData(null, null));
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
+    assertEmptyResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()));
   }
 
   @Test
@@ -123,7 +172,8 @@ public class PolicyViolationAggregationServiceAuthzTest
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
-    assertMttrResults(policyViolationAggregationService.getChartData(null, null).mttrs, today);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
+    assertMttrResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).mttrs, today);
   }
 
   @Test
@@ -136,7 +186,8 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(app.getId());
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
-    assertAveragesResults(policyViolationAggregationService.getChartData(null, appIds).averages, today);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, appIds);
+    assertAveragesResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).averages);
   }
 
   @Test
@@ -147,8 +198,8 @@ public class PolicyViolationAggregationServiceAuthzTest
     createPolicyViolation(app2.getId(), today);
 
     grantReadPermission(app.getId());
-    assertAveragesResults(policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null).averages,
-        today);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
+    assertAveragesResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).averages);
   }
 
   @Test
@@ -162,7 +213,8 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(org.getId());
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
-    assertAveragesResults(policyViolationAggregationService.getChartData(orgIds, null).averages, today);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(orgIds, null);
+    assertAveragesResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).averages);
   }
 
   @Test
@@ -172,7 +224,8 @@ public class PolicyViolationAggregationServiceAuthzTest
     createPolicyViolation(app.getId(), today, ONE_HOUR);
     createPolicyViolation(app2.getId(), today, ONE_HOUR * 2);
     grantReadPermission(app.getId());
-    assertAveragesResults(policyViolationAggregationService.getChartData(null, null).averages, today);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
+    assertAveragesResults(successMetricsReportDataService.getChartData(successMetricsReport.getId()).averages);
   }
 
   @Test
@@ -184,7 +237,9 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(app.getId());
 
     Set<String> appIds = Sets.newHashSet(app.getId(), app2.getId());
-    assertApplicationCountsResult(policyViolationAggregationService.getChartData(null, appIds).applicationCounts);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, appIds);
+    assertApplicationCountsResult(
+        successMetricsReportDataService.getChartData(successMetricsReport.getId()).applicationCounts);
   }
 
   @Test
@@ -195,8 +250,9 @@ public class PolicyViolationAggregationServiceAuthzTest
     createPolicyViolation(app2.getId(), today);
 
     grantReadPermission(app.getId());
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(org.getId()), null);
     assertApplicationCountsResult(
-        policyViolationAggregationService.getChartData(Collections.singleton(org.getId()), null).applicationCounts);
+        successMetricsReportDataService.getChartData(successMetricsReport.getId()).applicationCounts);
   }
 
   @Test
@@ -210,7 +266,9 @@ public class PolicyViolationAggregationServiceAuthzTest
     grantReadPermission(org.getId());
 
     Set<String> orgIds = Sets.newHashSet(org.getId(), org2.getId());
-    assertApplicationCountsResult(policyViolationAggregationService.getChartData(orgIds, null).applicationCounts);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(orgIds, null);
+    assertApplicationCountsResult(
+        successMetricsReportDataService.getChartData(successMetricsReport.getId()).applicationCounts);
   }
 
   @Test
@@ -220,7 +278,35 @@ public class PolicyViolationAggregationServiceAuthzTest
     createPolicyViolation(app.getId(), today);
     createPolicyViolation(app2.getId(), today);
     grantReadPermission(app.getId());
-    assertApplicationCountsResult(policyViolationAggregationService.getChartData(null, null).applicationCounts);
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
+    assertApplicationCountsResult(
+        successMetricsReportDataService.getChartData(successMetricsReport.getId()).applicationCounts);
+  }
+
+  @Test
+  public void testGetChartData_AuthorizationChangesAfterFirstReportGeneration() {
+    LocalDate today = new LocalDate();
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(app.getId()));
+
+    login();
+    createPolicyViolation(app.getId(), today, ONE_HOUR);
+
+    // cause the initial report data to be generated
+    successMetricsReportDataService.getChartData(successMetricsReport.getId());
+
+    grantReadPermission(app.getId());
+
+    // run the chart again
+    SuccessMetricsChartDataDTO results = successMetricsReportDataService.getChartData(successMetricsReport.getId());
+
+    // make sure that the data that comes back is fresh and not still using the cached empty
+    // SuccessMetricsReportData from the previous run
+    assertMttrResults(results.mttrs, today);
+    assertApplicationCountsResult(results.applicationCounts);
+    assertAveragesResults(results.averages);
   }
 
   private void createPolicyViolation(String appId, LocalDate today) {
@@ -249,17 +335,9 @@ public class PolicyViolationAggregationServiceAuthzTest
     assertThat(dto.criticalMttrInSeconds, is(nullValue()));
   }
 
-  private void assertAveragesResults(SuccessMetricsAveragesDTO dto, LocalDate today) {
-    List<AverageDiscoveredPolicyViolationsDTO> averagesDTOs = dto.averageDiscoveredPolicyViolations;
-
-    assertThat(averagesDTOs, hasSize(1));
-
-    AverageDiscoveredPolicyViolationsDTO averageDiscoveredPolicyViolations = averagesDTOs.get(0);
-    assertThat(averageDiscoveredPolicyViolations.timePeriodStart,
-        is(today.withDayOfMonth(1).minusMonths(1).toDateTimeAtStartOfDay().toDate()));
-    assertThat(averageDiscoveredPolicyViolations.license.averageDiscoveredSevere, is(1.0));
-    assertThat(averageDiscoveredPolicyViolations.evaluationCount, is(2));
-    assertThat(dto.activeApplicationCount, is(1));
+  private void assertAveragesResults(AverageDiscoveredPolicyViolationsDTO dto) {
+    assertThat(dto.licenseViolations.averageDiscovered, is(1.0));
+    assertThat(dto.evaluationCount, is(2.0));
   }
 
   private void assertApplicationCountsResult(ApplicationCountsDTO dto) {
@@ -283,9 +361,18 @@ public class PolicyViolationAggregationServiceAuthzTest
     assertEmptyResults(chartDataDTO.applicationCounts);
   }
 
-  private void assertEmptyResults(SuccessMetricsAveragesDTO dto) {
-    assertThat(dto.activeApplicationCount, is(0));
-    assertEmptyResults(dto.averageDiscoveredPolicyViolations);
+  private void assertEmptyResults(AverageDiscoveredPolicyViolationsDTO dto) {
+    assertThat(dto.evaluationCount, is(0.0));
+    assertThat(dto.totalViolations.averageDiscovered, is(0.0));
+    assertThat(dto.totalViolations.averageDiscoveredCritical, is(0.0));
+    assertThat(dto.securityViolations.averageDiscovered, is(0.0));
+    assertThat(dto.securityViolations.averageDiscoveredCritical, is(0.0));
+    assertThat(dto.licenseViolations.averageDiscovered, is(0.0));
+    assertThat(dto.licenseViolations.averageDiscoveredCritical, is(0.0));
+    assertThat(dto.qualityViolations.averageDiscovered, is(0.0));
+    assertThat(dto.qualityViolations.averageDiscoveredCritical, is(0.0));
+    assertThat(dto.otherViolations.averageDiscovered, is(0.0));
+    assertThat(dto.otherViolations.averageDiscoveredCritical, is(0.0));
   }
 
   private void assertEmptyResults(ApplicationCountsDTO dto) {

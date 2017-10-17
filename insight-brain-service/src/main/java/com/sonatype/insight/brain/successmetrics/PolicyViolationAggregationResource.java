@@ -8,8 +8,9 @@ package com.sonatype.insight.brain.successmetrics;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -25,14 +26,15 @@ public class PolicyViolationAggregationResource
 {
   public static final String RESOURCE_PATH = "rest/aggregation/policyViolation";
 
-  private final PolicyViolationAggregationService violationAggregationService;
+  private final SuccessMetricsReportDataService successMetricsReportDataService;
 
   @Inject
-  public PolicyViolationAggregationResource(PolicyViolationAggregationService violationAggregationService) {
-    this.violationAggregationService = violationAggregationService;
+  public PolicyViolationAggregationResource(SuccessMetricsReportDataService successMetricsReportDataService) {
+    this.successMetricsReportDataService = successMetricsReportDataService;
   }
 
-  @POST
+  @GET
+  @Path("{successMetricsReportId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
@@ -40,8 +42,7 @@ public class PolicyViolationAggregationResource
   /**
    * @since 1.39
    */
-  public SuccessMetricsChartDataDTO getChartData(OwnerFilterDTO ownerFilterDTO ) {
-    return violationAggregationService
-        .getChartData(ownerFilterDTO.organizationIds, ownerFilterDTO.applicationIds, ownerFilterDTO.includeLatestData);
+  public SuccessMetricsChartDataDTO getChartData(@PathParam("successMetricsReportId") String successMetricsReportId) {
+    return successMetricsReportDataService.getChartData(successMetricsReportId);
   }
 }

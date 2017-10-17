@@ -20,13 +20,17 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
     EMPTY_PREFIX: EMPTY_PREFIX
   };
 
-  function getChartData(postData) {
-    return $http.post(CLMLocations.getSuccessMetricsChartDataUrl(), postData).then(function({data}) {
+  function getChartData(successMetricsReport) {
+    const url =
+        CLMLocations.getSuccessMetricsChartDataUrl(successMetricsReport.id);
+
+    return $http.get(url).then(function({data}) {
       return {
         mttrData: getMttrData(data.mttrs),
-        averagesData: getAveragesData(data.averages),
+        averagesData: data.averages,
         applicationCountsData: data.applicationCounts,
-        lastUpdated: data.lastUpdated
+        lastUpdated: data.lastUpdated,
+        monthCount: data.monthCount
       };
     });
   }
@@ -57,64 +61,6 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
       }
       return data;
     }
-  }
-
-  function getAveragesData(data) {
-    var threatCategoryAccessors = ['security', 'license', 'quality', 'other'],
-        threatLevelAccessors = [
-          'averageDiscoveredLow', 'averageDiscoveredModerate', 'averageDiscoveredSevere',
-          'averageDiscoveredCritical'
-        ];
-
-    // turn a series of (key, value) pairs into an object
-    function pairsToObj(pairs) {
-      var retval = {};
-
-      pairs.forEach(function(pair) {
-        var key = pair[0],
-            value = pair[1];
-
-        retval[key] = value;
-      });
-
-      return retval;
-    }
-
-    var monthAverages = data.averageDiscoveredPolicyViolations;
-
-    // the rest endpoint returns separate data for each month.  We need to combine into overall averages
-    var threatCategoryPairs = threatCategoryAccessors.map(function(threatCategoryAccessor) {
-
-      var threatLevelPairs = threatLevelAccessors.map(function(threatLevelAccessor) {
-
-        // average this value across all months
-        var average = monthAverages.reduce(function(acc, monthData) {
-          return acc + monthData[threatCategoryAccessor][threatLevelAccessor];
-        }, 0) / monthAverages.length || 0;
-
-        return [threatLevelAccessor, average];
-      });
-
-      return [threatCategoryAccessor, pairsToObj(threatLevelPairs)];
-    });
-
-    var result = pairsToObj(threatCategoryPairs);
-
-    result.monthCount = monthAverages.length;
-    result.activeApplicationCount = data.activeApplicationCount;
-    result.averageEvaluations = monthAverages.reduce(function(acc, monthData) {
-      return acc + monthData.evaluationCount;
-    }, 0) / monthAverages.length || 0;
-    result.averagePolicyViolations = threatCategoryAccessors.reduce(function(categoryAcc, threatCategoryAccessor) {
-      return categoryAcc + threatLevelAccessors.reduce(function(levelAcc, threatLevelAccessor) {
-        return levelAcc + result[threatCategoryAccessor][threatLevelAccessor];
-      }, 0);
-    }, 0) || 0;
-    result.averageCriticalPolicyViolations = threatCategoryAccessors.reduce(
-        function(categoryAcc, threatCategoryAccessor) {
-          return categoryAcc + result[threatCategoryAccessor].averageDiscoveredCritical;
-        }, 0) || 0;
-    return result;
   }
 
   function getComponentCountsData(postData) {

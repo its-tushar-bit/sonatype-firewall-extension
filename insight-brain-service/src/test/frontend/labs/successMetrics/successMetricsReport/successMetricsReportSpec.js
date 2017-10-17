@@ -170,7 +170,7 @@ describe('successMetricsReportSpec', function() {
     $scope.$digest();
 
     expect(mockSuccessMetricsDataService.getChartData).toHaveBeenCalledWith(
-        angular.extend({}, getSuccessMetricsReportsForCurrentUserData[0].scope, { includeLatestData: false }));
+        getSuccessMetricsReportsForCurrentUserData[0]);
     expect(mockSuccessMetricsDataService.getComponentCountsData)
         .toHaveBeenCalledWith(getSuccessMetricsReportsForCurrentUserData[0].scope);
   });

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang.StringUtils;
@@ -192,6 +193,17 @@ public class SuccessMetricsReportDAOTest
       assertEquals("Name must be 60 characters or less.", expected.getMessage());
     }
     tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1111");
+  }
+
+  @Test
+  public void testDelete_DeletesRelatedSuccessMetricsReportData() {
+    SuccessMetricsReport report = tempEntity.newSuccessMetricsReport("username", "metrics", "{}");
+    SuccessMetricsReportData reportData = tempEntity.newSuccessMetricsReportData(report.getId());
+    SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
+
+    successMetricsReportDAO.delete(report);
+
+    assertThat(successMetricsReportDataDAO.getById(reportData.getId()), is(nullValue()));
   }
 
   private void assertMetrics(SuccessMetricsReport actualMetrics,

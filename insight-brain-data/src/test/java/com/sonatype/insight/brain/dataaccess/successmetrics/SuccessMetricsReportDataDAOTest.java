@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess.successmetrics;
+
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
+
+import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+
+public class SuccessMetricsReportDataDAOTest
+    extends AbstractDbDAOTest
+{
+  private final SuccessMetricsReportDataDAO dao = new SuccessMetricsReportDataDAO();
+
+  @Test
+  public void testCRUD() {
+    SuccessMetricsReport report = tempEntity.newSuccessMetricsReport("username", "metrics", "{}");
+    SuccessMetricsReportData reportData = tempEntity.newSuccessMetricsReportData(report.getId());
+
+    assertThat(reportData.getId(), is(report.getId()));
+
+    reportData = dao.getById(reportData.getId());
+
+    int originalMonthCount = reportData.getMonthCount();
+
+    reportData.setMonthCount(originalMonthCount + 1);
+    dao.update(reportData);
+
+    reportData = dao.getById(reportData.getId());
+    assertThat(reportData.getMonthCount(), is(originalMonthCount + 1));
+
+    dao.delete(reportData);
+    assertThat(dao.getById(reportData.getId()), is(nullValue()));
+  }
+}

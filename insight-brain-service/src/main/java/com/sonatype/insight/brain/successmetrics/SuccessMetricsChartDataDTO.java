@@ -15,9 +15,11 @@ public class SuccessMetricsChartDataDTO
 {
   public List<MttrDTO> mttrs;
 
-  public SuccessMetricsAveragesDTO averages;
+  public AverageDiscoveredPolicyViolationsDTO averages;
 
   public ApplicationCountsDTO applicationCounts;
 
   public Date lastUpdated;
+
+  public int monthCount;
 }

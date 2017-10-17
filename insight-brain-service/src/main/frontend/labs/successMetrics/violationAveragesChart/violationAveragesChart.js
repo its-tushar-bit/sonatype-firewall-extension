@@ -20,34 +20,29 @@ function violationAveragesChartController() {
   const vm = this,
       { averagesData } = vm;
 
-  vm.averageEvaluations = averagesData.averageEvaluations;
-  vm.averagePolicyViolations = averagesData.averagePolicyViolations;
-  vm.averageCriticalPolicyViolations = averagesData.averageCriticalPolicyViolations;
+  vm.averageEvaluations = averagesData.evaluationCount;
 
-  vm.averageDiscoveredSecurity = sumColumn(averagesData.security);
-  vm.averageDiscoveredLicense = sumColumn(averagesData.license);
-  vm.averageDiscoveredQuality = sumColumn(averagesData.quality);
-  vm.averageDiscoveredOther = sumColumn(averagesData.other);
+  vm.averageDiscoveredTotal = averagesData.totalViolations.averageDiscovered;
+  vm.averageDiscoveredSecurity = averagesData.securityViolations.averageDiscovered;
+  vm.averageDiscoveredLicense = averagesData.licenseViolations.averageDiscovered;
+  vm.averageDiscoveredQuality = averagesData.qualityViolations.averageDiscovered;
+  vm.averageDiscoveredOther = averagesData.otherViolations.averageDiscovered;
 
-  vm.averageDiscoveredSecurityCritical = averagesData.security.averageDiscoveredCritical;
-  vm.averageDiscoveredLicenseCritical = averagesData.license.averageDiscoveredCritical;
-  vm.averageDiscoveredQualityCritical = averagesData.quality.averageDiscoveredCritical;
-  vm.averageDiscoveredOtherCritical = averagesData.other.averageDiscoveredCritical;
+  vm.averageDiscoveredTotalCritical = averagesData.totalViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredSecurityCritical = averagesData.securityViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredLicenseCritical = averagesData.licenseViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredQualityCritical = averagesData.qualityViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredOtherCritical = averagesData.otherViolations.averageDiscoveredCritical;
 
   vm.chart = makeChart(averagesData);
 }
 
-function sumColumn(colData) {
-  return colData.averageDiscoveredLow + colData.averageDiscoveredModerate + colData.averageDiscoveredSevere +
-      colData.averageDiscoveredCritical;
-}
-
 // map from field name to human-readable name
 var columns = {
-  security: 'Security Violations',
-  license: 'License Violations',
-  quality: 'Quality Violations',
-  other: 'Other Violations'
+  securityViolations: 'Security Violations',
+  licenseViolations: 'License Violations',
+  qualityViolations: 'Quality Violations',
+  otherViolations: 'Other Violations'
 };
 
 function makeChart(data) {
@@ -56,7 +51,7 @@ function makeChart(data) {
       }), {className: 'iq-chart__dataset--critical'}),
 
       overallDataset = new Plottable.Dataset(Object.keys(columns).map(function(field) {
-        return {y: field, x: Math.round(sumColumn(data[field]))};
+        return {y: field, x: Math.round(data[field].averageDiscovered)};
       }), {className: 'iq-chart__dataset--overall'}),
 
       max = overallDataset.data()

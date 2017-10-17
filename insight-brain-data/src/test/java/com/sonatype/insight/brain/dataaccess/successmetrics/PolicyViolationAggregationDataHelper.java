@@ -55,21 +55,21 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 3000 }), //
         new DescriptiveStatistics(new double[] { 2000 }), //
         new DescriptiveStatistics(new double[] { 2000 }), //
-        1, 2, 3, 4, //
-        2, 3, 4, 5, //
-        3, 4, 5, 6, //
-        4, 5, 6, 7, //
-        5);
+        0, 0, 0, 0, //
+        0, 0, 0, 1, //
+        0, 0, 0, 2, //
+        0, 0, 0, 4, //
+        4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] { 2000 }), //
         new DescriptiveStatistics(new double[] {}), //
-        3, 4, 5, 6, //
-        4, 5, 6, 7, //
-        5, 6, 7, 8, //
-        6, 7, 8, 9, //
+        0, 0, 0, 0, //
+        0, 0, 0, 1, //
+        1, 1, 0, 0, //
+        0, 0, 0, 2, //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
@@ -83,9 +83,9 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         0, 0, 0, 0, //
-        1, 1, 1, 1, //
-        2, 2, 2, 2, //
-        3, 3, 3, 3, //
+        0, 0, 0, 1, //
+        0, 0, 0, 2, //
+        1, 1, 1, 3, //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
@@ -93,11 +93,11 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 2500 }), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
-        2, 2, 2, 2, //
-        3, 3, 3, 3, //
-        4, 4, 4, 4, //
-        5, 5, 5, 5, //
-        2);
+        0, 0, 0, 0, //
+        0, 0, 0, 1, //
+        0, 0, 0, 2, //
+        0, 2, 1, 3, //
+        1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
 
@@ -109,11 +109,11 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0);
+        1, 0, 0, 0, //
+        1, 0, 0, 1, //
+        0, 0, 0, 3, //
+        0, 0, 0, 3, //
+        1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] {}), //
@@ -136,10 +136,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 300, 1700 }), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
-        15, 15, 15, 15, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
+        1, 0, 1, 0, //
+        0, 1, 0, 0, //
+        0, 3, 0, 2, //
+        0, 0, 0, 1, //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
@@ -148,9 +148,9 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         0, 0, 0, 0, //
-        15, 15, 15, 15, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
+        1, 1, 0, 0, //
+        0, 0, 0, 4, //
+        0, 0, 0, 2, //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, //
@@ -158,10 +158,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
+        0, 0, 4, 0, //
+        0, 0, 0, 3, //
         0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        15, 15, 15, 15, //
-        0, 0, 0, 0, //
+        0, 0, 0, 3, //
         10);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
@@ -175,10 +175,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0);
+        1, 1, 1, 1, //
+        1, 0, 0, 3, //
+        0, 1, 1, 0, //
+        1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] {}), //
@@ -212,21 +212,21 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] { 5000 }), //
-        6, 0, 0, 0, //
-        6, 0, 0, 0, //
-        6, 0, 0, 0, //
-        6, 0, 0, 0, //
-        2);
+        0, 0, 1, 0, //
+        0, 0, 0, 1, //
+        1, 0, 0, 4, //
+        1, 4, 1, 3, //
+        1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] { 5000 }), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
-        3, 0, 0, 0, //
-        3, 0, 0, 0, //
-        3, 0, 0, 0, //
-        3, 0, 0, 0, //
+        0, 0, 2, 0, //
+        0, 0, 0, 1, //
+        0, 0, 0, 2, //
+        0, 3, 0, 3, //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, //
@@ -234,11 +234,11 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
-        9, 0, 0, 0, //
-        9, 0, 0, 0, //
-        9, 0, 0, 0, //
-        9, 0, 0, 0, //
-        3);
+        2, 1, 0, 0, //
+        0, 0, 0, 1, //
+        0, 2, 0, 0, //
+        0, 0, 0, 3, //
+        2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
 
@@ -250,10 +250,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 16000 }), //
         new DescriptiveStatistics(new double[] { 8000, 24000 }), //
         new DescriptiveStatistics(new double[] {}), //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
+        0, 1, 0, 0, //
+        0, 0, 0, 1, //
+        1, 1, 1, 1, //
+        3, 0, 0, 2, //
         1000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
@@ -266,10 +266,10 @@ public class PolicyViolationAggregationDataHelper
             16000, 16000, 16000, 16000, 16000, 16000, 16000, 16000, 16000, 16000, 16000, 16000, 16000, 16000, 16000,
             16000, 16000, 16000, 16000, 16000, 16000, 16000
         }), //
+        0, 2, 0, 0, //
         0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
+        0, 0, 0, 2, //
+        0, 0, 0, 3, //
         2000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, //
@@ -278,9 +278,9 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
+        0, 0, 0, 2, //
+        1, 2, 3, 0, //
+        0, 0, 0, 7, //
         3000);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
@@ -294,10 +294,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0);
+        0, 0, 0, 1, //
+        0, 0, 0, 4, //
+        2, 0, 0, 5, //
+        1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] {}), //
@@ -305,10 +305,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0);
+        0, 1, 1, 1, //
+        1, 0, 1, 0, //
+        0, 0, 0, 5, //
+        1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] {}), //
@@ -331,10 +331,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] { 10000 }), //
-        0, 0, 0, 4, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
+        0, 1, 0, 0, //
+        0, 1, 0, 1, //
+        0, 0, 1, 1, //
+        0, 2, 0, 0, //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
@@ -342,10 +342,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] { 15000 }), //
         new DescriptiveStatistics(new double[] {}), //
-        0, 0, 0, 0, //
+        1, 0, 0, 0, //
+        0, 1, 0, 1, //
+        0, 1, 0, 1, //
         0, 0, 0, 4, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, //
@@ -355,9 +355,9 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 20000 }), //
         0, 0, 0, 0, //
         0, 0, 0, 0, //
-        0, 0, 0, 4, //
         0, 0, 0, 0, //
-        1);
+        0, 0, 0, 0, //
+        0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] {}), //
@@ -367,8 +367,8 @@ public class PolicyViolationAggregationDataHelper
         0, 0, 0, 0, //
         0, 0, 0, 0, //
         0, 0, 0, 0, //
-        0, 0, 0, 4, //
-        1);
+        0, 0, 0, 0, //
+        0);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
 
@@ -380,10 +380,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 12500, 37500 }), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
-        4, 4, 4, 4, //
-        4, 4, 4, 4, //
-        4, 4, 4, 4, //
-        4, 4, 4, 4, //
+        1, 0, 1, 0, //
+        0, 0, 3, 1, //
+        0, 2, 0, 4, //
+        0, 1, 0, 6, //
         4);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
@@ -413,10 +413,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 25000 }), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
+        0, 0, 2, 0, //
+        1, 1, 1, 1, //
+        0, 0, 0, 4, //
+        0, 1, 0, 4, //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
@@ -429,11 +429,11 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
         new DescriptiveStatistics(new double[] {}), //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0, 0, 0, 0, //
-        0);
+        0, 0, 1, 0, //
+        0, 0, 2, 1, //
+        1, 0, 0, 2, //
+        0, 0, 0, 3, //
+        1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
         new DescriptiveStatistics(new double[] {}), //
@@ -478,10 +478,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 2000 }), //
         new DescriptiveStatistics(new double[] { 3000 }), //
         new DescriptiveStatistics(new double[] { 4000 }), //
-        1, 2, 3, 4, //
-        1, 2, 3, 4, //
-        1, 2, 3, 4, //
-        1, 2, 3, 4, //
+        0, 0, 2, 0, //
+        0, 0, 0, 0, //
+        3, 0, 0, 0, //
+        0, 0, 0, 2, //
         1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[1], beginningOfMonthDate, //
@@ -489,10 +489,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 6000 }), //
         new DescriptiveStatistics(new double[] { 7000 }), //
         new DescriptiveStatistics(new double[] { 8000 }), //
-        2, 3, 4, 5, //
-        2, 3, 4, 5, //
-        2, 3, 4, 5, //
-        2, 3, 4, 5, //
+        0, 0, 2, 0, //
+        0, 0, 0, 0, //
+        0, 0, 0, 0, //
+        0, 0, 0, 3, //
         2);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[2], beginningOfMonthDate, //
@@ -500,10 +500,10 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 10000 }), //
         new DescriptiveStatistics(new double[] { 11000 }), //
         new DescriptiveStatistics(new double[] { 12000 }), //
-        3, 4, 5, 6, //
-        3, 4, 5, 6, //
-        3, 4, 5, 6, //
-        3, 4, 5, 6, //
+        0, 0, 2, 0, //
+        0, 0, 0, 3, //
+        0, 0, 1, 0, //
+        0, 0, 0, 5, //
         3);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[3], beginningOfMonthDate, //
@@ -511,11 +511,11 @@ public class PolicyViolationAggregationDataHelper
         new DescriptiveStatistics(new double[] { 14000 }), //
         new DescriptiveStatistics(new double[] { 15000 }), //
         new DescriptiveStatistics(new double[] { 16000 }), //
-        4, 5, 6, 7, //
-        4, 5, 6, 7, //
-        4, 5, 6, 7, //
-        4, 5, 6, 7, //
-        4);
+        0, 0, 2, 0, //
+        0, 0, 0, 1, //
+        0, 0, 0, 4, //
+        0, 0, 0, 2, //
+        1);
 
     tempEntity.newPolicyViolationAggregation(APPLICATION_IDS[4], beginningOfMonthDate);
 

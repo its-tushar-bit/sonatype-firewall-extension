@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.model.successmetrics;
 
+import java.io.IOException;
+
 import java.util.Date;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -109,6 +113,30 @@ public class SuccessMetricsReport
 
   public void setCreateTime(Date createTime) {
     this.createTime = createTime;
+  }
+
+  public Set<String> getScopeApplicationIds() {
+    return getScope().applicationIds;
+  }
+
+  public Set<String> getScopeOrganizationIds() {
+    return getScope().organizationIds;
+  }
+
+  private static class Scope
+  {
+    public Set<String> applicationIds;
+
+    public Set<String> organizationIds;
+  }
+
+  private Scope getScope() {
+    try {
+      return JsonUtils.parse(scopeJson, Scope.class);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public boolean getIncludeLatestData() {

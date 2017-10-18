@@ -137,19 +137,6 @@
       </exclusions>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.3.2</version>
-      <exclusions>
-        <exclusion>
-          <!-- using jcl-over-slf4j instead -->
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
 
     <!-- proxy to capture traffic -->
     <dependency>

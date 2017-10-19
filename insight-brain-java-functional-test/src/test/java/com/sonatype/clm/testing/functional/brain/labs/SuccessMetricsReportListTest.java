@@ -126,8 +126,8 @@ public class SuccessMetricsReportListTest
     modal.name().setValue("Root Org Chart");
     modal.byCalendarMonthRadioBtn().shouldBe(selected);
     modal.byMostRecentRadioBtn().shouldNotBe(selected);
-    modal.allApplicationsRadioBtn().shouldHave(text("All Applications")).shouldBe(selected);
-    modal.customRadioBtn().shouldHave(text("Custom")).shouldNotBe(selected);
+    modal.allApplicationsRadioBtn().shouldHave(text("all applications")).shouldBe(selected);
+    modal.customRadioBtn().shouldHave(text("custom")).shouldNotBe(selected);
     modal.createBtn().shouldHave(text("Create")).click();
 
     page.successMetricsChartActionItems().elements().shouldHaveSize(1);

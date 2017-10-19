@@ -660,7 +660,6 @@ public class SuccessMetricsReportDataServiceTest
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
     AverageDiscoveredPolicyViolationsDTO result = service.getChartData(successMetricsReport.getId()).averages;
 
-    LocalDate aggregationStart = now.minusMonths(3).withDayOfMonth(1).toLocalDate();
     AverageDiscoveredPolicyViolationsDTO expected = createAveragesDTO(1, 0);
     assertAverageDTO(result, expected);
 

@@ -66,9 +66,13 @@ public class PolicyViolationAggregationResourceTest
     HttpResponse response = restRequest().path(PolicyViolationAggregationResource.RESOURCE_PATH).path(report.getId())
         .get();
 
-    assertMttrResponse(response, date1);
-    assertAveragesResponse(response, date1);
-    assertApplicationCountsResponse(response);
+    SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
+
+    assertMttrResponse(chartDto, date1);
+    assertAveragesResponse(chartDto);
+    assertApplicationCountsResponse(chartDto);
+    assertThat(chartDto.lastUpdated, is(new LocalDate().withDayOfMonth(1).toDate()));
+    assertThat(chartDto.monthCount, is(1));
   }
 
   private SuccessMetricsReport createSuccessMetricsReport(Set<String> organizationIds, Set<String> applicationIds) {
@@ -79,8 +83,7 @@ public class PolicyViolationAggregationResourceTest
     return tempEntity.newSuccessMetricsReport(getUsername(), "report", JsonUtils.format(scope));
   }
 
-  private void assertMttrResponse(HttpResponse response, Date date) {
-    SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
+  private void assertMttrResponse(SuccessMetricsChartDataDTO chartDto, Date date) {
     List<MttrDTO> dtos = chartDto.mttrs;
 
     assertThat(dtos, hasSize(1));
@@ -89,8 +92,7 @@ public class PolicyViolationAggregationResourceTest
     assertThat(dtos.get(0).criticalMttrInSeconds, is(nullValue()));
   }
 
-  private void assertAveragesResponse(HttpResponse response, Date date) {
-    SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
+  private void assertAveragesResponse(SuccessMetricsChartDataDTO chartDto) {
     AverageDiscoveredPolicyViolationsDTO dto = chartDto.averages;
 
     assertThat(dto, is(notNullValue()));
@@ -99,8 +101,7 @@ public class PolicyViolationAggregationResourceTest
     assertThat(dto.evaluationCount, closeTo(2.0, 0.0001));
   }
 
-  private void assertApplicationCountsResponse(HttpResponse response) {
-    SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
+  private void assertApplicationCountsResponse(SuccessMetricsChartDataDTO chartDto) {
     ApplicationCountsDTO dto = chartDto.applicationCounts;
 
     assertThat(dto, is(notNullValue()));

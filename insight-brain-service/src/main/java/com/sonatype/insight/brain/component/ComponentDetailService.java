@@ -326,7 +326,7 @@ public class ComponentDetailService
         continue;
       }
 
-      Collection<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(evaluation.getId());
+      Collection<PolicyViolation> violations = policyViolationDAO.getActiveByEvaluationId(evaluation.getId());
 
       for (PolicyViolation violation : violations) {
         ComponentIdentifier componentId = violation.getComponentIdentifier();

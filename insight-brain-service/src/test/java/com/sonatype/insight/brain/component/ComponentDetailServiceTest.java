@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -460,6 +461,51 @@ public class ComponentDetailServiceTest
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
         is(ComponentDisplayNameUtil.fromIdentifier(buildComponent.getComponentIdentifier()).toString()));
+  }
+
+  @Test
+  public void testGetComponentCounts_ExcludesWaivedViolations() {
+    Date now = new Date();
+    Date before = new Date(now.getTime() - 1000);
+    String hash1 = "ababababab";
+    String hash2 = "acacacacac";
+
+    ComponentIdentifier waivedComponentId = ComponentIdentifier.createMavenCoordinates("groupId", "artifactId",
+        "version");
+    ComponentIdentifier unwaivedComponentId = ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1",
+        "version1");
+
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, hash1, waivedComponentId);
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2, unwaivedComponentId);
+
+    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId1",
+        before);
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2",
+        now);
+
+    PolicyWaiver waiver = tempEntity.newWaiver(hash1, policy1.getId(), app1.getId());
+    tempEntity.newWaivedPolicyViolation(policyEvaluation1, policy1, waivedComponentId, hash1, waiver);
+    tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId1", "artifactId1", "version1", hash2, "reason2");
+
+    ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
+    assertThat(componentDetailsDTO, notNullValue());
+
+    assertThat(componentDetailsDTO.componentsPerApplication, is(2));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(2));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(waivedComponentId).toString()));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(unwaivedComponentId).toString()));
+
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(unwaivedComponentId).toString()));
   }
 
   @Test

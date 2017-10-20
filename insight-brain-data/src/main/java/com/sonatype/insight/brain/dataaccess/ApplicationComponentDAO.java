@@ -5,9 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -18,6 +19,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class ApplicationComponentDAO
     extends AbstractOperationalSqlDAO<ApplicationComponent>
 {
+  private static final int IN_OPERATOR_THRESHOLD = 2000;
+
   @Override
   public ApplicationComponent getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
@@ -76,13 +79,38 @@ public class ApplicationComponentDAO
     return createQuery(sQuery, hash).forceSingleResult().get();
   }
 
-  public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(Collection<String> applicationIds,
-                                                                            Collection<String> stageTypeIds,
+  public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(Set<String> applicationIds,
+                                                                            Set<String> stageTypeIds,
                                                                             Date date)
   {
+    if (applicationIds != null && applicationIds.size() >= IN_OPERATOR_THRESHOLD) {
+      return getByApplicationIdsAndStageTypeIdsSinceManualApplicationFilter(applicationIds, stageTypeIds, date);
+    }
+    else {
+      String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+          " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2) AND entity.time >= ?3" + //
+          " ORDER BY entity.time ASC";
+      return getList(sQuery, applicationIds, stageTypeIds, date);
+    }
+  }
+
+  private List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSinceManualApplicationFilter(Set<String> applicationIds,
+                                                                                                    Set<String> stageTypeIds,
+                                                                                                    Date date)
+  {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
-        " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2) AND entity.time >= ?3" +
+        " WHERE entity.stageTypeId IN (?1) AND entity.time >= ?2" + //
         " ORDER BY entity.time ASC";
-    return getList(sQuery, applicationIds, stageTypeIds, date);
+
+    List<ApplicationComponent> applicationComponents = getList(sQuery, stageTypeIds, date);
+    List<ApplicationComponent> retval = new ArrayList<>();
+
+    for (ApplicationComponent applicationComponent : applicationComponents) {
+      if (applicationIds.contains(applicationComponent.getApplicationId())) {
+        retval.add(applicationComponent);
+      }
+    }
+
+    return retval;
   }
 }

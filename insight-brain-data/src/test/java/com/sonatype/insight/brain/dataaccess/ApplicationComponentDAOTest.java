@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -109,6 +111,14 @@ public class ApplicationComponentDAOTest
   public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering() {
     String appId1 = application.getId();
     String appId2 = tempEntity.newApplication(organization.getId()).getId();
+    Set<String> largeIdList = new HashSet<>();
+
+    // make a collection of over 2000 ids.
+    largeIdList.add(appId1);
+    largeIdList.add(appId2);
+    for (int i = 0; i < 2000; i++) {
+      largeIdList.add(new Integer(i).toString());
+    }
 
     Date date = new Date();
     String componentId1 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-1",
@@ -124,21 +134,27 @@ public class ApplicationComponentDAOTest
         .newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID, "hash-4",
             ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date).getId();
 
-    Collection<String> stageTypeIds = Arrays.asList(ReleaseStageType.ID);
+    Set<String> stageTypeIds = Collections.singleton(ReleaseStageType.ID);
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(null, stageTypeIds, date);
     assertThat(components, hasSize(0));
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.<String>asList(), stageTypeIds, date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.<String> emptySet(), stageTypeIds, date);
     assertThat(components, hasSize(0));
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList("missing"), stageTypeIds, date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"), stageTypeIds, date);
     assertThat(components, hasSize(0));
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), stageTypeIds, date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
     assertThat(components, hasSize(2));
     assertThat(components.get(0).getId(), is(componentId1));
     assertThat(components.get(1).getId(), is(componentId2));
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId2), stageTypeIds, date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId2), stageTypeIds, date);
     assertThat(components, hasSize(1));
     assertThat(components.get(0).getId(), is(componentId3));
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1, appId2), stageTypeIds, date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds,
+        date);
+    assertThat(components, hasSize(3));
+    assertThat(components.get(0).getId(), is(componentId1));
+    assertThat(components.get(1).getId(), is(componentId2));
+    assertThat(components.get(2).getId(), is(componentId3));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(largeIdList, stageTypeIds, date);
     assertThat(components, hasSize(3));
     assertThat(components.get(0).getId(), is(componentId1));
     assertThat(components.get(1).getId(), is(componentId2));
@@ -164,25 +180,25 @@ public class ApplicationComponentDAOTest
         .newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID, "hash-4",
             ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date).getId();
 
-    Collection<String> appIds = Arrays.asList(application.getId());
+    Set<String> appIds = Collections.singleton(application.getId());
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, null, date);
     assertThat(components, hasSize(0));
-    components = dao
-        .getByApplicationIdsAndStageTypeIdsSince(Arrays.<String>asList(), Arrays.<String>asList(), date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.<String> emptySet(),
+        Collections.<String> emptySet(), date);
     assertThat(components, hasSize(0));
-    components = dao
-        .getByApplicationIdsAndStageTypeIdsSince(Arrays.asList("missing"), Arrays.asList("missing"), date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"),
+        Collections.singleton("missing"), date);
     assertThat(components, hasSize(0));
-    components = dao
-        .getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), Arrays.asList(BuildStageType.ID), date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1),
+        Collections.singleton(BuildStageType.ID), date);
     assertThat(components, hasSize(1));
     assertThat(components.get(0).getId(), is(componentId1));
-    components = dao
-        .getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), Arrays.asList(ReleaseStageType.ID), date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1),
+        Collections.singleton(ReleaseStageType.ID), date);
     assertThat(components, hasSize(1));
     assertThat(components.get(0).getId(), is(componentId2));
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1, appId2),
-        Arrays.asList(BuildStageType.ID, ReleaseStageType.ID), date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)),
+        new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), date);
     assertThat(components, hasSize(3));
     assertThat(components.get(0).getId(), is(componentId1));
     assertThat(components.get(1).getId(), is(componentId2));
@@ -201,18 +217,18 @@ public class ApplicationComponentDAOTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
         new Date(date.getTime() + 2000)).getId();
 
-    Collection<String> stageTypeIds = Arrays.asList(ReleaseStageType.ID);
-    Collection<String> appIds = Arrays.asList(application.getId());
+    Set<String> stageTypeIds = Collections.singleton(ReleaseStageType.ID);
+    Set<String> appIds = Collections.singleton(application.getId());
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageTypeIds, null);
     assertThat(components, hasSize(0));
-    components = dao
-        .getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), stageTypeIds, new Date(date.getTime() + 3000));
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds,
+        new Date(date.getTime() + 3000));
     assertThat(components, hasSize(0));
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), stageTypeIds, date);
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
     assertThat(components, hasSize(2));
     assertThat(components.get(0).getId(), is(componentId1));
     assertThat(components.get(1).getId(), is(componentId2));
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Arrays.asList(appId1), stageTypeIds,
+    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds,
         new DateTime(date).minusDays(1).toDate());
     assertThat(components, hasSize(2));
     assertThat(components.get(0).getId(), is(componentId1));
@@ -236,8 +252,8 @@ public class ApplicationComponentDAOTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
         new Date(date.getTime() + 3000)).getId();
 
-    Collection<String> appIds = Arrays.asList(appId1, appId2);
-    Collection<String> stageIds = Arrays.asList(BuildStageType.ID, ReleaseStageType.ID);
+    Set<String> appIds = new HashSet<>(Arrays.asList(appId1, appId2));
+    Set<String> stageIds = new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageIds, date);
     assertThat(components, hasSize(3));
     assertThat(components.get(0).getId(), is(componentId1));

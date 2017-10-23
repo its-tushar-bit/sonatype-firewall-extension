@@ -490,7 +490,6 @@ CREATE TABLE repository_policy_violation (
   component_id_coordinates_json varchar(1000), -- the component identifier coordinates (that caused the policy violation) stored in json format
   constraint_facts_json CLOB NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
   action_type_id varchar(20),
-  notifications CLOB, -- email addresses notified for this policy violation, delimited by new lines
   waived bool DEFAULT false NOT NULL,
   active bool DEFAULT true NOT NULL, -- Whether this violation is still active. If false, then the component was removed from the repository or a more recent evaluation was performed for this component.
   CONSTRAINT repository_policy_violation_pk PRIMARY KEY (repository_policy_violation_id),

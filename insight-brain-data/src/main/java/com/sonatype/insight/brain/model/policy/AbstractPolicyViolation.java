@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -22,7 +21,6 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.google.common.base.Joiner;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -63,9 +61,6 @@ abstract class AbstractPolicyViolation
   @Column(name = "action_type_id")
   private String actionTypeId;
 
-  @Column(name = "notifications")
-  private String notificationsString;
-
   /**
    * @since 1.12
    */
@@ -74,9 +69,6 @@ abstract class AbstractPolicyViolation
 
   @Transient
   private List<ConstraintFact> constraintFacts;
-
-  @Transient
-  private List<String> notifications;
 
   public AbstractPolicyViolation() {
   }
@@ -210,43 +202,6 @@ abstract class AbstractPolicyViolation
 
   public void setActionTypeId(String actionTypeId) {
     this.actionTypeId = actionTypeId;
-  }
-
-  public String getNotificationsString() {
-    return notificationsString;
-  }
-
-  @SuppressWarnings("unused")
-  /**
-   * Only used by JPA.
-   */
-  private void setNotificationsString(String notificationsString) {
-    this.notificationsString = notificationsString;
-    notifications = null;
-  }
-
-  public void setNotifications(List<String> notifications) {
-    if (notifications == null || notifications.isEmpty()) {
-      this.notifications = Collections.emptyList();
-      notificationsString = null;
-      return;
-    }
-
-    this.notifications = notifications;
-    notificationsString = Joiner.on(NOTIFICATIONS_DELIMITER_CHAR).skipNulls().join(notifications);
-  }
-
-  public List<String> getNotifications() {
-    if (notifications == null) {
-      if (!StringUtils.isBlank(notificationsString)) {
-        notifications = Arrays.asList(notificationsString.split(NOTIFICATIONS_DELIMITER_REGEX));
-      }
-      else {
-        notifications = Collections.emptyList();
-      }
-    }
-
-    return notifications;
   }
 
   public boolean isWaived() {

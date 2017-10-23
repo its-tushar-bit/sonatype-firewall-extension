@@ -575,10 +575,6 @@ public class FirewallMigrationServiceTest
         mismatchDescription.appendText("has actionTypeId ").appendValue(item.getActionTypeId());
         return false;
       }
-      else if (!Objects.equals(violation.getNotificationsString(), item.getNotificationsString())) {
-        mismatchDescription.appendText("has notificationsString ").appendValue(item.getNotificationsString());
-        return false;
-      }
       else if (violation.isWaived() != item.isWaived()) {
         mismatchDescription.appendText("has waived ").appendValue(item.isWaived());
         return false;

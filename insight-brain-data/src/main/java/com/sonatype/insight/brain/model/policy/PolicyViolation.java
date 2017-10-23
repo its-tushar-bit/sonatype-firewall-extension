@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -47,6 +48,12 @@ public class PolicyViolation
 
   @Transient
   private List<String> pathnames;
+
+  @Column(name = "notifications")
+  private String notificationsString;
+
+  @Transient
+  private List<String> notifications;
 
   public PolicyViolation() {
   }
@@ -140,6 +147,43 @@ public class PolicyViolation
     }
 
     return pathnames;
+  }
+
+  public String getNotificationsString() {
+    return notificationsString;
+  }
+
+  /**
+   * Only used by JPA.
+   */
+  @SuppressWarnings("unused")
+  private void setNotificationsString(String notificationsString) {
+    this.notificationsString = notificationsString;
+    notifications = null;
+  }
+
+  public void setNotifications(List<String> notifications) {
+    if (notifications == null || notifications.isEmpty()) {
+      this.notifications = Collections.emptyList();
+      notificationsString = null;
+      return;
+    }
+
+    this.notifications = notifications;
+    notificationsString = Joiner.on(NOTIFICATIONS_DELIMITER_CHAR).skipNulls().join(notifications);
+  }
+
+  public List<String> getNotifications() {
+    if (notifications == null) {
+      if (!StringUtils.isBlank(notificationsString)) {
+        notifications = Arrays.asList(notificationsString.split(NOTIFICATIONS_DELIMITER_REGEX));
+      }
+      else {
+        notifications = Collections.emptyList();
+      }
+    }
+
+    return notifications;
   }
 
   @Override

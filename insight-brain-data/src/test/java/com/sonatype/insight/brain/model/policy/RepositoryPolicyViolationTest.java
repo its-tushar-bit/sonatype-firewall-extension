@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -20,7 +19,6 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 
 public class RepositoryPolicyViolationTest
@@ -150,17 +148,6 @@ public class RepositoryPolicyViolationTest
     return constraintFacts;
   }
 
-  private String createNotificationsString(int count) {
-    StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < count; i++) {
-      if (builder.length() > 0) {
-        builder.append(PolicyViolation.NOTIFICATIONS_DELIMITER_CHAR);
-      }
-      builder.append("DonaldDuck").append(i).append("@example.com");
-    }
-    return builder.toString();
-  }
-
   private void assertConstraintFacts(List<ConstraintFact> actual, List<ConstraintFact> expected) {
     assertThat(actual, hasSize(expected.size()));
     for (int i = 0; i < expected.size(); i++) {
@@ -170,53 +157,6 @@ public class RepositoryPolicyViolationTest
       assertThat(actualConstraintFact.getConstraintName(), is(expectedConstraintFact.getConstraintName()));
       assertThat(actualConstraintFact.getOperatorName(), is(expectedConstraintFact.getOperatorName()));
     }
-  }
-
-  @Test
-  public void testSetNotifications() throws Exception {
-    String notificationsString = createNotificationsString(2);
-    List<String> notifications = Arrays
-        .asList(notificationsString.split(PolicyViolation.NOTIFICATIONS_DELIMITER_REGEX));
-    // Violations must have constraint facts.
-    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
-        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
-        constraintFacts);
-    policyViolation.setNotifications(notifications);
-
-    assertThat(policyViolation.getNotifications(), is(notifications));
-    assertThat(policyViolation.getNotificationsString(), is(notificationsString));
-  }
-
-  @Test
-  public void testSetNotifications_Empty() throws Exception {
-    List<String> notifications = new ArrayList<>();
-    // Violations must have constraint facts.
-    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
-        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
-        constraintFacts);
-    policyViolation.setNotifications(notifications);
-
-    assertThat(policyViolation.getNotifications(), hasSize(0));
-    assertThat(policyViolation.getNotificationsString(), is(nullValue()));
-  }
-
-  @Test
-  public void testSetNotifications_Null() throws Exception {
-    List<String> notifications = null;
-    // Violations must have constraint facts.
-    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
-        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
-        constraintFacts);
-    policyViolation.setNotifications(notifications);
-
-    assertThat(policyViolation.getNotifications(), hasSize(0));
-    assertThat(policyViolation.getNotificationsString(), is(nullValue()));
   }
 
   @Test

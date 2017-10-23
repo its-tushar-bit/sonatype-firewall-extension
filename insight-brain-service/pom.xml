@@ -482,6 +482,13 @@
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-license-model</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- exclude no-aop version -->
+          <groupId>org.sonatype.sisu</groupId>
+          <artifactId>sisu-guice</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

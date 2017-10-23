@@ -6,14 +6,18 @@
 package com.sonatype.insight.brain.component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.insight.brain.dashboard.ComponentRiskDTO;
+import com.sonatype.insight.brain.dashboard.NewestRiskDTO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.deriveComponentName;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPathnames;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
@@ -152,5 +157,42 @@ public class ComponentDisplayNameUtilTest
     assertThat(displayFieldValues.get(0).value, is("(Anonymized Path) SHA1: "));
     assertThat(displayFieldValues.get(1).field, is("Hash"));
     assertThat(displayFieldValues.get(1).value, is("hash"));
+  }
+
+  @Test
+  public void testDeriveComponentName() {
+    List<String> pathnames = Arrays.asList("a/b/c.jar", "c/d/foo.bar/");
+    ComponentDisplayName displayName = fromPathnames(pathnames, "hash");
+    assertThat(deriveComponentName(createNewestRiskDTO(displayName, null)), is("c.jar, foo.bar"));
+
+    assertThat(deriveComponentName(createNewestRiskDTO(null, pathnames)), is("c.jar"));
+
+    assertThat(deriveComponentName(createNewestRiskDTO(null, Collections.singletonList("a/b/c.jar/"))), is("c.jar"));
+
+    assertThat(deriveComponentName(createNewestRiskDTO(null, null)), is("Unknown"));
+
+    assertThat(deriveComponentName(createComponentRiskDTO(displayName, null)), is("c.jar, foo.bar"));
+
+    assertThat(deriveComponentName(createComponentRiskDTO(null, new ArrayList<>(pathnames))), is("c.jar"));
+
+    assertThat(
+        deriveComponentName(createComponentRiskDTO(null, new ArrayList<>(Collections.singletonList("a/b/c.jar/")))),
+        is("c.jar"));
+
+    assertThat(deriveComponentName(createComponentRiskDTO(null, null)), is("Unknown"));
+  }
+
+  private NewestRiskDTO createNewestRiskDTO(ComponentDisplayName displayName, List<String> pathnames) {
+    NewestRiskDTO dto = new NewestRiskDTO();
+    dto.displayName = displayName;
+    dto.pathnames = pathnames;
+    return dto;
+  }
+
+  private ComponentRiskDTO createComponentRiskDTO(ComponentDisplayName displayName, List<String> pathnames) {
+    ComponentRiskDTO dto = new ComponentRiskDTO();
+    dto.displayName = displayName;
+    dto.pathnames = pathnames != null ? new HashSet<>(pathnames) : null;
+    return dto;
   }
 }

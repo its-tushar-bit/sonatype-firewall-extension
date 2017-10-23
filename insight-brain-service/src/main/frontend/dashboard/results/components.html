@@ -4,7 +4,7 @@
       <table class="iq-table iq-table--dashboard-components">
         <thead class="iq-dashboard-headers">
           <tr class="iq-table-row components-row" sort="-score">
-            <th class="iq-cell iq-cell--header iq-cell--component-name" sort-column="name">
+            <th class="iq-cell iq-cell--header iq-cell--component-name" sort-column="derivedComponentName">
               <span class="header-text">Name</span>
             </th><!--
          --><th class="iq-cell iq-cell--header iq-cell--affected-apps iq-cell--split-line"
@@ -39,14 +39,14 @@
                form-mask="maskController"
                mask-message="">
           <tr class="iq-table-row iq-clickable"
-              ng-repeat="component in data | limitTo: maxResults | orderBy:sortVm.sortFields"
+              ng-repeat="component in data | limitTo: maxResults"
               ng-click="goToComponentDetails(component)">
             <td class="iq-cell iq-cell--component-name iq-cell--label"
                 iq-tooltip
                 tooltip-attach-to-body
                 tooltip-delay=500
                 tooltip-only-on-overflow="true"
-                tooltip-text="{{::component.name}}">{{component.name}}</td><!--
+                tooltip-text="{{::component.derivedComponentName}}">{{component.derivedComponentName}}</td><!--
          --><td class="iq-cell iq-cell--affected-apps">{{::component.affectedApplications}}</td><!--
          --><td class="iq-cell iq-cell--heatmap iq-cell--total-risk {{::getTextColorClass(component.score)}}"
                  ng-attr-style="background-color: {{::getColor(component.score)}}">{{::component.score}}</td><!--

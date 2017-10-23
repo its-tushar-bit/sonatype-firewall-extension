@@ -1,7 +1,15 @@
 describe('dashboard.data.service.spec', function() {
-  var $httpBackend, dashboardDataService, CLMLocations;
+  var $httpBackend, dashboardDataService, CLMLocations, createDashboardDataRequestPayloadMock;
 
   beforeEach(module('dashboard.module'));
+
+  beforeEach(module(function ($provide) {
+    createDashboardDataRequestPayloadMock = jasmine.createSpy('createDashboardDataRequestPayload');
+    createDashboardDataRequestPayloadMock.and.callFake(function(filter) {
+      return filter;
+    });
+    $provide.value('createDashboardDataRequestPayload', createDashboardDataRequestPayloadMock);
+  }));
 
   beforeEach(inject(function($injector) {
     $httpBackend = $injector.get('$httpBackend');
@@ -28,6 +36,7 @@ describe('dashboard.data.service.spec', function() {
                     {field: 'any', value: 'bar'}
                   ]
                 },
+                derivedComponentName: 'foo : bar',
                 stageDetails: [
                   {
                     stageTypeId: 'stage-release',
@@ -39,24 +48,23 @@ describe('dashboard.data.service.spec', function() {
                 ]
               },
               {
-                hash: '1249e25aebb15358bedd'
+                hash: '1249e25aebb15358bedd',
+                derivedComponentName: 'Unknown'
               }
             ],
             numResults: 2
           };
       $httpBackend.expectPOST(CLMLocations.getNewestRisksUrl(), filter).respond(data);
 
-      dashboardDataService.getNewestRisks(filter).then(function(data) {
+      dashboardDataService.getNewestRisks(filter, []).then(function(data) {
         result = data[0];
       });
 
       $httpBackend.flush();
       expect(result[0].hash).toBe('f60e9504841ba867a692');
-      expect(result[0].gavName).toBe('foo : bar');
-      expect(result[0].stagereleaseTime).toBe(123456789);
-      expect(result[0].buildTime).toBe(null);
+      expect(result[0].derivedComponentName).toBe('foo : bar');
       expect(result[1].hash).toBe('1249e25aebb15358bedd');
-      expect(result[1].gavName).toBe('Unknown');
+      expect(result[1].derivedComponentName).toBe('Unknown');
     });
 
     it('saves and updates result count', function() {
@@ -64,7 +72,7 @@ describe('dashboard.data.service.spec', function() {
           data = {dashboardResults: [], numResults: 5};
       $httpBackend.whenPOST(CLMLocations.getNewestRisksUrl()).respond(data);
 
-      dashboardDataService.getNewestRisks(filter);
+      dashboardDataService.getNewestRisks(filter, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(5);
@@ -74,7 +82,7 @@ describe('dashboard.data.service.spec', function() {
       // does not update if filter is not changed
       dashboardDataService.latestResultCounts.componentRisk = 3;
       dashboardDataService.latestResultCounts.applicationRisk = 2;
-      dashboardDataService.getNewestRisks(filter);
+      dashboardDataService.getNewestRisks(filter, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(5);
@@ -82,12 +90,25 @@ describe('dashboard.data.service.spec', function() {
       expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(2);
 
       // resets all counts if called with different filter
-      dashboardDataService.getNewestRisks({filterParam: 'different filter value'});
+      dashboardDataService.getNewestRisks({filterParam: 'different filter value'}, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(5);
       expect(dashboardDataService.latestResultCounts.componentRisk).toBe(undefined);
       expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(undefined);
+    });
+
+    it('translates sortFields', function() {
+      var translatedSortFields = ['-AGE', '-THREAT_LEVEL', 'POLICY_NAME', '-COMPONENT_NAME', 'APPLICATION_NAME'];
+
+      dashboardDataService.getNewestRisks({},
+          ['-time', '-threatLevel', 'policyName', '-derivedComponentName', 'applicationName']);
+
+      expect(createDashboardDataRequestPayloadMock).toHaveBeenCalledWith(jasmine.any(Object), jasmine.any(Number),
+          translatedSortFields);
+
+      $httpBackend.whenPOST(CLMLocations.getNewestRisksUrl()).respond({dashboardResults: [], numResults: 0});
+      $httpBackend.flush();
     });
 
   });
@@ -137,7 +158,7 @@ describe('dashboard.data.service.spec', function() {
         numResults: 2
       });
 
-      dashboardDataService.getApplicationRisks(filter).then(spy);
+      dashboardDataService.getApplicationRisks(filter, []).then(spy);
 
       $httpBackend.flush();
       expect(spy).toHaveBeenCalledWith([originalRisks, [1, 2, 3, 4, 5, 6]]);
@@ -149,7 +170,7 @@ describe('dashboard.data.service.spec', function() {
           data = { dashboardResults: [], numResults: 5 };
       $httpBackend.whenPOST(CLMLocations.getApplicationRisksUrl()).respond(data);
 
-      dashboardDataService.getApplicationRisks(filter);
+      dashboardDataService.getApplicationRisks(filter, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(undefined);
@@ -159,7 +180,7 @@ describe('dashboard.data.service.spec', function() {
       // does not update if filter is not changed
       dashboardDataService.latestResultCounts.newestRisk = 3;
       dashboardDataService.latestResultCounts.componentRisk = 2;
-      dashboardDataService.getApplicationRisks(filter);
+      dashboardDataService.getApplicationRisks(filter, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(3);
@@ -167,12 +188,30 @@ describe('dashboard.data.service.spec', function() {
       expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(5);
 
       // resets all counts if called with different filter
-      dashboardDataService.getApplicationRisks({filterParam: 'different filter value'});
+      dashboardDataService.getApplicationRisks({filterParam: 'different filter value'}, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(undefined);
       expect(dashboardDataService.latestResultCounts.componentRisk).toBe(undefined);
       expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(5);
+    });
+
+    it('translates sortFields', function() {
+      var translatedSortFields = ['-LOW_RISK', 'SEVERE_RISK', '-MODERATE_RISK', '-CRITICAL_RISK', 'NAME'];
+
+      dashboardDataService.getApplicationRisks({}, [
+        '-totalApplicationRisk.lowRisk',
+        'totalApplicationRisk.severeRisk',
+        '-totalApplicationRisk.moderateRisk',
+        '-totalApplicationRisk.criticalRisk',
+        'applicationName'
+      ]);
+
+      expect(createDashboardDataRequestPayloadMock).toHaveBeenCalledWith(jasmine.any(Object), jasmine.any(Number),
+          translatedSortFields);
+
+      $httpBackend.whenPOST(CLMLocations.getApplicationRisksUrl()).respond({dashboardResults: [], numResults: 0});
+      $httpBackend.flush();
     });
   });
 
@@ -190,10 +229,12 @@ describe('dashboard.data.service.spec', function() {
                 {field: 'any', value: 'bar'}
               ]
             },
+            derivedComponentName: 'foo : bar',
             score: 12
           },
           {
             hash: '1249e25aebb15358bedd',
+            derivedComponentName: 'Unknown',
             scoreSevere: 8
           }
         ],
@@ -202,16 +243,16 @@ describe('dashboard.data.service.spec', function() {
 
       $httpBackend.expectPOST(CLMLocations.getComponentRisksUrl(), filter).respond(data);
 
-      dashboardDataService.getComponentRisks(filter).then(function(data) {
+      dashboardDataService.getComponentRisks(filter, []).then(function(data) {
         components = data[0];
         series = data[1];
       });
 
       $httpBackend.flush();
       expect(components[0].hash).toBe('f60e9504841ba867a692');
-      expect(components[0].name).toBe('foo : bar');
+      expect(components[0].derivedComponentName).toBe('foo : bar');
       expect(components[1].hash).toBe('1249e25aebb15358bedd');
-      expect(components[1].name).toBe('Unknown');
+      expect(components[1].derivedComponentName).toBe('Unknown');
 
       expect(series).toEqual([12, 8]);
     });
@@ -221,7 +262,7 @@ describe('dashboard.data.service.spec', function() {
           data = { dashboardResults: [], numResults: 5 };
       $httpBackend.whenPOST(CLMLocations.getComponentRisksUrl()).respond(data);
 
-      dashboardDataService.getComponentRisks(filter);
+      dashboardDataService.getComponentRisks(filter, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(undefined);
@@ -231,7 +272,7 @@ describe('dashboard.data.service.spec', function() {
       // does not update if filter is not changed
       dashboardDataService.latestResultCounts.newestRisk = 3;
       dashboardDataService.latestResultCounts.applicationRisk = 2;
-      dashboardDataService.getComponentRisks(filter);
+      dashboardDataService.getComponentRisks(filter, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(3);
@@ -239,12 +280,34 @@ describe('dashboard.data.service.spec', function() {
       expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(2);
 
       // resets all counts if called with different filter
-      dashboardDataService.getComponentRisks({filterParam: 'different filter value'});
+      dashboardDataService.getComponentRisks({filterParam: 'different filter value'}, []);
       $httpBackend.flush();
 
       expect(dashboardDataService.latestResultCounts.newestRisk).toBe(undefined);
       expect(dashboardDataService.latestResultCounts.componentRisk).toBe(5);
       expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(undefined);
+    });
+
+    it('translates sortFields', function() {
+      var translatedSortFields = [
+        '-NUMBER_OF_AFFECTED_APPS', 'NAME', '-TOTAL_RISK', 'CRITICAL_RISK', '-SEVERE_RISK', 'MODERATE_RISK', 'LOW_RISK'
+      ];
+
+      dashboardDataService.getComponentRisks({}, [
+        '-affectedApplications',
+        'derivedComponentName',
+        '-score',
+        'scoreCritical',
+        '-scoreSevere',
+        'scoreModerate',
+        'scoreLow'
+      ]);
+
+      expect(createDashboardDataRequestPayloadMock).toHaveBeenCalledWith(jasmine.any(Object), jasmine.any(Number),
+          translatedSortFields);
+
+      $httpBackend.whenPOST(CLMLocations.getComponentRisksUrl()).respond({dashboardResults: [], numResults: 0});
+      $httpBackend.flush();
     });
   });
 });

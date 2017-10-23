@@ -30,6 +30,8 @@ public class RisksFilterDTO
   public PolicyThreatLevelFilter policyThreatLevelRange;
 
   public PolicyViolationStateFilter policyViolationStates;
+  
+  public String orderBy;
 
   /**
    * The maximum age of risks that pass the filter, in days. When null, no age-based filtering is applied. Note that it

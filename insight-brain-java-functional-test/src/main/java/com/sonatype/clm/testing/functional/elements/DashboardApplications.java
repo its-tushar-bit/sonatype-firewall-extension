@@ -32,28 +32,28 @@ public class DashboardApplications
       super(ROOT, ".iq-dashboard-headers");
     }
 
-    public SelenideElement totalRiskHeader() {
-      return child(".iq-cell--total-risk a");
+    public DashboardResultHeader totalRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--total-risk a"));
     }
 
-    public SelenideElement lowRiskHeader() {
-      return child(".iq-cell--low-risk a");
+    public DashboardResultHeader lowRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--low-risk a"));
     }
 
-    public SelenideElement moderateRiskHeader() {
-      return child(".iq-cell--moderate-risk a");
+    public DashboardResultHeader moderateRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--moderate-risk a"));
     }
 
-    public SelenideElement severeRiskHeader() {
-      return child(".iq-cell--severe-risk a");
+    public DashboardResultHeader severeRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--severe-risk a"));
     }
 
-    public SelenideElement criticalRiskHeader() {
-      return child(".iq-cell--critical-risk a");
+    public DashboardResultHeader criticalRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--critical-risk a"));
     }
 
-    public SelenideElement applicationNameHeader() {
-      return child(".iq-cell--application-name a");
+    public DashboardResultHeader applicationNameHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--application-name a"));
     }
   }
 
@@ -123,6 +123,25 @@ public class DashboardApplications
       return child(".iq-cell--application-name");
     }
 
+    public SelenideElement totalRisk() {
+      return child(".iq-cell--total-risk");
+    }
+
+    public SelenideElement criticalRisk() {
+      return child(".iq-cell--critical-risk");
+    }
+
+    public SelenideElement severeRisk() {
+      return child(".iq-cell--severe-risk");
+    }
+
+    public SelenideElement moderateRisk() {
+      return child(".iq-cell--moderate-risk");
+    }
+
+    public SelenideElement lowRisk() {
+      return child(".iq-cell--low-risk");
+    }
 
     private static class ApplicationStageList
         extends BasicElement<ApplicationStageList>

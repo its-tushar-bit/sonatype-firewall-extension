@@ -992,6 +992,16 @@ public class TemporaryEntity
                                             String hash,
                                             String reason)
   {
+    return newPolicyViolation(evaluation, policy, componentIdentifier, hash, reason, null /* pathnames */);
+  }
+
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
+                                            Policy policy,
+                                            ComponentIdentifier componentIdentifier,
+                                            String hash,
+                                            String reason,
+                                            List<String> pathNames)
+  {
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
     ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
@@ -1000,7 +1010,7 @@ public class TemporaryEntity
     constraintFact.addConditionFact(conditionFact);
 
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, componentIdentifier,
-        Collections.singletonList(constraintFact), null /* pathnames */);
+        Collections.singletonList(constraintFact), pathNames);
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }

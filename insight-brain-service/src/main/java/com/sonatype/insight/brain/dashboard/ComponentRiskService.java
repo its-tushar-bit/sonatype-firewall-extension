@@ -95,12 +95,14 @@ public class ComponentRiskService
                                                                  PolicyThreatCategoryFilter policyThreatCategoryFilter,
                                                                  PolicyThreatLevelFilter policyThreatLevelFilter,
                                                                  PolicyViolationStateFilter policyViolationStateFilter,
+                                                                 String orderBy,
                                                                  int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
 
+    ComponentRiskDTOComparator componentRiskComparator = new ComponentRiskDTOComparator(orderBy);
     List<PolicyViolationDTO> violations = getPolicyViolations(organizationIds, applicationIds, stageIds, tagIds,
         policyThreatCategoryFilter, policyThreatLevelFilter, policyViolationStateFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
@@ -117,7 +119,7 @@ public class ComponentRiskService
     for (ComponentViolationRollUp component : componentsByHash.values()) {
       dtos.add(component.toDTO());
     }
-    Collections.sort(dtos, ComponentRiskDTOComparator.INSTANCE);
+    Collections.sort(dtos, componentRiskComparator);
     DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = dtos.size();
     result.dashboardResults = dtos.subList(0, Math.min(dtos.size(), maxResults));
@@ -329,6 +331,7 @@ public class ComponentRiskService
         if (violation.pathnames != null) {
           dto.pathnames.addAll(violation.pathnames);
         }
+        dto.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(dto);
       }
       return dto;
     }

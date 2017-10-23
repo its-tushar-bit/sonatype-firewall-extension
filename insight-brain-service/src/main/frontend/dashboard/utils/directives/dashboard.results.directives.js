@@ -7,15 +7,14 @@
 export default
 function getDashboardResultsDirective(serviceMethod) {
   return [
-    'dashboard.data.service', 'createDashboardDataRequestPayload',
-    function(dashboardDataService, createDashboardDataRequestPayload) {
+    'dashboard.data.service',
+    function(dashboardDataService) {
       function createFilterWatch($scope, $rootScope, Dialog, ApplicationStore, Messages) {
         return function(newFilter) {
           if (newFilter && !$scope.needsAcknowledgement) {
             $scope.error = $scope.data = null;
-            var params = createDashboardDataRequestPayload($scope.filters, $scope.maxResults);
 
-            dashboardDataService[serviceMethod](params).then(function(results) {
+            dashboardDataService[serviceMethod]($scope.filters, $scope.sortVm.sortFields).then(function(results) {
               if (angular.equals(newFilter, $scope.filters)) {
                 $scope.data = results[0];
                 if ($scope.brew) {
@@ -56,13 +55,26 @@ function getDashboardResultsDirective(serviceMethod) {
         replace: true,
         template: '<tbody ng-transclude></tbody>',
         controller: [
-          '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore', 'ClassyBrew', 'Messages',
-          function($scope, $rootScope, $state, Dialog, ApplicationStore, ClassyBrew, Messages) {
+          '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore', 'ClassyBrew', 'Messages', '$filter',
+          function($scope, $rootScope, $state, Dialog, ApplicationStore, ClassyBrew, Messages, $filter) {
             var filterChangedFn = createFilterWatch($scope, $rootScope, Dialog, ApplicationStore, Messages);
             if ($state.is('dashboard.overview.components') || $state.is('dashboard.overview.applications')) {
               $scope.brew = ClassyBrew.create();
             }
             $scope.$watch('filters', filterChangedFn);
+
+            $scope.$watch('sortVm.sortFields', function(newValue, oldValue) {
+              if (newValue !== oldValue) {
+                if ($scope.data.length > $scope.maxResults) {
+                  // sort it on the back-end
+                  filterChangedFn($scope.filters);
+                }
+                else {
+                  // sort it here
+                  $scope.data = $filter('orderBy')($scope.data, $scope.sortVm.sortFields);
+                }
+              }
+            });
 
             $scope.$watch('filtersAreDirty', function(filtersAreDirty) {
               $scope.maskController[filtersAreDirty ? 'activateMask' : 'removeMask']();

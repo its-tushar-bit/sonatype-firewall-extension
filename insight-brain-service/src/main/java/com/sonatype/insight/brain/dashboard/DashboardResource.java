@@ -86,8 +86,8 @@ public class DashboardResource
   public DashboardResultsDTO<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO) {
     return newestRiskService.getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxDaysOld,
-        risksFilterDTO.maxResults);
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy,
+        risksFilterDTO.maxDaysOld, risksFilterDTO.maxResults);
   }
 
   @POST
@@ -99,7 +99,8 @@ public class DashboardResource
   public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(RisksFilterDTO risksFilterDTO) {
     return applicationRiskService.getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxResults);
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy,
+        risksFilterDTO.maxResults);
   }
 
   @POST
@@ -111,7 +112,8 @@ public class DashboardResource
   public DashboardResultsDTO<ComponentRiskDTO> getComponentRisks(RisksFilterDTO risksFilterDTO) {
     return componentRiskService.getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.maxResults);
+        risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy,
+        risksFilterDTO.maxResults);
   }
 
   /**
@@ -231,7 +233,8 @@ public class DashboardResource
     final List<NewestRiskDTO> results = newestRiskService
         .getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
-            risksFilterDTO.policyViolationStates, risksFilterDTO.maxDaysOld, Integer.MAX_VALUE).dashboardResults;
+            risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy, risksFilterDTO.maxDaysOld,
+            Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("violations");
     return Csv.generate(Response.ok(), fileNamePrefix, NewestRiskDTO.getCsvHeader(), results).build();
@@ -256,7 +259,7 @@ public class DashboardResource
     final List<ComponentRiskDTO> results = componentRiskService
         .getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
-            risksFilterDTO.policyViolationStates, Integer.MAX_VALUE).dashboardResults;
+            risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy, Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("components");
     return Csv.generate(Response.ok(), fileNamePrefix, ComponentRiskDTO.getCsvHeader(), results).build();
@@ -281,7 +284,7 @@ public class DashboardResource
     final List<ApplicationRiskScoreDTO> results = applicationRiskService
         .getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
             risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-            risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates,
+            risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy,
             Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("applications");

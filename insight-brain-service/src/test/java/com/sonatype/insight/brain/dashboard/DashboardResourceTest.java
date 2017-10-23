@@ -225,6 +225,7 @@ public class DashboardResourceTest
         new Date(v1.getTime().getTime() + 10));
 
     RisksFilterDTO filter = new RisksFilterDTO();
+    filter.orderBy = "-POLICY_NAME";
     String filterJson = new String(JsonUtils.generate(filter));
     HttpResponse response = restRequest().path(GET_NEWEST_RISKS_EXPORT_PATH).part("filter", filterJson).post();
 
@@ -272,6 +273,23 @@ public class DashboardResourceTest
   }
 
   @Test
+  public void testGetNewestRisks_InvalidOrderBy() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("app1", "test application");
+
+    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
+
+    createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
+
+    RisksFilterDTO filter = new RisksFilterDTO();
+    filter.orderBy = "Invalid";
+    HttpResponse response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH)
+        .body(filter).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), is("Invalid orderBy property."));
+  }
+
+  @Test
   public void testGetApplicationRisksExport() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
@@ -307,6 +325,17 @@ public class DashboardResourceTest
   }
 
   @Test
+  public void testGetApplicationRisks_InvalidOrderBy() throws Exception {
+    RisksFilterDTO filter = new RisksFilterDTO();
+    filter.orderBy = "Invalid";
+    HttpResponse response = restRequest().path(DashboardResource.GET_APPLICATION_RISKS_PATH)
+        .body(filter).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), is("Invalid orderBy property."));
+  }
+
+  @Test
   public void testGetApplicationRisksExport_fileNamePrefix() throws Exception {
     User tempUser = tempEntity.newUser();
     Organization org = tempEntity.newOrganization();
@@ -332,6 +361,17 @@ public class DashboardResourceTest
   }
 
   @Test
+  public void testGetComponentRisks_InvalidOrderBy() throws Exception {
+    RisksFilterDTO filter = new RisksFilterDTO();
+    filter.orderBy = "Invalid";
+    HttpResponse response = restRequest().path(DashboardResource.GET_COMPONENT_RISKS_PATH)
+        .body(filter).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), is("Invalid orderBy property."));
+  }
+
+  @Test
   public void testGetComponentRisksExport_returnValidCsvHeadersWithoutAppSetup() throws Exception {
     String filterJson = new String(JsonUtils.generate(new RisksFilterDTO()));
     HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
@@ -351,7 +391,9 @@ public class DashboardResourceTest
     tempEntity.newFirstOccurrencePolicyViolation(violation.getId(), app.getId(), BuildStageType.ID);
     tempEntity.newPolicyViolation(evaluation, buildPolicy, "Group1", "Artifact2", "Version1", "Hash1", "reason");
 
-    String filterJson = new String(JsonUtils.generate(new RisksFilterDTO()));
+    RisksFilterDTO dto = new RisksFilterDTO();
+    dto.orderBy = "-NAME";
+    String filterJson = new String(JsonUtils.generate(dto));
     HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", filterJson).post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-components");

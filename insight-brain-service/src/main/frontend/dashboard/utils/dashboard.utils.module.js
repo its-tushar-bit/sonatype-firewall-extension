@@ -39,8 +39,11 @@ export default angular.module('dashboard.utils',
     .component('dashboardTabs', dashboardTabs)
 ;
 
-function createDashboardDataRequestPayload(filter, maxResults) {
+function createDashboardDataRequestPayload(filter, maxResults, sortFields) {
   var params = {};
+  if (sortFields && sortFields.length) {
+    params.orderBy = sortFields.join();
+  }
   if (maxResults) {
     params.maxResults = maxResults + 1;
   }

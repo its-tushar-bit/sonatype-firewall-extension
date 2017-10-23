@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -76,12 +75,14 @@ public class ApplicationRiskService
                                                                           final PolicyThreatCategoryFilter policyThreatCategoryFilter,
                                                                           final PolicyThreatLevelFilter policyThreatLevelFilter,
                                                                           final PolicyViolationStateFilter policyViolationStateFilter,
+                                                                          final String orderBy,
                                                                           final int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
 
+    ApplicationRiskScoreDTOComparator applicationRiskComparator = new ApplicationRiskScoreDTOComparator(orderBy);
     List<Application> appsToSearch = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
         applicationIds, tagIds);
     log.debug("Loaded {} applications", appsToSearch.size());
@@ -100,11 +101,12 @@ public class ApplicationRiskService
     Iterable<ApplicationRiskScoreDTO> applicationRisks = createApplicationRiskScores(appsToSearch, stageTypes,
         policyEvaluationsById, policyViolationsByAppId);
 
-    List<ApplicationRiskScoreDTO> sortedApplicationRisks = sortAndFilterApplicationRiskScore(applicationRisks);
-
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = filterApplicationRiskScore(applicationRisks);
+    Collections.sort(applicationRiskScoreDTOs, applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
-    result.numResults = sortedApplicationRisks.size();
-    result.dashboardResults = sortedApplicationRisks.subList(0, Math.min(sortedApplicationRisks.size(), maxResults));
+    result.numResults = applicationRiskScoreDTOs.size();
+    result.dashboardResults = 
+        applicationRiskScoreDTOs.subList(0, Math.min(applicationRiskScoreDTOs.size(), maxResults));
 
     log.debug("getApplicationRisks finished in {} ms", System.currentTimeMillis() - start);
 
@@ -238,10 +240,10 @@ public class ApplicationRiskService
   }
 
   /**
-   * @param applicationRisks - Risks we want to sort.
-   * @return the risks sorted in descending order by the Risk. Any guys with a Risk of 0 are removed.
+   * @param applicationRisks - Risks we want to filter.
+   * @return the risks filtered. Any guys with a Risk of 0 are removed.
    */
-  private List<ApplicationRiskScoreDTO> sortAndFilterApplicationRiskScore(final Iterable<ApplicationRiskScoreDTO> applicationRisks)
+  private List<ApplicationRiskScoreDTO> filterApplicationRiskScore(final Iterable<ApplicationRiskScoreDTO> applicationRisks)
   {
     List<ApplicationRiskScoreDTO> filteredApplicationRiskScores = Lists.newArrayList(Iterables.filter(applicationRisks,
         new Predicate<ApplicationRiskScoreDTO>()
@@ -252,17 +254,7 @@ public class ApplicationRiskService
             return input != null && input.totalApplicationRisk.totalRisk > 0;
           }
         }));
-    Collections.sort(filteredApplicationRiskScores, new Comparator<ApplicationRiskScoreDTO>()
-    {
-      @Override
-      public int compare(final ApplicationRiskScoreDTO o1, final ApplicationRiskScoreDTO o2) {
-        int result = Integer.compare(o2.totalApplicationRisk.totalRisk, o1.totalApplicationRisk.totalRisk);
-        if (result == 0) {
-          result = o1.applicationId.compareTo(o2.applicationId);
-        }
-        return result;
-      }
-    });
+
     return filteredApplicationRiskScores;
   }
 }

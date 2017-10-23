@@ -89,7 +89,7 @@ public class ApplicationRiskServiceTest
         "g", "a", "v", "somehash");
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(null, null, null, null, null, null, null, 100);
+        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 100);
     assertThat(result.dashboardResults, hasSize(2));
     assertThat(result.numResults, is(2));
     assertThat(result.dashboardResults.get(0).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
@@ -97,7 +97,7 @@ public class ApplicationRiskServiceTest
 
     try {
       applicationRiskService.getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null,
-          null, null, 100);
+          null, null, "-TOTAL_RISK", 100);
       fail("Expected exception");
     }
     catch (BadRequestException e) {
@@ -117,7 +117,7 @@ public class ApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app1.getId()),
         new LinkedHashSet<>(Arrays.asList(ReleaseStageType.ID, OperateStageType.ID, BuildStageType.ID,
-            StageReleaseStageType.ID)), null, null, null, null, 100);
+            StageReleaseStageType.ID)), null, null, null, null, "-TOTAL_RISK", 100);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
@@ -133,7 +133,8 @@ public class ApplicationRiskServiceTest
     tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, null, null, null, null, "unknown");
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null, null, 100);
+        .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK",
+            100);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
@@ -149,7 +150,7 @@ public class ApplicationRiskServiceTest
     tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy, "gid", "aid", "1", "hash1", policyWaiver);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
@@ -159,7 +160,7 @@ public class ApplicationRiskServiceTest
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.OPEN), 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     appDTO = result.dashboardResults.get(0);
@@ -169,7 +170,7 @@ public class ApplicationRiskServiceTest
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN),
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK",
             1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
@@ -183,7 +184,7 @@ public class ApplicationRiskServiceTest
   @Test
   public void testGetApplicationRisks_ResultsCountCanExceedNumberOfReturnedResults() {
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(null, null, null, null, null, null, null, 1);
+        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(2));
   }

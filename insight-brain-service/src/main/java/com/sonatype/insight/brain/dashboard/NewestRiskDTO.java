@@ -40,6 +40,8 @@ public class NewestRiskDTO implements CsvWritable
 
   public ComponentDisplayName displayName;
 
+  public String derivedComponentName;
+
   public List<String> pathnames;
 
   public List<StageDetailDTO> stageDetails = new ArrayList<>();

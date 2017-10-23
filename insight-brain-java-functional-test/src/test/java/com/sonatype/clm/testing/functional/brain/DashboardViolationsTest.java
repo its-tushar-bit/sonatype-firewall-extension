@@ -76,6 +76,10 @@ public class DashboardViolationsTest
 
   private static final String NEWEST_RISK_URL = uriBuilder().fragment("/dashboard/newest-risk").build().toString();
 
+  private static final ViolationsHeaders headers = DashboardPage.violationsView().headers();
+
+  private static final ViolationsResults table = DashboardPage.violationsView().results();
+
   private final Date now = new Date();
 
   private final Date twoDaysAgo = now().minusDays(2).minusHours(4).toDate();
@@ -113,7 +117,7 @@ public class DashboardViolationsTest
     buildEvalNow = tempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "now", now);
     buildEval2MonthsAgo = tempEntity
-        .newPolicyEvaluation(app2.getId(), BuildStageType.ID, "now", twoMonthsAgo);
+        .newPolicyEvaluation(app2.getId(), BuildStageType.ID, "2mAgo", twoMonthsAgo);
     releaseEval2DaysAgo = tempEntity
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "2dAgo", twoDaysAgo);
     operateEval1WeekAgo = tempEntity
@@ -136,7 +140,6 @@ public class DashboardViolationsTest
 
   @Test
   public void testViolationsTable() {
-    ViolationsResults table = DashboardPage.violationsView().results();
 
     // no results
     refresh();
@@ -348,6 +351,292 @@ public class DashboardViolationsTest
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
     DashboardPage.violationsView().results().maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
+  }
+
+  @Test
+  public void testSortsOnBackendByAgeAndThreat() {
+
+    for (int i = 1; i <= 25; i++) {
+      // 50 violations 1min old: 25 with threatLevel 2, 25 with threatLevel 3
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 2, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 3, LICENSE);
+
+      // 50 violations 2d old: 25 with threatLevel 4, 25 with threatLevel 5
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 4, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 5, LICENSE);
+    }
+
+    // 20 violations 2d old: 10 with threatLevel 2, 10 with threatLevel 3
+    for (int i = 1; i <= 10; i++) {
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 2, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 3, LICENSE);
+    }
+
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.maxResultsMessage().shouldBe(visible);
+
+    // by default should be sorted by time desc, threat desc
+    headers.ageHeader().sortArrowUp().shouldBeSelected();
+    table.firstViolation().age().shouldHave(text("1min"));
+    table.firstViolation().threatNumber().shouldHave(text("3"));
+
+    table.violation(49).age().shouldHave(text("1min"));
+    table.violation(49).threatNumber().shouldHave(text("2"));
+
+    table.violation(50).age().shouldHave(text("2d"));
+    table.violation(50).threatNumber().shouldHave(text("5"));
+
+    table.lastViolation().age().shouldHave(text("2d"));
+    table.lastViolation().threatNumber().shouldHave(text("4"));
+
+    // sort by time asc, threat desc
+    headers.ageHeader().click();
+    headers.ageHeader().sortArrowDown().shouldBeSelected();
+    table.firstViolation().age().shouldHave(text("2d"));
+    table.firstViolation().threatNumber().shouldHave(text("5"));
+
+    table.violation(49).age().shouldHave(text("2d"));
+    table.violation(49).threatNumber().shouldHave(text("4"));
+
+    table.violation(50).age().shouldHave(text("2d"));
+    table.violation(50).threatNumber().shouldHave(text("3"));
+
+    table.violation(69).age().shouldHave(text("2d"));
+    table.violation(69).threatNumber().shouldHave(text("2"));
+
+    table.violation(70).age().shouldHave(text("1min"));
+    table.violation(70).threatNumber().shouldHave(text("3"));
+
+    table.lastViolation().age().shouldHave(text("1min"));
+    table.lastViolation().threatNumber().shouldHave(text("2"));
+  }
+
+  @Test
+  public void testSortsOnBackendByThreatAndAge() {
+
+    for (int i = 1; i <= 25; i++) {
+      // 50 violations with threatLevel 3: 25 - 1min old, 25 - 2d old
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 3, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 3, LICENSE);
+
+      // 50 violations with threatLevel 4: 25 - 1min old, 25 - 2d old
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 4, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 4, LICENSE);
+    }
+
+    // 20 violations with threatLevel 2: 10 - 1min old, 10 - 2d old
+    for (int i = 1; i <= 10; i++) {
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 2, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 2, LICENSE);
+    }
+
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.maxResultsMessage().shouldBe(visible);
+
+    // sort by threat desc, time desc
+    headers.threatHeader().click();
+    headers.threatHeader().sortArrowDown().shouldBeSelected();
+    table.firstViolation().threatNumber().shouldHave(text("4"));
+    table.firstViolation().age().shouldHave(text("1min"));
+
+    table.violation(25).threatNumber().shouldHave(text("4"));
+    table.violation(25).age().shouldHave(text("2d"));
+
+    table.violation(50).threatNumber().shouldHave(text("3"));
+    table.violation(50).age().shouldHave(text("1min"));
+
+    table.lastViolation().threatNumber().shouldHave(text("3"));
+    table.lastViolation().age().shouldHave(text("2d"));
+
+    // sort by threat asc, time desc
+    headers.threatHeader().click();
+    headers.threatHeader().sortArrowUp().shouldBeSelected();
+    table.firstViolation().threatNumber().shouldHave(text("2"));
+    table.firstViolation().age().shouldHave(text("1min"));
+
+    table.violation(10).threatNumber().shouldHave(text("2"));
+    table.violation(10).age().shouldHave(text("2d"));
+
+    table.violation(20).threatNumber().shouldHave(text("3"));
+    table.violation(20).age().shouldHave(text("1min"));
+
+    table.violation(45).threatNumber().shouldHave(text("3"));
+    table.violation(45).age().shouldHave(text("2d"));
+
+    table.violation(70).threatNumber().shouldHave(text("4"));
+    table.violation(70).age().shouldHave(text("1min"));
+
+    table.lastViolation().threatNumber().shouldHave(text("4"));
+    table.lastViolation().age().shouldHave(text("2d"));
+  }
+
+  @Test
+  public void testSortsOnBackendByPolicyAndAge() {
+    for (int i = 1; i <= 25; i++) {
+      // 50 licensePolicy violations: 25 - 1min old, 25 - 2d old
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 5, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 5, LICENSE);
+
+      // 50 securityPolicy violations: 25 - 1min old, 25 - 2d old
+      tempEntity.newPolicyViolation(buildEvalNow, securityPolicy, 5, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy, 5, LICENSE);
+    }
+
+    // 25 licensePolicy violations 1 week old
+    for (int i = 1; i <= 25; i++) {
+      tempEntity.newPolicyViolation(operateEval1WeekAgo, licensePolicy, 6, LICENSE);
+    }
+
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.maxResultsMessage().shouldBe(visible);
+
+    // sort by policy asc, time desc
+    headers.policyHeader().click();
+    headers.policyHeader().sortArrowUp().shouldBeSelected();
+    table.firstViolation().policy().shouldHave(text(licensePolicy.getName()));
+    table.firstViolation().age().shouldHave(text("1min"));
+
+    table.violation(25).policy().shouldHave(text(licensePolicy.getName()));
+    table.violation(25).age().shouldHave(text("2d"));
+
+    table.violation(50).policy().shouldHave(text(licensePolicy.getName()));
+    table.violation(50).age().shouldHave(text("7d"));
+
+    table.lastViolation().policy().shouldHave(text(securityPolicy.getName()));
+    table.lastViolation().age().shouldHave(text("1min"));
+
+    // sort by policy desc, time desc
+    headers.policyHeader().click();
+    headers.policyHeader().sortArrowDown().shouldBeSelected();
+    table.firstViolation().policy().shouldHave(text(securityPolicy.getName()));
+    table.firstViolation().age().shouldHave(text("1min"));
+
+    table.violation(25).policy().shouldHave(text(securityPolicy.getName()));
+    table.violation(25).age().shouldHave(text("2d"));
+
+    table.violation(50).policy().shouldHave(text(licensePolicy.getName()));
+    table.violation(50).age().shouldHave(text("1min"));
+
+    table.lastViolation().policy().shouldHave(text(licensePolicy.getName()));
+    table.lastViolation().age().shouldHave(text("2d"));
+  }
+
+  @Test
+  public void testSortsOnBackendByApplicationAndThreat() {
+
+    for (int i = 1; i <= 25; i++) {
+      // 50 violations for App1: 25 with threat 4, 25 with threat 5
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 4, LICENSE);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 5, LICENSE);
+
+      // 50 violations for App2: 25 with threat 4, 25 with threat 5
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 4, LICENSE);
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, licensePolicy, 5, LICENSE);
+    }
+
+    // 25 violations for App2: with threat 2
+    for (int i = 1; i <= 25; i++) {
+      tempEntity.newPolicyViolation(releaseEval2DaysAgo, securityPolicy, 2, LICENSE);
+    }
+
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.maxResultsMessage().shouldBe(visible);
+
+    // sort by application asc, threat desc
+    headers.applicationHeader().click();
+    headers.applicationHeader().sortArrowUp().shouldBeSelected();
+    table.firstViolation().application().shouldHave(text(app1.getName()));
+    table.firstViolation().threatNumber().shouldHave(text("5"));
+
+    table.violation(25).application().shouldHave(text(app1.getName()));
+    table.violation(25).threatNumber().shouldHave(text("4"));
+
+    table.violation(50).application().shouldHave(text(app2.getName()));
+    table.violation(50).threatNumber().shouldHave(text("5"));
+
+    table.lastViolation().application().shouldHave(text(app2.getName()));
+    table.lastViolation().threatNumber().shouldHave(text("4"));
+
+    // sort by application desc, threat desc
+    headers.applicationHeader().click();
+    headers.applicationHeader().sortArrowDown().shouldBeSelected();
+    table.firstViolation().application().shouldHave(text(app2.getName()));
+    table.firstViolation().threatNumber().shouldHave(text("5"));
+
+    table.violation(25).application().shouldHave(text(app2.getName()));
+    table.violation(25).threatNumber().shouldHave(text("4"));
+
+    table.violation(50).application().shouldHave(text(app2.getName()));
+    table.violation(50).threatNumber().shouldHave(text("2"));
+
+    table.violation(75).application().shouldHave(text(app1.getName()));
+    table.violation(75).threatNumber().shouldHave(text("5"));
+
+    table.lastViolation().application().shouldHave(text(app1.getName()));
+    table.lastViolation().threatNumber().shouldHave(text("5"));
+  }
+
+  @Test
+  public void testSortsOnBackendByComponentNameAndThreat() {
+
+    for (int i = 1; i <= 25; i++) {
+      // 50 violations for 'group1' component: 25 with threatLevel 4, 25 with threatLevel 5
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 4, LICENSE, "group1", "artifact", "version");
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 5, LICENSE, "group1", "artifact", "version");
+
+      // 50 violations for 'group2' component: 25 with threatLevel 4, 25 with threatLevel 5
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 4, LICENSE, "group2", "artifact", "version");
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 5, LICENSE, "group2", "artifact", "version");
+    }
+
+    // 25 violations for 'group2' component with threatLevel 2
+    for (int i = 1; i <= 25; i++) {
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy, 2, LICENSE, "group2", "artifact", "version");
+    }
+
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.maxResultsMessage().shouldBe(visible);
+
+    // sort by component name asc, threat desc
+    headers.componentHeader().click();
+    headers.componentHeader().sortArrowUp().shouldBeSelected();
+    table.firstViolation().component().shouldHave(text("group1"));
+    table.firstViolation().threatNumber().shouldHave(text("5"));
+
+    table.violation(25).component().shouldHave(text("group1"));
+    table.violation(25).threatNumber().shouldHave(text("4"));
+
+    table.violation(50).component().shouldHave(text("group2"));
+    table.violation(50).threatNumber().shouldHave(text("5"));
+
+    table.violation(75).component().shouldHave(text("group2"));
+    table.violation(75).threatNumber().shouldHave(text("4"));
+
+    table.lastViolation().component().shouldHave(text("group2"));
+    table.lastViolation().threatNumber().shouldHave(text("4"));
+
+    // sort by component name desc, threat desc
+    headers.componentHeader().click();
+    headers.componentHeader().sortArrowDown().shouldBeSelected();
+    table.firstViolation().component().shouldHave(text("group2"));
+    table.firstViolation().threatNumber().shouldHave(text("5"));
+
+    table.violation(25).component().shouldHave(text("group2"));
+    table.violation(25).threatNumber().shouldHave(text("4"));
+
+    table.violation(50).component().shouldHave(text("group2"));
+    table.violation(50).threatNumber().shouldHave(text("2"));
+
+    table.violation(75).component().shouldHave(text("group1"));
+    table.violation(75).threatNumber().shouldHave(text("5"));
+
+    table.lastViolation().component().shouldHave(text("group1"));
+    table.lastViolation().threatNumber().shouldHave(text("5"));
   }
 
   private void assertViolationsCsv(String csv, Map<String, Date> expectedSortedResults) {

@@ -73,24 +73,24 @@ public class DashboardViolations
       super(ROOT, ".iq-dashboard-headers");
     }
 
-    public SelenideElement threatHeader() {
-      return child(".iq-cell--threat a");
+    public DashboardResultHeader threatHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--threat a"));
     }
 
-    public SelenideElement policyHeader() {
-      return child(".iq-cell--policy a");
+    public DashboardResultHeader policyHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--policy a"));
     }
 
-    public SelenideElement applicationHeader() {
-      return child(".iq-cell--application a");
+    public DashboardResultHeader applicationHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--application a"));
     }
 
-    public SelenideElement componentHeader() {
-      return child(".iq-cell--component a");
+    public DashboardResultHeader componentHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--component a"));
     }
 
-    public SelenideElement ageHeader() {
-      return child(".iq-cell--age a");
+    public DashboardResultHeader ageHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--age a"));
     }
   }
 

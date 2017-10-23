@@ -37,6 +37,8 @@ public class ComponentRiskDTO implements CsvWritable
 
   public ComponentDisplayName displayName;
 
+  public String derivedComponentName;
+
   // Insertion order matters, as the first path will be used as the display name throughout the UI for unknown
   // components.
   public Set<String> pathnames = new LinkedHashSet<>();

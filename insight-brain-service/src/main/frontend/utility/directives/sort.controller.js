@@ -13,10 +13,10 @@ export default function SortController($attrs) {
     if (angular.equals(vm.sortFields, newFields)) {
       var column = extractSortField(newFields[0]);
       if (vm.sortFields[0] !== column) {
-        vm.sortFields[0] = column;
+        vm.sortFields = [column, ...vm.sortFields.slice(1)];
       }
       else {
-        vm.sortFields[0] = '-' + column;
+        vm.sortFields = ['-' + column, ...vm.sortFields.slice(1)];
       }
     }
     else {

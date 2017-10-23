@@ -6,14 +6,12 @@
 import AngularCommonModule from '../util/AngularCommon';
 import componentName from './componentName';
 import componentDisplay from './componentDisplay';
-import ComponentDisplayNameUtilService from './ComponentDisplayNameUtilService';
 import periodDelimiter from './periodDelimiter';
 
 export default angular.module('ComponentDisplay', [AngularCommonModule.name])
     .run(cacheTemplates)
     .directive('componentName', componentName)
     .directive('componentDisplay', componentDisplay)
-    .service('ComponentDisplayNameUtil', ComponentDisplayNameUtilService)
     .filter('periodDelimiter', periodDelimiter);
 
 function cacheTemplates($templateCache) {

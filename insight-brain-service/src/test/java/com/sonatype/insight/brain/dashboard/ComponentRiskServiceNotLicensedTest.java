@@ -18,6 +18,6 @@ public class ComponentRiskServiceNotLicensedTest
 
   @Test(expected = InvalidLicenseException.class)
   public void testGetComponentRisks_Unlicensed() {
-    componentRiskService.getComponentRisks(null, null, null, null, null, null, null, 0);
+    componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0);
   }
 }

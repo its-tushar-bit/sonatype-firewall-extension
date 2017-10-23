@@ -30,7 +30,7 @@ public class NewestRiskServiceAuthzTest
   public void testGetNewestRisks_ExplicitApplicationFilter_Unauthenticated() {
     createFirstOccurrencePolicyViolation(app.getId());
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
+        .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
@@ -41,7 +41,7 @@ public class NewestRiskServiceAuthzTest
     createFirstOccurrencePolicyViolation(app.getId());
     login();
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
+        .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
@@ -52,7 +52,7 @@ public class NewestRiskServiceAuthzTest
     createFirstOccurrencePolicyViolation(app.getId());
     grantReadPermission(app.getId());
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
+        .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
@@ -62,7 +62,7 @@ public class NewestRiskServiceAuthzTest
   public void testGetNewestRisks_ExplicitOrganizationFilter_Unauthenticated() {
     createFirstOccurrencePolicyViolation(app.getId());
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
+        .getNewestRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
@@ -73,7 +73,7 @@ public class NewestRiskServiceAuthzTest
     createFirstOccurrencePolicyViolation(app.getId());
     login();
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
+        .getNewestRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
@@ -84,7 +84,7 @@ public class NewestRiskServiceAuthzTest
     createFirstOccurrencePolicyViolation(app.getId());
     grantReadPermission(org.getId());
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
+        .getNewestRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
@@ -94,7 +94,7 @@ public class NewestRiskServiceAuthzTest
   public void testGetNewestRisks_ImplicitApplicationFilter_Unauthenticated() {
     createFirstOccurrencePolicyViolation(app.getId());
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
+        .getNewestRisks(null, null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
   }
@@ -104,7 +104,7 @@ public class NewestRiskServiceAuthzTest
     createFirstOccurrencePolicyViolation(app.getId());
     login();
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
+        .getNewestRisks(null, null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
   }
@@ -114,7 +114,7 @@ public class NewestRiskServiceAuthzTest
     createFirstOccurrencePolicyViolation(app.getId());
     grantReadPermission(app.getId());
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
-        .getNewestRisks(null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
+        .getNewestRisks(null, null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
   }

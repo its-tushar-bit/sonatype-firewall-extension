@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -45,6 +46,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -429,7 +431,7 @@ public class ComponentRiskServiceTest
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, 1000);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1000);
 
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
@@ -443,7 +445,7 @@ public class ComponentRiskServiceTest
   @Test
   public void testGetComponentRisks_FilterByApplication() throws Exception {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, 1000);
+        .getComponentRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 1000);
 
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
@@ -457,7 +459,8 @@ public class ComponentRiskServiceTest
   @Test
   public void testGetComponentRisks_FilterByOrganization() throws Exception {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(Collections.singleton(app2.getParentOwnerId()), null, null, null, null, null, null, 1000);
+        .getComponentRisks(Collections.singleton(app2.getParentOwnerId()), null, null, null, null, null, null,
+            "-TOTAL_RISK", 1000);
 
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
@@ -472,7 +475,8 @@ public class ComponentRiskServiceTest
   public void testGetComponentRisks_FilterByEmptyOrganization() throws Exception {
     Organization emptyOrg = tempEntity.newOrganization();
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(Collections.singleton(emptyOrg.getId()), null, null, null, null, null, null, 1000);
+        .getComponentRisks(Collections.singleton(emptyOrg.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 
+            1000);
 
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
@@ -484,7 +488,8 @@ public class ComponentRiskServiceTest
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, app1Policy);
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, Collections.singleton(ReleaseStageType.ID), null, null, null, null, 1000);
+        .getComponentRisks(null, null, Collections.singleton(ReleaseStageType.ID), null, null, null, null, "-TOTAL_RISK",
+            1000);
 
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
@@ -502,14 +507,14 @@ public class ComponentRiskServiceTest
         "g", "a", "v", "somehash");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, 1000);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     assertThat(result.dashboardResults.get(0).hash, is(app1PolicyViolation.getHash()));
 
     try {
       componentRiskService.getComponentRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null, null,
-          null, 1000);
+          null, "-TOTAL_RISK", 1000);
       fail("Expected exception");
     }
     catch (BadRequestException e) {
@@ -523,7 +528,8 @@ public class ComponentRiskServiceTest
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, Collections.singleton(app2Tag.getId()), null, null, null, 1000);
+        .getComponentRisks(null, null, null, Collections.singleton(app2Tag.getId()), null, null, null, "-TOTAL_RISK", 
+            1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -540,7 +546,7 @@ public class ComponentRiskServiceTest
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY), null,
-            null, 1000);
+            null, "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -554,7 +560,7 @@ public class ComponentRiskServiceTest
   public void testGetComponentRisks_FilterPolicyThreatLevel() throws Exception {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, new PolicyThreatLevelFilter(3, 3), null,
-            1000);
+            "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -573,7 +579,7 @@ public class ComponentRiskServiceTest
     PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -583,7 +589,7 @@ public class ComponentRiskServiceTest
     assertThat(riskDTO.affectedApplications, is(1));
 
     result = componentRiskService.getComponentRisks(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.OPEN), 1000);
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     riskDTO = result.dashboardResults.get(0);
@@ -594,7 +600,7 @@ public class ComponentRiskServiceTest
     assertThat(riskDTO.affectedApplications, is(2));
 
     result = componentRiskService.getComponentRisks(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), 1000);
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(2));
     assertThat(result.numResults, is(2));
     riskDTO = result.dashboardResults.get(0);
@@ -619,7 +625,7 @@ public class ComponentRiskServiceTest
     PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -629,7 +635,7 @@ public class ComponentRiskServiceTest
     assertThat(riskDTO.affectedApplications, is(1));
 
     result = componentRiskService.getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.OPEN), 1000);
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     riskDTO = result.dashboardResults.get(0);
@@ -639,7 +645,7 @@ public class ComponentRiskServiceTest
     assertThat(riskDTO.affectedApplications, is(1));
 
     result = componentRiskService.getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), 1000);
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(2));
     assertThat(result.numResults, is(2));
     riskDTO = result.dashboardResults.get(0);
@@ -665,7 +671,7 @@ public class ComponentRiskServiceTest
     }
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, 1000);
+        .getComponentRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -688,7 +694,8 @@ public class ComponentRiskServiceTest
     }
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(Collections.singleton(app2.getParentOwnerId()), null, null, null, null, null, null, 1000);
+        .getComponentRisks(Collections.singleton(app2.getParentOwnerId()), null, null, null, null, null, null,
+            "-TOTAL_RISK", 1000);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -711,13 +718,41 @@ public class ComponentRiskServiceTest
         hash);
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, 1);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(2));
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash, is(hash));
     assertThat(riskDTO.score, is(12));
     assertThat(riskDTO.affectedApplications, is(2));
+  }
+
+  @Test
+  public void testGetComponentRisks_Unknown() throws Exception {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "pathnames-hash", null, "a.zip/b.zip",
+        MatchState.UNKNOWN, false, evaluation.getTime());
+
+    // Create 2 violations without component identifiers: one with a pathname and one without. 
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, null, "hash-4", "unknown");
+    PolicyViolation policyViolationPathName = tempEntity
+        .newPolicyViolation(evaluation, app1Policy, null, "pathnames-hash", "unknown2",
+            Arrays.asList("a.zip/b.zip","c.zip/d.zip"));
+
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolationPathName.getId(), app1.getId(), ReleaseStageType.ID);
+
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, null,
+        Collections.singleton(ReleaseStageType.ID), null, null, null, null, "NAME", 2);
+    assertThat(result.dashboardResults, hasSize(2));
+    assertThat(result.numResults, is(2));
+
+    ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
+    assertThat(riskDTO.pathnames, contains("a.zip/b.zip","c.zip/d.zip"));
+    assertThat(riskDTO.derivedComponentName, is("b.zip")); // we use the last file of the first path name
+
+    riskDTO = result.dashboardResults.get(1);
+    assertThat(riskDTO.derivedComponentName, is("Unknown"));
   }
 
   /**

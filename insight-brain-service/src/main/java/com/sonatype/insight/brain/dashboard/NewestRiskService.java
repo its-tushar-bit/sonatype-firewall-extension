@@ -91,6 +91,7 @@ public class NewestRiskService
                                                            PolicyThreatCategoryFilter policyThreatCategoryFilter,
                                                            PolicyThreatLevelFilter policyThreatLevelFilter,
                                                            PolicyViolationStateFilter policyViolationStateFilter,
+                                                           String orderBy,
                                                            Integer maxDaysOld,
                                                            int maxResults)
   {
@@ -98,6 +99,7 @@ public class NewestRiskService
 
     long start = System.currentTimeMillis();
 
+    NewestRiskDTOComparator comparator = new NewestRiskDTOComparator(orderBy);
     List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
         applicationIds, tagIds);
     log.debug("getNewestRisks: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
@@ -167,7 +169,7 @@ public class NewestRiskService
       riskDTOs = filter(riskDTOs, maxDaysOld.intValue());
     }
 
-    Collections.sort(riskDTOs, NewestRiskDTOComparator.INSTANCE);
+    Collections.sort(riskDTOs, comparator);
     DashboardResultsDTO<NewestRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = riskDTOs.size();
     result.dashboardResults = riskDTOs.subList(0, Math.min(riskDTOs.size(), maxResults));
@@ -217,6 +219,7 @@ public class NewestRiskService
     newestRiskDTO.hash = policyViolation.getHash();
     newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
     newestRiskDTO.pathnames = policyViolation.getPathnames();
+    newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
 
     StageDetailDTO stageDetailDTO = new StageDetailDTO();
     stageDetailDTO.stageTypeId = stageType.getId();

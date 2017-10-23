@@ -4,8 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import {
+  translateViolationsSortFields,
+  translateComponentsSortFields,
+  translateApplicationsSortFields
+} from './sortFieldsUtils';
+
+const MAX_RESULTS = 100;
+
 export default
-function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayNameUtil) {
+function dashboardDataService($http, $filter, CLMLocations, createRequest) {
 
   var latestResultCounts = {
         newestRisk: undefined,
@@ -14,32 +22,22 @@ function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayName
       },
       lastAppliedFilter;
 
-  function getNewestRisks(filter) {
-    return getData(CLMLocations.getNewestRisksUrl(), filter).then(function(resultsWrapper) {
-      resetCountsIfFilterChanged(filter);
+  function getNewestRisks(filters, sortFields) {
+    const request = createRequest(filters, MAX_RESULTS, translateViolationsSortFields(sortFields));
+    return getData(CLMLocations.getNewestRisksUrl(), request).then(function(resultsWrapper) {
+      resetCountsIfFilterChanged(filters);
       latestResultCounts.newestRisk = resultsWrapper.numResults;
-      resultsWrapper.dashboardResults.forEach(function(risk) {
-        risk.gavName = ComponentDisplayNameUtil.deriveComponentName(risk);
-        // to aid sortability:
-        // - copy the times from each stage to a property on the row
-        // - provide a single sortable string for the component name
-        if (risk.stageDetails) {
-          risk.stageDetails.forEach(function(stageDetail) {
-            var propName = $filter('removeDashes')(stageDetail.stageTypeId) + 'Time';
-            risk[propName] = stageDetail.time > 0 ? stageDetail.time : null;
-          });
-        }
-      });
       return [resultsWrapper.dashboardResults];
     });
   }
 
-  function getApplicationRisks(filter) {
+  function getApplicationRisks(filters, sortFields) {
     var scoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
 
-    return getData(CLMLocations.getApplicationRisksUrl(), filter).then(function(resultsWrapper) {
+    const request = createRequest(filters, MAX_RESULTS, translateApplicationsSortFields(sortFields));
+    return getData(CLMLocations.getApplicationRisksUrl(), request).then(function(resultsWrapper) {
       var series = {};
-      resetCountsIfFilterChanged(filter);
+      resetCountsIfFilterChanged(filters);
       latestResultCounts.applicationRisk = resultsWrapper.numResults;
       resultsWrapper.dashboardResults.forEach(function(application) {
         scoreFields.forEach(function(scoreField) {
@@ -55,13 +53,14 @@ function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayName
     });
   }
 
-  function getComponentRisks(filter) {
+  function getComponentRisks(filters, sortFields) {
     var series = [];
-    return getData(CLMLocations.getComponentRisksUrl(), filter).then(function(resultsWrapper) {
-      resetCountsIfFilterChanged(filter);
+
+    const request = createRequest(filters, MAX_RESULTS, translateComponentsSortFields(sortFields));
+    return getData(CLMLocations.getComponentRisksUrl(), request).then(function(resultsWrapper) {
+      resetCountsIfFilterChanged(filters);
       latestResultCounts.componentRisk = resultsWrapper.numResults;
       resultsWrapper.dashboardResults.forEach(function(component) {
-        component.name = ComponentDisplayNameUtil.deriveComponentName(component);
         ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'].forEach(function(scoreField) {
           if (component[scoreField] && series.lastIndexOf(component[scoreField]) === -1) {
             series.push(component[scoreField]);
@@ -91,8 +90,11 @@ function dashboardDataService($http, $filter, CLMLocations, ComponentDisplayName
     getNewestRisks: getNewestRisks,
     getApplicationRisks: getApplicationRisks,
     getComponentRisks: getComponentRisks,
-    latestResultCounts: latestResultCounts
+    latestResultCounts: latestResultCounts,
+    MAX_RESULTS
   };
 }
 
-dashboardDataService.$inject = ['$http', '$filter', 'CLMLocations', 'ComponentDisplayNameUtil'];
+dashboardDataService.$inject = [
+  '$http', '$filter', 'CLMLocations', 'createDashboardDataRequestPayload'
+];

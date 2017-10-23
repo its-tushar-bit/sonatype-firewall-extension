@@ -38,6 +38,7 @@ describe('dashboard.results.directives.spec', function() {
         scope = $rootScope.$new();
         scope.maxResults = 123;
         scope.filtersAreDirty = false;
+        scope.sortVm = {};
         directiveScope = scope.$new();
 
         dashboardDataServiceMock = jasmine.createSpyObj('dashboardDataService', [directive.serviceMethod]);
@@ -161,6 +162,51 @@ describe('dashboard.results.directives.spec', function() {
         updateDirty(false);
         expect(maskControllerMock.removeMask.calls.count()).toBe(2);
         expect(maskControllerMock.activateMask.calls.count()).toBe(1);
+      });
+
+      describe('watches sortFields and sorts the data', function() {
+        it('sorts on the back-end if results > maxResults', function() {
+          var dataServiceMock = dashboardDataServiceMock[directive.serviceMethod];
+
+          // the filters must not be undefined in order for the back-end call to occur
+          // but setting filters triggers an extra backend call, which we are mocking here
+          scope.filters = {};
+          var data = [];
+          for (var i = 1; i <= scope.maxResults + 1; i++) {
+            data.push(i);
+          }
+          expect(data.length).toBeGreaterThan(scope.maxResults);
+          dataServiceMock.and.returnValue($q.resolve([data]));
+          scope.$digest();
+
+          // now test the actual sortFields watcher
+          var sortFields = ['foo', '-bar'];
+          scope.sortVm.sortFields = sortFields;
+          scope.$digest();
+          expect(dataServiceMock.calls.count()).toBe(2);
+          expect(dataServiceMock.calls.argsFor(0)).toEqual(jasmine.any(Object), undefined);
+          expect(dataServiceMock.calls.argsFor(1)).toEqual(jasmine.any(Object), ['foo', '-bar']);
+
+          // if sort fields are not changed - should not trigger back-end call
+          scope.$apply(function(scope) {
+            scope.sortVm.sortFields = sortFields;
+          });
+          expect(dataServiceMock.calls.count()).toBe(2);
+        });
+
+        it('sorts on the front-end if results <= maxResults', function() {
+          scope.data = [];
+          for (var i = 1; i <= scope.maxResults; i++) {
+            scope.data.push({foo: i});
+          }
+          expect(scope.data.length).toBe(scope.maxResults);
+
+          scope.sortVm.sortFields = ['-foo'];
+          scope.$digest();
+          expect(dashboardDataServiceMock[directive.serviceMethod]).not.toHaveBeenCalled();
+          // should have sorted by 'foo' descending
+          expect(scope.data[0].foo).toBe(scope.maxResults);
+        });
       });
     });
   });

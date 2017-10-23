@@ -35,20 +35,20 @@ public class DashboardComponents
       return children(".iq-components-results .iq-table-row");
     }
 
-    public SelenideElement component(int index) {
-      return child(".iq-components-results .iq-table-row", nthChild(index + 1));
+    public ComponentElement component(int index) {
+      return new ComponentElement(childSelector(".iq-components-results .iq-table-row", nthChild(index + 1)));
     }
 
     public ElementsCollection componentRisks(int index) {
       return children(".iq-components-results .iq-table-row", nthChild(index + 1), ".iq-cell:nth-child(n+3):nth-child(-n+7)");
     }
 
-    public SelenideElement firstComponent() {
-      return child(".iq-components-results .iq-table-row:first-child");
+    public ComponentElement firstComponent() {
+      return new ComponentElement(childSelector(".iq-components-results .iq-table-row:first-child"));
     }
 
-    public SelenideElement lastComponent() {
-      return child(".iq-components-results .iq-table-row:last-of-type");
+    public ComponentElement lastComponent() {
+      return new ComponentElement(childSelector(".iq-components-results .iq-table-row:last-of-type"));
     }
 
     public SelenideElement maxResultsMessage() {
@@ -71,28 +71,68 @@ public class DashboardComponents
       super(ROOT, ".iq-dashboard-headers");
     }
 
-    public SelenideElement componentNameHeader() {
-      return child(".iq-cell--component-name", "a");
+    public DashboardResultHeader componentNameHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--component-name", "a"));
   }
 
-    public SelenideElement totalRiskHeader() {
-      return child(".iq-cell--total-risk", "a");
+    public DashboardResultHeader totalRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--total-risk", "a"));
     }
 
-    public SelenideElement lowRiskHeader() {
-      return child(".iq-cell--low-risk", "a");
+    public DashboardResultHeader lowRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--low-risk", "a"));
     }
 
-    public SelenideElement moderateRiskHeader() {
-      return child(".iq-cell--moderate-risk", "a");
+    public DashboardResultHeader moderateRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--moderate-risk", "a"));
     }
 
-    public SelenideElement severeRiskHeader() {
-      return child(".iq-cell--severe-risk", "a");
+    public DashboardResultHeader severeRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--severe-risk", "a"));
     }
 
-    public SelenideElement criticalRiskHeader() {
-      return child(".iq-cell--critical-risk", "a");
+    public DashboardResultHeader criticalRiskHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--critical-risk", "a"));
+    }
+
+    public DashboardResultHeader affectedAppsHeader() {
+      return new DashboardResultHeader(childSelector(".iq-cell--affected-apps", "a"));
+    }
+  }
+
+  public static class ComponentElement
+      extends BasicElement<ComponentElement>
+  {
+    ComponentElement(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement name() {
+      return child(".iq-cell--component-name");
+    }
+
+    public SelenideElement totalRisk() {
+      return child(".iq-cell--total-risk");
+    }
+
+    public SelenideElement criticalRisk() {
+      return child(".iq-cell--critical-risk");
+    }
+
+    public SelenideElement severeRisk() {
+      return child(".iq-cell--severe-risk");
+    }
+
+    public SelenideElement moderateRisk() {
+      return child(".iq-cell--moderate-risk");
+    }
+
+    public SelenideElement lowRisk() {
+      return child(".iq-cell--low-risk");
+    }
+
+    public SelenideElement affectedApps() {
+      return child(".iq-cell--affected-apps");
     }
   }
 }

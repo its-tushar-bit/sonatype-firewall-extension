@@ -15,6 +15,8 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.insight.brain.dashboard.ComponentRiskDTO;
+import com.sonatype.insight.brain.dashboard.NewestRiskDTO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -22,6 +24,10 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.io.FilenameUtils.getName;
+import static org.apache.commons.io.FilenameUtils.normalizeNoEndSeparator;
 
 /**
  * Utility to build CLM Server specific component display names from coordinates.
@@ -96,5 +102,18 @@ public class ComponentDisplayNameUtil
       name.add("Hash", hash);
     }
     return name;
+  }
+
+  /**
+   * @since 1.38
+   */
+  public static String deriveComponentName(NewestRiskDTO dto) {
+    return dto.displayName != null ? dto.displayName.toString() :
+        !isEmpty(dto.pathnames) ? getName(normalizeNoEndSeparator(dto.pathnames.get(0))) : "Unknown";
+  }
+
+  public static String deriveComponentName(ComponentRiskDTO dto) {
+    return dto.displayName != null ? dto.displayName.toString() :
+        !isEmpty(dto.pathnames) ? getName(normalizeNoEndSeparator(dto.pathnames.iterator().next())) : "Unknown";
   }
 }

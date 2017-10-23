@@ -76,5 +76,25 @@ describe('dashboard.utils.module', function() {
       var params = createDashboardDataRequestPayload(filter);
       expect(params.maxDaysOld).toBe(filter.maxDaysOld);
     });
+
+    it('ignores null sortFields', function() {
+      var request = createDashboardDataRequestPayload({}, null, null);
+      expect(request.orderBy).toBeUndefined();
+    });
+
+    it('ignores undefined sortFields', function() {
+      var request = createDashboardDataRequestPayload({});
+      expect(request.orderBy).toBeUndefined();
+    });
+
+    it('ignores empty sortFields array', function() {
+      var request = createDashboardDataRequestPayload({}, null, []);
+      expect(request.orderBy).toBeUndefined();
+    });
+
+    it('sets orderBy if sortFields array is not empty', function() {
+      var request = createDashboardDataRequestPayload({}, null, ['-foo', 'bar']);
+      expect(request.orderBy).toBe('-foo,bar');
+    });
   });
 });

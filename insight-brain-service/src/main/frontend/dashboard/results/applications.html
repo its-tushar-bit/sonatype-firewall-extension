@@ -37,7 +37,7 @@
                mask-message="">
           <tr id="app{{$index}}_"
               class="iq-table-row applications-row total-application-risks"
-              ng-repeat-start="application in data | limitTo: maxResults | orderBy: sortVm.sortFields">
+              ng-repeat-start="application in data | limitTo: maxResults">
             <td class="iq-cell iq-cell--label iq-cell--application-name"
                 iq-tooltip
                 tooltip-attach-to-body

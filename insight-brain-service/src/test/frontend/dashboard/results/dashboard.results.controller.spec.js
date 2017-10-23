@@ -79,19 +79,44 @@ describe('dashboard.results.controller.spec', function() {
     });
   });
 
-  it('getFilterJson() converts filters to json string', function() {
-    scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, {
-      organizationFilters: ['org1'],
-      applicationFilters: ['app1', 'app2'],
-      policyThreatCategoryFilters: [],
-      stageTypeFilters: [],
-      tagFilters: [],
-      minPolicyThreatLevel: 3,
-      maxPolicyThreatLevel: 8
+  describe('getExportRequestJson()', function() {
+    beforeEach(function() {
+      scope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, {
+        organizationFilters: ['org1'],
+        applicationFilters: ['app1', 'app2'],
+        policyThreatCategoryFilters: [],
+        stageTypeFilters: [],
+        tagFilters: [],
+        minPolicyThreatLevel: 3,
+        maxPolicyThreatLevel: 8
+      });
     });
-    var json = '{"organizationIds":["org1"],"applicationIds":["app1","app2"],"stageIds":[],"tagIds":[],' +
-        '"policyThreatLevelRange":"3,8"}';
-    expect(scope.getFilterJson()).toBe(json);
+
+    it('throws error when state is not one of the dashboard views', function() {
+      stateMock.current.name = 'Foo';
+      expect(scope.getExportRequestJson).toThrowError('Export is not supported for state Foo');
+    });
+
+    it('converts filters to json string with default violations sortFields', function() {
+      stateMock.current.name = 'dashboard.overview.violations';
+      var json = '{"orderBy":"-AGE,-THREAT_LEVEL","organizationIds":["org1"],"applicationIds":["app1","app2"],' +
+          '"stageIds":[],"tagIds":[],"policyThreatLevelRange":"3,8"}';
+      expect(scope.getExportRequestJson()).toBe(json);
+    });
+
+    it('converts filters to json string with default components sortFields', function() {
+      stateMock.current.name = 'dashboard.overview.components';
+      var json = '{"orderBy":"-TOTAL_RISK","organizationIds":["org1"],"applicationIds":["app1","app2"],' +
+          '"stageIds":[],"tagIds":[],"policyThreatLevelRange":"3,8"}';
+      expect(scope.getExportRequestJson()).toBe(json);
+    });
+
+    it('converts filters to json string with default applications sortFields', function() {
+      stateMock.current.name = 'dashboard.overview.applications';
+      var json = '{"orderBy":"-TOTAL_RISK","organizationIds":["org1"],"applicationIds":["app1","app2"],' +
+          '"stageIds":[],"tagIds":[],"policyThreatLevelRange":"3,8"}';
+      expect(scope.getExportRequestJson()).toBe(json);
+    });
   });
 
 });

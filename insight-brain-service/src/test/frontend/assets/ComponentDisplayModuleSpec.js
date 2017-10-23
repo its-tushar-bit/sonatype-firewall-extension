@@ -50,58 +50,6 @@ describe('ComponentDisplay', function() {
 
   });
 
-  describe('ComponentDisplayNameUtil', function() {
-    var util;
-
-    beforeEach(function() {
-      inject(function($injector) {
-        util = $injector.get('ComponentDisplayNameUtil');
-      });
-    });
-
-    describe('renderToString()', function() {
-      it('concatenates displayName into a string', function() {
-        expect(util.renderToString({
-          parts: [
-            {field: 'any', value: 'foo'},
-            {value: ' : '},
-            {field: 'any', value: 'bar'}
-          ]
-        })).toBe('foo : bar');
-      });
-    });
-
-    describe('deriveComponentName()', function() {
-      it('renders displayName to string if displayName available', function() {
-        var component = {
-          displayName: {
-            parts: [
-              {field: 'any', value: 'foo'},
-              {value: ' : '},
-              {field: 'any', value: 'bar'}
-            ]
-          }
-        };
-        expect(util.deriveComponentName(component)).toBe('foo : bar');
-      });
-
-      it('uses first entry in pathnames if displayName is not available', function() {
-        var component = {
-          pathnames: [
-            'path/to/foo.jar',
-            'path/to/bar.jar'
-          ]
-        };
-        expect(util.deriveComponentName(component)).toBe('foo.jar');
-      });
-
-      it('returns "Unknown" if nor displayName neither pathnames are available', function() {
-        expect(util.deriveComponentName({})).toBe('Unknown');
-      });
-    });
-
-  });
-
   describe('periodDelimiter Filter', function() {
     it('properly adds zero-width space', inject(function($filter) {
       var periodDelimiterFilter = $filter('periodDelimiter'),

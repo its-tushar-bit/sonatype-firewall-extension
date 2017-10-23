@@ -3,14 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import {violationsSortFields, componentsSortFields, applicationsSortFields} from '../services/sortFieldsUtils';
+
 export default
-function DashboardResultsController($scope, Modal, EventNameConstant, $state, createDashboardDataRequestPayload, CLMLocations) {
-  $scope.maxResults = 100;
+function DashboardResultsController($scope, Modal, EventNameConstant, $state, createRequest, CLMLocations,
+                                    dashboardDataService) {
+  $scope.maxResults = dashboardDataService.MAX_RESULTS;
   $scope.maxDaysOld = 30;
   $scope.showTrendDialog = showTrendDialog;
   $scope.getViewTitle = getViewTitle;
   $scope.getExportUrl = getExportUrl;
-  $scope.getFilterJson = getFilterJson;
+  $scope.getExportRequestJson = getExportRequestJson;
   $scope.reload = reload;
 
   $scope.filters = undefined;
@@ -66,9 +69,21 @@ function DashboardResultsController($scope, Modal, EventNameConstant, $state, cr
     }
   }
 
-  function getFilterJson() {
-    var filterJson = createDashboardDataRequestPayload($scope.filters);
-    return JSON.stringify(filterJson);
+  function getExportRequestJson() {
+    switch ($state.current.name) {
+      case 'dashboard.overview.violations':
+        return JSON.stringify(createRequest($scope.filters, null,
+            desc(violationsSortFields.AGE, violationsSortFields.THREAT_LEVEL)));
+
+      case 'dashboard.overview.components':
+        return JSON.stringify(createRequest($scope.filters, null, desc(componentsSortFields.TOTAL_RISK)));
+
+      case 'dashboard.overview.applications':
+        return JSON.stringify(createRequest($scope.filters, null, desc(applicationsSortFields.TOTAL_RISK)));
+
+      default:
+        throw new Error('Export is not supported for state ' + $state.current.name);
+    }
   }
 
   function reload() {
@@ -77,5 +92,15 @@ function DashboardResultsController($scope, Modal, EventNameConstant, $state, cr
 }
 
 DashboardResultsController.$inject = [
-  '$scope', 'Modal', 'event.name.constant', '$state', 'createDashboardDataRequestPayload', 'CLMLocations'
+  '$scope', 'Modal', 'event.name.constant', '$state', 'createDashboardDataRequestPayload', 'CLMLocations',
+  'dashboard.data.service'
 ];
+
+/**
+ * Converts provided sort fields into array of fields prefixed with '-' for descending order
+ * @param fields
+ * @returns {Array}
+ */
+function desc(...fields) {
+  return fields.map(field => '-' + field);
+}

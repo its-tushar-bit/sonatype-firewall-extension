@@ -245,10 +245,10 @@ public class DashboardComponentsTest
     ComponentsResults table = DashboardPage.componentsView().results();
 
     Tooltip.get().shouldNotBe(visible);
-    table.firstComponent().$("td:first-child").hover();
+    table.firstComponent().name().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text(
         "A superficially artificial, perfunctorily slapdash : protracted and interminable name : to ensure overflow in cell"));
-    table.lastComponent().$("td:first-child").hover();
+    table.lastComponent().name().hover();
     Tooltip.get().shouldNotBe(visible);
   }
 
@@ -269,6 +269,131 @@ public class DashboardComponentsTest
     DashboardPage.componentsView().results().shouldBe(visible);
   }
 
+  @Test
+  public void testSortsOnBackend() {
+    ComponentsResults table = DashboardPage.componentsView().results();
+    ComponentsHeaders headers = DashboardPage.componentsView().headers();
+
+    showLowRiskViolations();
+    addComponents(40, 1, "low");
+    addComponents(40, 2, "moderate");
+    addComponents(40, 4, "severe");
+    addComponents(40, 8, "critical");
+
+    // add low risk components also to second app
+    app = tempEntity.newApplicationWithParent(DashboardComponentsTest.class.getSimpleName() + 2);
+    policy = tempEntity.newPolicy(app.getParentOwnerId(), "AnotherPolicy");
+    policyEvaluation = tempEntity
+        .newPolicyEvaluation(app.getId(), BuildStageType.ID, "AnotherAppEval");
+    refreshOrOpen(DashboardPage.COMPONENTS_URL);
+    addComponents(40, 0, "low");
+
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.maxResultsMessage().shouldBe(visible);
+
+    // default - sorted by total risk desc
+    headers.totalRiskHeader().sortArrowDown().shouldBeSelected();
+    table.firstComponent().totalRisk().shouldHave(text("8"));
+    table.component(40).totalRisk().shouldHave(text("4"));
+    table.component(80).totalRisk().shouldHave(text("2"));
+    table.lastComponent().totalRisk().shouldHave(text("2"));
+
+    // sort by total risk asc
+    headers.totalRiskHeader().click();
+    headers.totalRiskHeader().sortArrowUp().shouldBeSelected();
+    table.firstComponent().totalRisk().shouldHave(text("1"));
+    table.component(40).totalRisk().shouldHave(text("2"));
+    table.component(80).totalRisk().shouldHave(text("4"));
+    table.lastComponent().totalRisk().shouldHave(text("4"));
+
+    // sort by number of affected apps desc
+    headers.affectedAppsHeader().click();
+    headers.affectedAppsHeader().sortArrowDown().shouldBeSelected();
+    table.firstComponent().affectedApps().shouldHave(text("2"));
+    table.component(40).affectedApps().shouldHave(text("1"));
+    table.lastComponent().affectedApps().shouldHave(text("1"));
+
+    // sort by number of affected apps asc
+    headers.affectedAppsHeader().click();
+    headers.affectedAppsHeader().sortArrowUp().shouldBeSelected();
+    table.firstComponent().affectedApps().shouldHave(text("1"));
+    table.component(40).affectedApps().shouldHave(text("1"));
+    table.lastComponent().affectedApps().shouldHave(text("1"));
+
+    // sort by name asc
+    headers.componentNameHeader().click();
+    headers.componentNameHeader().sortArrowUp().shouldBeSelected();
+    table.firstComponent().name().shouldHave(text("critical"));
+    table.component(40).name().shouldHave(text("low"));
+    table.component(80).name().shouldHave(text("moderate"));
+    table.lastComponent().name().shouldHave(text("moderate"));
+
+    // sort by name desc
+    headers.componentNameHeader().click();
+    headers.componentNameHeader().sortArrowDown().shouldBeSelected();
+    table.firstComponent().name().shouldHave(text("severe"));
+    table.component(40).name().shouldHave(text("moderate"));
+    table.component(80).name().shouldHave(text("low"));
+    table.lastComponent().name().shouldHave(text("low"));
+
+    // sort by criticalRisk desc
+    headers.criticalRiskHeader().click();
+    headers.criticalRiskHeader().sortArrowDown().shouldBeSelected();
+    table.firstComponent().criticalRisk().shouldHave(text("8"));
+    table.component(40).criticalRisk().shouldHave(text("0"));
+    table.lastComponent().criticalRisk().shouldHave(text("0"));
+
+    // sort by criticalRisk asc
+    headers.criticalRiskHeader().click();
+    headers.criticalRiskHeader().sortArrowUp().shouldBeSelected();
+    table.firstComponent().criticalRisk().shouldHave(text("0"));
+    table.component(40).criticalRisk().shouldHave(text("0"));
+    table.lastComponent().criticalRisk().shouldHave(text("0"));
+
+    // sort by severeRisk desc
+    headers.severeRiskHeader().click();
+    headers.severeRiskHeader().sortArrowDown().shouldBeSelected();
+    table.firstComponent().severeRisk().shouldHave(text("4"));
+    table.component(40).severeRisk().shouldHave(text("0"));
+    table.lastComponent().severeRisk().shouldHave(text("0"));
+
+    // sort by severeRisk asc
+    headers.severeRiskHeader().click();
+    headers.severeRiskHeader().sortArrowUp().shouldBeSelected();
+    table.firstComponent().severeRisk().shouldHave(text("0"));
+    table.component(40).severeRisk().shouldHave(text("0"));
+    table.lastComponent().severeRisk().shouldHave(text("0"));
+
+    // sort by moderateRisk desc
+    headers.moderateRiskHeader().click();
+    headers.moderateRiskHeader().sortArrowDown().shouldBeSelected();
+    table.firstComponent().moderateRisk().shouldHave(text("2"));
+    table.component(40).moderateRisk().shouldHave(text("0"));
+    table.lastComponent().moderateRisk().shouldHave(text("0"));
+
+    // sort by moderateRisk asc
+    headers.moderateRiskHeader().click();
+    headers.moderateRiskHeader().sortArrowUp().shouldBeSelected();
+    table.firstComponent().moderateRisk().shouldHave(text("0"));
+    table.component(40).moderateRisk().shouldHave(text("0"));
+    table.lastComponent().moderateRisk().shouldHave(text("0"));
+
+    // sort by lowRisk desc
+    headers.lowRiskHeader().click();
+    headers.lowRiskHeader().sortArrowDown().shouldBeSelected();
+    table.firstComponent().lowRisk().shouldHave(text("1"));
+    table.component(40).lowRisk().shouldHave(text("0"));
+    table.lastComponent().lowRisk().shouldHave(text("0"));
+
+    // sort by lowRisk asc
+    headers.lowRiskHeader().click();
+    headers.lowRiskHeader().sortArrowUp().shouldBeSelected();
+    table.firstComponent().lowRisk().shouldHave(text("0"));
+    table.component(40).lowRisk().shouldHave(text("0"));
+    table.lastComponent().lowRisk().shouldHave(text("0"));
+  }
+
   private void assertComponentsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
     assertEquals("Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
@@ -277,18 +402,26 @@ public class DashboardComponentsTest
     assertArrayEquals(Arrays.toString(results), expectedSortedResults, results);
   }
 
-  private void addComponents(int numberOfComponents, int riskScore) {
+  private void addComponents(int numberOfComponents, int riskScore, String suffix) {
     for (int i = 1; i <= numberOfComponents; i++) {
-      addComponentWithViolation(i, riskScore);
+      addComponentWithViolation(i, riskScore, suffix);
     }
   }
 
-  private void addComponentWithViolation(int index, int riskScore) {
-    String group = "Group" + index;
-    String artifact = "Artifact" + index;
-    String version = "Version" + index;
-    String hash = "hash" + index;
+  private void addComponents(int numberOfComponents, int riskScore) {
+    addComponents(numberOfComponents, riskScore, "");
+  }
+
+  private void addComponentWithViolation(int index, int riskScore, String suffix) {
+    String group = "Group" + suffix + index;
+    String artifact = "Artifact" + suffix + index;
+    String version = "Version" + suffix + index;
+    String hash = "hash" + suffix + index;
     addComponentWithViolation(group, artifact, version, hash, riskScore);
+  }
+
+  private void addComponentWithViolation(int index, int riskScore) {
+    addComponentWithViolation(index, riskScore, "");
   }
 
   private void addComponentWithViolation(String group, String artifact, String version, String hash, int riskScore) {

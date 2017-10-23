@@ -5,50 +5,111 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
- * Sorts the NewestRiskDTOs by time, threat level, policy, application, using the component hash as tie breaker where
- * needed to provide a stable ordering for later capping results from the top.
+ * Sorts the NewestRiskDTOs based on the orderBy property.
  */
 class NewestRiskDTOComparator
     implements Comparator<NewestRiskDTO>
 {
-  public static final NewestRiskDTOComparator INSTANCE = new NewestRiskDTOComparator();
+  private List<NewestRiskOrderBy> newestRiskOrderByList;
+
+  public NewestRiskDTOComparator(String orderBy) {
+    this.newestRiskOrderByList = NewestRiskOrderBy.getOrderBys(orderBy);
+  }
 
   @Override
   public int compare(NewestRiskDTO o1, NewestRiskDTO o2) {
-    // Descending by time
-    int rel = Long.compare(o2.time, o1.time);
-    if (rel != 0) {
-      return rel;
+    int rel = 0;
+
+    for (NewestRiskOrderBy newestRiskOrderBy : newestRiskOrderByList) {
+      NewestRiskDTO ob1 = newestRiskOrderBy.isOrderByAsc() ? o1 : o2;
+      NewestRiskDTO ob2 = newestRiskOrderBy.isOrderByAsc() ? o2 : o1;
+
+      switch (newestRiskOrderBy.getNewestRiskOrderByEnum()) {
+        case AGE:
+          rel = Long.compare(ob1.time, ob2.time);
+          if (rel != 0) {
+            return rel;
+          }
+          break;
+        case APPLICATION_NAME:
+          rel = String.CASE_INSENSITIVE_ORDER.compare(ob1.applicationName, ob2.applicationName);
+          if (rel != 0) {
+            return rel;
+          }
+          break;
+        case COMPONENT_NAME:
+          rel = String.CASE_INSENSITIVE_ORDER.compare(ob1.derivedComponentName, ob2.derivedComponentName);
+          if (rel != 0) {
+            return rel;
+          }
+          break;
+        case POLICY_NAME:
+          rel = String.CASE_INSENSITIVE_ORDER.compare(ob1.policyName, ob2.policyName);
+          if (rel != 0) {
+            return rel;
+          }
+          break;
+        case THREAT_LEVEL:
+          rel = Integer.compare(ob1.threatLevel, ob2.threatLevel);
+          if (rel != 0) {
+            return rel;
+          }
+          break;
+      }
     }
 
-    // Descending by threat level
-    rel = Integer.compare(o2.threatLevel, o1.threatLevel);
-    if (rel != 0) {
-      return rel;
+    return rel;
+  }
+
+  private static class NewestRiskOrderBy
+  {
+    private NewestRiskOrderByEnum newestRiskOrderByEnum;
+
+    private boolean orderByAsc = true;
+
+    public NewestRiskOrderBy(NewestRiskOrderByEnum newestRiskOrderByEnum, boolean orderByAsc) {
+      this.newestRiskOrderByEnum = newestRiskOrderByEnum;
+      this.setOrderByAsc(orderByAsc);
     }
 
-    // Ascending by policy name
-    rel = String.CASE_INSENSITIVE_ORDER.compare(o1.policyName, o2.policyName);
-    if (rel != 0) {
-      return rel;
+    public static List<NewestRiskOrderBy> getOrderBys(String orderByText) {
+      List<NewestRiskOrderBy> newestRiskOrderByList = new ArrayList<>();
+      try {
+        if (orderByText != null) {
+          for (String orderBy : orderByText.split(",")) {
+            boolean isOrderByDesc = orderBy.startsWith("-");
+
+            NewestRiskOrderByEnum orderByEnum = NewestRiskOrderByEnum
+                .valueOf(isOrderByDesc ? orderBy.substring(1) : orderBy);
+            if (orderByEnum != null) {
+              newestRiskOrderByList.add(new NewestRiskOrderBy(orderByEnum, !isOrderByDesc));
+            }
+          }
+        }
+      }
+      catch (IllegalArgumentException e) {
+        throw new BadRequestException("Invalid orderBy property.", e);
+      }
+      return newestRiskOrderByList;
     }
 
-    // Ascending by app name
-    rel = String.CASE_INSENSITIVE_ORDER.compare(o1.applicationName, o2.applicationName);
-    if (rel != 0) {
-      return rel;
+    public NewestRiskOrderByEnum getNewestRiskOrderByEnum() {
+      return newestRiskOrderByEnum;
     }
 
-    // Ascending by hash, null is greater than any string
-    if (o1.hash == null) {
-      return (o2.hash == null) ? 0 : 1;
+    public boolean isOrderByAsc() {
+      return orderByAsc;
     }
-    else if (o2.hash == null) {
-      return -1;
+
+    public void setOrderByAsc(boolean orderByAsc) {
+      this.orderByAsc = orderByAsc;
     }
-    return o1.hash.compareTo(o2.hash);
   }
 }

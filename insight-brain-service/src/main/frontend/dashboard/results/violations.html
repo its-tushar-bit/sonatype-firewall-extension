@@ -28,7 +28,7 @@
        tooltip-delay=500
        tooltip-only-on-overflow="true"
        tooltip-overflow-element-selector=".truncate-ellipsis"
-       tooltip-text="{{::vm.risk.gavName}}">
+       tooltip-text="{{::vm.risk.derivedComponentName}}">
     <span component-display component="vm.risk" truncate="true"></span>
   </td><!--
 --><td class="iq-cell iq-cell--age">{{::vm.risk.time | terseAgo}}</td><!--
@@ -60,7 +60,7 @@
          --><th class="iq-cell iq-cell--header iq-cell--application" sort-column="applicationName,-threatLevel">
               <span class="iq-cell__text--header">Application</span>
             </th><!--
-         --><th class="iq-cell iq-cell--header iq-cell--component" sort-column="gavName,-threatLevel">
+         --><th class="iq-cell iq-cell--header iq-cell--component" sort-column="derivedComponentName,-threatLevel">
               <span class="iq-cell__text--header">Component</span>
             </th><!--
          --><th class="iq-cell iq-cell--header iq-cell--age" sort-column="-time,-threatLevel" sort-inverted="true">
@@ -77,7 +77,7 @@
                form-mask="maskController"
                mask-message="">
           <tr violations-table-row risk="risk"
-              ng-repeat="risk in data | limitTo: maxResults | orderBy:sortVm.sortFields | emptyToEnd:sortVm.sortFields"
+              ng-repeat="risk in data | limitTo: maxResults | emptyToEnd:sortVm.sortFields"
               class="iq-table-row">
           </tr>
         </tbody>

@@ -7,48 +7,87 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.Comparator;
 
+import com.sonatype.insight.error.exception.BadRequestException;
+
 /**
- * Sorts the component risk DTOs by descending score, using the score breakdown and component hash as tie breaker where
- * needed to provide a stable ordering for later capping results from the top.
+ * Sorts the component risk DTOs based on the orderBy property.
  */
 class ComponentRiskDTOComparator
     implements Comparator<ComponentRiskDTO>
 {
-  public static final ComponentRiskDTOComparator INSTANCE = new ComponentRiskDTOComparator();
+  private ComponentRiskOrderBy componentRiskOrderBy;
+
+  public ComponentRiskDTOComparator(String orderBy) {
+    this.componentRiskOrderBy = ComponentRiskOrderBy.getOrderBy(orderBy);
+  }
 
   @Override
   public int compare(ComponentRiskDTO o1, ComponentRiskDTO o2) {
-    int rel = o2.score - o1.score;
-    if (rel != 0) {
-      return rel;
+    if (componentRiskOrderBy != null) {
+      ComponentRiskDTO ob1 = componentRiskOrderBy.isOrderByAsc() ? o1 : o2;
+      ComponentRiskDTO ob2 = componentRiskOrderBy.isOrderByAsc() ? o2 : o1;
+
+      switch (componentRiskOrderBy.getComponentRiskOrderByEnum()) {
+        case CRITICAL_RISK:
+          return ob1.scoreCritical - ob2.scoreCritical;
+        case MODERATE_RISK:
+          return ob1.scoreModerate - ob2.scoreModerate;
+        case LOW_RISK:
+          return ob1.scoreLow - ob2.scoreLow;
+        case NAME:
+          return String.CASE_INSENSITIVE_ORDER.compare(ob1.derivedComponentName, ob2.derivedComponentName);
+        case NUMBER_OF_AFFECTED_APPS:
+          return Integer.compare(ob1.affectedApplications, ob2.affectedApplications);
+        case SEVERE_RISK:
+          return ob1.scoreSevere - ob2.scoreSevere;
+        case TOTAL_RISK:
+          return ob1.score - ob2.score;
+      }
     }
 
-    rel = o2.scoreCritical - o1.scoreCritical;
-    if (rel != 0) {
-      return rel;
+    return 0;
+  }
+
+  private static class ComponentRiskOrderBy
+  {
+    private ComponentRiskOrderByEnum componentRiskOrderByEnum;
+
+    private boolean orderByAsc = true;
+
+    public ComponentRiskOrderBy(ComponentRiskOrderByEnum componentRiskOrderByEnum, boolean orderByAsc) {
+      this.componentRiskOrderByEnum = componentRiskOrderByEnum;
+      this.setOrderByAsc(orderByAsc);
     }
 
-    rel = o2.scoreSevere - o1.scoreSevere;
-    if (rel != 0) {
-      return rel;
+    public static ComponentRiskOrderBy getOrderBy(String orderByText) {
+      ComponentRiskOrderBy componentRiskOrderBy = null;
+      try {
+        if (orderByText != null) {
+          boolean isOrderByDesc = orderByText.startsWith("-");
+
+          ComponentRiskOrderByEnum orderByEnum = ComponentRiskOrderByEnum
+              .valueOf(isOrderByDesc ? orderByText.substring(1) : orderByText);
+          if (orderByEnum != null) {
+            componentRiskOrderBy = new ComponentRiskOrderBy(orderByEnum, !isOrderByDesc);
+          }
+        }
+      }
+      catch (IllegalArgumentException e) {
+        throw new BadRequestException("Invalid orderBy property.", e);
+      }
+      return componentRiskOrderBy;
     }
 
-    rel = o2.scoreModerate - o1.scoreModerate;
-    if (rel != 0) {
-      return rel;
+    public ComponentRiskOrderByEnum getComponentRiskOrderByEnum() {
+      return componentRiskOrderByEnum;
     }
 
-    rel = o2.scoreLow - o1.scoreLow;
-    if (rel != 0) {
-      return rel;
+    public boolean isOrderByAsc() {
+      return orderByAsc;
     }
 
-    if (o1.hash == null) {
-      return (o2.hash == null) ? 0 : 1;
+    public void setOrderByAsc(boolean orderByAsc) {
+      this.orderByAsc = orderByAsc;
     }
-    else if (o2.hash == null) {
-      return -1;
-    }
-    return o1.hash.compareTo(o2.hash);
   }
 }

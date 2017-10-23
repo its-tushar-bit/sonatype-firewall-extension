@@ -113,6 +113,6 @@
   </div>
   <div ui-view="dashboard-results"></div>
   <form id="export-results-form" name="export-results" action="{{getExportUrl()}}"  method="post" enctype="multipart/form-data">
-    <input type="hidden" name="filter" value="{{getFilterJson()}}">
+    <input type="hidden" name="filter" value="{{getExportRequestJson()}}">
   </form>
 </div>

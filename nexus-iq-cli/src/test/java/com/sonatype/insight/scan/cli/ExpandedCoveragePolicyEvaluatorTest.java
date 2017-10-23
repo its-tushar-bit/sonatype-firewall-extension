@@ -7,6 +7,8 @@ package com.sonatype.insight.scan.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -28,8 +30,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Binder;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
+import org.owasp.dependencycheck.Engine;
+import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
+import org.owasp.dependencycheck.analyzer.Analyzer;
+import org.owasp.dependencycheck.analyzer.ArchiveAnalyzer;
+import org.owasp.dependencycheck.analyzer.AssemblyAnalyzer;
+import org.owasp.dependencycheck.analyzer.AutoconfAnalyzer;
+import org.owasp.dependencycheck.analyzer.CMakeAnalyzer;
+import org.owasp.dependencycheck.analyzer.CentralAnalyzer;
+import org.owasp.dependencycheck.analyzer.CocoaPodsAnalyzer;
+import org.owasp.dependencycheck.analyzer.ComposerLockAnalyzer;
+import org.owasp.dependencycheck.analyzer.DependencyMergingAnalyzer;
+import org.owasp.dependencycheck.analyzer.FileNameAnalyzer;
+import org.owasp.dependencycheck.analyzer.JarAnalyzer;
+import org.owasp.dependencycheck.analyzer.NexusAnalyzer;
+import org.owasp.dependencycheck.analyzer.NodePackageAnalyzer;
+import org.owasp.dependencycheck.analyzer.NspAnalyzer;
+import org.owasp.dependencycheck.analyzer.NuspecAnalyzer;
+import org.owasp.dependencycheck.analyzer.OpenSSLAnalyzer;
+import org.owasp.dependencycheck.analyzer.PythonDistributionAnalyzer;
+import org.owasp.dependencycheck.analyzer.PythonPackageAnalyzer;
+import org.owasp.dependencycheck.analyzer.RubyBundleAuditAnalyzer;
+import org.owasp.dependencycheck.analyzer.RubyBundlerAnalyzer;
+import org.owasp.dependencycheck.analyzer.RubyGemspecAnalyzer;
+import org.owasp.dependencycheck.analyzer.SwiftPackageManagerAnalyzer;
+import org.owasp.dependencycheck.analyzer.VersionFilterAnalyzer;
 import org.owasp.dependencycheck.dependency.Dependency;
 import org.owasp.dependencycheck.dependency.Evidence;
 import org.owasp.dependencycheck.dependency.EvidenceType;
@@ -48,7 +76,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -93,8 +120,9 @@ public class ExpandedCoveragePolicyEvaluatorTest
   public void testScan_Directory() throws Exception {
     List<Dependency> dependencies = testScan("");
 
-    logOutput.assertInfo("Found 14 items.");
-    assertThat(dependencies, hasSize(14));
+    logOutput.assertInfo("Found 15 items.");
+    assertThat(dependencies, hasSize(15));
+    assertThat(dependencies, hasItem(dependencyWithName("dns-sync:0.1.0")));
     assertThat(dependencies, hasItem(dependencyWithName("zlib")));
     assertThat(dependencies, hasItem(dependencyWithName("uber-1.0-SNAPSHOT.jar")));
     assertThat(dependencies,
@@ -163,20 +191,6 @@ public class ExpandedCoveragePolicyEvaluatorTest
     };
   }
 
-  @Test
-  public void testScan_AnalyzersThatConnectToExternalResourcesAreDisabled() throws Exception {
-    ExpandedCoveragePolicyEvaluator spiedEvaluator = spy(evaluator);
-    Settings settings = evaluator.getExpandedCoverageConfiguration();
-    when(spiedEvaluator.getExpandedCoverageConfiguration()).thenReturn(settings);
-    
-    testScan("java", spiedEvaluator);
-
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED), is(false));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED), is(false));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED), is(false));
-    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED), is(false));
-  }
-
   private List<Dependency> testScan(String scanTarget) throws Exception {
     return testScan(scanTarget, evaluator);
   }
@@ -212,5 +226,74 @@ public class ExpandedCoveragePolicyEvaluatorTest
     objectMapper.setVisibility(objectMapper.getDeserializationConfig().getDefaultVisibilityChecker()
         .withFieldVisibility(JsonAutoDetect.Visibility.ANY).withGetterVisibility(JsonAutoDetect.Visibility.NONE));
     return objectMapper.readValue(dependenciesJson, new TypeReference<List<Dependency>>() { });
+  }
+
+  @Test
+  public void testGetExpandedCoverageConfiguration_ConfigureAnalyzers() throws Exception {
+    Settings settings = evaluator.getExpandedCoverageConfiguration();
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_EXPERIMENTAL_ENABLED), is(true));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_RETIRED_ENABLED), is(true));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_NSP_PACKAGE_ENABLED), is(false));
+    assertThat(settings.getBoolean(Settings.KEYS.ANALYZER_BUNDLE_AUDIT_ENABLED), is(false));
+  }
+
+  @Test
+  public void testNewExpandedCoverageEngine_EnableWantedAnalyzers() throws Exception {
+    List<Class<?>> analyzers = getEnabledAnalyzers();
+    analyzers.remove(AssemblyAnalyzer.class); // windows-specific
+    assertThat(analyzers,
+        Matchers.<Class<?>> containsInAnyOrder( //
+            ArchiveAnalyzer.class, //
+            AutoconfAnalyzer.class, //
+            CMakeAnalyzer.class, //
+            CocoaPodsAnalyzer.class, //
+            ComposerLockAnalyzer.class, //
+            DependencyMergingAnalyzer.class, //
+            FileNameAnalyzer.class, //
+            JarAnalyzer.class, //
+            NodePackageAnalyzer.class, //
+            NuspecAnalyzer.class, //
+            OpenSSLAnalyzer.class, //
+            PythonDistributionAnalyzer.class, //
+            PythonPackageAnalyzer.class, //
+            RubyBundlerAnalyzer.class, //
+            RubyGemspecAnalyzer.class, //
+            SwiftPackageManagerAnalyzer.class, //
+            VersionFilterAnalyzer.class));
+  }
+
+  @Test
+  public void testNewExpandedCoverageEngine_DisableAnalyzersUsingExternalResources() throws Exception {
+    List<Class<?>> analyzers = getEnabledAnalyzers();
+    assertThat(analyzers, not(hasItem(CentralAnalyzer.class)));
+    assertThat(analyzers, not(hasItem(NexusAnalyzer.class)));
+    assertThat(analyzers, not(hasItem(NspAnalyzer.class)));
+    assertThat(analyzers, not(hasItem(RubyBundleAuditAnalyzer.class)));
+  }
+
+  private List<Class<?>> getEnabledAnalyzers() throws Exception {
+    Engine engine = evaluator.newExpandedCoverageEngine();
+
+    // analyzers only remain enabled when they matched something, cf. AbstractFileTypeAnalyzer.prepareAnalyzer()
+    Method setFilesMatched = AbstractFileTypeAnalyzer.class.getDeclaredMethod("setFilesMatched", Boolean.TYPE);
+    setFilesMatched.setAccessible(true);
+    for (Analyzer analyzer : engine.getAnalyzers()) {
+      if (analyzer instanceof AbstractFileTypeAnalyzer) {
+        setFilesMatched.invoke(analyzer, true);
+      }
+    }
+
+    // analyzers only get disabled upon actual analyis run, cf. AbstractAnalyzer.prepare()
+    engine.analyzeDependencies();
+
+    List<Class<?>> analyzers = new ArrayList<>();
+    for (Analyzer analyzer : engine.getAnalyzers()) {
+      if (analyzer.isEnabled()) {
+        analyzers.add(analyzer.getClass());
+      }
+    }
+    return analyzers;
   }
 }

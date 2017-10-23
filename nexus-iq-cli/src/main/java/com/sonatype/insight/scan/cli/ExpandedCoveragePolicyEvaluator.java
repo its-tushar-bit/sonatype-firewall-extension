@@ -81,7 +81,7 @@ public class ExpandedCoveragePolicyEvaluator
     log.info("*********************************************************************************************");
     log.info("");
     
-    try (Engine engine = new Engine(Mode.EVIDENCE_COLLECTION, getExpandedCoverageConfiguration())) {
+    try (Engine engine = newExpandedCoverageEngine()) {
       File scanFile = File.createTempFile("scan-", ".xml.gz", params.getOutputDirectory());
 
       Scan scan = new Scan();
@@ -122,6 +122,10 @@ public class ExpandedCoveragePolicyEvaluator
     }
   }
 
+  Engine newExpandedCoverageEngine() {
+    return new Engine(Mode.EVIDENCE_COLLECTION, getExpandedCoverageConfiguration());
+  }
+
   /**
    * Policies are not evaluated for expanded coverage scans.
    */
@@ -153,8 +157,9 @@ public class ExpandedCoveragePolicyEvaluator
 
   Settings getExpandedCoverageConfiguration() {
     Settings settings = new Settings();
-    // Enable the experimental analyzers.
+    // Enable the experimental and retired analyzers.
     settings.setBoolean(KEYS.ANALYZER_EXPERIMENTAL_ENABLED, true);
+    settings.setBoolean(KEYS.ANALYZER_RETIRED_ENABLED, true);
     // Disable analyzers that connect to external resources.
     settings.setBoolean(Settings.KEYS.ANALYZER_CENTRAL_ENABLED, false);
     settings.setBoolean(Settings.KEYS.ANALYZER_NEXUS_ENABLED, false);

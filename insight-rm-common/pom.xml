@@ -149,13 +149,6 @@
                     <exclude>META-INF/sisu/**</exclude>
                   </excludes>
                 </filter>
-                <filter>
-                  <artifact>xpp3:xpp3_min</artifact>
-                  <excludes>
-                    <!-- duplicated -->
-                    <exclude>org/xmlpull/v1/**</exclude>
-                  </excludes>
-                </filter>
               </filters>
               <relocations>
                 <relocation>

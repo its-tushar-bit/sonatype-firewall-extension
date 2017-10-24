@@ -73,6 +73,18 @@ describe('saveFilterModalController', function() {
   });
 
   describe('trySave', function() {
+    it('does nothing if isSaveEnabled would return false', function() {
+      var scope = createController('foo', []);
+
+      scope.vm.saveMode = 'saveAs';
+      scope.vm.warning = undefined;
+      scope.vm.saveFilterForm = { $invalid: true };
+
+      scope.vm.trySave();
+
+      expect(scope.vm.warning).toBeUndefined();
+    });
+
     it('saves the filter if vm.warning is already set', function() {
       var scope = createController('foo', [], { x: 1 });
 
@@ -83,6 +95,7 @@ describe('saveFilterModalController', function() {
         }
       }).respond(204);
       scope.vm.warning = 'overwrite';
+      scope.vm.saveFilterForm = { $invalid: true };
 
       scope.vm.trySave();
 
@@ -95,6 +108,7 @@ describe('saveFilterModalController', function() {
       var scope = createController('foo', []);
 
       scope.vm.saveMode = 'overwrite';
+      scope.vm.saveFilterForm = { $invalid: true };
 
       scope.vm.trySave();
 
@@ -107,6 +121,7 @@ describe('saveFilterModalController', function() {
 
       scope.vm.saveMode = 'saveAs';
       scope.vm.filterName = 'bar';
+      scope.vm.saveFilterForm = { $invalid: false };
 
       scope.vm.trySave();
 
@@ -125,6 +140,7 @@ describe('saveFilterModalController', function() {
           }).respond(204);
           scope.vm.saveMode = 'saveAs';
           scope.vm.filterName = 'foo';
+          scope.vm.saveFilterForm = { $invalid: false };
 
           scope.vm.trySave();
 

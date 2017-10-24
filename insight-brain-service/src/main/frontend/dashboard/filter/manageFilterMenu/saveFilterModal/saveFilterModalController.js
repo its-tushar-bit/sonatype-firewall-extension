@@ -35,7 +35,10 @@ function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filt
   // try to save the filter. This will either result in saving it or result in a warning to the user
   // that they are about to overwrite an existing filter
   function trySave() {
-    if (vm.warning) {
+    if (!vm.isSaveEnabled()) {
+      return;
+    }
+    else if (vm.warning) {
       // if a warning is already up and the user hit Continue, then go ahead and save
       doSave();
     }

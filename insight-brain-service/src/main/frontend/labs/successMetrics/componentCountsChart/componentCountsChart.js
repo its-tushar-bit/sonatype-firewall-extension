@@ -37,7 +37,7 @@ componentCountsChartController.$inject = ['successMetricsDataService'];
 
 function makeDataset(data, type, datasetClassName) {
   return new Plottable.Dataset(data[type].map(function(element) {
-    return {y: element.componentDisplayName, x: element.count};
+    return {y: element.hash, x: element.count};
   }), {className: datasetClassName});
 }
 

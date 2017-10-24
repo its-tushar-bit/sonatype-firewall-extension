@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -37,6 +38,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
+
+import static java.util.Arrays.asList;
 
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
@@ -383,9 +386,8 @@ public class ComponentDetailServiceTest
     ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
         date);
-    ApplicationComponent component2 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
-        ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"), null, MatchState.EXACT,
-        false, date);
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2, null, null, MatchState.EXACT, false,
+        date);
 
     // app2 has the component with policy violations
     Application app2 = tempEntity.newApplicationWithParent("app2");
@@ -411,8 +413,7 @@ public class ComponentDetailServiceTest
     assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName,
         is(ComponentDisplayNameUtil.fromIdentifier(component1.getComponentIdentifier()).toString()));
     assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(1));
-    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName,
-        is(ComponentDisplayNameUtil.fromIdentifier(component2.getComponentIdentifier()).toString()));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName, is("Unknown"));
 
     assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(1));
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(2));
@@ -636,7 +637,7 @@ public class ComponentDetailServiceTest
     tempEntity.newPolicyViolation(policyEvaluation3, policy1, "groupId2", "artifactId2", "version2", hash2, "reason2");
 
     Application app2 = tempEntity.newApplicationWithParent("app2");
-    ApplicationComponent component3 = tempEntity.newApplicationComponent(app2.getId(), OperateStageType.ID, hash,
+    ApplicationComponent component3 = tempEntity.newApplicationComponent(app2.getId(), OperateStageType.ID, hash3,
         ComponentIdentifier.createMavenCoordinates("groupId3", "artifactId3", "version3"), null, MatchState.EXACT,
         false, olderDate);
 
@@ -668,5 +669,95 @@ public class ComponentDetailServiceTest
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count, is(1));
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName,
         is(ComponentDisplayNameUtil.fromIdentifier(component3.getComponentIdentifier()).toString()));
+  }
+
+  @Test
+  public void testGetComponentCounts_DisplayName() {
+    String hash1 = "ababababab";
+    String hash2 = "acacacacac";
+    String hash3 = "adadadadad";
+    String hash4 = "aeaeaeaeae";
+
+    Date date = new Date();
+
+    ComponentIdentifier componentId1 = ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version");
+
+    /*
+     * This test scenario has four components, each of which is present and containing a violation.
+     *
+     * The first component has a component identifier and the display name should come from that. Present in one
+     * app with one violation
+     *
+     * The second component has no component identifier but has a variety of pathnames.  Present in three apps with
+     * three total violations
+     *
+     * The third component has no component identifier but has a variety of pathnames which test the tie-breaking
+     * logic for pathname selection.  Present in two apps with two total violations
+     *
+     * The fourth component has no component id nor pathnames so it should show up as "Unknown".  Present in one
+     * app with one total violation
+     */
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org.getId());
+    Application app2 = tempEntity.newApplication(org.getId());
+    Application app3 = tempEntity.newApplication(org.getId());
+
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash1, componentId1, "a.zip/b.jar",
+        MatchState.EXACT, false, date);
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2, null, "a.zip/foo\nb.jar/",
+        MatchState.EXACT, false, date);
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash3, null, "a.zip/foo\na.zip/b.jar/\nb.jar",
+        MatchState.EXACT, false, date);
+
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, hash2, null, "foo", MatchState.EXACT, false,
+        date);
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, hash3, null, "foo", MatchState.EXACT, false,
+        date);
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, hash4, null, null, MatchState.EXACT, false,
+        date);
+
+    tempEntity.newApplicationComponent(app3.getId(), BuildStageType.ID, hash3, null, null, MatchState.EXACT, false,
+        date);
+
+    Policy policy = tempEntity.newPolicy(org.getId(), "policy", 1);
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2");
+    PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "scanId3");
+
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, componentId1, hash1, "reason1", asList("a.zip/b.jar"));
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, null, hash2, "reason2", asList("a.zip/foo", "b.jar/"));
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, null, hash3, "reason3", asList("a.zip/foo", "a.zip/b.jar/",
+          "b.jar"));
+
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash2, "reason2", asList("foo"));
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash3, "reason3", asList("foo"));
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash4, "reason4");
+
+    tempEntity.newPolicyViolation(policyEvaluation3, policy, null, hash3, "reason3");
+
+    ComponentCountsDTO componentDetailsDTO = componentDetailService.getComponentCounts(null, null);
+    assertThat(componentDetailsDTO, notNullValue());
+
+    assertThat(componentDetailsDTO.componentsInTheMostApplications, hasSize(4));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).componentDisplayName, is("b.jar"));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count, is(3));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).componentDisplayName, is("foo"));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(1).count, is(2));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(componentId1).toString()));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(2).count, is(1));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(3).componentDisplayName, is("Unknown"));
+    assertThat(componentDetailsDTO.componentsInTheMostApplications.get(3).count, is(1));
+
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(4));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName, is("b.jar"));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(3));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName, is("foo"));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count, is(2));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).componentDisplayName,
+        is(ComponentDisplayNameUtil.fromIdentifier(componentId1).toString()));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(2).count, is(1));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(3).componentDisplayName, is("Unknown"));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(3).count, is(1));
   }
 }

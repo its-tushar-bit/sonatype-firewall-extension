@@ -17,6 +17,10 @@ public class ComponentCountsDTO {
 
   public static class ComponentCountDTO {
     public String componentDisplayName;
+
+    // componentDisplayName alone isn't enough to key uniqueness off of
+    public String hash;
+
     public int count;
   }
 }

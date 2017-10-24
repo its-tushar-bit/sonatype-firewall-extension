@@ -37,8 +37,11 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.InternalRealm;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @since 1.35
@@ -197,7 +200,14 @@ class DbData
   }
 
   Entry<String, Object> getWebhook() {
-    return wrapEntry("webhook", webhookDAO.getAll());
+    final List<Webhook> webhooks = webhookDAO.getAll();
+    for (final Webhook webhook : webhooks) {
+      // mask any secretKeys
+      if (!StringUtils.isBlank(webhook.getSecretKey())) {
+        webhook.setSecretKey(SystemInfo.MASK);
+      }
+    }
+    return wrapEntry("webhook", webhooks);
   }
 
   Entry<String, Object> getSystemNotice() {

@@ -164,6 +164,10 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       return child(".iq-modal-footer", ".btn-primary");
     }
 
+    public SelenideElement cancelButton() {
+      return child("#dismissBtn");
+    }
+
     public SelenideElement nameInput() {
       return $("#filter-name-input");
     }

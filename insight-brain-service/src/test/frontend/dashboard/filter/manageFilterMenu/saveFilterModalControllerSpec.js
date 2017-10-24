@@ -185,4 +185,28 @@ describe('saveFilterModalController', function() {
       expect(scope.vm.isSaveEnabled()).toBe(false);
     });
   });
+
+  describe('onCancel', function() {
+    it('calls $dismiss if vm.warning is undefined', function() {
+      var scope = createController('foo', []);
+
+      scope.$dismiss = jasmine.createSpy('$dismiss');
+
+      scope.vm.onCancel();
+
+      expect(scope.$dismiss).toHaveBeenCalled();
+    });
+
+    it('unsets vm.warning and does not call $dismiss if vm.warning is set', function() {
+      var scope = createController('foo', []);
+
+      scope.$dismiss = jasmine.createSpy('$dismiss');
+      scope.vm.warning = 'overwrite';
+
+      scope.vm.onCancel();
+
+      expect(scope.$dismiss).not.toHaveBeenCalled();
+      expect(scope.vm.warning).toBeUndefined();
+    });
+  });
 });

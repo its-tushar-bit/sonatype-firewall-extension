@@ -31,6 +31,7 @@ function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filt
 
   vm.trySave = trySave;
   vm.isSaveEnabled = isSaveEnabled;
+  vm.onCancel = onCancel;
 
   // try to save the filter. This will either result in saving it or result in a warning to the user
   // that they are about to overwrite an existing filter
@@ -79,6 +80,17 @@ function SaveFilterModalController($scope, $http, CLMLocations, filterJson, filt
     const form = vm.saveFilterForm;
 
     return !!(form && (vm.saveMode === OVERWRITE || !form.$invalid));
+  }
+
+  // if we are on the initial view, Cancel should close the modal. If we are on a warning, Cancel should go back
+  // to the initial view
+  function onCancel() {
+    if (vm.warning === undefined) {
+      $scope.$dismiss();
+    }
+    else {
+      vm.warning = undefined;
+    }
   }
 }
 

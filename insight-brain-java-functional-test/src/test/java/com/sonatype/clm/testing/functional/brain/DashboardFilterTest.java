@@ -63,6 +63,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -818,6 +819,17 @@ public class DashboardFilterTest
       saveDialog.header().shouldHave(text("Name In Use"));
       saveDialog.confirmation().shouldBe(visible).shouldHave(text("\"" + filterName + "\" is already in use."
           + " Continuing will permanently overwrite " + filterName + ". This action cannot be undone."));
+
+      // test cancel
+      saveDialog.cancelButton().shouldHave(text("Cancel")).click();
+
+      saveDialog.header().shouldHave(text("Save Filter"));
+      saveDialog.saveAsRadio().shouldBe(selected);
+      saveDialog.nameInput().shouldHave(value(filterName)).shouldBe(visible);
+      saveDialog.saveButton().click();
+
+      // back on the confirmation warning, continue this time
+      saveDialog.header().shouldHave(text("Name In Use"));
       saveDialog.saveButton().shouldHave(text("Continue")).click();
     }
 
@@ -837,11 +849,28 @@ public class DashboardFilterTest
     saveDialog.saveAsRadio().shouldNotBe(selected);
     saveDialog.nameInput().shouldNotBe(visible);
 
+    // test cancel
+    saveDialog.cancelButton().click();
+    saveDialog.shouldNotBe(visible);
+    manage.openMenuButton().click();
+    manage.saveFilter().shouldNotBe(DISABLED).click();
+    saveDialog.overwriteRadio().shouldBe(selected);
+
     saveDialog.saveButton().shouldNotBe(DISABLED).click();
 
     saveDialog.header().shouldHave(text("Overwrite Filter"));
     saveDialog.confirmation().shouldBe(visible).shouldHave(
         text("You are about to permanently overwrite " + currentFilterName + ". This action cannot be undone."));
+
+    // test cancel
+    saveDialog.cancelButton().shouldHave(text("Cancel")).click();
+
+    saveDialog.header().shouldHave(text("Save Filter"));
+    saveDialog.overwriteRadio().shouldBe(selected);
+    saveDialog.saveButton().click();
+
+    // back on the confirmation warning, continue this time
+    saveDialog.header().shouldHave(text("Overwrite Filter"));
     saveDialog.saveButton().shouldHave(text("Continue")).click();
 
     FormMask.seeAndWaitForDismissal();

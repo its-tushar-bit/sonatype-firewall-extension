@@ -156,6 +156,10 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       super("#save-filter-modal");
     }
 
+    public SelenideElement header() {
+      return child(".iq-modal-header");
+    }
+
     public SelenideElement saveButton() {
       return child(".iq-modal-footer", ".btn-primary");
     }
@@ -168,8 +172,12 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
       return $("#save-filter-confirmation");
     }
 
-    public SelenideElement confirmContinue() {
-      return $("#save-filter-confirmation .btn-primary");
+    public IqRadio saveAsRadio() {
+      return new IqRadio($("#dashboard-filter-save-as"));
+    }
+
+    public IqRadio overwriteRadio() {
+      return new IqRadio($("#dashboard-filter-overwrite"));
     }
   }
 

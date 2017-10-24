@@ -1,5 +1,5 @@
 describe('saveFilterModalController', function() {
-  function createController(filter, name, existingFilters) {
+  function createController(name, existingFilters, filter) {
     var scope;
 
     inject(function($controller, $rootScope) {
@@ -18,13 +18,19 @@ describe('saveFilterModalController', function() {
 
     return scope;
   }
-  var scopes;
+
+  var scopes,
+      $httpBackend,
+      CLMLocations;
 
   beforeEach(module('dashboard.module'));
 
-  beforeEach(function() {
+  beforeEach(inject(function(_$httpBackend_, _CLMLocations_) {
     scopes = [];
-  });
+
+    $httpBackend = _$httpBackend_;
+    CLMLocations = _CLMLocations_;
+  }));
 
   afterEach(function () {
     scopes.forEach(function (scope) {
@@ -32,74 +38,135 @@ describe('saveFilterModalController', function() {
     });
   });
 
-  it('Passed in name is set', function() {
-    var scope = createController({ x: 1 }, 'foo', []);
-    expect(scope.vm.filterName).toEqual('foo');
+  describe('initial state', function() {
+    it('sets savedFilterName from the passed-in filter name and sets filterName to blank', function() {
+      var scope = createController('foo', []);
+
+      expect(scope.vm.savedFilterName).toEqual('foo');
+      expect(scope.vm.filterName).toEqual('');
+    });
+
+    it('sets savedFilterName to undefined if the passed-in filter name is blank', function() {
+      var scope = createController('', []);
+
+      expect(scope.vm.savedFilterName).toBeUndefined();
+      expect(scope.vm.filterName).toEqual('');
+    });
+
+    it('sets saveMode to "overwrite" if a filter name was passed in', function() {
+      var scope = createController('foo', []);
+
+      expect(scope.vm.saveMode).toBe('overwrite');
+    });
+
+    it('sets saveMode to "saveAs" if a filter name was not passed in', function() {
+      var scope = createController(undefined, []);
+
+      expect(scope.vm.saveMode).toBe('saveAs');
+    });
+
+    it('sets warning to undefined', function() {
+      var scope = createController('foo', []);
+
+      expect(scope.vm.warning).not.toBeDefined();
+    });
   });
 
-  it('saves filter', inject(function($httpBackend, $timeout, CLMLocations) {
-    var scope = createController({ x: 1 }, 'foo', []);
-    $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
-      name: 'foo',
-      filter: {
-        x: 1
-      }
-    }).respond(204);
-    scope.vm.saveFilter();
-    expect(scope.vm.confirm).toBeFalsy();
-    $timeout.flush();
-    $httpBackend.flush();
+  describe('trySave', function() {
+    it('saves the filter if vm.warning is already set', function() {
+      var scope = createController('foo', [], { x: 1 });
 
-    expect(scope.$close).toHaveBeenCalledWith('foo');
-  }));
+      $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
+        name: 'foo',
+        filter: {
+          x: 1
+        }
+      }).respond(204);
+      scope.vm.warning = 'overwrite';
 
-  it('saves filter', inject(function($httpBackend, $timeout, CLMLocations) {
-    var scope = createController({ x: 1 }, 'foo', []);
-    $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
-      name: 'foo',
-      filter: {
-        x: 1
-      }
-    }).respond(204);
-    scope.vm.saveFilter();
-    expect(scope.vm.confirm).toBeFalsy();
-    $timeout.flush();
-    $httpBackend.flush();
+      scope.vm.trySave();
 
-    expect(scope.$close).toHaveBeenCalledWith('foo');
-  }));
+      $httpBackend.flush();
 
-  it('overwrites filter', inject(function($httpBackend, $timeout, CLMLocations) {
-    var scope = createController({ x: 1 }, 'foo', [{ name: 'foo'}]);
+      expect(scope.$close).toHaveBeenCalledWith('foo');
+    });
 
-    scope.vm.saveFilter();
-    expect(scope.vm.confirm).toBeTruthy();
-    $httpBackend.verifyNoOutstandingRequest();
+    it('sets vm.warning to "overwrite" if it is not set and vm.saveMode is "overwrite"', function() {
+      var scope = createController('foo', []);
 
-    // User confirms
-    scope.vm.saveFilter(true);
+      scope.vm.saveMode = 'overwrite';
 
-    $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
-      name: 'foo',
-      filter: {
-        x: 1
-      }
-    }).respond(404);
-    $timeout.flush();
-    $httpBackend.flush();
+      scope.vm.trySave();
 
-    // user shouldn't get another confirmation
-    scope.vm.saveFilter();
+      expect(scope.vm.warning).toBe('overwrite');
+    });
 
-    $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
-      name: 'foo',
-      filter: {
-        x: 1
-      }
-    }).respond(204);
-    $timeout.flush();
-    $httpBackend.flush();
+    it('sets vm.warning to "nameInUse" if it is not set and vm.saveMode is "saveAs" and vm.filterName matches an' +
+        ' existing filter', function() {
+      var scope = createController('foo', [{ name: 'bar' }]);
 
-    expect(scope.$close).toHaveBeenCalledWith('foo');
-  }));
+      scope.vm.saveMode = 'saveAs';
+      scope.vm.filterName = 'bar';
+
+      scope.vm.trySave();
+
+      expect(scope.vm.warning).toBe('nameInUse');
+    });
+
+    it('saves if vm.warning is not set, saveMode is "saveAs", and vm.filterName does not match an existing filter',
+        function() {
+          var scope = createController('bar', [{ name: 'baz' }], { x: 1 });
+
+          $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
+            name: 'foo',
+            filter: {
+              x: 1
+            }
+          }).respond(204);
+          scope.vm.saveMode = 'saveAs';
+          scope.vm.filterName = 'foo';
+
+          scope.vm.trySave();
+
+          $httpBackend.flush();
+
+          expect(scope.$close).toHaveBeenCalledWith('foo');
+        }
+    );
+  });
+
+  describe('isSaveEnabled', function() {
+    it('returns false before vm.saveFilterForm is defined', function() {
+      var scope = createController('foo', []);
+
+      expect(scope.vm.isSaveEnabled()).toBe(false);
+    });
+
+    it('returns true if vm.saveFilterForm is defined and vm.saveMode is "overwrite"', function() {
+      var scope = createController('foo', []);
+
+      scope.vm.saveFilterForm = { $invalid: true };
+      scope.vm.saveMode = 'overwrite';
+
+      expect(scope.vm.isSaveEnabled()).toBe(true);
+    });
+
+    it('returns true if vm.saveFilterForm is defined valid', function() {
+      var scope = createController('foo', []);
+
+      scope.vm.saveFilterForm = { $invalid: false };
+      scope.vm.saveMode = 'saveAs';
+
+      expect(scope.vm.isSaveEnabled()).toBe(true);
+    });
+
+    it('returns false if vm.saveFilterForm is invalid and saveMode is "saveAs"', function() {
+      var scope = createController('foo', []);
+
+      scope.vm.saveFilterForm = { $invalid: true };
+      scope.vm.saveMode = 'saveAs';
+
+      expect(scope.vm.isSaveEnabled()).toBe(false);
+    });
+  });
 });

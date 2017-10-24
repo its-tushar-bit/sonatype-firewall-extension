@@ -58,6 +58,7 @@ import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.selected;
@@ -491,7 +492,7 @@ public class DashboardFilterTest
     DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
 
     // save initial filter
-    saveFilter("Initial", null);
+    saveFilter("Initial", null, false);
     manage.openMenuButton().click();
     manage.filters().shouldHaveSize(1);
     manage.filter(0).shouldHave(text("Initial"));
@@ -500,7 +501,7 @@ public class DashboardFilterTest
     DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
 
     // Overwrite the filter, verifies the confirmation path
-    saveFilter("Initial", "Initial");
+    overwriteFilter("Initial");
     DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
     DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
 
@@ -528,7 +529,7 @@ public class DashboardFilterTest
     assertThat(filters.get(0).getBasedOnFilterName(), is("Initial"));
 
     // save new filter
-    saveFilter("New Filter", "Initial");
+    saveFilter("New Filter", "Initial", false);
     DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
     DashboardFilters.saveFilterNameLabel().shouldHave(text("New Filter"));
     manage.openMenuButton().click();
@@ -546,6 +547,16 @@ public class DashboardFilterTest
     refresh();
     assertInitialFilterState("Initial");
     table.violations().shouldHaveSize(3);
+
+    // go back to New Filter
+    manage.openMenuButton().click();
+    manage.filter(1).shouldHave(text("New Filter")).click();
+
+    // save as existing filter name
+    saveFilter("Initial", "New Filter", true);
+    DashboardFilters.saveFilterNameLabel().shouldHave(text("Initial"));
+    DashboardFilters.saveFilterDirtyAsterisk().shouldNotBe(visible);
+    table.violations().shouldHaveSize(1);
   }
 
   @Test
@@ -561,8 +572,8 @@ public class DashboardFilterTest
     manage.openMenuButton().click();
 
     // create filters
-    saveFilter(filter1, null);
-    saveFilter(filter2, filter1);
+    saveFilter(filter1, null, false);
+    saveFilter(filter2, filter1, false);
     manage.openMenuButton().click();
 
     // delete filter button disabled if nothing selected
@@ -618,7 +629,7 @@ public class DashboardFilterTest
     String filter1 = "Applied Filter Is Based On Me";
 
     // save a filter
-    saveFilter(filter1, null);
+    saveFilter(filter1, null, false);
     // modify, apply, but don't save
     setSomeFilterValues();
     DashboardFilters.apply();
@@ -677,7 +688,7 @@ public class DashboardFilterTest
   @Test
   public void testNeedsAcknowledgement_ExistingSavedFilter() {
     String filterName = "Saved Filter";
-    saveFilter(filterName, null);
+    saveFilter(filterName, null, false);
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filters = dashboardFilterDAO.getByUsername("admin");
     
@@ -769,28 +780,71 @@ public class DashboardFilterTest
     // go back to violations so refreshOrOpen calls work properly
     DashboardPage.violationsTab().click();
   }
-  
-  private void saveFilter(String filterName, String existingFilterName) {
+
+  /**
+   * Save the filter under the given name. Executes and asserts the "Save As" workflow of the Save Filter modal.
+   * Does not test the "Overwrite" workflow
+   *
+   * @param existingExpected Is there expected to be an existing filter with a matching name
+   */
+  private void saveFilter(String filterName, String existingFilterName, boolean existingExpected) {
     ManageFilters manage = DashboardFilters.manage();
     manage.openMenuButton().click();
     manage.saveFilter().shouldNotHave(DISABLED).click();
     SaveFilterDialog saveDialog = manage.saveFilterDialog();
     saveDialog.shouldBe(visible);
+    saveDialog.header().shouldHave(text("Save Filter"));
+
     if (existingFilterName != null) {
-      saveDialog.saveButton().shouldNotHave(DISABLED);
-      saveDialog.nameInput().shouldHave(value(existingFilterName));
+      saveDialog.saveButton().shouldNotBe(DISABLED).shouldHave(text("Save"));
+      saveDialog.overwriteRadio().shouldBe(selected);
+      saveDialog.saveAsRadio().shouldNotBe(selected);
+      saveDialog.nameInput().shouldNotBe(visible);
+
+      saveDialog.saveAsRadio().click();
     }
     else {
-      saveDialog.saveButton().shouldHave(DISABLED);
-      saveDialog.nameInput().shouldBe(Condition.empty);
+      saveDialog.overwriteRadio().shouldBe(disabled);
     }
+
+    saveDialog.saveButton().shouldBe(DISABLED).shouldHave(text("Save"));
+    saveDialog.overwriteRadio().shouldNotBe(selected);
+    saveDialog.saveAsRadio().shouldBe(selected);
+    saveDialog.nameInput().shouldBe(Condition.empty).shouldBe(visible);
+
     saveDialog.nameInput().val(filterName);
     saveDialog.saveButton().shouldNotHave(DISABLED).click();
 
-    if (filterName.equals(existingFilterName)) {
-      saveDialog.confirmation().shouldBe(visible);
-      saveDialog.confirmContinue().click();
+    if (existingExpected) {
+      saveDialog.header().shouldHave(text("Name In Use"));
+      saveDialog.confirmation().shouldBe(visible).shouldHave(text("\"" + filterName + "\" is already in use."
+          + " Continuing will permanently overwrite " + filterName + ". This action cannot be undone."));
+      saveDialog.saveButton().shouldHave(text("Continue")).click();
     }
+
+    FormMask.seeAndWaitForDismissal();
+    saveDialog.shouldNotBe(visible);
+  }
+
+  private void overwriteFilter(String currentFilterName) {
+    ManageFilters manage = DashboardFilters.manage();
+    manage.openMenuButton().click();
+    manage.saveFilter().shouldNotBe(DISABLED).click();
+    SaveFilterDialog saveDialog = manage.saveFilterDialog();
+    saveDialog.shouldBe(visible);
+    saveDialog.header().shouldHave(text("Save Filter"));
+
+    saveDialog.overwriteRadio().shouldBe(selected);
+    saveDialog.saveAsRadio().shouldNotBe(selected);
+    saveDialog.nameInput().shouldNotBe(visible);
+
+    saveDialog.saveButton().shouldNotBe(DISABLED).click();
+
+    saveDialog.header().shouldHave(text("Overwrite Filter"));
+    saveDialog.confirmation().shouldBe(visible).shouldHave(
+        text("You are about to permanently overwrite " + currentFilterName + ". This action cannot be undone."));
+    saveDialog.saveButton().shouldHave(text("Continue")).click();
+
     FormMask.seeAndWaitForDismissal();
     saveDialog.shouldNotBe(visible);
   }

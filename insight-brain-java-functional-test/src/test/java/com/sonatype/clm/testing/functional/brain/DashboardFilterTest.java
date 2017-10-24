@@ -63,7 +63,6 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;

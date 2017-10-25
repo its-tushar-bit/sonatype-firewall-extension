@@ -38,5 +38,6 @@ export default angular.module('config',
       'iq-alerts': 'styles/iq-alerts.html',
       'iq-modal': 'styles/iq-modal/iq-modal.html',
       'iq-table': 'styles/iq-table.html',
-      'iq-tree-view': 'styles/iq-tree-view.html'
+      'iq-tree-view': 'styles/iq-tree-view.html',
+      'iq-read-only': 'styles/iq-read-only.html'
     });

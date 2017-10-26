@@ -17,10 +17,7 @@
         </em>
       </div>
       <div id="max-results-shown" ng-if="vm.results.length > vm.maxResults">
-        <div class="iq-tile iq-tile--dashboard-common-messages" ng-if="vm.isViolationsState()">
-          Newest {{vm.maxResults}} results shown
-        </div>
-        <div class="iq-tile iq-tile--dashboard-common-messages" ng-if="!vm.isViolationsState()">
+        <div class="iq-tile iq-tile--dashboard-common-messages">
           First {{vm.maxResults}} results shown
         </div>
       </div>

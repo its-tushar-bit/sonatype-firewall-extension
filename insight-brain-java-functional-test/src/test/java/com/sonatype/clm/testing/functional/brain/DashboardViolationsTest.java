@@ -70,7 +70,7 @@ public class DashboardViolationsTest
 {
   private static final String NO_DATA_MSG = "No data available in the last 30 days given the applied filters and permissions.";
 
-  private static final String MAX_RESULTS_MSG = "Newest 100 results shown";
+  private static final String MAX_RESULTS_MSG = "First 100 results shown";
 
   private static final String CSV_HEADERS = "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
 

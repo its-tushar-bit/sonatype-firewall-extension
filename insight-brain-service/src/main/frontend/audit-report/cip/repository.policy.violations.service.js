@@ -24,7 +24,7 @@
       get: function () {
         var deferred = $q.defer();
         $http.get(CLM.path + 'rest/repositories/' + OwnerContext.ownerId + '/report/policyThreat/' +
-                encodeURIComponent(SelectedComponent.get().pathname)).then(function (response) {
+                encodeURIComponent(SelectedComponent.get().pathname).replace(/%2F/gi, '/')).then(function (response) {
           var policyThreat = response.data,
               processedPolicyAlerts = [];
 

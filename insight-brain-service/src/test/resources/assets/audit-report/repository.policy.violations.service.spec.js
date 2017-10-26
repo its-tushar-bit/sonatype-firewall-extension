@@ -9,7 +9,7 @@ describe('repository.policy.violations.service', function () {
         version: '5.0.28',
         extension: 'jar'
       },
-      pathname: '/foo/bar.jar',
+      pathname: 'foo/1.0/bar.jar',
       hash: 'abcd'
     };
     $provide.value('SelectedComponent', {
@@ -29,7 +29,7 @@ describe('repository.policy.violations.service', function () {
     var successSpy = jasmine.createSpy('success');
 
     $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/repositories/repository-id/report/policyThreat/'
-            + encodeURIComponent(SelectedComponent.get().pathname))).respond(200, {activePolicyViolations: []});
+            + SelectedComponent.get().pathname)).respond(200, {activePolicyViolations: []});
 
     PolicyViolations.get().then(successSpy, angular.noop);
     $httpBackend.flush();
@@ -40,7 +40,7 @@ describe('repository.policy.violations.service', function () {
     var failureSpy = jasmine.createSpy('failure');
 
     $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/repositories/repository-id/report/policyThreat/'
-            + encodeURIComponent(SelectedComponent.get().pathname))).respond(404, 'failure');
+            + SelectedComponent.get().pathname)).respond(404, 'failure');
 
     PolicyViolations.get().then(angular.noop, failureSpy);
     $httpBackend.flush();

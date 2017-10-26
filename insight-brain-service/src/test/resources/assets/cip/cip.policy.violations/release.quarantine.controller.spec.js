@@ -6,7 +6,7 @@ describe('release.quarantine.controller', function() {
       get: function() {
         return {
           componentIdentifier: {},
-          pathname: '/foo/bar',
+          pathname: 'foo/1.0/bar.jar',
           hash: 'abcd'
         }
       }
@@ -35,7 +35,7 @@ describe('release.quarantine.controller', function() {
   });
 
   it('error to success', inject(function($httpBackend) {
-    $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/repositories/some-repo-id/unquarantine/%2Ffoo%2Fbar')).respond(500, 'random error');
+    $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/repositories/some-repo-id/unquarantine/foo/1.0/bar.jar')).respond(500, 'random error');
     scope.vm.release();
 
     expect(scope.vm.activeRequest).toBeTruthy();
@@ -44,7 +44,7 @@ describe('release.quarantine.controller', function() {
     expect(scope.vm.activeRequest).toBeFalsy();
     expect(scope.vm.error).toEqual('random error');
 
-    $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/repositories/some-repo-id/unquarantine/%2Ffoo%2Fbar')).respond(204);
+    $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/repositories/some-repo-id/unquarantine/foo/1.0/bar.jar')).respond(204);
     scope.vm.release();
 
     expect(scope.vm.activeRequest).toBeTruthy();
@@ -53,6 +53,6 @@ describe('release.quarantine.controller', function() {
 
     expect(scope.vm.activeRequest).toBeFalsy();
     expect(scope.$close).toHaveBeenCalled();
-    expect(eventSpy).toHaveBeenCalledWith(jasmine.any(Object), { pathname: '/foo/bar' });
+    expect(eventSpy).toHaveBeenCalledWith(jasmine.any(Object), { pathname: 'foo/1.0/bar.jar' });
   }));
 });

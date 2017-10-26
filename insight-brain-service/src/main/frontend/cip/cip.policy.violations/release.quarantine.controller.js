@@ -8,7 +8,8 @@
   'use strict';
 
   function getUrl(OwnerContext, component) {
-    return CLM.path + 'rest/repositories/' + OwnerContext.ownerId + '/unquarantine/' + encodeURIComponent(component.pathname);
+    return CLM.path + 'rest/repositories/' + OwnerContext.ownerId + '/unquarantine/' + 
+            encodeURIComponent(component.pathname).replace(/%2F/gi, '/');
   }
 
   function ReleaseQuarantineController($scope, $http, Messages, SelectedComponent, OwnerContext) {

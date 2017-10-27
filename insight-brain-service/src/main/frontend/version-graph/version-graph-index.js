@@ -1,9 +1,3 @@
-import './content.css';
-import './buttons.css';
-import './icons.css';
-import './modal.css';
-import './tooltip.css';
-
 import './appcheck';
 import './version.graph/version.graph.module';
 import './version.graph/information.panel.directive';

@@ -2,16 +2,15 @@ import './jquery/jquery-ui.css';
 import './lib/slickgrid/slick.grid.css';
 import './slickgrid/slick.grid.custom.css';
 import './lib/slickgrid/slick.pager.css';
-import './jquery/tipsy.css';
+import 'jquery.tipsy/src/jquery.tipsy.css';
 import './report.css';
 
-import '../lib/angular-ui-router/release/angular-ui-router';
-import '../lib/angular-ui-router/release/stateEvents';
+import '@uirouter/angularjs';
+import '@uirouter/angularjs/release/stateEvents';
 import '../lib/protovis/protovis-tipsy';
-import './lib/date.format';
-import './lib/jquery/jquery.tipsy';
+import 'dateformat';
+import 'jquery.tipsy';
 import './lib/slickgrid/jquery.event.drag-2.2';
-
 
 import '../version-graph/appcheck';
 import './insight';

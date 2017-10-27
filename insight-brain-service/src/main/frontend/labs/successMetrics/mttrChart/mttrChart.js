@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * 'Sonatype' is a trademark of Sonatype, Inc.
  */
-/* global d3, Plottable */
+/* global d3 */
+
+import Plottable from 'plottable';
 import template from './mttrChart.html';
 
 const NUMBER_OF_TICKS = 4;

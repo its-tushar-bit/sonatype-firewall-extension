@@ -1,3 +1,42 @@
+import 'components-font-awesome/css/font-awesome.min.css';
+import './lib/glyphicon/glyphicons.css';
+import './lib/bootstrap.scss';
+import './lib/bootstrap/bootstrap-slider-2.0.0.css';
+import 'bootstrap-toggle/css/bootstrap2-toggle.css';
+import './lib/glyphicon/halflings.css';
+import 'angular-xeditable/dist/css/xeditable.css';
+import 'plottable/plottable.css';
+import './scss/scss.scss';
+import './glyphicons-sonatype.css';
+import './sonatype-icons.css';
+
+import './lib/jquery-loader';
+import 'angular';
+import 'angular-aria';
+import 'angular-cookies';
+import 'angular-route';
+import 'angular-sanitize';
+import 'angular-ui-validate';
+import '@uirouter/angularjs';
+import '@uirouter/angularjs/release/stateEvents';
+import 'angular-vs-repeat';
+import 'angular-xeditable';
+import 'ngUpload/ng-upload';
+import './lib/bootstrap-loader';
+import 'es6-collections';
+
+// d3 has a commonjs impl and a es6 impl.  The commonjs impl doesn't work with rollup for
+// unknown reasons and the es6 one isn't detected correctly, despite the jsnext config which
+// should enable it.  As a workaround we point to the specific file that has the es6 imports
+// See https://stackoverflow.com/questions/39909200/d3-4-0-import-statement-gives-moduleexports-wrapper
+import * as d3 from 'd3/index.js';
+
+import 'zeroclipboard';
+import Fuse from 'fuse.js';
+import 'jquery-ui/ui/effect';
+import ClassyBrew from 'classybrew/src/classybrew';
+import Plottable from 'plottable';
+
 import './utility/Polyfills';
 import './components/module';
 import './directives/module';
@@ -109,3 +148,11 @@ import './root.organization.migrate/root.organization.migrate.modal.service';
 import './systemNotice/systemNoticeModule';
 import './systemNotice/systemNoticeService';
 import './systemNotice/systemNotice';
+
+import Base64 from './lib/Base64';
+
+window.Base64 = Base64;
+window.Fuse = Fuse;
+window.d3 = d3;
+window.Plottable = Plottable;
+window.classyBrew = ClassyBrew;

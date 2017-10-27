@@ -10,6 +10,6 @@ import permissionServiceModule from '../util/PermissionService';
 import productFeaturesModule from '../util/ProductFeatures';
 
 angular.module('mainHeader', [
-  'ui.router', 'ui.utils', angularCommonModule.name, CLMLocationModule.name, productFeaturesModule.name,
+  'ui.router', 'ui.validate', angularCommonModule.name, CLMLocationModule.name, productFeaturesModule.name,
   permissionServiceModule.name, 'ngSanitize', utilityServicesModule.name
 ]);

@@ -17,20 +17,12 @@
 
     var angularVersion = extractFromPom('angularjs.version');
     var path = require('path');
-    var rollupCmd = path.join('node_modules', '.bin', 'rollup');
+    var webpackCmd = path.join('node_modules', '.bin', 'webpack');
+    var webpackDevServerCmd = path.join('node_modules', '.bin', 'webpack-dev-server');
     require('load-grunt-tasks')(grunt);
     require('time-grunt')(grunt);
 
-    var lintSrc = [
-      '<%= config.frontend %>/**/*.js',
-      '<%= config.test %>/**/*.js',
-      '!<%= config.frontend %>/lib/**/*',
-      '!<%= config.frontend %>/cip/**/*',
-      '!<%= config.frontend %>/audit-report/**/*',
-      '!<%= config.frontend %>/version-graph/**/*',
-      '!<%= config.test %>/assets/lib/**/*',
-      'rollup/**/*.js'
-    ];
+    var lintSrc = ['<%= config.test %>/**/*.js'];
 
     grunt.initConfig({
       config: {
@@ -41,18 +33,10 @@
         angularDebug: false,
         buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
-        gallery: 'src/main/component-gallery/app',
         test: 'src/test/frontend',
         generated: 'target/classes/assets',
         temp: '.tmp',
         templates: '**/*.tpl.html'
-      },
-      bower: {
-        install: {
-          options: {
-            copy: false
-          }
-        }
       },
       configure_override: {
         build: {
@@ -81,10 +65,7 @@
           src: [
             '**/*.{html,ttf,woff,woff2,png,gif,jpg,ico}',
             '!<%= config.templates %>',
-            '!lib/**',
-            'lib/components-font-awesome/css/font-awesome.min.css',
-            'lib/components-font-awesome/fonts/*',
-            'lib/glyphicon/*',
+            '!lib/**'
           ],
           dest: '<%= config.generated %>'
         },
@@ -98,23 +79,6 @@
             '!lib/**/test/*'
           ],
           dest: '<%= config.generated %>'
-        },
-        develop_sass: {
-          expand: true,
-          cwd: '<%= config.temp %>',
-          src: [
-            '**/*.css'
-          ],
-          dest: '<%= config.generated %>'
-        }
-      },
-      filerev: {
-        build: {
-          src: [
-            '<%= config.generated %>/**/*.{js,css}',
-            '!<%= config.generated %>/lib/**/*',
-            '!<%= config.generated %>/bundle.js'
-          ]
         }
       },
       eslint: {
@@ -139,53 +103,6 @@
           dest: '<%= config.generated %>'
         }
       },
-      uglify: {
-        options: {
-          preserveComments: 'some'
-        }
-      },
-      useminPrepare: {
-        build: {
-          files: {
-            src: [
-              '<%= config.frontend %>/index.html'
-            ]
-          },
-          options: {
-            dest: '<%= config.generated %>/',
-            staging: '<%= config.temp %>',
-            type: 'html'
-          }
-        }
-      },
-      usemin: {
-        html: [
-          '<%= config.generated %>/index.html'
-        ],
-        options: {
-          assetsDirs: [
-            '<%= config.generated %>/'
-          ]
-        }
-      },
-      useminAuditReport: {
-        html: [
-          '<%= config.generated %>/audit-report/index.html'
-        ]
-      },
-      sass: {
-        build: {
-          files: {
-            '<%= config.temp %>/scss/bootstrap.css': '<%= config.frontend %>/lib/bootstrap/bootstrap.scss',
-            '<%= config.temp %>/scss/scss.css': '<%= config.frontend %>/scss/scss.scss'
-          }
-        },
-        gallery: {
-          files: {
-            '<%= config.temp %>/scss/gallery.css': '<%= config.gallery %>/scss/gallery.scss'
-          }
-        }
-      },
       watch: {
         options: {
           cwd: '<%= config.frontend %>'
@@ -199,78 +116,31 @@
             'copy:develop',
             'template:dev'
           ]
-        },
-        sass: {
-          files: [
-            '**/*.scss'
-          ],
-          tasks: [
-            'sass:build',
-            'copy:develop_sass'
-          ]
-        },
-        compile_styles: {
-          files: [
-            '<%= config.frontend %>/**/*.{css,scss}'
-          ],
-          tasks: [
-            'sass:build',
-          ]
-        },
-        gallery_styles: {
-          files: [
-            '<%= config.gallery %>/scss/*.{css,scss}'
-          ],
-          tasks: [
-            'sass:gallery',
-          ]
         }
       },
       focus: {
         dev: {
-          include: ['assets', 'sass']
-        },
-        gallery: {
-          include: ['compile_styles', 'gallery_styles']
-        }
-      },
-      express: {
-        options: {
-          // Override defaults here
-        },
-        gallery: {
-          options: {
-            script: 'gallery.js'
-          }
+          include: ['assets']
         }
       },
       exec: {
-        'cip-loader': rollupCmd + ' -c rollup/cip-loader.js --environment BUILD:production',
-        'cip-loader-watch': rollupCmd + ' -c rollup/cip-loader.js -w',
-
-        'cip': rollupCmd + ' -c rollup/css-cip.js --environment BUILD:production',
-        'cip-watch': rollupCmd + ' -c rollup/css-cip.js -w',
-
-        'external': rollupCmd + ' -c rollup/external.js --environment BUILD:production',
-
-        'audit-report': rollupCmd + ' -c rollup/audit-report.js --environment BUILD:production',
-        'audit-report-watch': rollupCmd + ' -c rollup/audit-report.js -w',
-
-        'version-graph': rollupCmd + ' -c rollup/version-graph-app.js --environment BUILD:production',
-        'version-graph-watch': rollupCmd + ' -c rollup/version-graph-app.js -w',
-
-        'view-details': rollupCmd + ' -c rollup/view-details.js --environment BUILD:production',
-        'view-details-watch': rollupCmd + ' -c rollup/view-details.js -w',
-
-        'iq-bundle': rollupCmd + ' -c rollup/iq-brain.js --environment BUILD:production',
-        'iq-bundle-watch': rollupCmd + ' -c rollup/iq-brain.js -w'
+        'webpack': webpackCmd + ' -p --env.production', // -p for production - adds uglify and NODE_ENV
+        'webpack-watch': webpackCmd + ' -w',
+        'webpack-watch-brain': webpackCmd + ' -w --env.brainOnly',
+        'webpack-watch-gallery': webpackDevServerCmd + ' --config webpack.config.gallery.js'
       },
       concurrent: {
         options: {
           logConcurrentOutput: true
         },
         watch: {
-          tasks: ['focus:dev', 'exec:iq-bundle-watch']
+          tasks: ['focus:dev', 'exec:webpack-watch']
+        },
+        watchBrain: {
+          tasks: ['focus:dev', 'exec:webpack-watch-brain']
+        },
+        watchGallery: {
+          tasks: ['focus:dev', 'exec:webpack-watch-gallery']
         }
       }
     });
@@ -279,40 +149,14 @@
       grunt.config.merge(this.data);
     });
 
-    grunt.registerTask('useminAuditReport', function () {
-      var useminSecondTargetConfig = grunt.config('useminAuditReport');
-      grunt.config.set('usemin', useminSecondTargetConfig);
-      grunt.task.run('usemin');
-    });
-
-    grunt.registerTask('bower-gallery', 'install bower dependencies in component gallery', function() {
-      var execSync = require('child_process').execSync;
-      var bowerCmd = path.join(__dirname, 'node_modules/.bin/bower') + ' install';
-      execSync(bowerCmd, {cwd: './src/main/component-gallery/app'});
-    });
-
     grunt.registerTask('build', [
       'configure_override:build',
 
       'eslint',
       'clean',
-      'exec:iq-bundle',
+      'exec:webpack',
       'copy:build',
-      'sass:build',
-      'useminPrepare',
-      'concat:generated',
-      'uglify:generated',
-      'cssmin:generated',
-      'filerev',
-      'usemin',
-      'useminAuditReport',
       'template:build',
-      'exec:cip-loader',
-      'exec:cip',
-      'exec:external',
-      'exec:audit-report',
-      'exec:version-graph',
-      'exec:view-details',
       'clean:temp'
     ]);
 
@@ -327,44 +171,37 @@
 
       'clean:temp',
       'copy:develop',
-      'sass:build',
-      'copy:develop_sass',
       'template:dev',
       'clean:temp'
     ]);
 
-    grunt.registerTask('develop', [
+    grunt.registerTask('develop-all', [
       'configure_override:develop',
 
       'eslint',
-      'bower:install',
       'clean:temp',
       'copy:develop',
-      'sass:build',
-      'copy:develop_sass',
       'template:dev',
       'concurrent:watch',
       'clean:temp'
     ]);
 
-    grunt.registerTask('fix', ['jscs:fix']);
+    grunt.registerTask('develop-brain', [
+      'configure_override:develop',
 
-    grunt.registerTask('gallery', [
-      'bower:install',
-      'bower-gallery',
-      'sass:build',
-      'sass:gallery',
-      'express',
-      'focus:gallery'
+      'eslint',
+      'clean:temp',
+      'copy:develop',
+      'template:dev',
+      'concurrent:watchBrain',
+      'clean:temp'
     ]);
 
-    // dev tasks for CIP, plugins and Firewall
-    grunt.registerTask('cip-loader', ['exec:cip-loader-watch']);
-    grunt.registerTask('css-cip', ['exec:cip-watch']);
-    grunt.registerTask('audit-report', ['exec:audit-report-watch']);
-    grunt.registerTask('version-graph', ['exec:version-graph-watch']);
-    grunt.registerTask('view-details', ['exec:view-details-watch']);
+    grunt.registerTask('gallery', [
+      'copy',
+      'concurrent:watchGallery'
+    ]);
 
-    grunt.registerTask('default', ['develop']);
+    grunt.registerTask('default', ['develop-brain']);
   };
 }());

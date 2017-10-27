@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import "../lib/bootstrap/bootstrap-variables";
-@import "../lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/mixins";
+@import "~bootstrap-sass/lib/variables";
+@import "~bootstrap-sass/lib/mixins";
 @import "variables";
 @import "typography";
 @import "mixins";

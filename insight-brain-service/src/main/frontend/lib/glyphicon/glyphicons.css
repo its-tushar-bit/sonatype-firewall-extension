@@ -1313,9 +1313,12 @@ html .halflings {
 .no-inlinesvg .glyphicons-icon {
   background-image: url(glyphicons.png);
 }
+/* This image was found not to exist during the webpack conversion. See CLM-8815.  */
+/*
 .glyphicons-icon.white {
   background-image: url(glyphicons-white.svg);
 }
+*/
 .no-inlinesvg .glyphicons-icon.white {
   background-image: url(glyphicons-white.png);
 }

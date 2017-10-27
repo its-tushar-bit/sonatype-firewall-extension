@@ -19,18 +19,23 @@ div.nopad { padding : 0px; height:29px !important }
 .sorting_asc span {
     padding-right: 14px;
     background: no-repeat right 8px;
-    background-image: url('img/sort_asc.png');
+    /*
+     * This image and sort_desc.png were found not to exist in our codebase during the webpack conversion. Brief
+     * investigation revealed that these classes don't seem to be used by slickgrid anymore.  Maybe these styles are
+     * from an older version of it?  See CLM-8815.
+     */
+    /*background-image: url('img/sort_asc.png');*/
 }
 .sorting_desc span {
     padding-right: 14px;
     background: no-repeat right 7px;
-    background-image: url('img/sort_desc.png');
+    /*background-image: url('img/sort_desc.png');*/
 }
 .sorting_asc span {
-    background-image: url('img/sort_asc.png');
+    /*background-image: url('img/sort_asc.png');*/
 }
 .sorting_desc span {
-    background-image: url('img/sort_desc.png');
+    /*background-image: url('img/sort_desc.png');*/
 }
 .slick-header-columns input[type=checkbox] {
 	display:block;

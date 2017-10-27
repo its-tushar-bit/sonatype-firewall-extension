@@ -26,18 +26,20 @@
 
   var Slider = function(element, options) {
     this.validateNumericValue = function(value) {
+      var me = this;
+
       function normalizeValue(value, defaultValue) {
         var parsed = parseInt(value);
         if (isNaN(parsed)) {
           return defaultValue;
         }
 
-        if (parsed < this.min) {
-          return this.min;
+        if (parsed < me.min) {
+          return me.min;
         }
 
-        if (parsed > this.max) {
-          return this.max;
+        if (parsed > me.max) {
+          return me.max;
         }
 
         return parsed;

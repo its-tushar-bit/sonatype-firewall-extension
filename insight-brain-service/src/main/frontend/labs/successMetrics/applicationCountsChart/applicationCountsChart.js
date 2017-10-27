@@ -4,7 +4,7 @@
  * 'Sonatype' is a trademark of Sonatype, Inc.
  */
 
-/* global Plottable */
+import Plottable from 'plottable';
 
 export default {
   templateUrl: 'labs/successMetrics/applicationCountsChart/applicationCountsChart.html?' + clmBuildTimestamp,

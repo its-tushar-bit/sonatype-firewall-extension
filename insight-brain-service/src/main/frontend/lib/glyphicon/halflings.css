@@ -522,7 +522,8 @@ html .halflings {
   height: 14px;
   line-height: 14px;
   vertical-align: text-top;
-  background-image: url(glyphicons_halflings.svg);
+  /* This image was found not to exist during the webpack conversion. See CLM-8815 */
+  /*background-image: url(glyphicons_halflings.svg);*/
   background-position: 0 0;
   background-repeat: no-repeat;
   vertical-align: top;
@@ -533,9 +534,12 @@ html .halflings {
 .no-inlinesvg .halflings-icon {
   background-image: url(glyphicons_halflings.png);
 }
+/* This image was found not to exist during the webpack conversion. See CLM-8815 */
+/*
 .halflings-icon.white {
   background-image: url(glyphicons_halflings-white.svg);
 }
+*/
 .no-inlinesvg .halflings-icon.white {
   background-image: url(glyphicons_halflings-white.png);
 }

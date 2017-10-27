@@ -584,16 +584,10 @@
             <configuration>
               <preloadSources>
                 <source>resources/assets/cip/cip-test-util.js</source>
-                <source>frontend/lib/es6-collections/es6-collections.js</source>
-                <include>frontend/lib/jquery/dist/jquery.js</include>
-                <include>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</include>
-                <include>frontend/lib/angular/angular.js</include>
-                <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
-                <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
-                <include>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</include>
-                <include>frontend/lib/angular-ui-router/release/angular-ui-router.js</include>
-                <include>frontend/lib/angular-ui-router/release/stateEvents.js</include>
+                <include>node_modules/jquery/dist/jquery.js</include>
                 <source>root/target/classes/assets/policy/js/cip-loader.js</source>
+                <source>node_modules/es6-collections/es6-collections.js</source>
+                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
               </preloadSources>
               <sourceIncludes>
                 <include>brain-client/*.js</include>
@@ -627,18 +621,14 @@
             <configuration>
               <preloadSources>
                 <source>resources/assets/cip/cip-test-util.js</source>
-                <source>frontend/lib/es6-collections/es6-collections.js</source>
-                <include>frontend/lib/jquery/dist/jquery.js</include>
-                <include>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</include>
-                <include>frontend/lib/angular/angular.js</include>
-                <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
-                <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
-                <include>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</include>
-                <include>frontend/lib/angular-ui-router/release/angular-ui-router.js</include>
-                <include>frontend/lib/angular-ui-router/release/stateEvents.js</include>
+                <include>node_modules/jquery/dist/jquery.js</include>
+                <include>node_modules/angular/angular.js</include>
                 <include>frontend/lib/protovis/protovis.min.js</include>
-                <source>root/target/classes/assets/cip/cip.js</source>
+                <include>node_modules/angular-ui-bootstrap/ui-bootstrap-tpls.js</include>
                 <source>root/target/classes/assets/audit-report/audit-report.js</source>
+                <source>root/target/classes/assets/cip/cip.js</source>
+                <source>node_modules/es6-collections/es6-collections.js</source>
+                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
               </preloadSources>
               <sourceIncludes>
                 <include>brain-client/*.js</include>
@@ -669,26 +659,9 @@
             </goals>
             <configuration>
               <preloadSources>
-                <source>frontend/lib/jquery/dist/jquery.js</source>
-                <source>frontend/lib/es6-collections/es6-collections.js</source>
-                <source>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</source>
-                <source>frontend/lib/angular/angular.js</source>
-                <source>frontend/lib/angular-${angularjs.version}/angular-aria.js</source>
-                <source>frontend/lib/angular-${angularjs.version}/angular-cookies.js</source>
-                <source>frontend/lib/angular-${angularjs.version}/angular-route.js</source>
-                <source>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</source>
-                <source>frontend/lib/angular-ui-router/release/angular-ui-router.js</source>
-                <include>frontend/lib/angular-ui-router/release/stateEvents.js</include>
-                <source>frontend/lib/angular-ui-utils-0.0.3.js</source>
-                <source>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</source>
-                <source>frontend/lib/ui-bootstrap-tpls-0.13.4.min.js</source>
-                <source>frontend/lib/X-editable/xeditable-0.1.8.min.js</source>
-                <source>frontend/lib/ngUpload/ng-upload.js</source>
-                <source>frontend/lib/d3/d3.js</source>
-                <source>frontend/lib/fuse.js/src/fuse.js</source>
                 <source>frontend/SpecUtil.js</source>
-                <source>frontend/lib/plottable/plottable.js</source>
                 <source>root/target/classes/assets/bundle.js</source>
+                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
               </preloadSources>
               <sourceIncludes>
               </sourceIncludes>
@@ -726,6 +699,8 @@
             <configuration>
               <preloadSources>
                 <source>root/target/classes/assets/version-graph/version.graph.app.js</source>
+                <source>node_modules/es6-collections/es6-collections.js</source>
+                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
               </preloadSources>
               <sourceIncludes>
                 <include>brain-client/*.js</include>
@@ -751,6 +726,8 @@
             <configuration>
               <preloadSources>
                 <source>root/target/classes/assets/version-graph/viewdetails.js</source>
+                <source>node_modules/es6-collections/es6-collections.js</source>
+                <source>${basedir}/node_modules/angular-mocks/angular-mocks.js</source>
               </preloadSources>
               <sourceIncludes>
                 <include>brain-client/*.js</include>
@@ -904,12 +881,6 @@
             </goals>
           </execution>
           <execution>
-            <id>bower-install</id>
-            <goals>
-              <goal>bower</goal>
-            </goals>
-          </execution>
-          <execution>
             <id>grunt-build</id>
             <goals>
               <goal>grunt</goal>
@@ -995,19 +966,6 @@
                     <versionRange>[0.1,)</versionRange>
                     <goals>
                       <goal>install</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                   <groupId>com.github.eirslett</groupId>
-                    <artifactId>frontend-maven-plugin</artifactId>
-                    <versionRange>[0,)</versionRange>
-                    <goals>
-                      <goal>bower</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>

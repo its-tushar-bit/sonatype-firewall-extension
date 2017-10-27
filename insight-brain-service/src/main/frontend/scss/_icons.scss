@@ -90,7 +90,7 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
 
 @font-face {
   font-family: $sonatype-icon-font-name;
-  src: url('#{$sonatype-icon-font-path}.woff?<%= config.buildTimestamp %>') format('woff');
+  src: url('#{$sonatype-icon-font-path}.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }

@@ -4,9 +4,33 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import 'components-font-awesome/css/font-awesome.min.css';
+import '../../frontend/lib/glyphicon/glyphicons.css';
+import '../../frontend/lib/glyphicon/halflings.css';
+import '../../frontend/lib/bootstrap.scss';
+import '../../frontend/scss/scss.scss';
+import 'highlight.js/styles/github.css';
+import 'plottable/plottable.css';
+import './scss/gallery.scss';
+
+import '../../frontend/lib/jquery-loader';
+import 'angular';
+import '@uirouter/angularjs';
+import '@uirouter/angularjs/release/stateEvents';
+import 'angular-sanitize';
+import 'angular-vs-repeat';
+import 'angular-highlightjs';
+import 'angular-marked';
+import 'angular-aria';
+import '../../frontend/lib/bootstrap-loader';
+import Plottable from 'plottable';
+import hljs from 'highlight.js';
+
 import galleryModule from './gallery/module';
 import configModule from '../config';
 import legacyConfigurationModule from '../../frontend/LegacyConfigurationModule';
+
+window.Plottable = Plottable;
 
 var module = angular.module('galleryApp',
     [

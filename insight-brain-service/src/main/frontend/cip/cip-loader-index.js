@@ -1,6 +1,6 @@
-import '../lib/angular/angular';
-import '../lib/angular-1.6.4/angular-route';
-import '../lib/ui-bootstrap-tpls-0.13.4.min';
+import 'angular';
+import 'angular-route';
+import 'angular-ui-bootstrap/ui-bootstrap-tpls';
 
 import './cip-index';
 

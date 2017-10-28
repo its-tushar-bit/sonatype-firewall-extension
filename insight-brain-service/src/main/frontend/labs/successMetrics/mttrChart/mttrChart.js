@@ -45,7 +45,7 @@ function controller(chartUtilsService) {
 
     const yScaleTickInterval = chartUtilsService.calculateTickInterval(NUMBER_OF_TICKS, maxDays);
     const yScaleTickGenerator = Plottable.Scales.TickGenerators.intervalTickGenerator(yScaleTickInterval);
-    // the `< 1` is to handle the case where the domain size is less than 1. 
+    // the `< 1` is to handle the case where the domain size is less than 1.
     // In this case we bump the value to 1 for display purposes.
     const yDomainMax = Math.max(1, maxDays) + padding;
 

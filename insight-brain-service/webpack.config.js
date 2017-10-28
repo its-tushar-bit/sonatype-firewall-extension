@@ -28,7 +28,7 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
     module: {
       rules: [{
         test: /\.js$/,
-        exclude: /node_modules|src\/main\/frontend\/lib/,
+        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib/,
         use: {
           loader: 'babel-loader',
           options: {
@@ -42,7 +42,7 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
       }, {
         test: /\.js$/,
         enforce: 'pre',
-        exclude: /node_modules|src\/main\/frontend\/(lib|cip|audit-report|version-graph)/,
+        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\](lib|cip|audit-report|version-graph)/,
         use: 'eslint-loader'
 
       }, {

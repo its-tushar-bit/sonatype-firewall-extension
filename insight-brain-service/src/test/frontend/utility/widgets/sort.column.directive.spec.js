@@ -88,7 +88,7 @@ describe('sort.column.directive.spec.js', function() {
     expect(vm.inverted).toBeFalsy();
     expect(element.hasClass('selected-column')).toBe(false);
 
-    // simulate click 
+    // simulate click
     vm.setSort();
     scope.$digest();
 
@@ -98,7 +98,7 @@ describe('sort.column.directive.spec.js', function() {
     expect(vm.field).toBe('foo');
     expect(vm.inverted).toBeFalsy();
 
-    // simulate click 
+    // simulate click
     vm.setSort();
     scope.$digest();
 

@@ -1,7 +1,7 @@
 describe('AppSecurityControllerSpec', function() {
   var mockCLMAppLocations = {
     getRoleMappingUrl: function() {
-      //NOTE /rest/ is actually required even in this fake path as one of the http interceptors 
+      //NOTE /rest/ is actually required even in this fake path as one of the http interceptors
       //uses its presence in a conditional
       return 'http://localhost/rest/test-path/';
     }

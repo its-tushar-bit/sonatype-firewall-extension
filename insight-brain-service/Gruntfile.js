@@ -75,7 +75,7 @@
           src: [
             '**/*.{html,css,ttf,woff,woff2,png,gif,jpg,ico}',
             '!lib/*',
-            'lib/**/*.{js,css,ttf,woff,woff2,swf}',
+            'lib/**/*.{js,css,ttf,woff,woff2}',
             '!lib/**/test/*'
           ],
           dest: '<%= config.generated %>'

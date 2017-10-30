@@ -3,13 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, ZeroClipboard, clmBuildTimestamp, $ */
+/* global angular, clmBuildTimestamp, $ */
 /* eslint indent: "off"*/
 import resourceModule from '../Resource';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
 import permissionServiceModule from '../util/PermissionService';
+import ZeroClipboard from '../lib/ZeroClipboardLoader';
 
 angular.module('SecurityModule', ['ui.router', angularCommonModule.name, 'ApplicationSecurityModule',
   permissionServiceModule.name], ['$stateProvider',
@@ -120,9 +121,6 @@ module.directive('expandUserOnEvent', function() {
 });
 
 module.directive('zeroClipboard', function() {
-  ZeroClipboard.config({
-    moviePath: 'lib/zeroclipboard/ZeroClipboard-1.3.2.swf'
-  });
   return {
     restrict: 'A',
     link: function(scope, element, attrs) {

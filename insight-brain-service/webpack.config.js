@@ -1,5 +1,6 @@
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const CSSSplitPlugin = require('css-split-webpack-plugin').default;
 const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
 const transformRuntime = require('babel-plugin-transform-runtime');
 
@@ -15,7 +16,8 @@ const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutput
  * @param externals configuration object to use on the `externals` property
  */
 function config({ entryPath, outputPath, cssOutputPath, production, externals }) {
-  const extractSass = new ExtractTextPlugin({ filename: cssOutputPath });
+  const extractSass = new ExtractTextPlugin({ filename: cssOutputPath }),
+      cssDirname = cssOutputPath && path.dirname(cssOutputPath);
 
   return {
     context: path.resolve(__dirname, 'src/main/frontend'),
@@ -87,9 +89,13 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
         }
       }]
     },
-    plugins: [
-      extractSass
-    ],
+    plugins: cssOutputPath ? [
+      extractSass,
+      new CSSSplitPlugin({
+        size: 4095,
+        filename: path.join(cssDirname, '[name]-[part].[ext]')
+      })
+    ] : [],
     externals,
     devtool: production ? undefined : 'eval'
   };

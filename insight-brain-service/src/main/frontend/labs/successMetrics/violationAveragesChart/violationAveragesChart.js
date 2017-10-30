@@ -12,7 +12,9 @@ export default {
   controllerAs: 'vm',
   bindings: {
     averagesData: '<',
-    isSingleApplicationReport: '<'
+    isSingleApplicationReport: '<',
+    activeApplicationCount: '<',
+    monthCount: '<'
   }
 };
 

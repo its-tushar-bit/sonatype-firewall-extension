@@ -14,7 +14,8 @@ export default {
   bindings: {
     componentData: '<',
     isSingleApplicationReport: '<',
-    singleApplicationName: '<'
+    singleApplicationName: '<',
+    activeApplicationCount: '<'
   }
 };
 

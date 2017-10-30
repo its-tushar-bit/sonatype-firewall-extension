@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain.labs;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -54,5 +55,7 @@ public class SuccessMetricsChartsNavigationTest
     labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);
     successMetricsChartsPage.backButton().shouldBe(visible).shouldHave(text("Back to Success Metrics")).click();
     successMetricsPage.should(appear);
+    successMetricsPage.subheaderDashboardLink().shouldBe(visible).shouldHave(text("Dashboard")).click();
+    waitUntilUrl(DashboardPage.URL);
   }
 }

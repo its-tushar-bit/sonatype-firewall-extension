@@ -1,9 +1,10 @@
 <h3 class="iq-chart-title">Applications with Violations by Policy Type</h3>
 <div class="application-counts">
   <p class="iq-chart__averages">
-    Of the <span class="iq-chart__display-number">{{::vm.applicationCount}}</span> applications evaluated,
-    <span class="iq-chart__display-number">{{::vm.applicationCountTotalViolating}}</span> contained violations, and
-    <span class="iq-chart__display-number">{{::vm.applicationCountTotalViolatingCritical}}</span> of those contained
+    Over the past {{::vm.monthCount}} {{::(vm.monthCount === 1 ? 'month' : 'months')}},
+    <span class="iq-chart__display-number" id="num-violating-total">{{::vm.applicationCountTotalViolating}}</span>
+    out of <span id="application-counts-num-active">{{::vm.applicationCount}}</span> applications contained violations,
+    and <span class="iq-chart__display-number" id="num-violating-critical">{{::vm.applicationCountTotalViolatingCritical}}</span> contained
     <strong>critical</strong> violations.
   </p>
   <div class="iq-chart iq-chart--application-counts iq-chart--horizontal-bar">

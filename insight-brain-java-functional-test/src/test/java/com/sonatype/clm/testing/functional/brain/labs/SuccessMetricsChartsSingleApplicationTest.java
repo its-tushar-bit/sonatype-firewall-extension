@@ -86,7 +86,8 @@ public class SuccessMetricsChartsSingleApplicationTest
     successMetricsReportPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
     SummaryStatementTile.title().shouldHave(text("Test"));
-    SummaryStatementTile.averages().shouldHave(text("Over the last 3 months, Lifecycle evaluated 1 application."));
+    SummaryStatementTile.averages().shouldHave(text("This report contains data for 1 application, evaluated over the " +
+        "past 3 months, aggregated and deduplicated over the build, stage release, release, and operate stages."));
   }
 
   @Test
@@ -97,8 +98,9 @@ public class SuccessMetricsChartsSingleApplicationTest
     ViolationAveragesTile.root().shouldBe(visible);
     ViolationAveragesTile.title()
         .shouldHave(text("Average Number of Violations Discovered Per Month"));
-    ViolationAveragesTile.averages().shouldHave(text(
-        "On average Lifecycle performed 0 evaluations per month, finding 0 policy violations, of which 0 were critical."));
+    ViolationAveragesTile.averages().shouldHave(text("Lifecycle performed an average of 0 evaluations per month on 1 " +
+        "application over the past 3 months. Lifecycle found an average of 0 policy violations, 0 of which were " +
+        "critical."));
   }
 
   @Test

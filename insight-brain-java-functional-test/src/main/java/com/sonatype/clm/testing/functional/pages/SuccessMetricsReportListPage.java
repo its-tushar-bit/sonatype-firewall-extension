@@ -41,4 +41,8 @@ public class SuccessMetricsReportListPage
   public SelenideElement emptyDescriptor() {
     return child("li.iq-action-list__item--empty");
   }
+
+  public SelenideElement subheaderDashboardLink() {
+    return child(".iq-tile-header__subtitle a");
+  }
 }

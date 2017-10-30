@@ -11,7 +11,8 @@ export default {
   controller: applicationCountsChartController,
   controllerAs: 'vm',
   bindings: {
-    applicationCountsData: '<'
+    applicationCountsData: '<',
+    monthCount: '<'
   }
 };
 

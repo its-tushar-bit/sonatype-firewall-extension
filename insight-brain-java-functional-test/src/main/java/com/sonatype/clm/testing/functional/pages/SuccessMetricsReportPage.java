@@ -134,11 +134,11 @@ public class SuccessMetricsReportPage
     }
 
     public static SelenideElement activeApplicationsCount() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages", ".iq-chart__display-number:nth-child(1)"));
+      return $("#application-counts-num-active");
     }
 
     public static SelenideElement totalViolatingApplicationsCount() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages", ".iq-chart__display-number:nth-child(2)"));
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages", "#num-violating-total"));
     }
 
     public static SelenideElement securityViolatingApplicationsCount() {
@@ -162,7 +162,7 @@ public class SuccessMetricsReportPage
     }
 
     public static SelenideElement totalCriticalViolatingApplicationsCount() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages", ".iq-chart__display-number:nth-child(3)"));
+      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages", "#num-violating-critical"));
     }
 
     public static SelenideElement securityCriticalViolatingApplicationsCount() {

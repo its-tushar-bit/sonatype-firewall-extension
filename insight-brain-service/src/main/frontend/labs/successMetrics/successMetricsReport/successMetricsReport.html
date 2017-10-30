@@ -15,19 +15,27 @@
   <div ng-if="vm.activeApplicationCount !== 0">
     <div class="iq-tile iq-tile--chart">
       <violation-averages-chart averages-data="vm.averagesData"
-                                is-single-application-report="vm.isSingleApplicationReport">
+                                is-single-application-report="vm.isSingleApplicationReport"
+                                active-application-count="vm.activeApplicationCount"
+                                month-count="vm.monthCount">
       </violation-averages-chart>
     </div>
     <div ng-if="!vm.isMttrDisabled()" class="iq-tile iq-tile--chart">
-      <mttr-chart mttr-data="vm.mttrData"></mttr-chart>
+      <mttr-chart mttr-data="vm.mttrData"
+                  active-application-count="vm.activeApplicationCount"
+                  month-count="vm.monthCount">
+      </mttr-chart>
     </div>
     <div ng-if="!vm.isSingleApplicationReport" class="iq-tile iq-tile--chart">
-      <application-counts-chart application-counts-data="vm.applicationCountsData"></application-counts-chart>
+      <application-counts-chart application-counts-data="vm.applicationCountsData"
+                                month-count="vm.monthCount">
+      </application-counts-chart>
     </div>
     <div class="iq-tile iq-tile--chart">
       <component-counts-chart component-data="vm.componentCountsData"
                               is-single-application-report="vm.isSingleApplicationReport"
-                              single-application-name="vm.singleApplicationName">
+                              single-application-name="vm.singleApplicationName"
+                              active-application-count="vm.activeApplicationCount">
       </component-counts-chart>
     </div>
   </div>

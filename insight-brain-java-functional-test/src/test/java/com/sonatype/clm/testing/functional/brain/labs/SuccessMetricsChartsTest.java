@@ -159,8 +159,9 @@ public class SuccessMetricsChartsTest
     SummaryStatementTile.root().shouldBe(visible);
     SummaryStatementTile.title().shouldHave(text("Test"));
     String startOfMonth = DateTimeFormat.forPattern("MMM d, YYYY").print(LocalDate.now().withDayOfMonth(1));
-    SummaryStatementTile.averages().shouldHave(
-        text("Over the last 4 months, Lifecycle evaluated 2 applications. Last updated " + startOfMonth + "."));
+    SummaryStatementTile.averages().shouldHave(text("This report contains data for 2 applications, evaluated over the" +
+        " past 4 months, aggregated and deduplicated over the build, stage release, release, and operate stages. Last" +
+        " updated " + startOfMonth + "."));
   }
 
   @Test
@@ -171,8 +172,9 @@ public class SuccessMetricsChartsTest
     ViolationAveragesTile.root().shouldBe(visible);
     ViolationAveragesTile.title()
         .shouldHave(text("Average Number of Violations Discovered Per Month, Per Application"));
-    ViolationAveragesTile.averages().shouldHave(text(
-        "On average Lifecycle performed 1 evaluations per month, finding 2 policy violations per application, of which 1 were critical."));
+    ViolationAveragesTile.averages().shouldHave(text("Lifecycle performed an average of 1 evaluations per month on 2 " +
+        "applications over the past 4 months. Lifecycle found an average of 2 policy violations per application, 1 of" +
+        " which were critical."));
   }
 
   @Test

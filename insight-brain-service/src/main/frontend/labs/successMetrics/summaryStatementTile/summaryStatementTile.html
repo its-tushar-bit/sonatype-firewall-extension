@@ -7,19 +7,17 @@
   <h2>{{::vm.successMetricsReport.name}}</h2>
 </div>
 <p class="iq-chart__averages" ng-if="!vm.showNoDataMessage">
-  Over the last
+  This report contains data for
+  <span class="iq-chart__display-number" id="active-applications-count">{{::vm.activeApplicationCount}}</span>
+  application{{::(vm.isSingleApplicationReport ? '' : 's')}}, evaluated over the past
   <span id="success-metrics-summary-months">
     <span class="iq-chart__display-number"><!--
    -->{{::vm.monthCount}}<!--
  --></span>
     {{::(vm.monthCount === 1 ? 'month' : 'months')}}<!--
 --></span><!--
-
--->, Lifecycle evaluated
-  <span class="iq-chart__display-number" id="active-applications-count"><!--
- -->{{::vm.activeApplicationCount}}<!--
---></span>
-  application{{::(vm.isSingleApplicationReport ? '' : 's')}}. Last updated {{::vm.lastUpdated | date: vm.dateFormat}}.
+-->, aggregated and deduplicated over the build, stage release, release, and operate stages. Last updated
+  {{::vm.lastUpdated | date: vm.dateFormat}}.
 </p>
 <div ng-if="vm.showNoDataMessage" class="iq-alert iq-alert--info" id="no-data-warning">
   <i class="fa fa-info-circle"></i>There's not enough data to generate Success Metrics. Run some evaluations and check

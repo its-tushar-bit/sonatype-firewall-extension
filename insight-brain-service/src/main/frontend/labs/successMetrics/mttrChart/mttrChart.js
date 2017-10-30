@@ -15,7 +15,9 @@ const mttrChart = {
   controller,
   controllerAs: 'vm',
   bindings: {
-    mttrData: '<'
+    mttrData: '<',
+    activeApplicationCount: '<',
+    monthCount: '<'
   }
 };
 

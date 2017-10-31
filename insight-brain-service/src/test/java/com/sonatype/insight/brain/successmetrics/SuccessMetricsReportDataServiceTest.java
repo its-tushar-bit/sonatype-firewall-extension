@@ -653,7 +653,7 @@ public class SuccessMetricsReportDataServiceTest
   public void testGetChartData_Averages_UpdateAggregationsAfterSeveralMonths() {
     Application app = tempEntity.newApplicationWithParent("appId");
     String stageId = StageTypes.BUILD.getId();
-    DateTime now = now();
+    DateTime now = now().withDayOfMonth(15);
     tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan1", now.minusMonths(3).toDate());
     setTimeTo(now.minusMonths(2));
 

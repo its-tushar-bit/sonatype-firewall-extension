@@ -67,6 +67,7 @@ module.exports = {
     contentBase: ['src/main/component-gallery', 'src/main/frontend', 'target/classes/assets', '.tmp/scss']
         .map(subpath => path.join(__dirname, subpath)),
     publicPath,
-    port: 4040
+    port: 4040,
+    host: '0.0.0.0'
   }
 };

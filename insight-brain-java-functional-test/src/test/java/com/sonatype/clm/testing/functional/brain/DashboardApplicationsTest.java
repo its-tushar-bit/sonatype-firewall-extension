@@ -210,9 +210,7 @@ public class DashboardApplicationsTest
     ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
         "/rest/dashboard/export/applicationRisks", testCLMServer.getCLMServer().getPort());
     reverseProxyServer.addHandler(responseCopyHandler);
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Applications Data")).click();
-    DashboardPage.exportResultsLink().shouldNotBe(visible);
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.consumeResponse());
     String[] expectedResults = {
@@ -228,7 +226,6 @@ public class DashboardApplicationsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -244,7 +241,6 @@ public class DashboardApplicationsTest
     DashboardFilters.stageFilter().allItems().click();
     DashboardFilters.stageFilter().release().click();
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -259,7 +255,6 @@ public class DashboardApplicationsTest
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(5).click();
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{

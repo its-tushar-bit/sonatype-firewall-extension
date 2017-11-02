@@ -6,15 +6,11 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.DashboardFilters;
-import com.sonatype.clm.testing.functional.elements.TrendRow;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.TrendsModal;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,31 +20,18 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
-import com.google.common.base.Predicate;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
 
-import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.elements.TrendDelta.DOWN;
-import static com.sonatype.clm.testing.functional.elements.TrendDelta.UP;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.ACTIVE;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.APPLICATIONS_URL;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.COMPONENTS_URL;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
-import static com.sonatype.clm.testing.functional.pages.TrendsModal.INVERSE;
-import static com.sonatype.clm.testing.functional.pages.TrendsModal.NATURAL;
-import static com.sonatype.clm.testing.functional.pages.TrendsModal.NEUTRAL;
 
-public class DashboardTabNavigationAndTrendsTest
+public class DashboardTabNavigationTest
     extends AbstractFunctionalTest
 {
   private static Organization org;
@@ -68,14 +51,6 @@ public class DashboardTabNavigationAndTrendsTest
           Integer.toString(i)));
     }
   }
-
-  static final String[] NEW_ROW_DELTAS = {"2", "0", "0", "2", "0", "0", "0", "1", "0", "1", "0", "1"};
-
-  static final String[] FIXED_ROW_DELTAS = {"0", "0", "0", "1", "0", "0", "1", "1", "3", "1", "0", "1"};
-
-  static final String[] UNRESOLVED_ROW_DELTAS = {"2", "0", "0", "1", "-3", "0", "0", "0", "-2", "0", "0", "0"};
-
-  static final String[] WAIVED_ROW_DELTAS = {"0", "0", "0", "0", "3", "0", "-1", "0", "-1", "0", "0", "0"};
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -218,118 +193,6 @@ public class DashboardTabNavigationAndTrendsTest
     Selenide.back();
     waitUntilUrl(VIOLATIONS_URL);
     DashboardPage.violationsTab().shouldBe(ACTIVE);
-  }
-
-  @Test
-  public void testCalculateTrendsModal() {
-    DashboardPage.viewDropdown().click();
-    DashboardPage.calculateTrendsLink().click();
-
-    final TrendsModal trendsModal = DashboardPage.trendsModal();
-    trendsModal.shouldBe(visible);
-    Selenide.Wait().withMessage("Trends table didn't show up").until(new Predicate<WebDriver>()
-    {
-      @Override
-      public boolean apply(WebDriver input) {
-        return $(trendsModal.contentsTable()).exists();
-      }
-    });
-
-    trendsModal.rows().shouldHave(CollectionCondition.size(4));
-
-    TrendRow discoveredRow = trendsModal.discoveredRow();
-    TrendRow fixedRow = trendsModal.fixedRow();
-    TrendRow pendingRow = trendsModal.pendingRow();
-    TrendRow waivedRow = trendsModal.waivedRow();
-
-    discoveredRow.category().has(text("Discovered"));
-    fixedRow.category().has(text("Fixed"));
-    pendingRow.category().has(text("Pending"));
-    waivedRow.category().has(text("Waived"));
-
-    discoveredRow.count().has(text("10"));
-    fixedRow.count().has(text("8"));
-    pendingRow.count().has(text("1"));
-    waivedRow.count().has(text("1"));
-
-    discoveredRow.averageAge().is(empty);
-    fixedRow.averageAge().has(text("1m"));
-    pendingRow.averageAge().has(text("2d"));
-    waivedRow.averageAge().has(text("1m"));
-
-    discoveredRow.ninetyPercentileAge().is(empty);
-    fixedRow.ninetyPercentileAge().has(text("2m"));
-    pendingRow.ninetyPercentileAge().has(text("2d"));
-    waivedRow.ninetyPercentileAge().has(text("1m"));
-
-    discoveredRow.delta().value().has(text("7"));
-    fixedRow.delta().value().has(text("8"));
-    pendingRow.delta().value().has(text("-2"));
-    waivedRow.delta().value().has(text("1"));
-
-    discoveredRow.shouldBe(NEUTRAL).delta().chevron().shouldBe(UP);
-    fixedRow.shouldBe(NATURAL).delta().chevron().shouldBe(UP);
-    pendingRow.shouldBe(INVERSE).delta().chevron().shouldBe(DOWN);
-    waivedRow.shouldBe(INVERSE).delta().chevron().shouldBe(UP);
-
-    discoveredRow.barChartPoints().shouldHave(texts(NEW_ROW_DELTAS));
-    fixedRow.barChartPoints().shouldHave(texts(FIXED_ROW_DELTAS));
-    pendingRow.barChartPoints().shouldHave(texts(UNRESOLVED_ROW_DELTAS));
-    waivedRow.barChartPoints().shouldHave(texts(WAIVED_ROW_DELTAS));
-
-    trendsModal.closeButton().click();
-    trendsModal.shouldNotBe(visible);
-  }
-
-  @Test
-  public void filteringAllDataOutShouldResultInEmptyTrendsModal() {
-    DashboardFilters.policyTypeFilter().twisty().click();
-    DashboardFilters.policyTypeFilter().license().click();
-    DashboardFilters.apply();
-
-    DashboardPage.viewDropdown().click();
-    DashboardPage.calculateTrendsLink().click();
-
-    final TrendsModal trendsModal = DashboardPage.trendsModal();
-    trendsModal.shouldBe(visible);
-    Selenide.Wait().withMessage("Trends table didn't show up").until(new Predicate<WebDriver>()
-    {
-      @Override
-      public boolean apply(WebDriver input) {
-        return $(trendsModal.contentsTable()).exists();
-      }
-    });
-
-    TrendRow discoveredRow = trendsModal.discoveredRow();
-    TrendRow fixedRow = trendsModal.fixedRow();
-    TrendRow pendingRow = trendsModal.pendingRow();
-    TrendRow waivedRow = trendsModal.waivedRow();
-    
-    discoveredRow.count().has(text("0"));
-    fixedRow.count().has(text("0"));
-    pendingRow.count().has(text("0"));
-    waivedRow.count().has(text("0"));
-
-    discoveredRow.delta().value().has(text("0"));
-    fixedRow.delta().value().has(text("0"));
-    pendingRow.delta().value().has(text("0"));
-    waivedRow.delta().value().has(text("0"));
-
-    discoveredRow.delta().chevron().shouldNotBe(UP, DOWN);
-    fixedRow.delta().chevron().shouldNotBe(UP, DOWN);
-    pendingRow.delta().chevron().shouldNotBe(UP, DOWN);
-    waivedRow.delta().chevron().shouldNotBe(UP, DOWN);
-
-    String[] emptyPoints = new String[12];
-    Arrays.fill(emptyPoints, "0");
-
-    discoveredRow.barChartPoints().shouldHave(texts(emptyPoints));
-    fixedRow.barChartPoints().shouldHave(texts(emptyPoints));
-    pendingRow.barChartPoints().shouldHave(texts(emptyPoints));
-    waivedRow.barChartPoints().shouldHave(texts(emptyPoints));
-
-    trendsModal.closeButton().click();
-    trendsModal.shouldNotBe(visible);
   }
 
   private void clearFilters() {

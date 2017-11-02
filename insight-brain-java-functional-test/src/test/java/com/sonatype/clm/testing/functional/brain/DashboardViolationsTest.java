@@ -266,9 +266,7 @@ public class DashboardViolationsTest
     ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/newestRisks",
         testCLMServer.getCLMServer().getPort());
     reverseProxyServer.addHandler(responseCopyHandler);
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Violations Data")).click();
-    DashboardPage.exportResultsLink().shouldNotBe(visible);
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.consumeResponse());
     Map<String, Date> expectedResults = ImmutableMap.of(
@@ -283,7 +281,6 @@ public class DashboardViolationsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -298,7 +295,6 @@ public class DashboardViolationsTest
     DashboardFilters.stageFilter().allItems().click();
     DashboardFilters.stageFilter().build().click();
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -312,7 +308,6 @@ public class DashboardViolationsTest
     DashboardFilters.policyTypeFilter().allItems().click();
     DashboardFilters.policyTypeFilter().security().click();
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -325,7 +320,6 @@ public class DashboardViolationsTest
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     assertEquals("Expected empty export", CSV_HEADERS, exportCsv);

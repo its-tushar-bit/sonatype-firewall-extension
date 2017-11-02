@@ -45,8 +45,6 @@ public class DashboardResource
 
   public static final String GET_APPLICATION_RISKS_EXPORT_PATH = "export/applicationRisks";
 
-  public static final String GET_POLICY_SUMMARY_PATH = "policy/summary";
-
   public static final String FILTERS_PATH = "filters/active";
 
   public static final String NAMED_FILTERS_PATH = "filters/named";
@@ -61,20 +59,16 @@ public class DashboardResource
 
   private final NewestRiskService newestRiskService;
 
-  private final PolicySummaryService policySummaryService;
-
   @Inject
   public DashboardResource(ApplicationRiskService applicationRiskService,
                            DashboardFilterService dashboardFilterService,
                            ComponentRiskService componentRiskService,
-                           NewestRiskService newestRiskService,
-                           PolicySummaryService policySummaryService)
+                           NewestRiskService newestRiskService)
   {
     this.applicationRiskService = applicationRiskService;
     this.componentRiskService = componentRiskService;
     this.dashboardFilterService = dashboardFilterService;
     this.newestRiskService = newestRiskService;
-    this.policySummaryService = policySummaryService;
   }
 
   @POST
@@ -200,18 +194,6 @@ public class DashboardResource
         return Integer.compare(dto1.status, dto2.status);
       }
     }).status;
-  }
-
-  @POST
-  @Path(GET_POLICY_SUMMARY_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
-  @ExceptionMetered(name = "getPolicySummaryExceptionMeter")
-  public PolicySummaryDTO getPolicySummary(RisksFilterDTO risksFilterDTO) {
-    return policySummaryService.getPolicySummary(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
-        risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
-        risksFilterDTO.policyThreatLevelRange);
   }
 
   /**

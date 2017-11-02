@@ -49,20 +49,8 @@ public class DashboardPage
     return new DashboardTab("#tab-button-application");
   }
 
-  public static SelenideElement viewDropdown() {
-    return $("#view-dropdown");
-  }
-
-  public static SelenideElement calculateTrendsLink() {
-    return $("#show-trend-dialog");
-  }
-
   public static SelenideElement exportResultsLink() {
     return $("#export-results");
-  }
-
-  public static TrendsModal trendsModal() {
-    return new TrendsModal();
   }
 
   public static DashboardComponents componentsView() {

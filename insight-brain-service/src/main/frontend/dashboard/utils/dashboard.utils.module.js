@@ -9,8 +9,6 @@ import windowEventsFactory from './windowEventsFactory';
 import getDashboardResultsDirective from './directives/dashboard.results.directives';
 import dashboardCommonResults from './components/dashboardCommonResults';
 import dashboardTabs from './directives/dashboardTabs.component';
-import sparkline from './directives/sparkline.directive';
-import valueBars from './directives/valueBars.directive';
 import emptyToEnd from './filters/emptyToEnd.filter';
 import stageFilter from './filters/stageFilter.filter';
 import stageTypeSort from './filters/stageTypeSort.filter';
@@ -28,8 +26,6 @@ export default angular.module('dashboard.utils',
     .directive('violationsResults', getDashboardResultsDirective('getNewestRisks'))
     .directive('applicationsResults', getDashboardResultsDirective('getApplicationRisks'))
     .directive('componentsResults', getDashboardResultsDirective('getComponentRisks'))
-    .directive('sparkline', sparkline)
-    .directive('valueBars', valueBars)
     .filter('emptyToEnd', emptyToEnd)
     .filter('stageFilter', stageFilter)
     .filter('stageTypeSort', stageTypeSort)

@@ -195,14 +195,6 @@ public class PolicyEvaluationDAO
     return getList(tx, sQuery, appId);
   }
 
-  public List<PolicyEvaluation> getByApplicationIdAndStageIds(String appId, Set<String> stageTypeIds) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
-        "   AND entity.isForObsoleteScan = false" + //
-        " ORDER BY entity.time";
-    return getList(sQuery, appId, stageTypeIds);
-  }
-
   /**
    * @since 1.39
    */

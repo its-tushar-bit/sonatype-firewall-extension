@@ -212,10 +212,6 @@ angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory(
         return baseUrl.get() + '/rest/dashboard/export/newestRisks';
       },
 
-      getPolicySummaryUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/policy/summary';
-      },
-
       getApplicationTagsUrl: function() {
         return baseUrl.get() + '/rest/tag/application';
       },

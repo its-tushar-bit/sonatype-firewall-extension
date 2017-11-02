@@ -10,7 +10,6 @@ function DashboardResultsController($scope, Modal, EventNameConstant, $state, cr
                                     dashboardDataService) {
   $scope.maxResults = dashboardDataService.MAX_RESULTS;
   $scope.maxDaysOld = 30;
-  $scope.showTrendDialog = showTrendDialog;
   $scope.getViewTitle = getViewTitle;
   $scope.getExportUrl = getExportUrl;
   $scope.getExportRequestJson = getExportRequestJson;
@@ -34,20 +33,6 @@ function DashboardResultsController($scope, Modal, EventNameConstant, $state, cr
   $scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS_DIRTINESS, function(e, filtersAreDirty) {
     $scope.filtersAreDirty = filtersAreDirty;
   });
-
-  function showTrendDialog() {
-    Modal.open({
-      backdrop: 'static',
-      keyboard: false,
-      templateUrl: 'policy-trends-dialog-template',
-      controller: 'PolicyTrendController',
-      resolve: {
-        filters: function() {
-          return $scope.filters;
-        }
-      }
-    });
-  }
 
   function getViewTitle() {
     return $state.current.data.title;

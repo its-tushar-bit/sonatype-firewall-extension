@@ -7,7 +7,6 @@
 
 import dashboardUtilsModule from './utils/dashboard.utils.module';
 import dashboardDataService from './services/dashboard.data.service';
-import policyTrendController from './results/PolicyTrendController';
 import violationsTableRow from './results/violationsTableRow';
 import dashboardResultsController from './results/dashboard.results.controller';
 import dashboardFilterModule from './filter/module';
@@ -23,7 +22,6 @@ var dashboardModule = angular.module('dashboard.module',
     .service('dashboard.data.service', dashboardDataService)
 
     // dashboard results
-    .controller('PolicyTrendController', policyTrendController)
     .directive('violationsTableRow', violationsTableRow)
     .controller('dashboard.results.controller', dashboardResultsController);
 

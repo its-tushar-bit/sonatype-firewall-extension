@@ -90,23 +90,6 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicySummary() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("app1", "test application");
-
-    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
-
-    createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
-
-    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_SUMMARY_PATH)
-        .body(new RisksFilterDTO()).post();
-
-    assertResponseStatus(200, response);
-    PolicySummaryDTO dto = response.getBody(PolicySummaryDTO.class);
-    assertThat(dto, notNullValue());
-    assertThat(dto.weeklyDeltaNew, hasSize(12));
-  }
-  
-  @Test
   public void testGetActiveDashboardFilterForCurrentUser_ActiveFilter() throws Exception {
     User tempUser = tempEntity.newUser();
     String filterName = "";
@@ -653,7 +636,7 @@ public class DashboardResourceTest
     DashboardFilterService dashboardFilterServiceMock = Mockito.mock(DashboardFilterService.class);
     when(dashboardFilterServiceMock.deleteDashboardFiltersForCurrentUserByFilterName(filterNames)).thenReturn(expectedResult);
     
-    DashboardResource underTest = new DashboardResource(null, dashboardFilterServiceMock, null, null, null);
+    DashboardResource underTest = new DashboardResource(null, dashboardFilterServiceMock, null, null);
     Response actual = underTest.deleteDashboardFiltersForCurrentUserByFilterName(filterNames);
     assertThat(actual.getStatus(), is(500));
     assertThat((ArrayList<DashboardFilterErrorResponseDTO>) actual.getEntity(), hasSize(2));

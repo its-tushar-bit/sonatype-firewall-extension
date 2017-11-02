@@ -409,37 +409,6 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdAndStageIds_FilterByStageTypes() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
-    Date time1 = new Date();
-    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, StageTypes.BUILD.getId(), "scanId1", time1);
-    Date time2 = new Date(time1.getTime() + 1000);
-    tempEntity.newPolicyEvaluation(applicationId, StageTypes.RELEASE.getId(), "scanId2", time2);
-
-    List<PolicyEvaluation> policyEvaluations = dao.getByApplicationIdAndStageIds(applicationId,
-        Collections.singleton(StageTypes.BUILD.getId()));
-    assertThat(policyEvaluations, hasSize(1));
-    assertThat(policyEvaluations.get(0).getId(), is(pe1.getId()));
-  }
-
-  @Test
-  public void testGetBetweenDatesByApplicationIdAndStageIds_FilterOldScans() {
-    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
-
-    Date time1 = new Date();
-    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, StageTypes.BUILD.getId(), "scanId1", time1);
-    Date time2 = new Date(time1.getTime() + 1000);
-    tempEntity.newPolicyEvaluation(applicationId, StageTypes.BUILD.getId(), "scanId1", true /* isReevaluation */,
-        false /* isForMonitoring */, true /* isForObsoleteScantime2 */, time2);
-
-    List<PolicyEvaluation> policyEvaluations = dao.getByApplicationIdAndStageIds(applicationId,
-        Collections.singleton(StageTypes.BUILD.getId()));
-    assertThat(policyEvaluations, hasSize(1));
-    assertThat(policyEvaluations.get(0).getId(), is(pe1.getId()));
-  }
-
-  @Test
   public void testGetLastByApplicationIds() {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 

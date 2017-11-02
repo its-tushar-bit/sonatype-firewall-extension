@@ -194,9 +194,7 @@ public class DashboardComponentsTest
     ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/componentRisks",
         testCLMServer.getCLMServer().getPort());
     reverseProxyServer.addHandler(responseCopyHandler);
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Components Data")).click();
-    DashboardPage.exportResultsLink().shouldNotBe(visible);
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.consumeResponse());
     String[] expectedResults = {
@@ -211,7 +209,6 @@ public class DashboardComponentsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -224,7 +221,6 @@ public class DashboardComponentsTest
     // CSV export - filter out threat level 3
     DashboardFilters.policyThreatLevelFilter().slider().setValues(7, 10);
     DashboardFilters.apply();
-    DashboardPage.viewDropdown().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{

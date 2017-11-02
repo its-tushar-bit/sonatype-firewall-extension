@@ -124,7 +124,8 @@
         }
       },
       exec: {
-        'webpack': webpackCmd + ' -p --env.production', // -p for production - adds uglify and NODE_ENV
+        'webpack': webpackCmd,
+        'webpack-prod': webpackCmd + ' -p --env.production', // -p for production - adds uglify and NODE_ENV
         'webpack-watch': webpackCmd + ' -w',
         'webpack-watch-brain': webpackCmd + ' -w --env.brainOnly',
         'webpack-watch-gallery': webpackDevServerCmd + ' --config webpack.config.gallery.js'
@@ -155,6 +156,17 @@
       'eslint',
       'clean',
       'exec:webpack',
+      'copy:build',
+      'template:build',
+      'clean:temp'
+    ]);
+
+    grunt.registerTask('build-prod', [
+      'configure_override:build',
+
+      'eslint',
+      'clean',
+      'exec:webpack-prod',
       'copy:build',
       'template:build',
       'clean:temp'

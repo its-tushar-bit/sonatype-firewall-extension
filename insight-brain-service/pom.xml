@@ -30,6 +30,7 @@
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
     <grunt.task>build</grunt.task>
+    <grunt.task.obfuscate>build-prod</grunt.task.obfuscate>
     <angular.debug>false</angular.debug>
   </properties>
 
@@ -1072,6 +1073,23 @@
                       <type>txt</type>
                     </artifact>
                   </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>com.github.eirslett</groupId>
+            <artifactId>frontend-maven-plugin</artifactId>
+            <version>1.0</version>
+            <executions>
+              <execution>
+                <id>grunt-build</id>
+                <goals>
+                  <goal>grunt</goal>
+                </goals>
+                <configuration>
+                  <srcdir>${basedir}/src/main/frontend</srcdir>
+                  <arguments>${grunt.task.obfuscate}</arguments>
                 </configuration>
               </execution>
             </executions>

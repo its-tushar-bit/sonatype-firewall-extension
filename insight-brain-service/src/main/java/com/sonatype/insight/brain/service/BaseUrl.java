@@ -14,6 +14,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
+
 @Named
 @Singleton
 public class BaseUrl
@@ -42,22 +44,32 @@ public class BaseUrl
   }
 
   public String get() {
-    String url = appConfig.getBaseUrl();
-    if (url != null && !url.isEmpty()) {
+    String url = tryGetBaseUriWithEndingForwardSlash();
+    if (url != null) {
       return url;
     }
-    final URI baseUri;
+    url = appConfig.getBaseUrl();
+    if (!isBlank(url)) {
+      return url;
+    }
+    throw new IllegalStateException(ERR_MSG_BASE_URL_NOT_CONFIGURED);
+  }
+
+  private String tryGetBaseUriWithEndingForwardSlash() {
     try {
-      baseUri = uriInfo.getBaseUri();
+      if (uriInfo == null) {
+        return null;
+      }
+      String url = uriInfo.getBaseUri().toString();
+      if (!url.endsWith("/")) {
+        url += '/';
+      }
+      return url;
     }
     catch (IllegalStateException e) {
-      throw new IllegalStateException(ERR_MSG_BASE_URL_NOT_CONFIGURED, e);
+      // no request in scope
+      return null;
     }
-    url = baseUri.toString();
-    if (!url.endsWith("/")) {
-      url += '/';
-    }
-    return url;
   }
 
   public UriBuilder redirect() {

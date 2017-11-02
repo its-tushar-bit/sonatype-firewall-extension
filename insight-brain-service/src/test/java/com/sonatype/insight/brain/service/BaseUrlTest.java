@@ -18,13 +18,17 @@ import static org.mockito.Mockito.when;
 
 public class BaseUrlTest
 {
-
   @Test
-  public void testGet_BaseUrlNotSet() {
+  public void testGet_BaseUrlNotSet() throws Exception {
+    testGet_BaseUrlNotSet(null);
+
+    UriInfo uriInfo = mock(UriInfo.class);
+    when(uriInfo.getBaseUri()).thenThrow(new IllegalStateException());
+    testGet_BaseUrlNotSet(uriInfo);
+  }
+
+  private void testGet_BaseUrlNotSet(UriInfo uriInfo) {
     final InsightConfig appConfig = new InsightConfig();
-    final UriInfo uriInfo = mock(UriInfo.class);
-    final IllegalStateException rootCauseException = new IllegalStateException();
-    when(uriInfo.getBaseUri()).thenThrow(rootCauseException);
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
     try {
@@ -33,13 +37,13 @@ public class BaseUrlTest
     }
     catch (IllegalStateException e) {
       assertEquals(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED, e.getMessage());
-      assertEquals(rootCauseException, e.getCause());
     }
   }
 
   @Test
-  public void testGet_BaseUrlNotConfigured() {
+  public void testGet_UsesBaseUri() {
     InsightConfig appConfig = new InsightConfig();
+    appConfig.setBaseUrl("http://localhost:8070");
 
     UriInfo uriInfo = mock(UriInfo.class);
 
@@ -51,11 +55,16 @@ public class BaseUrlTest
   }
 
   @Test
-  public void testGet_BaseUrlConfigured() {
-    InsightConfig appConfig = new InsightConfig();
+  public void testGet_UsesInsightConfigBaseUrl() throws Exception {
+    testGet_UsesInsightConfigBaseUrl(null);
 
     UriInfo uriInfo = mock(UriInfo.class);
-    when(uriInfo.getBaseUri()).thenReturn(URI.create("http://clm.sonatype.com:8080"));
+    when(uriInfo.getBaseUri()).thenThrow(new IllegalStateException());
+    testGet_UsesInsightConfigBaseUrl(uriInfo);
+  }
+
+  private void testGet_UsesInsightConfigBaseUrl(UriInfo uriInfo) {
+    InsightConfig appConfig = new InsightConfig();
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
     appConfig.setBaseUrl("http://test.sonatype.com");

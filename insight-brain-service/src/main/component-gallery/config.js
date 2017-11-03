@@ -39,5 +39,6 @@ export default angular.module('config',
       'iq-modal': 'styles/iq-modal/iq-modal.html',
       'iq-table': 'styles/iq-table.html',
       'iq-tree-view': 'styles/iq-tree-view.html',
-      'iq-read-only': 'styles/iq-read-only.html'
+      'iq-read-only': 'styles/iq-read-only.html',
+      'iq-grid': 'styles/iq-grid.html'
     });

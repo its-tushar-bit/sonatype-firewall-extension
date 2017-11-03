@@ -30,6 +30,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+import org.apache.batik.util.XMLResourceDescriptor;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.birt.core.exception.BirtException;
@@ -45,6 +46,8 @@ import org.eclipse.birt.report.engine.api.IRunAndRenderTask;
 import org.eclipse.birt.report.engine.api.RenderOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 final class Pdf
 {
@@ -250,6 +253,7 @@ final class Pdf
   private static synchronized void init() throws IOException {
     if (reportEngine == null) {
       log.debug("Initializing BIRT engine");
+      configureBatikToUseBundledSaxParser();
       try {
         final PlatformConfig platformConfig = new PlatformConfig();
         Platform.startup(platformConfig);
@@ -264,6 +268,21 @@ final class Pdf
         throw new IOException(e.getMessage(), e);
       }
     }
+  }
+
+  private static void configureBatikToUseBundledSaxParser() {
+    // Batik defaults to org.apache.xerces.parsers.SAXParser from xercesImpl whose latest release in Central (2.11.0)
+    // has vulnerabilities so we point to the fixed copy bundled with the JRE.
+    String saxParserClassName;
+    try {
+      saxParserClassName = XMLReaderFactory.createXMLReader().getClass().getName();
+    }
+    catch (SAXException e) {
+      log.warn("Could not retrieve SAXParser classname.  Setting manually.", e);
+      saxParserClassName = "com.sun.org.apache.xerces.internal.parsers.SAXParser";
+    }
+    log.debug("Using SAXParser class {}", saxParserClassName);
+    XMLResourceDescriptor.setXMLParserClassName(saxParserClassName);
   }
 
   /*

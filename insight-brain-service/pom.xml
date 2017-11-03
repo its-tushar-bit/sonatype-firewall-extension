@@ -214,6 +214,10 @@
         </exclusion>
         <exclusion>
           <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+          <artifactId>org.apache.xerces</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
           <artifactId>org.apache.batik.pdf</artifactId>
         </exclusion>
         <exclusion>

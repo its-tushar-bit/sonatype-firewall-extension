@@ -34,7 +34,7 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
       ],
       plugins = [].concat(
           cssOutputPath ? getCssPlugins() : [],
-          production ? productionPlugins : []
+          productionPlugins
       );
 
   return {

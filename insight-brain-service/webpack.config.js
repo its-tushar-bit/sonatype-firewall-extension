@@ -4,6 +4,8 @@ const CSSSplitPlugin = require('css-split-webpack-plugin').default;
 const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
 const transformRuntime = require('babel-plugin-transform-runtime');
 
+const WebpackCopyModulesPlugin = require('./WebpackCopyModulesPlugin');
+
 const webpackOutputPath = 'assets';
 const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutputPath);
 
@@ -17,7 +19,23 @@ const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutput
  */
 function config({ entryPath, outputPath, cssOutputPath, production, externals }) {
   const extractSass = new ExtractTextPlugin({ filename: cssOutputPath }),
-      cssDirname = cssOutputPath && path.dirname(cssOutputPath);
+      cssDirname = cssOutputPath && path.dirname(cssOutputPath),
+      getCssPlugins = () => [
+        extractSass,
+        new CSSSplitPlugin({
+          size: 4095,
+          filename: path.join(cssDirname, '[name]-[part].[ext]')
+        })
+      ],
+      productionPlugins = [
+        new WebpackCopyModulesPlugin({
+          destination: path.join('target', 'webpack-modules')
+        })
+      ],
+      plugins = [].concat(
+          cssOutputPath ? getCssPlugins() : [],
+          production ? productionPlugins : []
+      );
 
   return {
     context: path.resolve(__dirname, 'src/main/frontend'),
@@ -95,13 +113,7 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
         }
       }]
     },
-    plugins: cssOutputPath ? [
-      extractSass,
-      new CSSSplitPlugin({
-        size: 4095,
-        filename: path.join(cssDirname, '[name]-[part].[ext]')
-      })
-    ] : [],
+    plugins: plugins,
     externals,
     devtool: production ? undefined : 'eval'
   };

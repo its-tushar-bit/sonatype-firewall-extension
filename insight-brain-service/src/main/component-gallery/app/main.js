@@ -13,6 +13,7 @@ import 'highlight.js/styles/github.css';
 import 'plottable/plottable.css';
 import './scss/gallery.scss';
 
+import 'es6-collections';
 import '../../frontend/lib/jquery-loader';
 import 'angular';
 import '@uirouter/angularjs';

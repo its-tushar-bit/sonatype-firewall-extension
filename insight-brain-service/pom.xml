@@ -18,7 +18,7 @@
 
   <properties>
     <node.version>v6.9.3</node.version>
-    <npm.version>3.10.10</npm.version>
+    <npm.version>5.5.1</npm.version>
     <freemarker.version>2.3.19</freemarker.version>
     <licensing.version>1.4</licensing.version>
     <angularjs.version>1.6.4</angularjs.version>

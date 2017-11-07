@@ -2,9 +2,9 @@
 <p class="iq-chart__averages">
   Lifecycle performed an <strong>average</strong> of
   <span class="iq-chart__display-number" id="average-evaluations"><!--
- -->{{::vm.averageEvaluations | number: 0}}<!--
+ -->{{::vm.averageEvaluationsRounded}}<!--
 --></span>
-  evaluation{{::(vm.averageEvaluations === 1 ? '' : 's')}} per month on {{::vm.activeApplicationCount}}
+  evaluation{{::(vm.averageEvaluationsRounded === 1 ? '' : 's')}} per month on {{::vm.activeApplicationCount}}
   application{{::(vm.isSingleApplicationReport ? '' : 's')}} over the past {{::vm.monthCount}}
   {{::(vm.monthCount === 1 ? 'month' : 'months')}}. Lifecycle found an <strong>average</strong> of
   <span class="iq-chart__display-number" id="average-policy-violations"><!--

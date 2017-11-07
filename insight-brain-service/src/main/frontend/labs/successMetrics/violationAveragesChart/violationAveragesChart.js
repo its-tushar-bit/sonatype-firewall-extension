@@ -22,7 +22,7 @@ function violationAveragesChartController() {
   const vm = this,
       { averagesData } = vm;
 
-  vm.averageEvaluations = averagesData.evaluationCount;
+  vm.averageEvaluationsRounded = Math.round(averagesData.evaluationCount);
 
   vm.averageDiscoveredTotal = averagesData.totalViolations.averageDiscovered;
   vm.averageDiscoveredSecurity = averagesData.securityViolations.averageDiscovered;

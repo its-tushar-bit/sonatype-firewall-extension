@@ -172,7 +172,7 @@ public class SuccessMetricsChartsTest
     ViolationAveragesTile.root().shouldBe(visible);
     ViolationAveragesTile.title()
         .shouldHave(text("Average Number of Violations Discovered Per Month, Per Application"));
-    ViolationAveragesTile.averages().shouldHave(text("Lifecycle performed an average of 1 evaluations per month on 2 " +
+    ViolationAveragesTile.averages().shouldHave(text("Lifecycle performed an average of 1 evaluation per month on 2 " +
         "applications over the past 4 months. Lifecycle found an average of 2 policy violations per application, 1 of" +
         " which were critical."));
   }

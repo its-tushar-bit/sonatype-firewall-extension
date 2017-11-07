@@ -147,6 +147,7 @@
                     <exclude>META-INF/maven/*/*/**</exclude>
                     <exclude>META-INF/maven/remote-resources.xml</exclude>
                     <exclude>META-INF/sisu/**</exclude>
+                    <exclude>module-info.class</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -241,6 +242,13 @@
             </executions>
             <configuration>
               <injar>${project.build.finalName}.jar</injar>
+              <exclusions>
+                <exclusion>
+                  <!-- already embedded/inlined into the program jar -->
+                  <groupId>org.ow2.asm</groupId>
+                  <artifactId>*</artifactId>
+                </exclusion>
+              </exclusions>
             </configuration>
           </plugin>
           <plugin>

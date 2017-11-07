@@ -191,6 +191,7 @@
                     <exclude>**/package.html</exclude>
                     <exclude>**/asm*.dtd</exclude>
                     <exclude>plugin.xml</exclude>
+                    <exclude>module-info.class</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -217,6 +218,7 @@
                     <ignoreClass>com.thoughtworks.xstream.converters.reflection.LambdaConverter</ignoreClass>
                     <ignoreClass>com.thoughtworks.xstream.converters.time.*</ignoreClass>
                     <ignoreClass>com.thoughtworks.xstream.core.util.ISO8601JavaTimeConverter</ignoreClass>
+                    <ignoreClass>module-info</ignoreClass>
                   </ignoreClasses>
                   <ignoredScopes>
                     <ignoredScope>system</ignoredScope>

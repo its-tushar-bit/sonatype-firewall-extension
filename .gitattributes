@@ -1,2 +1,5 @@
 # Files that must have CRLF line endings
 *.bat eol=crlf
+
+# even on Windows, npm uses Unix-style line terminators
+package*.json eol=lf

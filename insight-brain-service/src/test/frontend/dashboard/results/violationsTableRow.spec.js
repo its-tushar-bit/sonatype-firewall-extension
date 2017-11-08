@@ -6,73 +6,12 @@ describe('violationsTableRow.spec', function() {
       mockState,
       violationsTableRow;
 
-  var riskDataMultipleStages =
-  {
-    'stageDetails': [
-      {
-        'stageTypeId': 'build',
-        'stageTypeName': null,
-        'time': 1492397030700,
-        'actionTypeId': null,
-        'scanId': '164c8128857b4d62a8649350ced3f9a6'
-      },
+  var riskData =
       {
         'stageTypeId': 'stage-release',
-        'stageTypeName': null,
-        'time': 1492397082307,
         'actionTypeId': null,
         'scanId': '5d6a9955588f482a9e48d2d93f2236f0'
-      },
-      {
-        'stageTypeId': 'release',
-        'stageTypeName': null,
-        'time': 1492397030701,
-        'actionTypeId': null,
-        'scanId': null
-      },
-      {
-        'stageTypeId': 'operate',
-        'stageTypeName': null,
-        'time': 1492397030702,
-        'actionTypeId': null,
-        'scanId': null
-      }
-    ]
-  };
-
-  var riskDataSingleStage =
-  {
-    'stageDetails': [
-      {
-        'stageTypeId': 'build',
-        'stageTypeName': null,
-        'time': null,
-        'actionTypeId': null,
-        'scanId': '164c8128857b4d62a8649350ced3f9a6'
-      },
-      {
-        'stageTypeId': 'stage-release',
-        'stageTypeName': null,
-        'time': null,
-        'actionTypeId': null,
-        'scanId': '5d6a9955588f482a9e48d2d93f2236f0'
-      },
-      {
-        'stageTypeId': 'release',
-        'stageTypeName': null,
-        'time': null,
-        'actionTypeId': null,
-        'scanId': null
-      },
-      {
-        'stageTypeId': 'operate',
-        'stageTypeName': null,
-        'time': 1492397030702,
-        'actionTypeId': null,
-        'scanId': null
-      }
-    ]
-  };
+      };
 
   beforeEach(module('dashboard.module', 'legacyConfiguration', function($provide) {
     mockWindow = jasmine.createSpyObj('$window', ['open']);
@@ -94,8 +33,8 @@ describe('violationsTableRow.spec', function() {
       $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
       $templateCache.put('violations-table-row', '<td/>');
 
-      getVm = function(risk) {
-        scope.risk = risk;
+      getVm = function() {
+        scope.risk = riskData;
 
         var element = $compile('<tr violations-table-row risk="risk"></tr>')(scope);
         scope.$digest();
@@ -108,7 +47,7 @@ describe('violationsTableRow.spec', function() {
   describe('ViolationsTableRowComponent', function() {
     beforeEach(inject([
       '$httpBackend', function($httpBackend) {
-        violationsTableRow = getVm(riskDataMultipleStages);
+        violationsTableRow = getVm();
         $httpBackend.flush();
       }
     ]));
@@ -132,20 +71,7 @@ describe('violationsTableRow.spec', function() {
     });
 
     it('Gets the latest report', function() {
-      expect(violationsTableRow.latestReport).toEqual(riskDataMultipleStages.stageDetails[1]);
+      expect(violationsTableRow.risk).toEqual(riskData);
     });
   });
-
-  describe('ViolationsTableRowComponent with single report', function() {
-    it('Gets the report', function() {
-      inject([
-        '$httpBackend', function($httpBackend) {
-          violationsTableRow = getVm(riskDataSingleStage);
-          $httpBackend.flush();
-        }
-      ]);
-      expect(violationsTableRow.latestReport).toEqual(riskDataSingleStage.stageDetails[3]);
-    });
-  });
-
 });

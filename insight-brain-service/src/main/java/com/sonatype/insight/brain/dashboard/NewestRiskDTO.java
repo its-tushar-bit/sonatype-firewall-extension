@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -30,7 +29,7 @@ public class NewestRiskDTO implements CsvWritable
 
   public int threatLevel;
 
-  public long time;
+  public long firstOccurrenceTime;
 
   public String policyId;
 
@@ -44,7 +43,13 @@ public class NewestRiskDTO implements CsvWritable
 
   public List<String> pathnames;
 
-  public List<StageDetailDTO> stageDetails = new ArrayList<>();
+  public String stageTypeId;
+  
+  public String actionTypeId;
+  
+  public String scanId;
+
+  public long lastOccurrenceTime;
 
   public static String getCsvHeader() {
     return "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
@@ -60,6 +65,7 @@ public class NewestRiskDTO implements CsvWritable
     }
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-    return joiner.join(threatLevel, policyName, applicationName, componentName, formatter.format(time), time);
+    return joiner.join(threatLevel, policyName, applicationName, componentName, formatter.format(firstOccurrenceTime),
+        firstOccurrenceTime);
   }
 }

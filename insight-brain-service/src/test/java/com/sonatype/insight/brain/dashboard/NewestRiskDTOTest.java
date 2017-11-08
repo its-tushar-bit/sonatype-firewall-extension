@@ -24,7 +24,7 @@ public class NewestRiskDTOTest
     risk.threatLevel = 7;
     risk.policyName = "p";
     risk.applicationName = "a";
-    risk.time = 0;
+    risk.firstOccurrenceTime = 0;
   }
 
   @Test

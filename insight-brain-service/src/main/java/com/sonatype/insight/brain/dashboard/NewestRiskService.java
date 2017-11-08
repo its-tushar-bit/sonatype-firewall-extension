@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,9 +159,6 @@ public class NewestRiskService
 
         allUniqueAppPolicyViolations.addAll(diff.getAppeared());
       }
-      for (NewestRiskDTO newestRiskDTO : newestRiskDTOsByPolicyViolation.values()) {
-        padStageDetails(newestRiskDTO);
-      }
     }
 
     if (maxDaysOld != null) {
@@ -213,20 +209,17 @@ public class NewestRiskService
     newestRiskDTO.applicationPublicId = app.getPublicId();
     newestRiskDTO.applicationName = app.getName();
     newestRiskDTO.threatLevel = policyViolation.getThreatLevel();
-    newestRiskDTO.time = time;
+    newestRiskDTO.firstOccurrenceTime = time;
     newestRiskDTO.policyId = policyViolation.getPolicyId();
     newestRiskDTO.policyName = policyViolation.getPolicyName();
     newestRiskDTO.hash = policyViolation.getHash();
     newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
     newestRiskDTO.pathnames = policyViolation.getPathnames();
     newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
-
-    StageDetailDTO stageDetailDTO = new StageDetailDTO();
-    stageDetailDTO.stageTypeId = stageType.getId();
-    stageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
-    stageDetailDTO.time = time;
-    stageDetailDTO.scanId = scanId;
-    newestRiskDTO.stageDetails.add(stageDetailDTO);
+    newestRiskDTO.stageTypeId = stageType.getId();
+    newestRiskDTO.actionTypeId = policyViolation.getActionTypeId();
+    newestRiskDTO.scanId = scanId;
+    newestRiskDTO.lastOccurrenceTime = policyViolation.getTime().getTime();
 
     return newestRiskDTO;
   }
@@ -237,21 +230,22 @@ public class NewestRiskService
                                   long time,
                                   String scanId)
   {
-    if (newestRiskDTO.time < policyViolation.getTime().getTime()) {
+    if (newestRiskDTO.firstOccurrenceTime < policyViolation.getTime().getTime()) {
       newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
       newestRiskDTO.pathnames = policyViolation.getPathnames();
     }
 
-    if (newestRiskDTO.time < time) {
-      newestRiskDTO.time = time;
+    if (newestRiskDTO.lastOccurrenceTime < policyViolation.getTime().getTime()) {
+      // return the latest stage/report
+      newestRiskDTO.stageTypeId = stageType.getId();
+      newestRiskDTO.actionTypeId = policyViolation.getActionTypeId();
+      newestRiskDTO.scanId = scanId;
+      newestRiskDTO.lastOccurrenceTime = policyViolation.getTime().getTime();
     }
 
-    StageDetailDTO stageDetailDTO = new StageDetailDTO();
-    stageDetailDTO.stageTypeId = stageType.getId();
-    stageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
-    stageDetailDTO.time = time;
-    stageDetailDTO.scanId = scanId;
-    newestRiskDTO.stageDetails.add(stageDetailDTO);
+    if (newestRiskDTO.firstOccurrenceTime > time) {
+      newestRiskDTO.firstOccurrenceTime = time;
+    }
   }
 
   /**
@@ -265,27 +259,10 @@ public class NewestRiskService
     List<NewestRiskDTO> filtered = new ArrayList<>();
     long filterFromTime = new DateTime().minusDays(maxDaysOld).getMillis();
     for (NewestRiskDTO newestRiskDTO : newestRiskDTOs) {
-      if (newestRiskDTO.time > filterFromTime) {
+      if (newestRiskDTO.firstOccurrenceTime > filterFromTime) {
         filtered.add(newestRiskDTO);
       }
     }
     return filtered;
-  }
-
-  /**
-   * Add an 'empty' record for each missing stage we need to show in the UI.
-   */
-  private void padStageDetails(final NewestRiskDTO newestRiskDTO) {
-    Set<String> seenStages = new HashSet<>();
-    for (StageDetailDTO stageDetail : newestRiskDTO.stageDetails) {
-      seenStages.add(stageDetail.stageTypeId);
-    }
-    for (StageType stageType : dashboardUtils.getStageTypes(null)) {
-      if (!seenStages.contains(stageType.getId())) {
-        StageDetailDTO emptyStageDetails = new StageDetailDTO();
-        emptyStageDetails.stageTypeId = stageType.getId();
-        newestRiskDTO.stageDetails.add(emptyStageDetails);
-      }
-    }
   }
 }

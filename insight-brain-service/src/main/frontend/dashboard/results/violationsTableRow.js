@@ -44,10 +44,6 @@ function ViolationsTableRowController(StageTypeStore, $window, $state) {
       }), '_blank');
     }
   }
-
-  vm.latestReport = vm.risk.stageDetails.reduce(function(latestReportSoFar, report) {
-    return latestReportSoFar && latestReportSoFar.time > report.time ? latestReportSoFar : report;
-  }, undefined);
 }
 
 ViolationsTableRowController.$inject = ['StageTypeStore', '$window', '$state'];

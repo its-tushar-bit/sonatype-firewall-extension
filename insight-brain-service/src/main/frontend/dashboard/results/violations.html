@@ -31,14 +31,14 @@
        tooltip-text="{{::vm.risk.derivedComponentName}}">
     <span component-display component="vm.risk" truncate="true"></span>
   </td><!--
---><td class="iq-cell iq-cell--age">{{::vm.risk.time | terseAgo}}</td><!--
+--><td class="iq-cell iq-cell--age">{{::vm.risk.firstOccurrenceTime | terseAgo}}</td><!--
 --><td class="iq-cell iq-cell--report">
-     <a class="link" ng-click="vm.openReport(vm.risk.applicationPublicId, vm.latestReport.scanId)">
+     <a class="link" ng-click="vm.openReport(vm.risk.applicationPublicId, vm.risk.scanId)">
        <i class="fa fa-external-link fa-fw"></i><!--
-    --><span>{{::vm.stageTypes[vm.latestReport.stageTypeId].shortName}}</span><!--
+    --><span>{{::vm.stageTypes[vm.risk.stageTypeId].shortName}}</span><!--
     --><i ng-class="::{
-            'fa fa-exclamation-triangle warn' : vm.latestReport.actionTypeId === 'warn',
-            'fa fa-exclamation-circle fail' : vm.latestReport.actionTypeId === 'fail'
+            'fa fa-exclamation-triangle warn' : vm.risk.actionTypeId === 'warn',
+            'fa fa-exclamation-circle fail' : vm.risk.actionTypeId === 'fail'
           }">
       </i>
     </a>
@@ -50,11 +50,11 @@
     <div class="iq-scrollable" detect-scrollbar>
       <table class="iq-table iq-table--dashboard-violations">
         <thead class="dashboard-headers iq-dashboard-headers">
-          <tr class="iq-table-row" sort="-time,-threatLevel">
-            <th class="iq-cell iq-cell--header iq-cell--threat" sort-column="-threatLevel,-time">
+          <tr class="iq-table-row" sort="-firstOccurrenceTime,-threatLevel">
+            <th class="iq-cell iq-cell--header iq-cell--threat" sort-column="-threatLevel,-firstOccurrenceTime">
               <span class="iq-cell__text--header">Threat</span>
             </th><!--
-         --><th class="iq-cell iq-cell--header iq-cell--policy" sort-column="policyName,-time">
+         --><th class="iq-cell iq-cell--header iq-cell--policy" sort-column="policyName,-firstOccurrenceTime">
               <span class="iq-cell__text--header">Policy</span>
             </th><!--
          --><th class="iq-cell iq-cell--header iq-cell--application" sort-column="applicationName,-threatLevel">
@@ -63,7 +63,7 @@
          --><th class="iq-cell iq-cell--header iq-cell--component" sort-column="derivedComponentName,-threatLevel">
               <span class="iq-cell__text--header">Component</span>
             </th><!--
-         --><th class="iq-cell iq-cell--header iq-cell--age" sort-column="-time,-threatLevel" sort-inverted="true">
+         --><th class="iq-cell iq-cell--header iq-cell--age" sort-column="-firstOccurrenceTime,-threatLevel" sort-inverted="true">
               <span class="iq-cell__text--header">Age</span>
             </th><!--
          --><th class="iq-cell iq-cell--header iq-cell--report">

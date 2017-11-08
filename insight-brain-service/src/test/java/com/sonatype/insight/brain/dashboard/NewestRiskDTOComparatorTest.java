@@ -26,7 +26,7 @@ public class NewestRiskDTOComparatorTest
   {
     NewestRiskDTO dto = new NewestRiskDTO();
     dto.threatLevel = threatLevel;
-    dto.time = time;
+    dto.firstOccurrenceTime = time;
     dto.policyName = policyName;
     dto.applicationName = applicationName;
     dto.derivedComponentName = derivedComponentName;

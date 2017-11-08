@@ -33,7 +33,7 @@ class NewestRiskDTOComparator
 
       switch (newestRiskOrderBy.getNewestRiskOrderByEnum()) {
         case AGE:
-          rel = Long.compare(ob1.time, ob2.time);
+          rel = Long.compare(ob1.firstOccurrenceTime, ob2.firstOccurrenceTime);
           if (rel != 0) {
             return rel;
           }

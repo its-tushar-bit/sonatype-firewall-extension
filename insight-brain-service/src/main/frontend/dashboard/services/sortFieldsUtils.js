@@ -45,7 +45,7 @@ export const translateViolationsSortFields = translateSortFields({
   derivedComponentName: violationsSortFields.COMPONENT_NAME,
   policyName: violationsSortFields.POLICY_NAME,
   threatLevel: violationsSortFields.THREAT_LEVEL,
-  time: violationsSortFields.AGE
+  firstOccurrenceTime: violationsSortFields.AGE
 });
 
 export const translateApplicationsSortFields = translateSortFields({

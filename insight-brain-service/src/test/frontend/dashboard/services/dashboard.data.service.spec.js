@@ -37,15 +37,8 @@ describe('dashboard.data.service.spec', function() {
                   ]
                 },
                 derivedComponentName: 'foo : bar',
-                stageDetails: [
-                  {
-                    stageTypeId: 'stage-release',
-                    time: 123456789
-                  }, {
-                    stageTypeId: 'build',
-                    time: 0
-                  }
-                ]
+                stageTypeId: 'stage-release',
+                firstOccurrenceTime: 123456789
               },
               {
                 hash: '1249e25aebb15358bedd',
@@ -102,7 +95,7 @@ describe('dashboard.data.service.spec', function() {
       var translatedSortFields = ['-AGE', '-THREAT_LEVEL', 'POLICY_NAME', '-COMPONENT_NAME', 'APPLICATION_NAME'];
 
       dashboardDataService.getNewestRisks({},
-          ['-time', '-threatLevel', 'policyName', '-derivedComponentName', 'applicationName']);
+          ['-firstOccurrenceTime', '-threatLevel', 'policyName', '-derivedComponentName', 'applicationName']);
 
       expect(createDashboardDataRequestPayloadMock).toHaveBeenCalledWith(jasmine.any(Object), jasmine.any(Number),
           translatedSortFields);

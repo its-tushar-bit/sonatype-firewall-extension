@@ -884,6 +884,13 @@
             <goals>
               <goal>npm</goal>
             </goals>
+            <configuration>
+              <!--
+                   Workaround for package-lock bug with OS-specific packages.
+                   See https://github.com/npm/npm/issues/17722
+              -->
+              <arguments>install --no-save</arguments>
+            </configuration>
           </execution>
           <execution>
             <id>grunt-build</id>

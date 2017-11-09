@@ -31,10 +31,10 @@ describe('ComponentDisplay', function() {
       expect(element.text()).toContain('foo : bar : 1.0');
     });
 
-    it('Can show an element with a pathname', function() {
+    it('Can show an element with a filename', function() {
       scope.component = {
         displayName: null,
-        pathnames: ['foo.jar', 'bar.jar']
+        filename: 'foo.jar'
       };
       var element = $compile(angular.element('<div component-display component="component"></div>'))(scope);
       scope.$digest();

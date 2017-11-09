@@ -328,8 +328,8 @@ public class ComponentRiskService
         if (dto.displayName == null) {
           dto.displayName = ComponentDisplayNameUtil.fromIdentifier(violation.componentIdentifier);
         }
-        if (violation.pathnames != null) {
-          dto.pathnames.addAll(violation.pathnames);
+        if (!StringUtils.isBlank(violation.filename)) {
+          dto.filename = violation.filename;
         }
         dto.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(dto);
       }

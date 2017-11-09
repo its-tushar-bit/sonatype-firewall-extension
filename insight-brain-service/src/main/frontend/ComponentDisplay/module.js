@@ -21,9 +21,9 @@ function cacheTemplates($templateCache) {
       '<span ng-if="!part.field" class="wrap-force-break">{{ part.value | periodDelimiter }}</span>' +
       '</span>'
   );
-  $templateCache.put('pathnames-display',
-      '<div class="pathname">' +
-      '<em>{{component.pathnames[0] | fileName}}</em>' +
+  $templateCache.put('filename-display',
+      '<div class="filename">' +
+      '<em>{{component.filename}}</em>' +
       '</div>'
   );
   $templateCache.put('unknown-display',
@@ -34,8 +34,8 @@ function cacheTemplates($templateCache) {
   $templateCache.put('component-display',
       '<div>' +
       '<div ng-if="component.displayName" ng-class="{\'truncate-ellipsis\': truncate}"><span component-name="component.displayName"></span></div>' +
-      '<div ng-if="!component.displayName && component.pathnames" ng-include="\'pathnames-display\'" ng-class="{\'truncate-ellipsis\': truncate}"></div>' +
-      '<div ng-if="!component.displayName && !component.pathnames" ng-include="\'unknown-display\'" ng-class="{\'truncate-ellipsis\': truncate}"></div>' +
+      '<div ng-if="!component.displayName && component.filename" ng-include="\'filename-display\'" ng-class="{\'truncate-ellipsis\': truncate}"></div>' +
+      '<div ng-if="!component.displayName && !component.filename" ng-include="\'unknown-display\'" ng-class="{\'truncate-ellipsis\': truncate}"></div>' +
       '</div>'
   );
   $templateCache.put('linked-component-display',

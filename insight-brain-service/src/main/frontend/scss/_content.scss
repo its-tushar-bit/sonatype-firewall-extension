@@ -91,7 +91,7 @@ body {
       }
     }
     td:not(.component-name),
-    .pathname {
+    .filename {
       word-break: break-all;
       word-break: break-word; // Works only in webkit browsers (chrome/safari)
     }

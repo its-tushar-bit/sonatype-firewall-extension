@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
@@ -51,7 +50,7 @@ public class PolicyViolationDAOTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1",
         "Version1");
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(), 5,
-        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, "constraint data", "pathnames string");
+        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, "constraint data", "filename");
     assertThat(policyViolation.getId(), is(nullValue()));
     dao.insert(policyViolation);
     assertThat(policyViolation.getId(), is(notNullValue()));
@@ -60,7 +59,7 @@ public class PolicyViolationDAOTest
     policyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation, is(notNullValue()));
     assertPolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE,
-        "acacacacacac", componentIdentifier, Lists.newArrayList("pathnames string"), policyEvaluation.getTime(),
+        "acacacacacac", componentIdentifier, "filename", policyEvaluation.getTime(),
         null /* actionTypeId */, policyViolation);
 
     policyViolation.setActionTypeId(Action.ID_FAIL);
@@ -70,7 +69,7 @@ public class PolicyViolationDAOTest
     policyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation, is(notNullValue()));
     assertPolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE,
-        "acacacacacac", componentIdentifier, Lists.newArrayList("pathnames string"), policyEvaluation.getTime(),
+        "acacacacacac", componentIdentifier, "filename", policyEvaluation.getTime(),
         Action.ID_FAIL, policyViolation);
 
     // Delete
@@ -87,7 +86,7 @@ public class PolicyViolationDAOTest
                                      PolicyThreatCategory threatCategory,
                                      String hash,
                                      ComponentIdentifier componentIdentifier,
-                                     List<String> pathnames,
+                                     String filename,
                                      Date time,
                                      String actionTypeId,
                                      PolicyViolation actual)
@@ -99,7 +98,7 @@ public class PolicyViolationDAOTest
     assertThat(actual.getThreatCategory(), is(threatCategory));
     assertThat(actual.getHash(), is(hash));
     assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(actual.getPathnames(), is(pathnames));
+    assertThat(actual.getFilename(), is(filename));
     assertThat(actual.getTime(), is(time));
     assertThat(actual.getActionTypeId(), is(actionTypeId));
   }

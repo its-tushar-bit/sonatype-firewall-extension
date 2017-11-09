@@ -366,19 +366,19 @@ public class PolicyEvaluationMigratorTest
   private void assertUnknownPolicyViolation(final String evaluationId, final PolicyViolation policyViolation) {
     assertPolicyViolation(evaluationId, policyViolation, "f8d39103fab24ec8a2677942640d3527", "Component-Unknown", 1,
         null, null, null, COMPONENT_HASH_UNKNOWN, PolicyThreatCategory.OTHER,
-        Lists.newArrayList("commons-httpclient-3.1.SONATYPE.jar"));
+        "commons-httpclient-3.1.SONATYPE.jar");
   }
 
   private void assertAntlrPolicyViolation(final String evaluationId, final PolicyViolation policyViolation) {
     assertPolicyViolation(evaluationId, policyViolation, "492542d33d1d42e8bc37a55e7130cbc0", "License-Declared Only",
         5, "antlr", "antlr", "2.7.7", COMPONENT_HASH_ANTLR, PolicyThreatCategory.LICENSE,
-        Lists.newArrayList("antlr.antlr.2.7.7.jar", "shaded-product.jar"));
+        "antlr.antlr.2.7.7.jar");
   }
 
   private void assertCarrotPolicyViolation(final String evaluationId, final PolicyViolation policyViolation) {
     assertPolicyViolation(evaluationId, policyViolation, "492542d33d1d42e8bc37a55e7130cbc0", "License-Declared Only",
         5, "com.carrotsearch", "hppc", "0.5.2", COMPONENT_HASH_CARROT, PolicyThreatCategory.LICENSE,
-        Lists.newArrayList("com.carrotsearch.hppc.0.5.2.jar"));
+        "com.carrotsearch.hppc.0.5.2.jar");
   }
 
   private void assertUnknownAppComponent(List<ApplicationComponent> appComponents, String stageTypeId, Date time) {
@@ -446,7 +446,7 @@ public class PolicyEvaluationMigratorTest
                                      final String version,
                                      final String hash,
                                      final PolicyThreatCategory threatCategory,
-                                     final List<String> pathnames)
+                                     final String filename)
   {
     assertThat(policyViolation.getPolicyEvaluationId(), is(evaluationId));
     assertThat(policyViolation.getPolicyId(), is(policyId));
@@ -457,7 +457,7 @@ public class PolicyEvaluationMigratorTest
     assertThat(policyViolation.getComponentIdentifier(), is(componentIdentifier));
     assertThat(policyViolation.getHash(), is(hash));
     assertThat(policyViolation.getThreatCategory(), is(threatCategory));
-    assertThat(policyViolation.getPathnames(), is(pathnames));
+    assertThat(policyViolation.getFilename(), is(filename));
     assertThat(policyViolation.getConstraintFactsJson().length(), greaterThan(0));
   }
 

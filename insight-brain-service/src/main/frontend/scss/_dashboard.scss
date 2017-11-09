@@ -516,7 +516,7 @@ tbody {
 .dashboard-tooltip {
   margin-top: 2px!important;
 
-  &.pathname .tooltip-inner::before {
+  &.filename .tooltip-inner::before {
     content: "COMPONENT PATH\a";
     display: block;
     font-weight: bold;

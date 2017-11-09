@@ -214,7 +214,7 @@ public class NewestRiskService
     newestRiskDTO.policyName = policyViolation.getPolicyName();
     newestRiskDTO.hash = policyViolation.getHash();
     newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
-    newestRiskDTO.pathnames = policyViolation.getPathnames();
+    newestRiskDTO.filename = policyViolation.getFilename();
     newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
     newestRiskDTO.stageTypeId = stageType.getId();
     newestRiskDTO.actionTypeId = policyViolation.getActionTypeId();
@@ -232,7 +232,7 @@ public class NewestRiskService
   {
     if (newestRiskDTO.firstOccurrenceTime < policyViolation.getTime().getTime()) {
       newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
-      newestRiskDTO.pathnames = policyViolation.getPathnames();
+      newestRiskDTO.filename = policyViolation.getFilename();
     }
 
     if (newestRiskDTO.lastOccurrenceTime < policyViolation.getTime().getTime()) {

@@ -360,7 +360,8 @@ public class PolicyEvaluationMigrator
         ComponentIdentifier componentIdentifier = toComponentIdentifier(componentFact);
         PolicyViolation policyViolation = new PolicyViolation(evaluation, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
-            componentIdentifier, componentFact.getConstraintFacts(), pathnames);
+            componentIdentifier, componentFact.getConstraintFacts(), null);
+        policyViolation.setPathnames(pathnames);
         List<String> notifications = new ArrayList<>();
         for (Action action : policyAlert.getActions()) {
           if (Action.ID_NOTIFY.equals(action.getActionTypeId())) {

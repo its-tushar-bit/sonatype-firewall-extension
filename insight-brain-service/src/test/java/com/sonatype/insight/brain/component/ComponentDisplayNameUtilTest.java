@@ -6,10 +6,8 @@
 package com.sonatype.insight.brain.component;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -161,38 +159,32 @@ public class ComponentDisplayNameUtilTest
 
   @Test
   public void testDeriveComponentName() {
-    List<String> pathnames = Arrays.asList("a/b/c.jar", "c/d/foo.bar/");
-    ComponentDisplayName displayName = fromPathnames(pathnames, "hash");
-    assertThat(deriveComponentName(createNewestRiskDTO(displayName, null)), is("c.jar, foo.bar"));
+    String filename = "c.jar";
+    ComponentDisplayName displayName = fromPathnames(Collections.singleton(filename), "hash");
+    assertThat(deriveComponentName(createNewestRiskDTO(displayName, null)), is("c.jar"));
 
-    assertThat(deriveComponentName(createNewestRiskDTO(null, pathnames)), is("c.jar"));
-
-    assertThat(deriveComponentName(createNewestRiskDTO(null, Collections.singletonList("a/b/c.jar/"))), is("c.jar"));
+    assertThat(deriveComponentName(createNewestRiskDTO(null, "c.jar")), is("c.jar"));
 
     assertThat(deriveComponentName(createNewestRiskDTO(null, null)), is("Unknown"));
 
-    assertThat(deriveComponentName(createComponentRiskDTO(displayName, null)), is("c.jar, foo.bar"));
+    assertThat(deriveComponentName(createComponentRiskDTO(displayName, null)), is("c.jar"));
 
-    assertThat(deriveComponentName(createComponentRiskDTO(null, new ArrayList<>(pathnames))), is("c.jar"));
-
-    assertThat(
-        deriveComponentName(createComponentRiskDTO(null, new ArrayList<>(Collections.singletonList("a/b/c.jar/")))),
-        is("c.jar"));
+    assertThat(deriveComponentName(createComponentRiskDTO(null, filename)), is("c.jar"));
 
     assertThat(deriveComponentName(createComponentRiskDTO(null, null)), is("Unknown"));
   }
 
-  private NewestRiskDTO createNewestRiskDTO(ComponentDisplayName displayName, List<String> pathnames) {
+  private NewestRiskDTO createNewestRiskDTO(ComponentDisplayName displayName, String filename) {
     NewestRiskDTO dto = new NewestRiskDTO();
     dto.displayName = displayName;
-    dto.pathnames = pathnames;
+    dto.filename = filename;
     return dto;
   }
 
-  private ComponentRiskDTO createComponentRiskDTO(ComponentDisplayName displayName, List<String> pathnames) {
+  private ComponentRiskDTO createComponentRiskDTO(ComponentDisplayName displayName, String filename) {
     ComponentRiskDTO dto = new ComponentRiskDTO();
     dto.displayName = displayName;
-    dto.pathnames = pathnames != null ? new HashSet<>(pathnames) : null;
+    dto.filename = filename;
     return dto;
   }
 }

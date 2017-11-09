@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.model.HasStringId;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -44,16 +46,16 @@ public class PolicyViolation
   private String policyEvaluationId;
 
   @Column(name = "pathnames")
-  private String pathnamesString;
-
-  @Transient
-  private List<String> pathnames;
+  private String pathnames;
 
   @Column(name = "notifications")
   private String notificationsString;
 
   @Transient
   private List<String> notifications;
+  
+  @Transient
+  private String filename;
 
   public PolicyViolation() {
   }
@@ -66,12 +68,12 @@ public class PolicyViolation
                          String hash,
                          ComponentIdentifier componentIdentifier,
                          String constraintFactsJson,
-                         String pathnames)
+                         String filename)
   {
     super(evaluation.getTime(), policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier,
         constraintFactsJson);
     this.policyEvaluationId = evaluation.getId();
-    setPathnamesString(pathnames);
+    this.pathnames = filename;
   }
 
   public PolicyViolation(PolicyEvaluation evaluation,
@@ -79,10 +81,10 @@ public class PolicyViolation
                          String hash,
                          ComponentIdentifier componentIdentifier,
                          List<ConstraintFact> constraintFacts,
-                         List<String> pathnames)
+                         String filename)
   {
     this(evaluation, policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
-        componentIdentifier, constraintFacts, pathnames);
+        componentIdentifier, constraintFacts, filename);
   }
 
   public PolicyViolation(PolicyEvaluation evaluation,
@@ -93,12 +95,12 @@ public class PolicyViolation
                          String hash,
                          ComponentIdentifier componentIdentifier,
                          List<ConstraintFact> constraintFacts,
-                         List<String> pathnames)
+                         String filename)
   {
     super(evaluation.getTime(), policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier,
         constraintFacts);
     this.policyEvaluationId = evaluation.getId();
-    setPathnames(pathnames);
+    this.pathnames = filename;
   }
 
   @Override
@@ -118,35 +120,37 @@ public class PolicyViolation
   public void setPolicyEvaluationId(String policyEvaluationId) {
     this.policyEvaluationId = policyEvaluationId;
   }
-
-  String getPathnamesString() {
-    return this.pathnamesString;
+  
+  public String getFilename() {
+    // Return the first pathname's filename, unless pathnames/first pathname is blank, then return null
+    if (filename != null) {
+      return filename;
+    }
+    if (StringUtils.isBlank(pathnames)) {
+      return null;
+    }
+    String firstPath = pathnames.trim().split(PATHNAMES_DELIMITER_REGEX)[0];
+    if (StringUtils.isBlank(firstPath)) {
+      return null;
+    }
+    filename = Paths.get(firstPath).getFileName().toString();
+    return filename;
   }
 
-  private void setPathnamesString(String pathnames) {
-    this.pathnamesString = StringUtils.isBlank(pathnames) ? null : pathnames;
-    this.pathnames = null;
+  @VisibleForTesting
+  void setPathnames(String pathnames) {
+    filename = null;
+    this.pathnames = pathnames;
   }
 
   public void setPathnames(List<String> pathnames) {
     if (pathnames == null || pathnames.isEmpty()) {
-      // If the path names are null we want to persist a null value.
-      this.pathnames = null;
-      this.pathnamesString = null;
-      return;
+      // If the path names are null or empty we want to persist a null value.
+      setPathnames((String) null);
     }
-
-    this.pathnames = pathnames;
-
-    pathnamesString = Joiner.on(PATHNAMES_DELIMITER_CHAR).skipNulls().join(this.pathnames);
-  }
-
-  public List<String> getPathnames() {
-    if (pathnames == null && !StringUtils.isBlank(pathnamesString)) {
-      pathnames = Arrays.asList(pathnamesString.split(PATHNAMES_DELIMITER_REGEX));
+    else {
+      setPathnames(Joiner.on(PATHNAMES_DELIMITER_CHAR).skipNulls().join(pathnames));
     }
-
-    return pathnames;
   }
 
   public String getNotificationsString() {

@@ -195,7 +195,6 @@ public class WaivedPolicyViolationMigrator
       constraintFacts.add(toConstraintFact(policyConstraint));
     }
     PolicyThreatCategory threatCategory = getPolicyThreatCategory(waivedViolation.policyId, constraintFacts);
-    List<String> pathnames = null;
 
     ComponentIdentifier componentIdentifier = null;
     if (componentWithViolations.groupId != null) {
@@ -204,7 +203,7 @@ public class WaivedPolicyViolationMigrator
     }
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, waivedViolation.policyId,
         waivedViolation.policyName, waivedViolation.policyThreatLevel, threatCategory, componentWithViolations.hash,
-        componentIdentifier, constraintFacts, pathnames);
+        componentIdentifier, constraintFacts, null);
     policyViolation.setWaived(true);
     policyViolationDAO.insert(tx, policyViolation);
 

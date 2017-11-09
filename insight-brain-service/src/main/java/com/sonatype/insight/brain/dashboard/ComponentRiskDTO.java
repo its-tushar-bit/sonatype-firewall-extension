@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 
@@ -39,9 +36,7 @@ public class ComponentRiskDTO implements CsvWritable
 
   public String derivedComponentName;
 
-  // Insertion order matters, as the first path will be used as the display name throughout the UI for unknown
-  // components.
-  public Set<String> pathnames = new LinkedHashSet<>();
+  public String filename;
 
   public static String getCsvHeader() {
     return "Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low";
@@ -51,7 +46,7 @@ public class ComponentRiskDTO implements CsvWritable
   public String toCsvLine() {
     String componentName = displayName != null
         ? displayName.toString()
-        : ComponentDisplayNameUtil.fromPathnames(pathnames, hash).toString();
+        : ComponentDisplayNameUtil.fromFilename(filename, hash).toString();
     if (componentName.contains(",")) {
       componentName = "\"" + componentName + "\"";
     }

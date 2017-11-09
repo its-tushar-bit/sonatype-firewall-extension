@@ -267,7 +267,7 @@ public class PolicyViolationDigesterTest
     PolicyEvaluation evaluation = new PolicyEvaluation();
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policy_4", "Policy 4", 0,
         PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
-        Collections.singletonList(constraintFact), Collections.singletonList("pathnames"));
+        Collections.singletonList(constraintFact), "filename");
 
     return policyViolation;
   }

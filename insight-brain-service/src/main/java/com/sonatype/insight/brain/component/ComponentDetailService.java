@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -439,7 +440,9 @@ public class ComponentDetailService
           componentInfo.incrementCount();
         }
 
-        componentInfo.addPathnames(violation.getPathnames());
+        if (violation.getFilename() != null) {
+          componentInfo.addPathnames(Collections.singleton(violation.getFilename()));
+        }
       }
     }
 

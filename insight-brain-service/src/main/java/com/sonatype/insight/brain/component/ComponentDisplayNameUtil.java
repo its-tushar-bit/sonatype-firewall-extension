@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.component;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,10 +25,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-import static org.apache.commons.io.FilenameUtils.getName;
-import static org.apache.commons.io.FilenameUtils.normalizeNoEndSeparator;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Utility to build CLM Server specific component display names from coordinates.
@@ -74,6 +72,14 @@ public class ComponentDisplayNameUtil
   }
 
   /**
+   * @since 1.41
+   */
+  public static ComponentDisplayName fromFilename(String filename, String hash) {
+    return fromFilenames(
+        !StringUtils.isBlank(filename) ? Collections.singletonList(filename) : Collections.<String>emptyList(), hash);
+  }
+
+  /**
    * @since 1.24.0
    */
   public static ComponentDisplayName fromPathnames(Collection<String> pathNames, String hash) {
@@ -110,11 +116,11 @@ public class ComponentDisplayNameUtil
    */
   public static String deriveComponentName(NewestRiskDTO dto) {
     return dto.displayName != null ? dto.displayName.toString() :
-        !isEmpty(dto.pathnames) ? getName(normalizeNoEndSeparator(dto.pathnames.get(0))) : "Unknown";
+        !StringUtils.isBlank(dto.filename) ? dto.filename : "Unknown";
   }
 
   public static String deriveComponentName(ComponentRiskDTO dto) {
     return dto.displayName != null ? dto.displayName.toString() :
-        !isEmpty(dto.pathnames) ? getName(normalizeNoEndSeparator(dto.pathnames.iterator().next())) : "Unknown";
+        !StringUtils.isBlank(dto.filename) ? dto.filename : "Unknown";
   }
 }

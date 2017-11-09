@@ -287,8 +287,8 @@ public class NewestRiskServiceTest
     // create 2 violations with no component identifier and give one no pathname and one with a pathname. 
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, null, "hash-4", "unknown");
     PolicyViolation policyViolationPathName = tempEntity
-        .newPolicyViolation(evaluation, app1Policy, null, "pathnames-hash", "unknown2",
-            Collections.singletonList("a.zip/b.zip"));
+        .newPolicyViolation(evaluation, app1Policy, null, "filename-hash", "unknown2",
+            "b.zip");
 
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(policyViolationPathName.getId(), app1.getId(), ReleaseStageType.ID);
@@ -497,7 +497,7 @@ public class NewestRiskServiceTest
     else {
       assertThat(actual.displayName, is(nullValue()));
     }
-    assertThat(actual.pathnames, is(policyViolation.getPathnames()));
+    assertThat(actual.filename, is(policyViolation.getFilename()));
   }
 
   private void assertNewestRiskDTOContainsStageDetail(NewestRiskDTO actual,

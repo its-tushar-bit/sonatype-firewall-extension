@@ -41,7 +41,7 @@ public class NewestRiskDTO implements CsvWritable
 
   public String derivedComponentName;
 
-  public List<String> pathnames;
+  public String filename;
 
   public String stageTypeId;
   
@@ -59,7 +59,7 @@ public class NewestRiskDTO implements CsvWritable
   public String toCsvLine() {
     String componentName = displayName != null
         ? displayName.toString()
-        : ComponentDisplayNameUtil.fromPathnames(pathnames, hash).toString();
+        : ComponentDisplayNameUtil.fromFilename(filename, hash).toString();
     if (componentName.contains(",")) {
       componentName = "\"" + componentName + "\"";
     }

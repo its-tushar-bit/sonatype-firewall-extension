@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -46,9 +45,9 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -736,8 +735,7 @@ public class ComponentRiskServiceTest
     // Create 2 violations without component identifiers: one with a pathname and one without. 
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, null, "hash-4", "unknown");
     PolicyViolation policyViolationPathName = tempEntity
-        .newPolicyViolation(evaluation, app1Policy, null, "pathnames-hash", "unknown2",
-            Arrays.asList("a.zip/b.zip","c.zip/d.zip"));
+        .newPolicyViolation(evaluation, app1Policy, null, "filename-hash", "unknown2", "b.zip");
 
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(policyViolationPathName.getId(), app1.getId(), ReleaseStageType.ID);
@@ -748,7 +746,7 @@ public class ComponentRiskServiceTest
     assertThat(result.numResults, is(2));
 
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
-    assertThat(riskDTO.pathnames, contains("a.zip/b.zip","c.zip/d.zip"));
+    assertThat(riskDTO.filename, is(equalTo("b.zip")));
     assertThat(riskDTO.derivedComponentName, is("b.zip")); // we use the last file of the first path name
 
     riskDTO = result.dashboardResults.get(1);

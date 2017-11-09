@@ -200,7 +200,8 @@ public class ScanPolicyEvaluator
             PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(),
                 policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
                 componentFact.getComponentIdentifier(), componentFact.getConstraintFacts(),
-                componentFact.getPathnames());
+                null);
+            policyViolation.setPathnames(componentFact.getPathnames());
             for (Action action : policyAlert.getActions()) {
               // Don't save notification data into policy violations here because at this point we don't really know if
               // the notifications will be sent or not.

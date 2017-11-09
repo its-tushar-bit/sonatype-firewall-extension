@@ -39,8 +39,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static java.util.Arrays.asList;
-
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -724,13 +722,12 @@ public class ComponentDetailServiceTest
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2");
     PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "scanId3");
 
-    tempEntity.newPolicyViolation(policyEvaluation1, policy, componentId1, hash1, "reason1", asList("a.zip/b.jar"));
-    tempEntity.newPolicyViolation(policyEvaluation1, policy, null, hash2, "reason2", asList("a.zip/foo", "b.jar/"));
-    tempEntity.newPolicyViolation(policyEvaluation1, policy, null, hash3, "reason3", asList("a.zip/foo", "a.zip/b.jar/",
-          "b.jar"));
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, componentId1, hash1, "reason1", "b.jar");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, null, hash2, "reason2", "foo");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, null, hash3, "reason3", "foo");
 
-    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash2, "reason2", asList("foo"));
-    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash3, "reason3", asList("foo"));
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash2, "reason2", "foo");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash3, "reason3", "foo");
     tempEntity.newPolicyViolation(policyEvaluation2, policy, null, hash4, "reason4");
 
     tempEntity.newPolicyViolation(policyEvaluation3, policy, null, hash3, "reason3");
@@ -750,7 +747,7 @@ public class ComponentDetailServiceTest
     assertThat(componentDetailsDTO.componentsInTheMostApplications.get(3).count, is(1));
 
     assertThat(componentDetailsDTO.componentsWithTheMostViolations, hasSize(4));
-    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName, is("b.jar"));
+    assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).componentDisplayName, is("foo"));
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(0).count, is(3));
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).componentDisplayName, is("foo"));
     assertThat(componentDetailsDTO.componentsWithTheMostViolations.get(1).count, is(2));

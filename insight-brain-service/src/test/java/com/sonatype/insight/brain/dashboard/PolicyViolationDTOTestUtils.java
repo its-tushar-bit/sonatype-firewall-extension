@@ -35,7 +35,7 @@ class PolicyViolationDTOTestUtils
         assertEquals(dto.threatCategory, violation.getThreatCategory());
         assertEquals(dto.threatLevel, violation.getThreatLevel());
         assertEquals(dto.time, violation.getTime().getTime());
-        assertEquals(dto.pathnames, violation.getPathnames());
+        assertEquals(dto.filename, violation.getFilename());
         return;
       }
     }

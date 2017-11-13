@@ -117,7 +117,7 @@ public class TestInsightBrainService
     final Configuration configuration = new Configuration();
     configuration.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     String protocol = "http";
-    if (testKeystore != null) {
+    if (testKeystore != null || insightConfig.getHttpConfiguration().getSslConfiguration() != null) {
       protocol = "https";
     }
     String adminProtocol = "http";

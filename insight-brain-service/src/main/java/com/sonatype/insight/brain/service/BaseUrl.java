@@ -6,15 +6,18 @@
 package com.sonatype.insight.brain.service;
 
 import java.net.URI;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.eclipse.jetty.http.HttpHeaders.X_FORWARDED_PROTO;
 
 @Named
 @Singleton
@@ -29,18 +32,24 @@ public class BaseUrl
   @Context
   private final UriInfo uriInfo;
 
+  @Context
+  private final HttpHeaders httpHeaders;
+
   @Inject
   public BaseUrl(final InsightConfig appConfig) {
     this.appConfig = appConfig;
-    this.uriInfo = null; // set via reflection by Jersey's dependency injection
+    // set via reflection by Jersey's dependency injection
+    this.uriInfo = null;
+    this.httpHeaders = null;
   }
 
   /**
    * public for testing only
    */
-  public BaseUrl(final InsightConfig appConfig, final UriInfo uriInfo) {
+  public BaseUrl(final InsightConfig appConfig, final UriInfo uriInfo, final HttpHeaders httpHeaders) {
     this.appConfig = appConfig;
     this.uriInfo = uriInfo;
+    this.httpHeaders = httpHeaders;
   }
 
   public String get() {
@@ -60,7 +69,15 @@ public class BaseUrl
       if (uriInfo == null) {
         return null;
       }
-      String url = uriInfo.getBaseUri().toString();
+      UriBuilder baseUri = uriInfo.getBaseUriBuilder();
+      if (httpHeaders != null) {
+        // Jetty 8.1.x does not correctly respect X-Forwarded-Proto when configured with an SSL connector.
+        List<String> xForwardedProtoHeaders = httpHeaders.getRequestHeader(X_FORWARDED_PROTO);
+        if (xForwardedProtoHeaders != null && !xForwardedProtoHeaders.isEmpty()) {
+          baseUri.scheme(xForwardedProtoHeaders.get(0));
+        }
+      }
+      String url = baseUri.build().toString();
       if (!url.endsWith("/")) {
         url += '/';
       }

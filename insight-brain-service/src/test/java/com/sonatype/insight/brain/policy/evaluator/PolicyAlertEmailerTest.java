@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.naming.NamingException;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -361,8 +362,8 @@ public class PolicyAlertEmailerTest
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
     InsightConfig appConfig = new InsightConfig();
     UriInfo uriInfo = mock(UriInfo.class);
-    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
-    when(uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080"));
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
+    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://localhost:8080")));
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, baseUrl, new ApplicationAdapter(userDirectory),
         userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO());
 

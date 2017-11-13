@@ -38,7 +38,7 @@ public class PolicyImportExportAuthzTest
     insightConfig = new InsightConfig();
     insightConfig.setBaseUrl("base");
     when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
-    binder.bind(BaseUrl.class).toInstance(new BaseUrl(insightConfig, uriInfo));
+    binder.bind(BaseUrl.class).toInstance(new BaseUrl(insightConfig, uriInfo, null));
   }
 
   @Test(expected = UnauthorizedException.class)

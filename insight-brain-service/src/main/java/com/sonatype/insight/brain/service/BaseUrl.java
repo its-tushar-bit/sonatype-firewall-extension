@@ -38,7 +38,9 @@ public class BaseUrl
   @Inject
   public BaseUrl(final InsightConfig appConfig) {
     this.appConfig = appConfig;
-    // set via reflection by Jersey's dependency injection
+    // Set via reflection by Jersey's dependency injection.
+    // According to JAX-RS 2.0 specs, chapter 9, it is OK to inject UriInfo and HttpHeaders here even if this class is a
+    // singleton.
     this.uriInfo = null;
     this.httpHeaders = null;
   }

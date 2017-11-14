@@ -16,7 +16,7 @@ module.exports = {
   module: {
     rules: [{
       test: /\.js$/,
-      exclude: /node_modules|src\/main\/frontend\/lib/,
+      exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
       use: {
         loader: 'babel-loader',
         options: {

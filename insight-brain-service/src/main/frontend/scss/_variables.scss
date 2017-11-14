@@ -76,6 +76,12 @@ $iq-threat-color-critical: $iq-dark-red;
 $iq-threat-color-ignore: $iq-light-blue;
 $iq-threat-color-policy-none: $iq-light-blue;
 
+$iq-threat-color-policy-none-light: #d9ecfb;
+$iq-threat-color-low-light: #92cbff;
+$iq-threat-color-moderate-light: #fdecaf;
+$iq-threat-color-severe-light: #ffd6a2;
+$iq-threat-color-critical-light: #ff9493;
+
 $threat-levels:
   ("none", #FFF, $iq-threat-color-none, (0)),
   ("moderate", #444, $iq-threat-color-moderate, (1, 2, 3)),

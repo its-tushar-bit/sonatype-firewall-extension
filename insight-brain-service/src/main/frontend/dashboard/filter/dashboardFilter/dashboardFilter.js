@@ -80,6 +80,14 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
       maxDaysOld: null
     }
   ];
+  vm.policySliderRangeHighlights = [
+    { start: 0, end: 0.5, cls: 'threat-none' },
+    { start: 0.5, end: 1.5, cls: 'threat-low' },
+    { start: 1.5, end: 3.5, cls: 'threat-moderate' },
+    { start: 3.5, end: 7.5, cls: 'threat-severe' },
+    { start: 7.5, end: 10, cls: 'threat-critical' }
+  ];
+
   var defaultAge = vm.ages[2];
 
   // User selected

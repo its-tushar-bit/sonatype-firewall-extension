@@ -66,6 +66,7 @@
     this.picker = $('<div class="slider">'+
         '<div class="slider-track">'+
         '<div class="slider-selection"></div>'+
+        '<div class="slider-range-highlight-container"></div>' +
         '<div class="slider-handle">' + (options.showHandleValues ? options.value[0] : '') + '</div>'+
         '<div class="slider-handle">' + (options.showHandleValues ? options.value[1] : '') + '</div>'+
         '</div>'+
@@ -77,6 +78,33 @@
       this.picker.before('<span class="slider-label-min">' + options.min + '</span>')
           .after('<span class="slider-label-max">' + options.max + '</span>');
     }
+
+    if (options.rangeHighlights) {
+
+      const me = this;
+
+      // this.rangeHighlights is like options.rangeHighlights but with the percentages computed
+      this.rangeHighlights = options.rangeHighlights.map(function(rangeHighlight) {
+        const { start, end } = rangeHighlight,
+            range = me.max - me.min,
+            startPercent = start / range * 100,
+            endPercent = end / range * 100;
+
+        return { ...rangeHighlight, startPercent, endPercent };
+      });
+
+      const rangeHighlightEls = this.rangeHighlights.map(function({ startPercent, endPercent, cls }) {
+            const el = $('<div class="slider-range-highlight">')
+                .addClass(cls)
+                .css({ left: `${startPercent}%`, width: `${endPercent - startPercent}%` });
+
+            return el;
+          }),
+          highlightContainer = this.picker.find('.slider-range-highlight-container');
+
+      rangeHighlightEls.forEach(el => el.appendTo(highlightContainer));
+    }
+
     this.id = this.element.data('slider-id')||options.id;
     if (this.id) {
       this.picker[0].id = this.id;
@@ -227,6 +255,26 @@
             this.formater(this.value[0])
         );
         this.tooltip[0].style[this.stylePos] = this.size * this.percentage[0]/100 - (this.orientation === 'vertical' ? this.tooltip.outerHeight()/2 : this.tooltip.outerWidth()/2) +'px';
+      }
+
+      if (this.rangeHighlights) {
+        const me = this,
+            getClassesToAddAndRemoveByPercent = function(percent) {
+              // figure out the classes that are supposed to be on a handle that is located at the specified percentage
+
+              const toAdd = me.rangeHighlights.filter(({ startPercent, endPercent }) =>
+                    percent >= startPercent && percent < endPercent || percent === 100
+                  ).map(({ cls }) => cls),
+                  toRemove = me.rangeHighlights.filter(({ cls }) => toAdd.indexOf(cls) === -1)
+                      .map(({ cls }) => cls);
+
+              return { toAdd, toRemove };
+            },
+            { toAdd: toAdd1, toRemove: toRemove1 } = getClassesToAddAndRemoveByPercent(this.percentage[0]),
+            { toAdd: toAdd2, toRemove: toRemove2 } = getClassesToAddAndRemoveByPercent(this.percentage[1]);
+
+        this.handle1.addClass(toAdd1.join(' ')).removeClass(toRemove1.join(' '));
+        this.handle2.addClass(toAdd2.join(' ')).removeClass(toRemove2.join(' '));
       }
     },
 

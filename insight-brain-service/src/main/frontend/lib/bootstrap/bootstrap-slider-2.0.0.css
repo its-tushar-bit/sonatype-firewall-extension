@@ -136,3 +136,19 @@
 .slider-handle.triangle {
   background: transparent none;
 }
+
+.slider-range-highlight {
+  position: absolute;
+  height: 100%;
+}
+
+.slider-range-highlight-container {
+  border-radius: 4px;
+  overflow: hidden;
+  position: absolute;
+
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}

@@ -96,7 +96,12 @@
         </a>
         <div class="iq-tree-view__children" ng-if="vm.policyThreatLevelState.isExpanded">
           <div class="policy-threat-level-slider">
-            <div slider ng-model="vm.selected.policyThreatLevels" min="0" max="10" hide-labels="true"></div>
+            <div slider
+                 ng-model="vm.selected.policyThreatLevels"
+                 min="0"
+                 max="10"
+                 range-highlights="vm.policySliderRangeHighlights"
+                 hide-labels="true"></div>
           </div>
         </div>
       </div>

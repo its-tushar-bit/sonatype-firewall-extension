@@ -48,7 +48,9 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
     module: {
       rules: [{
         test: /\.js$/,
-        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib/,
+        // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
+        // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
+        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
         use: {
           loader: 'babel-loader',
           options: {

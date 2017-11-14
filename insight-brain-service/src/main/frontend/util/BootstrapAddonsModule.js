@@ -14,7 +14,8 @@ bootstrapAddons.directive('slider', function() {
       model: '=ngModel',
       min: '@',
       max: '@',
-      hideLabels: '@'
+      hideLabels: '@',
+      rangeHighlights: '<?'
     },
     priority: 99,
     link: function(scope, element) {
@@ -27,7 +28,8 @@ bootstrapAddons.directive('slider', function() {
         handle: 'square',
         tooltip: 'none',
         labels: !scope.hideLabels,
-        showHandleValues: true
+        showHandleValues: true,
+        rangeHighlights: scope.rangeHighlights
       }).on('slide', function(event) {
         scope.$apply(function() {
           scope.model = event.value;

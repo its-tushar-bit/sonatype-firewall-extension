@@ -181,7 +181,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   private void waitForTimeAdvance() {
-    for (long start = System.currentTimeMillis(); System.currentTimeMillis() <= start;)
-      ;
+    for (long start = System.currentTimeMillis(); System.currentTimeMillis() <= start;) {
+    }
   }
 }

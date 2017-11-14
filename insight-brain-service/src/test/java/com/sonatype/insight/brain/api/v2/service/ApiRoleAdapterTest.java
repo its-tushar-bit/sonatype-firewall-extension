@@ -10,7 +10,6 @@ import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiRoleAdapter;
 import com.sonatype.insight.brain.model.security.Role;
 
 import org.junit.Test;

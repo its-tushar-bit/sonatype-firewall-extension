@@ -1,0 +1,25 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project>
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+       Note: no parent module as that would create a circular dependency due to this module being a dependency of a
+       plugin defined in the parent 
+  -->
+
+  <groupId>com.sonatype.insight.brain</groupId>
+  <artifactId>pmd-ruleset</artifactId>
+  <version>1.41.0-SNAPSHOT</version>
+
+  <name>PMD ruleset</name>
+  <description>
+    The main PMD ruleset for this project.  It is contained in a separate maven module so that
+    it can be reliably referenced via the classpath
+  </description>
+</project>

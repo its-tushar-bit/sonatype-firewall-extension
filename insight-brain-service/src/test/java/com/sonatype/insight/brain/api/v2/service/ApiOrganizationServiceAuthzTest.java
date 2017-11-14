@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiOrganizationService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.junit.Test;

@@ -72,21 +72,27 @@ public class UserPrincipal
    */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    UserPrincipal other = (UserPrincipal) obj;
-    if (clmUser != other.clmUser)
-      return false;
-    if (username == null) {
-      if (other.username != null)
-        return false;
     }
-    else if (!username.equals(other.username))
+    if (obj == null) {
       return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    UserPrincipal other = (UserPrincipal) obj;
+    if (clmUser != other.clmUser) {
+      return false;
+    }
+    if (username == null) {
+      if (other.username != null) {
+        return false;
+      }
+    }
+    else if (!username.equals(other.username)) {
+      return false;
+    }
     if (displayName == null) {
       if (other.displayName != null) {
         return false;

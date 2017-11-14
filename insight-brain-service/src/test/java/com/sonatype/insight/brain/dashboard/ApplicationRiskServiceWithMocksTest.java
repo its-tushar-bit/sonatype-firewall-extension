@@ -12,10 +12,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -28,7 +24,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -60,28 +55,13 @@ public class ApplicationRiskServiceWithMocksTest
   private ApplicationService applicationService;
 
   @Mock
-  private ApplicationDAO applicationDAO;
-
-  @Mock
-  private ApplicationComponentDAO applicationComponentDAO;
-
-  @Mock
   private PolicyEvaluationDAO policyEvaluationDAO;
-
-  @Mock
-  private PolicyDAO policyDAO;
 
   @Mock
   private PolicyViolationDAO policyViolationDAO;
 
   @Mock
   private StageTypeService stageTypeService;
-
-  @Mock
-  private DashboardFilterDAO dashboardFilterDAO;
-
-  @Mock
-  private CurrentUser currentUser;
 
   @Mock
   private CLMLicenseManager licenseManager;

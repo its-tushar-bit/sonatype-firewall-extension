@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import com.sonatype.insight.brain.hds.EnvironmentResource;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;

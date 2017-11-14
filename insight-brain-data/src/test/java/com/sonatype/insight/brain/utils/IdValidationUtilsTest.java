@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.utils;
 
-import com.sonatype.insight.brain.utils.IdValidationUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;

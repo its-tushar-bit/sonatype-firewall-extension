@@ -10,7 +10,6 @@ import java.util.EnumSet;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.hds.RepoManResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 

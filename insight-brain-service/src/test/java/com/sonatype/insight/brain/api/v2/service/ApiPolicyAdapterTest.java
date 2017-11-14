@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyOwnerType;
-import com.sonatype.insight.brain.api.v2.service.ApiPolicyAdapter;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;

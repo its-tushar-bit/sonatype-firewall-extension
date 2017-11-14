@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.hds.EnvironmentResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;

@@ -13,7 +13,6 @@ import java.util.Map;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiTagDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiOrganizationAdapter;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;

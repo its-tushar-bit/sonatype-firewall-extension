@@ -67,6 +67,7 @@
   </scm>
 
   <modules>
+    <module>pmd-ruleset</module>
     <module>hds-mock-server</module>
     <module>insight-json-store</module>
     <module>insight-brain-common</module>
@@ -648,6 +649,32 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.8</version>
+        <configuration>
+          <linkXRef>false</linkXRef>
+          <printFailingErrors>true</printFailingErrors>
+          <includeTests>true</includeTests>
+          <rulesets>
+            <ruleset>pmd-ruleset/ruleset.xml</ruleset>
+          </rulesets>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.sonatype.insight.brain</groupId>
+            <artifactId>pmd-ruleset</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>

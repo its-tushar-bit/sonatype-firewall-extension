@@ -35,25 +35,32 @@ public class ReportItemKey
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     ReportItemKey other = (ReportItemKey) obj;
     if (applicationPublicId == null) {
-      if (other.applicationPublicId != null)
+      if (other.applicationPublicId != null) {
         return false;
+      }
     }
-    else if (!applicationPublicId.equals(other.applicationPublicId))
+    else if (!applicationPublicId.equals(other.applicationPublicId)) {
       return false;
+    }
     if (scanId == null) {
-      if (other.scanId != null)
+      if (other.scanId != null) {
         return false;
+      }
     }
-    else if (!scanId.equals(other.scanId))
+    else if (!scanId.equals(other.scanId)) {
       return false;
+    }
     return true;
   }
 

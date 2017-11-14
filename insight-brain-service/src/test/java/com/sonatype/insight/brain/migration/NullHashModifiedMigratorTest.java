@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.migration.NullHashModifiedMigrator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;

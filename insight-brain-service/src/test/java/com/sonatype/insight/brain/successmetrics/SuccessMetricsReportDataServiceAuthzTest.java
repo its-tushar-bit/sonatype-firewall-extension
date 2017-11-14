@@ -19,9 +19,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO;
-import com.sonatype.insight.brain.successmetrics.MttrDTO;
-import com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 

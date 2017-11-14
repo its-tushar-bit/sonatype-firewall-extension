@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiApplicationTagAdapter;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 
 import org.junit.Test;

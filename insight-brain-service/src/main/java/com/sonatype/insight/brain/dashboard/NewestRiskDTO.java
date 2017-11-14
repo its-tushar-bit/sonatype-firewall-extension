@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.TimeZone;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;

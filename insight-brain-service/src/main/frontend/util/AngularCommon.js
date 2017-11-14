@@ -143,16 +143,21 @@ angularCommon.directive('loadError', [
           '<i class="fa fa-warning"></i>' +
           '<span>{{message || "An error occurred loading data."}} </span>' +
           '<span ng-if="error">{{getDetails()}}</span>' +
-          '<div class="iq-btn-bar">' +
+          '<div ng-if="canRetry" class="iq-btn-bar">' +
           '<a href class="btn btn-error" ng-click="reload()"><i class="fa fa-refresh"></i>Retry</a>' +
           '</div>' +
           '</div>',
       scope: {
         error: '=loadError',
         reload: '&reload',
-        message: '='
+        message: '=',
+        canRetry: '=?'
       },
       link: function($scope) {
+        if (angular.isUndefined($scope.canRetry)) {
+          $scope.canRetry = true;
+        }
+
         $scope.getDetails = function() {
           return messages.getHttpErrorMessage($scope.error);
         };

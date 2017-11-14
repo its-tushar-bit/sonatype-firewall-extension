@@ -1,9 +1,11 @@
 <div class="tile-container tile-scroll-container iq-tile-scroll-container--success-metrics"
      load-wrapper="vm.error"
      loading="!vm.loaded"
-     reload="vm.doLoad()">
+     reload="vm.doLoad()"
+     message="vm.hasDisabledError() ? 'Error:' : undefined"
+     can-retry="!vm.hasDisabledError()">
   <iq-back-button state="labs.successMetrics"></iq-back-button>
-  <div class="iq-tile iq-tile--chart" >
+  <div class="iq-tile iq-tile--chart">
     <summary-statement-tile active-application-count="vm.activeApplicationCount"
                             success-metrics-report="vm.successMetricsReport"
                             on-delete="vm.goToList()"

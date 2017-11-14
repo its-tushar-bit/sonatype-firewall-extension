@@ -1,5 +1,10 @@
 <div id="success-metrics-list" class="tile-container tile-scroll-container">
-  <div class="iq-tile" load-wrapper="vm.error" loading="!vm.loaded" reload="vm.$onInit()">
+  <div class="iq-tile" 
+       load-wrapper="vm.error" 
+       loading="!vm.loaded" 
+       reload="vm.$onInit()"
+       message="vm.hasDisabledError() ? 'Error:' : undefined"
+       can-retry="!vm.hasDisabledError()">
     <div class="iq-tile-header">
       <div class="iq-tile-header__title">
         <i class="fa fa-flask slate iq-tile-header__icon"></i>

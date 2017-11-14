@@ -23,6 +23,7 @@ function successMetricsReportController($state, $q, systemConfigurationPropertyS
   vm.$onInit = $onInit;
   vm.goToCharts = goToCharts;
   vm.openAddSuccessMetricsReportModal = openAddSuccessMetricsReportModal;
+  vm.hasDisabledError = hasDisabledError;
 
   function $onInit() {
     delete vm.error;
@@ -59,6 +60,10 @@ function successMetricsReportController($state, $q, systemConfigurationPropertyS
     modalPromise.then(function(successMetricsReport) {
       vm.successMetricsReports.push(successMetricsReport);
     });
+  }
+
+  function hasDisabledError() {
+    return vm.error === systemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE;
   }
 }
 

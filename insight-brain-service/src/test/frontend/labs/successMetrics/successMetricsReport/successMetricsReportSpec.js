@@ -9,7 +9,8 @@ describe('successMetricsReportSpec', function() {
   var vm,
       $scope,
       mockSystemConfigurationPropertyService = {
-        checkSuccessMetricsEnabled: undefined
+        checkSuccessMetricsEnabled: undefined,
+        SUCCESS_METRICS_DISABLED_MESSAGE: 'Success metrics have been disabled by your system administrator.'
       },
       checkSuccessMetricsEnabledDeferred,
       resetPromise,
@@ -151,6 +152,7 @@ describe('successMetricsReportSpec', function() {
 
     expect(vm.loaded).toBeTruthy();
     expect(vm.error).toBeUndefined();
+    expect(vm.disabledError).toBeUndefined();
     expect(vm.activeApplicationCount).toBe(4);
     expect(vm.applicationCountsData).toBe(applicationCountsData);
     expect(vm.mttrData).toBe(mttrData);
@@ -190,17 +192,28 @@ describe('successMetricsReportSpec', function() {
   });
 
   it('properly loads on disabled success metrics', function() {
-    checkSuccessMetricsEnabledDeferred.reject('disabled');
+    checkSuccessMetricsEnabledDeferred.reject(mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
     $scope.$digest();
 
     expect(vm.loaded).toBeTruthy();
-    expect(vm.error).toBe('disabled');
+    expect(vm.error).toBe(mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
+    expect(vm.hasDisabledError()).toBe(true);
+  });
+
+  it('properly loads on error success metrics', function() {
+    checkSuccessMetricsEnabledDeferred.reject('error');
+    $scope.$digest();
+
+    expect(vm.loaded).toBeTruthy();
+    expect(vm.error).toBe('error');
+    expect(vm.hasDisabledError()).toBe(false);
   });
 
   it('resets error on load', function() {
-    checkSuccessMetricsEnabledDeferred.reject('disabled');
+    checkSuccessMetricsEnabledDeferred.reject('error');
     $scope.$digest();
     expect(vm.error).toBeDefined();
+    expect(vm.hasDisabledError()).toBe(false);
 
     resetPromise();
     vm.doLoad();
@@ -208,6 +221,7 @@ describe('successMetricsReportSpec', function() {
     $scope.$digest();
 
     expect(vm.error).toBeUndefined();
+    expect(vm.hasDisabledError()).toBe(false);
   });
 
   it('properly loads when the successMetricsId could not be found', function() {
@@ -225,6 +239,7 @@ describe('successMetricsReportSpec', function() {
     expect(mockSuccessMetricsDataService.getChartData).not.toHaveBeenCalled();
     expect(mockSuccessMetricsDataService.getComponentCountsData).not.toHaveBeenCalled();
     expect(vm.error).toBe('Could not find report with id SuccessMetrics1');
+    expect(vm.hasDisabledError()).toBe(false);
     expect(vm.loaded).toBe(true);
   });
 
@@ -392,6 +407,7 @@ describe('successMetricsReportSpec', function() {
       expect(vm.isSingleApplicationReport).toBe(true);
       expect(vm.singleApplicationName).toBeUndefined();
       expect(vm.error).toBe('Could not find Application with internal id app1');
+      expect(vm.hasDisabledError()).toBe(false);
     });
 
     it('does not call getApplicationByInternalId if activeApplicationCount is 0', function() {
@@ -410,6 +426,7 @@ describe('successMetricsReportSpec', function() {
       expect(vm.activeApplicationCount).toBe(0);
       expect(mockSuccessMetricsDataService.getApplicationByInternalId).not.toHaveBeenCalled();
       expect(vm.error).toBeUndefined();
+      expect(vm.hasDisabledError()).toBe(false);
       expect(vm.singleApplicationName).toBeUndefined();
       expect(vm.isSingleApplicationReport).toBe(true);
     });

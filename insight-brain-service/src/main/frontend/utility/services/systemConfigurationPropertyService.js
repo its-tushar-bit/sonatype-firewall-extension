@@ -3,12 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+const SUCCESS_METRICS_DISABLED_MESSAGE = 'Success metrics have been disabled by your system administrator.';
+
 export default
 function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations) {
   return {
     isSuccessMetricsEnabled: isSuccessMetricsEnabled,
     saveSuccessMetricsEnabled: saveSuccessMetricsEnabled,
-    checkSuccessMetricsEnabled: checkSuccessMetricsEnabled
+    checkSuccessMetricsEnabled: checkSuccessMetricsEnabled,
+    SUCCESS_METRICS_DISABLED_MESSAGE: SUCCESS_METRICS_DISABLED_MESSAGE
   };
 
   function isSuccessMetricsEnabled() {
@@ -23,7 +26,7 @@ function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations)
         return $q.resolve(true);
       }
       else {
-        return $q.reject('Success metrics have been disabled by your system administrator.');
+        return $q.reject(SUCCESS_METRICS_DISABLED_MESSAGE);
       }
     });
   }

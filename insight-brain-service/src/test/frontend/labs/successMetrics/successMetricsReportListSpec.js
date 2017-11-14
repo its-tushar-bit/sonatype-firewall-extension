@@ -6,7 +6,8 @@ describe('successMetricsReportList component', function() {
       $scope,
       $q,
       mockSystemConfigurationPropertyService = {
-        checkSuccessMetricsEnabled: undefined
+        checkSuccessMetricsEnabled: undefined,
+        SUCCESS_METRICS_DISABLED_MESSAGE: 'Success metrics have been disabled by your system administrator.'
       },
       mockSuccessMetricsDataService = {
         getSuccessMetricsReportsForCurrentUser: undefined
@@ -55,16 +56,30 @@ describe('successMetricsReportList component', function() {
 
       expect(vm.loaded).toBeTruthy();
       expect(vm.error).toBeUndefined();
+      expect(vm.disabledError).toBeUndefined();
     });
 
     it('properly loads on disabled success metrics', function() {
       vm.$onInit();
-      checkSuccessMetricsEnabledDeferred.reject('disabled');
+      checkSuccessMetricsEnabledDeferred.reject(
+          mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
       getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
       $scope.$digest();
 
       expect(vm.loaded).toBeTruthy();
-      expect(vm.error).toBe('disabled');
+      expect(vm.error).toBe(mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
+      expect(vm.hasDisabledError()).toBe(true);
+    });
+
+    it('properly loads on error success metrics', function() {
+      vm.$onInit();
+      checkSuccessMetricsEnabledDeferred.reject('error');
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
+      $scope.$digest();
+
+      expect(vm.loaded).toBeTruthy();
+      expect(vm.error).toBe('error');
+      expect(vm.hasDisabledError()).toBe(false);
     });
 
     it('properly loads the successMetricsReports', function() {
@@ -83,10 +98,11 @@ describe('successMetricsReportList component', function() {
 
     it('resets error on load', function() {
       vm.$onInit();
-      checkSuccessMetricsEnabledDeferred.reject('disabled');
+      checkSuccessMetricsEnabledDeferred.reject('error');
       getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
       $scope.$digest();
       expect(vm.error).toBeDefined();
+      expect(vm.disabledError).toBeUndefined();
 
       resetCheckSuccessMetricsEnabledPromise();
       resetGetSuccessMetricsReportsForCurrentUserPromise();
@@ -96,6 +112,7 @@ describe('successMetricsReportList component', function() {
       $scope.$digest();
 
       expect(vm.error).toBeUndefined();
+      expect(vm.hasDisabledError()).toBe(false);
     });
   });
 

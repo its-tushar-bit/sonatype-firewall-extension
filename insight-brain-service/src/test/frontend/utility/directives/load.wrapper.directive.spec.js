@@ -8,10 +8,11 @@ describe('load.wrapper.directive.spec.js', function() {
     scope = angular.extend($rootScope.$new(), {
       error: null,
       loading: false,
-      reload: jasmine.createSpy()
+      reload: jasmine.createSpy(),
+      canRetry: undefined
     });
 
-    element = $compile('<div load-wrapper="error" loading="loading" reload="reload()"><div id="content"></div></div>')(scope);
+    element = $compile('<div load-wrapper="error" loading="loading" reload="reload()" can-retry="canRetry"><div id="content"></div></div>')(scope);
     scope.$digest();
   }));
 
@@ -40,7 +41,34 @@ describe('load.wrapper.directive.spec.js', function() {
     expect(element.find('#content').length).toBe(0);
     expect(element.find('.iq-alert').attr('class').split(' ')).not.toContain('ng-hide');
 
+    expect(element.find('.btn.btn-error').length).toBe(1);
     element.find('.btn.btn-error').trigger('click');
     expect(scope.reload).toHaveBeenCalled();
+  });
+
+  it('Directive shows and calls retry button when canRetry is true', function() {
+    scope.error = true;
+    scope.canRetry = true;
+    scope.$digest();
+
+    expect(element.find('i.fa-spin').length).toBe(0);
+    expect(element.find('#content').length).toBe(0);
+    expect(element.find('.iq-alert').attr('class').split(' ')).not.toContain('ng-hide');
+
+    expect(element.find('.btn.btn-error').length).toBe(1);
+    element.find('.btn.btn-error').trigger('click');
+    expect(scope.reload).toHaveBeenCalled();
+  });
+
+  it('Directive hides retry button when canRetry is false', function() {
+    scope.error = true;
+    scope.canRetry = false;
+    scope.$digest();
+
+    expect(element.find('i.fa-spin').length).toBe(0);
+    expect(element.find('#content').length).toBe(0);
+    expect(element.find('.iq-alert').attr('class').split(' ')).not.toContain('ng-hide');
+
+    expect(element.find('.btn.btn-error').length).toBe(0);
   });
 });

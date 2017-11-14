@@ -107,6 +107,7 @@ public class SuccessMetricsConfigurationTest
     waitUntilUrl(SuccessMetricsReportListPage.URL);
     successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(0);
     successMetricsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
+    successMetricsPage.errorBox().retryButton().shouldNotBe(visible);
     successMetricsPage.addSuccessMetricsBtn().shouldNotBe(visible);
 
     // ... and the success metrics details page for root org
@@ -115,6 +116,7 @@ public class SuccessMetricsConfigurationTest
     SummaryStatementTile.root().shouldNot(exist);
     ApplicationCountsTile.root().shouldNot(exist);
     successMetricsChartsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
+    successMetricsChartsPage.errorBox().retryButton().shouldNotBe(visible);
 
     // now re-enable success metrics.
     refreshOrOpen(SuccessMetricsConfigurationPage.URL);

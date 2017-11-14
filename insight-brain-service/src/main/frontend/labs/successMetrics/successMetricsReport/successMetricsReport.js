@@ -27,6 +27,7 @@ function successMetricsReportController($q, $state, $stateParams, systemConfigur
   vm.doLoad = doLoad;
   vm.isMttrDisabled = isMttrDisabled;
   vm.goToList = goToList;
+  vm.hasDisabledError = hasDisabledError;
 
   function doLoad() {
     const { successMetricsReportId } = $stateParams;
@@ -81,6 +82,10 @@ function successMetricsReportController($q, $state, $stateParams, systemConfigur
 
   function goToList() {
     $state.go('labs.successMetrics');
+  }
+
+  function hasDisabledError() {
+    return vm.error === systemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE;
   }
 
   doLoad();

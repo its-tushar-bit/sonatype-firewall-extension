@@ -33,12 +33,18 @@ public class HttpHeaderValidatorFilterChainTest
   }
 
   @Test
-  public void testInvalidHeader() throws Exception {
-    // Using X-Forwarded-Proto instead of Host since Host seems to be overridden by the client
+  public void testInvalidHeader_Proto() throws Exception {
     HttpResponse response = restRequest().header("X-Forwarded-Proto", "http\"><script>alert(document.domain)</script>")
         .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("Illegal header value detected in 'X-Forwarded-Proto'"));
   }
 
+  @Test
+  public void testInvalidHeader_Host() throws Exception {
+    HttpResponse response = restRequest().header("X-Forwarded-Host", "\"><script>alert(document.domain)</script>")
+        .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), is("Illegal header value detected in 'Host'"));
+  }
 }

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import java.nio.file.Paths;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -133,7 +133,7 @@ public class PolicyViolation
     if (StringUtils.isBlank(firstPath)) {
       return null;
     }
-    filename = Paths.get(firstPath).getFileName().toString();
+    filename = new File(firstPath).getName();
     return filename;
   }
 

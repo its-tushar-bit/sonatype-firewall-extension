@@ -323,6 +323,9 @@ public class PolicyViolationTest
     assertFilename("foo.jar", "some/path/foo.jar", "bar");
     assertFilename("foo.jar", "/some/path/foo.jar", "bar");
     assertFilename("foo with spaces.jar", "foo with spaces.jar", "bar");
+    assertFilename("junit:junit:jar:4.9", "dependency:/com.sonatype.test:clm:war:0.1/junit:junit:jar:4.9");
+    String sc = "!£$%^&*()-_+=/`.<>?@'~#{}[];:<>,|\\";
+    assertFilename("g2:a2:jar:0.2", String.format("%sdependency%s:/g1:%sa1%s:%s0.1/g2:a2:jar:0.2", sc, sc, sc, sc, sc));
   }
 
   private void assertFilename(String expectedFilename, String... pathnames) {

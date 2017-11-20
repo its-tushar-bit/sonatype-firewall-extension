@@ -52,9 +52,12 @@ public class BaseUrl
   }
 
   public String get() {
-    String url = tryGetBaseUriWithEndingForwardSlash();
-    if (url != null) {
-      return url;
+    String url;
+    if (!appConfig.isForceBaseUrl()) {
+      url = tryGetBaseUriWithEndingForwardSlash();
+      if (url != null) {
+        return url;
+      }
     }
     url = appConfig.getBaseUrl();
     if (!isBlank(url)) {

@@ -23,11 +23,23 @@ import static org.junit.Assert.assertThat;
 public class LandingResourceTest
     extends AbstractResourceTest
 {
+  private static final String BASE_URL = "http://localhost/testbaseurl";
+  
   @Test
   public void testHome() throws Exception {
     HttpResponse response = restRequest().anon().get();
     assertResponseStatus(303, response);
     assertThat(response.getHeader("Location"), startsWith(restRequest().getUrl()));
+  }
+
+  @Test
+  @ManualServerInit
+  public void testHome_ForceBaseUrl() throws Exception {
+    initServerForcingBaseUrl();
+
+    HttpResponse response = restRequest().anon().get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
   }
 
   @Test
@@ -41,6 +53,16 @@ public class LandingResourceTest
   }
 
   @Test
+  @ManualServerInit
+  public void testHome_SSL_ForcingBaseUrl() throws Exception {
+    initServerForSSLAndForcingBaseUrl();
+
+    HttpResponse response = restRequest().get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+  }
+
+  @Test
   public void testHome_XForwardedProto() throws Exception {
     HttpRequest httpRequest = restRequest();
     String xForwardedProto = "https";
@@ -48,6 +70,19 @@ public class LandingResourceTest
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
     assertThat(response.getHeader("Location"), startsWith(xForwardedProto));
+  }
+
+  @Test
+  @ManualServerInit
+  public void testHome_XForwardedProto_ForceBaseUrl() throws Exception {
+    initServerForcingBaseUrl();
+
+    HttpRequest httpRequest = restRequest();
+    String xForwardedProto = "https";
+    httpRequest.header("X-Forwarded-Proto", xForwardedProto);
+    HttpResponse response = httpRequest.get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
   }
 
   @Test
@@ -64,6 +99,19 @@ public class LandingResourceTest
   }
 
   @Test
+  @ManualServerInit
+  public void testHome_XForwardedProto_SSL_ForceBaseUrl() throws Exception {
+    initServerForSSLAndForcingBaseUrl();
+
+    HttpRequest httpRequest = restRequest();
+    String xForwardedProto = "http";
+    httpRequest.header("X-Forwarded-Proto", xForwardedProto);
+    HttpResponse response = httpRequest.get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+  }
+
+  @Test
   public void testHome_XForwardedHost() throws Exception {
     HttpRequest httpRequest = restRequest();
     String xForwardedHost = "xforwardedhost:88";
@@ -71,6 +119,19 @@ public class LandingResourceTest
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
     assertThat(response.getHeader("Location"), startsWith("http://" + xForwardedHost));
+  }
+
+  @Test
+  @ManualServerInit
+  public void testHome_XForwardedHost_ForceBaseUrl() throws Exception {
+    initServerForcingBaseUrl();
+
+    HttpRequest httpRequest = restRequest();
+    String xForwardedHost = "xforwardedhost:88";
+    httpRequest.header("X-Forwarded-Host", xForwardedHost);
+    HttpResponse response = httpRequest.get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
   }
 
   @Test
@@ -87,6 +148,19 @@ public class LandingResourceTest
   }
 
   @Test
+  @ManualServerInit
+  public void testHome_XForwardedHost_SSL_ForceBaseUrl() throws Exception {
+    initServerForSSLAndForcingBaseUrl();
+
+    HttpRequest httpRequest = restRequest();
+    String xForwardedHost = "xforwardedhost:88";
+    httpRequest.header("X-Forwarded-Host", xForwardedHost);
+    HttpResponse response = httpRequest.get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+  }
+
+  @Test
   public void testHome_XForwardedProtoAndXForwardedHost() throws Exception {
     HttpRequest httpRequest = restRequest();
     String xForwardedProto = "https";
@@ -96,6 +170,21 @@ public class LandingResourceTest
     HttpResponse response = httpRequest.get();
     assertResponseStatus(303, response);
     assertThat(response.getHeader("Location"), startsWith(xForwardedProto + "://" + xForwardedHost));
+  }
+
+  @Test
+  @ManualServerInit
+  public void testHome_XForwardedProtoAndXForwardedHost_ForceBaseUrl() throws Exception {
+    initServerForcingBaseUrl();
+
+    HttpRequest httpRequest = restRequest();
+    String xForwardedProto = "https";
+    String xForwardedHost = "xforwardedhost:88";
+    httpRequest.header("X-Forwarded-Proto", xForwardedProto);
+    httpRequest.header("X-Forwarded-Host", xForwardedHost);
+    HttpResponse response = httpRequest.get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
   }
 
   @Test
@@ -113,16 +202,47 @@ public class LandingResourceTest
     assertThat(response.getHeader("Location"), startsWith(xForwardedProto + "://" + xForwardedHost));
   }
 
+  @Test
+  @ManualServerInit
+  public void testHome_XForwardedProtoAndXForwardedHost_SSL_ForceBaseUrl() throws Exception {
+    initServerForSSLAndForcingBaseUrl();
+
+    HttpRequest httpRequest = restRequest();
+    String xForwardedProto = "http";
+    String xForwardedHost = "xforwardedhost:88";
+    httpRequest.header("X-Forwarded-Proto", xForwardedProto);
+    httpRequest.header("X-Forwarded-Host", xForwardedHost);
+    HttpResponse response = httpRequest.get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(BASE_URL));
+  }
+
+  private void initServerForcingBaseUrl() throws Exception {
+    initServer(false, true);
+  }
+
   private void initServerForSSL() throws Exception {
+    initServer(true, false);
+  }
+
+  private void initServerForSSLAndForcingBaseUrl() throws Exception {
+    initServer(true, true);
+  }
+
+  private void initServer(final boolean ssl, final boolean forceBaseUrl) throws Exception {
     initServer(new Configurator()
     {
       @Override
       public void configure(final InsightConfig config) {
-        config.getHttpConfiguration().setConnectorType(HttpConfiguration.ConnectorType.NONBLOCKING_SSL);
-        SslConfiguration sslConfig = new SslConfiguration();
-        sslConfig.setKeyStore(Optional.of(SslProperties.SERVER_STORE_FILE));
-        sslConfig.setKeyStorePassword(Optional.of(SslProperties.KEY_STORE_PASSWORD));
-        config.getHttpConfiguration().setSslConfiguration(sslConfig);
+        config.setForceBaseUrl(forceBaseUrl);
+        config.setBaseUrl(BASE_URL);
+        if (ssl) {
+          config.getHttpConfiguration().setConnectorType(HttpConfiguration.ConnectorType.NONBLOCKING_SSL);
+          SslConfiguration sslConfig = new SslConfiguration();
+          sslConfig.setKeyStore(Optional.of(SslProperties.SERVER_STORE_FILE));
+          sslConfig.setKeyStorePassword(Optional.of(SslProperties.KEY_STORE_PASSWORD));
+          config.getHttpConfiguration().setSslConfiguration(sslConfig);
+        }
       }
     });
   }

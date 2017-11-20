@@ -50,6 +50,14 @@ public class InsightConfig
   @JsonProperty
   private String baseUrl;
 
+  /**
+   * When true, {@link BaseUrl#get()} will always return the configured {@link #baseUrl}.
+   *
+   * @since 1.41
+   */
+  @JsonProperty
+  private boolean forceBaseUrl;
+
   @NotNull
   @JsonProperty
   private String hdsUrl = "https://clm.sonatype.com/";
@@ -252,6 +260,20 @@ public class InsightConfig
     if (baseUrl != null && !baseUrl.endsWith("/")) {
       this.baseUrl += '/';
     }
+  }
+
+  /**
+   * @since 1.41
+   */
+  public boolean isForceBaseUrl() {
+    return forceBaseUrl;
+  }
+
+  /**
+   * @since 1.41
+   */
+  public void setForceBaseUrl(boolean forceBaseUrl) {
+    this.forceBaseUrl = forceBaseUrl;
   }
 
   @ValidationMethod(message = "baseUrl is invalid")

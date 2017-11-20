@@ -19,6 +19,7 @@ import static org.eclipse.jetty.http.HttpHeaders.X_FORWARDED_PROTO;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class BaseUrlTest
@@ -102,6 +103,26 @@ public class BaseUrlTest
 
   private void testGet_UsesInsightConfigBaseUrl(UriInfo uriInfo) {
     InsightConfig appConfig = new InsightConfig();
+
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
+    appConfig.setBaseUrl("http://test.sonatype.com");
+    assertEquals("http://test.sonatype.com/", baseUrl.get());
+    appConfig.setBaseUrl("http://test.sonatype.com/");
+    assertEquals("http://test.sonatype.com/", baseUrl.get());
+  }
+
+  @Test
+  public void testGet_ForceInsightConfigBaseUrl() throws Exception {
+    testGet_ForceInsightConfigBaseUrl(null);
+
+    UriInfo uriInfo = mock(UriInfo.class);
+    testGet_ForceInsightConfigBaseUrl(uriInfo);
+    verifyZeroInteractions(uriInfo);
+  }
+
+  private void testGet_ForceInsightConfigBaseUrl(UriInfo uriInfo) {
+    InsightConfig appConfig = new InsightConfig();
+    appConfig.setForceBaseUrl(true);
 
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
     appConfig.setBaseUrl("http://test.sonatype.com");

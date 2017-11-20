@@ -265,7 +265,13 @@ public class InsightBrainService
     env.addFilter(getInstance(IndexCacheControlFilter.class), IndexCacheControlFilter.URL_PATTERN);
     env.addFilter(getInstance(AuthenticationLoggingFilter.class), AuthenticationLoggingFilter.URL_PATTERN);
 
-    log.info("Server base URL: {}", config.getBaseUrl());
+    if (config.isForceBaseUrl()) {
+      log.error("DEPRECATION NOTICE: Forcing use of server base URL: {}, any 'X-Forwarded-*' headers will be " +
+          "ignored. More information at http://links.sonatype.com/products/clm/docs/base-url", config.getBaseUrl());
+    }
+    else {
+      log.info("Server base URL: {}", config.getBaseUrl());
+    }
     log.debug("HDS URL: {}", config.getHdsUrl());
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
   }

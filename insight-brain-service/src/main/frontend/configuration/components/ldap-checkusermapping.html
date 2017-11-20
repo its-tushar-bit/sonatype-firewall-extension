@@ -1,30 +1,36 @@
 <div id="ldap-checkusermapping-modal">
-  <div class="modal-header">
+  <div class="iq-modal-header">
     <h3>Verify LDAP Field Mappings</h3>
     <span class="icon-question-sign" style="position: absolute;right: 15px;top: 15px;" data-popover="{{infoText}}" data-popover-placement="left"
           data-popover-trigger="mouseenter"></span>
   </div>
-  <div class="modal-ldap-user-list">
-    <table class="table clm-table-stripe">
+  <div class="iq-modal-content iq-scrollable modal-ldap-user-list">
+    <table class="iq-table">
       <thead>
-      <tr>
-        <th>USERNAME</th>
-        <th>NAME</th>
-        <th>EMAIL</th>
-        <th>GROUPS</th>
-      </tr>
+        <tr>
+          <th class="iq-cell iq-cell--header modal-ldap-user-list__username-column">USERNAME</th>
+          <th class="iq-cell iq-cell--header modal-ldap-user-list__name-column">NAME</th>
+          <th class="iq-cell iq-cell--header modal-ldap-user-list__email-column">EMAIL</th>
+          <th class="iq-cell iq-cell--header modal-ldap-user-list__groups-column">GROUPS</th>
+        </tr>
       </thead>
       <tbody>
-      <tr ng-repeat="user in users | orderBy: ['-fieldCount', 'username']">
-        <td class="truncate-ellipsis" style="width: 20%; max-width: 1px;" title="{{::user.username}}">{{::user.username}}</td>
-        <td class="truncate-ellipsis" style="width: 20%">{{::user.realName}}</td>
-        <td class="truncate-ellipsis" style="width: 30%; max-width: 1px;" title="{{::user.email}}">{{::user.email}}</td>
-        <td class="truncate-ellipsis" style="width: 30%; max-width: 1px;" title="{{::user.membership}}">{{::user.membership}}</td>
-      </tr>
+        <tr class="iq-table-row" ng-repeat="user in users | orderBy: ['-fieldCount', 'username']">
+          <td class="iq-cell modal-ldap-user-list__username-column" title="{{::user.username}}">
+            {{::user.username}}
+          </td>
+          <td class="iq-cell modal-ldap-user-list__name-column">{{::user.realName}}</td>
+          <td class="iq-cell modal-ldap-user-list__email-column" title="{{::user.email}}">
+            {{::user.email}}
+          </td>
+          <td class="iq-cell modal-ldap-user-list__groups-column" title="{{::user.membership}}">
+            {{::user.membership}}
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
-  <div class="modal-footer">
+  <div class="iq-modal-footer">
     <button class="btn btn-link btn-cancel" ng-click="$close()">Close</button>
   </div>
 </div>

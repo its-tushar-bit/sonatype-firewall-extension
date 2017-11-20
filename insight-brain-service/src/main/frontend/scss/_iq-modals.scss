@@ -114,3 +114,25 @@ $iq-modal-bottom-spacing: 8px;
   max-height: 400px;
   overflow: auto;
 }
+
+.modal-ldap-user-list {
+  > .iq-table {
+    table-layout: fixed;
+  }
+
+  .modal-ldap-user-list__username-column {
+    width: 20%;
+  }
+
+  .modal-ldap-user-list__name-column {
+    width: 20%;
+  }
+
+  .modal-ldap-user-list__email-column {
+    width: 30%;
+  }
+
+  .modal-ldap-user-list__groups-column {
+    width: 30%;
+  }
+}

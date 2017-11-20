@@ -41,8 +41,14 @@ $iq-cell-affected-apps-width: 109px;
 
   .iq-table-row {
     display: block;
+    
+    &:first-child {
+      td {
+        border-top-color: $iq-grey-1;
+      }
+    }
   }
-
+  
   .iq-cell {
     display: inline-block;
     min-width: 0;

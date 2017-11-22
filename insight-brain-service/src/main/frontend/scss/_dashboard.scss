@@ -69,6 +69,10 @@ $iq-cell-affected-apps-width: 109px;
   text-transform: uppercase;
   width: calc(100% - 2px);
   z-index: $iq-dashboard-headers-zindex;
+  
+  .iq-table-row {
+    border: none;
+  }
 
   .iq-cell--header {
     &:first-child {

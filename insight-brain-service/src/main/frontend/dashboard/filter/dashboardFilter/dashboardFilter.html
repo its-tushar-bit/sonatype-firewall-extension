@@ -1,5 +1,5 @@
 <form class="dashboard-filter-container" ng-submit="vm.applyCurrentFilter()">
-  <div class="dashboard-filter">
+  <div class="dashboard-filter-header">
     <div id="manage-filters-dropdown"
          class="iq-dropdown pull-right"
          dropdown
@@ -20,14 +20,19 @@
                           on-filter-saved="vm.onFilterSaved(filterName)">
       </manage-filter-menu>
     </div>
-    
-    <div class="dashboard-filter-header">
+
+    <div class="dashboard-filter-header-title">
       Filter
     </div>
-    <div class="dashboard-filter-name" ng-if="vm.activeFilterName">{{vm.activeFilterName}}<span class="dashboard-filter-dirty-asterisk" ng-if="vm.showDirtyAsterisk">*</span></div>
+    <div class="dashboard-filter-name-container">
+      <div class="dashboard-filter-name"
+           ng-if="vm.activeFilterName">{{vm.activeFilterName}}<span class="dashboard-filter-dirty-asterisk" ng-if="vm.showDirtyAsterisk">*</span></div>
+    </div>
     <div ng-show="vm.loadErrorFilterName" class="iq-alert iq-alert--error">
       <i class="fa fa-warning"></i>Failed to load {{vm.loadErrorFilterName}}
     </div>
+  </div>
+  <div class="dashboard-filter" ng-class="{'iq-apply-error-present': vm.saveError}">
     <div load-wrapper="vm.loadError" reload="vm.doLoad()" error-message="Unable to load filter data."
          loading="!vm.applications">
 
@@ -107,7 +112,7 @@
       </div>
     </div>
   </div>
-  <div class="dashboard-filter-footer" submit-wrapper="vm.saveError" retry="vm.applyCurrentFilter()">
+  <div class="dashboard-filter-footer" ng-class="{'iq-apply-error-present': vm.saveError}" submit-wrapper="vm.saveError" retry="vm.applyCurrentFilter()">
     <button id="dashboard-filter-apply"
             class="btn btn-primary"
             type="submit"

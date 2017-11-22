@@ -1,6 +1,8 @@
 .dashboard-filter-container {
   $tree-view-margin-bottom: 8px;
+  $filter-header-height: #{52px + 8px + 1px};
   $filter-footer-height: #{32px + 12px + 12px + 1px};
+  $filter-footer-error-height: 100px;
   
   height: 100%;
   margin: 0;
@@ -8,18 +10,10 @@
 
   .dashboard-filter {
     box-sizing: border-box;
-    height: calc(100% - #{$filter-footer-height} - #{$tree-view-margin-bottom});
+    height: calc(100% - #{$filter-header-height} - #{$filter-footer-height} - #{$tree-view-margin-bottom});
     overflow-x: visible;
     overflow-y: auto;
-    padding: 16px 0 0 8px;
-
-    .dashboard-filter-header {
-      @extend h3;
-      @include semi-bold();
-
-      color: $iq-slate;
-      margin-bottom: 16px;
-    }
+    padding: 7px 0 0 8px;
 
     .policy-threat-level-slider {
       padding-top: 6px;
@@ -82,6 +76,10 @@
       }
     }
   }
+  
+  .dashboard-filter.iq-apply-error-present {
+    height: calc(100% - #{$filter-header-height} - #{$filter-footer-error-height + 12px + 12px + 1px} - #{$tree-view-margin-bottom});
+  }
 
   .dashboard-filter-footer {
     $footer-side-margin: 8px;
@@ -90,9 +88,7 @@
     box-shadow: 0px 0px 12px 10px $iq-grey-2;
     margin: 0 $footer-side-margin;
     padding: 12px 0;
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    position: relative; // needed for box-shadow to render
     width: calc(100% - #{2 * $footer-side-margin});
     
     .btn {
@@ -102,6 +98,10 @@
         margin-right: 4px;
       }
     }
+
+    .iq-apply-error-present {
+      height: $filter-footer-error-height;
+    }
   }
 
   .iq-alert {
@@ -109,11 +109,30 @@
   }
 }
 
-.dashboard-filter-name {
+.dashboard-filter-header {
   border-bottom: 1px $iq-grey-4 solid;
+  box-shadow: 3px 7px 6px 3px $iq-grey-2;
+  margin: 0px 8px;
+  padding-top: 16px;
+  position: relative; // needed for box-shadow to render
+  z-index: 1;
+
+  .dashboard-filter-header-title {
+    @extend h3;
+    @include semi-bold();
+
+    color: $iq-slate;
+    margin-bottom: 16px;
+  }
+}
+
+.dashboard-filter-name-container {
+  height: 18px;
+}
+
+.dashboard-filter-name {
   color: $iq-slate;
   margin-top: -8px;
-  margin-bottom: 7px;
   overflow-x: hidden;
   padding-bottom: 3px;
   text-overflow: ellipsis;
@@ -154,7 +173,6 @@
 
   .iq-dropdown-toggle {
     margin-top: -4px;
-    margin-right: 8px;
   }
 
   .iq-dropdown-menu {

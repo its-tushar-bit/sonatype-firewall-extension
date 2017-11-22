@@ -1,9 +1,11 @@
-<div id="dashboard-components">
+<div id="dashboard-components" ng-init="sortVm.sortFields = ['-score']">
   <div class="iq-tile iq-tile--dashboard-table-container">
     <div class="iq-scrollable" detect-scrollbar>
       <table class="iq-table iq-table--dashboard-components">
         <thead class="iq-dashboard-headers">
-          <tr class="iq-table-row components-row" sort="-score">
+          <tr class="iq-table-row components-row"
+              sort="sortVm.sortFields"
+              on-sort-change="sortVm.sortFields = sortFields">
             <th class="iq-cell iq-cell--header iq-cell--component-name" sort-column="derivedComponentName">
               <span class="header-text">Name</span>
             </th><!--

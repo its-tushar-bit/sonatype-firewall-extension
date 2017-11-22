@@ -10,6 +10,7 @@ function ConfigurationTileController($http, CLMLocations, DeleteModalService) {
   vm.error = undefined;
   vm.removeRepository = removeRepository;
   vm.repositories = undefined;
+  vm.sortFields = ['repository.publicId'];
 
   vm.doLoad();
 

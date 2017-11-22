@@ -1,40 +1,51 @@
 describe('sort.directive.spec.js', function() {
-  var $compile,
-      scope,
-      sortVm;
+  var vm;
 
   beforeEach(module('utility.directives'));
-  beforeEach(inject(function(_$compile_, $rootScope) {
-    scope = $rootScope.$new();
 
-    $compile = _$compile_;
+  beforeEach(inject(function($controller) {
+    vm = $controller('sort.controller');
   }));
 
-  afterEach(function() {
-    scope.$destroy();
+  describe('extractSortField()', function() {
+    it('strips hyphen and returns the rest of the string', function() {
+      expect(vm.extractSortField('foo')).toBe('foo');
+      expect(vm.extractSortField('-bar')).toBe('bar');
+    });
+    it('handles null or undefined', function() {
+      expect(vm.extractSortField(null)).toBeFalsy();
+      expect(vm.extractSortField(undefined)).toBeFalsy();
+    });
   });
 
-  it('Test sort', function() {
+  describe('setSort()', function() {
+    beforeEach(function() {
+      vm.onSortChange = jasmine.createSpy('onSortChange');
+    });
 
-    $compile('<table sort="foo"></table>')(scope);
-    scope.$digest();
+    describe('new sort fields differ from current', function() {
+      it('calls onSortChange callback with new sort fields', function() {
+        vm.sortFields = ['foo', 'bar'];
+        vm.setSort(['foo', 'baz']);
+        expect(vm.onSortChange).toHaveBeenCalledWith({sortFields: ['foo', 'baz']});
+      });
+    });
 
-    sortVm = scope.sortVm;
-
-    expect(sortVm.sortFields.length).toBe(1);
-    expect(sortVm.sortFields).toEqual(['foo']);
-    expect(sortVm.extractSortField('foo')).toBe('foo');
-
-    sortVm.setSort(['foo', '-bar']);
-    expect(sortVm.sortFields.length).toBe(2);
-    expect(sortVm.sortFields).toContain('foo');
-
-    expect(sortVm.extractSortField('foo')).toBe('foo');
-    expect(sortVm.extractSortField('-bar')).toBe('bar');
-
-    sortVm.setSort(['bar']);
-    expect(sortVm.sortFields.length).toBe(1);
-    expect(sortVm.sortFields).toEqual(['bar']);
-    expect(sortVm.extractSortField('bar')).toBe('bar');
+    describe('new sort fields same as current', function() {
+      describe('when first sort field is descending', function() {
+        it('flips first field to ascending and calls onSortChange callback', function() {
+          vm.sortFields = ['-foo', '-bar'];
+          vm.setSort(['-foo', '-bar']);
+          expect(vm.onSortChange).toHaveBeenCalledWith({sortFields: ['foo', '-bar']});
+        });
+      });
+      describe('when first sort field is ascending', function() {
+        it('flips first field to descending and calls onSortChange callback', function() {
+          vm.sortFields = ['foo', 'bar'];
+          vm.setSort(['foo', 'bar']);
+          expect(vm.onSortChange).toHaveBeenCalledWith({sortFields: ['-foo', 'bar']});
+        });
+      });
+    });
   });
 });

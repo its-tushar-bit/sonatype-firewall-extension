@@ -30,7 +30,10 @@
           <div class="empty-list" ng-if="vm.repositories.length <= 0">There are no repositories registered with the
             server.
           </div>
-          <table sort="repository.publicId" class="greedy-table repository-configuration-list" cols="3"
+          <table sort="vm.sortFields"
+                 on-sort-change="vm.sortFields = sortFields"
+                 class="greedy-table repository-configuration-list"
+                 cols="3"
                  ng-if="vm.repositories.length > 0">
             <thead>
             <tr>
@@ -46,7 +49,7 @@
               <th></th>
             </tr>
             </thead>
-            <tr ng-repeat="repository in vm.repositories | orderBy:sortVm.sortFields">
+            <tr ng-repeat="repository in vm.repositories | orderBy:vm.sortFields">
               <td class="greedy-column">{{repository.repository.publicId}}</td>
               <td>{{repository.managerInstanceId}}</td>
               <td><i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i><!--

@@ -13,7 +13,7 @@ import {
 const MAX_RESULTS = 100;
 
 export default
-function dashboardDataService($http, $filter, CLMLocations, createRequest) {
+function dashboardDataService($http, $filter, CLMLocations, createRequest, ClassyBrew) {
 
   var latestResultCounts = {
         newestRisk: undefined,
@@ -32,43 +32,52 @@ function dashboardDataService($http, $filter, CLMLocations, createRequest) {
   }
 
   function getApplicationRisks(filters, sortFields) {
-    var scoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
-
     const request = createRequest(filters, MAX_RESULTS, translateApplicationsSortFields(sortFields));
     return getData(CLMLocations.getApplicationRisksUrl(), request).then(function(resultsWrapper) {
-      var series = {};
       resetCountsIfFilterChanged(filters);
       latestResultCounts.applicationRisk = resultsWrapper.numResults;
-      resultsWrapper.dashboardResults.forEach(function(application) {
-        scoreFields.forEach(function(scoreField) {
-          if (application.totalApplicationRisk[scoreField]) {
-            series[application.totalApplicationRisk[scoreField]] = true;
-          }
-        });
-      });
+      const series = generateApplicationsSeries(resultsWrapper.dashboardResults);
+      return [resultsWrapper.dashboardResults, ClassyBrew.create(series)];
+    });
+  }
 
-      return [resultsWrapper.dashboardResults, Object.keys(series).map(function(x) {
-        return parseInt(x, 10);
-      })];
+  function generateApplicationsSeries(applications) {
+    const scoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
+    const series = {};
+    applications.forEach(function(application) {
+      scoreFields.forEach(function(scoreField) {
+        if (application.totalApplicationRisk[scoreField]) {
+          series[application.totalApplicationRisk[scoreField]] = true;
+        }
+      });
+    });
+
+    return Object.keys(series).map(function(x) {
+      return parseInt(x, 10);
     });
   }
 
   function getComponentRisks(filters, sortFields) {
-    var series = [];
 
     const request = createRequest(filters, MAX_RESULTS, translateComponentsSortFields(sortFields));
     return getData(CLMLocations.getComponentRisksUrl(), request).then(function(resultsWrapper) {
       resetCountsIfFilterChanged(filters);
       latestResultCounts.componentRisk = resultsWrapper.numResults;
-      resultsWrapper.dashboardResults.forEach(function(component) {
-        ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'].forEach(function(scoreField) {
-          if (component[scoreField] && series.lastIndexOf(component[scoreField]) === -1) {
-            series.push(component[scoreField]);
-          }
-        });
-      });
-      return [resultsWrapper.dashboardResults, series];
+      const series = generateComponentsSeries(resultsWrapper.dashboardResults);
+      return [resultsWrapper.dashboardResults, ClassyBrew.create(series)];
     });
+  }
+
+  function generateComponentsSeries(components) {
+    const series = [];
+    components.forEach(function(component) {
+      ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'].forEach(function(scoreField) {
+        if (component[scoreField] && series.lastIndexOf(component[scoreField]) === -1) {
+          series.push(component[scoreField]);
+        }
+      });
+    });
+    return series;
   }
 
   function resetCountsIfFilterChanged(filter) {
@@ -96,5 +105,5 @@ function dashboardDataService($http, $filter, CLMLocations, createRequest) {
 }
 
 dashboardDataService.$inject = [
-  '$http', '$filter', 'CLMLocations', 'createDashboardDataRequestPayload'
+  '$http', '$filter', 'CLMLocations', 'createDashboardDataRequestPayload', 'ClassyBrew'
 ];

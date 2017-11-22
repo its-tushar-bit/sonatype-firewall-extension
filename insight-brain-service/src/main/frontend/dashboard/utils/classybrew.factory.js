@@ -7,7 +7,7 @@
 export default
 function ClassyBrew($window) {
   return {
-    create: function() {
+    create: function(series) {
       var brew = new $window.classyBrew();
       brew.colorSchemes.SonatypeBlues = {
         1: ['rgb(121,165,198)'],
@@ -35,18 +35,19 @@ function ClassyBrew($window) {
         return false;
       };
 
-      brew.setSeriesInclusive = function(series) {
-        var seriesInclusive = series.slice();
-        seriesInclusive.push(Number.MAX_VALUE);
-        brew.setSeries(seriesInclusive);
-      };
-
       brew.getColor = function(score) {
         if (score === 0) {
           return 'rgb(247,251,255)';
         }
         return brew.getColorInRange(score);
       };
+
+      var seriesInclusive = series.slice();
+      seriesInclusive.push(Number.MAX_VALUE);
+      brew.setSeries(seriesInclusive);
+
+      brew.setNumClasses(Math.min(7, series.length));
+      brew.classify('quantile');
       return brew;
     } };
 }

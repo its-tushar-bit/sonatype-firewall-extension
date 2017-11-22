@@ -14,6 +14,7 @@ import utilityModule from '../utility/utility.module';
 import permissionServiceModule from '../util/PermissionService';
 import validatorsModule from '../util/Validators';
 import storesModule from '../util/Stores';
+import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
 
 export default
 angular.module('owner.manager.module',
@@ -23,6 +24,7 @@ angular.module('owner.manager.module',
       CLMLocationModule.name, utilityServicesModule.name, validatorsModule.name, 'role.membership.module',
       moveApplicationModule.name
     ])
+    .component('ownerPolicyList', ownerPolicyList)
     .config([
       '$stateProvider', function($stateProvider) {
         var ownerTypes = [

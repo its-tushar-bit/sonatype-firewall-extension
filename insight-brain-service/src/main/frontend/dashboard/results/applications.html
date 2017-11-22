@@ -1,9 +1,11 @@
-<div id="dashboard-applications">
+<div id="dashboard-applications" ng-init="sortVm.sortFields = ['-totalApplicationRisk.totalRisk']">
   <div class="iq-tile iq-tile--dashboard-table-container">
     <div class="iq-scrollable" detect-scrollbar>
       <table class="iq-table iq-table--dashboard-applications">
         <thead class="dashboard-headers iq-dashboard-headers">
-          <tr class="iq-table-row" sort="-totalApplicationRisk.totalRisk">
+          <tr class="iq-table-row"
+              sort="sortVm.sortFields"
+              on-sort-change="sortVm.sortFields = sortFields">
             <th class="iq-cell iq-cell--header iq-cell--application-name" sort-column="applicationName">
               <span class="header-text">Name</span>
             </th><!--

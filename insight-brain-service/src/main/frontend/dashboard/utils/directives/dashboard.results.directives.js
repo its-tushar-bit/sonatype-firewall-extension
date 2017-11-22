@@ -17,10 +17,8 @@ function getDashboardResultsDirective(serviceMethod) {
             dashboardDataService[serviceMethod]($scope.filters, $scope.sortVm.sortFields).then(function(results) {
               if (angular.equals(newFilter, $scope.filters)) {
                 $scope.data = results[0];
-                if ($scope.brew) {
-                  $scope.brew.setSeriesInclusive(results[1]);
-                  $scope.brew.setNumClasses(Math.min(7, results[1].length));
-                  $scope.brew.classify('quantile');
+                if (results[1]) {
+                  $scope.brew = results[1];
                 }
               }
             }, function() {
@@ -58,9 +56,6 @@ function getDashboardResultsDirective(serviceMethod) {
           '$scope', '$rootScope', '$state', 'Dialog', 'ApplicationStore', 'ClassyBrew', 'Messages', '$filter',
           function($scope, $rootScope, $state, Dialog, ApplicationStore, ClassyBrew, Messages, $filter) {
             var filterChangedFn = createFilterWatch($scope, $rootScope, Dialog, ApplicationStore, Messages);
-            if ($state.is('dashboard.overview.components') || $state.is('dashboard.overview.applications')) {
-              $scope.brew = ClassyBrew.create();
-            }
             $scope.$watch('filters', filterChangedFn);
 
             $scope.$watch('sortVm.sortFields', function(newValue, oldValue) {

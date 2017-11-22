@@ -45,12 +45,14 @@
   </td>
 </script>
 
-<div id="dashboard-violations">
+<div id="dashboard-violations" ng-init="sortVm.sortFields = ['-firstOccurrenceTime', '-threatLevel']">
   <div class="iq-tile iq-tile--dashboard-table-container">
     <div class="iq-scrollable" detect-scrollbar>
       <table class="iq-table iq-table--dashboard-violations">
         <thead class="dashboard-headers iq-dashboard-headers">
-          <tr class="iq-table-row" sort="-firstOccurrenceTime,-threatLevel">
+          <tr class="iq-table-row"
+              sort="sortVm.sortFields"
+              on-sort-change="sortVm.sortFields = sortFields">
             <th class="iq-cell iq-cell--header iq-cell--threat" sort-column="-threatLevel,-firstOccurrenceTime">
               <span class="iq-cell__text--header">Threat</span>
             </th><!--

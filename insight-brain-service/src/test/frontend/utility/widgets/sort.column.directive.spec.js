@@ -17,7 +17,8 @@ describe('sort.column.directive.spec.js', function() {
   });
 
   it('Test initial sort with no default', function() {
-    element = $compile('<table sort="" class="policy-list" cols="8"><tr class="simple">' +
+    scope.currentSortFields = [];
+    element = $compile('<table sort="currentSortFields" class="policy-list" cols="8"><tr class="simple">' +
         '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
 
     isolatedScope = element.isolateScope();
@@ -36,7 +37,8 @@ describe('sort.column.directive.spec.js', function() {
   });
 
   it('Test initial sort with default', function() {
-    element = $compile('<table sort="foo"><tr">' +
+    scope.currentSortFields = ['foo'];
+    element = $compile('<table sort="currentSortFields"><tr>' +
         '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
 
     isolatedScope = element.isolateScope();
@@ -55,7 +57,8 @@ describe('sort.column.directive.spec.js', function() {
   });
 
   it('Check initial sort with inverted', function() {
-    element = $compile('<table sort="foo"><tr>' +
+    scope.currentSortFields = ['foo'];
+    element = $compile('<table sort="currentSortFields"><tr>' +
         '<th sort-column="foo" sort-inverted="true"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
 
     isolatedScope = element.isolateScope();
@@ -74,7 +77,8 @@ describe('sort.column.directive.spec.js', function() {
   });
 
   it('Test sort calls', function() {
-    element = $compile('<table sort=""><tr>' +
+    scope.currentSortFields = [];
+    element = $compile('<table sort="currentSortFields" on-sort-change="currentSortFields = sortFields" ><tr>' +
         '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
 
     isolatedScope = element.isolateScope();

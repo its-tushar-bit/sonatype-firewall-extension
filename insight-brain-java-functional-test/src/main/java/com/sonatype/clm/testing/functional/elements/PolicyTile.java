@@ -13,7 +13,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class PolicyTile
     extends OwnerTile
 {
-  private static final String POLICY_HIERARCHY = ".simple-list:not(#continuous-monitoring):not(#proprietary-component-matchers)";
+  private static final String OWNER_POLICY_LIST = "owner-policy-list";
 
   public PolicyTile() {
     super("#owner-pill-policy");
@@ -28,11 +28,11 @@ public class PolicyTile
   }
 
   public ElementsCollection policyLists() {
-    return children(POLICY_HIERARCHY);
+    return children(OWNER_POLICY_LIST);
   }
 
   public PolicyTileList policyList(int num) {
-    return new PolicyTileList(selector, POLICY_HIERARCHY, nthChild(num + 1));
+    return new PolicyTileList(selector, OWNER_POLICY_LIST, nthChild(num + 1));
   }
 
   public static Condition name() {

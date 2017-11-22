@@ -1,5 +1,5 @@
 describe('dashboard.data.service.spec', function() {
-  var $httpBackend, dashboardDataService, CLMLocations, createDashboardDataRequestPayloadMock;
+  var $httpBackend, dashboardDataService, CLMLocations, createDashboardDataRequestPayloadMock, classyBrewMock;
 
   beforeEach(module('dashboard.module'));
 
@@ -8,7 +8,11 @@ describe('dashboard.data.service.spec', function() {
     createDashboardDataRequestPayloadMock.and.callFake(function(filter) {
       return filter;
     });
+
+    classyBrewMock = jasmine.createSpyObj('ClassyBrew', ['create']);
+
     $provide.value('createDashboardDataRequestPayload', createDashboardDataRequestPayloadMock);
+    $provide.value('ClassyBrew', classyBrewMock);
   }));
 
   beforeEach(inject(function($injector) {
@@ -151,10 +155,12 @@ describe('dashboard.data.service.spec', function() {
         numResults: 2
       });
 
+      classyBrewMock.create.and.returnValue('classyBrewResult');
       dashboardDataService.getApplicationRisks(filter, []).then(spy);
 
       $httpBackend.flush();
-      expect(spy).toHaveBeenCalledWith([originalRisks, [1, 2, 3, 4, 5, 6]]);
+      expect(classyBrewMock.create).toHaveBeenCalledWith([1, 2, 3, 4, 5, 6]);
+      expect(spy).toHaveBeenCalledWith([originalRisks, 'classyBrewResult']);
       expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(2);
     });
 
@@ -211,7 +217,7 @@ describe('dashboard.data.service.spec', function() {
   describe('getComponentRisks()', function() {
     var components, filter = {filterParam: 'filter value'};
     it('populates component name', function() {
-      var series, data = {
+      var classyBrewResult, data = {
         dashboardResults: [
           {
             hash: 'f60e9504841ba867a692',
@@ -238,8 +244,10 @@ describe('dashboard.data.service.spec', function() {
 
       dashboardDataService.getComponentRisks(filter, []).then(function(data) {
         components = data[0];
-        series = data[1];
+        classyBrewResult = data[1];
       });
+
+      classyBrewMock.create.and.returnValue('classyBrewResult');
 
       $httpBackend.flush();
       expect(components[0].hash).toBe('f60e9504841ba867a692');
@@ -247,7 +255,8 @@ describe('dashboard.data.service.spec', function() {
       expect(components[1].hash).toBe('1249e25aebb15358bedd');
       expect(components[1].derivedComponentName).toBe('Unknown');
 
-      expect(series).toEqual([12, 8]);
+      expect(classyBrewMock.create).toHaveBeenCalledWith([12, 8]);
+      expect(classyBrewResult).toEqual('classyBrewResult');
     });
 
     it('saves and updates result count', function() {

@@ -573,6 +573,32 @@
             <version>${phantomjs.version}</version>
           </configuration>
         </plugin>
+        <plugin>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <version>3.8</version>
+          <configuration>
+            <linkXRef>false</linkXRef>
+            <printFailingErrors>true</printFailingErrors>
+            <includeTests>true</includeTests>
+            <rulesets>
+              <ruleset>pmd-ruleset/ruleset.xml</ruleset>
+            </rulesets>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>com.sonatype.insight.brain</groupId>
+              <artifactId>pmd-ruleset</artifactId>
+              <version>${project.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -650,32 +676,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <artifactId>maven-pmd-plugin</artifactId>
-        <version>3.8</version>
-        <configuration>
-          <linkXRef>false</linkXRef>
-          <printFailingErrors>true</printFailingErrors>
-          <includeTests>true</includeTests>
-          <rulesets>
-            <ruleset>pmd-ruleset/ruleset.xml</ruleset>
-          </rulesets>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.sonatype.insight.brain</groupId>
-            <artifactId>pmd-ruleset</artifactId>
-            <version>${project.version}</version>
-          </dependency>
-        </dependencies>
-      </plugin>
     </plugins>
   </build>
 
@@ -712,6 +712,23 @@
                 </goals>
               </execution>
             </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>pmd</id>
+      <activation>
+        <file>
+          <!-- only activate PMD plugin for Java modules such that the pmd-ruleset module doesn't depend on its output -->
+          <exists>${basedir}/src/main/java</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-pmd-plugin</artifactId>
           </plugin>
         </plugins>
       </build>

@@ -19,7 +19,7 @@ public class TwistlockParameters
   private List<String> scanTargets;
 
   @Parameter(names = {
-      "--twistlock-scanner-executable" }, description = "Executable for the Twistlock scanner. Example: twistlock-1-5-47/twistlock-scanner", required = true)
+      "--twistlock-scanner-executable" }, description = "Executable for the Twistlock scanner/CLI. Example: twistlock-2-2-100/twistcli", required = true)
   private String twistlockScannerExecutable;
 
   @Parameter(names = {
@@ -33,11 +33,6 @@ public class TwistlockParameters
   @Parameter(names = {
       "--twistlock-console-password" }, description = "Password for the Twistlock console", required = true)
   private String twistlockConsolePassword;
-
-  // The param description was copied from the description of the --tlsverify param for the Twistlock scanner 1.6.79
-  @Parameter(names = {
-      "--twistlock-tlsverify" }, description = "Use Twistlock CA certificate to validate the connection with twistlock console", required = false)
-  private String twistlockTlsverify;
 
   public TwistlockParameters() {
   }
@@ -70,9 +65,5 @@ public class TwistlockParameters
   @Override
   public List<String> getScanTargets() {
     return scanTargets;
-  }
-
-  public String getTwistlockTlsverify() {
-    return twistlockTlsverify;
   }
 }

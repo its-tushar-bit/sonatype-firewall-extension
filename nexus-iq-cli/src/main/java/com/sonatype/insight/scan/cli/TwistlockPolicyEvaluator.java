@@ -48,7 +48,7 @@ public class TwistlockPolicyEvaluator
 {
   private static final Logger log = LoggerFactory.getLogger(TwistlockPolicyEvaluator.class);
 
-  static final String TWISTLOCK_SCAN_SUCCESS_MARKER = " evaluated successfully, Results at";
+  static final String TWISTLOCK_SCAN_SUCCESS_MARKER = "Scan completed. Results at: ";
 
   private final TwistlockScanner twistlockScanner;
 
@@ -117,8 +117,8 @@ public class TwistlockPolicyEvaluator
     String imageId = params.getScanTargets().get(0);
 
     String scannerOutput = twistlockScanner.scan(twistlockScannerExecutable, imageId, twistlockConsoleUrl,
-        twistlockConsoleUsername, twistlockConsolePassword, params.getTwistlockTlsverify());
-    String scanResultUrl = parseTwistlockScannerOutput(scannerOutput);
+        twistlockConsoleUsername, twistlockConsolePassword);
+    String scanResultUrl = extractScanResultUrl(scannerOutput);
     log.info("Twistlock scan results at: {}", scanResultUrl);
 
     Configuration config = newTwistlockHttpClientConfig(scanResultUrl, twistlockConsoleUsername,
@@ -169,14 +169,10 @@ public class TwistlockPolicyEvaluator
     return config;
   }
 
-  String parseTwistlockScannerOutput(String scannerOutput) {
-    boolean wasScanSuccessful = false;
+  String extractScanResultUrl(String scannerOutput) {
     for (String scannerOutputLine : scannerOutput.split("\n")) {
-      if (wasScanSuccessful) {
-        return scannerOutputLine;
-      }
-      if (scannerOutputLine.contains(TWISTLOCK_SCAN_SUCCESS_MARKER)) {
-        wasScanSuccessful = true;
+      if (scannerOutputLine.startsWith(TWISTLOCK_SCAN_SUCCESS_MARKER)) {
+        return scannerOutputLine.substring(TWISTLOCK_SCAN_SUCCESS_MARKER.length());
       }
     }
 

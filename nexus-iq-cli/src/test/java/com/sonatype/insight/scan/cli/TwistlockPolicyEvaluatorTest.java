@@ -42,9 +42,8 @@ public class TwistlockPolicyEvaluatorTest
 {
   private static final String DEFAULT_TWISTLOCK_RESULTS_URL = "http://localhost:${twistlockServerPort}/api/v1/scan/scan-2016-10-11T18:38:13.773Z.tar.gz";
 
-  private static final String DEFAULT_TWISTLOCK_SCANNER_OUTPUT = "\n" + //
-      "Scan completed. Image \"02c0ca9581ac\"" + TwistlockPolicyEvaluator.TWISTLOCK_SCAN_SUCCESS_MARKER + ";\n" + //
-      DEFAULT_TWISTLOCK_RESULTS_URL + "\n";
+  private static final String DEFAULT_TWISTLOCK_SCANNER_OUTPUT = "\nScan completed. Results at: "
+      + DEFAULT_TWISTLOCK_RESULTS_URL + "\n";
 
   private int twistlockServerPort = PortAllocator.findFreePort(8083);
 
@@ -74,7 +73,7 @@ public class TwistlockPolicyEvaluatorTest
   @Test
   public void testScan() throws Exception {
     TwistlockParameters params = new TwistlockParameters("--twistlock-scanner-executable",
-        "twistlock-1-5-47/twistlock-scanner", "--twistlock-console-url", "https://localhost:8083",
+        "twistlock-2-2-87/twistcli", "--twistlock-console-url", "https://localhost:8083",
         "--twistlock-console-username", "admin", "--twistlock-console-password", "1Twistlock$", "02c0ca9581ac");
 
     twistlockMockServer.setResponseForURI(
@@ -107,30 +106,20 @@ public class TwistlockPolicyEvaluatorTest
   @Test
   public void testScan_TwistlockScannerParameters() throws Exception {
     TwistlockParameters twistlockParameters = new TwistlockParameters( //
-        "--twistlock-scanner-executable", "twistlock-1-5-47/twistlock-scanner", //
+        "--twistlock-scanner-executable", "twistlock-2-2-87/twistcli", //
         "--twistlock-console-url", "https://localhost:8083", //
         "--twistlock-console-username", "admin", "--twistlock-console-password", "1Twistlock$", //
         "02c0ca9581ac");
 
-    List<String> expectedParameters = Arrays.asList("twistlock-1-5-47/twistlock-scanner", "-c",
-        "https://localhost:8083", "-u", "admin", "-i", "02c0ca9581ac", "--include-files", "--include-package-files",
-        "--hash-method", "sha1", "-p", "1Twistlock$");
-
-    testScan_TwistlockScannerParameters(twistlockParameters, expectedParameters);
-  }
-
-  @Test
-  public void testScan_TwistlockScannerParameters_tlsverify() throws Exception {
-    TwistlockParameters twistlockParameters = new TwistlockParameters( //
-        "--twistlock-scanner-executable", "twistlock-1-5-47/twistlock-scanner", //
-        "--twistlock-console-url", "https://localhost:8083", //
-        "--twistlock-console-username", "admin", "--twistlock-console-password", "1Twistlock$", //
-        "--twistlock-tlsverify", "false", //
+    List<String> expectedParameters = Arrays.asList("twistlock-2-2-87/twistcli", //
+        "images", "scan", //
+        "--address", "https://localhost:8083", //
+        "--user", "admin", //
+        "--include-files", "--include-package-files", //
+        "--hash", "sha1", //
+        "--upload", //
+        "--password", "1Twistlock$", //
         "02c0ca9581ac");
-
-    List<String> expectedParameters = Arrays.asList("twistlock-1-5-47/twistlock-scanner", "-c",
-        "https://localhost:8083", "-u", "admin", "-i", "02c0ca9581ac", "--include-files", "--include-package-files",
-        "--hash-method", "sha1", "--tlsverify=false", "-p", "1Twistlock$");
 
     testScan_TwistlockScannerParameters(twistlockParameters, expectedParameters);
   }
@@ -151,17 +140,17 @@ public class TwistlockPolicyEvaluatorTest
   }
 
   @Test
-  public void testParseTwistlockScannerOutput_Success() {
+  public void testExtractScanResultUrl_Success() {
     String scannerOutput = DEFAULT_TWISTLOCK_SCANNER_OUTPUT;
-    String scanResultsUrl = evaluator.parseTwistlockScannerOutput(scannerOutput);
+    String scanResultsUrl = evaluator.extractScanResultUrl(scannerOutput);
     assertThat(scanResultsUrl, is(DEFAULT_TWISTLOCK_RESULTS_URL));
   }
 
   @Test
-  public void testParseTwistlockScannerOutput_Failure() {
+  public void testExtractScanResultUrl_Failure() {
     String scannerOutput = "Can't win them all!";
     try {
-      evaluator.parseTwistlockScannerOutput(scannerOutput);
+      evaluator.extractScanResultUrl(scannerOutput);
       fail("Expected exception");
     }
     catch (RuntimeException expected) {

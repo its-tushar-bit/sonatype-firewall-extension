@@ -30,8 +30,7 @@ public class TwistlockScanner
               String imageId,
               String twistlockConsoleUrl,
               String twistlockConsoleUsername,
-              String twistlockConsolePassword,
-              String twistlockTlsverify)
+              String twistlockConsolePassword)
   {
     long start = System.currentTimeMillis();
 
@@ -40,7 +39,7 @@ public class TwistlockScanner
         twistlockConsoleUsername);
 
     List<String> twistlockScannerCommand = buildTwistlockScannerCommand(twistlockScannerExecutable, imageId,
-        twistlockConsoleUrl, twistlockConsoleUsername, twistlockConsolePassword, twistlockTlsverify);
+        twistlockConsoleUrl, twistlockConsoleUsername, twistlockConsolePassword);
 
     String scannerOutput = runTwistlockScannerCommand(twistlockScannerCommand);
 
@@ -81,24 +80,25 @@ public class TwistlockScanner
                                                     String imageId,
                                                     String twistlockConsoleUrl,
                                                     String twistlockConsoleUsername,
-                                                    String twistlockConsolePassword,
-                                                    String twistlockTlsverify)
+                                                    String twistlockConsolePassword)
   {
     List<String> twistlockScannerCommand = new ArrayList<>();
     twistlockScannerCommand.addAll(Arrays.asList(twistlockScannerExecutable, //
-        "-c", twistlockConsoleUrl, "-u", twistlockConsoleUsername, //
-        "-i", imageId, //
+        "images", "scan", //
+        "--address", twistlockConsoleUrl, "--user", twistlockConsoleUsername, //
         "--include-files", "--include-package-files", //
-        "--hash-method", "sha1"));
-    if (twistlockTlsverify != null) {
-      twistlockScannerCommand.add("--tlsverify=" + twistlockTlsverify);
-    }
+        "--hash", "sha1", //
+        "--upload", //
+        imageId));
 
     logTwistlockScannerCommand(twistlockScannerCommand);
 
     // Add the password parameter only after we logged the command.
-    twistlockScannerCommand.add("-p");
+    // The image ID must be the last parameter, so first remove it and add it back after the password is added.
+    twistlockScannerCommand.remove(twistlockScannerCommand.size() - 1);
+    twistlockScannerCommand.add("--password");
     twistlockScannerCommand.add(twistlockConsolePassword);
+    twistlockScannerCommand.add(imageId);
 
     return twistlockScannerCommand;
   }

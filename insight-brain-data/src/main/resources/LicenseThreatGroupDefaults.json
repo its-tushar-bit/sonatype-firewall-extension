@@ -759,6 +759,18 @@
       "licenseId": "HPND"
     },
     {
+      "id": "67653d3643414a89b15ab402e3d78f6f",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "IBM-JDBC"
+    },
+    {
+      "id": "08541367fd06474d80324a17b8c17bfc",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "IBM-JDBC-RTA"
+    },
+    {
       "id": "b9d22590d48b452e9ad3f6d4d7e7fb8a",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",

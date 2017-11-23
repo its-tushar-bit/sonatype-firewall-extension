@@ -52,6 +52,7 @@ public class Role
 
   @JsonIgnore
   @Column(name = "name_lowercase_no_whitespace")
+  @SuppressWarnings("PMD.UnusedPrivateField")
   private String nameLowercaseNoWhitespace;
 
   @Column(name = "description")

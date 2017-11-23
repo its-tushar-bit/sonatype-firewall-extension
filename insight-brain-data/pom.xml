@@ -152,15 +152,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <artifactId>maven-pmd-plugin</artifactId>
-        <configuration>
-          <rulesets>
-            <ruleset>${project.basedir}/ruleset.xml</ruleset>
-            <ruleset>${project.basedir}/domain-ruleset.xml</ruleset>
-          </rulesets>
-        </configuration>
-      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>

@@ -298,6 +298,8 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-UN
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-UNSPECIFIED-MIT', 'MIT');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-2.0-MIT', 'GPL-2.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-2.0-MIT', 'MIT');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-3.0-MIT', 'GPL-3.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-3.0-MIT', 'MIT');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-UNSPECIFIED-MPL-1.1', 'GPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-UNSPECIFIED-MPL-1.1', 'MPL-1.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('GPL-2.0-MPL-1.1', 'GPL-2.0');
@@ -459,4 +461,6 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Teleri
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Telerik-JustMock-Free-Edition', 'Telerik-JustMock-Free-Edition');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Oracle-OTN-Distribution', 'Oracle-OTN-Distribution');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Oracle-OTN', 'Oracle-OTN');
-INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Rebex-EULA-1.4','Rebex-EULA-1.4');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Rebex-EULA-1.4', 'Rebex-EULA-1.4');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('IBM-JDBC', 'IBM-JDBC');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('IBM-JDBC-RTA', 'IBM-JDBC-RTA');

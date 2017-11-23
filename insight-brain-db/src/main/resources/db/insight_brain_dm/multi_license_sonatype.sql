@@ -69,6 +69,7 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('EPL-1.0-MPL-1.1', 'EPL-1.0 or MPL-1.1', 'Dual License Consisting of Eclipse Public License 1.0 and Mozilla Public License 1.1');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('GPL-UNSPECIFIED-MIT', 'GPL or MIT', 'Dual License Consisting of GPL-Style License Not Identifiable by Sonatype and MIT');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('GPL-2.0-MIT', 'GPL-2.0 or MIT', 'Dual License Consisting of GPL 2.0 and MIT');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('GPL-3.0-MIT', 'GPL-3.0 or MIT', 'Dual License Consisting of GPL 3.0 and MIT');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('GPL-UNSPECIFIED-MPL-1.1', 'GPL or MPL-1.1', 'Dual License Consisting of GPL-Style License Not Identifiable by Sonatype and Mozilla Public License 1.1');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('GPL-2.0-MPL-1.1', 'GPL-2.0 or MPL-1.1', 'Dual License Consisting of GPL 2.0 and Mozilla Public License 1.1');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('GPL-2.0+-MPL-1.1', 'GPL-2.0+ or MPL-1.1', 'Dual License Consisting of GPL 2.0 or later and Mozilla Public License 1.1');
@@ -179,3 +180,5 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Oracle-OTN-Distribution', 'Oracle-OTN-Distribution', 'Oracle Technology Network License Agreement Distribution');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Oracle-OTN', 'Oracle-OTN', 'Oracle Technology Network License Agreement');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Rebex-EULA-1.4', 'Rebex-EULA-1.4', 'Rebex General End User License 1.4');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('IBM-JDBC', 'IBM-JDBC', 'IBM License Information JDBC');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('IBM-JDBC-RTA', 'IBM-JDBC-RTA', 'IBM License Information JDBC - Right to Audit');

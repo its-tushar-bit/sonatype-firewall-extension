@@ -73,6 +73,10 @@ thead {
   color: $iq-slate;
   position: relative;
   text-align: left;
+  
+  &:first-child {
+    border-left: none;
+  }
 
   &.iq-cell--chevron {
     border-color: $iq-grey-1;

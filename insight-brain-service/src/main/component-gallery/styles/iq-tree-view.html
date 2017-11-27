@@ -17,7 +17,7 @@
        -->Tree view group title
         </div>
       </a>
-      <div class="iq-tree-view__children" ng-if="isExpanded1">
+      <div class="iq-tree-view__children" ng-class="{ collapsed: !isExpanded1, expanded: isExpanded1 }">
         <div class="iq-tree-view__child">
           Tree view element 1
         </div>
@@ -44,7 +44,7 @@
           <i class="fa fa-cube iq-tree-view__text-icon"></i>Tree view group title
         </div>
       </a>
-      <div class="iq-tree-view__children" ng-if="isExpanded2">
+      <div class="iq-tree-view__children" ng-class="{ collapsed: !isExpanded2, expanded: isExpanded2 }">
         <div class="iq-tree-view__child">
           Tree view element 1
         </div>
@@ -71,7 +71,7 @@
           <i class="fa fa-cube iq-tree-view__text-icon"></i>A really really long tree view group title
         </div>
       </a>
-      <div class="iq-tree-view__children" ng-if="isExpanded3">
+      <div class="iq-tree-view__children" ng-class="{ collapsed: !isExpanded3, expanded: isExpanded3 }">
         <div class="iq-tree-view__child">
           Tree view element 1
         </div>
@@ -95,7 +95,7 @@
           Tree view group title
         </div>
       </a>
-      <div class="iq-tree-view__children" ng-if="isExpanded4">
+      <div class="iq-tree-view__children" ng-class="{ collapsed: !isExpanded4, expanded: isExpanded4 }">
         <div class="iq-tree-view__child">
           Tree view element 1
         </div>
@@ -116,7 +116,7 @@
           <span class="iq-tree-view__twisty-icon collapse"></span>
         </div>
         <div class="iq-tree-view__text">
-          Tree view group title
+          Disabled tree view group title
         </div>
       </a>
       <div class="iq-tree-view__children">
@@ -135,7 +135,7 @@
       </div>
     </div>
     <div class="iq-tree-view">
-      <a class="iq-tree-view__trigger">
+      <a class="iq-tree-view__trigger iq-tree-view__trigger--empty">
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon"></span>
         </div>

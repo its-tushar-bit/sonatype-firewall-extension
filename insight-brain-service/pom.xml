@@ -21,7 +21,6 @@
     <npm.version>5.5.1</npm.version>
     <freemarker.version>2.3.19</freemarker.version>
     <licensing.version>1.4</licensing.version>
-    <angularjs.version>1.6.4</angularjs.version>
     <jasmine.version>2.2</jasmine.version>
     <saga.version>1.5.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>

@@ -15,7 +15,6 @@
       return node.firstChild.nodeValue;
     }
 
-    var angularVersion = extractFromPom('angularjs.version');
     var path = require('path');
     var webpackCmd = path.join('node_modules', '.bin', 'webpack');
     var webpackDevServerCmd = path.join('node_modules', '.bin', 'webpack-dev-server');
@@ -27,7 +26,6 @@
     grunt.initConfig({
       config: {
         pom: {
-          angularJsVersion: angularVersion,
           clmVersion: extractFromPom('version')
         },
         angularDebug: false,

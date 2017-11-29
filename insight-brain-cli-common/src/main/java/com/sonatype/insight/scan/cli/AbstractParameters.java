@@ -22,6 +22,7 @@ import com.beust.jcommander.IValueValidator;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.converters.StringConverter;
 
 public abstract class AbstractParameters
 {
@@ -48,7 +49,8 @@ public abstract class AbstractParameters
 
   private Exception error;
 
-  @Parameter(names = "-D", description = "Configuration properties, e.g. -D key=value", hidden = true)
+  @Parameter(names = "-D", description = "Configuration properties, e.g. -D key=value", hidden = true, 
+      listConverter = StringConverter.class)
   private List<String> properties = new ArrayList<>();
 
   @Parameter(names = { "-o", "--output-directory" }, description = "Path to output directory for scan results", hidden = true)

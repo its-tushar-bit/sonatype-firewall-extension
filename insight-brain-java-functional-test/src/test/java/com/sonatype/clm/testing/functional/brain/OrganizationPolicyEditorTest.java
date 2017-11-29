@@ -24,13 +24,11 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.AssociationEditor.MULTI_COLUMN;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.ALL_TEXT_ROOT_ORG;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.allRadioText;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.specifiedRadioText;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class OrganizationPolicyEditorTest
     extends AbstractPolicyEditorTest
@@ -65,7 +63,7 @@ public class OrganizationPolicyEditorTest
 
     inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
     inheritance.associationEditor().shouldBe(visible);
-    inheritance.associationEditor().item(0, 0).checkBox().click();
+    inheritance.associationEditor().item(0).checkBox().click();
   }
 
   @Override
@@ -87,7 +85,7 @@ public class OrganizationPolicyEditorTest
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
     inheritance.associationEditor().shouldBe(visible);
-    inheritance.associationEditor().item(1, 0).checkBox().click();
+    inheritance.associationEditor().item(1).checkBox().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     // wait 800ms for mask to go away
     FormMask.seeAndWaitForDismissal();
@@ -98,8 +96,8 @@ public class OrganizationPolicyEditorTest
 
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
-    inheritance.associationEditor().item(0, 0).checkBox().shouldBe(selected);
-    inheritance.associationEditor().item(1, 0).checkBox().shouldBe(selected);
+    inheritance.associationEditor().item(0).checkBox().shouldBe(selected);
+    inheritance.associationEditor().item(1).checkBox().shouldBe(selected);
   }
 
   @Override
@@ -115,13 +113,13 @@ public class OrganizationPolicyEditorTest
     inheritance.associationEditor().shouldBe(visible);
 
     inheritance.associationEditor().rows().shouldHaveSize(2);
-    assertThat(inheritance.associationEditor().columnCount(), is(equalTo(1)));
-    AssociationEditorElement category1Item = inheritance.associationEditor().item(0, 0);
+    inheritance.associationEditor().shouldNotBe(MULTI_COLUMN);
+    AssociationEditorElement category1Item = inheritance.associationEditor().item(0);
     category1Item.checkBox().shouldBe(visible, selected, isReadOnly ? disabled : enabled);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
     category1Item.icon().shouldBe(visible).shouldHave(cssClass(category1.getColor().toValue()));
 
-    AssociationEditorElement category2Item = inheritance.associationEditor().item(1, 0);
+    AssociationEditorElement category2Item = inheritance.associationEditor().item(1);
     category2Item.checkBox().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
     category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));

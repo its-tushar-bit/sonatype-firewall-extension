@@ -6,7 +6,7 @@
   </div>
   <form class="clm-form" role="form" name="vm.selectContactForm" ng-submit="vm.isDirty() && vm.updateContact()"
         form-mask="vm.selectContactFormMask" mask-message="Updating">
-    <div class="iq-modal-content">
+    <div class="iq-modal-content iq-scrollable">
       <div class="section">
         <h3 id="current-contact">
           <i class="fa size-18px fa-user slate"></i><span ng-class="{'grey-4': !vm.owner.contact}">{{vm.owner.contact ? vm.owner.contact.displayName : '(None)'}}</span>

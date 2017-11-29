@@ -92,8 +92,8 @@ public class ApplicationPolicyEditorTest
 
       AssociationEditor categoryEditor = PolicyEditorPage.inheritanceSection().associationEditor();
       categoryEditor.rows().shouldHaveSize(2);
-      assertCategory(categoryEditor.item(0, 0), "Checked Tag", true);
-      assertCategory(categoryEditor.item(1, 0), "Unchecked Tag", false);
+      assertCategory(categoryEditor.item(0), "Checked Tag", true);
+      assertCategory(categoryEditor.item(1), "Unchecked Tag", false);
     }
     finally {
       logout();

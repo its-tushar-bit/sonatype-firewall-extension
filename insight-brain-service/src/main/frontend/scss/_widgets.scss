@@ -531,52 +531,43 @@
 /*
   #Association Editor
 */
-/*
- The association-editor-wrapper wrapper class is a workaround for an IE 9 issue where the surrounding div causes the 
- table's (association-editor) max-height and overflow-y properties to be ignored. Setting them on the surrounding div
- fixes the issue.
-*/
-.association-editor-wrapper {
-  max-height: 220px;
-  overflow-y: auto;
+.association-editor {
+  &.association-editor--multi-column {
+    column-count: 2;
+  }
 
-  .association-editor {
-    display: block;
+  margin: 0;
+  max-width: max-content;
 
-    .association-editor-row {
-      td {
-        white-space: nowrap;
-        height: 21px;
+  li {
+    // tells browser not to split the height of a single li across columns
+    break-inside: avoid-column;
+    page-break-inside: avoid; // for Firefox
+    height: 29px;
+    list-style: none;
 
-        .iq-checkbox__label, .iq-radio {
-          margin-bottom: 0;
-        }
+    .iq-checkbox__label, .iq-radio {
+      @extend .truncate-ellipsis;
+      margin-bottom: 0;
+      margin-left: 24px;
+    }
 
-        .iq-checkbox__box::before {
-          margin-top: 0;
-        }
+    .iq-checkbox__box::before {
+      margin-top: 0;
+    }
 
-        .description {
-          display: inline-block;
-          margin: 0px 0px 0px 8px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          vertical-align: bottom;
-          white-space: nowrap;
-          max-width: 375px;
-          min-width: 110px;
-        }
+    .hexagon {
+      padding-top: 1px;
+      vertical-align: top;
+    }
 
-        .hexagon {
-          padding-top: 1px;
-          vertical-align: top;
-        }
+    .description {
+      margin-left: 8px;
+    }
 
-        .fa {
-          padding-top: 2px;
-          vertical-align: top;
-        }
-      }
+    .fa {
+      padding-top: 2px;
+      vertical-align: top;
     }
   }
 }

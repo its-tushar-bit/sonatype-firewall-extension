@@ -66,24 +66,25 @@
       <div ng-if="vm.isOrgOwner" id="policy-edit-inheritance" class="editor-section">
         <div class="editor-section-header">Inheritance</div>
         <div class="section">
-          <div class="inline-fields">
-            <div class="field">
-              <label for="editor-policy-inherit" ng-class="{disabled: vm.readOnly}">This Policy Inherits to</label>
-              <div id="editor-policy-inherit" class="editor-policy-inherit">
-                <iq-radio model="vm.hasPolicyCategories" value="false" is-disabled="vm.readOnly"><!--
-                  --><span ng-if="::!vm.isRootOrg">All Applications in {{::vm.owner.name}}</span><!--
-                  --><span ng-if="::vm.isRootOrg">All Applications and Repositories</span>
-                </iq-radio>
-                <iq-radio model="vm.hasPolicyCategories" 
-                          value="true" 
-                          is-disabled="vm.categories.length === 0 || vm.readOnly"><!--
-                  --><span>Applications of the specified Application Categories in {{::vm.owner.name}}</span>
-                </iq-radio>
-                <association-editor ng-show="vm.hasPolicyCategories" id="associated-categories" items="vm.categories"
-                                    checkbox-param="isApplied"
-                                    description="name" icon="hexagon"
-                                    ng-disabled="vm.readOnly"/>
-              </div>
+          <div class="field">
+            <label for="editor-policy-inherit" ng-class="{disabled: vm.readOnly}">This Policy Inherits to</label>
+            <div id="editor-policy-inherit" class="editor-policy-inherit">
+              <iq-radio model="vm.hasPolicyCategories" value="false" is-disabled="vm.readOnly"><!--
+             --><span ng-if="::!vm.isRootOrg">All Applications in {{::vm.owner.name}}</span><!--
+             --><span ng-if="::vm.isRootOrg">All Applications and Repositories</span>
+              </iq-radio>
+              <iq-radio model="vm.hasPolicyCategories"
+                        value="true"
+                        is-disabled="vm.categories.length === 0 || vm.readOnly"><!--
+             --><span>Applications of the specified Application Categories in {{::vm.owner.name}}</span>
+              </iq-radio>
+              <association-editor ng-show="vm.hasPolicyCategories"
+                                  id="associated-categories"
+                                  items="vm.categories"
+                                  checkbox-param="isApplied"
+                                  description="name"
+                                  icon="hexagon"
+                                  ng-disabled="vm.readOnly"/>
             </div>
           </div>
         </div>

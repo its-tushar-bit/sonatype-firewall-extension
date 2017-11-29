@@ -30,12 +30,10 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.AssociationEditor.MULTI_COLUMN;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.light_green;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class ApplicationCategoryEditorTest
     extends AbstractFunctionalTest
@@ -86,15 +84,15 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.subtitle().shouldHave(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(2);
-    assertThat(ApplicationCategoryEditorPage.associationEditor().columnCount(), is(equalTo(1)));
+    ApplicationCategoryEditorPage.associationEditor().shouldNotBe(MULTI_COLUMN);
     ApplicationCategoryEditorPage.updateButton().shouldHave(DISABLED);
 
-    AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
+    AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0);
     category1Item.checkBox().shouldBe(visible).shouldNotBe(selected);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
     category1Item.icon().shouldBe(visible).shouldHave(cssClass(category1.getColor().toValue()));
 
-    AssociationEditorElement category2Item = ApplicationCategoryEditorPage.associationEditor().item(1, 0);
+    AssociationEditorElement category2Item = ApplicationCategoryEditorPage.associationEditor().item(1);
     category2Item.checkBox().shouldBe(visible).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
     category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));
@@ -107,8 +105,8 @@ public class ApplicationCategoryEditorTest
 
     // Refresh page to ensure values are propagated to server
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
-    category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
-    category2Item = ApplicationCategoryEditorPage.associationEditor().item(1, 0);
+    category1Item = ApplicationCategoryEditorPage.associationEditor().item(0);
+    category2Item = ApplicationCategoryEditorPage.associationEditor().item(1);
 
     category1Item.checkBox().shouldBe(selected);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
@@ -118,7 +116,6 @@ public class ApplicationCategoryEditorTest
 
   @Test
   public void testCategorySave_TwoColumns() {
-    int expectedColumnSize = 2;
     CategoryTile categoryTile = new CategoryTileAppContext();
     List<Tag> categories = new ArrayList<>();
 
@@ -138,24 +135,20 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.title().shouldHave(ApplicationCategoryEditorPage.titleText());
     ApplicationCategoryEditorPage.subtitle().shouldHave(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
-    ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(5);
-    assertThat(ApplicationCategoryEditorPage.associationEditor().columnCount(), is(equalTo(2)));
+    ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(10);
+    ApplicationCategoryEditorPage.associationEditor().shouldBe(MULTI_COLUMN);
     ApplicationCategoryEditorPage.updateButton().shouldHave(DISABLED);
 
-    // row size should be half the number (5) of categories (2 columns)... check the initial state of the items
-    for (int i = 0; i < 5; i++) {
-      for (int j = 0; j < expectedColumnSize; j++) {
-        AssociationEditorElement item = ApplicationCategoryEditorPage.associationEditor().item(i, j);
-        item.checkBox().shouldBe(visible).shouldNotBe(selected);
-        item.description().shouldBe(visible)
-            .shouldHave(text(categories.get(j == 0 ? i : i + categories.size() / 2).getName()));
-        item.icon().shouldHave(cssClass(categories.get(j == 0 ? i : i + categories.size() / 2).getColor().toValue()));
-      }
+    for (int i = 0; i < 10; i++) {
+      AssociationEditorElement item = ApplicationCategoryEditorPage.associationEditor().item(i);
+      item.checkBox().shouldBe(visible).shouldNotBe(selected);
+      item.description().shouldBe(visible).shouldHave(text(categories.get(i).getName()));
+      item.icon().shouldHave(cssClass(categories.get(i).getColor().toValue()));
     }
 
     // select the items in the first row
-    AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
-    AssociationEditorElement category6Item = ApplicationCategoryEditorPage.associationEditor().item(0, 1);
+    AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0);
+    AssociationEditorElement category6Item = ApplicationCategoryEditorPage.associationEditor().item(5);
     category1Item.checkBox().shouldBe(visible).click();
     category6Item.checkBox().shouldBe(visible).click();
 
@@ -164,8 +157,8 @@ public class ApplicationCategoryEditorTest
 
     // Refresh page to ensure values are propagated to server
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
-    category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
-    category6Item = ApplicationCategoryEditorPage.associationEditor().item(0, 1);
+    category1Item = ApplicationCategoryEditorPage.associationEditor().item(0);
+    category6Item = ApplicationCategoryEditorPage.associationEditor().item(5);
 
     category1Item.checkBox().shouldBe(selected);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
@@ -174,8 +167,8 @@ public class ApplicationCategoryEditorTest
 
     // make sure the remaining items aren't selected and haven't been applied
     for (int i = 1; i < 5; i++) {
-      AssociationEditorElement firstItem = ApplicationCategoryEditorPage.associationEditor().item(i, 0);
-      AssociationEditorElement secondItem = ApplicationCategoryEditorPage.associationEditor().item(i, 1);
+      AssociationEditorElement firstItem = ApplicationCategoryEditorPage.associationEditor().item(i);
+      AssociationEditorElement secondItem = ApplicationCategoryEditorPage.associationEditor().item(i + 5);
       firstItem.checkBox().shouldNotBe(selected);
       secondItem.checkBox().shouldNotBe(selected);
     }

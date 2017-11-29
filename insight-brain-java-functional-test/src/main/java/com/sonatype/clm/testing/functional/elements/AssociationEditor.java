@@ -7,39 +7,36 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 public class AssociationEditor
     extends BasicElement<AssociationEditor>
 {
-  private static final String ROOT_SELECTOR = ".association-editor-wrapper";
+  private static final String ROOT_SELECTOR = ".association-editor";
+
+  // The CSS class present when the editor is using CSS multi-column display
+  public static final Condition MULTI_COLUMN = Condition.cssClass("association-editor--multi-column");
 
   public AssociationEditor(String selector) {
     super(selector, ROOT_SELECTOR);
   }
 
   public ElementsCollection rows() {
-    return children(".association-editor-row");
+    return children("li");
   }
 
-  public int columnCount() {
-    if (rows().size() > 0) {
-      return rows().get(0).$$("td").size();
-    }
-    return 0;
-  }
-
-  public AssociationEditorElement item(int num, int column) {
-    return new AssociationEditorElement(rows().get(num), column);
+  public AssociationEditorElement item(int num) {
+    return new AssociationEditorElement(rows().get(num));
   }
 
   public static class AssociationEditorElement
   {
-    public SelenideElement root;
+    public final SelenideElement root;
 
-    public AssociationEditorElement(SelenideElement root, int column) {
-      this.root = column == 0 ? root.$("td:first-child") : root.$("td:last-child");
+    public AssociationEditorElement(SelenideElement root) {
+      this.root = root;
     }
 
     public IqCheckbox checkBox() {

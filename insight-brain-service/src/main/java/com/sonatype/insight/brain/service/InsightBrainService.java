@@ -149,6 +149,8 @@ public class InsightBrainService
     printInstanceId("Started");
     printVersion();
 
+    initializeDatabases(configuration);
+
     super.run(configuration, environment);
 
     LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
@@ -295,9 +297,7 @@ public class InsightBrainService
     environment.addProvider(jaxRsExceptionMapper);
   }
 
-  @Override
-  protected List<Module> modules(final InsightConfig config) {
-    // NOTE: The ReleaseGraphCacheLoader indirectly uses the ApplicationDAO so we better setup the DB before
+  private void initializeDatabases(final InsightConfig config) {
     DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
     DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.dm);
     DatamartProvider.init(dmDatabaseConfig);
@@ -310,7 +310,10 @@ public class InsightBrainService
 
     // Create the default LTGs on the root organization (must be called after the database is initialized)
     new LicenseThreatGroupDAO().createDefaultLicenseThreatGroups();
+  }
 
+  @Override
+  protected List<Module> modules(final InsightConfig config) {
     Module bindings = new AbstractModule()
     {
       @Override

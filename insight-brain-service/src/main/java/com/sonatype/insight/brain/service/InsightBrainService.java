@@ -319,19 +319,13 @@ public class InsightBrainService
       @Override
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
-      }
-    };
-    Module eventBus = new AbstractModule()
-    {
-      @Override
-      protected void configure() {
         bind(EventBusConfig.class).toInstance(config.getEventBusConfig());
       }
     };
     Module authc = new SecurityModule(config);
     Module authz = new SecurityAopModule(config.isAnonymousClientAccessAllowed());
 
-    return Arrays.asList(bindings, eventBus, authc, authz);
+    return Arrays.asList(bindings, authc, authz);
   }
 
   public static String getInstanceId() {

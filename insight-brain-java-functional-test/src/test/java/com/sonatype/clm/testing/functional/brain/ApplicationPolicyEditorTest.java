@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
-import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
@@ -59,9 +58,7 @@ public class ApplicationPolicyEditorTest
     OwnerSummaryPage.SummaryTile.localPolicy("policyName").shouldBe(visible).click();
     PolicyEditorPage.summarySection().policyName().clear();
     PolicyEditorPage.summarySection().policyName().sendKeys("policyName2");
-    PolicyEditorPage.endOfPagePill().click();
-    PolicyEditorPage.saveButton().shouldBe(visible).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     OwnerDetailTreeView.backLink().shouldBe(visible).click();
     OrganizationNode.application(0).shouldBe(visible).click();
     OwnerSummaryPage.SummaryTile.localPolicy("policyName2").shouldBe(visible);

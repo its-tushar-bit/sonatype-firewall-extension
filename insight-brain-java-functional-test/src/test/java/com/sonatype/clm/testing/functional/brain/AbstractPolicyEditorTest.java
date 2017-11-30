@@ -154,8 +154,7 @@ public abstract class AbstractPolicyEditorTest
     testCreatePolicy_actionsSection();
     testCreatePolicy_notificationsSection();
     testCreatePolicy_constraintSection();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
 
     // make sure we reset back to clean state
     assertNewPolicyStateIsCorrect();
@@ -295,8 +294,7 @@ public abstract class AbstractPolicyEditorTest
 
     NotificationsSection.notifications().shouldHave(texts("Project One (Bug)"));
 
-    PolicyEditorPage.saveButton().click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
 
     // verify persisted policy
     Policy policy = getPolicyByName("New Policy");
@@ -310,8 +308,7 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
     NotificationsSection.notifications().shouldHaveSize(1).get(0).shouldHave(text("No notifications configured"));
 
-    PolicyEditorPage.saveButton().click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
 
     policy = getPolicyByName("New Policy");
     assertTrue(policy.getNotifications().getJiraNotifications().isEmpty());
@@ -422,13 +419,10 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().val("updated name");
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
+    PolicyEditorPage.savePolicy();
 
-    FormMask.seeAndWaitForDismissal();
     changeThreatLevel(6);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
 
     refresh();
 
@@ -504,8 +498,7 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.operator().selectedItem().shouldHave(text("all"));
     constraintEdit.name().shouldHave(value(constraints.get(0).getName())).val("New Constraint Name");
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
 
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getConstraints().get(0).getName(), is("New Constraint Name"));
@@ -518,9 +511,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.ageCondition(0).value().modifier().listItem(1).shouldHave(text("Months")).click();
     constraintEdit.ageCondition(0).operator().selectedItem().shouldHave(text("older than")).click();
     constraintEdit.ageCondition(0).operator().listItem(1).shouldHave(text("younger than")).click();
-    PolicyEditorPage.endOfPagePill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     PolicyEditorPage.constraintsPill().click();
 
     Condition updatedAgeCondition = policyDAO.getById(policy.getId()).getConstraints().get(0).getConditions().get(0);
@@ -536,9 +527,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.dropdownCondition(1).operator().listItem(1).shouldHave(text("is not")).click();
     constraintEdit.dropdownCondition(1).value().selectedItem().shouldHave(text("my LTG")).click();
     constraintEdit.dropdownCondition(1).value().listItem(1).shouldHave(text("my LTG 2")).click();
-    PolicyEditorPage.endOfPagePill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     PolicyEditorPage.constraintsPill().click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
@@ -561,9 +550,7 @@ public abstract class AbstractPolicyEditorTest
     coordConditionEditor.groupId().val("com.eclipse.*");
     coordConditionEditor.artifactId().val("*");
     coordConditionEditor.version().val("*");
-    PolicyEditorPage.endOfPagePill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     PolicyEditorPage.constraintsPill().click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
@@ -583,9 +570,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.condition(2).operator().listItem(3).shouldHave(text(">"));
     constraintEdit.condition(2).operator().listItem(4).shouldHave(text(">=")).click();
     constraintEdit.inputCondition(2).value().val("1");
-    PolicyEditorPage.endOfPagePill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     PolicyEditorPage.constraintsPill().click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
@@ -598,9 +583,7 @@ public abstract class AbstractPolicyEditorTest
 
     // Check that severity can be set to 0 as well
     constraintEdit.inputCondition(2).value().val("0");
-    PolicyEditorPage.endOfPagePill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     PolicyEditorPage.constraintsPill().click();
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled);
@@ -613,9 +596,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.conditions().shouldHaveSize(1);
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, disabled);
-    PolicyEditorPage.endOfPagePill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     PolicyEditorPage.constraintsPill().click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
@@ -671,8 +652,8 @@ public abstract class AbstractPolicyEditorTest
     // delete one and save
     NotificationsSection.notificationFor("test@foo.com").deleteButton().click();
     NotificationsSection.notifications().shouldHaveSize(3);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
+    PolicyEditorPage.notificationsPill().click();
     NotificationsSection.notifications().shouldHaveSize(3);
     // "aaa@sonatype.com" should be first after save
     NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
@@ -689,8 +670,8 @@ public abstract class AbstractPolicyEditorTest
     // check 'operate' and 'continuousMonitoring' stages
     NotificationsSection.notificationFor("aaa@sonatype.com").operate().click();
     NotificationsSection.notificationFor("Application Evaluator").continuousMonitoring().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
+    PolicyEditorPage.notificationsPill().click();
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, false).getUserNotifications(), hasSize(1));
     assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, true).getRoleNotifications(), hasSize(1));
@@ -705,8 +686,7 @@ public abstract class AbstractPolicyEditorTest
     addNotification.role().listItems().findBy(text("Component Evaluator")).click();
     addNotification.addButton().shouldNotHave(DISABLED).click();
     addNotification.role().shouldHave(text("All roles are being notified."));
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     addNotification.role().shouldHave(text("All roles are being notified."));
     NotificationsSection.notificationFor("Owner").deleteButton().click();
     addNotification.role().shouldBe(visible).selectedItem().click();
@@ -741,8 +721,7 @@ public abstract class AbstractPolicyEditorTest
     actionsTable.operate().noActionRadio().shouldNotBe(selected);
 
     // Save and verify changes via backend
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     policy = policyDAO.getById(policy.getId());
@@ -1167,7 +1146,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void changeThreatLevel(int threatLevel) {
     ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
-    ThreatLevelSelector.threatLevelListItem(10 - threatLevel).click();
+    ThreatLevelSelector.threatLevelListItem(10 - threatLevel).shouldBe(visible).click();
     ThreatLevelSelector.selectedThreatLevel().shouldHave(text(String.valueOf(threatLevel)));
   }
 

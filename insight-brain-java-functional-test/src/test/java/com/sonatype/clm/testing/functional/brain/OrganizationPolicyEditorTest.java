@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
-import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
@@ -71,24 +70,18 @@ public class OrganizationPolicyEditorTest
     PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
     inheritance.allChildrenInheritRadio().click();
     inheritance.associationEditor().shouldNotBe(visible);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    // wait 800ms for mask to go away
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
 
     inheritance.allChildrenInheritRadio().shouldBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
     inheritance.associationEditor().shouldBe(visible);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    // wait 800ms for mask to go away
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
 
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
     inheritance.associationEditor().shouldBe(visible);
     inheritance.associationEditor().item(1).checkBox().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    // wait 800ms for mask to go away
-    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.savePolicy();
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 

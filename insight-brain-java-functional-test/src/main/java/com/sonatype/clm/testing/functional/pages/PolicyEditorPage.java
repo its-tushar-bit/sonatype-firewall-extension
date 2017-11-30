@@ -8,19 +8,18 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ActionsSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.model.OwnerType;
 
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.google.common.base.Predicate;
-import org.openqa.selenium.Point;
-import org.openqa.selenium.WebDriver;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 public class PolicyEditorPage
 {
@@ -105,19 +104,14 @@ public class PolicyEditorPage
     @Override
     public void click() {
       super.click();
-      // wait for the scrolling to finish to ensure later clicks don't miss their target
-      SelenideElement endOfPage = saveButton();
-      Selenide.Wait().until(new Predicate<WebDriver>()
-      {
-        Point location;
-
-        @Override
-        public boolean apply(WebDriver input) {
-          Point oldLocation = location;
-          location = endOfPage.getLocation();
-          return location.equals(oldLocation);
-        }
-      });
+      ScrollUtil.awaitEndOfScrolling(saveButton());
     }
+  }
+
+  public static void savePolicy() {
+    endOfPagePill().click();
+    saveButton().shouldNotHave(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
+    ScrollUtil.awaitEndOfScrolling(saveButton());
   }
 }

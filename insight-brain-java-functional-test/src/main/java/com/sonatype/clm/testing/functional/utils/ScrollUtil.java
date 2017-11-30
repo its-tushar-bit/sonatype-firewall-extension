@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.google.common.base.Predicate;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -70,5 +71,22 @@ public class ScrollUtil
 
   private static JavascriptExecutor getExecutor() {
     return (JavascriptExecutor) WebDriverRunner.getWebDriver();
+  }
+
+  /**
+   * Waits for any scrolling affecting the given element to finish to ensure later clicks don't miss their target.
+   */
+  public static void awaitEndOfScrolling(final SelenideElement element) {
+    Selenide.Wait().until(new Predicate<WebDriver>()
+    {
+      Point location;
+
+      @Override
+      public boolean apply(WebDriver input) {
+        Point oldLocation = location;
+        location = element.getLocation();
+        return location.equals(oldLocation);
+      }
+    });
   }
 }

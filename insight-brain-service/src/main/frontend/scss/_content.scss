@@ -37,9 +37,9 @@ body {
   position: relative;
   vertical-align: top;
   white-space: normal;
-  width: 22%;
-  min-width: 215px;
-  max-width: 300px;
+  width: $iq-sidebar-width;
+  min-width: $iq-sidebar-min-width;
+  max-width: $iq-sidebar-max-width;
   z-index: $iq-sidebar-zindex;
 
   // Hack to prevent rendering issues in Chrome. This will create a new layer with its own backing surface, preventing

@@ -57,12 +57,15 @@ i.iq-navigation-menu__icon {
 }
 
 .iq-title {
+  border-right: 1px solid transparent;
   color: #fff;
   display: inline-block;
   float: left;
   line-height: 24px;
-  margin: 0 10px 0 0;
   white-space: nowrap;
+  width: $iq-sidebar-width;
+  min-width: $iq-sidebar-min-width;
+  max-width: $iq-sidebar-max-width;
 
   img {
     display: inline-block;
@@ -88,12 +91,11 @@ i.iq-navigation-menu__icon {
 
 .iq-navbar {
   float: left;
-  margin-left: 90px;
   overflow: hidden;
 }
 
 .iq-navigation-menu {
-  margin: 0 0 0 25px;
+  margin: 0;
 
   li {
     vertical-align: top;
@@ -131,12 +133,6 @@ i.iq-navigation-menu__icon {
       }
     }
   }
-
-  &:first-child {
-    margin-left: 9px;
-  }
-
-
 }
 
 /*

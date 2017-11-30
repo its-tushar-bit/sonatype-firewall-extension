@@ -168,7 +168,7 @@ public class OwnerTreeViewTest
   @Test
   public void testShowApplicationParentWithoutPermissions() {
     createUser();
-    Organization organization = tempEntity.newOrganization("Parent Organization No Permission");
+    Organization organization = tempEntity.newOrganization("Unpermitted Parent Org");
     Application application = tempEntity.newApplication("No Parent Permissions", "No_Parent_Permissions",
         organization.getId());
     grantPermissions(getUsername(), application.getId(), Permission.READ);
@@ -180,7 +180,7 @@ public class OwnerTreeViewTest
     OwnerTreeView.organizationElements().shouldHaveSize(1);
     OrganizationNode parentNode = OwnerTreeView.organization(0);
     parentNode.treeViewElement().shouldBe(CLM.DISABLED);
-    parentNode.organizationName().shouldHave(text("Parent Organization No Permission"));
+    parentNode.organizationName().shouldHave(text("Unpermitted Parent Org"));
     parentNode.organizationName().shouldHave(OrganizationNode.DISABLED_TOOLTIP_ATTRIBUTE);
     parentNode.organizationName().hover();
     parentNode.popup().shouldBe(visible).shouldHave(text(OrganizationNode.DISABLED_TOOLTIP_CONTENT));

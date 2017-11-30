@@ -174,8 +174,6 @@ public class CreateOwnerTest
     OrganizationNode orgNode = OwnerTreeView.organization(0);
     orgNode.treeViewElement().click();
     orgNode.newApplicationButton().shouldBe(visible, enabled).click();
-    orgNode = OwnerTreeView.organization(0);
-    orgNode.newApplicationButton().shouldBe(visible, enabled).click();
 
     // fill form
     OwnerEditorDialog.name().val(NAME);

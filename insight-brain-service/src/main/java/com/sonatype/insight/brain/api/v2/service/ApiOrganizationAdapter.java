@@ -34,7 +34,7 @@ public class ApiOrganizationAdapter
     return organizationListDTO;
   }
 
-  private ApiOrganizationDTO convert(Organization organization, List<Tag> tags) {
+  public ApiOrganizationDTO convert(Organization organization, List<Tag> tags) {
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO();
     apiOrganizationDTO.id = organization.getId();
     apiOrganizationDTO.name = organization.getName();

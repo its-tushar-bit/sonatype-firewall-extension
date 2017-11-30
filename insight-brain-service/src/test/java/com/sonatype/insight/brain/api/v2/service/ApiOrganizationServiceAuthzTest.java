@@ -7,9 +7,14 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -20,7 +25,6 @@ import static org.hamcrest.Matchers.notNullValue;
 public class ApiOrganizationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-
   @Inject
   private ApiOrganizationService apiOrganizationService;
 
@@ -47,5 +51,29 @@ public class ApiOrganizationServiceAuthzTest
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
     assertThat(apiOrganizationListDTO, notNullValue());
     assertThat(apiOrganizationListDTO.organizations, hasSize(0));
+  }
+
+  @Test
+  public void testAddOrganization_Authorized() {
+    grantWritePermission();
+    ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, "testOrganizationName");
+    ApiOrganizationDTO newOrganizationDTO = apiOrganizationService.addOrganization(apiOrganizationDTO);
+
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    Organization organization = organizationDAO.getByIdNotNull(newOrganizationDTO.id);
+    organizationDAO.delete(organization);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddOrganization_Unauthenticated() {
+    ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, "testOrganizationName");
+    apiOrganizationService.addOrganization(apiOrganizationDTO);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddOrganization_UnauthorizedButAuthenticated() {
+    login();
+    ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, "testOrganizationName");
+    apiOrganizationService.addOrganization(apiOrganizationDTO);
   }
 }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,11 +13,13 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.OrganizationService;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.11.0
@@ -50,5 +53,22 @@ public class ApiOrganizationService
     }
 
     return apiOrganizationAdapter.convert(organizations, orgTagMap);
+  }
+
+  /**
+   * @since 1.42
+   */
+  public ApiOrganizationDTO addOrganization(ApiOrganizationDTO apiOrganizationDTO) {
+    if (apiOrganizationDTO.id != null) {
+      throw new BadRequestException("Organization must not have an ID set on creation.");
+    }
+    if (apiOrganizationDTO.tags != null) {
+      throw new BadRequestException("Organization must not have tags set on creation.");
+    }
+
+    Organization apiOrganization = new Organization(apiOrganizationDTO.name);
+    Organization newOrganization = organizationService.addOrganization(apiOrganization);
+
+    return apiOrganizationAdapter.convert(newOrganization, Collections.<Tag> emptyList());
   }
 }

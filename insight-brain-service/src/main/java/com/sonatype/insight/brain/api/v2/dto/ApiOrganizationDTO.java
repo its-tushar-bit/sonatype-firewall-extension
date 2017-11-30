@@ -17,4 +17,12 @@ public class ApiOrganizationDTO
   public String name;
 
   public List<ApiTagDTO> tags;
+
+  public ApiOrganizationDTO() {
+  }
+
+  public ApiOrganizationDTO(String id, String name) {
+    this.id = id;
+    this.name = name;
+  }
 }

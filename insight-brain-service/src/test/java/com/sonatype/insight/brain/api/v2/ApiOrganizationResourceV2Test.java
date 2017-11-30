@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiTagDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -38,6 +39,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class ApiOrganizationResourceV2Test
@@ -228,6 +231,28 @@ public class ApiOrganizationResourceV2Test
     assertThat(returnedRoleMemberMappingArray, arrayWithSize(2));
     assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[0], orgRoles.get(0).getId(), userA, MemberType.USER);
     assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[1], orgRoles.get(1).getId(), userB, MemberType.USER);
+  }
+
+  @Test
+  public void testAddOrganization() throws Exception {
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+
+    ApiOrganizationDTO requestBody = new ApiOrganizationDTO(null, "test-create-organization");
+
+    HttpRequest request = restRequest().body(requestBody);
+    HttpResponse response = request.post();
+    assertResponseStatus(200, response);
+
+    ApiOrganizationDTO responseBody = response.getBody(ApiOrganizationDTO.class);
+    assertThat(responseBody.id, not(isEmptyOrNullString()));
+
+    Organization organization = organizationDAO.getByIdNotNull(responseBody.id);
+    tempEntity.register(organization);
+
+    assertThat(responseBody.name, is(requestBody.name));
+    assertThat(responseBody.tags, hasSize(0));
+
+    assertThat(organization.getName(), is(requestBody.name));
   }
 
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {

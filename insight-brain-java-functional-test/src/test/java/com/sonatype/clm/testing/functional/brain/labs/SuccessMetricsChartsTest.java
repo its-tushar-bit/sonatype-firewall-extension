@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain.labs;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -158,7 +159,8 @@ public class SuccessMetricsChartsTest
     successMetricsChartsPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
     SummaryStatementTile.title().shouldHave(text("Test"));
-    String startOfMonth = DateTimeFormat.forPattern("MMM d, YYYY").print(LocalDate.now().withDayOfMonth(1));
+    String startOfMonth = DateTimeFormat.forPattern("MMM d, YYYY").withLocale(Locale.ENGLISH)
+        .print(LocalDate.now().withDayOfMonth(1));
     SummaryStatementTile.averages().shouldHave(text("This report contains data for 2 applications, evaluated over the" +
         " past 4 months, aggregated and deduplicated over the build, stage release, release, and operate stages. Last" +
         " updated " + startOfMonth + "."));
@@ -225,7 +227,7 @@ public class SuccessMetricsChartsTest
 
     DateTime mttrMonth = now().minusMonths(12);
     for (int i = 0; i < 12; i++) {
-      months.get(0).shouldBe(visible).shouldHave(text(mttrMonth.toString("MMM")));
+      months.get(0).shouldBe(visible).shouldHave(text(mttrMonth.toString("MMM", Locale.ENGLISH)));
       mttrMonth.plusMonths(1);
     }
   }

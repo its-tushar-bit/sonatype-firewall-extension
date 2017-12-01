@@ -12,6 +12,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import com.google.common.base.Predicate;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -71,6 +72,21 @@ public class ScrollUtil
 
   private static JavascriptExecutor getExecutor() {
     return (JavascriptExecutor) WebDriverRunner.getWebDriver();
+  }
+
+  /**
+   * Scrolls the given element into view. {@link SelenideElement#scrollTo()} tries to scroll the entire window which
+   * doesn't help for containers with scrollable content.
+   */
+  public static void scrollIntoView(final SelenideElement element) {
+    Selenide.Wait().ignoring(StaleElementReferenceException.class).until(new Predicate<WebDriver>()
+    {
+      @Override
+      public boolean apply(WebDriver input) {
+        return ((JavascriptExecutor) input).executeScript("arguments[0].scrollIntoView(); return 1", element) != null;
+      }
+    });
+    awaitEndOfScrolling(element);
   }
 
   /**

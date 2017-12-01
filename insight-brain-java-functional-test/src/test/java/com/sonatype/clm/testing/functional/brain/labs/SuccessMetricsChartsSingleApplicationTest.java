@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Compon
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -117,7 +118,7 @@ public class SuccessMetricsChartsSingleApplicationTest
 
     successMetricsReportPage.should(appear);
 
-    MttrTile.root().scrollTo();
+    ScrollUtil.scrollIntoView(MttrTile.root());
     MttrTile.root().shouldBe(visible);
     MttrTile.chart().shouldBe(visible);
   }
@@ -128,7 +129,7 @@ public class SuccessMetricsChartsSingleApplicationTest
 
     successMetricsReportPage.should(appear);
 
-    ComponentCountsTile.root().scrollTo();
+    ScrollUtil.scrollIntoView(ComponentCountsTile.root());
     ComponentCountsTile.root().shouldBe(visible);
 
     ComponentCountsTile.averages()

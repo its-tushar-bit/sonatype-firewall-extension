@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Compon
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -170,6 +171,8 @@ public class SuccessMetricsChartsTest
   public void testViolationAveragesTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
+    ScrollUtil.scrollIntoView(ViolationAveragesTile.root());
+
     successMetricsChartsPage.should(appear);
     ViolationAveragesTile.root().shouldBe(visible);
     ViolationAveragesTile.title()
@@ -183,7 +186,7 @@ public class SuccessMetricsChartsTest
   public void testApplicationCountsTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
-    ApplicationCountsTile.root().scrollTo();
+    ScrollUtil.scrollIntoView(ApplicationCountsTile.root());
 
     successMetricsChartsPage.should(appear);
     ApplicationCountsTile.root().shouldHave(visible);
@@ -204,7 +207,7 @@ public class SuccessMetricsChartsTest
   public void testMttrTile() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
-    MttrTile.root().scrollTo();
+    ScrollUtil.scrollIntoView(MttrTile.root());
 
     successMetricsChartsPage.should(appear);
     MttrTile.root().shouldBe(visible);
@@ -236,7 +239,7 @@ public class SuccessMetricsChartsTest
   public void testComponentCountsTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
-    ComponentCountsTile.root().scrollTo();
+    ScrollUtil.scrollIntoView(ComponentCountsTile.root());
 
     successMetricsChartsPage.should(appear);
     ComponentCountsTile.root().shouldBe(visible);

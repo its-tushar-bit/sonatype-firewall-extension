@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.sun.jersey.core.util.Base64;
 import org.apache.http.HttpResponse;
@@ -41,6 +43,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.disabled;
@@ -55,7 +58,6 @@ import static com.codeborne.selenide.Condition.visible;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class CreateOwnerTest
     extends AbstractFunctionalTest
@@ -182,7 +184,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.RobotIconSelector.button().click();
 
     // ensure image is displayed
-    assertTrue(OwnerEditorDialog.RobotIconSelector.icon().isImage());
+    assertImage(OwnerEditorDialog.RobotIconSelector.icon());
     String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
     BufferedImage userSelectedImage = ImageIO.read(fetchContent(userSelectedImageSrc));
 
@@ -200,7 +202,7 @@ public class CreateOwnerTest
 
     // validate the selected image is displayed
     OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
-    assertTrue(OwnerSummaryPage.SummaryTile.headerIcon().isImage());
+    assertImage(OwnerSummaryPage.SummaryTile.headerIcon());
     orgNode.applicationElements().shouldHaveSize(1).get(0).shouldHave(text(NAME));
     String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
     BufferedImage displayedImage = ImageIO.read(fetchContent(summaryTileHeaderIconSrc));
@@ -224,7 +226,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.RobotIconSelector.button().click();
 
     // validate image is displayed
-    assertTrue(OwnerEditorDialog.RobotIconSelector.icon().isImage());
+    assertImage(OwnerEditorDialog.RobotIconSelector.icon());
     String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
     BufferedImage userSelectedImage = ImageIO.read(fetchContent(userSelectedImageSrc));
 
@@ -238,7 +240,7 @@ public class CreateOwnerTest
 
     // validate the selected image is displayed
     OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
-    assertTrue(OwnerSummaryPage.SummaryTile.headerIcon().isImage());
+    assertImage(OwnerSummaryPage.SummaryTile.headerIcon());
     String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
     BufferedImage displayedImage = ImageIO.read(fetchContent(summaryTileHeaderIconSrc));
 
@@ -267,7 +269,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.RobotIconSelector.button().click();
 
     // validate image is displayed
-    assertTrue(OwnerEditorDialog.RobotIconSelector.icon().isImage());
+    assertImage(OwnerEditorDialog.RobotIconSelector.icon());
     String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
     BufferedImage userSelectedImage = ImageIO.read(fetchContent(userSelectedImageSrc));
 
@@ -277,7 +279,7 @@ public class CreateOwnerTest
 
     // check frontend
     OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
-    assertTrue(OwnerSummaryPage.SummaryTile.headerIcon().isImage());
+    assertImage(OwnerSummaryPage.SummaryTile.headerIcon());
     String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
     BufferedImage displayedImage = ImageIO.read(fetchContent(summaryTileHeaderIconSrc));
 
@@ -299,7 +301,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.RobotIconSelector.button().click();
 
     // validate image is displayed
-    assertTrue(OwnerEditorDialog.RobotIconSelector.icon().isImage());
+    assertImage(OwnerEditorDialog.RobotIconSelector.icon());
     String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
     BufferedImage userSelectedImage = ImageIO.read(fetchContent(userSelectedImageSrc));
 
@@ -314,7 +316,7 @@ public class CreateOwnerTest
 
     // check frontend
     OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
-    assertTrue(OwnerSummaryPage.SummaryTile.headerIcon().isImage());
+    assertImage(OwnerSummaryPage.SummaryTile.headerIcon());
     String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
     BufferedImage displayedImage = ImageIO.read(fetchContent(summaryTileHeaderIconSrc));
 
@@ -422,5 +424,15 @@ public class CreateOwnerTest
     get.setHeader("Authorization", "Basic " + new String(Base64.encode("admin:admin123")));
     HttpResponse response = client.execute(get);
     return response.getEntity().getContent();
+  }
+
+  private void assertImage(SelenideElement element) {
+    element.shouldBe(new Condition("image")
+    {
+      @Override
+      public boolean apply(WebElement ignored) {
+        return element.isImage();
+      }
+    });
   }
 }

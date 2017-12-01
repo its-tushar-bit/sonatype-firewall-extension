@@ -31,6 +31,7 @@
     "ng-upload": "https://github.com/twilson63/ngUpload.git#v0.5.18",
     "ngUpload": "git+https://github.com/twilson63/ngUpload.git#v0.5.18",
     "plottable": "=3.7.0",
+    "ramda": "=0.25.0",
     "zeroclipboard": "=1.3.2"
   },
   "devDependencies": {

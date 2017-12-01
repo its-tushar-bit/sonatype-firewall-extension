@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { groupBy, prop, toPairs, pipe, map, zipObj } from 'ramda';
 
 /**
  * Given a selected Set, returns predicate functions to filter selected items.
@@ -24,24 +25,11 @@ export function areAllSelected(selected, items) {
  * @param apps Array
  * @returns Array of {orgId:String, apps:Array}
  */
-export function groupAppsByOrgId(apps) {
-  const appsMappedToOrgId = apps.reduce((obj, app) => {
-    if (obj[app.organizationId]) {
-      obj[app.organizationId].push(app);
-    }
-    else {
-      obj[app.organizationId] = [app];
-    }
-    return obj;
-  }, {});
-
-  return Object.keys(appsMappedToOrgId).map(orgId => {
-    return {
-      orgId,
-      apps: appsMappedToOrgId[orgId]
-    };
-  });
-}
+export const groupAppsByOrgId = pipe(
+    groupBy(prop('organizationId')),
+    toPairs,
+    map(zipObj(['orgId', 'apps']))
+);
 
 /**
  * @param obj

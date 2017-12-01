@@ -81,7 +81,8 @@ public abstract class AbstractParameters
       + Stage.ID_OPERATE)
   private Stage stage = new Stage(Stage.ID_BUILD);
 
-  @Parameter(names = { "-X", "--debug" }, description = "Enable debug logs", hidden = true)
+  @Parameter(names = { "-X", "--debug" }, description = "Enable debug logs."
+      + " WARNING: This may expose sensitive information in the log.")
   private boolean debug;
 
   @Parameter(names = { "-q", "--quiet" }, description = "Restrict logs to errors", hidden = true)

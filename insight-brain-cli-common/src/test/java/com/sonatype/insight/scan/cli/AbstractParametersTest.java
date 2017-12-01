@@ -10,6 +10,7 @@ import java.util.List;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
 
 public class AbstractParametersTest
@@ -38,5 +39,12 @@ public class AbstractParametersTest
     TestParameters params = new TestParameters();
     params.parse("-D", "key1=value1a, value1b", "-D", "key2=value2");
     assertThat(params.getProperties(), contains("key1=value1a, value1b", "key2=value2"));
+  }
+
+  @Test
+  public void testCreateUsageHelp_MentionsDebugOption() {
+    TestParameters params = new TestParameters();
+    String help = params.createUsageHelp();
+    assertThat(help, containsString("--debug"));
   }
 }

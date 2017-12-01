@@ -1,52 +1,62 @@
 <div load-wrapper="vm.loadError" loading="!vm.actionStages" reload="vm.doLoad()">
-  <table id="edit-policy-actions-table">
+  <table id="edit-policy-actions-table" class="iq-table">
     <thead>
-      <tr>
-        <th class="greedy-column">
+      <tr class="iq-table-row">
+        <th class="iq-cell iq-cell--header">
           <span class="header-text">ACTION</span>
         </th>
-        <th ng-repeat="actionStage in vm.actionStages" class="{{::actionStage.shortName | lowercase}}">
+        <th ng-repeat="actionStage in vm.actionStages"
+            class="{{::actionStage.shortName | lowercase}} iq-cell iq-cell--header">
           <span class="header-text">{{::actionStage.shortName}}</span>
         </th>
-        <th />
-        <th class="delete" />
+        <th class="iq-cell iq-cell--header"></th>
+        <th class="iq-cell iq-cell--header iq-cell--header--noborder"></th>
       </tr>
     </thead>
     <tbody>
-    <tr>
-      <td class="greedy-column action-name">No Action</td>
-      <td ng-repeat="actionStage in vm.actionStages"
-          class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
-          ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-        <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled"></iq-radio>
-      </td>
-      <td /> <!--empty columns for alignment with notifications table-->
-      <td class="delete" />
-    </tr>
-    <tr>
-      <td class="greedy-column action-name"><span><i class="fa fa-exclamation-triangle warn size-16px"></i>Warn</span></td>
-      <td ng-repeat="actionStage in vm.actionStages"
-          class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
-          ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-        <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled" value="'warn'"><!--
-          --><i ng-class="{'fa fa-exclamation-triangle warn size-16px' : vm.actions[actionStage.stageTypeId] === 'warn'}"></i>
-        </iq-radio>
-      </td>
-      <td />
-      <td class="delete" />
-    </tr>
-    <tr>
-      <td class="greedy-column action-name"><span><i class="fa fa-exclamation-circle fail size-16px"></i>Fail</span></td>
-      <td ng-repeat="actionStage in vm.actionStages"
-          class="action {{::actionStage.shortName | lowercase}}" ng-class="{active: vm.activeColumn === $index}"
-          ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
-        <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled" value="'fail'"><!--
-          --><i ng-class="{'fa fa-exclamation-circle fail size-16px' : vm.actions[actionStage.stageTypeId] === 'fail'}"></i>
-        </iq-radio>
-      </td>
-      <td /> <!--empty columns for alignment with notifications table-->
-      <td class="delete" />
-    </tr>
+      <tr class="iq-table-row">
+        <td class="iq-cell action-name">No Action</td>
+        <td ng-repeat="actionStage in vm.actionStages"
+            class="action iq-cell {{::actionStage.shortName | lowercase}}"
+            ng-class="{active: vm.activeColumn === $index}"
+            ng-mouseover="vm.activeColumn = $index"
+            ng-mouseleave="vm.activeColumn = -1">
+          <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled"></iq-radio>
+        </td>
+        <td class="iq-cell"></td> <!--empty columns for alignment with notifications table-->
+        <td class="iq-cell"></td>
+      </tr>
+      <tr class="iq-table-row">
+        <td class="iq-cell action-name">
+          <i class="fa fa-exclamation-triangle warn size-16px"></i>Warn
+        </td>
+        <td ng-repeat="actionStage in vm.actionStages"
+            class="action iq-cell {{::actionStage.shortName | lowercase}}"
+            ng-class="{active: vm.activeColumn === $index}"
+            ng-mouseover="vm.activeColumn = $index"
+            ng-mouseleave="vm.activeColumn = -1">
+          <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled" value="'warn'"><!--
+            --><i ng-class="{'fa fa-exclamation-triangle warn size-16px' : vm.actions[actionStage.stageTypeId] === 'warn'}"></i>
+          </iq-radio>
+        </td>
+        <td class="iq-cell"></td>
+        <td class="iq-cell"></td>
+      </tr>
+      <tr class="iq-table-row">
+        <td class="iq-cell action-name">
+          <i class="fa fa-exclamation-circle fail size-16px"></i>Fail
+        </td>
+        <td ng-repeat="actionStage in vm.actionStages"
+            class="action iq-cell {{::actionStage.shortName | lowercase}}"
+            ng-class="{active: vm.activeColumn === $index}"
+            ng-mouseover="vm.activeColumn = $index" ng-mouseleave="vm.activeColumn = -1">
+          <iq-radio model="vm.actions[actionStage.stageTypeId]" is-disabled="vm.disabled" value="'fail'"><!--
+            --><i ng-class="{'fa fa-exclamation-circle fail size-16px' : vm.actions[actionStage.stageTypeId] === 'fail'}"></i>
+          </iq-radio>
+        </td>
+        <td class="iq-cell"></td>
+        <td class="iq-cell"></td>
+      </tr>
     </tbody>
   </table>
 </div>

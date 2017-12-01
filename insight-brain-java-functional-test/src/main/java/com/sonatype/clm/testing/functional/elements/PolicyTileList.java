@@ -63,7 +63,7 @@ public class PolicyTileList
 
     public static final Condition FAIL = cssClass("fail");
     
-    public static final Condition CHEVRON = cssClass("chevron-column");
+    public static final Condition CHEVRON = cssClass("iq-cell--chevron");
 
     public PolicyTileListElement(String... selectors) {
       super(selectors);

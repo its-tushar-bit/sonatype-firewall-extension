@@ -32,35 +32,42 @@
           </div>
           <table sort="vm.sortFields"
                  on-sort-change="vm.sortFields = sortFields"
-                 class="greedy-table repository-configuration-list"
+                 class="iq-table repository-configuration-list"
                  cols="3"
                  ng-if="vm.repositories.length > 0">
             <thead>
-            <tr>
-              <th sort-column="repository.publicId" class="greedy-column">
-                <span class="header-text">REPOSITORY</span>
-              </th>
-              <th sort-column="managerInstanceId, repository.publicId">
-                <span class="header-text">REPOSITORY MANAGER</span>
-              </th>
-              <th sort-column="-repository.enabled, repository.publicId">
-                <span class="header-text">STATUS</span>
-              </th>
-              <th></th>
-            </tr>
+              <tr class="iq-table-row">
+                <th sort-column="repository.publicId" class="iq-cell iq-cell--header">
+                  <span class="header-text">REPOSITORY</span>
+                </th>
+                <th sort-column="managerInstanceId, repository.publicId"
+                    class="iq-cell iq-cell--header repository-configuration-list__manager-id">
+                  <span class="header-text">REPOSITORY MANAGER</span>
+                </th>
+                <th sort-column="-repository.enabled, repository.publicId"
+                    class="iq-cell iq-cell--header repository-configuration-list__enabled">
+                  <span class="header-text">STATUS</span>
+                </th>
+                <th class="iq-cell iq-cell--header iq-cell--btn-icon iq-cell--header--noborder"></th>
+              </tr>
             </thead>
-            <tr ng-repeat="repository in vm.repositories | orderBy:vm.sortFields">
-              <td class="greedy-column">{{repository.repository.publicId}}</td>
-              <td>{{repository.managerInstanceId}}</td>
-              <td><i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i><!--
-              -->{{repository.repository.enabled ? 'Enabled' : 'Disabled'}}
-              </td>
-              <td>
-                <button type="button" class="btn btn-tertiary btn-icon-only" ng-click="vm.removeRepository(repository)">
-                  <i class="fa fa-fw fa-trash"></i>
-                </button>
-              </td>
-            </tr>
+            <tbody>
+              <tr class="iq-table-row" ng-repeat="repository in vm.repositories | orderBy:sortVm.sortFields">
+                <td class="iq-cell">{{repository.repository.publicId}}</td>
+                <td class="iq-cell repository-configuration-list__manager-id">{{repository.managerInstanceId}}</td>
+                <td class="iq-cell repository-configuration-list__enabled">
+                  <i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i><!--
+               -->{{repository.repository.enabled ? 'Enabled' : 'Disabled'}}
+                </td>
+                <td class="iq-cell iq-cell--btn-icon">
+                  <button type="button"
+                          class="btn btn-tertiary btn-icon-only"
+                          ng-click="vm.removeRepository(repository)">
+                    <i class="fa fa-fw fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>

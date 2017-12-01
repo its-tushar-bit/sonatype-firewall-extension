@@ -432,11 +432,13 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
     li, tr {
       border-top: 1px solid transparent;
 
-      &:not(:first-child) {
-        border-top-color: $iq-grey-1;
-      }
-      &:last-child {
-        border-bottom: 1px solid $iq-grey-1;
+      &:not(.iq-table-row) {
+        &:not(:first-child) {
+          border-top-color: $iq-grey-1;
+        }
+        &:last-child {
+          border-bottom: 1px solid $iq-grey-1;
+        }
       }
 
       &.clickable {
@@ -539,7 +541,10 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
       }
     }
 
-    .greedy-table.policy-list {
+    .policy-list {
+      margin-top: 0;
+      width: 100%;
+
       .threat-legend {
         display: inline-block;
         float: left;
@@ -556,26 +561,45 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
         }
       }
 
-      .action {
-        color: $iq-slate;
+      .policy-list__name-column {
+        @include semi-bold();
+      }
 
-        .fa span {
-          color: $iq-off-black;
+      .policy-list__threat-column {
+        width: 66px;
+      }
+
+      .policy-list__stage-column {
+        color: $iq-slate;
+        width: 1px;
+        white-space: nowrap;
+
+        .fa {
+          margin-right: 8px;
+
+          span {
+            color: $iq-off-black;
+          }
         }
       }
     }
 
-    .greedy-table.repository-configuration-list {
-      tr {
-        line-height: 18px;
-      }
-
+    .repository-configuration-list {
       .fa-check-circle {
         color: $iq-valid-color;
       }
 
       .fa-times-circle {
         color: $iq-grey-4;
+      }
+
+      .fa {
+        margin-right: 8px;
+      }
+
+      .repository-configuration-list__manager-id, .repository-configuration-list__enabled {
+        width: 1px;
+        white-space: nowrap;
       }
     }
   }

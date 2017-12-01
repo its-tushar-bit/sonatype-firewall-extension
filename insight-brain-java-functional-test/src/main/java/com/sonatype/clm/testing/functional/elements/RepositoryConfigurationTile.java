@@ -28,7 +28,7 @@ public class RepositoryConfigurationTile
   }
 
   public ConfigurationTable configurationTable() {
-    return new ConfigurationTable(createSelector(selector, ".greedy-table.repository-configuration-list"));
+    return new ConfigurationTable(createSelector(selector, ".repository-configuration-list"));
   }
 
   public SelenideElement emptyDescriptor() {

@@ -151,7 +151,7 @@
     }
   }
 
-  #policy-edit-actions, #policy-edit-notifications, .inherited-proprietary-component-matchers, .local-proprietary-component-matchers {
+  .inherited-proprietary-component-matchers, .local-proprietary-component-matchers {
     .editor-section-header {
       border-bottom: 0px;
       margin-top: 20px;
@@ -217,10 +217,6 @@
           width: 34px;
         }
 
-        &.continuous-monitoring {
-          font-size: 12px;
-        }
-
         &.action {
           text-align: left;
           padding: 0;
@@ -267,6 +263,68 @@
           color: $iq-slate;
         }
       }
+    }
+  }
+
+  #policy-edit-actions, #policy-edit-notifications {
+    .header-text {
+      text-transform: uppercase;
+    }
+
+    .iq-table {
+      table-layout: fixed;
+    }
+
+    // these two table should line up, but their columns don't have the same semantics so
+    // the alignment is specified in terms of column positions
+    .iq-cell {
+      padding: 0;
+      text-align: center;
+      width: 80px;
+
+      &:first-child {
+        padding-left: 12px;
+        text-align: left;
+        width: auto;
+      }
+
+      &:last-child {
+        width: 34px;
+      }
+
+      &.action-name, &.recipient {
+        > .fa, > svg {
+          margin-top: 2px;
+          margin-right: 8px;
+        }
+
+        > .svg-slate-16px {
+          fill: $iq-slate;
+          height: 16px;
+          width: 16px;
+        }
+      }
+    }
+
+    .iq-radio {
+      height: 40px;
+      margin-left: 0;
+      padding-left: 56px;
+
+      .iq-radio__circle::before, .iq-radio__circle::after {
+        top: 10px;
+        left: 32px;
+      }
+
+      i.fa {
+        padding-top: 12px;
+      }
+    }
+
+    .continuous-monitoring {
+      font-size: 12px;
+      line-height: inherit;
+      white-space: normal;
     }
   }
 

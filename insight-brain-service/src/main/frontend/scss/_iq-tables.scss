@@ -150,3 +150,8 @@ thead {
   max-width: 14px;
   min-width: 14px;
 }
+
+// a cell that only contains an icon that acts as a button
+.iq-cell--btn-icon {
+  width: 32px;
+}

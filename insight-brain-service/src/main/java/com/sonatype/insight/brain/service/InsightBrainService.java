@@ -299,11 +299,14 @@ public class InsightBrainService
 
   private void initializeDatabases(final InsightConfig config) {
     DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
-    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.dm);
-    DatamartProvider.init(dmDatabaseConfig);
 
+    // NOTE: The ODS can refuse upgrade if the existing schema is too old. So initialize&upgrade it first to avoid
+    // upgrading the other databases if the ODS fails and a previous server version must be run first instead.
     DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.ods);
     OperationalDataStoreProvider.init(odsDatabaseConfig);
+
+    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.dm);
+    DatamartProvider.init(dmDatabaseConfig);
 
     DatabaseConfig aggregationDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.aggregation);
     AggregationDataStoreProvider.init(aggregationDatabaseConfig);

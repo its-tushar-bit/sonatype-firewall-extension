@@ -47,16 +47,12 @@ public class PolicyJsonMigrator
 
   private final PolicyInternalDAO policyInternalDAO;
 
-  private final ProcureRemovalMigrator procureRemovalMigrator;
-
   @Inject
   public PolicyJsonMigrator(SchemaInfoDAO schemaInfoDAO,
-                            PolicyInternalDAO policyInternalDAO,
-                            ProcureRemovalMigrator procureRemovalMigrator)
+                            PolicyInternalDAO policyInternalDAO)
   {
     this.schemaInfoDAO = schemaInfoDAO;
     this.policyInternalDAO = policyInternalDAO;
-    this.procureRemovalMigrator = procureRemovalMigrator;
   }
 
   public void migrate() throws IOException {
@@ -113,7 +109,6 @@ public class PolicyJsonMigrator
           }
         }
       }
-      procureRemovalMigrator.pruneProcurement(policy);
     }
     if (legacyPolicy.monitorNotifyActions != null) {
       for (Action action : legacyPolicy.monitorNotifyActions) {

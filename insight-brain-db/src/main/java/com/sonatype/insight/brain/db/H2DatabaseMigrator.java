@@ -32,6 +32,16 @@ public class H2DatabaseMigrator
                       int desiredVersion,
                       int defaultCurrentVersion)
   {
+    migrate(databaseConfig, databaseName, dataSource, Integer.MIN_VALUE, desiredVersion, defaultCurrentVersion);
+  }
+
+  public void migrate(DatabaseConfig databaseConfig,
+                      String databaseName,
+                      DataSource dataSource,
+                      int minimumVersion,
+                      int desiredVersion,
+                      int defaultCurrentVersion)
+  {
     if (databaseConfig == null) {
       // In memory database, nothing to migrate.
       return;
@@ -60,6 +70,13 @@ public class H2DatabaseMigrator
       log.info("Current version of database {}: {}", databaseFilename, currentVersion);
       if (currentVersion >= desiredVersion) {
         return;
+      }
+
+      if (currentVersion < minimumVersion) {
+        throw new UnsupportedOperationException(String.format(
+            "Cannot migrate %s database to version %s, this requires version %s at minimum, but you have version %s.\n" +
+                "Please upgrade to Nexus IQ Server version 1.16 before upgrading to this version.", databaseName,
+            desiredVersion, minimumVersion, currentVersion));
       }
 
       log.info("Migrating database {} to version: {}", databaseFilename, desiredVersion);

@@ -25,6 +25,8 @@ public class OperationalDataStoreProvider
 
   public static final String ID = "insight_brain_ods";
 
+  static final int MINIMUM_DATABASE_VERSION = 85;
+
   private static DataSource dataSource;
 
   private static DatabaseConfig databaseConfig;
@@ -51,8 +53,8 @@ public class OperationalDataStoreProvider
     databaseConfig = _databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     if (migrateDatabase) {
-      new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION,
-          6 /* defaultCurrentVersion */);
+      new H2DatabaseMigrator()
+          .migrate(databaseConfig, ID, dataSource, MINIMUM_DATABASE_VERSION, DESIRED_DATABASE_VERSION, 6 /* defaultCurrentVersion */);
     }
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);

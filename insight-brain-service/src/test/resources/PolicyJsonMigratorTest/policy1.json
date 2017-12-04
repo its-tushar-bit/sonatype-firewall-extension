@@ -33,11 +33,7 @@
     } ],
     "stage-release" : [ ],
     "release" : [ ],
-    "operate" : [ ],
-    "procure" : [ {
-      "actionTypeId" : "warn",
-      "target" : null
-    } ]
+    "operate" : [ ]
   },
   "monitorNotifyActions" : [ {
     "actionTypeId" : "notify",

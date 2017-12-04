@@ -79,12 +79,14 @@
   content: "";
   display: block;
   margin: 10px 0 3px 4px;
+  -ms-transform:rotate(0deg);
   transform:rotate(0deg);
   transition: all 300ms ease;
   vertical-align: text-top;
   width: 0;
 
   &.collapse {
+    -ms-transform:rotate(90deg);
     transform:rotate(90deg);
   }
 

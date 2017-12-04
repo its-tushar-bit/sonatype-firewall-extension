@@ -171,7 +171,7 @@ public class PolicyDroolsCodeMigratorTest
 
     // Fake schema state before migration
     SchemaInfo schemaInfo = schemaInfoDAO.get();
-    schemaInfo.setDroolsCodeVersion(0);
+    schemaInfo.setDroolsCodeVersion(2);
     schemaInfoDAO.update(schemaInfo);
 
     migrator.migrate();

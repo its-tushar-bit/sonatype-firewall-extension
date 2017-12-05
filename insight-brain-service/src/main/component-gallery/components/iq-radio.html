@@ -20,14 +20,14 @@
 <item-example-html>
   <form ng-init="color = {name: 'blue', default: 'pink'}; greenCounter = 0">
     <h3 style="color:{{color.name}}">Selected Color: {{color.name}}</h3>
-    <iq-radio model="color.name" value="'blue'" is-disabled="true"><em>Blue</em> (disabled)</iq-radio>
-    <iq-radio model="color.name" value="'red'"><em>Red</em></iq-radio>
-    <iq-radio model="color.name" value="color.default"><em>Default</em> (using value expression)</iq-radio>
+    <iq-radio model="color.name" value="'blue'" is-disabled="true">Blue (disabled)</iq-radio>
+    <iq-radio model="color.name" value="'red'">Red</iq-radio>
+    <iq-radio model="color.name" value="color.default">Default (using value expression)</iq-radio>
 
     <iq-radio model="color.name"
               value="'green'"
               on-click="greenCounter = greenCounter + 1"><!--
-        --><em>Green</em> (with on-click expression)
+        -->Green (with on-click expression)
     </iq-radio>
     <p>Green is selected {{greenCounter}} times</p>
   </form>

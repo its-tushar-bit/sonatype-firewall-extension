@@ -89,6 +89,7 @@ public class H2DatabaseMigrator
                 + backupDir.getAbsolutePath()
                 + "' already exists, indicating that a previous migration failed. Please contact support for further assistance.");
       }
+      log.info("Creating backup of database {} in {}", databaseFilename, backupDir);
       backup(databaseDir, databaseFilename, backupDir);
 
       String scriptsPath = "/db/" + databaseName + "/";
@@ -98,6 +99,7 @@ public class H2DatabaseMigrator
         FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));
       }
 
+      log.info("Deleting backup of database {} from {}", databaseFilename, backupDir);
       new FileCleaner().delete(backupDir);
     }
     catch (IOException | SQLException e) {

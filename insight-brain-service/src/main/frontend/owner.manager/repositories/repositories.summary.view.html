@@ -52,7 +52,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="iq-table-row" ng-repeat="repository in vm.repositories | orderBy:sortVm.sortFields">
+              <tr class="iq-table-row" ng-repeat="repository in vm.repositories | orderBy:vm.sortFields">
                 <td class="iq-cell">{{repository.repository.publicId}}</td>
                 <td class="iq-cell repository-configuration-list__manager-id">{{repository.managerInstanceId}}</td>
                 <td class="iq-cell repository-configuration-list__enabled">

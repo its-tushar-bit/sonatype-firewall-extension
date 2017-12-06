@@ -35,14 +35,15 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
       plugins = [].concat(
           cssOutputPath ? getCssPlugins() : [],
           productionPlugins
-      );
+      ),
+      publicPath = cssOutputPath ? (cssOutputPath.match(/\//g) || []).map(() => '../').join('') : undefined;
 
   return {
     context: path.resolve(__dirname, 'src/main/frontend'),
     entry: entryPath,
     output: {
       path: webpackOutputDir,
-      publicPath: '/assets/',
+      publicPath,
       filename: outputPath
     },
     module: {

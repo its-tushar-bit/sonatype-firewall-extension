@@ -70,6 +70,8 @@ public class Scanner
       writer.closeScan();
       writer.close();
     }
+    log.info("Fingerprinting completed in {} seconds for {} archives, {} total files",
+        scan.getSummary().getElapsedSeconds(), scan.getSummary().getArchives(), scan.getSummary().getFiles());
   }
 
   private Properties getScanConfigProps(Properties properties) throws IOException {

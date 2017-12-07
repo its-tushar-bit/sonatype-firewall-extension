@@ -18,7 +18,7 @@
 
   <properties>
     <node.version>v6.9.3</node.version>
-    <npm.version>5.5.1</npm.version>
+    <npm.version>5.6.0</npm.version>
     <freemarker.version>2.3.19</freemarker.version>
     <licensing.version>1.4</licensing.version>
     <jasmine.version>2.2</jasmine.version>
@@ -884,13 +884,6 @@
             <goals>
               <goal>npm</goal>
             </goals>
-            <configuration>
-              <!--
-                   Workaround for package-lock bug with OS-specific packages.
-                   See https://github.com/npm/npm/issues/17722
-              -->
-              <arguments>install --no-save</arguments>
-            </configuration>
           </execution>
           <execution>
             <id>grunt-build</id>

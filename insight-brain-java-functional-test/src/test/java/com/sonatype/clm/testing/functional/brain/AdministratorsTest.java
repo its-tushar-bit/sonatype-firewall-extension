@@ -95,13 +95,13 @@ public class AdministratorsTest
     roleRow.hover();
     roleRow.editButton().click();
     content.queryInput().setValue("Jan*");
-    content.searchButton().click();
+    content.search();
 
     content.availableMembers().shouldHave(texts("Jane Doe"));
     content.appliedMembers().shouldHave(texts("Admin BuiltIn"));
 
     content.queryInput().setValue("*Do*");
-    content.searchButton().click();
+    content.search();
 
     content.availableMembers().shouldHave(texts("Jane Doe", "John Doe"));
     content.appliedMembers().shouldHave(texts("Admin BuiltIn"));
@@ -114,7 +114,7 @@ public class AdministratorsTest
     roleRow.hover();
     roleRow.editButton().click();
     content.queryInput().setValue("*Do*");
-    content.searchButton().click();
+    content.search();
 
     content.availableMember("John Doe").click();
     content.pickButton().click();
@@ -139,7 +139,7 @@ public class AdministratorsTest
     roleRow.hover();
     roleRow.editButton().click();
     content.queryInput().setValue("*Do*");
-    content.searchButton().click();
+    content.search();
     content.availableMember("John Doe").click();
     content.pickButton().click();
     content.availableMember("Jane Doe").click();
@@ -162,7 +162,7 @@ public class AdministratorsTest
     roleRow.hover();
     roleRow.editButton().click();
     content.queryInput().setValue("*Do*");
-    content.searchButton().click();
+    content.search();
     content.availableMember("John Doe").click();
     content.pickButton().click();
 

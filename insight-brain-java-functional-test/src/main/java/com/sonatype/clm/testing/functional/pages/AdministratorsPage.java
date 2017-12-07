@@ -10,8 +10,9 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import static com.codeborne.selenide.Condition.exactText;
 
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class AdministratorsPage
@@ -83,6 +84,11 @@ public class AdministratorsPage
 
         public SelenideElement queryInput() {
           return child("#access-user-search-input");
+        }
+
+        public void search() {
+          availableMembersList().shouldBe(visible); // ensure page is ready to process searches
+          searchButton().click();
         }
 
         public SelenideElement searchButton() {

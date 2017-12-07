@@ -3,7 +3,7 @@
 }
 
 .iq-grid-col {
-  @include flex(1 0 auto);
+  @include flex(1 0);
 
   border-left: 1px solid $iq-grey-2;
   box-sizing: border-box;

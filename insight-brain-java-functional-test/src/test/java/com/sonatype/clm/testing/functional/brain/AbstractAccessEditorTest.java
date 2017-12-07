@@ -229,6 +229,7 @@ public abstract class AbstractAccessEditorTest
     refresh(); // reload because UI data is cached
     goFromSummaryToAddRole();
 
+    AccessEditorPage.searchBox().shouldBe(visible);
     AccessEditorPage.mixedGroupSearchWarning().shouldNot(exist);
 
     // enable group search for one

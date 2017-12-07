@@ -260,8 +260,8 @@
 #policy-edit-notifications {
   td {
     .iq-checkbox__label--no-text {
-      margin-top: 8px;
-      margin-bottom: 0 !important; // this is to overwrite margin-bottom in label:not(.btn) defined above
+      vertical-align: middle;
+      margin: 0;
       width: 100%;
 
       .iq-checkbox__box {

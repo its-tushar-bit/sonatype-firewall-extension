@@ -545,10 +545,23 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
       margin-top: 0;
       width: 100%;
 
+      .iq-cell {
+        white-space: normal;
+      }
+
+      .iq-column-sort-trigger {
+        height: auto;
+        line-height: normal;
+      }
+
+      .iq-cell--header {
+        line-height: normal;
+      }
+
       .threat-legend {
         display: inline-block;
         float: left;
-        min-height: inherit;
+        height: 100%;
         margin: 0px 8px 0px -12px;
         width: 8px;
 
@@ -566,7 +579,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
       }
 
       .policy-list__threat-column {
-        width: 66px;
+        width: 67px;
       }
 
       .policy-list__stage-column {

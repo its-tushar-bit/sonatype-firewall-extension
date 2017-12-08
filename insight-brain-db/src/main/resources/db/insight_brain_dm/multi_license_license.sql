@@ -464,3 +464,5 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Oracle
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Rebex-EULA-1.4', 'Rebex-EULA-1.4');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('IBM-JDBC', 'IBM-JDBC');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('IBM-JDBC-RTA', 'IBM-JDBC-RTA');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('edtFTPj', 'edtFTPj');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Sun-Doug-Lea-JDK-Classes', 'Sun-Doug-Lea-JDK-Classes');

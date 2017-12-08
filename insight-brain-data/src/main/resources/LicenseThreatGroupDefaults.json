@@ -579,6 +579,12 @@
       "licenseId": "ECL-UNSPECIFIED"
     },
     {
+      "id": "8731dadf9eb24262895afa5fbae47199",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
+      "licenseId": "edtFTPj"
+    },
+    {
       "id": "4c71d36150cc4ea09e1a0fb780281ec5",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
@@ -1297,6 +1303,12 @@
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",
       "licenseId": "Sun-BCLA"
+    },
+    {
+      "id": "8e0aa499d8d4493ea90decb38825690a",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "88dd5debf3af4a2b947fc52d2ead9902",
+      "licenseId": "Sun-Doug-Lea-JDK-Classes"
     },
     {
       "id": "3ef2012c7d744fd39a8629990effbf39",

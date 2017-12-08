@@ -182,3 +182,5 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Rebex-EULA-1.4', 'Rebex-EULA-1.4', 'Rebex General End User License 1.4');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('IBM-JDBC', 'IBM-JDBC', 'IBM License Information JDBC');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('IBM-JDBC-RTA', 'IBM-JDBC-RTA', 'IBM License Information JDBC - Right to Audit');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('edtFTPj', 'edtFTPj', 'edtFTPj Software License Agreement');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Sun-Doug-Lea-JDK-Classes', 'Sun-Doug-Lea-JDK-Classes', 'Sun Doug Lea JDK Classes License');

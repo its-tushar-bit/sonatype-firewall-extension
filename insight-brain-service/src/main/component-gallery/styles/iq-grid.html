@@ -9,8 +9,14 @@
     }
     
     .iq-grid-col--200px {
-      flex: 0 0 auto;
-      width: 200px;
+      /* Mixin format would be:
+      @include flex(0 0 200px);
+      */
+      -webkit-box-flex: 0 0 200px;
+      -moz-box-flex: 0 0 200px;
+      -webkit-flex: 0 0 200px;
+      -ms-flex: 0 0 200px;
+      flex: 0 0 200px;
     }
   </style>
   <hr class="iq-grid-h-keyline">

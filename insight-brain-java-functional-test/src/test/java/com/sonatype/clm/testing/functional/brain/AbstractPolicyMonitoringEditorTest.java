@@ -99,6 +99,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     monitoringCheckbox.input().shouldBe(disabled);
     monitoringCheckbox.hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
+    NotificationsSection.notificationFor("a@b").deleteButton().hover(); // tooltip obscures button, discard it
     NotificationsSection.notificationFor("a@b").deleteButton().click();
 
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);

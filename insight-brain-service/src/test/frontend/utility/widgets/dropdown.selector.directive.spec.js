@@ -29,7 +29,7 @@ describe('dropdown.selector.directive.spec.js', function() {
     it('Directive creates full list of options', function() {
       var scope = element.scope();
 
-      expect(element.find('.selected-item').text()).toEqual('Nothing is Selected');
+      expect(element.find('.iq-form-select__item').text()).toEqual('Nothing is Selected');
 
       expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
       element.find('.dropdown-menu li a').each(function(index) {
@@ -46,7 +46,7 @@ describe('dropdown.selector.directive.spec.js', function() {
         vm.selectItem(vm.options[i]);
         isolatedScope.$apply();
 
-        expect(element.find('.selected-item').text()).toEqual(vm.options[i].name);
+        expect(element.find('.iq-form-select__item').text()).toEqual(vm.options[i].name);
         expect(scope.onSelect).toHaveBeenCalledWith(vm.options[i]);
       }
     });
@@ -87,7 +87,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       scope.options = undefined;
       scope.$digest();
 
-      expect(element.find('.selected-item').text().trim()).toBe('No Options Set');
+      expect(element.find('.iq-form-select__item').text().trim()).toBe('No Options Set');
       expect(element.attr('class').split(' ')).toContain('disabled');
     });
 
@@ -124,7 +124,7 @@ describe('dropdown.selector.directive.spec.js', function() {
     it('Directive creates full list of string options', function() {
       var scope = element.scope();
 
-      expect(element.find('.selected-item').text()).toEqual('None Selected');
+      expect(element.find('.iq-form-select__item').text()).toEqual('None Selected');
 
       expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
       element.find('.dropdown-menu li a').each(function(index) {
@@ -142,7 +142,7 @@ describe('dropdown.selector.directive.spec.js', function() {
         vm.selectItem(vm.options[i]);
         isolatedScope.$apply();
 
-        expect(element.find('.selected-item').text()).toEqual(vm.options[i]);
+        expect(element.find('.iq-form-select__item').text()).toEqual(vm.options[i]);
       }
     });
   });
@@ -169,13 +169,13 @@ describe('dropdown.selector.directive.spec.js', function() {
           isolatedScope = element.isolateScope(),
           vm = isolatedScope.vm;
 
-      expect(element.find('.selected-item').text()).toEqual('cherry');
+      expect(element.find('.iq-form-select__item').text()).toEqual('cherry');
 
       for (var i = 0; i < vm.options.length; i++) {
         vm.selectItem(vm.options[i]);
         isolatedScope.$apply();
 
-        expect(element.find('.selected-item').text()).toEqual(vm.options[i].name);
+        expect(element.find('.iq-form-select__item').text()).toEqual(vm.options[i].name);
         expect(scope.testModel).toEqual(vm.options[i].id);
       }
     });

@@ -23,6 +23,7 @@ import 'angular-vs-repeat';
 import 'angular-highlightjs';
 import 'angular-marked';
 import 'angular-aria';
+import '../../frontend/utility/Polyfills';
 import '../../frontend/lib/bootstrap-loader';
 import Plottable from 'plottable';
 import hljs from 'highlight.js';

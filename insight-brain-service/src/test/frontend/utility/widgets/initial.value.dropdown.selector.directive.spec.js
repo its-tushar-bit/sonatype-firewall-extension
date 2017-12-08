@@ -25,7 +25,7 @@ describe('initial.value.dropdown.selector.directive.spec.js', function() {
 
     vm.selectItem(vm.options[1]);
 
-    expect(element.find('.selected-item').text()).toEqual(vm.options[1].name);
+    expect(element.find('.iq-form-select__item').text()).toEqual(vm.options[1].name);
     expect(element.hasClass('initial-value')).toBeFalsy();
   });
 });

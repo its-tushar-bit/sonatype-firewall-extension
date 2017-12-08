@@ -1,15 +1,20 @@
-<div class="dropdown-selector dropdown">
-  <a class="selected-item" ng-class="{disabled: vm.disabled, 'none-selected': !vm.selectedModel}"
-     ng-if="vm.options.length > 0" data-toggle="dropdown">{{vm.getSelectedViewValue()}}<span class="caret"></span></a>
+<div class="dropdown-selector dropdown iq-form-select">
+  <a class="iq-form-select__item"
+     ng-class="{disabled: vm.disabled, 'none-selected': !vm.selectedModel}"
+     ng-if="vm.options.length > 0"
+     data-toggle="dropdown"><!--
+ -->{{vm.getSelectedViewValue()}}<span class="caret"></span><!--
+--></a>
   <ul class="dropdown-menu" ng-if="vm.options.length > 0">
-    <li ng-repeat="item in vm.options" ng-click="vm.selectItem(item)">
-      <a>{{vm.optionNameParam ? item[vm.optionNameParam] : item}}</a>
-    </li>
+    <li ng-repeat="item in vm.options" ng-click="vm.selectItem(item)"><!--
+   -->{{vm.optionNameParam ? item[vm.optionNameParam] : item}}<!--
+ --></li>
   </ul>
-  <span class="section with-icon warning" ng-if="vm.options.length === 0 && vm.noOptionsString"><i
-          class="fa fa-warning"></i>{{vm.noOptionsString}}</span>
-  <a class="selected-item disabled none-selected" ng-if="!vm.options">
-    {{ vm.undefinedOptionsString || 'No Options Set' }}<span class="caret"></span>
-  </a>
+  <span class="section with-icon warning"
+        ng-if="vm.options.length === 0 && vm.noOptionsString"><!--
+ --><i class="fa fa-warning"></i>{{vm.noOptionsString}}<!--
+--></span>
+  <span class="iq-form-select__item disabled none-selected" ng-if="!vm.options"><!--
+ -->{{ vm.undefinedOptionsString || 'No Options Set' }}<span class="caret"></span><!--
+--></span>
 </div>
-

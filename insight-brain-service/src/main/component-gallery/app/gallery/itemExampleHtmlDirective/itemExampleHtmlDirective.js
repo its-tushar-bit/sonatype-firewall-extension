@@ -10,7 +10,7 @@ function itemExampleHtmlDirective() {
 
       var staticHTML = element[0].innerHTML;
 
-      element.html('<div class="iq-tile"><h2>Example</h2>' + staticHTML + '</div>');
+      element.html('<div class="iq-tile"><div class="iq-tile-header__title"><h2>Example</h2></div>' + staticHTML + '</div>');
       element.append('<div class="iq-tile"><h2>Code</h2><div hljs hljs-source="code"></div></div>');
 
       return function postLink(scope) {

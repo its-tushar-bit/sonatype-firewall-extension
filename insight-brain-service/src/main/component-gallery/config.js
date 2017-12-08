@@ -5,28 +5,33 @@
  */
 import componentsModule from '../frontend/components/module';
 import directivesModule from '../frontend/directives/module';
-import utilityDirectivesModule from '../frontend/utility/directives/utility.directives.module';
+import utilityModule from '../frontend/utility/utility.module';
 import charts from './charts/module';
 import iqModalModule from './styles/iq-modal/module';
 import iqTreeViewMultiSelectModule from './components/iqTreeViewMultiSelect/module';
 import iqOrgAppPickerModule from './components/iq-org-app-picker/module';
+import submitValidationModule from './directives/submit-validation/module';
+import iqFormLayoutModule from './styles/iq-form-layout/module';
 
 export default angular.module('config',
     [
-      componentsModule.name, directivesModule.name, charts.name, utilityDirectivesModule.name, iqModalModule.name,
-      iqTreeViewMultiSelectModule.name, iqOrgAppPickerModule.name
+      componentsModule.name, directivesModule.name, charts.name, utilityModule.name, iqModalModule.name,
+      iqTreeViewMultiSelectModule.name, iqOrgAppPickerModule.name, submitValidationModule.name, iqFormLayoutModule.name
     ])
     .constant('componentsConfig', {
       'iq-checkbox': 'components/iq-checkbox.html',
       'iq-radio': 'components/iq-radio.html',
       'iq-back-button': 'components/iq-back-button.html',
+      'color-picker': 'components/color-picker.html',
+      'dropdown-selector': 'components/dropdown-selector.html',
       'iq-tree-view-multi-select': 'components/iqTreeViewMultiSelect/iq-tree-view-multi-select.html',
       'iq-org-app-picker': 'components/iq-org-app-picker/iq-org-app-picker.html'
     })
 
     .constant('directivesConfig', {
       'load-wrapper': 'directives/load-wrapper.html',
-      'iq-tooltip': 'directives/iq-tooltip.html'
+      'iq-tooltip': 'directives/iq-tooltip.html',
+      'submit-validation': 'directives/submit-validation/submit-validation.html'
     })
 
     .constant('stylesConfig', {
@@ -38,7 +43,10 @@ export default angular.module('config',
       'iq-alerts': 'styles/iq-alerts.html',
       'iq-modal': 'styles/iq-modal/iq-modal.html',
       'iq-table': 'styles/iq-table.html',
-      'iq-tree-view': 'styles/iq-tree-view.html',
       'iq-read-only': 'styles/iq-read-only.html',
+      'iq-tree-view': 'styles/iq-tree-view.html',
+      'iq-text-input': 'styles/iq-form-text-input.html',
+      'iq-textarea': 'styles/iq-form-textarea.html',
+      'iq-form-layout': 'styles/iq-form-layout/iq-form-layout.html',
       'iq-grid': 'styles/iq-grid.html'
     });

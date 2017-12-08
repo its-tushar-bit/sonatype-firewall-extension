@@ -24,7 +24,7 @@ public class Dropdown
   }
 
   public SelenideElement selectedItem() {
-    return child(".selected-item");
+    return child(".iq-form-select__item");
   }
 
   public ElementsCollection listItems() {

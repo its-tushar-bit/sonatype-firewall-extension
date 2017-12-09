@@ -356,7 +356,7 @@ public class ApplicationSummaryViewTest
     try {
       refreshOrOpen(OwnerSummaryPage.url("application", "newAppId"));
       ActionDropDown.actionButton().click();
-      ActionDropDown.changeApplicationId().shouldBe(visible).shouldHave(cssClass("disabled")).click();
+      ActionDropDown.changeApplicationId().shouldBe(visible).shouldHave(DISABLED).click();
       changeApplicationIdDialog.shouldNotBe(visible);
     }
     finally {
@@ -440,7 +440,7 @@ public class ApplicationSummaryViewTest
     try {
       refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
       ActionDropDown.actionButton().click();
-      ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldHave(cssClass("disabled")).hover();
+      ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldHave(DISABLED).hover();
       Tooltip.get().shouldBe(visible).shouldHave(text("Insufficient permissions to evaluate application"));
       ActionDropDown.evaluateBinaryButton().click();
       new EvaluateApplicationModal().shouldNotBe(visible);

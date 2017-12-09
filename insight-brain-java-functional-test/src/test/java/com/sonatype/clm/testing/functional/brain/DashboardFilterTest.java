@@ -57,7 +57,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.not;
@@ -1004,7 +1003,7 @@ public class DashboardFilterTest
 
     filter.anchor().shouldBe(DISABLED);
     filter.multiSelectList().shouldBe(empty);
-    filter.twisty().shouldBe(visible).shouldHave(cssClass("disabled")).click();
+    filter.twisty().shouldBe(visible).shouldHave(DISABLED).click();
     filter.multiSelectList().shouldBe(empty);
 
     filter.hover().tooltip().shouldHave(text("There are no " + filterType + " to filter."));

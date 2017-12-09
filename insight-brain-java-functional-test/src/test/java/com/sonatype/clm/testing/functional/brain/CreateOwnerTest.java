@@ -381,6 +381,7 @@ public class CreateOwnerTest
     UnsavedModal unsavedModal = new UnsavedModal();
     refreshOrOpen(ReportListPage.URL);
     unsavedModal.shouldNotBe(visible);
+    ReportListPage.listContainer().should(appear);
     WebDriverRunner.getWebDriver().navigate().back();
   }
 

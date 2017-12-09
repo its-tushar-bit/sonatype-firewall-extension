@@ -7,9 +7,16 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Selenide.$;
+
 public class ReportListPage
 {
 
   public static String URL = BaseUrl.uriBuilder().fragment("/reports/violations").build().toString();
 
+  public static SelenideElement listContainer() {
+    return $(".report-list-container");
+  }
 }

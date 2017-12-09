@@ -322,7 +322,7 @@ public class ApplicationSummaryViewTest
     ChangeApplicationIdDialog changeApplicationIdDialog = new ChangeApplicationIdDialog();
     changeApplicationIdDialog.shouldNotBe(visible);
     ActionDropDown.actionButton().click();
-    ActionDropDown.changeApplicationId().shouldBe(visible).click();
+    ActionDropDown.changeApplicationId().shouldBe(visible).shouldNotBe(DISABLED).click();
     changeApplicationIdDialog.shouldBe(visible);
     changeApplicationIdDialog.currentId().shouldHave(text(application.getPublicId()));
     changeApplicationIdDialog.newId().shouldBe(Condition.empty).shouldHave(CLM.INITIAL_VALUE);
@@ -382,7 +382,7 @@ public class ApplicationSummaryViewTest
             getClass().getResource("/AppEvalReport/report.zip"), 200);
 
         ActionDropDown.actionButton().click();
-        ActionDropDown.evaluateBinaryButton().shouldBe(visible).click();
+        ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldNotBe(DISABLED).click();
 
         EvaluateApplicationModal modal = new EvaluateApplicationModal();
         modal.shouldBe(visible);

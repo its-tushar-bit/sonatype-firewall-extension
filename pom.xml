@@ -25,6 +25,7 @@
     <clm.skip>false</clm.skip>
 
     <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
+    <phantomjs-driver.version>1.4.3</phantomjs-driver.version>
     <phantomjs.version>2.1.1</phantomjs.version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
@@ -57,7 +58,7 @@
     <drools.version>6.1.0.Final</drools.version>
     <guava.version>20.0</guava.version>
     <geb.version>0.10.0</geb.version>
-    <selenium.version>3.0.1</selenium.version>
+    <selenium.version>3.7.1</selenium.version>
   </properties>
 
   <scm>

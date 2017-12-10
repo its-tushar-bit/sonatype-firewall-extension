@@ -605,7 +605,7 @@ public class RepositoryReportTest
     row.shouldBe(SVTableRow.ROW_SELECTED);
 
     VulnerabilityCIP.Editor.status().shouldBe(visible).shouldHave(text("Acknowledged"))
-        .val("string:" + SecurityVulnerabilityOverrideStatus.OPEN.toString());
+        .selectOption(SecurityVulnerabilityOverrideStatus.OPEN.getName());
     VulnerabilityCIP.Editor.comment().val("woot");
     VulnerabilityCIP.Editor.saveButton().click();
 

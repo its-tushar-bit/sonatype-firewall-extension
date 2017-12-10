@@ -20,6 +20,8 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <animal-sniffer-signature>java18</animal-sniffer-signature>
+    <guava.version>23.0</guava.version>
+    <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
   </properties>
 
   <build>
@@ -36,6 +38,7 @@
             <slowmo.enable>true</slowmo.enable>
             <phantomjs.binary.path>${phantomjs.binary}</phantomjs.binary.path>
             <browser>phantomjs</browser>
+            <selenide.driverManagerEnabled>${selenide.driverManagerEnabled}</selenide.driverManagerEnabled>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -78,7 +81,7 @@
     <dependency>
       <groupId>com.codeborne</groupId>
       <artifactId>selenide</artifactId>
-      <version>4.0</version>
+      <version>4.8</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
@@ -108,7 +111,7 @@
     <dependency>
       <groupId>com.codeborne</groupId>
       <artifactId>phantomjsdriver</artifactId>
-      <version>1.3.0</version>
+      <version>${phantomjs-driver.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>

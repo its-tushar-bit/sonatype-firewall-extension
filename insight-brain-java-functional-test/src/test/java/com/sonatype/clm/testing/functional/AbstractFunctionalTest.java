@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import com.sonatype.clm.testing.functional.elements.LoginDialog;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -33,8 +34,6 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import org.junit.After;
@@ -72,14 +71,9 @@ public abstract class AbstractFunctionalTest
 
   protected static ReverseProxyServer reverseProxyServer;
 
-  private static Predicate<WebDriver> urlEqualsPredicate(final String url) {
-    return new Predicate<WebDriver>()
-    {
-      @Override
-      public boolean apply(WebDriver input) {
-        return url.equals(WebDriverRunner.url()) || (Configuration.baseUrl + url).equals(WebDriverRunner.url());
-      }
-    };
+  private static Function<WebDriver, Boolean> urlEqualsPredicate(final String url) {
+    return webDriver -> url.equals(webDriver.getCurrentUrl())
+        || (Configuration.baseUrl + url).equals(webDriver.getCurrentUrl());
   }
 
   static {
@@ -214,13 +208,7 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void switchToWindow(final int index) {
-    Selenide.Wait().until(new Predicate<WebDriver>()
-    {
-      @Override
-      public boolean apply(WebDriver driver) {
-        return driver.getWindowHandles().size() > index;
-      }
-    });
+    Selenide.Wait().until(webDriver -> webDriver.getWindowHandles().size() > index);
     Selenide.switchTo().window(index);
   }
 
@@ -229,7 +217,8 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void waitUntilNotUrl(final String url) {
-    Selenide.Wait().withMessage("Url did not switch from " + url).until(Predicates.not(urlEqualsPredicate(url)));
+    Selenide.Wait().withMessage("Url did not switch from " + url)
+        .until(urlEqualsPredicate(url).andThen(result -> !result));
   }
 
   protected static void clearAlerts() {

@@ -25,7 +25,7 @@ unit/integration tests.
 
 Use `-D geb.env=firefox|chrome|phantom` to select the webdriver/browser for the Geb-based functional tests.
 
-Use `-D browser=firefox|chrome|phantomjs` to select the webdriver/browser for the Java-based functional tests.
+Use `-D browser=gecko|chrome|phantomjs` to select the webdriver/browser for the Java-based functional tests.
 
 Use `-D slowmo.delay=<integer>` to enable "slow motion" for the functional tests where REST requests are delayed by the
 specified number of milliseconds on the server. This mode can help to expose bad tests that make invalid assumptions

@@ -5,11 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.utils;
 
+import java.util.function.Function;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
-import com.google.common.base.Predicate;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -40,9 +41,9 @@ public class ScrollUtil
     // wait until the scroll completes and the values match what we set them to
     Selenide.Wait() //
         .withMessage("Report did not complete loading") //
-        .until((Predicate<WebDriver>) (d -> ((JavascriptExecutor) d)
+        .until(webDriver -> ((JavascriptExecutor) webDriver)
             .executeScript(JS_LOCAL_VARS + "return parent[0].scrollTop === el[0].offsetTop - parentPadding;", element)
-            .equals(Boolean.TRUE)));
+            .equals(Boolean.TRUE));
   }
 
   public static final Condition scrolledOffTop = new ScrolledOffTop();
@@ -79,13 +80,8 @@ public class ScrollUtil
    * doesn't help for containers with scrollable content.
    */
   public static void scrollIntoView(final SelenideElement element) {
-    Selenide.Wait().ignoring(StaleElementReferenceException.class).until(new Predicate<WebDriver>()
-    {
-      @Override
-      public boolean apply(WebDriver input) {
-        return ((JavascriptExecutor) input).executeScript("arguments[0].scrollIntoView(); return 1", element) != null;
-      }
-    });
+    Selenide.Wait().ignoring(StaleElementReferenceException.class).until(webDriver -> ((JavascriptExecutor) webDriver)
+        .executeScript("arguments[0].scrollIntoView(); return 1", element));
     awaitEndOfScrolling(element);
   }
 
@@ -93,12 +89,12 @@ public class ScrollUtil
    * Waits for any scrolling affecting the given element to finish to ensure later clicks don't miss their target.
    */
   public static void awaitEndOfScrolling(final SelenideElement element) {
-    Selenide.Wait().until(new Predicate<WebDriver>()
+    Selenide.Wait().until(new Function<WebDriver, Boolean>()
     {
       Point location;
 
       @Override
-      public boolean apply(WebDriver input) {
+      public Boolean apply(WebDriver input) {
         Point oldLocation = location;
         location = element.getLocation();
         return location.equals(oldLocation);

@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
-import com.google.common.base.Predicate;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.After;
 import org.junit.Before;
@@ -267,8 +266,8 @@ public class SessionTimeoutTest
         .withTimeout(5, SECONDS) //
         .pollingEvery(100, MILLISECONDS) //
         .withMessage("Report did not complete loading") //
-        .until((Predicate<WebDriver>) (d -> ((JavascriptExecutor) d)
+        .until(webDriver -> ((JavascriptExecutor) webDriver)
               .executeScript("return document.getElementById('" + expectedElementId + "') === null;")
-              .equals(Boolean.FALSE)));
+              .equals(Boolean.FALSE));
   }
 }

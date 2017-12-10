@@ -63,7 +63,7 @@ class DashboardOverviewPage
 class NewestRiskDashboardPage
     extends DashboardOverviewPage
 {
-  static url = DashboardOverviewPage.url + "/newest-risk"
+  static url = DashboardOverviewPage.url + "/violations"
 
   static content = {
     newestViolationTable(required: false) { module ThreatTableModule, $('#highest-risk-table') }

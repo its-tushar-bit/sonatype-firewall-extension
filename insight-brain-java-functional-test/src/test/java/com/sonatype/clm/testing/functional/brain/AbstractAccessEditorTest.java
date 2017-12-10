@@ -43,7 +43,6 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.INITIAL_VALUE;
 import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.MIXED_GROUP_SEARCH_WARNING;
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -249,8 +248,8 @@ public abstract class AbstractAccessEditorTest
 
   private void assertThatRoleNotAvailableInDropdown(final String roleName) {
     AccessEditorPage.roleDropdown().selectedItem().click();
-    String[] roleNames = AccessEditorPage.roleDropdown().listItems().getTexts();
-    assertThat(asList(roleNames), not(contains(roleName)));
+    List<String> roleNames = AccessEditorPage.roleDropdown().listItems().texts();
+    assertThat(roleNames, not(contains(roleName)));
   }
 
   private void assertAddRoleInitialStateIsCorrect(int numAvailableRoles) {

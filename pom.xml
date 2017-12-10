@@ -55,6 +55,7 @@
     <mockito.version>2.8.47</mockito.version>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>6.1.0.Final</drools.version>
+    <guava.version>20.0</guava.version>
     <geb.version>0.10.0</geb.version>
     <selenium.version>3.0.1</selenium.version>
   </properties>
@@ -211,7 +212,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>18.0</version>
+        <version>${guava.version}</version>
       </dependency>
 
       <dependency>

@@ -9,6 +9,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.ex.UIAssertionError;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
@@ -229,6 +230,24 @@ public class RepositoryReportPage
 
     public SelenideElement quarantined() {
       return element.find(".icon-ban-circle");
+    }
+
+    public void openCip() {
+      for (long start = System.currentTimeMillis();;) {
+        component().shouldBe(visible).click();
+        Table.cip().shouldBe(visible);
+        // A visible table row can apparently be clicked before the CIP is fully ready, causing a JS error from
+        // ComponentInformationPanelPlugin.position() which in turn leaves the CIP improperly positioned & sized.
+        // To avoid having later interactions stumble over this broken CIP, we try harder to open it in good state.
+        if (!Table.cip().getAttribute("style").isEmpty()) {
+          break;
+        }
+        if (System.currentTimeMillis() - start > Configuration.timeout) {
+          throw UIAssertionError.wrapThrowable(new IllegalStateException("CIP not properly positioned"),
+              Configuration.timeout);
+        }
+        Table.cipCloseButton().click();
+      }
     }
   }
 }

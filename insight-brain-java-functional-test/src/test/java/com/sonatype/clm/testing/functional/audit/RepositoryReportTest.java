@@ -294,8 +294,7 @@ public class RepositoryReportTest
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     // Open CIP for unknown component
-    RepositoryReportPage.Table.row(0).component().click();
-    RepositoryReportPage.Table.cip().shouldBe(visible);
+    RepositoryReportPage.Table.row(0).openCip();
 
     RepositoryReportPage.Table.cipTab("Component Info").shouldBe(visible);
     VersionsCIP.selectComponentMessage().shouldNotBe(visible);
@@ -380,8 +379,7 @@ public class RepositoryReportTest
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     // open CIP
-    RepositoryReportPage.Table.row(0).component().click();
-    RepositoryReportPage.Table.cip().shouldBe(visible);
+    RepositoryReportPage.Table.row(0).openCip();
 
     RepositoryReportPage.Table.cipTab("Component Info").click();
     VersionsCIP.groupId().shouldHave(text("critical"));
@@ -744,8 +742,7 @@ public class RepositoryReportTest
   }
 
   private static void openCip(int row, String tab) {
-    RepositoryReportPage.Table.row(row).component().click();
-    RepositoryReportPage.Table.cip().shouldBe(visible);
+    RepositoryReportPage.Table.row(row).openCip();
     RepositoryReportPage.Table.cipTab(tab).click();
   }
 

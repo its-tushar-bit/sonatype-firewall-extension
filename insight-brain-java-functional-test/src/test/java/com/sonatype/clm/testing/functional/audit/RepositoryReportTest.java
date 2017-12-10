@@ -72,7 +72,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -269,11 +268,9 @@ public class RepositoryReportTest
 
   private void setupHdsResponse() throws IOException {
     testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails",
-        FileUtils.readFileToString(new File("src/test/resources/componentDetails/componentDetails.json"), "UTF-8"),
-        200);
+        getClass().getClassLoader().getResource("componentDetails/componentDetails.json"), 200);
     testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails/list",
-        FileUtils.readFileToString(new File("src/test/resources/componentDetails/componentDetailsList.json"), "UTF-8"),
-        200);
+        getClass().getClassLoader().getResource("componentDetails/componentDetailsList.json"), 200);
   }
 
   private void cipSetup() throws IOException {
@@ -587,9 +584,7 @@ public class RepositoryReportTest
     testCLMServer.getInsightServer().setResponseForURI(
         "rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
             + criticalComponentHash,
-        FileUtils.readFileToString(new File("src/test/resources/vulnerabilityDetails/vulnerabilityDetails.json"),
-            "UTF-8"),
-        200);
+        getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails.json"), 200);
 
     SVTableRow row = VulnerabilityCIP.row(0);
     row.info().click();

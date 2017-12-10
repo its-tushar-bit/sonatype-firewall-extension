@@ -144,9 +144,9 @@ public abstract class SisuService<T extends Configuration>
     return true;
   }
 
-  private <Q extends Annotation, C> Iterable<BeanEntry<Q, C>> filter(Iterable<? extends BeanEntry<Q, C>> iterable) {
-    List<BeanEntry<Q, C>> components = new ArrayList<>();
-    for (BeanEntry<Q, C> entry : iterable) {
+  private <C> Iterable<BeanEntry<Annotation, C>> locate(BeanLocator locator, Class<C> type) {
+    List<BeanEntry<Annotation, C>> components = new ArrayList<>();
+    for (BeanEntry<Annotation, C> entry : locator.locate(Key.get(type))) {
       if (acceptComponent(entry.getImplementationClass())) {
         components.add(entry);
       }
@@ -155,7 +155,7 @@ public abstract class SisuService<T extends Configuration>
   }
 
   private void addManaged(Environment environment, BeanLocator locator) {
-    for (BeanEntry<Annotation, Managed> managedBeanEntry : filter(locator.locate(Key.get(Managed.class)))) {
+    for (BeanEntry<Annotation, Managed> managedBeanEntry : locate(locator, Managed.class)) {
       Managed managed = managedBeanEntry.getValue();
       environment.manage(managed);
       logger.debug("Added managed: {}", managed);
@@ -163,7 +163,7 @@ public abstract class SisuService<T extends Configuration>
   }
 
   private void addTasks(Environment environment, BeanLocator locator) {
-    for (BeanEntry<Annotation, Task> taskBeanEntry : filter(locator.locate(Key.get(Task.class)))) {
+    for (BeanEntry<Annotation, Task> taskBeanEntry : locate(locator, Task.class)) {
       Task task = taskBeanEntry.getValue();
       environment.addTask(task);
       logger.debug("Added task: {}", task);
@@ -171,7 +171,7 @@ public abstract class SisuService<T extends Configuration>
   }
 
   private void addHealthChecks(Environment environment, BeanLocator locator) {
-    for (BeanEntry<Annotation, HealthCheck> healthCheckBeanEntry : filter(locator.locate(Key.get(HealthCheck.class)))) {
+    for (BeanEntry<Annotation, HealthCheck> healthCheckBeanEntry : locate(locator, HealthCheck.class)) {
       HealthCheck healthCheck = healthCheckBeanEntry.getValue();
       environment.addHealthCheck(healthCheck);
       logger.debug("Added healthCheck: {}", healthCheck);
@@ -179,8 +179,8 @@ public abstract class SisuService<T extends Configuration>
   }
 
   private void addInjectableProviders(Environment environment, BeanLocator locator) {
-    for (BeanEntry<Annotation, InjectableProvider> injectableProviderBeanEntry : filter(locator.locate(Key
-        .get(InjectableProvider.class)))) {
+    for (BeanEntry<Annotation, InjectableProvider> injectableProviderBeanEntry : locate(locator,
+        InjectableProvider.class)) {
       InjectableProvider injectableProvider = injectableProviderBeanEntry.getValue();
       environment.addProvider(injectableProvider);
       logger.debug("Added injectableProvider: {}", injectableProvider);
@@ -188,7 +188,7 @@ public abstract class SisuService<T extends Configuration>
   }
 
   private void addProviders(Environment environment, BeanLocator locator) {
-    for (BeanEntry<Annotation, Provider> providerBeanEntry : filter(locator.locate(Key.get(Provider.class)))) {
+    for (BeanEntry<Annotation, Provider> providerBeanEntry : locate(locator, Provider.class)) {
       Provider provider = providerBeanEntry.getValue();
       environment.addProvider(provider);
       logger.debug("Added provider: {}", provider);
@@ -201,7 +201,7 @@ public abstract class SisuService<T extends Configuration>
     // (In practice this isn't that slow because of various caches in Sisu to optimize lookups.)
     // We could always optimize this by introducing a marker interface for injectable resources.
     //
-    for (BeanEntry<Annotation, Object> resourceBeanEntry : filter(locator.locate(Key.get(Object.class)))) {
+    for (BeanEntry<Annotation, Object> resourceBeanEntry : locate(locator, Object.class)) {
       Class<?> impl = resourceBeanEntry.getImplementationClass();
       if (impl != null && impl.isAnnotationPresent(Path.class)) {
         try {
@@ -222,8 +222,7 @@ public abstract class SisuService<T extends Configuration>
 
   private void addResourceFilterFactories(Environment environment, BeanLocator locator) {
     List<ResourceFilterFactory> resourceFilterFactories = new ArrayList<>();
-    for (BeanEntry<Annotation, ResourceFilterFactory> beanEntry : filter(locator.locate(Key
-        .get(ResourceFilterFactory.class)))) {
+    for (BeanEntry<Annotation, ResourceFilterFactory> beanEntry : locate(locator, ResourceFilterFactory.class)) {
       ResourceFilterFactory resourceFilterFactory = beanEntry.getValue();
       logger.debug("Added resource filter factory: {}", resourceFilterFactory);
       resourceFilterFactories.add(resourceFilterFactory);

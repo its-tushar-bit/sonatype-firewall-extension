@@ -120,9 +120,11 @@ class NotificationSpec
       NotificationItemModule secondNotificationItem = notificationMenu.notificationList[1]
       secondNotificationItem.click()
 
-    and: 'We click on the second notification detail link'
-      def actions = new Actions(driver)
-      actions.moveToElement(notificationMenu.detailedBodyLinks.firstElement(), 10, 10).click().build().perform()
+    then: 'the detail panel opens'
+      waitFor { notificationMenu.detailBody.displayed }
+
+    when: 'We click on the second notification detail link'
+      notificationMenu.detailedBodyLinks.first().click()
 
     then: 'A link opens in a new tab'
       waitFor { getAvailableWindows().size() == 2 }

@@ -17,7 +17,6 @@
   <properties>
     <clm.skip>true</clm.skip>
     <it.includes>**/*Spec.*</it.includes>
-    <guava.version>23.0</guava.version>
   </properties>
 
   <build>

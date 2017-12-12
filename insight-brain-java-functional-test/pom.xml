@@ -17,7 +17,6 @@
   <properties>
     <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>
-    <guava.version>23.0</guava.version>
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
   </properties>
 

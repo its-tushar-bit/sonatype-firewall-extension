@@ -18,7 +18,6 @@
   <properties>
     <clm.skip>true</clm.skip>
     <skipTests>true</skipTests>
-    <guava.version>23.0</guava.version>
   </properties>
 
   <build>

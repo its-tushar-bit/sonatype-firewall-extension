@@ -12,4 +12,4 @@ import './detail-table.css';
 import './icons.css';
 import './modal.css';
 import './tooltip.css';
-import './viewdetails.css';
+import './viewdetails.scss';

@@ -155,6 +155,8 @@ public abstract class AbstractLTGEditorTest
       LTGEditorPage.title().hover(); // hide the tooltip
       item.tooltip().shouldNot(exist);
       item.shouldBe(visible).click();
+      LTGEditorPage.title().hover(); // hide the tooltip... click event may trigger tooltip again
+      item.tooltip().shouldNot(exist);
       pickedLicenseNames.add(item.label().text());
     }
 

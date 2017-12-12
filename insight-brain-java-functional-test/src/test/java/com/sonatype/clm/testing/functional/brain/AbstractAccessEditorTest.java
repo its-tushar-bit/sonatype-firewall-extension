@@ -151,6 +151,7 @@ public abstract class AbstractAccessEditorTest
     picker.pickedItems().shouldHaveSize(4);
     // shouldn't submit on enter. Assert by checking that 'save' button is still enabled
     AccessEditorPage.searchBox().pressEnter();
+    FormMask.seeAndWaitForDismissal();
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     assertCommonInitialStateIsCorrect(picker);

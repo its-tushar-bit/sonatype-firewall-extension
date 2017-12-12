@@ -73,7 +73,7 @@ public class OrganizationSummaryViewTest
         list.elements().shouldBe(empty);
       }
       else {
-        list.ownerName().shouldBe(visible);
+        list.ownerName().scrollTo().shouldBe(visible);
         list.emptyDescriptor().shouldNotBe(visible);
         list.elements().shouldHaveSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT);
       }

@@ -81,7 +81,7 @@ public class SessionTimeoutTest
 
     // try to open the Webhooks page. Since the session cookie has been deleted this should trigger the session
     // timeout detection
-    systemConfigMenu.menu().click();
+    systemConfigMenu.menu().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
 
     assertUiClearedAndLogBackIn();

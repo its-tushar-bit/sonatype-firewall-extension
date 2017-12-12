@@ -182,10 +182,10 @@ public class OwnerTreeViewTest
     parentNode.treeViewElement().shouldBe(CLM.DISABLED);
     parentNode.organizationName().shouldHave(text("Unpermitted Parent Org"));
     parentNode.organizationName().shouldHave(OrganizationNode.DISABLED_TOOLTIP_ATTRIBUTE);
-    parentNode.organizationName().hover();
-    parentNode.popup().shouldBe(visible).shouldHave(text(OrganizationNode.DISABLED_TOOLTIP_CONTENT));
     parentNode.twisty().click();
     parentNode.twisty().shouldBe(CLM.COLLAPSED);
+    parentNode.organizationName().hover();
+    parentNode.popup().shouldBe(visible).shouldHave(text(OrganizationNode.DISABLED_TOOLTIP_CONTENT));
 
     parentNode.applicationElements().shouldHaveSize(1);
     OrganizationNode.application(0).shouldHave(text("No Parent Permissions"));

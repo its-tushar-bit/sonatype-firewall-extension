@@ -208,7 +208,7 @@ public class DashboardViolationsTest
     firstViolation.latestReport().shouldNotBe(DISABLED).shouldHave(text("Build")).click();
     switchToWindow(1);
     waitUntilUrl(ApplicationReportContainerPage.url(app1.getPublicId(), buildEvalNow.getScanId()));
-    ApplicationReportContainerPage.getReportTitle()
+    ApplicationReportContainerPage.getReportTitle().shouldBe(visible)
         .shouldHave(text(app1.getName() + now().toString(" - YYYY-MM-dd -") + " Build Report"));
     WebDriverRunner.getWebDriver().close();
     switchToWindow(0);

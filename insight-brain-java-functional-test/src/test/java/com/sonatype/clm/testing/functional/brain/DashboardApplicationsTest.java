@@ -225,6 +225,7 @@ public class DashboardApplicationsTest
     // CSV export - filter out threat level 1
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.apply();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());

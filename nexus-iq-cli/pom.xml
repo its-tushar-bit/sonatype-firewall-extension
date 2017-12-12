@@ -20,11 +20,6 @@
 
   <properties>
     <jetty.version>8.1.10.v20130312</jetty.version>
-    <!-- PO has requested the clients still support 1.7 -->
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
-    <animal-sniffer-signature>java17</animal-sniffer-signature>
-    <animal-sniffer-signature-version>1.0</animal-sniffer-signature-version>
     <dependency-check-version>3.0.1</dependency-check-version>
   </properties>
 

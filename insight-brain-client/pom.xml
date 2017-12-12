@@ -16,6 +16,14 @@
   <artifactId>insight-brain-client</artifactId>
   <name>Insight Brain Client</name>
 
+  <properties>
+    <!-- Some plugins consuming insight-brain-client must still support 1.7 -->
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+    <animal-sniffer-signature>java17</animal-sniffer-signature>
+    <animal-sniffer-signature-version>1.0</animal-sniffer-signature-version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -114,12 +122,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <argLine>-XX:MaxPermSize=128m</argLine>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>

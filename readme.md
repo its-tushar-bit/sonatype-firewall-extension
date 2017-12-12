@@ -15,9 +15,6 @@ See https://docs.sonatype.com/display/INSIGHT/Insight+Brain for more information
 
 Standard Maven build, i.e. `mvn clean install`.
 
-If using Java 7, additional PermGen needs to be allocated to avoid a failing build during compilation.
-`MAVEN_OPTS="-XX:MaxPermSize=192M"` has been successfully used.
-
 ## Functional Tests ##
 
 Add `-D skip-functional-test` to the `mvn` invocation to skip just the expensive functional tests but still run other

@@ -146,9 +146,7 @@ public class ScanPolicyEvaluator
     final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
     byte[] alertsFileContent = JsonUtils.generate(JsonUtils.aaData(alerts));
-    if (!forMonitoring) {
-      Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, alertsFileContent);
-    }
+    Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, alertsFileContent);
 
     Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreatsAdapter
         .createPolicyThreats(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()))));

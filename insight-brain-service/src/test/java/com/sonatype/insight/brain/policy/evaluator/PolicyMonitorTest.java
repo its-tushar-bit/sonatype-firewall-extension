@@ -563,6 +563,34 @@ public class PolicyMonitorTest
     assertThat(FileUtils.readFileToString(scanFile3, "UTF-8"), is("test2"));
   }
 
+  @Test
+  public void testEvaluate_PolicyAlertsFilePresent() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    final Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    final Stage stage = new Stage(ReleaseStageType.ID);
+    PolicyMonitoring policyMonitoring = tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    String scanId = "PolicyMonitorTest_scanId";
+    createScanFile(app, scanId, "test");
+
+    // Simulate that the report is available and evaluate policies
+    mockScanReceiptAndReport(scanId);
+    evaluatePolicy(app.getPublicId(), scanId, stage);
+
+    // mock hds response for policyMonitor.evaluate triggering a new evaluation
+    String newScanId = scanId + "1";
+    mockScanReceiptAndReport(newScanId);
+
+    policyMonitor.evaluate(app, policyMonitoring);
+
+    File reportFile = insightWork.getReportFile(app.getId(), newScanId);
+    assertThat(reportFile.isFile(), is(true));
+    File reportCacheDir = new File(reportFile.getParentFile(), "report.cache");
+    assertThat(reportCacheDir.isDirectory(), is(true));
+    File policyAlertsFile = new File(reportCacheDir, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
+    assertThat(policyAlertsFile.isFile(), is(true));
+  }
+
   private File createScanFile(Application app, String scanId) {
     return createScanFile(app, scanId, "test");
   }

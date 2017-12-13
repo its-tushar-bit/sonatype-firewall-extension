@@ -1,4 +1,4 @@
-import '../lib/bootstrap.scss';
+import './bootstrap-css-index.scss';
 
 import '../lib/jquery-loader';
 import 'angular';
@@ -9,7 +9,3 @@ import './version-graph-index';
 import './buttons.css';
 import './content.css';
 import './detail-table.css';
-import './icons.css';
-import './modal.css';
-import './tooltip.css';
-import './viewdetails.scss';

@@ -289,7 +289,7 @@
       </activation>
       <properties>
         <chromedriver.classifier>windows</chromedriver.classifier>
-        <chrome.driver.binary>${project.build.directory}/chromedriver.exe</chrome.driver.binary>
+        <webdriver.chrome.driver>${project.build.directory}/chromedriver.exe</webdriver.chrome.driver>
       </properties>
     </profile>
     <profile>

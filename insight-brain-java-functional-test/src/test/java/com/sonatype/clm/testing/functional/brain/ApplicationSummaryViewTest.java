@@ -325,7 +325,7 @@ public class ApplicationSummaryViewTest
     ActionDropDown.changeApplicationId().shouldBe(visible).shouldNotBe(DISABLED).click();
     changeApplicationIdDialog.shouldBe(visible);
     changeApplicationIdDialog.currentId().shouldHave(text(application.getPublicId()));
-    changeApplicationIdDialog.newId().shouldBe(Condition.empty).shouldHave(CLM.INITIAL_VALUE);
+    changeApplicationIdDialog.newId().shouldBe(Condition.empty).shouldHave(CLM.PRISTINE);
     changeApplicationIdDialog.changeButton().shouldBe(disabled);
 
     // current id is not a valid input

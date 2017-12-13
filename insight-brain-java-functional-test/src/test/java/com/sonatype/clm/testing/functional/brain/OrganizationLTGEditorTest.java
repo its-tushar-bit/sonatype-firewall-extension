@@ -65,7 +65,7 @@ public class OrganizationLTGEditorTest
   protected void assertNewLTGStateIsCorrect() {
     waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
     LTGEditorPage.title().shouldHave(text("New"));
-    LTGEditorPage.ltgName().shouldBe(visible, Condition.empty).shouldHave(CLM.INITIAL_VALUE);
+    LTGEditorPage.ltgName().shouldBe(visible, Condition.empty).shouldHave(CLM.PRISTINE);
     assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(new DoubleColumnPicker(),
         licenseDAO.getAll().size());

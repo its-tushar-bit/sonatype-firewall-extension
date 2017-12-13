@@ -56,7 +56,7 @@ public class ApplicationLTGEditorTest
     SummaryTile.localLTG(ltg.getName()).click();
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
-    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value("app ltg 1"));
+    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("app ltg 1"));
 
     LTGEditorPage.deleteButton().click();
     DeleteModal.root().shouldBe(visible);
@@ -69,7 +69,7 @@ public class ApplicationLTGEditorTest
 
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg2.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
-    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value("app ltg 2"));
+    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("app ltg 2"));
 
     LTGEditorPage.deleteButton().click();
     DeleteModal.root().shouldBe(visible);

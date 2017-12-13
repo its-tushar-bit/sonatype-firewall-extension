@@ -96,8 +96,8 @@ public class LabelEditorTest
     refreshOrOpen(OwnerSummaryPage.url("organization", app.getOrganizationId()));
     SummaryTile.localLabel(label.getLabel()).click();
     LabelEditorPage.title().shouldHave(text("Edit"));
-    LabelEditorPage.labelName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value("original name"));
-    LabelEditorPage.description().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE)
+    LabelEditorPage.labelName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("original name"));
+    LabelEditorPage.description().shouldBe(visible).shouldHave(CLM.PRISTINE)
         .shouldHave(value("original description"));
     LabelEditorPage.colorPicker().shouldBe(visible).color(light_green).shouldBe(CLM.SELECTED);
     LabelEditorPage.saveButton().shouldHave(DISABLED);
@@ -187,8 +187,8 @@ public class LabelEditorTest
 
   private void assertInitialStateIsCorrect() {
     LabelEditorPage.title().shouldHave(text("New"));
-    LabelEditorPage.labelName().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
-    LabelEditorPage.description().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
+    LabelEditorPage.labelName().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
+    LabelEditorPage.description().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
     LabelEditorPage.colorPicker().shouldBe(visible).selectedColor().shouldNot(exist);
     LabelEditorPage.saveButton().shouldHave(DISABLED);
   }

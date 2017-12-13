@@ -121,8 +121,8 @@ public class CreateOwnerTest
     testIconDirtyState();
 
     // open application
-    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
-    OwnerEditorDialog.publicId().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
+    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
+    OwnerEditorDialog.publicId().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
     OwnerEditorDialog.saveButton().shouldBe(disabled);
 
     // check invalid name
@@ -148,8 +148,8 @@ public class CreateOwnerTest
     popoverViolations(OwnerEditorDialog.publicId()).shouldNot(exist);
     OwnerEditorDialog.saveButton().shouldBe(enabled);
 
-    OwnerEditorDialog.name().shouldNotHave(CLM.INITIAL_VALUE);
-    OwnerEditorDialog.publicId().shouldNotHave(CLM.INITIAL_VALUE);
+    OwnerEditorDialog.name().shouldNotHave(CLM.PRISTINE);
+    OwnerEditorDialog.publicId().shouldNotHave(CLM.PRISTINE);
 
     OwnerEditorDialog.saveButton().click();
     OwnerEditorDialog.root().should(disappear);
@@ -336,7 +336,7 @@ public class CreateOwnerTest
 
     testIconDirtyState();
 
-    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
+    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
     OwnerEditorDialog.publicId().shouldNot(exist);
     OwnerEditorDialog.saveButton().shouldBe(disabled);
 

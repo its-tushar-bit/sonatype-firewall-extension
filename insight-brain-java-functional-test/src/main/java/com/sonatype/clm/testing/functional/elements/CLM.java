@@ -11,7 +11,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 
 public class CLM
 {
-  public static final Condition INITIAL_VALUE = cssClass("initial-value");
+  public static final Condition PRISTINE = cssClass("ng-pristine");
 
   public static final Condition DISABLED = cssClass("disabled");
 

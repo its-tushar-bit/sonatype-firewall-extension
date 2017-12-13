@@ -6,45 +6,6 @@
 /*global angular */
 import angularCommonModule from './util/AngularCommon';
 
-var applyInitialValue = function() {
-  return {
-    restrict: 'E',
-    require: '?ngModel',
-    link: function (scope, element, attrs, ngModelController) {
-      if (element.parents('.clm-form').length > 0) {
-        var initialValue;
-
-        scope.$watch(attrs.ngModel, function (newVal) {
-          if (initialValue === undefined) {
-            initialValue = newVal || '';
-          }
-        });
-
-        if (ngModelController) {
-          scope.$watch(function() {
-            return ngModelController.$pristine;
-          }, function(newVal) {
-            if (newVal) {
-              initialValue = initialValue || '';
-              element.addClass('initial-value');
-            }
-          });
-        }
-
-        element.addClass('initial-value');
-        element.on('input', function () {
-          if ($(this).val() === initialValue) {
-            element.addClass('initial-value');
-          }
-          else {
-            element.removeClass('initial-value');
-          }
-        });
-      }
-    }
-  };
-};
-
 var module = angular.module('FormsModule', [angularCommonModule.name])
 /**
  * Watches for changes to the input validity and shows a popover above the input field if invalid input is seen, or
@@ -258,11 +219,5 @@ var module = angular.module('FormsModule', [angularCommonModule.name])
             '</div>'
       };
     });
-
-// Add class when input value changes to help avoid double lines
-module.directive('input', [applyInitialValue]);
-
-// The same for text areas
-module.directive('textarea', [applyInitialValue]);
 
 export default module;

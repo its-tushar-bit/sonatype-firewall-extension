@@ -1002,7 +1002,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void assertNewPolicyStateIsCorrect_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().shouldBe(visible, empty, focused).shouldHave(CLM.INITIAL_VALUE);
+    summary.policyName().shouldBe(visible, empty, focused).shouldHave(CLM.PRISTINE);
 
     summary.policyName().val("$$$"); // invalid characters
     PopoverViolations.on(summary.policyName()).shouldShowInvalidCharactersError();
@@ -1021,7 +1021,7 @@ public abstract class AbstractPolicyEditorTest
   private void assertNewPolicyStateIsCorrect_constraintSection() {
     SelenideElement constraintName = PolicyEditorPage.constraintSection().constraintEditor(0).name();
 
-    constraintName.shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
+    constraintName.shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
     PopoverViolations.on(constraintName).shouldNotExist();
 
     constraintName.val(" ");
@@ -1075,7 +1075,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void assertEditPolicyStateIsCorrect_summarySection(Policy policy, boolean isReadOnly) {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().shouldBe(visible, isReadOnly ? disabled : enabled).shouldHave(CLM.INITIAL_VALUE)
+    summary.policyName().shouldBe(visible, isReadOnly ? disabled : enabled).shouldHave(CLM.PRISTINE)
         .shouldHave(value(policy.getName()));
     assertThreatLevelSelectorState(policy.getThreatLevel(), isReadOnly);
   }

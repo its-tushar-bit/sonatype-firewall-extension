@@ -41,7 +41,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.CLM.INITIAL_VALUE;
+import static com.sonatype.clm.testing.functional.elements.CLM.PRISTINE;
 import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.MIXED_GROUP_SEARCH_WARNING;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -263,7 +263,7 @@ public abstract class AbstractAccessEditorTest
   }
 
   private void assertCommonInitialStateIsCorrect(DoubleColumnPicker picker) {
-    AccessEditorPage.searchBox().shouldHave(value("")).shouldHave(INITIAL_VALUE);
+    AccessEditorPage.searchBox().shouldHave(value("")).shouldHave(PRISTINE);
     AccessEditorPage.searchButton().shouldHave(DISABLED);
     picker.availableItemList().shouldBe(empty);
     AccessEditorPage.saveButton().shouldHave(DISABLED);

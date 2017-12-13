@@ -191,7 +191,7 @@ dropdown-selector {
     width: 411px;
   }
 
-  &.ng-pristine, &.initial-value {
+  &.ng-pristine {
     border-left-color: $iq-valid-color;
     border-left-style: double;
   }
@@ -514,7 +514,7 @@ dropdown-selector {
       width: 395px;
     }
 
-    &.initial-value {
+    &.ng-pristine {
       border-left-color: $iq-valid-color;
       border-left-style: double;
     }

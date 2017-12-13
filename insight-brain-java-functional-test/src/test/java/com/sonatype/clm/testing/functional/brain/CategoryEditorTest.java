@@ -107,9 +107,9 @@ public class CategoryEditorTest
   public void testEditCategory() {
     SummaryTile.localCategory(category.getName()).click();
     CategoryEditorPage.title().shouldHave(text("Edit"));
-    CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE)
+    CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(CLM.PRISTINE)
         .shouldHave(value("original name"));
-    CategoryEditorPage.description().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE)
+    CategoryEditorPage.description().shouldBe(visible).shouldHave(CLM.PRISTINE)
         .shouldHave(value("original description"));
     CategoryEditorPage.colorPicker().shouldBe(visible).color(light_green).shouldBe(CLM.SELECTED);
     CategoryEditorPage.saveButton().shouldHave(DISABLED);
@@ -206,8 +206,8 @@ public class CategoryEditorTest
 
   private void assertInitialStateIsCorrect() {
     CategoryEditorPage.title().shouldHave(text("New"));
-    CategoryEditorPage.categoryName().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
-    CategoryEditorPage.description().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
+    CategoryEditorPage.categoryName().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
+    CategoryEditorPage.description().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
     CategoryEditorPage.colorPicker().shouldBe(visible).selectedColor().shouldNot(exist);
     CategoryEditorPage.saveButton().shouldHave(DISABLED);
   }

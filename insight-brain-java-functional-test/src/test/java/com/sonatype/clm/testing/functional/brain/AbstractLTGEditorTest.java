@@ -76,7 +76,7 @@ public abstract class AbstractLTGEditorTest
     SummaryTile.localLTG(ltg.getName()).click();
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
-    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value("original name"));
+    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);
 
     DoubleColumnPicker picker = new DoubleColumnPicker();

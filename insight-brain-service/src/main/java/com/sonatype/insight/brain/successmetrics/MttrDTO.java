@@ -5,14 +5,12 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.util.Date;
-
 /**
  * @since 1.33
  */
 public class MttrDTO
 {
-  public Date timePeriodStart;
+  public String timePeriodName;
 
   public Integer mttrInSeconds;
 
@@ -21,8 +19,8 @@ public class MttrDTO
   public MttrDTO() {
   }
 
-  public MttrDTO(Date timePeriodStart, Integer mttrInSeconds, Integer criticalMttrInSeconds) {
-    this.timePeriodStart = timePeriodStart;
+  public MttrDTO(String timePeriodName, Integer mttrInSeconds, Integer criticalMttrInSeconds) {
+    this.timePeriodName = timePeriodName;
     this.mttrInSeconds = mttrInSeconds;
     this.criticalMttrInSeconds = criticalMttrInSeconds;
   }
@@ -30,7 +28,7 @@ public class MttrDTO
   // mainly present to help debug automated tests
   @Override
   public String toString() {
-    return "[MttrDTO timePeriodStart=" + timePeriodStart + "; mttrInSeconds=" + mttrInSeconds
-        + "; criticalMttrInSeconds=" + criticalMttrInSeconds + "]";
+    return "[MttrDTO timePeriodName=" + timePeriodName + "; mttrInSeconds=" + mttrInSeconds + "; criticalMttrInSeconds="
+        + criticalMttrInSeconds + "]";
   }
 }

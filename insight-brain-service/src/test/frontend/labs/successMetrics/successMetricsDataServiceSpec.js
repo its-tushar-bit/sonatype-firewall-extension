@@ -152,22 +152,18 @@ describe('successMetricsDataService', function() {
       expect(output).toBeDefined();
       expect(output.length).toBe(12);
 
-      var date = new Date('June 1, 2016 00:00:00');
-
-      // first 7 months are padded
-      for (var i = 0; i < 7; i++) {
-        assertMttrData(output[i], date);
-        date.setMonth(date.getMonth() + 1);
-      }
-      assertMttrData(output[7], date, null, null);
-      date.setMonth(date.getMonth() + 1);
-      assertMttrData(output[8], date, 1209714, 1209714);
-      date.setMonth(date.getMonth() + 1);
-      assertMttrData(output[9], date, 484000, 484000);
-      date.setMonth(date.getMonth() + 1);
-      assertMttrData(output[10], date, null, null);
-      date.setMonth(date.getMonth() + 1);
-      assertMttrData(output[11], date, null, null);
+      assertMttrData(output[0], 'Apr');
+      assertMttrData(output[1], 'May');
+      assertMttrData(output[2], 'Jun');
+      assertMttrData(output[3], 'Jul');
+      assertMttrData(output[4], 'Aug');
+      assertMttrData(output[5], 'Sep');
+      assertMttrData(output[6], 'Oct');
+      assertMttrData(output[7], 'Nov', null, null);
+      assertMttrData(output[8], 'Dec', 1209714, 1209714);
+      assertMttrData(output[9], 'Jan', 484000, 484000);
+      assertMttrData(output[10], 'Feb', null, null);
+      assertMttrData(output[11], 'Mar', null, null);
     });
 
     it('fetches empty mttr data does not pad it', function() {
@@ -213,8 +209,8 @@ describe('successMetricsDataService', function() {
       expect(caughtError.status).toBe(403);
     });
 
-    function assertMttrData(mttr, expectedDate, expectedMttrInSeconds, expectedCriticalMttrInSeconds) {
-      expect(new Date(mttr.timePeriodStart).getMonth()).toBe(expectedDate.getMonth());
+    function assertMttrData(mttr, expectedMonth, expectedMttrInSeconds, expectedCriticalMttrInSeconds) {
+      expect(mttr.timePeriodName).toBe(expectedMonth);
       expect(mttr.mttrInSeconds).toBe(expectedMttrInSeconds);
       expect(mttr.criticalMttrInSeconds).toBe(expectedCriticalMttrInSeconds);
     }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.successmetrics;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -327,7 +328,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
     assertThat(mttrDTOs, hasSize(1));
 
     MttrDTO dto = mttrDTOs.get(0);
-    assertThat(dto.timePeriodStart, is(today.withDayOfMonth(1).minusMonths(1).toDateTimeAtStartOfDay().toDate()));
+    assertThat(dto.timePeriodName, is(today.minusMonths(1).monthOfYear().getAsShortText(Locale.US)));
     assertThat(dto.mttrInSeconds, is(ONE_HOUR / 1000));
     assertThat(dto.criticalMttrInSeconds, is(nullValue()));
   }

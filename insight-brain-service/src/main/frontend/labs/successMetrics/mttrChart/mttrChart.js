@@ -29,8 +29,6 @@ function controller(chartUtilsService) {
   vm.mttrChart = makeMttrChart(vm.mttrData);
 
   function makeMttrChart(dataset) {
-    const formatMonth = d3.utcFormat('%b');
-
     var max = d3.max(dataset, function({mttrInSeconds, criticalMttrInSeconds}) {
       return Math.max(mttrInSeconds, criticalMttrInSeconds);
     });
@@ -73,7 +71,7 @@ function controller(chartUtilsService) {
     }
 
     function xAccessor(d) {
-      return d.timePeriodStart;
+      return d.timePeriodName;
     }
 
     function getPlot(colorDomain, key, data, className) {
@@ -99,8 +97,7 @@ function controller(chartUtilsService) {
       return new Plottable.Components.Group([linePlot, scatterPlot]);
     }
 
-    const xAxis = new Plottable.Axes.Category(xScale, 'bottom')
-        .formatter(time => formatMonth(new Date(time)));
+    const xAxis = new Plottable.Axes.Category(xScale, 'bottom');
 
     const yAxis = new Plottable.Axes.Numeric(yScale, 'left').endTickLength(0);
 

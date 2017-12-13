@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.joda.time.DateTime;
+import org.joda.time.YearMonth;
 
 import static com.sonatype.insight.brain.successmetrics.ApplicationCountsDTO.ThreatCategoryApplicationCount;
 import static com.sonatype.insight.brain.successmetrics.AverageDiscoveredPolicyViolationsDTO.ThreatCategoryPolicyViolationsDTO;
@@ -358,9 +360,10 @@ public class SuccessMetricsReportDataService
       Date timePeriodStart = successMetricsReportData.getMttrMonthTimePeriodStart(month);
 
       if (timePeriodStart != null) {
+        String timePeriodName = new YearMonth(timePeriodStart).monthOfYear().getAsShortText(Locale.US);
         MttrDTO dto = new MttrDTO();
 
-        dto.timePeriodStart = timePeriodStart;
+        dto.timePeriodName = timePeriodName;
         dto.criticalMttrInSeconds = mttrMonthCritical;
         dto.mttrInSeconds = mttrMonthAll;
 

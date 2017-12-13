@@ -3,10 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { equals, complement, drop, concat, takeWhile, dropWhile, map, objOf } from 'ramda';
 
 const EMPTY_PREFIX = '~empty~';
 
 const getData = ({ data }) => data;
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default
 function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
@@ -43,21 +46,23 @@ function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
     }
     else {
       if (monthsOfMttr < 12) {
-        var paddedMonths = [];
-        var missingMonthCount = 12 - monthsOfMttr;
-        var paddedDate = new Date(data[0].timePeriodStart);
+        const firstMonthName = data[0].timePeriodName,
 
-        for (var i = 0; i < missingMonthCount; i++) {
-          /*
-           * The second parameter sets the day to the first to avoid wrapping. For example, if the date is the 30th of
-           * the given month, when March is hit it would show up twice since Feb 30th isn't a valid date. (it wraps to
-           * March) This is only a problem when the mttr data is empty.
-           */
-          paddedDate.setMonth(paddedDate.getMonth() - 1, 1);
-          paddedMonths.unshift({timePeriodStart: paddedDate.getTime()});
-        }
+            // function which matches months which are not the first month from the data
+            isNotFirstMonthOfData = complement(equals(firstMonthName)),
 
-        return paddedMonths.concat(data);
+            // previous months that come before firstMonthName in the year
+            previousMonthsInYear = takeWhile(isNotFirstMonthOfData, MONTHS),
+
+            // additional months from the previous year for a total of a full year
+            additionalMonthsInPreviousYear = dropWhile(isNotFirstMonthOfData, MONTHS),
+            yearOfMonthsBeforeData = concat(additionalMonthsInPreviousYear, previousMonthsInYear),
+
+            // months that we need to add to the data to get a year overall
+            missingMonths = drop(monthsOfMttr, yearOfMonthsBeforeData),
+            missingRecords = map(objOf('timePeriodName'), missingMonths);
+
+        return concat(missingRecords, data);
       }
       return data;
     }

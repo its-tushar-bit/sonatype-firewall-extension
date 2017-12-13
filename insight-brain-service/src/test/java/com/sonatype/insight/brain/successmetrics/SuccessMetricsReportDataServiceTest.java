@@ -39,6 +39,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsReportDataService.isReportDataOutOfDate;
@@ -57,6 +58,12 @@ public class SuccessMetricsReportDataServiceTest
 
   @Inject
   private SuccessMetricsReportDataService service;
+
+  @Before
+  public void fakeDate() {
+    // Set current date to December 11 2017 for these tests
+    DateTimeUtils.setCurrentMillisFixed(1512996545000l);
+  }
 
   @After
   public void after() {
@@ -217,31 +224,31 @@ public class SuccessMetricsReportDataServiceTest
     List<MttrDTO> expected = new ArrayList<>(5);
 
     MttrDTO dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(5));
+    dto.timePeriodName = "Jul";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(4));
+    dto.timePeriodName = "Aug";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(3));
+    dto.timePeriodName = "Sep";
     dto.mttrInSeconds = (int) ((eval3.getTime().getTime() - eval1.getTime().getTime()) / 1000);
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(2));
+    dto.timePeriodName = "Oct";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(1));
+    dto.timePeriodName = "Nov";
 
     // two violations resolved here so average them
     dto.mttrInSeconds = (int) (((eval5.getTime().getTime() - eval2.getTime().getTime())
@@ -292,31 +299,31 @@ public class SuccessMetricsReportDataServiceTest
     List<MttrDTO> expected = new ArrayList<>(5);
 
     MttrDTO dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(5));
+    dto.timePeriodName = "Jul";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(4));
+    dto.timePeriodName = "Aug";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(3));
+    dto.timePeriodName = "Sep";
     dto.mttrInSeconds = (int) ((eval3.getTime().getTime() - eval1.getTime().getTime()) / 1000);
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(2));
+    dto.timePeriodName = "Oct";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(1));
+    dto.timePeriodName = "Nov";
 
     // two violations resolved here so average them
     dto.mttrInSeconds = (int) (((eval5.getTime().getTime() - eval2.getTime().getTime())
@@ -358,32 +365,32 @@ public class SuccessMetricsReportDataServiceTest
     List<MttrDTO> expected = new ArrayList<>(5);
 
     MttrDTO dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(5));
+    dto.timePeriodName = "Jul";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(4));
+    dto.timePeriodName = "Aug";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(3));
+    dto.timePeriodName = "Sep";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(2));
+    dto.timePeriodName = "Oct";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     // violation isn't cleared in all stages until eval6
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(1));
+    dto.timePeriodName = "Nov";
     dto.mttrInSeconds = (int) ((eval6.getTime().getTime() - eval1.getTime().getTime()) / 1000);
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
@@ -409,27 +416,27 @@ public class SuccessMetricsReportDataServiceTest
     List<MttrDTO> results1;
     SuccessMetricsReport successMetricsReport;
     try {
-      // tell joda time to pretend we are at the beginning of the month 2 months ago
+      // tell joda time to pretend we are at the beginning of the month 2 months ago (relative to the mocked present)
       DateTimeUtils.setCurrentMillisFixed(today.minusMonths(2).withDayOfMonth(1).toDateTimeAtStartOfDay().getMillis());
 
       successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(appId));
       results1 = service.getChartData(successMetricsReport.getId()).mttrs;
     }
     finally {
-      // tell joda time to come back to the present
-      DateTimeUtils.setCurrentMillisSystem();
+      // tell joda time to come back to the mocked present
+      fakeDate();
     }
 
     List<MttrDTO> expected1 = new ArrayList<>(1);
 
     MttrDTO dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(4));
+    dto.timePeriodName = "Aug";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected1.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(3));
+    dto.timePeriodName = "Sep";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected1.add(dto);
@@ -448,25 +455,25 @@ public class SuccessMetricsReportDataServiceTest
     List<MttrDTO> expected2 = new ArrayList<>(3);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(4));
+    dto.timePeriodName = "Aug";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected2.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(3));
+    dto.timePeriodName = "Sep";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected2.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(2));
+    dto.timePeriodName = "Oct";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected2.add(dto);
 
     dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(1));
+    dto.timePeriodName = "Nov";
     dto.mttrInSeconds = (int) ((eval3.getTime().getTime() - eval1.getTime().getTime()) / 1000);
     dto.criticalMttrInSeconds = null;
     expected2.add(dto);
@@ -498,12 +505,12 @@ public class SuccessMetricsReportDataServiceTest
     List<MttrDTO> expected = new ArrayList<>(1);
 
     MttrDTO dto = new MttrDTO();
-    dto.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(2));
+    dto.timePeriodName = "Oct";
     dto.mttrInSeconds = (int) ((eval3.getTime().getTime() - eval1.getTime().getTime()) / 1000);
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
     MttrDTO blankCurrentMonthDueToPoCMode = new MttrDTO();
-    blankCurrentMonthDueToPoCMode.timePeriodStart = toDate(today.withDayOfMonth(1).minusMonths(1));
+    blankCurrentMonthDueToPoCMode.timePeriodName = "Nov";
     expected.add(blankCurrentMonthDueToPoCMode);
 
     assertMttrDTOs(results, expected);
@@ -874,7 +881,7 @@ public class SuccessMetricsReportDataServiceTest
         Collections.<String> emptySet(), "report", true);
     Date result = service.getChartData(successMetricsReport.getId()).lastUpdated;
 
-    int millisFromNow = (int) (new Date().getTime() - result.getTime());
+    int millisFromNow = (int) (new LocalDate().toDate().getTime() - result.getTime());
     assertThat(millisFromNow, lessThan(5000));
   }
 
@@ -923,8 +930,7 @@ public class SuccessMetricsReportDataServiceTest
     // run the chart again
     SuccessMetricsChartDataDTO results = service.getChartData(successMetricsReport.getId());
 
-    List<MttrDTO> expectedMttrs = Arrays.asList(new MttrDTO(firstGenerationTime.withDayOfMonth(1).toDate(), null, null),
-        new MttrDTO(secondGenerationTime.withDayOfMonth(1).toDate(), 1, null));
+    List<MttrDTO> expectedMttrs = Arrays.asList(new MttrDTO("Oct", null, null), new MttrDTO("Nov", 1, null));
 
     ApplicationCountsDTO expectedApplicationCounts = new ApplicationCountsDTO(1, 1,
         new ThreatCategoryApplicationCount(1, 0), //
@@ -968,7 +974,7 @@ public class SuccessMetricsReportDataServiceTest
     // cause the initial report data to be generated
     SuccessMetricsChartDataDTO results = service.getChartData(successMetricsReport.getId());
 
-    List<MttrDTO> expectedMttrs = Arrays.asList(new MttrDTO(firstRunTime.withDayOfMonth(1).toDate(), 1, null));
+    List<MttrDTO> expectedMttrs = Arrays.asList(new MttrDTO("Oct", 1, null));
 
     ApplicationCountsDTO expectedApplicationCounts = new ApplicationCountsDTO(1, 1,
         new ThreatCategoryApplicationCount(1, 0), //
@@ -1068,88 +1074,75 @@ public class SuccessMetricsReportDataServiceTest
   private void assertAggregationHistory(List<MttrDTO> actual) {
     List<MttrDTO> expected = new ArrayList<>(12);
     MttrDTO dto;
-    LocalDate dtoDate;
 
     dto = new MttrDTO();
-    dtoDate = new LocalDate().withDayOfMonth(1).minusYears(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Dec";
     dto.mttrInSeconds = 2;
     dto.criticalMttrInSeconds = 2;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Jan";
     dto.mttrInSeconds = 2;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Feb";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Mar";
     dto.mttrInSeconds = 1;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Apr";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "May";
     dto.mttrInSeconds = 5;
     dto.criticalMttrInSeconds = 5;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Jun";
     dto.mttrInSeconds = 16;
     dto.criticalMttrInSeconds = 16;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Jul";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Aug";
     dto.mttrInSeconds = 15;
     dto.criticalMttrInSeconds = 20;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Sep";
     dto.mttrInSeconds = 37;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Oct";
     dto.mttrInSeconds = 5;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Nov";
     dto.mttrInSeconds = 8;
     dto.criticalMttrInSeconds = 10;
     expected.add(dto);
@@ -1164,67 +1157,57 @@ public class SuccessMetricsReportDataServiceTest
   private void assertAggregationHistoryForThirdApp(List<MttrDTO> actual) {
     List<MttrDTO> expected = new ArrayList<>(9);
     MttrDTO dto;
-    LocalDate dtoDate;
 
     dto = new MttrDTO();
-    dtoDate = new LocalDate().withDayOfMonth(1).minusMonths(9);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Mar";
     dto.mttrInSeconds = 1;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Apr";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "May";
     dto.mttrInSeconds = 5;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Jun";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Jul";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Aug";
     dto.mttrInSeconds = 15;
     dto.criticalMttrInSeconds = 20;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Sep";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Oct";
     dto.mttrInSeconds = null;
     dto.criticalMttrInSeconds = null;
     expected.add(dto);
 
     dto = new MttrDTO();
-    dtoDate = dtoDate.plusMonths(1);
-    dto.timePeriodStart = dtoDate.toDateTimeAtStartOfDay().toDate();
+    dto.timePeriodName = "Nov";
     dto.mttrInSeconds = 10;
     dto.criticalMttrInSeconds = 12;
     expected.add(dto);
@@ -1272,7 +1255,7 @@ public class SuccessMetricsReportDataServiceTest
       if (actual instanceof MttrDTO) {
         MttrDTO actualDTO = (MttrDTO) actual;
 
-        return Objects.equals(actualDTO.timePeriodStart, expected.timePeriodStart)
+        return Objects.equals(actualDTO.timePeriodName, expected.timePeriodName)
             && Objects.equals(actualDTO.mttrInSeconds, expected.mttrInSeconds)
             && Objects.equals(actualDTO.criticalMttrInSeconds, expected.criticalMttrInSeconds);
       }

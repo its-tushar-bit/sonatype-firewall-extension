@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.successmetrics;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpResponse;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.LocalDate;
+import org.joda.time.YearMonth;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.closeTo;
@@ -67,7 +69,7 @@ public class PolicyViolationAggregationResourceTest
 
     SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
 
-    assertMttrResponse(chartDto, date1);
+    assertMttrResponse(chartDto, new YearMonth(date1).monthOfYear().getAsShortText(Locale.US));
     assertAveragesResponse(chartDto);
     assertApplicationCountsResponse(chartDto);
     assertThat(chartDto.lastUpdated, is(new LocalDate().withDayOfMonth(1).toDate()));
@@ -82,11 +84,11 @@ public class PolicyViolationAggregationResourceTest
     return tempEntity.newSuccessMetricsReport(getUsername(), "report", JsonUtils.format(scope));
   }
 
-  private void assertMttrResponse(SuccessMetricsChartDataDTO chartDto, Date date) {
+  private void assertMttrResponse(SuccessMetricsChartDataDTO chartDto, String monthName) {
     List<MttrDTO> dtos = chartDto.mttrs;
 
     assertThat(dtos, hasSize(1));
-    assertThat(dtos.get(0).timePeriodStart, is(date));
+    assertThat(dtos.get(0).timePeriodName, is(monthName));
     assertThat(dtos.get(0).mttrInSeconds, is(1));
     assertThat(dtos.get(0).criticalMttrInSeconds, is(nullValue()));
   }

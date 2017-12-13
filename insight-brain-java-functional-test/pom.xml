@@ -288,7 +288,7 @@
         </os>
       </activation>
       <properties>
-        <chromedriver.classifier>win32</chromedriver.classifier>
+        <chromedriver.classifier>windows</chromedriver.classifier>
         <chrome.driver.binary>${project.build.directory}/chromedriver.exe</chrome.driver.binary>
       </properties>
     </profile>

@@ -59,6 +59,7 @@
     <guava.version>23.0</guava.version>
     <geb.version>0.10.0</geb.version>
     <selenium.version>3.7.1</selenium.version>
+    <failsafe.version>2.19</failsafe.version>
   </properties>
 
   <scm>
@@ -600,6 +601,11 @@
               <version>${project.version}</version>
             </dependency>
           </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${failsafe.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>

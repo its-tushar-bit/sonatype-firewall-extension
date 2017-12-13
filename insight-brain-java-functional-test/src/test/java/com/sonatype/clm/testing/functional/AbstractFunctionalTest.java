@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 
 public abstract class AbstractFunctionalTest
 {
@@ -94,7 +95,7 @@ public abstract class AbstractFunctionalTest
       testCLMServer.start();
       reverseProxyServer.start();
 
-      Configuration.baseUrl = reverseProxyServer.getUrl();
+      Configuration.baseUrl = resolveBaseUrl(reverseProxyServer.getUrl());
       Configuration.reportsFolder = "target/selenide-reports";
     }
     catch (Throwable e) {

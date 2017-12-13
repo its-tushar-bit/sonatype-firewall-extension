@@ -15,62 +15,69 @@
   <artifactId>insight-brain-java-functional-test</artifactId>
 
   <properties>
+    <skip.functional.tests>false</skip.functional.tests>
     <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
+    <docker.image>standalone-chrome:3.8.1-aluminum</docker.image>
+    <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
   </properties>
 
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-chromedriver</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <skip>${skip.functional.tests}</skip>
+              <includeGroupIds>org.chromium</includeGroupIds>
+              <includeArtifactIds>chromedriver</includeArtifactIds>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <includes>
             <include>${it.includes}</include>
           </includes>
           <trimStackTrace>false</trimStackTrace>
+          <skipITs>${skip.functional.tests}</skipITs>
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>
-            <phantomjs.binary.path>${phantomjs.binary}</phantomjs.binary.path>
-            <browser>phantomjs</browser>
             <selenide.driverManagerEnabled>${selenide.driverManagerEnabled}</selenide.driverManagerEnabled>
+            <browser>chrome</browser>
+            <webdriver.chrome.driver>${webdriver.chrome.driver}</webdriver.chrome.driver>
           </systemPropertyVariables>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>com.github.klieber</groupId>
-        <artifactId>phantomjs-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>com.github.klieber</groupId>
-                    <artifactId>phantomjs-maven-plugin</artifactId>
-                    <versionRange>[0.1,)</versionRange>
-                    <goals>
-                      <goal>install</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 
   <dependencies>
@@ -103,11 +110,6 @@
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-edge-driver</artifactId>
       <version>${selenium.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.codeborne</groupId>
-      <artifactId>phantomjsdriver</artifactId>
-      <version>${phantomjs-driver.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
@@ -196,9 +198,171 @@
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.chromium</groupId>
+      <artifactId>chromedriver</artifactId>
+      <version>2.33</version>
+      <classifier>${chromedriver.classifier}</classifier>
+      <type>zip</type>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>
+    <profile>
+      <id>docker-functional-tests</id>
+      <activation>
+        <property>
+          <name>run-functional-tests</name>
+          <value>docker</value>
+        </property>
+      </activation>
+      <properties>
+        <skip.functional.tests>false</skip.functional.tests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <remote>http://${host}:${port}/wd/hub</remote>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>0.23.0</version>
+            <configuration>
+              <skip>${skip.functional.tests}</skip>
+              <images>
+                <image>
+                  <name>selenium/${docker.image}</name>
+                  <run>
+                    <ports>
+                      <port>+host:port:4444</port>
+                    </ports>
+                    <volumes>
+                      <bind>
+                        <volume>/dev/shm:/dev/shm</volume>
+                      </bind>
+                    </volumes>
+                    <wait>
+                      <http>
+                        <url>http://${host}:${port}/wd/hub/</url>
+                        <method>GET</method>
+                      </http>
+                    </wait>
+                  </run>
+                </image>
+              </images>
+              <removeAll>true</removeAll>
+            </configuration>
+            <executions>
+              <execution>
+                <id>start-integration-test</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>stop-integration-test</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                  <goal>remove</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>win32</chromedriver.classifier>
+        <chrome.driver.binary>${project.build.directory}/chromedriver.exe</chrome.driver.binary>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-x86</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>x86</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux32</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-i386</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>i386</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux32</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-64</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>x64</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux64</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-i686</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>i686</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux64</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-amd64</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>amd64</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux64</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>osx</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>mac64</chromedriver.classifier>
+      </properties>
+    </profile>
     <!--
       Allows build of 'functional-test' to be disabled; required for build-automation optimizations.
     -->

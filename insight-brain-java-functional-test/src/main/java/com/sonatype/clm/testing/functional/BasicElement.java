@@ -30,6 +30,10 @@ public abstract class BasicElement<T extends BasicElement<T>>
     }
   }
 
+  public SelenideElement parent() {
+    return getElement().parent();
+  }
+
   public T should(Condition... conditions) {
     getElement().should(conditions);
     return (T) this;

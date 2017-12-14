@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.ActionsSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
+import com.sonatype.clm.testing.functional.elements.PillButton;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -42,6 +43,10 @@ public class PolicyEditorPage
         .toString();
   }
 
+  static SelenideElement scrollContainer() {
+    return $("#policy-editor");
+  }
+
   public static SelenideElement title() {
     return $("#policy-editor-summary h1");
   }
@@ -54,24 +59,24 @@ public class PolicyEditorPage
     return $("#delete-policy-button");
   }
 
-  public static BasicElement<?> constraintsPill() {
-    return new Pill("#policy-constraints-button");
+  public static PillButton constraintsPill() {
+    return new PillButton(scrollContainer(), "#policy-constraints-button");
   }
 
   public static BasicElement<?> actionsPill() {
-    return new Pill("#policy-actions-button");
+    return new PillButton(scrollContainer(), "#policy-actions-button");
   }
 
-  public static BasicElement<?> notificationsPill() {
-    return new Pill("#policy-notifications-button");
+  public static PillButton notificationsPill() {
+    return new PillButton(scrollContainer(), "#policy-notifications-button");
   }
 
-  public static BasicElement<?> inhertancePill() {
-    return new Pill("#policy-inheritance-button");
+  public static PillButton inhertancePill() {
+    return new PillButton(scrollContainer(), "#policy-inheritance-button");
   }
 
-  public static BasicElement<?> endOfPagePill() {
-    return new Pill("#policy-endofpage-button");
+  public static PillButton endOfPagePill() {
+    return new PillButton(scrollContainer(), "#policy-endofpage-button");
   }
 
   public static SummarySection summarySection() {
@@ -92,20 +97,6 @@ public class PolicyEditorPage
 
   public static NotificationsSection notificationsSection() {
     return new NotificationsSection();
-  }
-
-  private static class Pill
-      extends BasicElement<Pill>
-  {
-    public Pill(String selector) {
-      super(selector);
-    }
-
-    @Override
-    public void click() {
-      super.click();
-      ScrollUtil.awaitEndOfScrolling(saveButton());
-    }
   }
 
   public static void savePolicy() {

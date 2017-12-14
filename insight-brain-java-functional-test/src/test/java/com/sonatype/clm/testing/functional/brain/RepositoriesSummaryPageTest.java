@@ -44,7 +44,6 @@ import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurati
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.DISABLED_ICON;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.ENABLED_ICON;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrolledOffTop;
-import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollSpyInitialized;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -251,9 +250,6 @@ public class RepositoriesSummaryPageTest
     RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldNotHave(cssClass("active"));
     RepositoriesSummaryPage.SummaryTile.configTile().shouldNotBe(scrolledOffTop);
     RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
-
-    // wait until the scroll spy code initializes. The scroll-spy-initialized class is a marker for that
-    RepositoriesSummaryPage.scrollContainer().shouldHave(scrollSpyInitialized);
 
     RepositoriesSummaryPage.SummaryTile.accessButton().click();
     RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldNotHave(cssClass("active"));

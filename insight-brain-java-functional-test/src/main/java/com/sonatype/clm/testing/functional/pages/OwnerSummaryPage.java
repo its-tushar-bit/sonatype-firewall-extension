@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.PillButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -25,6 +26,10 @@ public class OwnerSummaryPage
     }
 
     return BaseUrl.uriBuilder().fragment("/management/view/{ownerType}/{ownerId}").build(contextType, id).toString();
+  }
+
+  static SelenideElement scrollContainer() {
+    return $(".tile-scroll-container");
   }
 
   public static class SummaryTile
@@ -111,24 +116,24 @@ public class OwnerSummaryPage
       return new ErrorBox(ROOT_ID, ".iq-alert.iq-alert--error");
     }
 
-    public static SelenideElement appCategoriesButton() {
-      return root().find("#owner-app-categories-button");
+    public static PillButton appCategoriesButton() {
+      return new PillButton(scrollContainer(), "#owner-app-categories-button");
     }
 
-    public static SelenideElement policyButton() {
-      return root().find("#owner-policy-button");
+    public static PillButton policyButton() {
+      return new PillButton(scrollContainer(), "#owner-policy-button");
     }
 
-    public static SelenideElement labelsButton() {
-      return root().find("#owner-comp-labels-button");
+    public static PillButton labelsButton() {
+      return new PillButton(scrollContainer(), "#owner-comp-labels-button");
     }
 
-    public static SelenideElement ltgsButton() {
-      return root().find("#owner-ltgs-button");
+    public static PillButton ltgsButton() {
+      return new PillButton(scrollContainer(), "#owner-ltgs-button");
     }
 
-    public static SelenideElement accessButton() {
-      return root().find("#owner-access-button");
+    public static PillButton accessButton() {
+      return new PillButton(scrollContainer(), "#owner-access-button");
     }
   }
 }

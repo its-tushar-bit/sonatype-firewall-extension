@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.PillButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
@@ -21,7 +22,7 @@ public class RepositoriesSummaryPage
 
   public static String URL = BaseUrl.uriBuilder().fragment("/management/view/repositories").build().toString();
 
-  public static SelenideElement scrollContainer() {
+  static SelenideElement scrollContainer() {
     return $(".tile-scroll-container");
   }
 
@@ -31,12 +32,12 @@ public class RepositoriesSummaryPage
       return $(SelectorUtils.createSelector(REPOSITORIES_SUMMARY_SELECTOR, "h1"));
     }
 
-    public static SelenideElement configButton() {
-      return $("#repositories-configuration-button");
+    public static PillButton configButton() {
+      return new PillButton(scrollContainer(), "#repositories-configuration-button");
     }
 
-    public static SelenideElement accessButton() {
-      return $("#repositories-access-button");
+    public static PillButton accessButton() {
+      return new PillButton(scrollContainer(), "#repositories-access-button");
     }
 
     public static SelenideElement addRoleButton() {

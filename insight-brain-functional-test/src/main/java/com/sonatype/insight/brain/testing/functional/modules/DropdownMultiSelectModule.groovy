@@ -28,7 +28,7 @@ class DropdownMultiSelectModule
 
   void toggleOption(String name) {
     showDropdown()
-    waitFor { dropdownCheck(name) }.click()
+    waitFor { js.exec(dropdownCheck(name).firstElement(), 'arguments[0].scrollIntoView(); return arguments[0]') }.click()
     hideDropdown()
   }
 

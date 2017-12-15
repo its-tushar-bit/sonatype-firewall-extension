@@ -80,6 +80,22 @@
     </plugins>
   </build>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <!-- lock down dependency that eyes-selenium-java3-jersey1x drags in with version range -->
+        <groupId>org.seleniumhq.selenium</groupId>
+        <artifactId>selenium-java</artifactId>
+        <version>${selenium.version}</version>
+      </dependency>
+      <dependency>
+        <!-- lock down dependency that eyes-selenium-java3-jersey1x drags in with version range -->
+        <groupId>io.appium</groupId>
+        <artifactId>java-client</artifactId>
+        <version>5.0.4</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>com.codeborne</groupId>

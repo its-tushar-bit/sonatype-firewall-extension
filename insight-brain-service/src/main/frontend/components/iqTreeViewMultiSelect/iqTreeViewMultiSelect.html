@@ -36,15 +36,19 @@
     </div>
     <div class="iq-tree-view__child"
          ng-repeat="entity in vm.available | fuzzy:vm.filter:'name' | orderBy: vm.sortEntities ? ['name'] : []">
-      <iq-checkbox tooltip="{{::(vm.tooltipGenerator({entity: entity}))}}"
-                   tooltip-append-to-body="true"
-                   data-tooltip-popup-delay="200"
-                   data-tooltip-placement="top-left"
-                   tooltip-class="filter-item-tooltip"
-                   label="{{::entity.name}}"
-                   on-click="vm.toggle(entity.id)"
-                   is-checked="vm.selected.has(entity.id)">
-      </iq-checkbox>
+      <label class="iq-checkbox__label"
+             tooltip="{{::(vm.tooltipGenerator({entity: entity}))}}"
+             tooltip-append-to-body="true"
+             data-tooltip-popup-delay="200"
+             data-tooltip-placement="top-left"
+             tooltip-class="filter-item-tooltip">
+        <input type="checkbox"
+               id="{{::entity.id}}"
+               class="iq-checkbox__input"
+               ng-checked="vm.selected.has(entity.id)"
+               ng-click="vm.toggle(entity.id)">
+        <span class="iq-checkbox__box"></span>{{::entity.name}}
+      </label>
     </div>
   </div>
 </div>

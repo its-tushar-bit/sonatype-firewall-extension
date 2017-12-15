@@ -14,7 +14,7 @@ public class DashboardFilterDimensionModule
     twisty { $('.iq-tree-view__twisty') }
     counter { $('.iq-counter') }
     trigger { $('.iq-tree-view__trigger')}
-    multiSelectList(required: false) { moduleList FilterCheckboxRow, $('.iq-tree-view__child iq-checkbox') }
+    multiSelectList(required: false) { moduleList FilterCheckboxRow, $('.iq-tree-view__child .iq-checkbox__label') }
     tooltip { module TooltipModule }
   }
 

@@ -237,7 +237,7 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
     public ElementsCollection multiSelectList() {
-      return children(".iq-tree-view__child iq-checkbox");
+      return children(".iq-tree-view__child");
     }
 
     public ElementsCollection singleSelectList() {
@@ -245,7 +245,7 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
 
     public IqCheckbox checkboxItem(int index) {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(index), "iq-checkbox"));
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(index)));
     }
 
     public IqRadio radioItem(int index) {

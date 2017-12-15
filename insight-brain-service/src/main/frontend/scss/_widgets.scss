@@ -217,7 +217,7 @@
     }
   }
 
-  .owner-tree-view__row--organization .iq-tree-view__children, .owner-tree-view__row--repositories {
+  .owner-tree-view__row--repositories {
     margin-bottom: 12px;
   }
 
@@ -283,7 +283,7 @@
   }
 
   .iq-tree-view__twisty {
-    margin: 0;
+    margin: -7px 0 0 0;
   }
 
   .iq-spinner__wrapper {

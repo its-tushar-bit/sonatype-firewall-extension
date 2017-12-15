@@ -199,6 +199,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.applitools</groupId>
+      <artifactId>eyes-selenium-java3-jersey1x</artifactId>
+      <version>3.28</version>
+    </dependency>
+    <dependency>
       <groupId>org.chromium</groupId>
       <artifactId>chromedriver</artifactId>
       <version>2.33</version>

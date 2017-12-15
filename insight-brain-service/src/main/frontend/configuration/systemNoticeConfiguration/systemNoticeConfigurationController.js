@@ -9,13 +9,14 @@ function systemNoticeConfigurationController(isAuthorized, systemNoticeService, 
   vm.load = load;
   vm.save = save;
   vm.cancel = cancel;
-  vm.hasError = hasError;
   vm.isChanged = isChanged;
 
   vm.load();
 
   function load() {
     vm.error = undefined;
+    vm.loaded = false;
+
     systemNoticeService.getSystemNotice().then(function(response) {
       vm.savedSystemNotice = response;
       vm.systemNotice = angular.copy(vm.savedSystemNotice);
@@ -23,6 +24,8 @@ function systemNoticeConfigurationController(isAuthorized, systemNoticeService, 
       vm.error = error;
       vm.savedSystemNotice = systemNoticeService.getDefaultSystemNotice();
       vm.systemNotice = angular.copy(vm.savedSystemNotice);
+    }).finally(function() {
+      vm.loaded = true;
     });
   }
 
@@ -38,10 +41,6 @@ function systemNoticeConfigurationController(isAuthorized, systemNoticeService, 
 
   function cancel() {
     vm.systemNotice = angular.copy(vm.savedSystemNotice);
-  }
-
-  function hasError() {
-    return vm.error !== undefined;
   }
 
   function isChanged() {

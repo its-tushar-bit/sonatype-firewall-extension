@@ -67,6 +67,30 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
       expect(systemNoticeService.getSystemNotice.calls.count()).toBe(2);
       expect(vm.error).toBeUndefined();
     });
+
+    it('sets the loaded flag after a successful load', function() {
+      vm.loaded = true;
+      vm.load();
+
+      expect(vm.loaded).toBe(false);
+
+      getSystemNoticeDeferred.resolve(SystemNoticeMockData.getSystemNotice('message', true));
+      $scope.$apply();
+
+      expect(vm.loaded).toBe(true);
+    });
+
+    it('sets the loaded flag after an unsuccessful load', function() {
+      vm.loaded = true;
+      vm.load();
+
+      expect(vm.loaded).toBe(false);
+
+      getSystemNoticeDeferred.reject({status: 404, data: 'not found'});
+      $scope.$apply();
+
+      expect(vm.loaded).toBe(true);
+    });
   });
 
   describe('saving the system notice', function() {
@@ -102,7 +126,6 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
       expect(systemNoticeService.saveSystemNotice).toHaveBeenCalledWith(vm.systemNotice);
       expect(vm.error.status).toEqual(401);
       expect(vm.error.data).toEqual('unauthorized');
-      expect(vm.hasError()).toBe(true);
     });
 
     it('deletes any error', function() {
@@ -129,24 +152,6 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
     expect(systemNoticeService.getSystemNotice).toHaveBeenCalled();
     expect(vm.systemNotice.message).toEqual('message');
     expect(vm.systemNotice.enabled).toBe(true);
-  });
-
-  describe('checking if there is an error by calling hasError', function() {
-    it('returns true if the error is set', function() {
-      getSystemNoticeDeferred.reject({status: 404, data: 'not found'});
-      $scope.$apply();
-
-      expect(systemNoticeService.getSystemNotice).toHaveBeenCalled();
-      expect(vm.hasError()).toBe(true);
-    });
-
-    it('returns false if the error is not set', function() {
-      getSystemNoticeDeferred.resolve(SystemNoticeMockData.getSystemNotice('message', true));
-      $scope.$apply();
-
-      expect(systemNoticeService.getSystemNotice).toHaveBeenCalled();
-      expect(vm.hasError()).toBe(false);
-    });
   });
 
   describe('checking if there are changes by calling isChanged', function() {

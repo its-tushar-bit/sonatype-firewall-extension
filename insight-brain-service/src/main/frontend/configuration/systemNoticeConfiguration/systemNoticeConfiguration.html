@@ -1,5 +1,9 @@
 <div class="scrollable-root-container" authorization-wrapper="vm.isAuthorized" maximize-container-height>
-  <div id="system-notice-configuration" class="iq-tile iq-tile--sys-prefs">
+  <div id="system-notice-configuration"
+       class="iq-tile iq-tile--sys-prefs"
+       load-wrapper="vm.error"
+       loading="!vm.loaded"
+       reload="vm.load()">
     <div class="iq-tile-header iq-tile-header--hrule">
       <div class="iq-tile-header__title">
         <h2>System Notice</h2>
@@ -22,8 +26,7 @@
                     maxlength="500"
                     rows="10"
                     ng-required="false"
-                    ng-model="vm.systemNotice.message"
-                    ng-disabled="vm.hasError()"></textarea>
+                    ng-model="vm.systemNotice.message"></textarea>
         </div>
         <div id="system-notice-display-control-group" clm-control-group for="system-notice-display">
           <label for="system-notice-display">Notice Display</label>
@@ -33,8 +36,7 @@
                    toggle-checkbox
                    data-on="Enabled"
                    data-off="Disabled"
-                   ng-model="vm.systemNotice.enabled"
-                   ng-disabled="vm.hasError()">
+                   ng-model="vm.systemNotice.enabled">
           </div>
         </div>
         <div class="iq-tile-footer">
@@ -43,13 +45,12 @@
                   submit-validation
                   submit-dirty="vm.isChanged()"
                   submit-type="'update'"
-                  ng-disabled="vm.hasError()"
                   ng-click="vm.save()">
             Update
           </button>
           <button id="system-notice-cancel"
                   class="btn btn-secondary"
-                  ng-disabled="vm.hasError() || !vm.isChanged()"
+                  ng-disabled="!vm.isChanged()"
                   ng-click="vm.cancel()">
             Cancel
           </button>

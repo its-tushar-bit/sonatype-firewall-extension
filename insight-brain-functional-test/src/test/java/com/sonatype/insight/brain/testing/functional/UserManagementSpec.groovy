@@ -210,8 +210,8 @@ class UserManagementSpec
     when: 'clicking on edit'
       editUserButton(0).click()
 
-    then: 'we are shown the editable content'
-      waitFor { editPanel(0).displayed }
+    then: 'we are shown the edit form'
+      waitFor { editPanelForm(0).displayed }
 
     and: 'we are shown the proper user content'
       editFirstNameInput(0).value() == 'add'

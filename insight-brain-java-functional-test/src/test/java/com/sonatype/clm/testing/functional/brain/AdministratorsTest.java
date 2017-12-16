@@ -117,7 +117,7 @@ public class AdministratorsTest
     content.search();
 
     content.availableMember("John Doe").click();
-    content.pickButton().click();
+    content.pick();
 
     content.availableMembers().shouldHaveSize(1);
     content.availableMembers().shouldHave(texts("Jane Doe"));
@@ -125,7 +125,7 @@ public class AdministratorsTest
     content.appliedMembers().shouldHave(texts("Admin BuiltIn", "John Doe"));
 
     content.availableMember("Jane Doe").click();
-    content.pickButton().click();
+    content.pick();
 
     content.availableMembers().shouldHaveSize(0);
     content.appliedMembers().shouldHaveSize(3);
@@ -141,13 +141,13 @@ public class AdministratorsTest
     content.queryInput().setValue("*Do*");
     content.search();
     content.availableMember("John Doe").click();
-    content.pickButton().click();
+    content.pick();
     content.availableMember("Jane Doe").click();
-    content.pickButton().click();
+    content.pick();
 
     //note that this click unchecks John, leaving Jane checked for removal
     content.appliedMember("John Doe").click();
-    content.unpickButton().click();
+    content.unpick();
 
     content.availableMembers().shouldHaveSize(1);
     content.availableMembers().shouldHave(texts("Jane Doe"));
@@ -164,7 +164,7 @@ public class AdministratorsTest
     content.queryInput().setValue("*Do*");
     content.search();
     content.availableMember("John Doe").click();
-    content.pickButton().click();
+    content.pick();
 
     content.confirmButton().click();
     //make sure we grab latest dom, as the save will rebuild it

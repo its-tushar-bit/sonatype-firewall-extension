@@ -11,7 +11,9 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -91,6 +93,18 @@ public class AdministratorsPage
           searchButton().click();
         }
 
+        public void pick() {
+          pickButton().hover();
+          availableMemberTooltip().shouldNot(exist);
+          pickButton().shouldBe(enabled).click();
+        }
+
+        public void unpick() {
+          unpickButton().hover();
+          appliedMemberTooltip().shouldNot(exist);
+          unpickButton().shouldBe(enabled).click();
+        }
+
         public SelenideElement searchButton() {
           return child("#user-search-button");
         }
@@ -107,6 +121,10 @@ public class AdministratorsPage
           return children(".available-list label");
         }
 
+        public SelenideElement availableMemberTooltip() {
+          return child(".available-list > .tooltip");
+        }
+
         public SelenideElement availableMember(String text) {
           return availableMembers().find(exactText(text));
         }
@@ -117,6 +135,10 @@ public class AdministratorsPage
 
         public ElementsCollection appliedMembers() {
           return children(".picked-list label");
+        }
+
+        public SelenideElement appliedMemberTooltip() {
+          return child(".picked-list > .tooltip");
         }
 
         public SelenideElement appliedMember(String text) {

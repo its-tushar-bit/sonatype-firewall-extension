@@ -84,15 +84,6 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     applyButton().shouldBe(DISABLED);
   }
 
-  public static void toggleTwisties() {
-    applicationFilter().twisty().click();
-    applicationCategoryFilter().twisty().click();
-    stageFilter().twisty().click();
-    policyTypeFilter().twisty().click();
-    policyViolationStateFilter().twisty().click();
-    policyThreatLevelFilter().twisty().click();
-  }
-
   public static ManageFilters manage() {
     return new ManageFilters();
   }

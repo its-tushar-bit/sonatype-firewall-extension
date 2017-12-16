@@ -336,9 +336,9 @@ public class DashboardFilterTest
     violation.application().shouldHave(text("DashboardTestAppOne"));
 
     // enable app 2, but don't enable apps with "No Categories".  Results should not change
-    DashboardFilters.toggleTwisties();
+    DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
-    DashboardFilters.toggleTwisties();
+    DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.apply();
 
     DashboardPage.violationsView().results().violations().shouldHaveSize(1);
@@ -349,9 +349,9 @@ public class DashboardFilterTest
     violation.application().shouldHave(text("DashboardTestAppOne"));
 
     // enable "No Categories" so that secondApp results show
-    DashboardFilters.toggleTwisties();
+    DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().noCategory().click();
-    DashboardFilters.toggleTwisties();
+    DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.apply();
 
     DashboardPage.violationsView().results().violations().shouldHaveSize(2);
@@ -461,9 +461,9 @@ public class DashboardFilterTest
   @Test
   public void testFilterOutAllResults() throws Exception {
     // filter only for security policy type
-    DashboardFilters.toggleTwisties();
+    DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.policyTypeFilter().security().click();
-    DashboardFilters.toggleTwisties();
+    DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.apply();
     refresh();
     // verify policy filter counter
@@ -877,14 +877,24 @@ public class DashboardFilterTest
   }
 
   private void setSomeFilterValues() {
-    DashboardFilters.toggleTwisties();
+    DashboardFilters.stageFilter().twisty().click();
     DashboardFilters.stageFilter().release().click();
+    DashboardFilters.stageFilter().twisty().click();
+    DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.policyTypeFilter().quality().click();
+    DashboardFilters.policyTypeFilter().twisty().click();
+    DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
+    DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().checkboxItem(2).click();
+    DashboardFilters.applicationCategoryFilter().twisty().click();
+    DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().waived().click();
+    DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 7);
-    DashboardFilters.toggleTwisties();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
   }
 
   private void assertInitialFilterState() {

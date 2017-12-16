@@ -36,9 +36,6 @@ import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.JavascriptExecutor;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -263,8 +260,6 @@ public class SessionTimeoutTest
     // where some of the css and js for the iframe won't load. To determine when the scripts have executed, we
     // wait until jquery ($) is defined
     Selenide.Wait() //
-        .withTimeout(5, SECONDS) //
-        .pollingEvery(100, MILLISECONDS) //
         .withMessage("Report did not complete loading") //
         .until(webDriver -> ((JavascriptExecutor) webDriver)
               .executeScript("return document.getElementById('" + expectedElementId + "') === null;")

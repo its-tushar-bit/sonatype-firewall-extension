@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import com.sonatype.clm.testing.functional.elements.LoginDialog;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -34,8 +34,10 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.ex.UIAssertionError;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -45,6 +47,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.NoAlertPresentException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +56,12 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.either;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 public abstract class AbstractFunctionalTest
 {
@@ -72,9 +81,8 @@ public abstract class AbstractFunctionalTest
 
   protected static ReverseProxyServer reverseProxyServer;
 
-  private static Function<WebDriver, Boolean> urlEqualsPredicate(final String url) {
-    return webDriver -> url.equals(webDriver.getCurrentUrl())
-        || (Configuration.baseUrl + url).equals(webDriver.getCurrentUrl());
+  private static Matcher<String> urlEquals(final String url) {
+    return is(either(equalTo(url)).or(equalTo(Configuration.baseUrl + url)));
   }
 
   static {
@@ -209,17 +217,28 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void switchToWindow(final int index) {
-    Selenide.Wait().until(webDriver -> webDriver.getWindowHandles().size() > index);
+    waitUntil(webDriver -> assertThat(webDriver.getWindowHandles().size(), greaterThan(index)));
     Selenide.switchTo().window(index);
   }
 
   protected static void waitUntilUrl(final String url) {
-    Selenide.Wait().withMessage("Url did not become " + url).until(urlEqualsPredicate(url));
+    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), urlEquals(url)));
   }
 
   protected static void waitUntilNotUrl(final String url) {
-    Selenide.Wait().withMessage("Url did not switch from " + url)
-        .until(urlEqualsPredicate(url).andThen(result -> !result));
+    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), not(urlEquals(url))));
+  }
+
+  private static void waitUntil(Consumer<WebDriver> assertion) {
+    try {
+      Selenide.Wait().ignoring(AssertionError.class).until(webDriver -> {
+        assertion.accept(webDriver);
+        return true;
+      });
+    }
+    catch (TimeoutException e) {
+      throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
+    }
   }
 
   protected static void clearAlerts() {

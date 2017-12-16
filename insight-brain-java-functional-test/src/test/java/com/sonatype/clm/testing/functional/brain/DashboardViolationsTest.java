@@ -216,7 +216,7 @@ public class DashboardViolationsTest
 
     // open component details and back
     DashboardComponentDetails dashboardComponentDetails = new DashboardComponentDetails();
-    firstViolation.component().click();
+    firstViolation.component().click(5, 5);
     waitUntilUrl(DashboardComponentDetails.url("g1a1v1"));
     DashboardPage.dashboardContainer().shouldNotBe(visible);
     dashboardComponentDetails.header().shouldHave(text("g1 : a1 : v1"));

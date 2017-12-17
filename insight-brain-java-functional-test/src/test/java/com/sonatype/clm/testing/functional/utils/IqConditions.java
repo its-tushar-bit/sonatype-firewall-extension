@@ -96,7 +96,7 @@ public class IqConditions
 
     @Override
     public String toString() {
-      return String.format("Elements have CSS property %s with values %s", values, Arrays.toString(values));
+      return String.format("Elements have CSS property %s with values %s", propertyName, Arrays.toString(values));
     }
   }
 

@@ -59,7 +59,6 @@ import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -217,7 +216,6 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void switchToWindow(final int index) {
-    waitUntil(webDriver -> assertThat(webDriver.getWindowHandles().size(), greaterThan(index)));
     Selenide.switchTo().window(index);
   }
 

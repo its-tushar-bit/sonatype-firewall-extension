@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.utils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ex.UIAssertionError;
@@ -15,6 +16,7 @@ import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.ElementsCollection.elementsToString;
+import static java.util.stream.Collectors.toList;
 
 public class IqConditions
 {
@@ -48,12 +50,14 @@ public class IqConditions
 
     @Override
     public void fail(WebElementsCollection collection,
-                     List<WebElement> actualElements,
+                     List<WebElement> elements,
                      Exception lastError,
                      long timeoutMs)
     {
-      throw new IqAssertionError(": expected: " + className + ", \ncollection: " + collection.description()
-          + "\nElements: " + elementsToString(actualElements), lastError, timeoutMs);
+      throw new IqAssertionError(
+          "\nActual: " + getSafeValues(elements, element -> element.getAttribute("class")) + "\nExpected: " + className
+              + "\nCollection: " + collection.description() + "\nElements: " + elementsToString(elements),
+          lastError, timeoutMs);
     }
   }
 
@@ -86,17 +90,32 @@ public class IqConditions
 
     @Override
     public void fail(WebElementsCollection collection,
-                     List<WebElement> actualElements,
+                     List<WebElement> elements,
                      Exception lastError,
                      long timeoutMs)
     {
-      throw new IqAssertionError(": expected: " + Arrays.toString(values) + ", \ncollection: "
-          + collection.description() + "\nElements: " + elementsToString(actualElements), lastError, timeoutMs);
+      throw new IqAssertionError("\nActual: " + getSafeValues(elements, element -> element.getCssValue(propertyName))
+          + "\nExpected: " + Arrays.toString(values) + "\nCollection: " + collection.description() + "\nElements: "
+          + elementsToString(elements), lastError, timeoutMs);
     }
 
     @Override
     public String toString() {
       return String.format("Elements have CSS property %s with values %s", propertyName, Arrays.toString(values));
+    }
+  }
+
+  private static List<String> getSafeValues(List<WebElement> elements, Function<WebElement, String> valueGetter) {
+    return elements != null ? elements.stream().map(element -> getSafeValue(element, valueGetter)).collect(toList())
+        : Arrays.asList();
+  }
+
+  private static String getSafeValue(WebElement element, Function<WebElement, String> valueGetter) {
+    try {
+      return valueGetter.apply(element);
+    }
+    catch (Exception e) {
+      return "(unknown)";
     }
   }
 

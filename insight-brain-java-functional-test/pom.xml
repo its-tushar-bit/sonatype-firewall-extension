@@ -63,6 +63,7 @@
           <skipITs>${skip.functional.tests}</skipITs>
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>
+            <selenide.browserSize>1400x1050</selenide.browserSize>
             <selenide.driverManagerEnabled>${selenide.driverManagerEnabled}</selenide.driverManagerEnabled>
             <browser>chrome</browser>
             <webdriver.chrome.driver>${webdriver.chrome.driver}</webdriver.chrome.driver>

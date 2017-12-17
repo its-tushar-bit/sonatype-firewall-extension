@@ -13,6 +13,7 @@ import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ex.UIAssertionError;
 import com.codeborne.selenide.impl.WebElementsCollection;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.Color;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.ElementsCollection.elementsToString;
@@ -80,12 +81,27 @@ public class IqConditions
       }
 
       for (int i = 0; i < values.length; i++) {
-        if (!values[i].equals(elements.get(i).getCssValue(propertyName))) {
+        if (!matches(values[i], elements.get(i).getCssValue(propertyName))) {
           return false;
         }
       }
 
       return true;
+    }
+
+    private boolean matches(String expected, String actual) {
+      if (expected.equals(actual)) {
+        return true;
+      }
+      if (propertyName.endsWith("color")) {
+        Color expectedColor = Color.fromString(expected);
+        Color actualColor = Color.fromString(actual);
+        // the Firefox driver is known to loose the alpha value so check only RGB
+        if (expectedColor.asHex().equals(actualColor.asHex())) {
+          return true;
+        }
+      }
+      return false;
     }
 
     @Override

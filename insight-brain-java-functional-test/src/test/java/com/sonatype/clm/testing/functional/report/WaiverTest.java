@@ -65,7 +65,7 @@ public class WaiverTest
 
   @Before
   public void start() {
-    app = tempEntity.newApplicationWithParent(WaiverTest.class.getSimpleName());
+    app = tempEntity.newApplicationWithParent(WaiverTest.class.getSimpleName(), "Waiver Test App", "Waiver Test Org");
     evaluator = new TestReportEvaluator(app, scanId, getClass().getResource(cannedTestReport), Configuration.baseUrl,
         work);
   }

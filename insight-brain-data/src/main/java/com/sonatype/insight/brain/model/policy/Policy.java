@@ -112,7 +112,7 @@ public class Policy
   }
 
   public void setActions(final Map<String, String> actions) {
-    this.actions = actions != null ? actions : new HashMap<String, String>();
+    this.actions = actions != null ? actions : new HashMap<>();
   }
 
   public void setAction(String stageId, String actionId) {

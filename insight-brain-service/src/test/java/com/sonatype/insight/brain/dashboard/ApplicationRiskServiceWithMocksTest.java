@@ -174,7 +174,7 @@ public class ApplicationRiskServiceWithMocksTest
       returnAppIds.add(app.getId());
     }
 
-    Set<String> organizationIds = organizations.isEmpty() ? null : new HashSet<String>();
+    Set<String> organizationIds = organizations.isEmpty() ? null : new HashSet<>();
     for (Organization org : organizations) {
       organizationIds.add(org.getId());
     }

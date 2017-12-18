@@ -48,7 +48,7 @@ public class Notifications
   }
 
   public void setUserNotifications(List<UserNotification> userNotifications) {
-    this.userNotifications = userNotifications != null ? userNotifications : new ArrayList<UserNotification>();
+    this.userNotifications = userNotifications != null ? userNotifications : new ArrayList<>();
   }
 
   public List<RoleNotification> getRoleNotifications() {
@@ -56,7 +56,7 @@ public class Notifications
   }
 
   public void setRoleNotifications(List<RoleNotification> roleNotifications) {
-    this.roleNotifications = roleNotifications != null ? roleNotifications : new ArrayList<RoleNotification>();
+    this.roleNotifications = roleNotifications != null ? roleNotifications : new ArrayList<>();
   }
 
   public List<JiraNotification> getJiraNotifications() {
@@ -64,7 +64,7 @@ public class Notifications
   }
 
   public void setJiraNotifications(final List<JiraNotification> jiraNotifications) {
-    this.jiraNotifications = jiraNotifications != null ? jiraNotifications : new ArrayList<JiraNotification>();
+    this.jiraNotifications = jiraNotifications != null ? jiraNotifications : new ArrayList<>();
   }
 
   public void add(Notification notification) {

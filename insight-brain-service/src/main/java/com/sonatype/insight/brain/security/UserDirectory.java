@@ -68,7 +68,7 @@ public class UserDirectory
     }
 
     public QueryResult(List<Member> members, Exception exception) {
-      this.members = (members != null) ? members : new ArrayList<Member>();
+      this.members = (members != null) ? members : new ArrayList<>();
       this.exception = exception;
     }
 

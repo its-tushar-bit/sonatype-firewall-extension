@@ -38,7 +38,7 @@ public abstract class Notification
   }
 
   public void setStageIds(Set<String> stageIds) {
-    this.stageIds = stageIds != null ? stageIds : new TreeSet<String>();
+    this.stageIds = stageIds != null ? stageIds : new TreeSet<>();
   }
 
   public ValidationResult validate() {

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.ide;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
@@ -16,9 +14,9 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.IdleConnectionReaper;
+import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -27,7 +25,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.version.VersionService;
 
 import org.mockito.Mockito;
@@ -73,16 +70,6 @@ public class HdsIdeResourcePerformanceUtils
     return new HdsClient(new InsightProxy(config),
         new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter()), config,
         new VersionService(), Mockito.mock(IdleConnectionReaper.class), new TelemetryId(config));
-  }
-
-  static InsightWork createInsightWork() throws IOException {
-    InsightConfig insightConfig = new InsightConfig();
-    File workDir = File.createTempFile("hdsIde", "tmp");
-    workDir.delete();
-    workDir.mkdirs();
-    insightConfig.setSonatypeWork(workDir.getAbsolutePath());
-    InsightWork work = new InsightWork(insightConfig);
-    return work;
   }
 
   static void addPolicy(Application app, Policy[] policies) throws Exception {

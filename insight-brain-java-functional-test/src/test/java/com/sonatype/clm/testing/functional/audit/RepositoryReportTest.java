@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.audit;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -266,14 +265,14 @@ public class RepositoryReportTest
     testCLMServer.getInsightServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
   }
 
-  private void setupHdsResponse() throws IOException {
+  private void setupHdsResponse() {
     testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails",
         getClass().getClassLoader().getResource("componentDetails/componentDetails.json"), 200);
     testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails/list",
         getClass().getClassLoader().getResource("componentDetails/componentDetailsList.json"), 200);
   }
 
-  private void cipSetup() throws IOException {
+  private void cipSetup() {
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         CRITICAL_IDENTIFIER);
     criticalComponentHash = component.getHash();

@@ -875,7 +875,7 @@ public class ReportResourceTest
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
     try (InputStream actual = response.getBodyStream()) {
-      File temp = File.createTempFile("report", "zip");
+      File temp = tempDir.newFile();
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
         assertNotNull(zip.getEntry("data/report.pdf"));
@@ -962,7 +962,7 @@ public class ReportResourceTest
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
     try (InputStream actual = response.getBodyStream()) {
-      File temp = File.createTempFile("report", "zip");
+      File temp = tempDir.newFile();
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
         assertNotNull(zip.getEntry("data/report.pdf"));
@@ -1047,7 +1047,7 @@ public class ReportResourceTest
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
     try (InputStream actual = response.getBodyStream()) {
-      File temp = File.createTempFile("report", "zip");
+      File temp = tempDir.newFile();
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
         assertNotNull(zip.getEntry("data/report.pdf"));

@@ -272,7 +272,7 @@
 
     &.selected, &.child-selected {
       .iq-tree-view__twisty-icon.collapse {
-        border-top-color: $iq-grey-4;
+        border-left-color: $iq-grey-4;
       }
     }
   }
@@ -281,9 +281,13 @@
     display: inline; // so that text-overflow works
     line-height: 16px;
   }
-
+  
   .iq-tree-view__twisty {
-    margin: -7px 0 0 0;
+    margin-right: 0;
+  }
+
+  .iq-tree-view__twisty-icon {
+    margin-top: 3px;
   }
 
   .iq-spinner__wrapper {

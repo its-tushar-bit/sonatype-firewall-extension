@@ -483,7 +483,7 @@ public class HdsClientTest
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
     assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
 
-    client.put(analytics, String.class, testPath, File.createTempFile("test", ".tmp"), new String[] {});
+    client.put(analytics, String.class, testPath, tempDir.newFile(), new String[] {});
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
     assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
   }

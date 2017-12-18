@@ -114,6 +114,7 @@ public class TelemetryId
     id = generatedIdProperty.getValue() + "-" + derivedId;
   }
 
+  @SuppressWarnings("deprecation")
   static String calculateDerivedId(String hostname, int port, List<byte[]> hardwareAddresses) {
     // Calculate the derived ID as the SHA1 of the bytes of hostname + port + all network interface hardware addresses.
     Hasher hasher = Hashing.sha1().newHasher();

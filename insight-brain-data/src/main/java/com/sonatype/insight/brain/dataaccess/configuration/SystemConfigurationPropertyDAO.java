@@ -22,9 +22,19 @@ public class SystemConfigurationPropertyDAO
     }
   }
 
-  public SystemConfigurationProperty getByNameNotNull(TransactionContext tx, String name) {
+  public SystemConfigurationProperty getByName(String name) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByName(tx, name);
+    }
+  }
+
+  private SystemConfigurationProperty getByName(TransactionContext tx, String name) {
     String sQuery = "SELECT entity FROM SystemConfigurationProperty entity WHERE entity.name=?1";
-    SystemConfigurationProperty property = get(tx, sQuery, name);
+    return get(tx, sQuery, name);
+  }
+
+  private SystemConfigurationProperty getByNameNotNull(TransactionContext tx, String name) {
+    SystemConfigurationProperty property = getByName(tx, name);
     if (property == null) {
       throw new NotFoundException("A system configuration property '" + name + "' does not exist.");
     }
@@ -36,15 +46,5 @@ public class SystemConfigurationPropertyDAO
     SystemConfigurationProperty existingProperty = getByNameNotNull(tx, property.getName());
     property.setId(existingProperty.getId());
     super.update(tx, property);
-  }
-
-  @Override
-  public void insert(TransactionContext tx, SystemConfigurationProperty property) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void delete(TransactionContext tx, SystemConfigurationProperty property) {
-    throw new UnsupportedOperationException();
   }
 }

@@ -63,14 +63,4 @@ public class SystemConfigurationPropertyDAOTest
       assertThat(expected.getMessage(), is("A system configuration property 'FOO' does not exist."));
     }
   }
-
-  @Test(expected = UnsupportedOperationException.class)
-  public void testInsert_throwsUnsupportedOperationException() {
-    dao.insert(new SystemConfigurationProperty("foo", "bar"));
-  }
-
-  @Test(expected = UnsupportedOperationException.class)
-  public void testDelete_throwsUnsupportedOperationException() {
-    dao.delete(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
-  }
 }

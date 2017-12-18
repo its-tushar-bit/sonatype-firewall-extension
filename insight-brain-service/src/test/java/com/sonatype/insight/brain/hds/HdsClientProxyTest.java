@@ -53,6 +53,8 @@ public class HdsClientProxyTest
 
   private InsightConfig config;
 
+  private TelemetryId telemetryId;
+
   @Before
   public void init() throws Exception {
     int port = PortAllocator.findFreePort(8090);
@@ -76,6 +78,7 @@ public class HdsClientProxyTest
     proxyConfig.setPort(port);
     config.setProxyConfig(proxyConfig);
     config.setHdsUrl("https://www.somehost.com/");
+    telemetryId = new TelemetryId(config);
     initClient();
   }
 
@@ -83,7 +86,7 @@ public class HdsClientProxyTest
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
     client = new HdsClient(new InsightProxy(config), licenseManager, config, new VersionService(),
-        mock(IdleConnectionReaper.class));
+        mock(IdleConnectionReaper.class), telemetryId);
   }
 
   @After

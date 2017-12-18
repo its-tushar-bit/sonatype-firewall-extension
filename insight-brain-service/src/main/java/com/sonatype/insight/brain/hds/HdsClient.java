@@ -73,6 +73,8 @@ public class HdsClient
 
   private final CLMLicenseManager licenseManager;
 
+  private final TelemetryId telemetryId;
+
   private final VersionService versionService;
 
   private static volatile String version;
@@ -87,14 +89,17 @@ public class HdsClient
 
   static final String OWNER_ID_HEADER = "X-CLM-Owner-Id";
 
+  static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
+
   @Inject
   public HdsClient(final InsightProxy proxy,
                    final CLMLicenseManager licenseManager,
                    InsightConfig insightConfig,
                    VersionService versionService,
-                   IdleConnectionReaper idleConnectionReaper)
+                   IdleConnectionReaper idleConnectionReaper,
+                   TelemetryId telemetryId)
   {
-    this(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, 20);
+    this(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, telemetryId, 20);
   }
 
   protected HdsClient(final InsightProxy proxy,
@@ -102,6 +107,7 @@ public class HdsClient
                       InsightConfig insightConfig,
                       VersionService versionService,
                       IdleConnectionReaper idleConnectionReaper,
+                      TelemetryId telemetryId,
                       int poolSize)
   {
     this.licenseManager = licenseManager;
@@ -116,6 +122,7 @@ public class HdsClient
         ? insightConfig.getReverseProxyAuthentication().getUsernameHeader() : null;
     // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
+    this.telemetryId = telemetryId;
   }
 
   HttpResponse getResponse(HttpServletRequest request,
@@ -430,6 +437,11 @@ public class HdsClient
     if (analytics != null) {
       req.setHeader(OWNER_TYPE_HEADER, analytics.getOwnerType().toString());
       req.setHeader(OWNER_ID_HEADER, analytics.getOwnerId());
+    }
+
+    String telemetryIdString = telemetryId.getId();
+    if (telemetryIdString != null) {
+      req.setHeader(TELEMETRY_ID_HEADER, telemetryIdString);
     }
 
     req.setHeader("X-Brain-Version", version);

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.IdleConnectionReaper;
 import com.sonatype.insight.brain.model.Application;
@@ -68,9 +69,10 @@ public class HdsIdeResourcePerformanceUtils
   static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
     config.setHdsUrl(hdsUrl);
+    config.getHttpConfiguration().setPort(8877);
     return new HdsClient(new InsightProxy(config),
         new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter()), config,
-        new VersionService(), Mockito.mock(IdleConnectionReaper.class));
+        new VersionService(), Mockito.mock(IdleConnectionReaper.class), new TelemetryId(config));
   }
 
   static InsightWork createInsightWork() throws IOException {

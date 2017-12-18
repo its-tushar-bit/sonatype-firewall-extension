@@ -50,6 +50,8 @@ import org.apache.commons.lang.StringUtils;
 @Singleton
 class DbData
 {
+  // WARNING: Do not include the {@link SystemConfigurationProperty} data because it contains sensitive information.
+
   private final SchemaInfoDAO schemaInfoDAO;
 
   private final RepositoryManagerDAO repositoryManagerDAO;

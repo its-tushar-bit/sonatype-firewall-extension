@@ -29,8 +29,9 @@ public class FirewallAuditHdsClient
                                 final CLMLicenseManager licenseManager,
                                 InsightConfig insightConfig,
                                 VersionService versionService,
-                                IdleConnectionReaper idleConnectionReaper)
+                                IdleConnectionReaper idleConnectionReaper,
+                                TelemetryId telemetryId)
   {
-    super(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, 20);
+    super(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, telemetryId, 20);
   }
 }

@@ -45,7 +45,9 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -72,6 +74,9 @@ public class HdsClientTest
 
   private static final String USER_AGENT_SUFFIX = "test suffix";
 
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
   private Server server;
 
   private HdsClient client;
@@ -79,6 +84,8 @@ public class HdsClientTest
   private AbstractHandler handler;
 
   private InsightConfig config;
+
+  private TelemetryId telemetryId;
 
   @Before
   public void init() throws Exception {
@@ -99,6 +106,8 @@ public class HdsClientTest
     config = new InsightConfig();
     config.setHdsUrl("http://localhost:" + server.getConnectors()[0].getLocalPort());
     config.setUserAgentSuffix(USER_AGENT_SUFFIX);
+    config.getHttpConfiguration().setPort(1234);
+    telemetryId = new TelemetryId(config);
     initClient();
   }
 
@@ -106,7 +115,7 @@ public class HdsClientTest
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
     client = new HdsClient(new InsightProxy(config), licenseManager, config, new VersionService(),
-        mock(IdleConnectionReaper.class));
+        mock(IdleConnectionReaper.class), telemetryId);
   }
 
   @After
@@ -610,5 +619,35 @@ public class HdsClientTest
     public int read() throws IOException {
       return wrappedInputStream.read();
     }
+  }
+
+  @Test
+  public void testTelemetryId() throws Exception {
+    final Map<String, String> headers = new HashMap<>();
+    String testPath = "/rest/test";
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        headers.clear();
+        headers.put(HdsClient.TELEMETRY_ID_HEADER, request.getHeader(HdsClient.TELEMETRY_ID_HEADER));
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.<String> emptyList()));
+    when(request.getMethod()).thenReturn("GET");
+
+    client.get(request, null, InputStream.class, testPath, null, new String[] {});
+    assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
+
+    client.post(String.class, testPath, "foo", new String[] {});
+    assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
+
+    client.put(null, String.class, testPath, tempDir.newFile(), new String[] {});
+    assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
   }
 }

@@ -44,6 +44,7 @@ public class EyesWatcher
     eyes.setParentBranchName(System.getProperty("parentBranchName"));
   }
 
+  @Override
   protected void starting(Description description) {
     WebDriver remoteDriver = WebDriverRunner.getAndCheckWebDriver();
 
@@ -57,6 +58,7 @@ public class EyesWatcher
         new RectangleSize(1366, 1024));
   }
 
+  @Override
   protected void finished(Description description) {
     try {
       // End visual testing. Validate visual correctness.

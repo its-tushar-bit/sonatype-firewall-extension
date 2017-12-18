@@ -79,10 +79,19 @@ public class ScrollUtil
    * Scrolls the given element into view. {@link SelenideElement#scrollTo()} tries to scroll the entire window which
    * doesn't help for containers with scrollable content.
    */
-  public static void scrollIntoView(final SelenideElement element) {
+  public static SelenideElement scrollIntoView(final SelenideElement element) {
+    return scrollIntoView(element, true);
+  }
+
+  /**
+   * Scrolls the given element into view. {@link SelenideElement#scrollTo()} tries to scroll the entire window which
+   * doesn't help for containers with scrollable content.
+   */
+  public static SelenideElement scrollIntoView(final SelenideElement element, final boolean alignToTop) {
     Selenide.Wait().ignoring(StaleElementReferenceException.class).until(webDriver -> ((JavascriptExecutor) webDriver)
-        .executeScript("arguments[0].scrollIntoView(); return 1", element));
+        .executeScript("arguments[0].scrollIntoView(arguments[1]); return 1", element, alignToTop));
     awaitEndOfScrolling(element);
+    return element;
   }
 
   /**

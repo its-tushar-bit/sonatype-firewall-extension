@@ -12,6 +12,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class Dropdown
@@ -35,9 +36,9 @@ public class Dropdown
     return child(ITEM_SELECTOR, nthChild(num + 1));
   }
 
-  public void chooseOption(Option option){
+  public void chooseOption(Option option) {
     selectedItem().click();
-    listItem(option.row).shouldBe(visible).shouldHave(text(option.value)).click();
+    scrollIntoView(listItem(option.row), false).shouldBe(visible).shouldHave(text(option.value)).click();
   }
 
   public static class Option {

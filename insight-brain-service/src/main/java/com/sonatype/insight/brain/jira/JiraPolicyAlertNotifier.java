@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 
-import com.google.common.base.Throwables;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.slf4j.Logger;
@@ -74,7 +73,7 @@ public class JiraPolicyAlertNotifier
       this.descriptionTemplate = config.getTemplate("description.ftl");
     }
     catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

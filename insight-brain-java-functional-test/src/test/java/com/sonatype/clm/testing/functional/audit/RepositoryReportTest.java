@@ -493,6 +493,7 @@ public class RepositoryReportTest
 
     AddWaiverDialog.comment().setValue("TEST COMMENT");
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+    RepositoryReportPage.waitForComponentUpdater();
 
     // CIP closes as the row is hidden in the summary view
     AddWaiverDialog.root().should(disappear);

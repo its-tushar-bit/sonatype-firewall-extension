@@ -196,7 +196,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationRisksSimple() {
+  public void testGetApplicationRisks() {
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
         Collections.<Organization> emptyList(), Lists.newArrayList(application1), Lists.newArrayList(policyEvaluation1),
         Lists.newArrayList(vio1), Integer.MAX_VALUE);
@@ -215,7 +215,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationRisksTwoStages() {
+  public void testGetApplicationRisks_TwoStages() {
     String policyEvalId2 = "polEval2";
     String policyName2 = "secondPolicy";
     PolicyEvaluation policyEvaluation2 = new PolicyEvaluation(appId1, releaseStage.getId(), scanId);
@@ -244,7 +244,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationRisksTwoStagesAppOneOneStageAppTwo() {
+  public void testGetApplicationRisks_TwoStagesAppOneOneStageAppTwo() {
     String policyEvalId2 = "polEval2";
     String policyName2 = "secondPolicy";
     PolicyEvaluation policyEvaluation2 = new PolicyEvaluation(appId1, releaseStage.getId(), scanId);
@@ -285,7 +285,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationRisksSortedByRiskThenAppId() {
+  public void testGetApplicationRisks_SortedByRiskThenAppId() {
     String appId3 = "zagarbl2";
     String appPublicId3 = "pubbobl3";
     String appName3 = "myApp3";
@@ -322,7 +322,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationsLimitResults() {
+  public void testGetApplicationRisks_LimitResults() {
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
         Collections.<Organization> emptyList(), Lists.newArrayList(application1, application2),
         Lists.newArrayList(policyEvaluation1, policyEvaluation4), Lists.newArrayList(vio1, vio4), 1);
@@ -335,7 +335,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationNetRiskIsSumOfLevels() {
+  public void testGetApplicationRisks_NetRiskIsSumOfLevels() {
     String policyEvalId5 = "polEval5";
     String policyName5 = "fifthPolicy";
     PolicyEvaluation policyEvaluation5 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
@@ -364,7 +364,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationTotalApplicationRiskDeDupesAcrossStages() {
+  public void testGetApplicationRisks_TotalApplicationRiskDeDupesAcrossStages() {
     String sharedPolicyId = "sharedPolicyId";
     String policyEvalId7 = "policyEvalId";
     String policyName7 = "seventhPolicy";
@@ -400,7 +400,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationExcludesRisksOfZero() {
+  public void testGetApplicationRisks_ExcludesRisksOfZero() {
     String policyEvalId5 = "polEval5";
     String policyName5 = "fifthPolicy";
     PolicyEvaluation policyEvaluation5 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
@@ -417,7 +417,7 @@ public class ApplicationRiskServiceWithMocksTest
   }
 
   @Test
-  public void testGetAllApplicationNoUsernameOnApplication() {
+  public void testGetApplicationRisks_NoUsernameOnApplication() {
 
     Application application99 = createApplication(appPublicId1, appName, orgId);
     application99.setId(appId1);

@@ -69,7 +69,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -565,9 +564,6 @@ public class RepositoryReportTest
   public void testVulnerabilityCip() throws Exception {
     cipSetup();
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
-    // PhantomJS for some reason renders the % based width as 10001px which makes some elements non-visible.
-    Selenide.executeJavaScript(
-        "$('head').append($('<style/>').text('#vulnerability-editor-table-wrapper .topBorder, #vulnerability-editor-table-wrapper .well { width: 435px !important; }'));");
 
     tempEntity.newSecurityVulnerabilityOverride(repo.getId(), criticalComponentHash, "cve", "CVE-1234-56789",
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);

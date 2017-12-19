@@ -120,7 +120,7 @@ public class OrganizationPolicyEditorTest
 
   @Test
   public void testRootOrgPolicyHasProperInheritedText() {
-    refreshOrOpen(OwnerSummaryPage.url(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID));
+    refreshOrOpen(OwnerSummaryPage.url(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID));
 
     SummaryTile.addPolicyButton().click();
 

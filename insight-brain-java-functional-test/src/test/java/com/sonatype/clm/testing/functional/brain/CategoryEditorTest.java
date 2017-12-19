@@ -66,7 +66,7 @@ public class CategoryEditorTest
   public void init() {
     org = tempEntity.newOrganization();
     category = tempEntity.newTag(org.getId(), "original name", "original description", light_green);
-    refreshOrOpen(OwnerSummaryPage.url("organization", org.getId()));
+    refreshOrOpen(OwnerSummaryPage.url(org));
   }
 
   @Test

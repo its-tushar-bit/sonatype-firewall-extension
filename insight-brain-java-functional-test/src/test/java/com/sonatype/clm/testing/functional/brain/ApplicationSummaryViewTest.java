@@ -209,7 +209,7 @@ public class ApplicationSummaryViewTest
       WebDriverRunner.getWebDriver().close();
       switchToWindow(0);
 
-      waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+      waitUntilUrl(OwnerSummaryPage.url(application));
 
       ActionDropDown.actionButton().click();
     }
@@ -338,13 +338,13 @@ public class ApplicationSummaryViewTest
     changeApplicationIdDialog.changeButton().shouldBe(enabled).click();
     FormMask.seeAndWaitForDismissal();
     changeApplicationIdDialog.shouldNotBe(visible);
-    waitUntilUrl(OwnerSummaryPage.url("application", "newAppId"));
+    waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
     OwnerSummaryPage.SummaryTile.publicId().shouldHave(text("newAppId"));
     // check that sidebar app link is updated
     OwnerTreeView.organization(0).treeViewElement().click();
-    waitUntilNotUrl(OwnerSummaryPage.url("application", "newAppId"));
+    waitUntilNotUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
     OrganizationNode.application(0).click();
-    waitUntilUrl(OwnerSummaryPage.url("application", "newAppId"));
+    waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
 
     // log in as a user that doesn't have permission to change the id of this app
     createUser();
@@ -354,7 +354,7 @@ public class ApplicationSummaryViewTest
     login();
 
     try {
-      refreshOrOpen(OwnerSummaryPage.url("application", "newAppId"));
+      refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
       ActionDropDown.actionButton().click();
       ActionDropDown.changeApplicationId().shouldBe(visible).shouldHave(DISABLED).click();
       changeApplicationIdDialog.shouldNotBe(visible);
@@ -438,7 +438,7 @@ public class ApplicationSummaryViewTest
     login();
 
     try {
-      refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+      refreshOrOpen(OwnerSummaryPage.url(application));
       ActionDropDown.actionButton().click();
       ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldHave(DISABLED).hover();
       Tooltip.get().shouldBe(visible).shouldHave(text("Insufficient permissions to evaluate application"));

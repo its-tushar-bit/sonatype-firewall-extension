@@ -12,7 +12,6 @@ import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 import org.junit.Before;
@@ -42,7 +41,7 @@ public class ApplicationLTGEditorTest
 
   @Test
   public void testCreateLTG() {
-    waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), currentOwner.getPublicId()));
+    waitUntilUrl(OwnerSummaryPage.url(currentOwner));
     SummaryTile.addLTGButton().shouldNot(exist);
   }
 
@@ -78,7 +77,7 @@ public class ApplicationLTGEditorTest
     DeleteModal.root().shouldNotBe(visible);
 
     // no more ltgs left to delete so take user back to the summary page
-    waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    waitUntilUrl(OwnerSummaryPage.url(application));
   }
 
   @Override

@@ -64,7 +64,7 @@ public abstract class AbstractLTGEditorTest
 
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
   }
 
   @Test

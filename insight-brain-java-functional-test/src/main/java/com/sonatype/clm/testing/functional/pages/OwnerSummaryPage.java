@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.PillButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -20,12 +21,16 @@ import static com.codeborne.selenide.Selenide.$$;
 
 public class OwnerSummaryPage
 {
-  public static String url(String contextType, String id) {
-    if (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(contextType))) {
+  public static String url(Owner owner) {
+    return url(owner.getType(), owner.getPublicId());
+  }
+
+  public static String url(OwnerType ownerType, String id) {
+    if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType)) {
       return BaseUrl.uriBuilder().fragment("/management/view/repositories").build().toString();
     }
 
-    return BaseUrl.uriBuilder().fragment("/management/view/{ownerType}/{ownerId}").build(contextType, id).toString();
+    return BaseUrl.uriBuilder().fragment("/management/view/{ownerType}/{ownerId}").build(ownerType, id).toString();
   }
 
   static SelenideElement scrollContainer() {

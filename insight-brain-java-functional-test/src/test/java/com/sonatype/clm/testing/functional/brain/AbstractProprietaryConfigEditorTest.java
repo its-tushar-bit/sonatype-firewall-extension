@@ -65,7 +65,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
     this.currentOwner = currentOwner;
 
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
   }
 
   @Test

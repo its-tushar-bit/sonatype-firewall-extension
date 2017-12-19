@@ -62,7 +62,7 @@ public class MoveApplicationTest
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
 
-    refreshOrOpen(OwnerSummaryPage.url(application.getType().toString(), application.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(application));
     OwnerSummaryPage.SummaryTile.name().shouldHave(text(application.getName()));
   }
 

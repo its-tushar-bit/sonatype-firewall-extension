@@ -79,7 +79,7 @@ public abstract class AbstractAccessEditorTest
     role = APPLICATION_ROLES.get(2);
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
 
-    refreshOrOpen(OwnerSummaryPage.url(owner.getType().toString(), owner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(owner));
   }
 
   @Test

@@ -87,8 +87,7 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @Test
   public void testOwnerTreeViewDetails() {
-    assertThat(OwnerDetailTreeView.headerHref(),
-        containsString(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId())));
+    assertThat(OwnerDetailTreeView.headerHref(), containsString(OwnerSummaryPage.url(currentOwner)));
 
     if (!OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
       OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));

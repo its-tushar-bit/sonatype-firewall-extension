@@ -18,7 +18,6 @@ import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
@@ -57,7 +56,7 @@ public class ApplicationCategoryEditorTest
     //note the ȧ being used to force a character to be encoded
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
-    refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(application));
   }
 
   @Test
@@ -76,7 +75,7 @@ public class ApplicationCategoryEditorTest
     Tag category1 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_1", dark_blue);
     Tag category2 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_2", light_green);
 
-    refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(application));
 
     categoryTile.newButton().click();
 
@@ -124,7 +123,7 @@ public class ApplicationCategoryEditorTest
           (i % 2) == 0 ? dark_blue : light_green));
     }
 
-    refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(application));
 
     categoryTile.newButton().click();
 

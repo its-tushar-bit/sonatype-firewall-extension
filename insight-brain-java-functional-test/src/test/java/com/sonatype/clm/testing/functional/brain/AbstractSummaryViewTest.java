@@ -99,7 +99,7 @@ public abstract class AbstractSummaryViewTest
 
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.SummaryTile.name().shouldHave(text(currentOwner.getName()));
   }
 
@@ -118,7 +118,7 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testSummaryTile_missing() {
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), "fakeid"));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType(), "fakeid"));
 
     ErrorBox error = OwnerSummaryPage.SummaryTile.error();
     error.shouldBe(visible);
@@ -256,7 +256,7 @@ public abstract class AbstractSummaryViewTest
     localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Policy 3", 4, null, null, new Notifications(
         new UserNotification("test@test.com", Stage.ID_BUILD))));
 
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     testLabelTile_Local(localLabels);
     testLTGTile_Local(locaLTGs);
     testAccessTile_Local(testUser);
@@ -488,7 +488,7 @@ public abstract class AbstractSummaryViewTest
       }
     }
 
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     testLabelTile_Inherited(inheritedLabels, parentOwners);
     testLTGTile_Inherited(inheritedLTGs, parentOwners);
     testAccessTile_Inherited(testUser, parentOwners);
@@ -818,7 +818,7 @@ public abstract class AbstractSummaryViewTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
     
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     PolicyTile policyTile = new PolicyTile();
 
     OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();

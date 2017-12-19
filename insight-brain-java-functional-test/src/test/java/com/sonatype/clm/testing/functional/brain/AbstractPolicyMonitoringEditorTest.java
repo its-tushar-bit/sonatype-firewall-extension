@@ -53,8 +53,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
     this.parentOrg = orgDao.getById(currentOwner.getParentOwnerId());
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
   }
 
   @Test

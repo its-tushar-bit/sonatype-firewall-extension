@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 
 import org.apache.commons.lang.StringUtils;
@@ -57,7 +58,7 @@ public class LabelEditorTest
   @Before
   public void init() {
     app = tempEntity.newApplicationWithParent("test_app");
-    refreshOrOpen(OwnerSummaryPage.url("application", app.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(app));
   }
 
   @After
@@ -93,7 +94,7 @@ public class LabelEditorTest
   public void testLabelEdit() {
     // given
     Label label = tempEntity.newLabel(app.getOrganizationId(), "original name", "original description", light_green);
-    refreshOrOpen(OwnerSummaryPage.url("organization", app.getOrganizationId()));
+    refreshOrOpen(OwnerSummaryPage.url(OwnerType.ORGANIZATION, app.getOrganizationId()));
     SummaryTile.localLabel(label.getLabel()).click();
     LabelEditorPage.title().shouldHave(text("Edit"));
     LabelEditorPage.labelName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("original name"));

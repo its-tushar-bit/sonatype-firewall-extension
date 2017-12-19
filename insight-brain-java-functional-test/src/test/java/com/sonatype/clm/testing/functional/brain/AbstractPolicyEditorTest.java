@@ -135,7 +135,7 @@ public abstract class AbstractPolicyEditorTest
 
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
   }
 
   @Test
@@ -145,7 +145,7 @@ public abstract class AbstractPolicyEditorTest
     }
     Label sampleLabel = tempEntity.newLabel(currentOwner.getId(), "Sample Label");
 
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     SummaryTile.addPolicyButton().click();
 
     assertNewPolicyStateIsCorrect();
@@ -258,7 +258,7 @@ public abstract class AbstractPolicyEditorTest
   public void testJIRA() throws IOException {
     setupJiraService();
 
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     SummaryTile.addPolicyButton().click();
 
     PolicyEditorPage.summarySection().policyName().val("New Policy");

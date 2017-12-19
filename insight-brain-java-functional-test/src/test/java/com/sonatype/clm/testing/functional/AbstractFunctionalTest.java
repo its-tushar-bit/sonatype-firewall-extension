@@ -49,6 +49,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.NoAlertPresentException;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -243,9 +244,9 @@ public abstract class AbstractFunctionalTest
    * a full page reload, thereby ensuring future interactions do not mistake the old page for the new page.
    */
   private static void navigate(BooleanSupplier navigation) {
-    WebElement body = $("body").toWebElement();
+    WebElement body = getWebElement("body");
     boolean fullPageReload = navigation.getAsBoolean();
-    if (!fullPageReload) {
+    if (!fullPageReload || body == null) {
       return;
     }
     try {
@@ -261,6 +262,15 @@ public abstract class AbstractFunctionalTest
     }
     catch (TimeoutException e) {
       throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
+    }
+  }
+
+  private static WebElement getWebElement(final String selector) {
+    try {
+      return $(selector).toWebElement();
+    }
+    catch (NoSuchElementException e) {
+      return null;
     }
   }
 

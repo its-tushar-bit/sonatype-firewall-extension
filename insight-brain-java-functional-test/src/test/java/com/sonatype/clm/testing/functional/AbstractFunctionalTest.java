@@ -120,6 +120,9 @@ public abstract class AbstractFunctionalTest
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
+  @Rule
+  public EyesWatcher eyesWatcher = new EyesWatcher(); // enables visual testing
+
   @BeforeClass
   public static void setup() {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();

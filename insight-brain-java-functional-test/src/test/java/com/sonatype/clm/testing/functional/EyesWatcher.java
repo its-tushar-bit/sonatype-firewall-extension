@@ -24,6 +24,8 @@ public class EyesWatcher
 {
   public static Eyes eyes = new Eyes();
 
+  private String testName;
+
   private static BatchInfo batch = new BatchInfo(new SimpleDateFormat("MMM dd yyyy").format(new Date()));
 
   private static final String APPLITOOLS_KEY = "bg21K3t6KY1073109q6J9lZzCQBfxEDGh5tHgYR9wl1kHxk110";
@@ -40,31 +42,25 @@ public class EyesWatcher
     String localBranchName = System.getProperty("branchName");
     eyes.setBranchName(localBranchName != null ? localBranchName : System.getenv("bamboo_planRepository_branchName"));
 
-    // needs to be set only if the parent branch is something other than master
-    eyes.setParentBranchName(System.getProperty("parentBranchName"));
+    // set the default parent branch to master if the parent branch is not specified
+    eyes.setParentBranchName(System.getProperty("parentBranchName", "master"));
   }
 
   @Override
   protected void starting(Description description) {
-    WebDriver remoteDriver = WebDriverRunner.getAndCheckWebDriver();
-
-    if (remoteDriver instanceof WrapsDriver) {
-      remoteDriver = ((WrapsDriver) remoteDriver).getWrappedDriver();
-    }
-
-    // test name is derived from the class and test method name
-    eyes.open(remoteDriver, "IQ Server",
-        description.getTestClass().getSimpleName() + "." + description.getMethodName(),
-        new RectangleSize(1366, 1024));
+    testName = description.getTestClass().getSimpleName() + "." + description.getMethodName();
   }
 
   @Override
   protected void finished(Description description) {
     try {
       // End visual testing. Validate visual correctness.
-      eyes.close(true);
+      if (eyes.getIsOpen()) {
+        eyes.close(true);
+      }
     }
     finally {
+      testName = null;
       // Abort test in case of an unexpected error.
       eyes.abortIfNotClosed();
     }
@@ -81,6 +77,15 @@ public class EyesWatcher
    * @param tag or step name of the validation
    */
   public void eyesCheck(String tag) {
+    if (!eyes.getIsOpen()) {
+      WebDriver remoteDriver = WebDriverRunner.getAndCheckWebDriver();
+
+      if (remoteDriver instanceof WrapsDriver) {
+        remoteDriver = ((WrapsDriver) remoteDriver).getWrappedDriver();
+      }
+
+      eyes.open(remoteDriver, "IQ Server", testName, new RectangleSize(1366, 1024));
+    }
     eyes.check(tag, Target.window().ignore(By.cssSelector(".iq-title__version")).ignoreCaret());
   }
 }

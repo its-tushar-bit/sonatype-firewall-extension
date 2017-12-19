@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.EyesWatcher;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
@@ -27,7 +26,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.attribute;
@@ -39,9 +37,6 @@ public class OwnerTreeViewTest
 {
   private List<Organization> organizations = new ArrayList<>();
   private List<Application> applications = new ArrayList<>();
-  
-  @Rule
-  public EyesWatcher eyesWatcher = new EyesWatcher(); // enables visual testing
 
   @BeforeClass
   public static void startup() {

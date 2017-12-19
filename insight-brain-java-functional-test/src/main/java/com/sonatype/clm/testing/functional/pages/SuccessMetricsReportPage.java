@@ -15,6 +15,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
@@ -33,6 +34,15 @@ public class SuccessMetricsReportPage
 
   public SuccessMetricsReportPage() {
     super(ROOT_SELECTOR);
+  }
+
+  public SuccessMetricsReportPage shouldBeFullyLoaded() {
+    SummaryStatementTile.title().should(exist);
+    ViolationAveragesTile.title().should(exist);
+    MttrTile.chart().should(exist);
+    ApplicationCountsTile.activeApplicationsCount().should(exist);
+    ComponentCountsTile.averages().should(exist);
+    return this;
   }
 
   public IqBackButton backButton() {

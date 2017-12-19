@@ -155,7 +155,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testSummaryStatementTile() {
-    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     successMetricsChartsPage.should(appear);
     SummaryStatementTile.root().shouldBe(visible);
@@ -169,7 +169,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testViolationAveragesTile() {
-    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ViolationAveragesTile.root());
 
@@ -184,7 +184,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testApplicationCountsTile() throws Exception {
-    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ApplicationCountsTile.root());
 
@@ -205,7 +205,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testMttrTile() {
-    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(MttrTile.root());
 
@@ -237,7 +237,7 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testComponentCountsTile() throws Exception {
-    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
+    SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ComponentCountsTile.root());
 

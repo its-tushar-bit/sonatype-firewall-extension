@@ -9,6 +9,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationErrorModal;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationSuccessModal;
@@ -160,6 +161,7 @@ public class MoveApplicationTest
     // retry and cancel
     modal.shouldBe(visible);
     modal.retryButton().shouldBe(visible).click();
+    FormMask.seeAndWaitForDismissal();
     modal.dismissButton().click();
     modal.shouldNotBe(visible);
   }

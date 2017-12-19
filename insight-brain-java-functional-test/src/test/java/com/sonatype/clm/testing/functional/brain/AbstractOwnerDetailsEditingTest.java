@@ -104,7 +104,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       OwnerDetailTreeView.componentLabelGroup().shouldNotBe(visible);
       OwnerDetailTreeView.LTGGroup().shouldNotBe(visible);
       OwnerDetailTreeView.accessGroup().shouldBe(visible);
-      //CLM-5937 should also test the access routing testRouting_Access(OwnerDetailTreeView.accessGroup());
+      testRouting_Access(OwnerDetailTreeView.accessGroup());
     }
   }
 

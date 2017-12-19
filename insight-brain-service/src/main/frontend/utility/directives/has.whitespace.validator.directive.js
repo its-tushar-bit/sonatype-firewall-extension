@@ -11,12 +11,8 @@ export default function hasWhitespaceValidator() {
   };
 
   function hasWhitespaceValidatorLink(scope, elem, attr, ctrl) {
-    if (attr.ngTrim !== 'false') {
-      throw new Error('has-whitespace-validator directive requires that the ngTrim attribute be set to false');
-    }
-
     ctrl.$validators.spaces = function(value) {
-      return !value || !value.match(/^ | {2,}|\t| $/);
+      return !value || !value.match(/ {2,}|\t/);
     };
     // Allows validation to be invoked by code or user input
     scope.$watch(attr.ngModel, function(newValue) {

@@ -52,7 +52,7 @@ describe('userForm', function() {
 
     expect(noIdUserController.user).toBeDefined();
     expect(noIdUserController.user.id).toBe(null);
-    expect(noIdUserController.user.firstName).toBe('');
+    expect(noIdUserController.user.firstName).toBe(null);
   });
 
   it('prevents page navigation when the user model is dirty', function() {

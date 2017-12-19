@@ -258,12 +258,6 @@ public class SuccessMetricsReportListTest
     modal.name().setValue("Test 1");
     modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
 
-    // leading and trailing space checking
-    modal.name().setValue("Test 1 ");
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-    modal.name().setValue(" Test 1");
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
     // doubled space checking
     modal.name().setValue("Test  1");
     modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));

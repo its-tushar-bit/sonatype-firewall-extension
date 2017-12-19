@@ -73,11 +73,11 @@ module.service('UserStore', ['CLMLocations', 'StoreFactory', function(clmLocatio
     id: 'id',
     template: {
       id: null,
-      username: '',
-      password: '',
-      firstName: '',
-      lastName: '',
-      email: ''
+      username: null,
+      password: null,
+      firstName: null,
+      lastName: null,
+      email: null
     },
     url: clmLocations.getUserUrl()
   }, store = StoreFactory.getStore(config);

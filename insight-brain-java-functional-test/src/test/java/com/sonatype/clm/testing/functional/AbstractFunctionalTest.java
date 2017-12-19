@@ -5,8 +5,10 @@
  */
 package com.sonatype.clm.testing.functional;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 import com.sonatype.clm.testing.functional.elements.LoginDialog;
@@ -47,8 +49,10 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.NoAlertPresentException;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -204,17 +208,59 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void refresh() {
-    WebDriverRunner.getWebDriver().navigate().refresh();
-    clearAlerts();
+    navigate(() -> {
+      WebDriverRunner.getWebDriver().navigate().refresh();
+      clearAlerts();
+      return true;
+    });
   }
 
   protected static void refreshOrOpen(String url) {
-    String currentUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
-    if (currentUrl != null && currentUrl.endsWith(url)) {
-      WebDriverRunner.getWebDriver().navigate().refresh();
+    navigate(() -> {
+      String currentUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
+      if (currentUrl != null && currentUrl.endsWith(url)) {
+        WebDriverRunner.getWebDriver().navigate().refresh();
+        return true;
+      }
+      else {
+        Selenide.open(url);
+        return !digestUrl(currentUrl).equals(digestUrl(url));
+      }
+    });
+  }
+
+  private static String digestUrl(final String url) {
+    try {
+      return new URI(url).getSchemeSpecificPart();
     }
-    else {
-      Selenide.open(url);
+    catch (Exception e) {
+      return "";
+    }
+  }
+
+  /**
+   * Performs the specified browser navigation and waits for the current page to get dismissed if the navigation causes
+   * a full page reload, thereby ensuring future interactions do not mistake the old page for the new page.
+   */
+  private static void navigate(BooleanSupplier navigation) {
+    WebElement body = $("body").toWebElement();
+    boolean fullPageReload = navigation.getAsBoolean();
+    if (!fullPageReload) {
+      return;
+    }
+    try {
+      Selenide.Wait().withMessage("Page body did not update").until(webDriver -> {
+        try {
+          body.isDisplayed();
+          return false;
+        }
+        catch (StaleElementReferenceException e) {
+          return true;
+        }
+      });
+    }
+    catch (TimeoutException e) {
+      throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
     }
   }
 

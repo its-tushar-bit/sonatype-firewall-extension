@@ -156,6 +156,21 @@ public class DashboardComponentsTest
     Selenide.navigator.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
+    // check the csv export default sort order
+    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/componentRisks",
+        testCLMServer.getCLMServer().getPort());
+    reverseProxyServer.addHandler(responseCopyHandler);
+    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Components Data")).click();
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+    String exportCsv = new String(responseCopyHandler.consumeResponse());
+    String[] expectedResults = {
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group1 : Artifact1 : Version1,1,1,0,0,0,1"
+    };
+    assertComponentsCsv(exportCsv, expectedResults);
+
     // sort by name
     ComponentsHeaders headers = DashboardPage.componentsView().headers();
     headers.componentNameHeader().click();
@@ -172,11 +187,33 @@ public class DashboardComponentsTest
     headers.lowRiskHeader().click();
     table.lastComponent().shouldHave(text("Group1 : Artifact1 : Version1"));
 
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group1 : Artifact1 : Version1,1,1,0,0,0,1"
+    };
+    assertComponentsCsv(exportCsv, expectedResults);
+
     // sort by Moderate Risk
     headers.moderateRiskHeader().click();
     table.firstComponent().shouldHave(text("Group2 : Artifact2 : Version2"));
     headers.moderateRiskHeader().click();
     table.lastComponent().shouldHave(text("Group2 : Artifact2 : Version2"));
+
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0"
+    };
+    assertComponentsCsv(exportCsv, expectedResults);
 
     // sort by Severe Risk
     headers.severeRiskHeader().click();
@@ -184,24 +221,31 @@ public class DashboardComponentsTest
     headers.severeRiskHeader().click();
     table.lastComponent().shouldHave(text("Group3 : Artifact3 : Version3"));
 
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+    };
+    assertComponentsCsv(exportCsv, expectedResults);
+
     // sort by Critical Risk
     headers.criticalRiskHeader().click();
     table.firstComponent().shouldHave(text("Group4 : Artifact4 : Version4"));
     headers.criticalRiskHeader().click();
     table.lastComponent().shouldHave(text("Group4 : Artifact4 : Version4"));
 
-    // CSV export with no filters
-    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/componentRisks",
-        testCLMServer.getCLMServer().getPort());
-    reverseProxyServer.addHandler(responseCopyHandler);
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Components Data")).click();
-    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
-    String exportCsv = new String(responseCopyHandler.consumeResponse());
-    String[] expectedResults = {
-        "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
         "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+        "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
     };
     assertComponentsCsv(exportCsv, expectedResults);
 
@@ -212,8 +256,8 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
         "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
         "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
     };
     assertComponentsCsv(exportCsv, expectedResults);
@@ -394,7 +438,6 @@ public class DashboardComponentsTest
     String[] lines = csv.split("\r\n");
     assertEquals("Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
     String[] results = Arrays.copyOfRange(lines, 1, lines.length);
-    Arrays.sort(results);
     assertArrayEquals(Arrays.toString(results), expectedSortedResults, results);
   }
 

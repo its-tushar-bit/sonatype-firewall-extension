@@ -1,0 +1,51 @@
+<div id="dashboard-violations">
+  <div class="iq-tile iq-tile--dashboard-table-container">
+    <div class="iq-scrollable" detect-scrollbar="vm.state.filters">
+      <table class="iq-table iq-table--dashboard-violations">
+        <thead class="dashboard-headers iq-dashboard-headers">
+          <tr class="iq-table-row"
+              sort="vm.state.violations.sortFields"
+              on-sort-change="vm.sortResults('violations', sortFields)">
+            <th class="iq-cell iq-cell--header iq-cell--threat" sort-column="-threatLevel,-firstOccurrenceTime">
+              <span class="iq-cell__text--header">Threat</span>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--policy" sort-column="policyName,-firstOccurrenceTime">
+              <span class="iq-cell__text--header">Policy</span>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--application" sort-column="applicationName,-threatLevel">
+              <span class="iq-cell__text--header">Application</span>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--component" sort-column="derivedComponentName,-threatLevel">
+              <span class="iq-cell__text--header">Component</span>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--age"
+                sort-column="-firstOccurrenceTime,-threatLevel"
+                sort-inverted="true">
+              <span class="iq-cell__text--header">Age</span>
+            </th><!--
+         --><th class="iq-cell iq-cell--header iq-cell--report">
+              <span class="iq-cell__text--header">Latest Report</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-results"
+               class="iq-violations-results"
+               form-mask="vm.maskController"
+               mask-message="">
+          <tr violations-table-row risk="risk"
+              ng-repeat="risk in vm.state.violations.results | limitTo: vm.maxResults | emptyToEnd:vm.state.violations.sortFields"
+              class="iq-table-row">
+          </tr>
+        </tbody>
+      </table>
+      <dashboard-common-results results="vm.state.violations.results"
+                                is-violations-tab="true"
+                                needs-acknowledgement="vm.state.needsAcknowledgement"
+                                max-results="vm.maxResults"
+                                max-days-old="vm.state.filters.maxDaysOld"
+                                error="vm.state.violations.error"
+                                reload="vm.reload()">
+      </dashboard-common-results>
+    </div>
+  </div>
+</div>

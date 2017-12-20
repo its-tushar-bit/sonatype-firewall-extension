@@ -123,6 +123,103 @@ var SpecUtil = {
     var event = $scope.$broadcast('pageChangeStarted');
 
     expect(event.defaultPrevented).toBeFalsy();
+  },
+
+  /**
+   * This is used to test components connected to redux store.
+   * Just add this in the beginning of your test:
+   *
+   *    beforeEach(module(function($provide) {
+   *      SpecUtil.mockNgRedux($provide);
+   *    }));
+   *
+   *  It will create spies for all action creators passed to $ngRedux.connect().
+   *  Also connect() returns a spy to enable testing of unsubscribe.
+   */
+  mockNgRedux: function($provide) {
+    $provide.service('$ngRedux', function() {
+      this.connect = function(mapStateToThis, actions) {
+        if (actions) {
+          // stub each action creator with spy
+          Object.keys(actions).forEach(function(actionCreator) {
+            // check if spy already created
+            if (actions[actionCreator].and) {
+              return;
+            }
+            spyOn(actions, actionCreator);
+          });
+        }
+        return function(vm) {
+          angular.extend(vm, actions);
+          return jasmine.createSpy('unsubscribe');
+        };
+      };
+    });
+  },
+
+  /**
+   * This is used to test redux actions creators (mostly used for testing async actions).
+   * This is factory function that takes state and creates redux store mock.
+   * Use store.dispatch() to dispatch action under test
+   * Use store.getActions() to test actions dispatched
+   *
+   *    var initialState = [
+   *      {foo: 1, bar: 2},
+   *      {foo: 1, bar: 1},
+   *      {foo: 3, bar: 3}
+   *    ];
+   *    var store = SpecUtil.mockReduxStore(initialState);
+   *    var sortFields: ['-foo', 'bar'];
+   *    store.dispatch(actions.sortResults(sortFields));
+   *
+   *    expect(store.getActions().length).toBe(2);
+   *
+   *    // this action will update sortFields in the state
+   *    expect(store.getActions()[0]).toEqual({
+   *      type: 'SORT_RESULTS_REQUESTED',
+   *      payload: {
+   *        sortFields: sortFields
+   *      }
+   *    });
+   *
+   *    expect(store.getActions()[1]).toEqual({
+   *      type: 'SORT_RESULTS_FULFILLED',
+   *      payload: [
+   *        {foo: 3, bar: 3},
+   *        {foo: 1, bar: 1},
+   *        {foo: 1, bar: 2}
+   *      ]
+   *    });
+   *
+   * @param state
+   * @returns {dispatch: Function, getActions: Function}
+   */
+  mockReduxStore: function(state) {
+    state = state || {};
+    var actions = [];
+
+    function getState() {
+      return state;
+    }
+
+    function getActions() {
+      return actions;
+    }
+
+    function dispatch(action) {
+      if (angular.isFunction(action)) {
+        return action(dispatch, getState);
+      }
+      else {
+        actions.push(action);
+        return action;
+      }
+    }
+
+    return {
+      dispatch: dispatch,
+      getActions: getActions
+    };
   }
 };
 

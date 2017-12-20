@@ -1,0 +1,44 @@
+<td class="iq-cell iq-cell--threat">
+  <span class="iq-threat-indication" threat-class="vm.risk.threatLevel"></span>
+  <span class="iq-threat-number">{{::vm.risk.threatLevel}}</span>
+</td><!--
+--><td class="iq-cell iq-cell--label iq-cell--policy"
+       iq-tooltip
+       tooltip-attach-to-body
+       tooltip-class="dashboard-tooltip"
+       tooltip-delay=500
+       tooltip-only-on-overflow="true"
+       tooltip-text="{{::vm.risk.policyName}}">
+  {{::vm.risk.policyName}}
+</td><!--
+--><td class="iq-cell iq-cell--application"
+       iq-tooltip
+       tooltip-attach-to-body
+       tooltip-class="dashboard-tooltip"
+       tooltip-delay=500
+       tooltip-only-on-overflow="true"
+       tooltip-text="{{::vm.risk.applicationName}}">
+  {{::vm.risk.applicationName}}
+</td><!--
+--><td class="iq-cell iq-cell--component"
+       iq-tooltip
+       tooltip-attach-to-body
+       tooltip-class="dashboard-tooltip {{::!vm.risk.displayName && vm.risk.pathnames ? 'pathname' : ''}}"
+       tooltip-delay=500
+       tooltip-only-on-overflow="true"
+       tooltip-overflow-element-selector=".truncate-ellipsis"
+       tooltip-text="{{::vm.risk.derivedComponentName}}">
+  <span component-display component="vm.risk" truncate="true"></span>
+</td><!--
+--><td class="iq-cell iq-cell--age">{{::vm.risk.firstOccurrenceTime | terseAgo}}</td><!--
+--><td class="iq-cell iq-cell--report">
+  <a class="link" ng-click="vm.openReport(vm.risk.applicationPublicId, vm.risk.scanId)">
+    <i class="fa fa-external-link fa-fw"></i><!--
+ --><span>{{::vm.stageTypes[vm.risk.stageTypeId].shortName}}</span><!--
+ --><i ng-class="::{
+      'fa fa-exclamation-triangle warn' : vm.risk.actionTypeId === 'warn',
+      'fa fa-exclamation-circle fail' : vm.risk.actionTypeId === 'fail'
+    }">
+    </i>
+  </a>
+</td>

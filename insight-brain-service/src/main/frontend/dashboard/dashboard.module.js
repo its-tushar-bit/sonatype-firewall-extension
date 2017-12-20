@@ -5,25 +5,20 @@
  */
 /* global angular */
 
+import dashboardResultsModule from './results/module';
 import dashboardUtilsModule from './utils/dashboard.utils.module';
-import dashboardDataService from './services/dashboard.data.service';
-import violationsTableRow from './results/violationsTableRow';
-import dashboardResultsController from './results/dashboard.results.controller';
 import dashboardFilterModule from './filter/module';
 import angularCommonModule from '../util/AngularCommon';
 import utilityModule from '../utility/utility.module';
 import storesModule from '../util/Stores';
+import dashboardReducer from './dashboardReducer';
 
 var dashboardModule = angular.module('dashboard.module',
     [
       'ui.router', storesModule.name, angularCommonModule.name, 'ComponentModule', 'ComponentDisplay', dashboardUtilsModule.name,
-      utilityModule.name, dashboardFilterModule.name
+      utilityModule.name, dashboardFilterModule.name, dashboardResultsModule.name
     ])
-    .service('dashboard.data.service', dashboardDataService)
-
-    // dashboard results
-    .directive('violationsTableRow', violationsTableRow)
-    .controller('dashboard.results.controller', dashboardResultsController);
+    .value('dashboardReducer', dashboardReducer); // add to angular so we can test it
 
 export default dashboardModule;
 
@@ -43,39 +38,24 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
     url: '?timeFilterFeature', // query parameter feature flag for Time-based filter control
     abstract: true,
     views: {
-      content: {
-        templateUrl: 'dashboard/results/dashboard.results.html?' + clmBuildTimestamp,
-        controller: 'dashboard.results.controller'
-      },
+      content: 'dashboardResultsContainer',
       filter: 'dashboardFilter'
     }
   }).state('dashboard.overview.violations', {
     url: '/violations',
-    views: {
-      'dashboard-results': {
-        templateUrl: 'dashboard/results/violations.html?' + clmBuildTimestamp
-      }
-    },
+    component: 'violations',
     data: {
       title: 'Violations'
     }
   }).state('dashboard.overview.components', {
     url: '/components',
-    views: {
-      'dashboard-results': {
-        templateUrl: 'dashboard/results/components.html?' + clmBuildTimestamp
-      }
-    },
+    component: 'components',
     data: {
       title: 'Components'
     }
   }).state('dashboard.overview.applications', {
     url: '/applications',
-    views: {
-      'dashboard-results': {
-        templateUrl: 'dashboard/results/applications.html?' + clmBuildTimestamp
-      }
-    },
+    component: 'applications',
     data: {
       title: 'Applications'
     }

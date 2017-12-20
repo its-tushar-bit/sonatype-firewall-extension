@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import template from './violationsTableRow.html';
+
 export default
 function ViolationsTableRow() {
   return {
@@ -14,7 +16,7 @@ function ViolationsTableRow() {
     bindToController: true,
     controllerAs: 'vm',
     controller: ViolationsTableRowController,
-    templateUrl: 'violations-table-row'
+    template
   };
 }
 

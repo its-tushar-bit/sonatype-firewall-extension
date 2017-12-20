@@ -10,7 +10,8 @@ var iqBackButtonComponent = {
   controller,
   controllerAs: 'vm',
   bindings: {
-    stateName: '@state'
+    stateName: '@state',
+    text: '@?'
   }
 };
 
@@ -22,7 +23,10 @@ function controller($state) {
 
   var stateObj = $state.get(this.stateName);
   if (stateObj) {
-    if (stateObj.data && stateObj.data.title) {
+    if (this.text !== undefined) {
+      vm.linkText = this.text;
+    }
+    else if (stateObj.data && stateObj.data.title) {
       vm.linkText = 'Back to ' + stateObj.data.title;
     }
     else {

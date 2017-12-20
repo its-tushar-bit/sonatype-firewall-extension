@@ -171,6 +171,22 @@ public class DashboardApplicationsTest
     app5.getStageLink(2).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5release")));
     app5.getStageLink(3).shouldHave(attribute("href", ApplicationReportContainerPage.url("5", "App5operate")));
 
+    // check the csv export default sort order
+    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
+        "/rest/dashboard/export/applicationRisks", testCLMServer.getCLMServer().getPort());
+    reverseProxyServer.addHandler(responseCopyHandler);
+    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Applications Data")).click();
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+    String exportCsv = new String(responseCopyHandler.consumeResponse());
+    String[] expectedResults = {
+        "App5,14,8,4,2,0",  //
+        "App4,10,10,0,0,0", //
+        "App3,7,0,7,0,0",   //
+        "App2,3,0,0,3,0",   //
+        "App1,1,0,0,0,1"    //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
+
     // sort by name
     ApplicationsHeaders headers = DashboardPage.applicationsView().headers();
     headers.applicationNameHeader().click();
@@ -182,11 +198,35 @@ public class DashboardApplicationsTest
         "App5"  //
     ));
 
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
+        "App1,1,0,0,0,1",   //
+        "App2,3,0,0,3,0",   //
+        "App3,7,0,7,0,0",   //
+        "App4,10,10,0,0,0", //
+        "App5,14,8,4,2,0"   //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
+
     // sort by Low Risk
     headers.lowRiskHeader().click();
     table.firstApplication().shouldHave(text("App1"));
     headers.lowRiskHeader().click();
     table.lastApplication().shouldHave(text("App1"));
+
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
+        "App2,3,0,0,3,0",   //
+        "App3,7,0,7,0,0",   //
+        "App4,10,10,0,0,0", //
+        "App5,14,8,4,2,0",  //
+        "App1,1,0,0,0,1"    //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
 
     // sort by Moderate Risk
     headers.moderateRiskHeader().click();
@@ -194,11 +234,35 @@ public class DashboardApplicationsTest
     headers.moderateRiskHeader().click();
     table.lastApplication().shouldHave(text("App2"));
 
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
+        "App1,1,0,0,0,1",   //
+        "App3,7,0,7,0,0",   //
+        "App4,10,10,0,0,0", //
+        "App5,14,8,4,2,0",  //
+        "App2,3,0,0,3,0"    //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
+
     // sort by Severe Risk
     headers.severeRiskHeader().click();
     table.firstApplication().shouldHave(text("App3"));
     headers.severeRiskHeader().click();
     table.lastApplication().shouldHave(text("App3"));
+
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
+        "App1,1,0,0,0,1",   //
+        "App2,3,0,0,3,0",   //
+        "App4,10,10,0,0,0", //
+        "App5,14,8,4,2,0",  //
+        "App3,7,0,7,0,0"    //
+    };
+    assertApplicationsCsv(exportCsv, expectedResults);
 
     // sort by Critical Risk
     headers.criticalRiskHeader().click();
@@ -206,19 +270,15 @@ public class DashboardApplicationsTest
     headers.criticalRiskHeader().click();
     table.lastApplication().shouldHave(text("App4"));
 
-    // CSV export with no filters
-    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler(
-        "/rest/dashboard/export/applicationRisks", testCLMServer.getCLMServer().getPort());
-    reverseProxyServer.addHandler(responseCopyHandler);
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Applications Data")).click();
-    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
-    String exportCsv = new String(responseCopyHandler.consumeResponse());
-    String[] expectedResults = {
+    // check the csv export sorting
+    DashboardPage.exportResultsLink().click();
+    exportCsv = new String(responseCopyHandler.consumeResponse());
+    expectedResults = new String[]{
         "App1,1,0,0,0,1",   //
         "App2,3,0,0,3,0",   //
         "App3,7,0,7,0,0",   //
-        "App4,10,10,0,0,0", //
-        "App5,14,8,4,2,0"   //
+        "App5,14,8,4,2,0",  //
+        "App4,10,10,0,0,0"  //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -232,8 +292,8 @@ public class DashboardApplicationsTest
     expectedResults = new String[]{
         "App2,3,0,0,3,0",   //
         "App3,7,0,7,0,0",   //
-        "App4,10,10,0,0,0", //
-        "App5,14,8,4,2,0"   //
+        "App5,14,8,4,2,0",  //
+        "App4,10,10,0,0,0"  //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -246,8 +306,8 @@ public class DashboardApplicationsTest
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
         "App3,7,0,7,0,0",   //
-        "App4,10,10,0,0,0", //
-        "App5,10,8,0,2,0"   //
+        "App5,10,8,0,2,0",  //
+        "App4,10,10,0,0,0"  //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -387,7 +447,6 @@ public class DashboardApplicationsTest
     String[] lines = csv.split("\r\n");
     assertEquals("Application Name,Total Risk,Critical,Severe,Moderate,Low", lines[0]);
     String[] results = Arrays.copyOfRange(lines, 1, lines.length);
-    Arrays.sort(results);
     assertArrayEquals(Arrays.toString(results), expectedSortedResults, results);
   }
 

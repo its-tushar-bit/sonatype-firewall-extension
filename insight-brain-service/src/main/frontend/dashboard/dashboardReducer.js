@@ -1,0 +1,131 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import {
+  LOAD_RESULTS_REQUESTED,
+  LOAD_RESULTS_FULFILLED,
+  LOAD_RESULTS_FAILED,
+  SORT_RESULTS_REQUESTED,
+  SORT_RESULTS_FULFILLED
+} from './results/dashboardResultsActions';
+
+import {
+  UPDATE_FILTERS_DIRTINESS,
+  UPDATE_FILTERS_REQUESTED,
+  UPDATE_FILTERS_FULFILLED
+} from './filter/dashboardFilterActions';
+
+import {UI_ROUTER_ON_FINISH} from '../reduxUiRouter/routerActions';
+
+const initState = {
+  filters: null,
+  filtersAreDirty: false,
+  needsAcknowledgement: false,
+  currentTab: 'violations',
+  violations: {
+    results: null,
+    numResults: null,
+    error: null,
+    sortFields: ['-firstOccurrenceTime', '-threatLevel']
+  },
+  components: {
+    results: null,
+    numResults: null,
+    classyBrew: null,
+    error: null,
+    sortFields: ['-score']
+  },
+  applications: {
+    results: null,
+    numResults: null,
+    classyBrew: null,
+    error: null,
+    sortFields: ['-totalApplicationRisk.totalRisk']
+  }
+};
+
+export default function(state = initState, {type, payload}) {
+  switch (type) {
+    case UI_ROUTER_ON_FINISH:
+      return setCurrentTab(state, payload);
+
+    case UPDATE_FILTERS_DIRTINESS:
+      return {...state, filtersAreDirty: payload};
+
+    case UPDATE_FILTERS_REQUESTED:
+      return {...resetAllTabs(state), filters: null};
+
+    case UPDATE_FILTERS_FULFILLED: {
+      const {filters, needsAcknowledgement} = payload;
+      return {...state, filters, needsAcknowledgement};
+    }
+
+    case LOAD_RESULTS_REQUESTED:
+      return resetResults(state, payload);
+
+    case LOAD_RESULTS_FULFILLED: {
+      const {resultsType, results, numResults, classyBrew} = payload;
+      return updateResults(state, resultsType, {results, numResults, classyBrew});
+    }
+
+    case LOAD_RESULTS_FAILED: {
+      const {resultsType, error} = payload;
+      return updateResults(state, resultsType, {error});
+    }
+
+    case SORT_RESULTS_REQUESTED: {
+      const {resultsType, sortFields} = payload;
+      return updateResults(state, resultsType, {sortFields});
+    }
+
+    case SORT_RESULTS_FULFILLED: {
+      const {resultsType, results} = payload;
+      return updateResults(state, resultsType, {results});
+    }
+
+    default:
+      return state;
+  }
+}
+
+function resetResults(state, resultsType) {
+  const results = resetTabState(state[resultsType]);
+  return {...state, [resultsType]: results};
+}
+
+function resetTabState(tabState, resetCounters) {
+  const numResults = resetCounters ? null : tabState.numResults;
+  return {...tabState, results: null, numResults: numResults, error: null};
+}
+
+function resetAllTabs(state) {
+  const violations = resetTabState(state.violations, true);
+  const components = resetTabState(state.components, true);
+  const applications = resetTabState(state.applications, true);
+  return {...state, violations, components, applications};
+}
+
+function updateResults(state, resultsType, props) {
+  const tabState = state[resultsType];
+  const newTabState = {...tabState, ...props};
+  return {...state, [resultsType]: newTabState};
+}
+
+function setCurrentTab(state, {toState}) {
+  switch (toState.name) {
+    case 'dashboard.overview.violations':
+    case 'dashboard.violation': // violation details
+      return {...state, currentTab: 'violations'};
+
+    case 'dashboard.overview.components':
+      return {...state, currentTab: 'components'};
+
+    case 'dashboard.overview.applications':
+      return {...state, currentTab: 'applications'};
+
+    default:
+      return state;
+  }
+}

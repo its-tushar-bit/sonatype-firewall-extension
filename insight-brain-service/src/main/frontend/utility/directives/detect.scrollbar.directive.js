@@ -3,10 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ScrollbarDetector($window, $timeout, EventNameConstant, StableBodyService) {
+/**
+ * Usage: <div detect-scrollbar="state"></div>
+ * Where "state" object will be watched for changes, to trigger scrollbar detection
+ */
+export default function detectScrollbar($window, $timeout, EventNameConstant, StableBodyService) {
   return {
     restrict: 'A',
-    link: ScrollbarDetectorLink
+    link: ScrollbarDetectorLink,
+    scope: {
+      state: '<detectScrollbar'
+    }
   };
 
   function ScrollbarDetectorLink(scope, element) {
@@ -29,10 +36,8 @@ export default function ScrollbarDetector($window, $timeout, EventNameConstant, 
     }
     angular.element($window).bind('resize', debounce);
     StableBodyService.whenStable(update);
-    scope.$on(EventNameConstant.UPDATE_DASHBOARD_FILTERS, function() {
-      StableBodyService.whenStable(update);
-    });
+    scope.$watch('state', () => StableBodyService.whenStable(update));
   }
 }
 
-ScrollbarDetector.$inject = ['$window', '$timeout', 'event.name.constant', 'stable.body.service'];
+detectScrollbar.$inject = ['$window', '$timeout', 'event.name.constant', 'stable.body.service'];

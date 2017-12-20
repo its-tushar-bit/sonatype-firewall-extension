@@ -27,6 +27,7 @@ import '../../frontend/utility/Polyfills';
 import '../../frontend/lib/bootstrap-loader';
 import Plottable from 'plottable';
 import hljs from 'highlight.js';
+import 'jquery-ui/ui/effect';
 
 import galleryModule from './gallery/module';
 import configModule from '../config';

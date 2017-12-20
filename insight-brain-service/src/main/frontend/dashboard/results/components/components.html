@@ -1,11 +1,11 @@
-<div id="dashboard-components" ng-init="sortVm.sortFields = ['-score']">
+<div id="dashboard-components">
   <div class="iq-tile iq-tile--dashboard-table-container">
-    <div class="iq-scrollable" detect-scrollbar>
+    <div class="iq-scrollable" detect-scrollbar="vm.state.filters">
       <table class="iq-table iq-table--dashboard-components">
         <thead class="iq-dashboard-headers">
           <tr class="iq-table-row components-row"
-              sort="sortVm.sortFields"
-              on-sort-change="sortVm.sortFields = sortFields">
+              sort="vm.state.components.sortFields"
+              on-sort-change="vm.sortResults('components', sortFields)">
             <th class="iq-cell iq-cell--header iq-cell--component-name" sort-column="derivedComponentName">
               <span class="header-text">Name</span>
             </th><!--
@@ -37,12 +37,11 @@
 
         <tbody id="dashboard-results"
                class="iq-components-results"
-               components-results
-               form-mask="maskController"
+               form-mask="vm.maskController"
                mask-message="">
           <tr class="iq-table-row iq-clickable"
-              ng-repeat="component in data | limitTo: maxResults"
-              ng-click="goToComponentDetails(component)">
+              ng-repeat="component in vm.state.components.results | limitTo: vm.maxResults"
+              ng-click="vm.goToComponentDetails(component)">
             <td class="iq-cell iq-cell--component-name iq-cell--label"
                 iq-tooltip
                 tooltip-attach-to-body
@@ -50,37 +49,37 @@
                 tooltip-only-on-overflow="true"
                 tooltip-text="{{::component.derivedComponentName}}">{{component.derivedComponentName}}</td><!--
          --><td class="iq-cell iq-cell--affected-apps">{{::component.affectedApplications}}</td><!--
-         --><td class="iq-cell iq-cell--heatmap iq-cell--total-risk {{::getTextColorClass(component.score)}}"
-                 ng-attr-style="background-color: {{::getColor(component.score)}}">{{::component.score}}</td><!--
-         --><td class="iq-cell iq-cell--heatmap iq-cell--critical-risk {{::getTextColorClass(component.scoreCritical)}}"
-                 ng-attr-style="background-color: {{::getColor(component.scoreCritical)}}">
+         --><td class="iq-cell iq-cell--heatmap iq-cell--total-risk {{::vm.getTextColorClass(component.score)}}"
+                 ng-attr-style="background-color: {{::vm.getColor(component.score)}}">{{::component.score}}</td><!--
+         --><td class="iq-cell iq-cell--heatmap iq-cell--critical-risk {{::vm.getTextColorClass(component.scoreCritical)}}"
+                 ng-attr-style="background-color: {{::vm.getColor(component.scoreCritical)}}">
               {{::component.scoreCritical}}
             </td><!--
-         --><td class="iq-cell iq-cell--heatmap iq-cell--severe-risk {{::getTextColorClass(component.scoreSevere)}}"
-                 ng-attr-style="background-color: {{::getColor(component.scoreSevere)}}">
+         --><td class="iq-cell iq-cell--heatmap iq-cell--severe-risk {{::vm.getTextColorClass(component.scoreSevere)}}"
+                 ng-attr-style="background-color: {{::vm.getColor(component.scoreSevere)}}">
               {{::component.scoreSevere}}
             </td><!--
-         --><td class="iq-cell iq-cell--heatmap iq-cell--moderate-risk {{::getTextColorClass(component.scoreModerate)}}"
-                 ng-attr-style="background-color: {{::getColor(component.scoreModerate)}}">
+         --><td class="iq-cell iq-cell--heatmap iq-cell--moderate-risk {{::vm.getTextColorClass(component.scoreModerate)}}"
+                 ng-attr-style="background-color: {{::vm.getColor(component.scoreModerate)}}">
               {{::component.scoreModerate}}
             </td><!--
-         --><td class="iq-cell iq-cell--heatmap iq-cell--low-risk {{::getTextColorClass(component.scoreLow)}}"
-                 ng-attr-style="background-color: {{::getColor(component.scoreLow)}}">
+         --><td class="iq-cell iq-cell--heatmap iq-cell--low-risk {{::vm.getTextColorClass(component.scoreLow)}}"
+                 ng-attr-style="background-color: {{::vm.getColor(component.scoreLow)}}">
               {{::component.scoreLow}}
             </td><!--
-         --><td class="iq-cell iq-cell--chevron {{::getTextColorClass(component.scoreLow)}}"
-                 ng-attr-style="background-color: {{::getColor(component.scoreLow)}}">
+         --><td class="iq-cell iq-cell--chevron {{::vm.getTextColorClass(component.scoreLow)}}"
+                 ng-attr-style="background-color: {{::vm.getColor(component.scoreLow)}}">
               <i class="fa fa-chevron-right"></i>
             </td>
           </tr>
         </tbody>
       </table>
-      <dashboard-common-results results="data" 
-                                needs-acknowledgement="needsAcknowledgement"
-                                max-results="maxResults"
-                                max-days-old="maxDaysOld"
-                                error="error"
-                                reload="reload()">
+      <dashboard-common-results results="vm.state.components.results"
+                                is-violations-tab="false"
+                                needs-acknowledgement="vm.state.needsAcknowledgement"
+                                max-results="vm.maxResults"
+                                error="vm.state.components.error"
+                                reload="vm.reload()">
       </dashboard-common-results>
     </div>
   </div>

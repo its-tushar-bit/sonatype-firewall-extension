@@ -28,7 +28,7 @@ describe('dashboard.data.service.spec', function() {
 
   describe('getNewestRisks()', function() {
     it('returns data on success', function() {
-      var result, filter = {filterParam: 'filter value'},
+      var result, numResults, filter = {filterParam: 'filter value'},
           data = {
             dashboardResults: [
               {
@@ -54,7 +54,8 @@ describe('dashboard.data.service.spec', function() {
       $httpBackend.expectPOST(CLMLocations.getNewestRisksUrl(), filter).respond(data);
 
       dashboardDataService.getNewestRisks(filter, []).then(function(data) {
-        result = data[0];
+        result = data.results;
+        numResults = data.numResults;
       });
 
       $httpBackend.flush();
@@ -62,37 +63,7 @@ describe('dashboard.data.service.spec', function() {
       expect(result[0].derivedComponentName).toBe('foo : bar');
       expect(result[1].hash).toBe('1249e25aebb15358bedd');
       expect(result[1].derivedComponentName).toBe('Unknown');
-    });
-
-    it('saves and updates result count', function() {
-      var filter = {filterParam: 'filter value'},
-          data = {dashboardResults: [], numResults: 5};
-      $httpBackend.whenPOST(CLMLocations.getNewestRisksUrl()).respond(data);
-
-      dashboardDataService.getNewestRisks(filter, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(5);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(undefined);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(undefined);
-
-      // does not update if filter is not changed
-      dashboardDataService.latestResultCounts.componentRisk = 3;
-      dashboardDataService.latestResultCounts.applicationRisk = 2;
-      dashboardDataService.getNewestRisks(filter, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(5);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(3);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(2);
-
-      // resets all counts if called with different filter
-      dashboardDataService.getNewestRisks({filterParam: 'different filter value'}, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(5);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(undefined);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(undefined);
+      expect(numResults).toBe(2);
     });
 
     it('translates sortFields', function() {
@@ -160,39 +131,7 @@ describe('dashboard.data.service.spec', function() {
 
       $httpBackend.flush();
       expect(classyBrewMock.create).toHaveBeenCalledWith([1, 2, 3, 4, 5, 6]);
-      expect(spy).toHaveBeenCalledWith([originalRisks, 'classyBrewResult']);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(2);
-    });
-
-    it('saves and updates result count', function() {
-      var filter = {filterParam: 'filter value'},
-          data = { dashboardResults: [], numResults: 5 };
-      $httpBackend.whenPOST(CLMLocations.getApplicationRisksUrl()).respond(data);
-
-      dashboardDataService.getApplicationRisks(filter, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(undefined);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(undefined);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(5);
-
-      // does not update if filter is not changed
-      dashboardDataService.latestResultCounts.newestRisk = 3;
-      dashboardDataService.latestResultCounts.componentRisk = 2;
-      dashboardDataService.getApplicationRisks(filter, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(3);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(2);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(5);
-
-      // resets all counts if called with different filter
-      dashboardDataService.getApplicationRisks({filterParam: 'different filter value'}, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(undefined);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(undefined);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(5);
+      expect(spy).toHaveBeenCalledWith({results: originalRisks, numResults: 2, classyBrew: 'classyBrewResult'});
     });
 
     it('translates sortFields', function() {
@@ -215,7 +154,7 @@ describe('dashboard.data.service.spec', function() {
   });
 
   describe('getComponentRisks()', function() {
-    var components, filter = {filterParam: 'filter value'};
+    var components, numResults, filter = {filterParam: 'filter value'};
     it('populates component name', function() {
       var classyBrewResult, data = {
         dashboardResults: [
@@ -243,8 +182,9 @@ describe('dashboard.data.service.spec', function() {
       $httpBackend.expectPOST(CLMLocations.getComponentRisksUrl(), filter).respond(data);
 
       dashboardDataService.getComponentRisks(filter, []).then(function(data) {
-        components = data[0];
-        classyBrewResult = data[1];
+        components = data.results;
+        numResults = data.numResults;
+        classyBrewResult = data.classyBrew;
       });
 
       classyBrewMock.create.and.returnValue('classyBrewResult');
@@ -257,37 +197,7 @@ describe('dashboard.data.service.spec', function() {
 
       expect(classyBrewMock.create).toHaveBeenCalledWith([12, 8]);
       expect(classyBrewResult).toEqual('classyBrewResult');
-    });
-
-    it('saves and updates result count', function() {
-      var filter = {filterParam: 'filter value'},
-          data = { dashboardResults: [], numResults: 5 };
-      $httpBackend.whenPOST(CLMLocations.getComponentRisksUrl()).respond(data);
-
-      dashboardDataService.getComponentRisks(filter, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(undefined);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(5);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(undefined);
-
-      // does not update if filter is not changed
-      dashboardDataService.latestResultCounts.newestRisk = 3;
-      dashboardDataService.latestResultCounts.applicationRisk = 2;
-      dashboardDataService.getComponentRisks(filter, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(3);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(5);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(2);
-
-      // resets all counts if called with different filter
-      dashboardDataService.getComponentRisks({filterParam: 'different filter value'}, []);
-      $httpBackend.flush();
-
-      expect(dashboardDataService.latestResultCounts.newestRisk).toBe(undefined);
-      expect(dashboardDataService.latestResultCounts.componentRisk).toBe(5);
-      expect(dashboardDataService.latestResultCounts.applicationRisk).toBe(undefined);
+      expect(numResults).toBe(2);
     });
 
     it('translates sortFields', function() {

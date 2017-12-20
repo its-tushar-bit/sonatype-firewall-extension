@@ -15,29 +15,18 @@ const MAX_RESULTS = 100;
 export default
 function dashboardDataService($http, $filter, CLMLocations, createRequest, ClassyBrew) {
 
-  var latestResultCounts = {
-        newestRisk: undefined,
-        applicationRisk: undefined,
-        componentRisk: undefined
-      },
-      lastAppliedFilter;
-
   function getNewestRisks(filters, sortFields) {
     const request = createRequest(filters, MAX_RESULTS, translateViolationsSortFields(sortFields));
-    return getData(CLMLocations.getNewestRisksUrl(), request).then(function(resultsWrapper) {
-      resetCountsIfFilterChanged(filters);
-      latestResultCounts.newestRisk = resultsWrapper.numResults;
-      return [resultsWrapper.dashboardResults];
+    return getData(CLMLocations.getNewestRisksUrl(), request).then(function({dashboardResults, numResults}) {
+      return {results: dashboardResults, numResults};
     });
   }
 
   function getApplicationRisks(filters, sortFields) {
     const request = createRequest(filters, MAX_RESULTS, translateApplicationsSortFields(sortFields));
-    return getData(CLMLocations.getApplicationRisksUrl(), request).then(function(resultsWrapper) {
-      resetCountsIfFilterChanged(filters);
-      latestResultCounts.applicationRisk = resultsWrapper.numResults;
-      const series = generateApplicationsSeries(resultsWrapper.dashboardResults);
-      return [resultsWrapper.dashboardResults, ClassyBrew.create(series)];
+    return getData(CLMLocations.getApplicationRisksUrl(), request).then(function({dashboardResults, numResults}) {
+      const series = generateApplicationsSeries(dashboardResults);
+      return {results: dashboardResults, numResults, classyBrew: ClassyBrew.create(series)};
     });
   }
 
@@ -58,13 +47,10 @@ function dashboardDataService($http, $filter, CLMLocations, createRequest, Class
   }
 
   function getComponentRisks(filters, sortFields) {
-
     const request = createRequest(filters, MAX_RESULTS, translateComponentsSortFields(sortFields));
-    return getData(CLMLocations.getComponentRisksUrl(), request).then(function(resultsWrapper) {
-      resetCountsIfFilterChanged(filters);
-      latestResultCounts.componentRisk = resultsWrapper.numResults;
-      const series = generateComponentsSeries(resultsWrapper.dashboardResults);
-      return [resultsWrapper.dashboardResults, ClassyBrew.create(series)];
+    return getData(CLMLocations.getComponentRisksUrl(), request).then(function({dashboardResults, numResults}) {
+      const series = generateComponentsSeries(dashboardResults);
+      return {results: dashboardResults, numResults, classyBrew: ClassyBrew.create(series)};
     });
   }
 
@@ -80,15 +66,6 @@ function dashboardDataService($http, $filter, CLMLocations, createRequest, Class
     return series;
   }
 
-  function resetCountsIfFilterChanged(filter) {
-    if (!angular.equals(lastAppliedFilter, filter)) {
-      lastAppliedFilter = filter;
-      latestResultCounts.newestRisk = undefined;
-      latestResultCounts.componentRisk = undefined;
-      latestResultCounts.applicationRisk = undefined;
-    }
-  }
-
   function getData(url, filter) {
     return $http.post(url, filter).then(function(response) {
       return response.data;
@@ -99,7 +76,6 @@ function dashboardDataService($http, $filter, CLMLocations, createRequest, Class
     getNewestRisks: getNewestRisks,
     getApplicationRisks: getApplicationRisks,
     getComponentRisks: getComponentRisks,
-    latestResultCounts: latestResultCounts,
     MAX_RESULTS
   };
 }

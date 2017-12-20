@@ -31,7 +31,8 @@ export default angular.module('config',
     .constant('directivesConfig', {
       'load-wrapper': 'directives/load-wrapper.html',
       'iq-tooltip': 'directives/iq-tooltip.html',
-      'submit-validation': 'directives/submit-validation/submit-validation.html'
+      'submit-validation': 'directives/submit-validation/submit-validation.html',
+      'iq-scroll-to-top': 'directives/iq-scroll-to-top.html'
     })
 
     .constant('stylesConfig', {

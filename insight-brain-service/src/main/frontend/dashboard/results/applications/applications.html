@@ -1,11 +1,11 @@
-<div id="dashboard-applications" ng-init="sortVm.sortFields = ['-totalApplicationRisk.totalRisk']">
+<div id="dashboard-applications">
   <div class="iq-tile iq-tile--dashboard-table-container">
-    <div class="iq-scrollable" detect-scrollbar>
+    <div class="iq-scrollable" detect-scrollbar="vm.state.filters">
       <table class="iq-table iq-table--dashboard-applications">
         <thead class="dashboard-headers iq-dashboard-headers">
           <tr class="iq-table-row"
-              sort="sortVm.sortFields"
-              on-sort-change="sortVm.sortFields = sortFields">
+              sort="vm.state.applications.sortFields"
+              on-sort-change="vm.sortResults('applications', sortFields)">
             <th class="iq-cell iq-cell--header iq-cell--application-name" sort-column="applicationName">
               <span class="header-text">Name</span>
             </th><!--
@@ -34,36 +34,35 @@
 
         <tbody id="dashboard-results"
                class="iq-applications-results"
-               applications-results
-               form-mask="maskController"
+               form-mask="vm.maskController"
                mask-message="">
           <tr id="app{{$index}}_"
               class="iq-table-row applications-row total-application-risks"
-              ng-repeat-start="application in data | limitTo: maxResults">
+              ng-repeat-start="application in vm.state.applications.results | limitTo: vm.maxResults">
             <td class="iq-cell iq-cell--label iq-cell--application-name"
                 iq-tooltip
                 tooltip-attach-to-body
                 tooltip-delay=500
                 tooltip-only-on-overflow="true"
                 tooltip-text="{{::application.applicationName}}">{{::application.applicationName}}</td><!--
-         --><td class="iq-cell iq-cell--total-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.totalRisk)}}"
-                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.totalRisk)}}">
+         --><td class="iq-cell iq-cell--total-risk iq-cell--heatmap {{::vm.getTextColorClass(application.totalApplicationRisk.totalRisk)}}"
+                ng-attr-style="background-color: {{::vm.getColor(application.totalApplicationRisk.totalRisk)}}">
               {{::application.totalApplicationRisk.totalRisk}}
             </td><!--
-         --><td class="iq-cell iq-cell--critical-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.criticalRisk)}}"
-                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.criticalRisk)}}">
+         --><td class="iq-cell iq-cell--critical-risk iq-cell--heatmap {{::vm.getTextColorClass(application.totalApplicationRisk.criticalRisk)}}"
+                ng-attr-style="background-color: {{::vm.getColor(application.totalApplicationRisk.criticalRisk)}}">
               {{::application.totalApplicationRisk.criticalRisk}}
             </td><!--
-         --><td class="iq-cell iq-cell--severe-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.severeRisk)}}"
-                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.severeRisk)}}">
+         --><td class="iq-cell iq-cell--severe-risk iq-cell--heatmap {{::vm.getTextColorClass(application.totalApplicationRisk.severeRisk)}}"
+                ng-attr-style="background-color: {{::vm.getColor(application.totalApplicationRisk.severeRisk)}}">
               {{::application.totalApplicationRisk.severeRisk}}
             </td><!--
-         --><td class="iq-cell iq-cell--moderate-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.moderateRisk)}}"
-                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.moderateRisk)}}">
+         --><td class="iq-cell iq-cell--moderate-risk iq-cell--heatmap {{::vm.getTextColorClass(application.totalApplicationRisk.moderateRisk)}}"
+                ng-attr-style="background-color: {{::vm.getColor(application.totalApplicationRisk.moderateRisk)}}">
               {{::application.totalApplicationRisk.moderateRisk}}
             </td><!--
-         --><td class="iq-cell iq-cell--low-risk iq-cell--heatmap {{::getTextColorClass(application.totalApplicationRisk.lowRisk)}}"
-                ng-attr-style="background-color: {{::getColor(application.totalApplicationRisk.lowRisk)}}">
+         --><td class="iq-cell iq-cell--low-risk iq-cell--heatmap {{::vm.getTextColorClass(application.totalApplicationRisk.lowRisk)}}"
+                ng-attr-style="background-color: {{::vm.getColor(application.totalApplicationRisk.lowRisk)}}">
               {{::application.totalApplicationRisk.lowRisk}}
             </td>
           </tr>
@@ -72,7 +71,7 @@
               ng-repeat-end ng-repeat="stage in application.stageRisks">
             <td class="iq-cell iq-cell--label iq-cell--application-name">
               <a title="View application report"
-                 ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
+                 ng-href="index.html#/reports/{{vm.encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
                  target="_blank">
                 <i class="fa fa-external-link fa-fw"></i>{{::stage.stageTypeName}}
               </a>
@@ -85,12 +84,12 @@
           </tr>
         </tbody>
       </table>
-      <dashboard-common-results results="data" 
-                                needs-acknowledgement="needsAcknowledgement"
-                                max-results="maxResults"
-                                max-days-old="maxDaysOld"
-                                error="error"
-                                reload="reload()">
+      <dashboard-common-results results="vm.state.applications.results"
+                                is-violations-tab="false"
+                                needs-acknowledgement="vm.state.needsAcknowledgement"
+                                max-results="vm.maxResults"
+                                error="vm.state.applications.error"
+                                reload="vm.reload()">
       </dashboard-common-results>
     </div>
   </div>

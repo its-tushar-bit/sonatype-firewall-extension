@@ -13,8 +13,8 @@ var dashboardFilter = {
 
 export default dashboardFilter;
 
-function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
-                                   OrganizationStore, EventNameConstant, filterService, $state) {
+function DashboardFilterController($scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore,
+                                   OrganizationStore, filterService, $state, $ngRedux, actions) {
   var vm = this,
       appliedFilter,
       appliedFilterName,
@@ -24,6 +24,19 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
         name: 'No Category',
         nameLowercaseNoWhitespace: 'nocategory'
       };
+
+  vm.$onInit = function() {
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
+    vm.updateFilters();
+
+    // fire the UPDATE_FILTERS_DIRTINESS action whenever the value of isDirty changes
+    // need to do this in $onInit to make sure all redux actions are connected already
+    $scope.$watch(isDirty, (isDirty) => vm.updateFiltersDirtiness(isDirty));
+  };
+
+  vm.$onDestroy = function() {
+    vm.unsubscribe();
+  };
 
   // Available
   vm.organizations = undefined;
@@ -162,9 +175,6 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
     vm.isAgeFilterReadOnly = shouldAgeFilterBeReadOnly();
   });
 
-  // fire the UPDATE_DASHBOARD_FILTERS_DIRTINESS event whenever the value of isDirty changes
-  $scope.$watch(isDirty, $rootScope.$broadcast.bind($rootScope, EventNameConstant.UPDATE_DASHBOARD_FILTERS_DIRTINESS));
-
   function doLoad() {
     delete vm.loadError;
 
@@ -221,7 +231,7 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
       if (savedNamedFilter && !angular.equals(activeFilter, savedNamedFilter.filter)) {
         vm.showDirtyAsterisk = true;
       }
-      $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter, vm.needsAcknowledgement);
+      vm.updateFiltersFulfilled(activeFilter, vm.needsAcknowledgement);
     }, function(error) {
       vm.loadError = error;
     });
@@ -369,10 +379,11 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
    * @returns Promise wrapping active filter json
    */
   function applyFilter(filterJson) {
+    vm.updateFilters();
     return $http.put(CLMLocations.getDashboardFilters(), filterJson).then(function(activeFilter) {
       appliedFilterName = vm.activeFilterName;
       vm.needsAcknowledgement = false;
-      $rootScope.$broadcast(EventNameConstant.UPDATE_DASHBOARD_FILTERS, activeFilter.data, vm.needsAcknowledgement);
+      vm.updateFiltersFulfilled(activeFilter.data, vm.needsAcknowledgement);
       return activeFilter.data;
     });
   }
@@ -382,7 +393,14 @@ function DashboardFilterController($rootScope, $scope, $http, $q, CLMLocations, 
   }
 }
 
+// Which part of the Redux global state does our component want to receive?
+function mapStateToThis(state) {
+  return {
+    state: state.dashboard
+  };
+}
+
 DashboardFilterController.$inject = [
-  '$rootScope', '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
-  'event.name.constant', 'dashboardFilterService', '$state'
+  '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
+  'dashboardFilterService', '$state', '$ngRedux', 'dashboardFilterActions'
 ];

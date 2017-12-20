@@ -6,9 +6,6 @@
 
 import ClassyBrew from './classybrew.factory';
 import windowEventsFactory from './windowEventsFactory';
-import getDashboardResultsDirective from './directives/dashboard.results.directives';
-import dashboardCommonResults from './components/dashboardCommonResults';
-import dashboardTabs from './directives/dashboardTabs.component';
 import emptyToEnd from './filters/emptyToEnd.filter';
 import stageFilter from './filters/stageFilter.filter';
 import stageTypeSort from './filters/stageTypeSort.filter';
@@ -23,16 +20,11 @@ export default angular.module('dashboard.utils',
     .value('extractColumn', extractColumn)
     .factory('ClassyBrew', ClassyBrew)
     .factory('windowEventsFactory', windowEventsFactory)
-    .directive('violationsResults', getDashboardResultsDirective('getNewestRisks'))
-    .directive('applicationsResults', getDashboardResultsDirective('getApplicationRisks'))
-    .directive('componentsResults', getDashboardResultsDirective('getComponentRisks'))
     .filter('emptyToEnd', emptyToEnd)
     .filter('stageFilter', stageFilter)
     .filter('stageTypeSort', stageTypeSort)
     .filter('removeDashes', removeDashes)
     .filter('wrapWith', wrapWith)
-    .component('dashboardCommonResults', dashboardCommonResults)
-    .component('dashboardTabs', dashboardTabs)
 ;
 
 function createDashboardDataRequestPayload(filter, maxResults, sortFields) {

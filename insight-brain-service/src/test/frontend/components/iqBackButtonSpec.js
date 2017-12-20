@@ -23,6 +23,10 @@ describe('iq-back-button component', function() {
     };
   }));
 
+  it('linkText supplied via argument is preferred', function() {
+    expect(getVm({stateName: 'labs.successMetrics', text: 'FOO'}).linkText).toBe('FOO');
+  });
+
   it('linkText is using page title for given state', function() {
     expect(getVm({stateName: 'labs.successMetrics'}).linkText).toBe('Back to Success Metrics');
   });

@@ -220,7 +220,7 @@ public class DashboardViolationsTest
     waitUntilUrl(DashboardComponentDetails.url("g1a1v1"));
     DashboardPage.dashboardContainer().shouldNotBe(visible);
     dashboardComponentDetails.header().shouldHave(text("g1 : a1 : v1"));
-    Selenide.navigator.back();
+    Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     ViolationsHeaders headers = DashboardPage.violationsView().headers();

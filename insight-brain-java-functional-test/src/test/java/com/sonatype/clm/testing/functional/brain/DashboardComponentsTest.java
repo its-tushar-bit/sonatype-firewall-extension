@@ -141,19 +141,19 @@ public class DashboardComponentsTest
     table.firstComponent().click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
     dashboardComponentDetails.header().shouldHave(text("Group4 : Artifact4 : Version4"));
-    Selenide.navigator.back();
+    Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     table.component(1).click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
     dashboardComponentDetails.header().shouldHave(text("Group3 : Artifact3 : Version3"));
-    Selenide.navigator.back();
+    Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     table.lastComponent().click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
     dashboardComponentDetails.header().shouldHave(text("Group1 : Artifact1 : Version1"));
-    Selenide.navigator.back();
+    Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     // check the csv export default sort order

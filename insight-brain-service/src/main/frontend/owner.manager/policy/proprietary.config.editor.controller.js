@@ -17,7 +17,7 @@ function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHi
   vm.localMatchers = undefined;
   vm.matcherType = vm.matcherTypes.PACKAGE;
   vm.matcherTypeOptions = [vm.matcherTypes.PACKAGE, vm.matcherTypes.REGEX];
-  vm.packageMatcher = undefined;
+  vm.packageMatcher = '';
   vm.proprietaryConfigEditor = undefined;
   vm.proprietaryConfigEditorMask = undefined;
   vm.proprietaryConfigs = undefined;

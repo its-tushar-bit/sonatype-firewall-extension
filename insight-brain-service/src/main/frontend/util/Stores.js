@@ -252,7 +252,7 @@ storesModule.service('WebhookStore', [
       id: 'id',
       template: {
         id: null,
-        url: '',
+        url: null,
         secretKey: '',
         eventTypes: []
       },

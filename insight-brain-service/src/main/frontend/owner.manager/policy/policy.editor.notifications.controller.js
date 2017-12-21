@@ -19,7 +19,7 @@ function PolicyEditorNotificationsController($scope, $q, RoleMappingService, Sta
   vm.recipients = undefined;
   vm.recipientTypes = {EMAIL: 'Email', ROLE: 'Role', JIRA: 'JIRA'};
   vm.recipientType = vm.recipientTypes.EMAIL;
-  vm.recipientToAdd = undefined;
+  vm.recipientToAdd = '';
   vm.recipientTypeOptions = [vm.recipientTypes.EMAIL, vm.recipientTypes.ROLE];
   vm.availableJiraProjects = undefined;
   vm.addRecipient = addRecipient;

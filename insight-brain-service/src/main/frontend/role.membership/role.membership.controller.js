@@ -12,7 +12,7 @@ function RoleMembershipController($scope, $http, CLMAppLocations, Messages) {
   vm.accessEditorSearchMask = undefined;
   vm.searchInProgress = false;
   vm.loadError = undefined;
-  vm.query = undefined;
+  vm.query = '';
   vm.searchError = undefined;
   vm.newGroupName = undefined;
   vm.addGroup = addGroup;

@@ -230,7 +230,7 @@ describe('proprietary.config.editor.controller.spec.js', function() {
     $httpBackend.flush();
 
     vm.matcherType = vm.matcherTypes.PACKAGE;
-    expect(vm.packageMatcher).toBeUndefined();
+    expect(vm.packageMatcher).toBe('');
     expect(vm.isAddButtonDisabled()).toBe(true);
     vm.packageMatcher = 'foo';
     expect(vm.isAddButtonDisabled()).toBeFalsy();

@@ -344,6 +344,13 @@ module.controller('LdapUsermappingController', ['$scope', 'Modal', '$http', 'CLM
 
     $http.get(CLMLocations.getLdapUserMappingConfig()).then(function(response) {
       origLdapUserMapping = response.data;
+
+      // non-required properties must be initialized to empty string (not null or undefined) so that
+      // pristine-ness styles work correctly in regards to whitespace
+      ['userBaseDN', 'userFilter', 'userPasswordAttribute', 'groupBaseDN'].forEach(function(nonRequiredProp) {
+        origLdapUserMapping[nonRequiredProp] = origLdapUserMapping[nonRequiredProp] || '';
+      });
+
       $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
     }, function(error) {
       ErrorDialog.open(error);

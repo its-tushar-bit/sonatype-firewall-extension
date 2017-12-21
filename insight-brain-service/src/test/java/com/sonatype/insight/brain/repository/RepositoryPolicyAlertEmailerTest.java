@@ -33,12 +33,9 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
-import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.Member;
-import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
@@ -62,13 +59,10 @@ public class RepositoryPolicyAlertEmailerTest
     extends AbstractComponentTest
 {
   @Inject
-  RepositoryPolicyAlertEmailer emailer;
+  private RepositoryPolicyAlertEmailer emailer;
 
   @Mock
   private InsightMail mail;
-
-  @Mock
-  private UserDirectory userDirectory;
 
   @Mock
   private BaseUrl baseUrl;
@@ -86,17 +80,8 @@ public class RepositoryPolicyAlertEmailerTest
   @Test
   public void testSendNotifications_validateEmailAddresses() {
     Repository repository = tempEntity.newRepository();
-
     User user = tempEntity.newUser();
-
-    Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(),
-        "CLMRealm");
-
-    when(userDirectory.getUsersByName(Collections.singleton(user.getUsername())))
-        .thenReturn(new UserDirectory.QueryResult(Collections.singletonList(member)));
-
     Policy policy = createPolicy(user);
-
     PolicyNotification notification = createPolicyNotification(policy,
         tempEntity.newRepositoryComponent(repository.getId()));
 
@@ -175,7 +160,7 @@ public class RepositoryPolicyAlertEmailerTest
     return policyFact;
   }
 
-  //This is required as Address doesn't implement equals/hashCode
+  // This is required as Address doesn't implement equals/hashCode
   private static class AddressListEq
       implements ArgumentMatcher<List<Address>>
   {

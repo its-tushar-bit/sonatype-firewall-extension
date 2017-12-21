@@ -58,7 +58,7 @@
     <drools.version>6.1.0.Final</drools.version>
     <guava.version>23.0</guava.version>
     <geb.version>0.10.0</geb.version>
-    <selenium.version>3.7.1</selenium.version>
+    <selenium.version>3.8.1</selenium.version>
     <failsafe.version>2.19</failsafe.version>
   </properties>
 

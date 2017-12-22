@@ -120,7 +120,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasDashboard_NexusClmLicense() throws Exception {
+  public void testHasDashboard_NexusProPlusLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
@@ -128,21 +128,21 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasDashboard_FullClmLicense() throws Exception {
+  public void testHasDashboard_NexusAuditorLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     assertThat(clmLicenseManager.hasDashboard(), is(true));
   }
 
   @Test
-  public void testHasQuality_RiskAndRemediation() throws Exception {
+  public void testHasQuality_NexusLifecycleLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
     assertThat(clmLicenseManager.hasQuality(), is(true));
   }
 
   @Test
-  public void testHasQuality_NoRiskAndRemediation() throws Exception {
+  public void testHasQuality_NoNexusLifecycle() throws Exception {
     Set<String> productSet = new HashSet<>(ProductLicenseDetails.PRODUCTS);
     productSet.remove(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     String[] products = productSet.toArray(new String[ProductLicenseDetails.PRODUCTS.size()]);
@@ -187,7 +187,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasPolicyMonitoring_NexusClmLicense() throws Exception {
+  public void testHasPolicyMonitoring_NexusProPlusLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
@@ -195,35 +195,35 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testHasPolicyMonitoring_FullClmLicense() throws Exception {
+  public void testHasPolicyMonitoring_NexusAuditorLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     assertThat(clmLicenseManager.hasPolicyMonitoring(), is(true));
   }
 
   @Test
-  public void testHasRepositoryFirewall_NexusLifecycle() throws Exception {
+  public void testHasRepositoryFirewall_NexusLifecycleLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
     assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
   }
 
   @Test
-  public void testHasRepositoryFirewall_NexusProPlus() throws Exception {
+  public void testHasRepositoryFirewall_NexusProPlusLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
     assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
   }
 
   @Test
-  public void testHasRepositoryFirewall_NexusAuditor() throws Exception {
+  public void testHasRepositoryFirewall_NexusAuditorLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
   }
 
   @Test
-  public void testHasRepositoryFirewall_Firewall() throws Exception {
+  public void testHasRepositoryFirewall_NexusFirewallLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     assertThat(clmLicenseManager.hasRepositoryFirewall(), is(true));
@@ -309,7 +309,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testGetLicenseSummary_ProductEditionNexusPro() throws Exception {
+  public void testGetLicenseSummary_ProductEditionNexusProPlus() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();

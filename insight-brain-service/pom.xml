@@ -521,6 +521,11 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
+    <dependency>
+      <!-- required by hibernate-validator 5.x, can likely be removed once Dropwizard is upgraded -->
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.el</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

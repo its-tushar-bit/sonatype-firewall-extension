@@ -492,10 +492,16 @@
         </exclusions>
       </dependency>
       <dependency>
-        <!-- avoid HV-912 otherwise pulled in via dropwizard-core -->
+        <!-- avoid HV-912 and CVE-2017-7536, otherwise pulled in via dropwizard-core -->
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-validator</artifactId>
-        <version>4.3.2.Final</version>
+        <version>5.4.2.Final</version>
+      </dependency>
+      <dependency>
+        <!-- required by hibernate-validator 5.x, can likely be removed once Dropwizard is upgraded -->
+        <groupId>org.glassfish</groupId>
+        <artifactId>javax.el</artifactId>
+        <version>3.0.0</version>
       </dependency>
 
       <dependency>

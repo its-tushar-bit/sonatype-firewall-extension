@@ -1,15 +1,15 @@
 <div class="scrollable-root-container" authorization-wrapper="vm.isAuthorized" maximize-container-height>
   <div id="system-notice-configuration"
-       class="iq-tile iq-tile--sys-prefs"
-       load-wrapper="vm.error"
-       loading="!vm.loaded"
-       reload="vm.load()">
+       class="iq-tile iq-tile--sys-prefs">
     <div class="iq-tile-header iq-tile-header--hrule">
       <div class="iq-tile-header__title">
         <h2>System Notice</h2>
       </div>
     </div>
-    <div class="iq-tile-content">
+    <div class="iq-tile-content"
+         load-wrapper="vm.error"
+         loading="!vm.loaded"
+         reload="vm.load()">
       <p id="system-notice-explanation" class="iq-system-notice">
         Here you can enter a notice that will be displayed in a prominent manner on all pages of IQ Server, as well as
         the login prompt. The notice will be visible to all users and cannot be dismissed. You might want to use this

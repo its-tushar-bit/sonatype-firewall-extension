@@ -115,14 +115,14 @@ public class PolicyMonitorTest
 
     String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
-    String scanId = "PolicyMonitorTest_scanId";
+    String scanId1 = "PolicyMonitorTest_scanId";
 
-    createScanFile(app, scanId);
+    createScanFile(app, scanId1);
 
     // Simulate that the report is available
-    mockScanReceiptAndReport(scanId);
+    mockScanReceiptAndReport(scanId1);
 
-    evaluatePolicy(app.getPublicId(), scanId, stage);
+    evaluatePolicy(app.getPublicId(), scanId1, stage);
 
     setLicenseProducts();
 
@@ -135,6 +135,8 @@ public class PolicyMonitorTest
       lastRun.put(stageType, eval == null ? null : eval.getTime());
     }
 
+    String scanId2 = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(scanId2);
     policyMonitor.run();
 
     // There should be no new policy evaluations

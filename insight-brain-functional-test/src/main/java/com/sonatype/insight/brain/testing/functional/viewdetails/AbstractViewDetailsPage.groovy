@@ -19,16 +19,16 @@ abstract class AbstractViewDetailsPage
   static content = {
     sectionHeaders { $('h5')*.text().findAll { it.trim() } }
     noPolicyViolations { $('#no-policy-violations') }
-    policyViolationTable(required: false) { module PolicyViolationTableModule, $('h5.policy-header ~ table') }
+    policyViolationTable(required: false) { module PolicyViolationTableModule, $('#policy-violation-table') }
 
     noLicenseForUnknown { $('#license-unknown') }
     noLicenseForClaimed { $('#license-claimed') }
-    licenseAnalysisTable(required: false) { module LicenseViolationTableModule, $('h5.license-header ~ table') }
+    licenseAnalysisTable(required: false) { module LicenseViolationTableModule, $('#license-table') }
 
     noSecurityForUnknown { $('#security-unknown') }
     noSecurityForClaimed { $('#security-claimed') }
     noSecurity { $('#security-none') }
-    securityViolationTable(required: false) { module SecurityViolationTableModule, $('h5.security-header ~ table') }
+    securityViolationTable(required: false) { module SecurityViolationTableModule, $('#security-table') }
 
     error { $('#error-message') }
   }

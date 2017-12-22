@@ -13,7 +13,7 @@
     <h5 class='policy-header'>Policy Violations</h5>
 
     <div id='no-policy-violations' ng-show='!data.policyAlerts || data.policyAlerts.length == 0'>None</div>
-    <table class='table table-striped table-bordered' ng-show='data.policyAlerts && data.policyAlerts.length > 0'>
+    <table id='policy-violation-table' class='table table-striped table-bordered' ng-show='data.policyAlerts && data.policyAlerts.length > 0'>
       <thead>
       <tr>
         <th style='width: 120px' colspan='2'>Policy</th>
@@ -45,7 +45,7 @@
     <div id='license-claimed' ng-show='data.identificationSource == "Manual"'>
       The component is claimed, license data is not available.
     </div>
-    <table class='table table-striped table-bordered'
+    <table id='license-table' class='table table-striped table-bordered'
            ng-show='data.matchState != "unknown" && data.identificationSource != "Manual"'>
       <thead>
       <tr>
@@ -83,7 +83,7 @@
     <div id='security-none' ng-show='data.identificationSource != "Manual" && data.matchState != "unknown" && (!data.securityVulnerabilities || data.securityVulnerabilities.length == 0)'>
       None
     </div>
-    <table class='table table-striped table-bordered'
+    <table id='security-table' class='table table-striped table-bordered'
            ng-show='data.securityVulnerabilities && data.securityVulnerabilities.length > 0'>
       <thead>
       <tr>

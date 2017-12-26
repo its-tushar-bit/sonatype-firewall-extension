@@ -136,7 +136,7 @@ extends BaseSpec {
     Cip cip = firstRow.cip
     ClaimComponentModule component = cip.claimComponent
     cip.claimComponent.showTrigger.click()
-    waitFor { component.claimForm.displayed }
+    waitFor { component.claimForm.displayed && component.claimForm.version }
 
     when: 'Changing the version of the claimed component'
     component.claimForm.version = FORM_FIELDS.version + '-NEW'

@@ -9,7 +9,9 @@ import javax.ws.rs.core.UriBuilder
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO
 import com.sonatype.insight.brain.model.Application
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier
 import com.sonatype.insight.brain.model.component.IdentificationSource
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
@@ -57,6 +59,14 @@ extends BaseSpec {
     evaluator.evaluatePolicy()
     loginAsAdminVia()
     to ReportPage, app.publicId, reportId
+  }
+
+  def cleanupSpec() {
+    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO()
+    HashComponentIdentifier hci = dao.getByComponentIdentifier(CID)
+    if (hci) {
+      dao.delete(hci)
+    }
   }
 
   def "Should see claim tab for an unknown component"() {

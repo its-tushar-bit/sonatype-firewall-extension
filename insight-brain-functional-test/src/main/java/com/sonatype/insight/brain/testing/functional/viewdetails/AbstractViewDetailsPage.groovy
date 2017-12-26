@@ -19,16 +19,16 @@ abstract class AbstractViewDetailsPage
   static content = {
     sectionHeaders { $('h5')*.text().findAll { it.trim() } }
     noPolicyViolations { $('#no-policy-violations') }
-    policyViolationTable(required: false) { module PolicyViolationTableModule, $('#policy-violation-table') }
+    policyViolationTable(required: false) { $('#policy-violation-table').module(PolicyViolationTableModule) }
 
     noLicenseForUnknown { $('#license-unknown') }
     noLicenseForClaimed { $('#license-claimed') }
-    licenseAnalysisTable(required: false) { module LicenseViolationTableModule, $('#license-table') }
+    licenseAnalysisTable(required: false) { $('#license-table').module(LicenseViolationTableModule) }
 
     noSecurityForUnknown { $('#security-unknown') }
     noSecurityForClaimed { $('#security-claimed') }
     noSecurity { $('#security-none') }
-    securityViolationTable(required: false) { module SecurityViolationTableModule, $('#security-table') }
+    securityViolationTable(required: false) { $('#security-table').module(SecurityViolationTableModule) }
 
     error { $('#error-message') }
   }
@@ -39,7 +39,7 @@ class PolicyViolationTableModule
 {
   static content = {
     headers { $('th')*.text() }
-    rows { moduleList PolicyViolationTableRow, $('tbody tr') }
+    rows { $('tbody tr').moduleList(PolicyViolationTableRow) }
   }
 }
 
@@ -67,7 +67,7 @@ class LicenseViolationTableModule
 {
   static content = {
     headers { $('th')*.text() }
-    rows { moduleList LicenseViolationTableRow, $('tbody tr') }
+    rows { $('tbody tr').moduleList(LicenseViolationTableRow) }
   }
 }
 
@@ -97,7 +97,7 @@ class SecurityViolationTableModule
 {
   static content = {
     headers { $('th')*.text() }
-    rows { moduleList SecurityViolationTableRow, $('tbody tr') }
+    rows { $('tbody tr').moduleList(SecurityViolationTableRow) }
 
   }
 }

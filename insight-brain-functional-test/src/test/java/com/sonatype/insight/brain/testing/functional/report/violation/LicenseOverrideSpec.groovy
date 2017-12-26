@@ -48,7 +48,7 @@ extends BaseSpec {
   def "Should see Licenses tab for a known component"() {
     when: 'First navigating to a report with a known component'
     navigation.toPolicyReportPage()
-    Cip cip = results[0].showCip()
+    Cip cip = results[0].showCip() as Cip
 
     then: 'the Licenses tab is shown'
     cip.licenses.showTrigger.displayed
@@ -58,14 +58,14 @@ extends BaseSpec {
 
     then: 'the form is shown and empty, with a disabled update button'
     waitFor { cip.licenses.form.displayed }
-    LicenseModule licenses = cip.licenses
+    LicenseModule licenses = cip.licenses as LicenseModule
     licenses.validateLicense('', '', '', app.name, 'Open', '', '', false)
   }
 
   def "Should have an empty Audit Log"() {
     when: 'Clicking on the Audit Log tab'
-    Cip cip = results[0].cip
-    AuditLogModule auditLog = cip.auditLog
+    Cip cip = results[0].cip as Cip
+    AuditLogModule auditLog = cip.auditLog as AuditLogModule
     auditLog.showTrigger.click()
 
     then: 'An empty Audit Log is shown'
@@ -78,8 +78,8 @@ extends BaseSpec {
 
   def "Can override a license for a known component"() {
     given:
-    Cip cip = results[0].cip
-    LicenseModule licenses = cip.licenses
+    Cip cip = results[0].cip as Cip
+    LicenseModule licenses = cip.licenses as LicenseModule
 
     when: 'Selecting to override the license'
     licenses.status = 'Overridden'
@@ -101,7 +101,7 @@ extends BaseSpec {
     licenses.update.click()
 
     then: 'The audit log should be extended'
-    AuditLogModule auditLog = cip.auditLog
+    AuditLogModule auditLog = cip.auditLog as AuditLogModule
     auditLog.showTrigger.click()
     waitFor { auditLog.audits.size() == 1 }
     auditLog.validateRow(auditLog.audits[0], 'admin', 'Overrode', 'License as BSL-1.0, Beerware',

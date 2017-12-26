@@ -23,10 +23,10 @@ class DashboardOverviewPage
   static content = {
     noDataAvailable(required: false) { $('#dashboard-common-results-no-data') }
 
-    highestRiskDiv(required: false) { module ThreatTableModule, $('#highest-risk') }
-    maxResults(required: false) { module ThreatTableModule, $('#max-results-shown') }
+    highestRiskDiv(required: false) { $('#highest-risk').module(ThreatTableModule) }
+    maxResults(required: false) { $('#max-results-shown').module(ThreatTableModule) }
 
-    tabLinks { module DashboardTabsModule, $('ul.nav.nav-tabs') }
+    tabLinks { $('ul.nav.nav-tabs').module(DashboardTabsModule) }
 
     summaryData(required: false) { $('#summary-data') }
     summaryMatchedApplications(required: false) { $('#summary-matched-applications') }
@@ -42,7 +42,7 @@ class DashboardOverviewPage
     componentMatchSimilarCount(required: false) { $('#component-match-results [id$="-count"]')[1] }
     componentMatchUnknownCount(required: false) { $('#component-match-results [id$="-count"]')[2] }
 
-    policySummary { module PolicySummaryModule, $('#policySummaryData') }
+    policySummary { $('#policySummaryData').module(PolicySummaryModule) }
 
     applicationHeatMapHelp(required: false) { $('#application-heat-map-help-content') }
     applicationHeatMapHelpClose(required: false) { $('#application-heat-map-help-close') }
@@ -50,9 +50,9 @@ class DashboardOverviewPage
     componentHeatMapHelpClose(required: false) { $('#component-heat-map-help-close') }
     modalBackdrop(required: false) { $('div.modal-backdrop') }
 
-    filters { module FilterModule, $('.dashboard-filter-container') }
+    filters { $('.dashboard-filter-container').module(FilterModule) }
 
-    applyFilterModal { module ClmModalModule, title: 'Filter Settings Changed' }
+    applyFilterModal { module(new ClmModalModule(title: 'Filter Settings Changed')) }
 
     viewTrendsButton { $('#show-trend-dialog') }
     viewTrendsDialog { $('#policy-trends-dialog') }
@@ -66,7 +66,7 @@ class NewestRiskDashboardPage
   static url = DashboardOverviewPage.url + "/violations"
 
   static content = {
-    newestViolationTable(required: false) { module ThreatTableModule, $('#highest-risk-table') }
+    newestViolationTable(required: false) { $('#highest-risk-table').module(ThreatTableModule) }
   }
 }
 
@@ -76,7 +76,7 @@ class ComponentViolationsDashboardPage
   static url = DashboardOverviewPage.url + "/components"
 
   static content = {
-    componentViolationsTable(required: false) { module ComponentViolationsTable, $('#component-risk') }
+    componentViolationsTable(required: false) { $('#component-risk').module(ComponentViolationsTable) }
   }
 }
 
@@ -86,7 +86,7 @@ class ApplicationViolationsDashboardPage
   static url = DashboardOverviewPage.url + "/applications"
 
   static content = {
-    applicationViolationsTable(required: false) { module ApplicationViolationsTable, $('#application-risk') }
+    applicationViolationsTable(required: false) { $('#application-risk').module(ApplicationViolationsTable) }
   }
 }
 
@@ -94,7 +94,7 @@ class PolicySummaryModule
     extends Module
 {
   static content = {
-    rows(required: false) { moduleList PolicySummaryRow, $('tr').tail() }
+    rows(required: false) { $('tr').tail().moduleList(PolicySummaryRow) }
     pendingRow { (PolicySummaryRow) rows[0] }
     waivedRow { (PolicySummaryRow) rows[1] }
     fixedRow { (PolicySummaryRow) rows[2] }
@@ -124,8 +124,8 @@ class PolicySummaryRow
     averageAge { cell(AVERAGE_AGE).text() }
     ninetyPercentileAge { cell(NINETY_PERCENTILE_AGE).text() }
     delta { module DeltaModule }
-    barChart { module BarChartModule, cell(BAR_CHART) }
-    sparkline { module SparklineModule, cell(SPARKLINE) }
+    barChart { cell(BAR_CHART).module(BarChartModule) }
+    sparkline { cell(SPARKLINE).module(SparklineModule) }
   }
 }
 
@@ -232,8 +232,8 @@ class ComponentViolationsTable
     extends Module
 {
   static content = {
-    threatHeaders { module ThreatHeaderModule, columnOffset: 3 }
-    rows { moduleList ComponentViolationsTableRow, $('tbody tr'), threatColumnPositions: threatHeaders.columnPositions }
+    threatHeaders { module(new ThreatHeaderModule(columnOffset: 3)) }
+    rows { $('tbody tr').moduleList { new ComponentViolationsTableRow(threatColumnPositions: threatHeaders.columnPositions) } }
   }
 }
 
@@ -259,9 +259,9 @@ class ApplicationViolationsTable
     extends Module
 {
   static content = {
-    threatHeaders { module ThreatHeaderModule, columnOffset: 2 }
+    threatHeaders { module(new ThreatHeaderModule(columnOffset: 2)) }
     rows {
-      moduleList ApplicationViolationsTableRow, $('tbody tr'), threatColumnPositions: threatHeaders.columnPositions
+      $('tbody tr').moduleList { new ApplicationViolationsTableRow(threatColumnPositions: threatHeaders.columnPositions) }
     }
   }
 }
@@ -272,8 +272,8 @@ class ApplicationViolationsTableRow
   Map<String, Integer> threatColumnPositions
 
   static content = {
-    expand(required: false) { module ExpandoModule, $('td:first-child span.expand') }
-    collapse(required: false) { module ExpandoModule, $('td:first-child span.collapse') }
+    expand(required: false) { $('td:first-child span.expand').module(ExpandoModule) }
+    collapse(required: false) { $('td:first-child span.collapse').module(ExpandoModule) }
     application { $('td:first-child') }
     netRisk { $('td:nth-child(2)') }
     criticalRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.CRITICAL]})") }

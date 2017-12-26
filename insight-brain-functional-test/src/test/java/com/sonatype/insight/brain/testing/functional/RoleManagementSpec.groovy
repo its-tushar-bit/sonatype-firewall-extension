@@ -54,7 +54,7 @@ extends BaseSpec {
 
     roleEditorPage.pageTitle.text() == 'Developer'
 
-    DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.IQ.displayName)
+    DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.IQ.displayName) as DisplayedPermissionCategory
     policyCategory.permissions.size() == 7
     assertPermission(policyCategory.permission(0), !ON, !ENABLED, Permission.MANAGE_PROPRIETARY)
     assertPermission(policyCategory.permission(1), !ON, !ENABLED, Permission.CLAIM_COMPONENT)
@@ -64,7 +64,7 @@ extends BaseSpec {
     assertPermission(policyCategory.permission(5), ON, !ENABLED, Permission.EVALUATE_COMPONENT)
     assertPermission(policyCategory.permission(6), !ON, !ENABLED, Permission.ADD_APPLICATION)
 
-    DisplayedPermissionCategory systemCategory = roleEditorPage.permissionCategory(PermissionCategory.ADMINISTRATOR.displayName)
+    DisplayedPermissionCategory systemCategory = roleEditorPage.permissionCategory(PermissionCategory.ADMINISTRATOR.displayName) as DisplayedPermissionCategory
     systemCategory.permissions.size() == 3
     assertPermission(systemCategory.permission(0), !ON, !ENABLED, Permission.CONFIGURE_SYSTEM)
   }
@@ -230,7 +230,7 @@ extends BaseSpec {
     return false;
   }
 
-  void assertPermission(DisplayedPermission displayedPermission, boolean isOn, boolean isEnabled, Permission permission) {
+  void assertPermission(displayedPermission, boolean isOn, boolean isEnabled, Permission permission) {
     assert displayedPermission.toggleSwitch.isOn() == isOn
     assert displayedPermission.toggleSwitch.isEnabled() == isEnabled
     assert displayedPermission.name.text() == permission.displayName

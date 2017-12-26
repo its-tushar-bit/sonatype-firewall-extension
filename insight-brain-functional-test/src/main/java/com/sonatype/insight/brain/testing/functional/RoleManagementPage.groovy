@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import geb.Module
+import geb.module.FormElement
 
 class RoleManagementPage
 extends BasePage {
@@ -15,9 +16,9 @@ extends BasePage {
 
   static content = {
     pageTitle { $('.iq-tile-header__title h2') }
-    builtinRoles(wait: true) { moduleList RoleSummary, $('#builtin-roles .iq-action-list__item') }
-    customRoles(required: false) { moduleList RoleSummary, $('#custom-roles .iq-action-list__item') }
-    createRole(required:true) { $('#create-role') }
+    builtinRoles(wait: true) { $('#builtin-roles .iq-action-list__item').moduleList(RoleSummary) }
+    customRoles(required: false) { $('#custom-roles .iq-action-list__item').moduleList(RoleSummary) }
+    createRole(required:true) { $('#create-role').module(FormElement) }
   }
 }
 

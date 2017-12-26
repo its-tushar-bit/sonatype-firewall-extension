@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ClmModalModule
 
+import geb.module.FormElement
+
 class UserManagementPage
     extends BasePage
 {
@@ -25,8 +27,8 @@ class UserManagementPage
     passwordInput(required: false) { userForm.password() }
     passwordValidateInput(required: false) { userForm.passwordValidate() }
 
-    save(required: false) { $('button[id$="user-form-save"]') }
-    cancel(required: false) { $('button[id$="user-form-cancel"]') }
+    save(required: false) { $('button[id$="user-form-save"]').module(FormElement) }
+    cancel(required: false) { $('button[id$="user-form-cancel"]').module(FormElement) }
     headers(required: false) { $('a.accordion-toggle') }
     header(required: false) { index -> $('a.accordion-toggle', index) }
     currentUsers(required: false) { $('span[ng-if="isCurrentUser(user)"]').parent().find('h4') }
@@ -36,9 +38,9 @@ class UserManagementPage
       index -> header(index).parent().find('button[ng-click="resetPasswordClick(user)"]')
     }
 
-    deleteModal { module ClmModalModule, title: 'Delete User' }
+    deleteModal { module(new ClmModalModule(title: 'Delete User')) }
 
-    resetModal { module ClmModalModule, title: 'Reset Password', confirmText: 'Reset' }
+    resetModal { module(new ClmModalModule(title: 'Reset Password', confirmText: 'Reset')) }
     newPasswordField(required: false) { $('#generatedPassword') }
 
     summarySection { index -> $('div.accordion-inner', index) }

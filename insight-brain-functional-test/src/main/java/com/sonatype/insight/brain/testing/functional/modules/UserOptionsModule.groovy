@@ -34,7 +34,7 @@ class UserOptionsModule
 
   void logoutClick() {
     dropdownClick()
-    def body = page.$('body').firstElement();
+    def body = browser.page.$('body').firstElement();
     waitFor { logout.displayed }
     logout.click()
     /*

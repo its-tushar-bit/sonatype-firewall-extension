@@ -63,7 +63,7 @@ extends BaseSpec {
     when: 'First navigating to a report with an unknown component'
     navigation.toPolicyReportPage()
     PolicyReportRow firstRow = results[0]
-    Cip cip = firstRow.showCip()
+    Cip cip = firstRow.showCip() as Cip
 
     then: 'the claim component tab is shown'
     cip.claimComponent.showTrigger.displayed
@@ -89,7 +89,7 @@ extends BaseSpec {
     given: 'A GAV not found in our data'
     hdsRule.setResponseForURI(createUri(CID), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
-    Cip cip = firstRow.cip
+    Cip cip = firstRow.cip as Cip
     def claimForm = cip.claimComponent.claimForm
 
     when: 'Filling out the form'
@@ -133,8 +133,8 @@ extends BaseSpec {
     given: 'A GAV not found in our data'
     hdsRule.setResponseForURI(createUri(UCID), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
-    Cip cip = firstRow.cip
-    ClaimComponentModule component = cip.claimComponent
+    Cip cip = firstRow.cip as Cip
+    ClaimComponentModule component = cip.claimComponent as ClaimComponentModule
     cip.claimComponent.showTrigger.click()
     waitFor { component.claimForm.displayed && component.claimForm.version }
 
@@ -174,12 +174,12 @@ extends BaseSpec {
 
   def "Can assign a license to a claimed component"() {
     when: 'opening the Licenses tab'
-    Cip cip = results[0].cip
+    Cip cip = results[0].cip as Cip
     cip.licenses.showTrigger.click()
 
     then: 'the form is shown and empty, with a disabled update button'
     waitFor { cip.licenses.form.displayed }
-    LicenseModule licenses = cip.licenses
+    LicenseModule licenses = cip.licenses as LicenseModule
     licenses.validateLicense('', '', '', app.name, 'Open', '', '', false)
 
     when: 'Selecting to override the license'
@@ -201,7 +201,7 @@ extends BaseSpec {
     licenses.update.click()
 
     then: 'The audit log should be extended'
-    AuditLogModule auditLog = cip.auditLog
+    AuditLogModule auditLog = cip.auditLog as AuditLogModule
     auditLog.showTrigger.click()
     waitFor { auditLog.audits.size() == 1 }
     auditLog.validateRow(auditLog.audits[0], 'admin', 'Overrode', 'License as Beerware',
@@ -219,14 +219,14 @@ extends BaseSpec {
     cip.componentInfo.show()
 
     then: 'The effective license is shown'
-    waitFor { cip.componentInfo.effectiveLicense.text() == 'Beerware' }
+    waitFor { cip.componentInfo.effectiveLicense*.text() == ['Beerware'] }
   }
 
   def "Should be able to revoke a claim on a component"() {
     given: 'An already claimed component'
-    Cip cip = results[0].cip
+    Cip cip = results[0].cip as Cip
     cip.claimComponent.showTrigger.click()
-    ClaimComponentModule component = cip.claimComponent
+    ClaimComponentModule component = cip.claimComponent as ClaimComponentModule
     waitFor { component.revoke.displayed }
 
     when: 'Clicking the "Revoke Claim" button'

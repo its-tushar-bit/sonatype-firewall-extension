@@ -48,8 +48,8 @@ extends AbstractClaimComponentSpec {
         createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version, '', 'jar')
     hdsRule.setResponseForURI(createUri(identifier), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
-    Cip cip = firstRow.cip
-    ClaimComponentModule component = cip.claimComponent
+    Cip cip = firstRow.cip as Cip
+    ClaimComponentModule component = cip.claimComponent as ClaimComponentModule
 
     when: 'Claiming a component with a jar extension and no classifier'
     def claimForm = component.claimForm
@@ -76,8 +76,8 @@ extends AbstractClaimComponentSpec {
         CID.coordinates.classifier, 'jar')
     hdsRule.setResponseForURI(createUri(updatedIdentifier), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
-    Cip cip = firstRow.cip
-    ClaimComponentModule component = cip.claimComponent
+    Cip cip = firstRow.cip as Cip
+    ClaimComponentModule component = cip.claimComponent as ClaimComponentModule
 
     when: 'Claiming a component with a jar extension and no classifier'
     component.claimForm.classifier = CID.coordinates.classifier

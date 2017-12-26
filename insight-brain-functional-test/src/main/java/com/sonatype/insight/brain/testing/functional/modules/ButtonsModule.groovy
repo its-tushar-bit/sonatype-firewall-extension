@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
+import geb.module.FormElement
 
 /**
  * @since 1.8
@@ -14,7 +15,7 @@ class ButtonsModule
     extends Module
 {
   static content = {
-    button(required: false) { text -> $('button', text: text) }
+    button(required: false) { text -> $('button', text: text).module(FormElement) }
     save(required: false) { button('Save') }
     cancel(required: false) { button('Cancel') }
   }

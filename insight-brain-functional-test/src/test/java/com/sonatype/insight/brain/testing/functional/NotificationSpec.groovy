@@ -35,7 +35,7 @@ class NotificationSpec
         '"dateCreated" : ' + tenHoursAgo +
         '}]}', 200)
     ReportViolationsPage reportViolationsPage = loginAsAdminVia(ReportViolationsPage)
-    notificationMenu = reportViolationsPage.notificationMenu
+    notificationMenu = reportViolationsPage.notificationMenu as NotificationModule
   }
 
   def "Notification count is shown"() {

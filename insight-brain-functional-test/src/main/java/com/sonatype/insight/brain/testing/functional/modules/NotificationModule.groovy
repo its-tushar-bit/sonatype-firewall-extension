@@ -15,7 +15,7 @@ class NotificationModule
   static content = {
     dropdown { $('#notification-dropdown-toggle') }
     notificationCount (required: false) { $('.iq-count-circle') }
-    notificationList (required: false) { moduleList NotificationItemModule, $('.iq-notification') }
+    notificationList (required: false) { $('.iq-notification').moduleList(NotificationItemModule) }
     detailHeader(required: false) { $('.iq-dropdown-submenu .iq-dropdown-submenu__title') }
     detailBody(required: false) { $('#detail-html-container div') }
     detailedBodyLinks(required: false) { detailBody.find('a') }

@@ -31,17 +31,17 @@ extends Page {
   static content = {
     navigation { module ReportSubNavigation }
     policyContent(wait: true) { $('#componentTable .grid-canvas', 0) }
-    results { moduleList PolicyReportRow, policyContent.children('.slick-row') }
+    results { policyContent.children('.slick-row').moduleList(PolicyReportRow) }
     resultsWithNoScore { results.findAll { it.threatGroup == none
       } }
-    waiver(required: false) { module AddPolicyWaiver, $('#add-waiver-modal') }
-    policyDetailWaivers(required: false) { module PolicyDetailWaivers, $('#componentExistingWaiverModal') }
-    removeWaiverModal(required: false) { module RemoveWaiverModal, $('#confirm-delete-waiver-modal') }
+    waiver(required: false) { $('#add-waiver-modal').module(AddPolicyWaiver) }
+    policyDetailWaivers(required: false) { $('#componentExistingWaiverModal').module(PolicyDetailWaivers) }
+    removeWaiverModal(required: false) { $('#confirm-delete-waiver-modal').module(RemoveWaiverModal) }
     summaryViolations { $('#policy-violation-filter li a', text: 'Summary') }
     allViolations { $('#policy-violation-filter li a', text: 'All') }
     waivedViolations { $('#policy-violation-filter li a', text: 'Waived') }
     selectedViolationFilter { $('#policy-violation-filter li.active a').text() }
-    revokeClaimModal(required: false) { module ClmModalModule, title: 'Revoke Claim' }
+    revokeClaimModal(required: false) { module(new ClmModalModule(title: 'Revoke Claim')) }
   }
 }
 
@@ -55,7 +55,7 @@ extends Page {
 class PolicyReportRow
 extends Module {
   static content = {
-    cip { module Cip, parent().find('#informationPanel') }
+    cip { parent().find('#informationPanel').module(Cip) }
     // can't rely on the text within the cell since it's only shown for the first row with that score
     threatGroup { $(class: iEndsWith('Score')).classes()[0] }
     coordinates { $('.l1').text() }
@@ -70,7 +70,7 @@ extends Module {
     showCipTrigger.click()
     waitFor { cip.displayed }
 
-    return cip
+    return cip as Cip
   }
 
   def closeCip() {
@@ -110,7 +110,7 @@ extends Module
     version(required: false) { $('#artifactInfo-Version td:nth-child(2)') }
     identificationSource(required: false) { $('#artifactInfoIdentificatonSource td:nth-child(2)') }
     claimComment(required: false) { $('#artifactInfoClaimComment td:nth-child(2)') }
-    effectiveLicense(required: false) { $('#artifactInfoEffectiveLicenseRow td:nth-child(2) span') }
+    effectiveLicense(required: false) { $('#artifactInfoEffectiveLicenseRow td:nth-child(2) span.license') }
     showTrigger { $('a', text: 'Component Info') }
   }
 
@@ -126,7 +126,7 @@ extends Module
   static content = {
     viewWaiversButton { $('#view-existing-waivers') }
 
-    violations(wait: true) { moduleList PolicyRow, $('tbody tr') }
+    violations(wait: true) { $('tbody tr').moduleList(PolicyRow) }
 
     // private
     detailContainer { $('table.cip-policy-table') }
@@ -150,7 +150,7 @@ class PolicyDetailWaivers
 extends Module
 {
   static content = {
-    rows { moduleList WaiverRow, $('div.modal-body table.table.table-condensed tr').tail() }
+    rows { $('div.modal-body table.table.table-condensed tr').tail().moduleList(WaiverRow) }
     noWaivers { $('#no-waivers-assigned') }
     closeButton(required: false) { $('#close-component-existing-waivers') }
   }
@@ -208,7 +208,7 @@ class PolicyRow
 extends Module
 {
   static content = {
-    waiver { module AddPolicyWaiver, parents().find('#add-waiver-modal') }
+    waiver { parents().find('#add-waiver-modal').module(AddPolicyWaiver) }
 
     // private, use page methods for interaction
     addWaiverTrigger { $('button.btn-primary') }
@@ -266,7 +266,7 @@ extends Module
 {
   static content = {
     claimForm { $('form[name=claimForm]') }
-    buttons { module ButtonsModule, claimForm }
+    buttons { claimForm.module(ButtonsModule) }
     claim(required: false) { buttons.button('Claim') }
     revoke(required: false) { buttons.button('Revoke Claim') }
     update(required: false) { buttons.button('Update') }
@@ -282,7 +282,7 @@ extends Module
 {
   static content = {
     form { $('form[name=vm\\.licenseEditorForm]') }
-    buttons { module ButtonsModule, form }
+    buttons { form.module(ButtonsModule) }
     update(required: false) { buttons.button('Update') }
     declaredLicenses { form.find('#declaredLicenseBlock').text() }
     observedLicenses { form.find('#observedLicenseBlock').text() }
@@ -290,7 +290,7 @@ extends Module
     showTrigger { $('a', text: 'Licenses') }
     selectedScope { selectedOptionText(form.scope()) }
     selectedStatus { selectedOptionText(form.status()) }
-    selectedLicenses(required: false) { module DropdownMultiSelectModule, $('span[items="rawLicenses"]') }
+    selectedLicenses(required: false) { $('span[items="rawLicenses"]').module(DropdownMultiSelectModule) }
     selectedOptionText { field -> field.find('option', value: field.value()).text() }
   }
 
@@ -316,7 +316,7 @@ extends Module
   static content = {
     noChangesMessage(required: false) { $('.tab-content').text() }
     auditTable(required: false) { $('#auditTable') }
-    audits { moduleList AuditLogRow, auditTable.find('.slick-row') }
+    audits { auditTable.find('.slick-row').moduleList(AuditLogRow) }
     showTrigger { $('a', text: 'Audit Log') }
   }
 

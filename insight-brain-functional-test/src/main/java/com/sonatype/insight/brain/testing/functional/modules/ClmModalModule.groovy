@@ -28,7 +28,7 @@ class ClmModalModule
   def static content = {
     modals(required: false) { $('div.modal') }
     modal { modals.has('h2', text: title) }
-    buttons { module ButtonsModule, modal }
+    buttons { modal.module(ButtonsModule) }
     confirm(required: false) { buttons.button(confirmText) }
     cancel(required: false) { buttons.button(cancelText) }
     ok(required: false) { buttons.button(okText) }

@@ -25,8 +25,8 @@ class ProprietaryComponentsPage
     input { $('input[ng-model^="vm.component"]') }
     regex { $('#isRegex') }
     add { $('form button') }
-    rows(required: false) { moduleList ProprietaryTableRow, $('tr') }
-    buttons(required: false) { module ButtonsModule, $('#proprietaryButtons') }
+    rows(required: false) { $('tr').moduleList(ProprietaryTableRow) }
+    buttons(required: false) { $('#proprietaryButtons').module(ButtonsModule) }
     error(required: false) { $('#proprietaryError .alert-message') }
   }
 }

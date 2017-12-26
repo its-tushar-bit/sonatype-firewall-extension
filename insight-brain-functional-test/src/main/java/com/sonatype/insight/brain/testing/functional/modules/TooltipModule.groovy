@@ -18,13 +18,13 @@ class TooltipModule
 
   String getTooltipContent() {
     //move to this element first to clear existing tooltip
-    page.interact {
+    browser.page.interact {
       moveToElement(body);
     }
 
     waitFor { !tooltip.displayed }
 
-    page.interact {
+    browser.page.interact {
       moveToElement(tooltipTarget)
     }
 

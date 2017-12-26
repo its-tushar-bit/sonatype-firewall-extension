@@ -82,7 +82,7 @@ class NexusCIPSpec
       tests.setCoordinates()
 
     then: 'the CIP loads'
-      CIPModule cip = cip
+      CIPModule cip = cip as CIPModule
       validateMavenComponent(cip, JUNIT)
       cip.website.@href.startsWith(JUNIT.website) //FF at least appends a slash on the href
       cip.highestPolicyThreat == 'NA'
@@ -96,7 +96,7 @@ class NexusCIPSpec
       !cip.migrate.present
 
     and: 'the version graph is present and has a fixed height'
-      verifyVersionGraph(versionGraph)
+      verifyVersionGraph(versionGraph as VersionGraphModule)
 
     and: 'the select text is no longer shown'
       !defaultText.displayed
@@ -132,7 +132,7 @@ class NexusCIPSpec
       tests.setCoordinates()
 
     then: 'The changes should be reflected in the component details'
-      CIPModule cip = cip
+      CIPModule cip = cip as CIPModule
       cip.highestPolicyThreat.toInteger() == violatedPolicy.threatLevel
 
     where:
@@ -152,7 +152,7 @@ class NexusCIPSpec
       tests.setCoordinates()
 
     then: 'Details of the vulnerabilities are shown'
-      CIPModule cip = cip
+      CIPModule cip = cip as CIPModule
       validateMavenComponent(cip, CATALINA_HOST_MANAGER)
       cip.highestSecurityThreat == '4.3 within 4 security issues'
 
@@ -178,7 +178,7 @@ class NexusCIPSpec
     setCoordinates(PREZI_DIST.componentIdentifier, app.publicId)
 
     then: 'the CIP loads and all GAVEC coordinate information is shown'
-    CIPModule cip = cip
+    CIPModule cip = cip as CIPModule
     validateMavenComponent(cip, PREZI_DIST)
     cip.getNameField('Extension') == PREZI_DIST.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_EXTENSION]
     cip.getNameField('Classifier') == PREZI_DIST.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_CLASSIFIER]
@@ -189,7 +189,7 @@ class NexusCIPSpec
     setCoordinates(ENTITY_FRAMEWORK.componentIdentifier, app.publicId)
 
     then: 'the CIP loads and shows the expected fields'
-    CIPModule cip = cip
+    CIPModule cip = cip as CIPModule
     validateNuGetComponent(cip, ENTITY_FRAMEWORK)
     cip.highestPolicyThreat == 'NA'
     cip.highestSecurityThreat == 'NA'

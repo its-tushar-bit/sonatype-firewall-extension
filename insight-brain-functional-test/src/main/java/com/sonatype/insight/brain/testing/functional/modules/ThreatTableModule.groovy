@@ -21,7 +21,7 @@ class ThreatTableModule
     policyHeader { headerLinks(2) }
     applicationHeader { headerLinks(3) }
     componentHeader { headerLinks(4) }
-    rows(required: false) { moduleList ThreatTableRow, $('tr').tail(), stageColumns: getStageColumns() }
+    rows(required: false) { $('tr').tail().moduleList { new ThreatTableRow(stageColumns: getStageColumns()) } }
 
     buildHeader(required: false) { $('#stage-header-build') }
     stageHeader(required: false) { $('#stage-header-stage-release') }

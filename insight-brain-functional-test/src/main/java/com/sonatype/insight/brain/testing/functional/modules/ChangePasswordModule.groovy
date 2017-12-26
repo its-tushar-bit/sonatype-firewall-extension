@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
+import geb.module.FormElement
 
 /**
  * @since 1.7
@@ -20,7 +21,7 @@ class ChangePasswordModule
     newPassword(required: false) { dialog.newPassword() }
     newPasswordValidate(required: false) { dialog.confirmPassword() }
     invalidCredentialsError(required: false) { dialog.find('div.section.with-icon') }
-    ok(required: false) { $('form[name="passwordForm"] #change-password-submit') }
-    cancel(required: false) { $('form[name="passwordForm"] button.btn-cancel)') }
+    ok(required: false) { $('form[name="passwordForm"] #change-password-submit').module(FormElement) }
+    cancel(required: false) { $('form[name="passwordForm"] button.btn-cancel)').module(FormElement) }
   }
 }

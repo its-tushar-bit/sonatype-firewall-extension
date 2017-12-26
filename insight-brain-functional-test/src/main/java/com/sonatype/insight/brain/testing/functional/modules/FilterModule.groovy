@@ -12,28 +12,28 @@ class FilterModule
 {
   static content = {
     organizationFilter(required: false) {
-      module DashboardFilterDimensionModule, $('#org-app-filters iq-tree-view-multi-select:nth-child(1)')
+      $('#org-app-filters iq-tree-view-multi-select:nth-child(1)').module(DashboardFilterDimensionModule)
     }
 
     applicationFilter(required: false) {
-      module DashboardFilterDimensionModule, $('#org-app-filters iq-tree-view-multi-select:nth-child(2)')
+      $('#org-app-filters iq-tree-view-multi-select:nth-child(2)').module(DashboardFilterDimensionModule)
     }
 
     applicationCategoryFilter(required: false) {
-      module DashboardFilterDimensionModule, $('#category-filter')
+      $('#category-filter').module(DashboardFilterDimensionModule)
     }
     stagesFilter(required: false) {
-      module DashboardFilterDimensionModule, $('#stage-filter')
+      $('#stage-filter').module(DashboardFilterDimensionModule)
     }
 
     policyTypesFilter(required: false) {
-      module DashboardFilterDimensionModule, $('#policy-type-filter')
+      $('#policy-type-filter').module(DashboardFilterDimensionModule)
     }
     policyThreatLevelFilter(required: false) {
-      module DashboardFilterDimensionModule, $('#threat-level-filter')
+      $('#threat-level-filter').module(DashboardFilterDimensionModule)
     }
 
-    policyThreatLevelSlider(required: false) { module SliderModule, $('.policy-threat-level-slider') }
+    policyThreatLevelSlider(required: false) { $('.policy-threat-level-slider').module(SliderModule) }
 
     applyButton(required: false) { $('#dashboard-filter-apply') }
     revertButton(required: false) { $('#dashboard-filter-revert') }

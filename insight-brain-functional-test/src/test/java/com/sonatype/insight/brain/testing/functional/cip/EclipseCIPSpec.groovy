@@ -66,7 +66,7 @@ class EclipseCIPSpec
       tests.setCoordinates()
 
     then: 'the CIP loads'
-      CIPModule cip = cip
+      CIPModule cip = cip as CIPModule
       validateMavenComponent(cip, JUNIT)
       cip.highestPolicyThreat == 'NA'
       cip.highestSecurityThreat == 'NA'
@@ -81,7 +81,7 @@ class EclipseCIPSpec
       cip.migrate.hasClass('disabled')
 
     and: 'the version graph is present and has a fixed height'
-      verifyVersionGraph(versionGraph)
+      verifyVersionGraph(versionGraph as VersionGraphModule)
 
     and: 'the select text is no longer shown'
       !defaultText.displayed
@@ -117,7 +117,7 @@ class EclipseCIPSpec
       tests.setCoordinates()
 
     then: 'The changes should be reflected in the component details'
-      CIPModule cip = cip
+      CIPModule cip = cip as CIPModule
       cip.highestPolicyThreat.toInteger() == violatedPolicy.threatLevel
 
     where:
@@ -137,7 +137,7 @@ class EclipseCIPSpec
       tests.setCoordinates()
 
     then: 'Details of the vulnerabilities are shown'
-      CIPModule cip = cip
+      CIPModule cip = cip as CIPModule
       validateMavenComponent(cip, CATALINA_HOST_MANAGER)
       cip.highestSecurityThreat == '4.3 within 4 security issues'
 
@@ -163,7 +163,7 @@ class EclipseCIPSpec
     setCoordinates(PREZI_DIST.componentIdentifier, app.publicId)
 
     then: 'the CIP loads and all GAVEC coordinate information is shown'
-    CIPModule cip = cip
+    CIPModule cip = cip as CIPModule
     validateMavenComponent(cip, PREZI_DIST)
     cip.getNameField('Extension') == PREZI_DIST.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_EXTENSION]
     cip.getNameField('Classifier') == PREZI_DIST.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_CLASSIFIER]
@@ -174,7 +174,7 @@ class EclipseCIPSpec
     setCoordinates(ENTITY_FRAMEWORK.componentIdentifier, app.publicId)
 
     then: 'the CIP loads and shows the expected fields'
-    CIPModule cip = cip
+    CIPModule cip = cip as CIPModule
     validateNuGetComponent(cip, ENTITY_FRAMEWORK)
     cip.highestPolicyThreat == 'NA'
     cip.highestSecurityThreat == 'NA'

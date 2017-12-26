@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
+import geb.module.FormElement
 
 /**
  * @since 1.7
@@ -17,7 +18,7 @@ class LoginModule
     modal(required: false) { $('#loginModal') }
     usernameInput { $('#login-username') }
     passwordInput { $('#login-password') }
-    loginAction { $('#login-action') }
+    loginAction { $('#login-action').module(FormElement) }
     errorMessage(required: false, wait: true) { $('#login-error') }
   }
 
@@ -29,7 +30,7 @@ class LoginModule
     waitFor { usernameInput.displayed }
     usernameInput.value(username)
     passwordInput.value(password)
-    waitFor { loginAction.@disabled != 'disabled' }
+    waitFor { !loginAction.disabled }
     loginAction.click()
     if (!expectedFail) {
       waitFor { !modal.displayed }

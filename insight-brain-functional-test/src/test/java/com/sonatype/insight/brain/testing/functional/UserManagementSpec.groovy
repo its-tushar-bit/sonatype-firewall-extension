@@ -191,7 +191,7 @@ class UserManagementSpec
     then: 'login succeeds'
       !login.displayed
       waitFor { userOptions.displayName.text() == 'add user' }
-      userOptions.logoutClick()
+      !userOptions.logoutClick()
   }
 
   def "The newly added user can be edited"() {

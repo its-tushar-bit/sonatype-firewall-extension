@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import geb.Module
+import geb.module.FormElement
 
 class RoleEditorPage
 extends BasePage {
@@ -20,22 +21,22 @@ extends BasePage {
 
     pageTitle { $('#role-title') }
 
-    deleteRole (required: false) { $('#delete-role') }
+    deleteRole (required: false) { $('#delete-role').module(FormElement) }
     deleteConfirm (required : false) { $('.modal.in .btn-primary') }
 
-    nameEditor { $('input[type=text]') }
+    nameEditor { $('input[type=text]').module(FormElement) }
     namePopover (required : false) { $('#roleName-popover') }
 
     descriptionEditor { $('textarea') }
 
-    cancel { $('button.btn-cancel') }
-    save { $('button.btn-primary') }
+    cancel { $('button.btn-cancel').module(FormElement) }
+    save { $('button.btn-primary').module(FormElement) }
 
     permissionCategories(required: false) {
-      moduleList DisplayedPermissionCategory, $('tbody[ng-repeat="permissionCategory in dirtyRole.permissionCategories"]')
+      $('tbody[ng-repeat="permissionCategory in dirtyRole.permissionCategories"]').moduleList(DisplayedPermissionCategory)
     }
     permissionCategory { String name ->
-      module DisplayedPermissionCategory, permissionCategories.find { it.groupName.text() == name }
+      permissionCategories.find { it.groupName.text() == name }.module(DisplayedPermissionCategory)
     }
   }
 }
@@ -44,15 +45,15 @@ class DisplayedPermissionCategory
 extends Module {
   static content = {
     groupName { $('h3') }
-    permissions { moduleList DisplayedPermission, $('tr[ng-repeat="permission in permissionCategory.permissions"]') }
-    permission { index -> module DisplayedPermission, permissions.getAt(index) }
+    permissions { $('tr[ng-repeat="permission in permissionCategory.permissions"]').moduleList(DisplayedPermission) }
+    permission { index -> permissions.getAt(index) }
   }
 }
 
 class DisplayedPermission
 extends Module {
   static content = {
-    toggleSwitch { module ToggleSwitch, $('.toggle-checkbox') }
+    toggleSwitch { $('.toggle-checkbox').module(ToggleSwitch) }
     name { $('label > span') }
     description { $('td', 1) }
   }
@@ -71,6 +72,6 @@ extends Module {
   static content = {
     toggle { $('.toggle') }
     label { $('span:not(.toggle-handle)') }
-    toggleCheckbox { toggle.find('input') }
+    toggleCheckbox { toggle.find('input').module(FormElement) }
   }
 }

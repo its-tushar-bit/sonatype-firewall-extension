@@ -26,21 +26,25 @@ public class EyesWatcher
 
   private String testName;
 
-  private static BatchInfo batch = new BatchInfo(new SimpleDateFormat("MMM dd yyyy").format(new Date()));
+  private static BatchInfo batch;
 
   private static final String APPLITOOLS_KEY = "bg21K3t6KY1073109q6J9lZzCQBfxEDGh5tHgYR9wl1kHxk110";
 
   static {
+    String localBranchName = System.getProperty("branchName", System.getenv("bamboo_planRepository_branchName"));
+    String buildNumber = System.getenv("bamboo_buildNumber");
+
+    batch = new BatchInfo(localBranchName + (buildNumber != null ? " #" + buildNumber :
+        " " + System.getProperty("batchName", new SimpleDateFormat("MMM dd yyyy").format(new Date()))));
+
     eyes.setIsDisabled(!Boolean.getBoolean("visualTestingEnabled"));
 
+    // Aggregates tests under the same batch when tests are run in different processes (e.g. split tests in bamboo).
     batch.setId(batch.getName());
     eyes.setApiKey(APPLITOOLS_KEY);
-    // used for filtering in applitools eyes
-    eyes.addProperty("Build #", System.getenv("bamboo_buildNumber"));
     eyes.setBatch(batch);
 
-    String localBranchName = System.getProperty("branchName");
-    eyes.setBranchName(localBranchName != null ? localBranchName : System.getenv("bamboo_planRepository_branchName"));
+    eyes.setBranchName(localBranchName);
 
     // set the default parent branch to master if the parent branch is not specified
     eyes.setParentBranchName(System.getProperty("parentBranchName", "master"));

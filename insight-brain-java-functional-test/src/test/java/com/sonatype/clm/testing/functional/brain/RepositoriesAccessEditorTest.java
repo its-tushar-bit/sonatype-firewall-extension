@@ -37,7 +37,6 @@ public class RepositoriesAccessEditorTest
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
-    refresh();
     SummaryTile.localAccessRole(role.getName()).click();
   }
 }

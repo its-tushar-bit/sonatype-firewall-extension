@@ -21,14 +21,12 @@ public class OrganizationAccessEditorTest
 
   @Override
   protected void goFromSummaryToAddRole() {
-    refresh(); // pills often fail to load CLM-5827
     SummaryTile.accessButton().click();
     SummaryTile.addRoleButton().click();
   }
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
-    refresh(); // pills often fail to load CLM-5827
     SummaryTile.accessButton().click();
     SummaryTile.localAccessRole(role.getName()).click();
   }

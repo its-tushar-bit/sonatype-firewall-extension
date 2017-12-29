@@ -14,11 +14,11 @@ import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileLis
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.RepositoriesAccessTile;
+import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
-import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -72,9 +72,10 @@ public class RepositoriesSummaryViewTest
   @Test
   public void repositorySummaryViewTest()
   {
-    SummaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
-    SummaryTile.configButton().shouldBe(visible);
-    SummaryTile.accessButton().shouldBe(visible);
+    RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
+    summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+    summaryTile.configButton().shouldBe(visible);
+    summaryTile.accessButton().shouldBe(visible);
 
     repositorySummaryViewTest_configurationTile();
   }
@@ -144,7 +145,7 @@ public class RepositoriesSummaryViewTest
     accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
 
     // scroll to the access tile
-    RepositoriesSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+    RepositoriesSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     AccessTileList localList = accessTile.accessList(0);
 
@@ -177,7 +178,7 @@ public class RepositoriesSummaryViewTest
     accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
 
     // scroll to the access tile
-    RepositoriesSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+    RepositoriesSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     AccessTileList localList = accessTile.accessList(0);
     localList.emptyDescriptor().shouldNotBe(visible);
@@ -218,7 +219,7 @@ public class RepositoriesSummaryViewTest
     accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
 
     // scroll to the access tile
-    RepositoriesSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+    RepositoriesSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     AccessTileList localList = accessTile.accessList(0);
 
@@ -246,33 +247,33 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testScrollSpy() {
-    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldNotHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.configTile().shouldNotBe(scrolledOffTop);
-    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
 
-    RepositoriesSummaryPage.SummaryTile.accessButton().click();
-    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldNotHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.configTile().shouldBe(scrolledOffTop);
-    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.summaryTile().accessButton().click();
+    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.configTile().shouldBe(scrolledOffTop);
+    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
 
-    RepositoriesSummaryPage.SummaryTile.configButton().click();
-    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldNotHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.configTile().shouldNotBe(scrolledOffTop);
-    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.summaryTile().configButton().click();
+    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
 
-    ScrollUtil.scrollToTop(RepositoriesSummaryPage.SummaryTile.accessTile());
-    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldNotHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.configTile().shouldBe(scrolledOffTop);
-    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+    ScrollUtil.scrollToTop(RepositoriesSummaryPage.accessTile().getElement());
+    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.configTile().shouldBe(scrolledOffTop);
+    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
 
-    ScrollUtil.scrollToTop(RepositoriesSummaryPage.SummaryTile.configTile());
-    RepositoriesSummaryPage.SummaryTile.configButton().parent().shouldHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.accessButton().parent().shouldNotHave(cssClass("active"));
-    RepositoriesSummaryPage.SummaryTile.configTile().shouldNotBe(scrolledOffTop);
-    RepositoriesSummaryPage.SummaryTile.accessTile().shouldNotBe(scrolledOffTop);
+    ScrollUtil.scrollToTop(RepositoriesSummaryPage.configTile().getElement());
+    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldHave(cssClass("active"));
+    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldNotHave(cssClass("active"));
+    RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
+    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
   }
 }

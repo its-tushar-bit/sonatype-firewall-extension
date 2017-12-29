@@ -7,11 +7,12 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class BaseAccessTile
     extends OwnerTile
@@ -26,6 +27,10 @@ public class BaseAccessTile
 
   public static Condition subHeaderText(String ownerName) {
     return Condition.text(ownerName + " users by role");
+  }
+
+  public SelenideElement addRoleButton() {
+    return $("#add-role-button");
   }
 
   private String accessListSelector() {

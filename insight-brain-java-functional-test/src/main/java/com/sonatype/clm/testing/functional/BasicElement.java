@@ -85,7 +85,7 @@ public abstract class BasicElement<T extends BasicElement<T>>
     return $$(childSelector(selectors));
   }
 
-  private SelenideElement getElement() {
+  public SelenideElement getElement() {
     if (element == null) {
       element = $(selector);
     }

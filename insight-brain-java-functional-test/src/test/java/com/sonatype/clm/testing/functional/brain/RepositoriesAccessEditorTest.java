@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage.SummaryTile;
+import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -32,11 +32,11 @@ public class RepositoriesAccessEditorTest
 
   @Override
   protected void goFromSummaryToAddRole() {
-    SummaryTile.addRoleButton().click();
+    RepositoriesSummaryPage.accessTile().addRoleButton().click();
   }
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
-    SummaryTile.localAccessRole(role.getName()).click();
+    RepositoriesSummaryPage.accessTile().localAccessRole(role.getName()).click();
   }
 }

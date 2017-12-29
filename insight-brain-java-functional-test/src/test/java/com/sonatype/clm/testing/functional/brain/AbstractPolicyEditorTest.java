@@ -36,7 +36,6 @@ import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ConditionUtils;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -146,7 +145,7 @@ public abstract class AbstractPolicyEditorTest
     Label sampleLabel = tempEntity.newLabel(currentOwner.getId(), "Sample Label");
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    SummaryTile.addPolicyButton().click();
+    OwnerSummaryPage.policyTile().addPolicyButton().click();
 
     assertNewPolicyStateIsCorrect();
     testCreatePolicy_summarySection();
@@ -225,7 +224,7 @@ public abstract class AbstractPolicyEditorTest
 
     refresh();
 
-    SummaryTile.localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false);
 
     testEditPolicy_summarySection();
@@ -250,7 +249,7 @@ public abstract class AbstractPolicyEditorTest
 
     refresh();
 
-    SummaryTile.localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], true);
   }
 
@@ -259,7 +258,7 @@ public abstract class AbstractPolicyEditorTest
     setupJiraService();
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    SummaryTile.addPolicyButton().click();
+    OwnerSummaryPage.policyTile().addPolicyButton().click();
 
     PolicyEditorPage.summarySection().policyName().val("New Policy");
 

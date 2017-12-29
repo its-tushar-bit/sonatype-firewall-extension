@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -122,7 +121,7 @@ public class OrganizationPolicyEditorTest
   public void testRootOrgPolicyHasProperInheritedText() {
     refreshOrOpen(OwnerSummaryPage.url(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID));
 
-    SummaryTile.addPolicyButton().click();
+    OwnerSummaryPage.policyTile().addPolicyButton().click();
 
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().label().shouldHave(ALL_TEXT_ROOT_ORG);
   }

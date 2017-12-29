@@ -17,7 +17,6 @@ import com.sonatype.clm.testing.functional.elements.ProprietaryConfigInheritedLi
 import com.sonatype.clm.testing.functional.elements.ProprietaryConfigInheritedTile;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -70,9 +69,9 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
   @Test
   public void testProprietaryComponentMatchers() {
-    SummaryTile.proprietaryComponentMatchers().shouldHave(text("1 local, 2 inherited"));
+    OwnerSummaryPage.policyTile().proprietaryComponentMatchers().shouldHave(text("1 local, 2 inherited"));
 
-    SummaryTile.proprietaryComponentMatchers().click();
+    OwnerSummaryPage.policyTile().proprietaryComponentMatchers().click();
     waitUntilUrl(ProprietaryConfigEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
 
     Dropdown typeDropDown = ProprietaryConfigEditorPage.typeDropdown();

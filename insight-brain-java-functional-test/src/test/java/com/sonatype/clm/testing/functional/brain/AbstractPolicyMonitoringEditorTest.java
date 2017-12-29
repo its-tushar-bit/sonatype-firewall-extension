@@ -14,7 +14,6 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -59,7 +58,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
   @Test
   public void testEditMonitoredStage() {
     String inheritOptionText = MonitoredStageEditorPage.inheritFromParentDoNotMonitorText(parentOrg.getName());
-    SummaryTile.monitoredStage().shouldHave(text(inheritOptionText)).click();
+    OwnerSummaryPage.policyTile().monitoredStage().shouldHave(text(inheritOptionText)).click();
     assertEditMonitoredStageStateIsCorrect(inheritOptionText);
 
     MonitoredStageEditorPage.getStageByName("Develop").click();
@@ -75,7 +74,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     refresh();
 
     Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
-    SummaryTile.monitoredStage().shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
+    OwnerSummaryPage.policyTile().monitoredStage().shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
 
     // if the user gets there manually, show a warning
     refreshOrOpen(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));

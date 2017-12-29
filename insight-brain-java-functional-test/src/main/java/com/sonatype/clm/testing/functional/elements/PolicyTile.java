@@ -7,7 +7,10 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class PolicyTile
@@ -27,6 +30,14 @@ public class PolicyTile
     return Condition.text("applying to " + ownerName);
   }
 
+  public static Condition noActionText() {
+    return Condition.text("no action");
+  }
+
+  public SelenideElement addPolicyButton() {
+    return $("#add-policy-button");
+  }
+
   public ElementsCollection policyLists() {
     return children(OWNER_POLICY_LIST);
   }
@@ -35,11 +46,15 @@ public class PolicyTile
     return new PolicyTileList(selector, OWNER_POLICY_LIST, nthChild(num + 1));
   }
 
-  public static Condition name() {
-    return Condition.text("NAME");
+  public SelenideElement localPolicy(String policyName) {
+    return children("table tr").findBy(text(policyName));
   }
 
-  public static Condition noAction() {
-    return Condition.text("no action");
+  public SelenideElement monitoredStage() {
+    return $("#continuous-monitoring div");
+  }
+
+  public SelenideElement proprietaryComponentMatchers() {
+    return $("#proprietary-component-matchers div.title");
   }
 }

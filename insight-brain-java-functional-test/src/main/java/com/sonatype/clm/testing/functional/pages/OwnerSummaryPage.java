@@ -6,13 +6,15 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.PillButton;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.text;
@@ -31,6 +33,18 @@ public class OwnerSummaryPage
     }
 
     return BaseUrl.uriBuilder().fragment("/management/view/{ownerType}/{ownerId}").build(ownerType, id).toString();
+  }
+
+  public static PolicyTile policyTile() {
+    return new PolicyTile();
+  }
+
+  public static LabelTile labelTile() {
+    return new LabelTile();
+  }
+
+  public static LicenseThreatGroupTile licenseThreatGroupTile() {
+    return new LicenseThreatGroupTile();
   }
 
   static SelenideElement scrollContainer() {
@@ -65,14 +79,6 @@ public class OwnerSummaryPage
       return $("img");
     }
 
-    public static SelenideElement addLabelButton() {
-      return $("#add-label-button");
-    }
-
-    public static SelenideElement addLTGButton() {
-      return $("#add-ltg-button");
-    }
-
     public static SelenideElement addRoleButton() {
       return $("#add-role-button");
     }
@@ -81,36 +87,8 @@ public class OwnerSummaryPage
       return $("#add-category-button");
     }
 
-    public static SelenideElement addPolicyButton() {
-      return $("#add-policy-button");
-    }
-
-    public static SelenideElement localLabel(String labelName) {
-      return $$("#owner-pill-comp-labels  ul div.title").findBy(text(labelName));
-    }
-
     public static SelenideElement localCategory(String categoryName) {
       return $$("#owner-pill-app-categories ul div.title").findBy(text(categoryName));
-    }
-
-    public static SelenideElement localLTG(String ltgName) {
-      return localLTGs().findBy(text(ltgName));
-    }
-
-    public static ElementsCollection localLTGs() {
-      return $$("#owner-pill-ltgs .simple-list:first-child ul div.threat-group-title");
-    }
-
-    public static SelenideElement localPolicy(String policyName) {
-      return $$("#owner-pill-policy table tr").findBy(text(policyName));
-    }
-
-    public static SelenideElement monitoredStage() {
-      return $("#continuous-monitoring div");
-    }
-
-    public static SelenideElement proprietaryComponentMatchers() {
-      return $("#proprietary-component-matchers div.title");
     }
     
     public static SelenideElement localAccessRole(String roleName) {

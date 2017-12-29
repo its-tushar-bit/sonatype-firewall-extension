@@ -10,7 +10,6 @@ import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
@@ -42,7 +41,7 @@ public class ApplicationLTGEditorTest
   @Test
   public void testCreateLTG() {
     waitUntilUrl(OwnerSummaryPage.url(currentOwner));
-    SummaryTile.addLTGButton().shouldNot(exist);
+    OwnerSummaryPage.licenseThreatGroupTile().addLTGButton().shouldNot(exist);
   }
 
   @Test
@@ -52,7 +51,7 @@ public class ApplicationLTGEditorTest
 
     refresh();
 
-    SummaryTile.localLTG(ltg.getName()).click();
+    OwnerSummaryPage.licenseThreatGroupTile().localLTG(ltg.getName()).click();
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("app ltg 1"));

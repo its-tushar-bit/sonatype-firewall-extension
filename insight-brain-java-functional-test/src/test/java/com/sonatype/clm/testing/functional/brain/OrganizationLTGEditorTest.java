@@ -9,7 +9,7 @@ import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -43,7 +43,7 @@ public class OrganizationLTGEditorTest
   public void testCreateLTG() {
     String ltgName = "Test LTG";
     
-    SummaryTile.addLTGButton().click();
+    OwnerSummaryPage.licenseThreatGroupTile().addLTGButton().click();
     assertNewLTGStateIsCorrect();
     LTGEditorPage.ltgName().val("$$$"); // invalid characters
     PopoverViolations.on(LTGEditorPage.ltgName()).shouldShowInvalidCharactersError();

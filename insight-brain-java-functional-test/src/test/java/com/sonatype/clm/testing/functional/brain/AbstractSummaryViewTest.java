@@ -733,12 +733,12 @@ public abstract class AbstractSummaryViewTest
     policy.chevron().shouldBe(visible);
     policy.threadLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
     policy.name().shouldBe(visible).shouldHave(text(actualPolicy.getName()));
-    policy.proxy().shouldBe(visible).shouldHave(PolicyTile.noAction());
-    policy.develop().shouldBe(visible).shouldHave(PolicyTile.noAction());
+    policy.proxy().shouldBe(visible).shouldHave(PolicyTile.noActionText());
+    policy.develop().shouldBe(visible).shouldHave(PolicyTile.noActionText());
     policy.build().shouldBe(visible).shouldHave(text(actionTypeId));
-    policy.stageRelease().shouldBe(visible).shouldHave(PolicyTile.noAction());
-    policy.release().shouldBe(visible).shouldHave(PolicyTile.noAction());
-    policy.operate().shouldBe(visible).shouldHave(PolicyTile.noAction());
+    policy.stageRelease().shouldBe(visible).shouldHave(PolicyTile.noActionText());
+    policy.release().shouldBe(visible).shouldHave(PolicyTile.noActionText());
+    policy.operate().shouldBe(visible).shouldHave(PolicyTile.noActionText());
 
     if (actionTypeId.equals(Action.ID_WARN)) {
       policy.build().find("i").shouldHave(PolicyTileListElement.WARN_ICON).shouldHave(PolicyTileListElement.WARN)
@@ -846,7 +846,7 @@ public abstract class AbstractSummaryViewTest
     policyElement.chevron().shouldBe(visible);
     policyElement.threadLegend().shouldBe(visible).shouldHave(threatLevel(actualPolicy.getThreatLevel()));
     policyElement.name().shouldBe(visible).shouldHave(text(actualPolicy.getName()));
-    policyElement.column(2).shouldBe(visible).shouldHave(PolicyTile.noAction());
+    policyElement.column(2).shouldBe(visible).shouldHave(PolicyTile.noActionText());
     policyElement.column(3).shouldBe(visible).shouldHave(text(actualPolicy.getActions().get(Stage.ID_RELEASE)));
     policyElement.column(4).shouldHave(PolicyTileListElement.CHEVRON);
   }

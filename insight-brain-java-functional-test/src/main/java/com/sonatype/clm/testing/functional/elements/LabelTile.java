@@ -7,6 +7,10 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Selenide.$;
 
 public class LabelTile
     extends OwnerTile
@@ -23,11 +27,19 @@ public class LabelTile
     return Condition.text("available to " + ownerName + " policies");
   }
 
+  public SelenideElement addLabelButton() {
+    return $("#add-label-button");
+  }
+
   public ElementsCollection labelLists() {
     return children(".simple-list");
   }
 
   public TileSimpleList labelList(int num) {
     return new TileSimpleList(labelLists().get(num));
+  }
+
+  public SelenideElement localLabel(String labelName) {
+    return children("ul div.title").findBy(text(labelName));
   }
 }

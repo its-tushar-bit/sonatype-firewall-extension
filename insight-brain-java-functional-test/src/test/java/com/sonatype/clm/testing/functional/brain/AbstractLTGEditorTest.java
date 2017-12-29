@@ -18,7 +18,6 @@ import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -72,8 +71,8 @@ public abstract class AbstractLTGEditorTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId(), "original name", 1);
     refresh();
 
-    SummaryTile.localLTGs().shouldHaveSize(1);
-    SummaryTile.localLTG(ltg.getName()).click();
+    OwnerSummaryPage.licenseThreatGroupTile().localLTGs().shouldHaveSize(1);
+    OwnerSummaryPage.licenseThreatGroupTile().localLTG(ltg.getName()).click();
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("original name"));

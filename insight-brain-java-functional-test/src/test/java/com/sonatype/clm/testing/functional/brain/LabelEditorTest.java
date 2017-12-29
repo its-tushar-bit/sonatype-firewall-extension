@@ -12,7 +12,6 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -72,7 +71,7 @@ public class LabelEditorTest
   @Test
   public void testLabelCreate() {
     // given
-    SummaryTile.addLabelButton().click();
+    OwnerSummaryPage.labelTile().addLabelButton().click();
     assertInitialStateIsCorrect();
     testLabelCreate_testInputValidation();
     // when
@@ -95,7 +94,7 @@ public class LabelEditorTest
     // given
     Label label = tempEntity.newLabel(app.getOrganizationId(), "original name", "original description", light_green);
     refreshOrOpen(OwnerSummaryPage.url(OwnerType.ORGANIZATION, app.getOrganizationId()));
-    SummaryTile.localLabel(label.getLabel()).click();
+    OwnerSummaryPage.labelTile().localLabel(label.getLabel()).click();
     LabelEditorPage.title().shouldHave(text("Edit"));
     LabelEditorPage.labelName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("original name"));
     LabelEditorPage.description().shouldBe(visible).shouldHave(CLM.PRISTINE)

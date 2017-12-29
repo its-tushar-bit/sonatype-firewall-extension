@@ -41,6 +41,10 @@ $iq-cell-affected-apps-width: 109px;
 
   .iq-table-row {
     display: block;
+    
+    td {
+      border-top: none;
+    }
   }
 
   .iq-cell {
@@ -294,7 +298,7 @@ $iq-cell-affected-apps-width: 109px;
 
 .iq-threat-indication {
   display: inline-block;
-  height: 41px;
+  height: 43px;
   vertical-align: middle;
   width: 8px;
 }

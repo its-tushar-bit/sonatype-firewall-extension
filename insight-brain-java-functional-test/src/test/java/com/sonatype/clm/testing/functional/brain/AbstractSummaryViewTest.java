@@ -182,7 +182,7 @@ public abstract class AbstractSummaryViewTest
   public void testAccessTile_no_local_access() {
 
     int hierarchySize = getHierarchySize(currentOwner.getId());
-    AccessTile accessTile = new AccessTile();
+    AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.subHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText(currentOwner.getName()));
     accessTile.newButton().shouldBe(visible, enabled);
     accessTile.accessLists().shouldHaveSize(hierarchySize);
@@ -353,7 +353,7 @@ public abstract class AbstractSummaryViewTest
   private void testAccessTile_Local(User testUser) {
 
     int hierarchySize = getHierarchySize(currentOwner.getId());
-    AccessTile accessTile = new AccessTile();
+    AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
@@ -634,7 +634,7 @@ public abstract class AbstractSummaryViewTest
   private void testAccessTile_Inherited(User testUser, List<Owner> parentOwners) {
 
     int hierarchySize = getHierarchySize(currentOwner.getId());
-    AccessTile accessTile = new AccessTile();
+    AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile

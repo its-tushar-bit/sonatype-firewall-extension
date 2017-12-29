@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.RepositoriesAccessTile;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
@@ -139,8 +139,8 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testRepositoryTile_default() {
-    RepositoriesAccessTile accessTile = new RepositoriesAccessTile();
-    accessTile.subHeader().shouldBe(visible).shouldHave(RepositoriesAccessTile.subHeaderText("All Repositories"));
+    AccessTile accessTile = RepositoriesSummaryPage.accessTile();
+    accessTile.subHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText("All Repositories"));
     accessTile.newButton().shouldBe(visible, enabled);
     accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
 
@@ -174,7 +174,7 @@ public class RepositoriesSummaryViewTest
 
     refresh();
 
-    RepositoriesAccessTile accessTile = new RepositoriesAccessTile();
+    AccessTile accessTile = RepositoriesSummaryPage.accessTile();
     accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
 
     // scroll to the access tile
@@ -215,7 +215,7 @@ public class RepositoriesSummaryViewTest
 
     refresh();
 
-    RepositoriesAccessTile accessTile = new RepositoriesAccessTile();
+    AccessTile accessTile = RepositoriesSummaryPage.accessTile();
     accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
 
     // scroll to the access tile
@@ -229,7 +229,7 @@ public class RepositoriesSummaryViewTest
     AccessTileList inheritedList = accessTile.accessList(1);
 
     inheritedList.emptyDescriptor().shouldNotBe(visible);
-    inheritedList.ownerName().shouldBe(visible).shouldHave(RepositoriesAccessTile.inheritedText("Root Organization"));
+    inheritedList.ownerName().shouldBe(visible).shouldHave(AccessTile.inheritedText("Root Organization"));
     inheritedList.elements().shouldHaveSize(2);
 
     AccessTileListElement readOnly = inheritedList.element(0);

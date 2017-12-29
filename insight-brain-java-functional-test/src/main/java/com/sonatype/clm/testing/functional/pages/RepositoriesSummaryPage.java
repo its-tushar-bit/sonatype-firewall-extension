@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.RepositoriesAccessTile;
+import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -22,7 +22,7 @@ public class RepositoriesSummaryPage
     return new RepositoryConfigurationTile();
   }
 
-  public static RepositoriesAccessTile accessTile() {
-    return new RepositoriesAccessTile();
+  public static AccessTile accessTile() {
+    return new AccessTile("#repositories-pill-access");
   }
 }

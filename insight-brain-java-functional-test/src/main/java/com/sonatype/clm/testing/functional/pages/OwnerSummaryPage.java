@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
@@ -47,6 +48,10 @@ public class OwnerSummaryPage
     return new LicenseThreatGroupTile();
   }
 
+  public static AccessTile accessTile() {
+    return new AccessTile("#owner-pill-access");
+  }
+
   static SelenideElement scrollContainer() {
     return $(".tile-scroll-container");
   }
@@ -79,20 +84,12 @@ public class OwnerSummaryPage
       return $("img");
     }
 
-    public static SelenideElement addRoleButton() {
-      return $("#add-role-button");
-    }
-
     public static SelenideElement addCategoryButton() {
       return $("#add-category-button");
     }
 
     public static SelenideElement localCategory(String categoryName) {
       return $$("#owner-pill-app-categories ul div.title").findBy(text(categoryName));
-    }
-    
-    public static SelenideElement localAccessRole(String roleName) {
-      return $$("#owner-pill-access table td.role").findBy(text(roleName));
     }
 
     public static ErrorBox error() {

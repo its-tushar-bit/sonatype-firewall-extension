@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.insight.brain.model.security.Role;
 
@@ -22,12 +23,12 @@ public class OrganizationAccessEditorTest
   @Override
   protected void goFromSummaryToAddRole() {
     SummaryTile.accessButton().click();
-    SummaryTile.addRoleButton().click();
+    OwnerSummaryPage.accessTile().addRoleButton().click();
   }
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
     SummaryTile.accessButton().click();
-    SummaryTile.localAccessRole(role.getName()).click();
+    OwnerSummaryPage.accessTile().localAccessRole(role.getName()).click();
   }
 }

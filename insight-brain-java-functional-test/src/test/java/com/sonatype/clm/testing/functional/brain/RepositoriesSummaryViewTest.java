@@ -49,7 +49,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class RepositoriesSummaryPageTest
+public class RepositoriesSummaryViewTest
     extends AbstractFunctionalTest
 {
   private static final int HIERARCHY_SIZE = 2;

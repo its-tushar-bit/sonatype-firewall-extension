@@ -111,7 +111,7 @@ public class ConstraintSection
     }
 
     public ConditionEditSection<?> condition(int i) {
-      return new ConditionEditSection(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
+      return new ConditionEditSection<>(rootSelector, ".policy-conditions .policy-condition", nthChild(i + 1));
     }
 
     public AgeConditionEditSection ageCondition(int i) {

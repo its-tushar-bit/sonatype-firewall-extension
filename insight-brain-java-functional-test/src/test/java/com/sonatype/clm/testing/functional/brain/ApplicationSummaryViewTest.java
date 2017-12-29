@@ -254,7 +254,7 @@ public class ApplicationSummaryViewTest
   }
 
   private void testApplicationCategoryTile_noneDefined() {
-    CategoryTile categoryTile = new CategoryTileAppContext();
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
     categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
     categoryTile.newButton().shouldBe(visible).shouldHave(categoryTile.buttonText()).shouldHave(CLM.DISABLED);
 
@@ -267,7 +267,7 @@ public class ApplicationSummaryViewTest
   }
 
   private void testApplicationCategoryTile_Empty() {
-    CategoryTile categoryTile = new CategoryTileAppContext();
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
     categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
 
@@ -284,7 +284,7 @@ public class ApplicationSummaryViewTest
 
     refresh();
 
-    CategoryTile categoryTile = new CategoryTileAppContext();
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
     categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
 

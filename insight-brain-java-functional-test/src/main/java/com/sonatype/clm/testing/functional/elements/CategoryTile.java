@@ -7,6 +7,10 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Selenide.$;
 
 public abstract class CategoryTile
     extends OwnerTile
@@ -19,12 +23,20 @@ public abstract class CategoryTile
     super("#owner-pill-app-categories");
   }
 
+  public SelenideElement addCategoryButton() {
+    return $("#add-category-button");
+  }
+
   public ElementsCollection categoryLists() {
     return children(".simple-list");
   }
 
   public TileSimpleList categoryList(int num) {
     return new TileSimpleList(categoryLists().get(num));
+  }
+
+  public SelenideElement localCategory(String categoryName) {
+    return children("ul div.title").findBy(text(categoryName));
   }
 
   public abstract Condition subHeaderText(String ownerName);

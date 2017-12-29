@@ -10,12 +10,12 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
-import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrgContext;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Color;
@@ -95,7 +95,7 @@ public class OrganizationSummaryViewTest
 
   private void testApplicationCategoryTile_Empty() {
     final int hierarchySize = getHierarchySize(organization.getId());
-    CategoryTile categoryTile = new CategoryTileOrgContext();
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(organization);
     categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(organization.getName()));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
 
@@ -135,7 +135,7 @@ public class OrganizationSummaryViewTest
     refresh();
 
     final int hierarchySize = owners.size();
-    CategoryTile categoryTile = new CategoryTileOrgContext();
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(organization);
     assertThat(ownerTags.size(), equalTo(owners.size()));
     categoryTile.categoryLists().shouldHaveSize(hierarchySize);
 

@@ -6,6 +6,9 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.CategoryTile;
+import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
+import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrgContext;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
@@ -18,9 +21,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
 
 public class OwnerSummaryPage
 {
@@ -34,6 +35,14 @@ public class OwnerSummaryPage
     }
 
     return BaseUrl.uriBuilder().fragment("/management/view/{ownerType}/{ownerId}").build(ownerType, id).toString();
+  }
+
+  public static CategoryTile categoryTile(Owner owner) {
+    return categoryTile(owner.getType());
+  }
+
+  public static CategoryTile categoryTile(OwnerType ownerType) {
+    return OwnerType.ORGANIZATION.equals(ownerType) ? new CategoryTileOrgContext() : new CategoryTileAppContext();
   }
 
   public static PolicyTile policyTile() {
@@ -82,14 +91,6 @@ public class OwnerSummaryPage
 
     public static SelenideElement icon() {
       return $("img");
-    }
-
-    public static SelenideElement addCategoryButton() {
-      return $("#add-category-button");
-    }
-
-    public static SelenideElement localCategory(String categoryName) {
-      return $$("#owner-pill-app-categories ul div.title").findBy(text(categoryName));
     }
 
     public static ErrorBox error() {

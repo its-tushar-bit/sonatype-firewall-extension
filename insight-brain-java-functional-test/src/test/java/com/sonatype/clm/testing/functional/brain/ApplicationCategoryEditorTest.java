@@ -11,7 +11,6 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
-import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
@@ -70,7 +69,7 @@ public class ApplicationCategoryEditorTest
 
   @Test
   public void testCategorySave_SingleColumn() {
-    CategoryTile categoryTile = new CategoryTileAppContext();
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
 
     Tag category1 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_1", dark_blue);
     Tag category2 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_2", light_green);
@@ -115,7 +114,7 @@ public class ApplicationCategoryEditorTest
 
   @Test
   public void testCategorySave_TwoColumns() {
-    CategoryTile categoryTile = new CategoryTileAppContext();
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
     List<Tag> categories = new ArrayList<>();
 
     for (int i = 0; i < 10; i++) {

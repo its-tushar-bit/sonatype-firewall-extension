@@ -14,7 +14,6 @@ import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage.DeleteErrorModal;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -71,7 +70,7 @@ public class CategoryEditorTest
 
   @Test
   public void testCreateCategory() {
-    SummaryTile.addCategoryButton().click();
+    OwnerSummaryPage.categoryTile(org).addCategoryButton().click();
     assertInitialStateIsCorrect();
     CategoryEditorPage.categoryName().val("$$$"); // invalid characters
     PopoverViolations.on(CategoryEditorPage.categoryName()).shouldShowInvalidCharactersError();
@@ -105,7 +104,7 @@ public class CategoryEditorTest
 
   @Test
   public void testEditCategory() {
-    SummaryTile.localCategory(category.getName()).click();
+    OwnerSummaryPage.categoryTile(org).localCategory(category.getName()).click();
     CategoryEditorPage.title().shouldHave(text("Edit"));
     CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(CLM.PRISTINE)
         .shouldHave(value("original name"));

@@ -19,7 +19,6 @@ import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileLis
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
-import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrgContext;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
@@ -798,8 +797,7 @@ public abstract class AbstractSummaryViewTest
 
     // scroll to the application categories tile
     OwnerSummaryPage.SummaryTile.appCategoriesButton().shouldBe(visible).click();
-    CategoryTile categoryTile = OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? new CategoryTileOrgContext()
-        : new CategoryTileAppContext();
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(currentOwner);
     TileSimpleList categoryList = categoryTile.categoryList(0);
     categoryList.elements().shouldBe(empty);
     categoryList

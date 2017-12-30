@@ -83,7 +83,7 @@ public class ApplicationAccessEditorTest
     AccessEditorPage.addGroupBox().shouldBe(visible).val("FooBar");
     addGroupButton.shouldBe(enabled).click();
 
-    DoubleColumnPicker picker = new DoubleColumnPicker();
+    DoubleColumnPicker picker = AccessEditorPage.picker();
     picker.availableItems().shouldHave(texts("FooBar"));
     picker.checkAllLeft().click();
     picker.pickCheckedItemsButton().click();

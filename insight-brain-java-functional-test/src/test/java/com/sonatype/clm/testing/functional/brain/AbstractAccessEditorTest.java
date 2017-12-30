@@ -98,7 +98,7 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.searchBox().val("*");
     AccessEditorPage.searchButton().shouldBe(enabled).click();
 
-    DoubleColumnPicker picker = new DoubleColumnPicker();
+    DoubleColumnPicker picker = AccessEditorPage.picker();
     picker.availableItems().shouldHaveSize(4);
 
     Item availableItem = picker.availableItem(0);
@@ -131,7 +131,7 @@ public abstract class AbstractAccessEditorTest
     OwnerDetailTreeView.accessGroup().item(1).shouldBe(CLM.SELECTED);
     AccessEditorPage.title().shouldHave(text(role.getName()));
 
-    DoubleColumnPicker picker = new DoubleColumnPicker();
+    DoubleColumnPicker picker = AccessEditorPage.picker();
     assertCommonInitialStateIsCorrect(picker);
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(picker, 0, 2, false);
     AccessEditorPage.removeRoleButton().shouldBe(visible);
@@ -167,7 +167,7 @@ public abstract class AbstractAccessEditorTest
     refreshOrOpen(
         AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
 
-    DoubleColumnPicker picker = new DoubleColumnPicker();
+    DoubleColumnPicker picker = AccessEditorPage.picker();
     picker.pickedItems().shouldHaveSize(1);
 
     AccessEditorPage.title().hover(); // hide the tooltip
@@ -257,9 +257,9 @@ public abstract class AbstractAccessEditorTest
     OwnerDetailTreeView.accessGroup().item(0).shouldBe(CLM.SELECTED);
     AccessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);
     AccessEditorPage.roleDropdown().listItems().shouldHaveSize(numAvailableRoles);
-    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(new DoubleColumnPicker(), 0, false);
+    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(AccessEditorPage.picker(), 0, false);
     AccessEditorPage.removeRoleButton().shouldNotBe(visible);
-    assertCommonInitialStateIsCorrect(new DoubleColumnPicker());
+    assertCommonInitialStateIsCorrect(AccessEditorPage.picker());
   }
 
   private void assertCommonInitialStateIsCorrect(DoubleColumnPicker picker) {

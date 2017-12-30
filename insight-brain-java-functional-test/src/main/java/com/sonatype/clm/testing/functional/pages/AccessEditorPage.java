@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -48,6 +49,10 @@ public class AccessEditorPage
 
   public static Dropdown roleDropdown() {
     return new Dropdown(ACCESS_EDITOR_ID, "dropdown-selector");
+  }
+
+  public static DoubleColumnPicker picker() {
+    return new DoubleColumnPicker();
   }
 
   public static SelenideElement saveButton() {

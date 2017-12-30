@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.OwnerType;
 
@@ -31,6 +32,10 @@ public class LTGEditorPage
 
   public static SelenideElement ltgName() {
     return $("#editor-ltg-name");
+  }
+
+  public static DoubleColumnPicker picker() {
+    return new DoubleColumnPicker();
   }
 
   public static SelenideElement saveButton() {

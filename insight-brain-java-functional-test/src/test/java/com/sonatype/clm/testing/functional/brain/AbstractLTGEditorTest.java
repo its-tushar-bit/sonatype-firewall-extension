@@ -78,7 +78,7 @@ public abstract class AbstractLTGEditorTest
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);
 
-    DoubleColumnPicker picker = new DoubleColumnPicker();
+    DoubleColumnPicker picker = LTGEditorPage.picker();
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(picker, licenseDAO.getAll().size());
     LTGEditorPage.saveButton().shouldHave(DISABLED);
 

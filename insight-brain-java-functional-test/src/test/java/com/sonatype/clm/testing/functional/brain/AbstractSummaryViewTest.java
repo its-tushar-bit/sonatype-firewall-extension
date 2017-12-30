@@ -153,7 +153,7 @@ public abstract class AbstractSummaryViewTest
   public void testLabelTile_no_labels() {
     int hierarchySize = getHierarchySize(currentOwner.getId());
 
-    LabelTile labelTile = new LabelTile();
+    LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(currentOwner.getName()));
     labelTile.newButton().shouldBe(visible, enabled);
 
@@ -206,7 +206,7 @@ public abstract class AbstractSummaryViewTest
   private void testPolicyTile_no_policies() {
     int hierarchySize = getHierarchySize(currentOwner.getId());
 
-    PolicyTile policyTile = new PolicyTile();
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.subHeader().shouldBe(visible).shouldHave(PolicyTile.subHeaderText(currentOwner.getName()));
     policyTile.newButton().shouldBe(visible, enabled);
 
@@ -264,7 +264,7 @@ public abstract class AbstractSummaryViewTest
   private void testLabelTile_Local(List<Label> localLabels) {
 
     int hierarchySize = getHierarchySize(currentOwner.getId());
-    LabelTile labelTile = new LabelTile();
+    LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
@@ -304,7 +304,7 @@ public abstract class AbstractSummaryViewTest
   private void testLTGTile_Local(List<LicenseThreatGroup> locaLTGs) {
     int hierarchySize = getHierarchySize(currentOwner.getId());
 
-    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
 
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
@@ -388,7 +388,7 @@ public abstract class AbstractSummaryViewTest
   private void testPolicyTile_Local(List<Policy> localPolicies) {
 
     int hierarchySize = getHierarchySize(currentOwner.getId());
-    PolicyTile policyTile = new PolicyTile();
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
     // scroll to the policy tile
@@ -495,7 +495,7 @@ public abstract class AbstractSummaryViewTest
 
   private void testLabelTile_Inherited(List<List<Label>> inheritedLabels, List<Owner> parentOwners) {
     final int hierarchySize = parentOwners.size() + 1;
-    LabelTile labelTile = new LabelTile();
+    LabelTile labelTile = OwnerSummaryPage.labelTile();
     assertThat(inheritedLabels.size(), equalTo(parentOwners.size()));
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
@@ -585,7 +585,7 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testLTGTile_Inherited(List<List<LicenseThreatGroup>> inheritedLTGs, List<Owner> parentOwners) {
-    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
 
     // scroll to the ltgs
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
@@ -668,7 +668,7 @@ public abstract class AbstractSummaryViewTest
 
   private void testPolicyTile_Inherited(List<List<Policy>> inheritedPolicies, List<Owner> parentOwners) {
     int hierarchySize = parentOwners.size() + 1;
-    PolicyTile policyTile = new PolicyTile();
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
     assertThat(inheritedPolicies.size(), equalTo(parentOwners.size()));
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
@@ -767,7 +767,7 @@ public abstract class AbstractSummaryViewTest
 
     // scroll to the labels tile
     OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
-    LabelTile labelTile = new LabelTile();
+    LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.labelList(0);
     TileSimpleList list = labelTile.labelList(0);
     list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
@@ -777,7 +777,7 @@ public abstract class AbstractSummaryViewTest
 
     // scroll to the ltgs
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
-    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ThreatGroupTileSimpleList threatGroupTileSimpleList = ltgTile.ltgList(0);
     threatGroupTileSimpleList.emptyDescriptor().shouldNot(exist);
     threatGroupTileSimpleList.elements().shouldHaveSize(1);
@@ -785,7 +785,7 @@ public abstract class AbstractSummaryViewTest
 
     // scroll to the policy tile
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
-    PolicyTile policyTile = new PolicyTile();
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
     PolicyTileList policyList = policyTile.policyList(0);
     policyList.emptyDescriptor().shouldNotBe(visible);
     policyList.rows().shouldHaveSize(2); // 1 row plus header
@@ -811,7 +811,7 @@ public abstract class AbstractSummaryViewTest
     clmLicenseManager.installLicense(null);
     
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    PolicyTile policyTile = new PolicyTile();
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
 
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
 

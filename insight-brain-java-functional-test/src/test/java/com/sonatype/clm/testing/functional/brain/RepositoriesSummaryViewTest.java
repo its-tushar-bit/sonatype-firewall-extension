@@ -81,7 +81,7 @@ public class RepositoriesSummaryViewTest
   }
 
   private void repositorySummaryViewTest_configurationTile() {
-    RepositoryConfigurationTile configurationTile = new RepositoryConfigurationTile();
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     ConfigurationTable configurationTable = configurationTile.configurationTable();
 
     configurationTile.emptyDescriptor().shouldBe(visible).shouldHave(EMPTY_LIST_TEXT);
@@ -93,7 +93,7 @@ public class RepositoriesSummaryViewTest
 
     refresh();
 
-    configurationTile = new RepositoryConfigurationTile();
+    configurationTile = RepositoriesSummaryPage.configTile();
     configurationTable = configurationTile.configurationTable();
     configurationTable.rows().shouldHaveSize(3); // 2 repository rows and header
     configurationTile.emptyDescriptor().shouldNotBe(visible);

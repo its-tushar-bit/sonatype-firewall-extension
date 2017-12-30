@@ -58,7 +58,7 @@ public class OrganizationSummaryViewTest
   public void testLTGTile_NoLocal() {
     int hierarchySize = getHierarchySize(organization.getId());
 
-    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(organization.getName()));
     ltgTile.newButton().shouldBe(visible, enabled);
 

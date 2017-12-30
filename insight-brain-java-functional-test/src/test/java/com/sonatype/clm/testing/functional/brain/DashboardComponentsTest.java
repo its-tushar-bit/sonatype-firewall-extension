@@ -9,11 +9,11 @@ import java.util.Arrays;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.DashboardComponentDetails;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -137,22 +137,22 @@ public class DashboardComponentsTest
             "rgba(247, 251, 255, 1)", "rgba(203, 220, 234, 1)"));
 
     // open component details and back
-    DashboardComponentDetails dashboardComponentDetails = new DashboardComponentDetails();
+    DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
     table.firstComponent().click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
-    dashboardComponentDetails.header().shouldHave(text("Group4 : Artifact4 : Version4"));
+    dashboardComponentDetailsPage.header().shouldHave(text("Group4 : Artifact4 : Version4"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     table.component(1).click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
-    dashboardComponentDetails.header().shouldHave(text("Group3 : Artifact3 : Version3"));
+    dashboardComponentDetailsPage.header().shouldHave(text("Group3 : Artifact3 : Version3"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     table.lastComponent().click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
-    dashboardComponentDetails.header().shouldHave(text("Group1 : Artifact1 : Version1"));
+    dashboardComponentDetailsPage.header().shouldHave(text("Group1 : Artifact1 : Version1"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
@@ -302,10 +302,10 @@ public class DashboardComponentsTest
 
     table.firstComponent().click();
 
-    DashboardComponentDetails dashboardComponentDetails = new DashboardComponentDetails();
+    DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
 
-    dashboardComponentDetails.breadCrumb().shouldHave(text("Dashboard/ Component Details"));
-    dashboardComponentDetails.breadCrumbLink().shouldHave(text("Dashboard")).click();
+    dashboardComponentDetailsPage.breadCrumb().shouldHave(text("Dashboard/ Component Details"));
+    dashboardComponentDetailsPage.breadCrumbLink().shouldHave(text("Dashboard")).click();
     DashboardPage.componentsView().results().shouldBe(visible);
   }
 

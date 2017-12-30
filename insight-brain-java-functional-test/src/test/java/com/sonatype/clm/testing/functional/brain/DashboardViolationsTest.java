@@ -19,13 +19,13 @@ import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.DashboardComponentDetails;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
+import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -215,11 +215,11 @@ public class DashboardViolationsTest
     waitUntilUrl(DashboardPage.VIOLATIONS_URL);
 
     // open component details and back
-    DashboardComponentDetails dashboardComponentDetails = new DashboardComponentDetails();
+    DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
     firstViolation.component().click(5, 5);
-    waitUntilUrl(DashboardComponentDetails.url("g1a1v1"));
+    waitUntilUrl(DashboardComponentDetailsPage.url("g1a1v1"));
     DashboardPage.dashboardContainer().shouldNotBe(visible);
-    dashboardComponentDetails.header().shouldHave(text("g1 : a1 : v1"));
+    dashboardComponentDetailsPage.header().shouldHave(text("g1 : a1 : v1"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 

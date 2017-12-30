@@ -3,33 +3,32 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.clm.testing.functional.elements;
+package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class DashboardComponentDetails
-    extends BasicElement<DashboardComponentDetails>
+import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+
+public class DashboardComponentDetailsPage
 {
   public static String url(String hash) {
     return BaseUrl.uriBuilder().fragment("/dashboard/component/{hash}").build(hash).toString();
   }
 
-  public DashboardComponentDetails() {
-    super(".component-container");
-  }
+  private static final String ROOT = ".component-container";
 
   public SelenideElement header() {
-    return child("h2");
+    return $("#component-name");
   }
 
   public SelenideElement breadCrumb() {
-    return child(" [breadcrumb]");
+    return $(createSelector(ROOT, " [breadcrumb]"));
   }
 
   public SelenideElement breadCrumbLink() {
-    return child(" [breadcrumb] a");
+    return $(createSelector(ROOT, " [breadcrumb] a"));
   }
 }

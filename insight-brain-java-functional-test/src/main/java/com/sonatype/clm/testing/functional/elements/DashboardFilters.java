@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
@@ -19,7 +18,8 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class DashboardFilters extends BasicElement<DashboardFilters>
+public class DashboardFilters
+    extends BasicElement<DashboardFilters>
 {
 
   public static final Condition ACTIVE = cssClass("iq-counter--active");
@@ -210,13 +210,14 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     public SelenideElement continueButton() {
       return child(".iq-modal-footer", ".btn-primary");
     }
-    
+
     public SelenideElement cancelButton() {
       return child(".btn:not(.btn-primary)[type='button']");
     }
   }
 
-  public static class DashboardFilter extends BasicElement<DashboardFilter>
+  public static class DashboardFilter
+      extends BasicElement<DashboardFilter>
   {
 
     public DashboardFilter(final String selector) {
@@ -272,7 +273,9 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
   }
 
-  public static class PolicyTypeFilter extends DashboardFilter {
+  public static class PolicyTypeFilter
+      extends DashboardFilter
+  {
 
     public PolicyTypeFilter(final String selector) {
       super(selector);
@@ -312,7 +315,9 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
   }
 
-  public static class PolicyThreatLevelFilter extends DashboardFilter {
+  public static class PolicyThreatLevelFilter
+      extends DashboardFilter
+  {
 
     public PolicyThreatLevelFilter(final String selector) {
       super(selector);
@@ -323,7 +328,9 @@ public class DashboardFilters extends BasicElement<DashboardFilters>
     }
   }
 
-  public static class StageFilter extends DashboardFilter {
+  public static class StageFilter
+      extends DashboardFilter
+  {
 
     public StageFilter(final String selector) {
       super(selector);

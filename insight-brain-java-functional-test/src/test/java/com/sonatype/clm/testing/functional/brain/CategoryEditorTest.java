@@ -70,7 +70,7 @@ public class CategoryEditorTest
 
   @Test
   public void testCreateCategory() {
-    OwnerSummaryPage.categoryTile(org).addCategoryButton().click();
+    OwnerSummaryPage.categoryTile().addCategoryButton().click();
     assertInitialStateIsCorrect();
     CategoryEditorPage.categoryName().val("$$$"); // invalid characters
     PopoverViolations.on(CategoryEditorPage.categoryName()).shouldShowInvalidCharactersError();
@@ -104,7 +104,7 @@ public class CategoryEditorTest
 
   @Test
   public void testEditCategory() {
-    OwnerSummaryPage.categoryTile(org).localCategory(category.getName()).click();
+    OwnerSummaryPage.categoryTile().localCategory(category.getName()).click();
     CategoryEditorPage.title().shouldHave(text("Edit"));
     CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(CLM.PRISTINE)
         .shouldHave(value("original name"));

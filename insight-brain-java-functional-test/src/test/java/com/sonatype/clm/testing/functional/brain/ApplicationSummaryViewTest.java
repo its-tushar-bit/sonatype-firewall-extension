@@ -13,7 +13,6 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
-import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
 import com.sonatype.clm.testing.functional.elements.ChangeApplicationIdDialog;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
@@ -254,28 +253,28 @@ public class ApplicationSummaryViewTest
   }
 
   private void testApplicationCategoryTile_noneDefined() {
-    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
-    categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
-    categoryTile.newButton().shouldBe(visible).shouldHave(categoryTile.buttonText()).shouldHave(CLM.DISABLED);
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
+    categoryTile.newButton().shouldBe(visible).shouldHave(CategoryTile.buttonText(application), CLM.DISABLED);
 
     categoryTile.categoryLists().shouldHaveSize(1);
 
     TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
 
-    appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTileAppContext.NO_CATEGORIES_DEFINED);
+    appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
     appliedCategoryList.elements().shouldBe(empty);
   }
 
   private void testApplicationCategoryTile_Empty() {
-    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
-    categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
-    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
+    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(application));
 
     categoryTile.categoryLists().shouldHaveSize(1);
 
     TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
 
-    appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(categoryTile.emptyListDescriptorText());
+    appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneAssignedText());
     appliedCategoryList.elements().shouldBe(empty);
   }
 
@@ -284,9 +283,9 @@ public class ApplicationSummaryViewTest
 
     refresh();
 
-    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
-    categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
-    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
+    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(application));
 
     categoryTile.categoryLists().shouldHaveSize(1);
 

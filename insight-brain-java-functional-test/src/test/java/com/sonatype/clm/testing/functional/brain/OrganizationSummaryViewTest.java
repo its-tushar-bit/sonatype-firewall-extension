@@ -95,9 +95,9 @@ public class OrganizationSummaryViewTest
 
   private void testApplicationCategoryTile_Empty() {
     final int hierarchySize = getHierarchySize(organization.getId());
-    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(organization);
-    categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(organization.getName()));
-    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(organization));
+    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(organization));
 
     categoryTile.categoryLists().shouldHaveSize(hierarchySize);
 
@@ -107,7 +107,7 @@ public class OrganizationSummaryViewTest
 
       if (i == 0) {
         list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
-        list.emptyDescriptor().shouldBe(visible).shouldHave(categoryTile.emptyListDescriptorText());
+        list.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
       }
       else {
         list.subsectionHeader().shouldNot(exist);
@@ -135,7 +135,7 @@ public class OrganizationSummaryViewTest
     refresh();
 
     final int hierarchySize = owners.size();
-    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(organization);
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
     assertThat(ownerTags.size(), equalTo(owners.size()));
     categoryTile.categoryLists().shouldHaveSize(hierarchySize);
 

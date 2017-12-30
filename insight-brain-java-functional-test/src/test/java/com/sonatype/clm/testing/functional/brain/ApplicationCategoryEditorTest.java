@@ -69,7 +69,7 @@ public class ApplicationCategoryEditorTest
 
   @Test
   public void testCategorySave_SingleColumn() {
-    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
 
     Tag category1 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_1", dark_blue);
     Tag category2 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_2", light_green);
@@ -114,7 +114,7 @@ public class ApplicationCategoryEditorTest
 
   @Test
   public void testCategorySave_TwoColumns() {
-    CategoryTile categoryTile = OwnerSummaryPage.categoryTile(application);
+    CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
     List<Tag> categories = new ArrayList<>();
 
     for (int i = 0; i < 10; i++) {

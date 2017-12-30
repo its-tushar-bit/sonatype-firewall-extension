@@ -7,8 +7,6 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
-import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
-import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrgContext;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
@@ -35,12 +33,8 @@ public class OwnerSummaryPage
     return new OwnerSummaryTile();
   }
 
-  public static CategoryTile categoryTile(Owner owner) {
-    return categoryTile(owner.getType());
-  }
-
-  public static CategoryTile categoryTile(OwnerType ownerType) {
-    return OwnerType.ORGANIZATION.equals(ownerType) ? new CategoryTileOrgContext() : new CategoryTileAppContext();
+  public static CategoryTile categoryTile() {
+    return new CategoryTile();
   }
 
   public static PolicyTile policyTile() {

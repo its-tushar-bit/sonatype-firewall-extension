@@ -83,7 +83,7 @@ public class ApplicationSummaryViewTest
   @Test
   public void testApplicationContact() {
     User tempUser = tempEntity.newUser();
-    OwnerSummaryPage.SummaryTile.contact().shouldNotHave(text(tempUser.calculateDisplayName()));
+    OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
     // open and close the contact modal
     ActionDropDown.actionButton().click();
     ActionDropDown.selectContact().shouldBe(visible).click();
@@ -93,7 +93,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.searchButton().shouldBe(disabled);
     SelectContactModal.cancelButton().shouldBe(visible).click();
     SelectContactModal.body().shouldNotBe(visible);
-    OwnerSummaryPage.SummaryTile.contact().shouldNotHave(text(tempUser.calculateDisplayName()));
+    OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
     // wildcard search returns all users
     ActionDropDown.actionButton().click();
     ActionDropDown.selectContact().click();
@@ -109,7 +109,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldNotBe(visible);
-    OwnerSummaryPage.SummaryTile.contact().shouldHave(text(tempUser.calculateDisplayName()));
+    OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
     // attempt removal but cancel out of confirmation dialog
     ActionDropDown.actionButton().click();
     ActionDropDown.selectContact().shouldBe(visible).click();
@@ -129,13 +129,13 @@ public class ApplicationSummaryViewTest
     FormMask.seeAndWaitForDismissal();
     RemoveModal.body().shouldNotBe(visible);
     SelectContactModal.body().shouldNotBe(visible);
-    OwnerSummaryPage.SummaryTile.contact().shouldNotHave(text(tempUser.calculateDisplayName()));
+    OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
   }
 
   @Test
   public void testApplicationContact_withEditApplicationName() {
     User tempUser = tempEntity.newUser();
-    OwnerSummaryPage.SummaryTile.name().shouldHave(text(YE_OLE_APPLICATION));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(YE_OLE_APPLICATION));
 
     // open the contact modal
     ActionDropDown.actionButton().click();
@@ -148,7 +148,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldNotBe(visible);
-    OwnerSummaryPage.SummaryTile.contact().shouldHave(text(tempUser.calculateDisplayName()));
+    OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
 
     // edit the application name
     String shortTypeName = "App";
@@ -161,8 +161,8 @@ public class ApplicationSummaryViewTest
     OwnerEditorDialog.name().val(newAppName);
     OwnerEditorDialog.saveButton().shouldNotBe(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    OwnerSummaryPage.SummaryTile.name().shouldHave(text(newAppName));
-    OwnerSummaryPage.SummaryTile.contact().shouldBe(visible).shouldHave(text(tempUser.calculateDisplayName()));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(newAppName));
+    OwnerSummaryPage.summaryTile().contact().shouldBe(visible).shouldHave(text(tempUser.calculateDisplayName()));
   }
 
   @Override
@@ -339,7 +339,7 @@ public class ApplicationSummaryViewTest
     FormMask.seeAndWaitForDismissal();
     changeApplicationIdDialog.shouldNotBe(visible);
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
-    OwnerSummaryPage.SummaryTile.publicId().shouldHave(text("newAppId"));
+    OwnerSummaryPage.summaryTile().publicId().shouldHave(text("newAppId"));
     // check that sidebar app link is updated
     OwnerTreeView.organization(0).treeViewElement().click();
     waitUntilNotUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));

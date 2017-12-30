@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.elements;
+
+import com.sonatype.clm.testing.functional.BasicElement;
+
+import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Selenide.$;
+
+public class OwnerSummaryTile
+    extends BasicElement<OwnerSummaryTile>
+{
+  public OwnerSummaryTile() {
+    super("#owner-summary");
+  }
+
+  public SelenideElement name() {
+    return child(".iq-tile-header");
+  }
+
+  public SelenideElement publicId() {
+    return child(".iq-tile-header__description");
+  }
+
+  public SelenideElement headerIcon() {
+    return child(".iq-tile-header__icon", "img");
+  }
+
+  public SelenideElement contact() {
+    return child(".iq-tile-header__subtitle");
+  }
+
+  public ErrorBox error() {
+    return new ErrorBox(selector, ".iq-alert.iq-alert--error");
+  }
+
+  private SelenideElement scrollContainer() {
+    return $(".tile-scroll-container");
+  }
+
+  public PillButton appCategoriesButton() {
+    return new PillButton(scrollContainer(), "#owner-app-categories-button");
+  }
+
+  public PillButton policyButton() {
+    return new PillButton(scrollContainer(), "#owner-policy-button");
+  }
+
+  public PillButton labelsButton() {
+    return new PillButton(scrollContainer(), "#owner-comp-labels-button");
+  }
+
+  public PillButton ltgsButton() {
+    return new PillButton(scrollContainer(), "#owner-ltgs-button");
+  }
+
+  public PillButton accessButton() {
+    return new PillButton(scrollContainer(), "#owner-access-button");
+  }
+}

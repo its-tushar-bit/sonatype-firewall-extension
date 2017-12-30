@@ -154,7 +154,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.saveButton().click();
     OwnerEditorDialog.root().should(disappear);
 
-    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
 
     // check backend
     Application app = appDAO.getByPublicId(APP_PUBLIC_ID);
@@ -202,10 +202,10 @@ public class CreateOwnerTest
     assertEquals(NAME, app.getName());
 
     // validate the selected image is displayed
-    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
-    assertImage(OwnerSummaryPage.SummaryTile.headerIcon());
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
     orgNode.applicationElements().shouldHaveSize(1).get(0).shouldHave(text(NAME));
-    String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
     BufferedImage displayedImage = fetchImage(summaryTileHeaderIconSrc);
 
     // validate image saved is the same as image that was selected and displayed
@@ -239,9 +239,9 @@ public class CreateOwnerTest
     assertNotNull(app);
 
     // validate the selected image is displayed
-    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
-    assertImage(OwnerSummaryPage.SummaryTile.headerIcon());
-    String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
     BufferedImage displayedImage = fetchImage(summaryTileHeaderIconSrc);
 
     // validate image saved is the same as image that was selected and displayed
@@ -277,9 +277,9 @@ public class CreateOwnerTest
     OwnerEditorDialog.root().should(disappear);
 
     // check frontend
-    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
-    assertImage(OwnerSummaryPage.SummaryTile.headerIcon());
-    String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
     BufferedImage displayedImage = fetchImage(summaryTileHeaderIconSrc);
 
     // validate image persisted and displayed is same as image that was selected
@@ -313,9 +313,9 @@ public class CreateOwnerTest
     assertNotNull(org);
 
     // check frontend
-    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
-    assertImage(OwnerSummaryPage.SummaryTile.headerIcon());
-    String summaryTileHeaderIconSrc = OwnerSummaryPage.SummaryTile.headerIcon().attr("src");
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
     BufferedImage displayedImage = fetchImage(summaryTileHeaderIconSrc);
 
     // validate image persisted is same as image that was selected
@@ -359,7 +359,7 @@ public class CreateOwnerTest
     Organization org = organizationDAO.getByName(NAME);
     assertNotNull(org);
 
-    OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
 
     OwnerTreeView.organizationElements().shouldHaveSize(2);
     OwnerTreeView.organizationElements().findBy(text(NAME));

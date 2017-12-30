@@ -13,7 +13,6 @@ import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
@@ -47,13 +46,13 @@ public class ApplicationAccessEditorTest
 
   @Override
   protected void goFromSummaryToAddRole() {
-    SummaryTile.accessButton().click();
+    OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().addRoleButton().click();
   }
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
-    SummaryTile.accessButton().click();
+    OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().localAccessRole(role.getName()).click();
   }
 

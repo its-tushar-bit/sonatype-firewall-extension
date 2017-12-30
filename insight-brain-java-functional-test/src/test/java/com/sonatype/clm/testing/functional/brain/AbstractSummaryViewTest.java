@@ -99,19 +99,19 @@ public abstract class AbstractSummaryViewTest
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    OwnerSummaryPage.SummaryTile.name().shouldHave(text(currentOwner.getName()));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
   }
 
   @Test
   public void testSummaryTile() {
-    OwnerSummaryPage.SummaryTile.name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
-    OwnerSummaryPage.SummaryTile.icon().shouldBe(visible);
+    OwnerSummaryPage.summaryTile().name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
+    OwnerSummaryPage.summaryTile().headerIcon().shouldBe(visible);
 
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
-      OwnerSummaryPage.SummaryTile.publicId().shouldBe(visible).shouldHave(text(currentOwner.getPublicId()));
+      OwnerSummaryPage.summaryTile().publicId().shouldBe(visible).shouldHave(text(currentOwner.getPublicId()));
     }
     else {
-      OwnerSummaryPage.SummaryTile.publicId().shouldNotBe(visible);
+      OwnerSummaryPage.summaryTile().publicId().shouldNotBe(visible);
     }
   }
 
@@ -119,7 +119,7 @@ public abstract class AbstractSummaryViewTest
   public void testSummaryTile_missing() {
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType(), "fakeid"));
 
-    ErrorBox error = OwnerSummaryPage.SummaryTile.error();
+    ErrorBox error = OwnerSummaryPage.summaryTile().error();
     error.shouldBe(visible);
     error.shouldHave(text("Could not find an " + currentOwner.getType().toString()));
     error.retryButton().shouldBe(visible, enabled);
@@ -161,7 +161,7 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
-    OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = labelTile.labelList(i);
@@ -187,7 +187,7 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
@@ -269,7 +269,7 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
-    OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = labelTile.labelList(i);
@@ -316,7 +316,7 @@ public abstract class AbstractSummaryViewTest
     }
 
     // scroll to the ltgs
-    OwnerSummaryPage.SummaryTile.ltgsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
@@ -356,7 +356,7 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
@@ -393,7 +393,7 @@ public abstract class AbstractSummaryViewTest
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
     // scroll to the policy tile
-    OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       PolicyTileList list = policyTile.policyList(i);
@@ -501,7 +501,7 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
-    OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = labelTile.labelList(i);
@@ -557,7 +557,7 @@ public abstract class AbstractSummaryViewTest
 
     currentOwner = new OwnerDAO().getById(currentOwner.getId());
 
-    OwnerSummaryPage.SummaryTile.name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
+    OwnerSummaryPage.summaryTile().name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
     assertThat(currentOwner, is(not(nullValue())));
 
     ActionDropDown.actionButton().click();
@@ -577,10 +577,10 @@ public abstract class AbstractSummaryViewTest
     assertThat(currentOwner, is(nullValue()));
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(parentOwners.size() - 1).getId())) {
-      OwnerSummaryPage.SummaryTile.name().shouldBe(visible).shouldNotHave(text(ownerName));
+      OwnerSummaryPage.summaryTile().name().shouldBe(visible).shouldNotHave(text(ownerName));
     }
     else {
-      OwnerSummaryPage.SummaryTile.name().shouldBe(visible)
+      OwnerSummaryPage.summaryTile().name().shouldBe(visible)
           .shouldNotHave(text(parentOwners.get(parentOwners.size() - 1).getName()));
     }
   }
@@ -589,7 +589,7 @@ public abstract class AbstractSummaryViewTest
     LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
 
     // scroll to the ltgs
-    OwnerSummaryPage.SummaryTile.ltgsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
 
     final int hierarchyCount = ltgTile.ltgLists().size();
     for (int i = 0; i < hierarchyCount; i++) {
@@ -637,7 +637,7 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
@@ -674,7 +674,7 @@ public abstract class AbstractSummaryViewTest
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
     // scroll to the policy tile
-    OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       PolicyTileList list = policyTile.policyList(i);
@@ -767,7 +767,7 @@ public abstract class AbstractSummaryViewTest
     FormMask.seeAndWaitForDismissal();
 
     // scroll to the labels tile
-    OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
     LabelTile labelTile = new LabelTile();
     labelTile.labelList(0);
     TileSimpleList list = labelTile.labelList(0);
@@ -777,7 +777,7 @@ public abstract class AbstractSummaryViewTest
     actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
 
     // scroll to the ltgs
-    OwnerSummaryPage.SummaryTile.ltgsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
     LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
     ThreatGroupTileSimpleList threatGroupTileSimpleList = ltgTile.ltgList(0);
     threatGroupTileSimpleList.emptyDescriptor().shouldNot(exist);
@@ -785,7 +785,7 @@ public abstract class AbstractSummaryViewTest
     threatGroupTileSimpleList.element(0).name().shouldBe(visible).shouldHave(text("Test LTG"));
 
     // scroll to the policy tile
-    OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
     PolicyTile policyTile = new PolicyTile();
     PolicyTileList policyList = policyTile.policyList(0);
     policyList.emptyDescriptor().shouldNotBe(visible);
@@ -796,7 +796,7 @@ public abstract class AbstractSummaryViewTest
     policyElement.proxy().shouldBe(visible).shouldHave(text("warn"));
 
     // scroll to the application categories tile
-    OwnerSummaryPage.SummaryTile.appCategoriesButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().appCategoriesButton().shouldBe(visible).click();
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile(currentOwner);
     TileSimpleList categoryList = categoryTile.categoryList(0);
     categoryList.elements().shouldBe(empty);
@@ -819,7 +819,7 @@ public abstract class AbstractSummaryViewTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     PolicyTile policyTile = new PolicyTile();
 
-    OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
 
     PolicyTileList list = policyTile.policyList(0);
 

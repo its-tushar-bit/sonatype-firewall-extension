@@ -64,7 +64,7 @@ public class MoveApplicationTest
         YE_OLE_ORGANIZATION);
 
     refreshOrOpen(OwnerSummaryPage.url(application));
-    OwnerSummaryPage.SummaryTile.name().shouldHave(text(application.getName()));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
   }
 
   @Test

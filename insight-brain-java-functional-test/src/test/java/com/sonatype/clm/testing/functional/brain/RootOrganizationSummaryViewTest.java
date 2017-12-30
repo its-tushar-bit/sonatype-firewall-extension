@@ -32,7 +32,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
   public void init() {
     Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
     refreshOrOpen(OwnerSummaryPage.url(rootOrg));
-    OwnerSummaryPage.SummaryTile.name().shouldHave(text(rootOrg.getName()));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(rootOrg.getName()));
   }
 
   @Test

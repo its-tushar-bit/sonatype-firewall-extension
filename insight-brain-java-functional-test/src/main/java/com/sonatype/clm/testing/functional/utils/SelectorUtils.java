@@ -13,8 +13,11 @@ public class SelectorUtils
 
   // pseudo-classes are assumed to apply to the previous class
   public static String createSelector(String... selectors) {
-    StringBuilder sb = new StringBuilder();
+    if (selectors.length == 1) {
+      return selectors[0];
+    }
 
+    StringBuilder sb = new StringBuilder();
     for (String selector : selectors) {
       if (sb.length() > 0 && !(selector.startsWith(":") || selector.startsWith("[") || sb.charAt(sb.length() - 1) == '.')) {
         sb.append(' ');

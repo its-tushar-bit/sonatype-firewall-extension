@@ -22,12 +22,7 @@ public abstract class BasicElement<T extends BasicElement<T>>
   private SelenideElement element;
 
   protected BasicElement(String... selectors) {
-    if (selectors.length == 1) {
-      this.selector = selectors[0];
-    }
-    else {
-      this.selector = createSelector(selectors);
-    }
+    selector = createSelector(selectors);
   }
 
   public SelenideElement parent() {

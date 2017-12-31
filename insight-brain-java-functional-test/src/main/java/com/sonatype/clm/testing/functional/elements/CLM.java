@@ -15,8 +15,6 @@ public class CLM
 
   public static final Condition DISABLED = cssClass("disabled");
 
-  public static final Condition IQ_DISABLED = cssClass("iq-disabled");
-
   public static final Condition EXPANDED = cssClass("expand");
 
   public static final Condition COLLAPSED = cssClass("collapse");

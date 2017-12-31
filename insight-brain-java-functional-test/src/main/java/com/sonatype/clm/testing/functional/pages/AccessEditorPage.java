@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.Condition;
@@ -30,12 +31,20 @@ public class AccessEditorPage
   public static final String MIXED_GROUP_SEARCH_WARNING =
       "One or more LDAP servers have group search disabled, which will affect your results";
 
-  public static String urlToEdit(String ownerType, String ownerId, String accessRoleId) {
+  public static String urlToEdit(Owner owner, String accessRoleId) {
+    return urlToEdit(owner.getType(), owner.getPublicId(), accessRoleId);
+  }
+
+  public static String urlToEdit(OwnerType ownerType, String ownerId, String accessRoleId) {
     return urlToCreate(ownerType, ownerId) + "/" + accessRoleId;
   }
 
-  public static String urlToCreate(String ownerType, String ownerId) {
-    if (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType))) {
+  public static String urlToCreate(Owner owner) {
+    return urlToCreate(owner.getType(), owner.getPublicId());
+  }
+
+  public static String urlToCreate(OwnerType ownerType, String ownerId) {
+    if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType)) {
       return BaseUrl.uriBuilder().fragment("/management/edit/repositories/access").build().toString();
     }
 
@@ -83,16 +92,16 @@ public class AccessEditorPage
     return $("#mixed-group-search-warning");
   }
 
-  public static Condition confirmRemovalThroughUpdateText(String roleName, String ownerType) {
+  public static Condition confirmRemovalThroughUpdateText(String roleName, OwnerType ownerType) {
     return text("You are about to remove the " + roleName + " role from " +
-        (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "all repositories" :
+        (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repositories" :
             "this " + ownerType) +
         ". Next time, consider using the \"Remove Role\" button; it will save you some clicks!");
   }
 
-  public static Condition confirmRemovalText(String roleName, String ownerType) {
+  public static Condition confirmRemovalText(String roleName, OwnerType ownerType) {
     return text("You are about to remove the " + roleName + " role from " +
-        (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "all repositories" :
+        (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repositories" :
             "this " + ownerType) + ".");
   }
 }

@@ -125,7 +125,7 @@ public class LabelEditorTest
   public void testDeleteLabelModal() {
     // given
     Label label = tempEntity.newLabel(app.getId());
-    refreshOrOpen(LabelEditorPage.urlToEdit("application", app.getPublicId(), label.getId()));
+    refreshOrOpen(LabelEditorPage.urlToEdit(app, label.getId()));
     // when
     LabelEditorPage.deleteButton().shouldBe(visible).click();
     // then
@@ -145,14 +145,14 @@ public class LabelEditorTest
   public void testDeleteLabel() {
     // given
     Label label = tempEntity.newLabel(app.getOrganizationId());
-    refreshOrOpen(LabelEditorPage.urlToEdit("organization", app.getOrganizationId(), label.getId()));
+    refreshOrOpen(LabelEditorPage.urlToEdit(OwnerType.ORGANIZATION, app.getOrganizationId(), label.getId()));
     // when
     LabelEditorPage.deleteButton().shouldBe(visible).click();
     DeleteModal.continueButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
-    String createLabelUrl = LabelEditorPage.urlToCreate("organization", app.getOrganizationId());
+    String createLabelUrl = LabelEditorPage.urlToCreate(OwnerType.ORGANIZATION, app.getOrganizationId());
     waitUntilUrl(createLabelUrl);
 
     label = labelDAO.getById(label.getId());

@@ -302,7 +302,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(notifications.get(0).getProjectKey(), is("key1"));
     assertThat(notifications.get(0).getIssueTypeId(), is(1L));
 
-    refreshOrOpen(PolicyEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), policy.getId()));
+    refreshOrOpen(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
     NotificationsSection.notifications().shouldHaveSize(1).get(0).shouldHave(text("No notifications configured"));
@@ -986,7 +986,7 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertNewPolicyStateIsCorrect() {
-    waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner));
     PolicyEditorPage.title().shouldHave(text("New"));
 
     assertNewPolicyStateIsCorrect_summarySection();
@@ -1060,8 +1060,7 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2, boolean isReadOnly) {
-    waitUntilUrl(
-        PolicyEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), policy.getId()));
+    waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
     PolicyEditorPage.title().shouldHave(text(isReadOnly ? "View" : "Edit"));
 
     assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly);

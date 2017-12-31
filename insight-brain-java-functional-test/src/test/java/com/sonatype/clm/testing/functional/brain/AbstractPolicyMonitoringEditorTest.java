@@ -77,11 +77,11 @@ public abstract class AbstractPolicyMonitoringEditorTest
     OwnerSummaryPage.policyTile().monitoredStage().shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
 
     // if the user gets there manually, show a warning
-    refreshOrOpen(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    refreshOrOpen(MonitoredStageEditorPage.url(currentOwner));
     MonitoredStageEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
 
     // disable the owner detail tree view item
-    refreshOrOpen(PolicyEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
+    refreshOrOpen(PolicyEditorPage.urlToCreate(currentOwner));
     OwnerDetailTreeView.policyGroup().item(1).shouldBe(DISABLED).hover();
     int cmIndex = OwnerDetailTreeView.policyGroup().items().size() - 2;
     OwnerDetailTreeView.policyGroup().item(cmIndex).shouldBe(DISABLED).hover();
@@ -105,7 +105,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
   }
 
   private void assertEditMonitoredStageStateIsCorrect(String selectedStageText) {
-    waitUntilUrl(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    waitUntilUrl(MonitoredStageEditorPage.url(currentOwner));
     MonitoredStageEditorPage.title().shouldHave(text(MonitoredStageEditorPage.HEADER_TEXT));
     MonitoredStageEditorPage.selectedStage().shouldHave(text(selectedStageText));
     MonitoredStageEditorPage.updateButton().shouldHave(DISABLED);

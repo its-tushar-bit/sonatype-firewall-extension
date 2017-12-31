@@ -127,7 +127,7 @@ public abstract class AbstractAccessEditorTest
     Role role = APPLICATION_ROLES.get(0);
     goFromSummaryToEditRole(role);
 
-    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
+    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
     OwnerDetailTreeView.accessGroup().item(1).shouldBe(CLM.SELECTED);
     AccessEditorPage.title().shouldHave(text(role.getName()));
 
@@ -164,8 +164,7 @@ public abstract class AbstractAccessEditorTest
   @Test
   public void testRemoveBySavingWithNoPickedUsers() {
     Role role = APPLICATION_ROLES.get(2);
-    refreshOrOpen(
-        AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
+    refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
 
     DoubleColumnPicker picker = AccessEditorPage.picker();
     picker.pickedItems().shouldHaveSize(1);
@@ -178,7 +177,7 @@ public abstract class AbstractAccessEditorTest
     picker.unpickCheckedItemsButton().click();
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
     DeleteModal.body().shouldBe(visible).shouldHave(
-        AccessEditorPage.confirmRemovalThroughUpdateText(role.getName(), currentOwner.getType().toString()));
+        AccessEditorPage.confirmRemovalThroughUpdateText(role.getName(), currentOwner.getType()));
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -191,13 +190,13 @@ public abstract class AbstractAccessEditorTest
   @Test
   public void testRemove() {
     Role role = APPLICATION_ROLES.get(2);
-    refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
+    refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
     AccessEditorPage.title().shouldBe(visible).hover(); // hide the tooltip
     OwnerDetailTreeView.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
     int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
     AccessEditorPage.removeRoleButton().click();
     DeleteModal.body().shouldBe(visible)
-        .shouldHave(AccessEditorPage.confirmRemovalText(role.getName(), currentOwner.getType().toString()));
+        .shouldHave(AccessEditorPage.confirmRemovalText(role.getName(), currentOwner.getType()));
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();

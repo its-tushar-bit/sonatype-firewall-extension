@@ -83,8 +83,7 @@ public class ApplicationPolicyEditorTest
       tempEntity.newMembershipMapping(application.getId(), new RoleDAO().getByName("Owner").getId(), username);
 
       login(username, TemporaryEntity.USER_PASSWORD_CLEAR);
-      refreshOrOpen(
-          PolicyEditorPage.urlToEdit(application.getType().toString(), application.getPublicId(), policy.getId()));
+      refreshOrOpen(PolicyEditorPage.urlToEdit(application, policy.getId()));
       refresh(); // because the page has already loaded the store the policy doesn't exist
 
       AssociationEditor categoryEditor = PolicyEditorPage.inheritanceSection().associationEditor();

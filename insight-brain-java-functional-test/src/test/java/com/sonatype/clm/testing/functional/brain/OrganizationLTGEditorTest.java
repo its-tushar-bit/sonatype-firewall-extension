@@ -62,7 +62,7 @@ public class OrganizationLTGEditorTest
 
   @Override
   protected void assertNewLTGStateIsCorrect() {
-    waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
+    waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner));
     LTGEditorPage.title().shouldHave(text("New"));
     LTGEditorPage.ltgName().shouldBe(visible, Condition.empty).shouldHave(CLM.PRISTINE);
     assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);

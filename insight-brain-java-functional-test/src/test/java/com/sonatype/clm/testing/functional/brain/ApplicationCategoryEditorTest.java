@@ -60,7 +60,7 @@ public class ApplicationCategoryEditorTest
 
   @Test
   public void testNoCategories() {
-    refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
+    refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application));
 
     ErrorBox errorBox = ApplicationCategoryEditorPage.errorBox();
     errorBox.shouldBe(visible);
@@ -102,7 +102,7 @@ public class ApplicationCategoryEditorTest
     FormMask.seeAndWaitForDismissal();
 
     // Refresh page to ensure values are propagated to server
-    refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
+    refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application));
     category1Item = ApplicationCategoryEditorPage.associationEditor().item(0);
     category2Item = ApplicationCategoryEditorPage.associationEditor().item(1);
 
@@ -154,7 +154,7 @@ public class ApplicationCategoryEditorTest
     FormMask.seeAndWaitForDismissal();
 
     // Refresh page to ensure values are propagated to server
-    refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
+    refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application));
     category1Item = ApplicationCategoryEditorPage.associationEditor().item(0);
     category6Item = ApplicationCategoryEditorPage.associationEditor().item(5);
 

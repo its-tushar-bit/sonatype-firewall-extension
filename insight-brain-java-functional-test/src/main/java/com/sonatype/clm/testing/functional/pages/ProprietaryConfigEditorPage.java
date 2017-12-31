@@ -9,6 +9,8 @@ import com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -29,7 +31,11 @@ public class ProprietaryConfigEditorPage
 
   public static final String DUPLICATE_REGEX_MATCHER_MESSAGE = "Regular Expression already specified";
 
-  public static String url(String ownerType, String ownerId) {
+  public static String url(Owner owner) {
+    return url(owner.getType(), owner.getPublicId());
+  }
+
+  public static String url(OwnerType ownerType, String ownerId) {
     return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/proprietary").build(ownerType, ownerId)
         .toString();
   }

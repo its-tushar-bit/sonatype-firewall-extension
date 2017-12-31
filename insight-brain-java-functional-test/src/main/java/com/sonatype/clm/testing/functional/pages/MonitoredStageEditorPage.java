@@ -7,6 +7,8 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -21,7 +23,11 @@ public class MonitoredStageEditorPage
 
   public static final String ROOT = "#continuous-monitoring-editor";
 
-  public static String url(String ownerType, String ownerId) {
+  public static String url(Owner owner) {
+    return url(owner.getType(), owner.getPublicId());
+  }
+
+  public static String url(OwnerType ownerType, String ownerId) {
     return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/monitoring").build(ownerType, ownerId)
         .toString();
   }

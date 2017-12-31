@@ -52,7 +52,7 @@ public class ApplicationLTGEditorTest
     refresh();
 
     OwnerSummaryPage.licenseThreatGroupTile().localLTG(ltg.getName()).click();
-    waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
+    waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("app ltg 1"));
 
@@ -65,7 +65,7 @@ public class ApplicationLTGEditorTest
     FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
-    waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg2.getId()));
+    waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg2.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("app ltg 2"));
 

@@ -72,7 +72,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     OwnerSummaryPage.policyTile().proprietaryComponentMatchers().shouldHave(text("1 local, 2 inherited"));
 
     OwnerSummaryPage.policyTile().proprietaryComponentMatchers().click();
-    waitUntilUrl(ProprietaryConfigEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    waitUntilUrl(ProprietaryConfigEditorPage.url(currentOwner));
 
     Dropdown typeDropDown = ProprietaryConfigEditorPage.typeDropdown();
     typeDropDown.selectedItem().shouldHave(text(PACKAGE.name)).click();

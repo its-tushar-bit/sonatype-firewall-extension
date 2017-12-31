@@ -7,6 +7,8 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ColorPicker;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -16,11 +18,19 @@ public class LabelEditorPage
 {
   private static final ColorPicker colorPicker = new ColorPicker("#editor-label-color-picker");
 
-  public static String urlToEdit(String ownerType, String ownerId, String labelId) {
+  public static String urlToEdit(Owner owner, String labelId) {
+    return urlToEdit(owner.getType(), owner.getPublicId(), labelId);
+  }
+
+  public static String urlToEdit(OwnerType ownerType, String ownerId, String labelId) {
     return urlToCreate(ownerType, ownerId) + "/" + labelId;
   }
 
-  public static String urlToCreate(String ownerType, String ownerId) {
+  public static String urlToCreate(Owner owner) {
+    return urlToCreate(owner.getType(), owner.getPublicId());
+  }
+
+  public static String urlToCreate(OwnerType ownerType, String ownerId) {
     return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/label").build(ownerType, ownerId)
         .toString();
   }

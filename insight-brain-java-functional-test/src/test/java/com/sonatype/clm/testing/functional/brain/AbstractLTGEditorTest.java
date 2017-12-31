@@ -73,7 +73,7 @@ public abstract class AbstractLTGEditorTest
 
     OwnerSummaryPage.licenseThreatGroupTile().localLTGs().shouldHaveSize(1);
     OwnerSummaryPage.licenseThreatGroupTile().localLTG(ltg.getName()).click();
-    waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
+    waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);

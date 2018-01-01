@@ -36,23 +36,23 @@ public class OwnerDetailTreeView
   }
 
   public static OwnerDetailTreeViewGroup applicationCategoryGroup() {
-    return new OwnerDetailTreeViewGroup("#applicationCategoryTreeViewGroup");
+    return new OwnerDetailTreeViewGroup("#application-category-tree-view-group");
   }
 
   public static OwnerDetailTreeViewGroup policyGroup() {
-    return new OwnerDetailTreeViewGroup("#policyTreeViewGroup");
+    return new OwnerDetailTreeViewGroup("#policy-tree-view-group");
   }
 
   public static OwnerDetailTreeViewGroup componentLabelGroup() {
-    return new OwnerDetailTreeViewGroup("#labelTreeViewGroup");
+    return new OwnerDetailTreeViewGroup("#label-tree-view-group");
   }
 
   public static OwnerDetailTreeViewGroup LTGGroup() {
-    return new OwnerDetailTreeViewGroup("#licenseThreatGroupTreeViewGroup");
+    return new OwnerDetailTreeViewGroup("#license-threat-group-tree-view-group");
   }
 
   public static OwnerDetailTreeViewGroup accessGroup() {
-    return new OwnerDetailTreeViewGroup("#accessTreeViewGroup");
+    return new OwnerDetailTreeViewGroup("#access-tree-view-group");
   }
 
   public static class OwnerDetailTreeViewGroup

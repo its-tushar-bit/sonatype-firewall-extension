@@ -13,7 +13,7 @@ public class LoginDialog
 {
 
   public static SelenideElement root() {
-    return $("#loginModal");
+    return $("#login-modal");
   }
 
   public static SelenideElement username() {

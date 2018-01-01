@@ -12,10 +12,10 @@
     <div class="iq-modal-content" ng-if="!vm.loadError" load-wrapper loading="vm.isLoading()">
       <div class="section">
         <div class="field">
-          <label for="selectParentOrganization">
+          <label for="select-parent-organization">
             New Parent Organization
           </label>
-          <dropdown-selector id="selectParentOrganization" name="selectParentOrganization"
+          <dropdown-selector id="select-parent-organization" name="select-parent-organization"
                              ng-model="vm.selectedOrganization" options="vm.organizations" option-name-param="name"
                              empty-option-string="{{vm.currentOrganizationName}}" class="move-application-dropdown"
                              required clm-input messages="{required: 'Please select organization'}">
@@ -33,7 +33,7 @@
       <button ng-if="vm.saveError" class="btn btn-error" type="submit">
         <i class="fa fa-refresh"></i>Retry
       </button>
-      <button id="dismissBtn" class="btn" type="button" ng-click="$dismiss()">{{vm.loadError ? "OK" : "Cancel"}}</button>
+      <button id="dismiss-btn" class="btn" type="button" ng-click="$dismiss()">{{vm.loadError ? "OK" : "Cancel"}}</button>
       <button ng-if="vm.incompatibilities" class="btn btn-tertiary" type="button" ng-click="vm.showIncompatibilities()">
         Details
       </button>

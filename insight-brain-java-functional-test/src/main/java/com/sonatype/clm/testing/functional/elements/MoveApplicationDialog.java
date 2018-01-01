@@ -29,7 +29,7 @@ public class MoveApplicationDialog
   }
 
   public Dropdown destinationDropdown() {
-    return new Dropdown("#selectParentOrganization");
+    return new Dropdown("#select-parent-organization");
   }
 
   public SelenideElement moveButton() {
@@ -37,7 +37,7 @@ public class MoveApplicationDialog
   }
 
   public SelenideElement dismissButton() {
-    return $("#dismissBtn");
+    return $("#dismiss-btn");
   }
 
   public SelenideElement detailsButton() {

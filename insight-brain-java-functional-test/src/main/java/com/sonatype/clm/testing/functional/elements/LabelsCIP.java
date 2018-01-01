@@ -75,7 +75,7 @@ public class LabelsCIP
 
   public static class AddLabelModal
   {
-    private static String ROOT = "#labelAssignScopeModal";
+    private static String ROOT = "#label-assign-scope-modal";
 
     public static SelenideElement root() {
       return $(ROOT);
@@ -100,7 +100,7 @@ public class LabelsCIP
 
   public static class RemoveLabelModal
   {
-    private static String ROOT = "#labelRemoveModal";
+    private static String ROOT = "#label-remove-modal";
 
     public static SelenideElement root() {
       return $(ROOT);

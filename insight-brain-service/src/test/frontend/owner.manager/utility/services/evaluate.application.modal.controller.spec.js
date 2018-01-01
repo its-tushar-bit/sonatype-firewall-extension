@@ -80,7 +80,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
       };
       var original = angular.element;
       spyOn(angular, 'element').and.callFake(function(selector) {
-        if (selector === '#bundleFile') {
+        if (selector === '#bundle-file') {
           return [
             {
               files: [

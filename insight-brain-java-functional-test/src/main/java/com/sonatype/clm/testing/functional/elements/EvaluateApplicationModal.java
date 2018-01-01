@@ -26,7 +26,7 @@ public class EvaluateApplicationModal
 
 
   public SelenideElement fileInput() {
-    return $("#bundleFile");
+    return $("#bundle-file");
   }
 
   public Dropdown stageDropdown() {

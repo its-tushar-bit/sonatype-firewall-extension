@@ -38,7 +38,7 @@ public class AddProprietaryMatchersDialog
   }
 
   public SelenideElement cancelButton() {
-    return $("#dismissBtn");
+    return $("#dismiss-btn");
   }
 
   public SelenideElement retryButton() {

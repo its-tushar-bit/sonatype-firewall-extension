@@ -172,7 +172,7 @@ public class WaiverCip
     }
 
     public static ElementsCollection rows() {
-      return $$("#componentExistingWaiverModal tbody tr");
+      return $$("#component-existing-waiver-modal tbody tr");
     }
   }
 

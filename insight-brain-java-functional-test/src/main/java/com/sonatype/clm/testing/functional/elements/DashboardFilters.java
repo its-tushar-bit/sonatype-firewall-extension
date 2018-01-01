@@ -156,7 +156,7 @@ public class DashboardFilters
     }
 
     public SelenideElement cancelButton() {
-      return child("#dismissBtn");
+      return child("#dismiss-btn");
     }
 
     public SelenideElement nameInput() {

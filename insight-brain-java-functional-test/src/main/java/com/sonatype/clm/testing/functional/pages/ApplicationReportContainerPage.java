@@ -22,6 +22,6 @@ public class ApplicationReportContainerPage
   }
 
   public static SelenideElement getIframe() {
-    return $("#evaluationReportContainer > iframe");
+    return $("#evaluation-report-container > iframe");
   }
 }

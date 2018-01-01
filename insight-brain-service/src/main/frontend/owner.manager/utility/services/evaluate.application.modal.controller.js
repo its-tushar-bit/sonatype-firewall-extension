@@ -87,7 +87,7 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
   }
 
   function doSubmit() {
-    var fileElement = angular.element('#bundleFile')[0];
+    var fileElement = angular.element('#bundle-file')[0];
     vm.evaluationState = 'polling';
     vm.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading'};
     vm.bundle.filename = parseFilename(fileElement.value);

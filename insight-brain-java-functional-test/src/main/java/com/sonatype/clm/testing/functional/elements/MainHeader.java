@@ -26,4 +26,8 @@ public class MainHeader
   public static SelenideElement userName() {
     return $("#user-name");
   }
+
+  public static HelpMenu helpMenu() {
+    return new HelpMenu();
+  }
 }

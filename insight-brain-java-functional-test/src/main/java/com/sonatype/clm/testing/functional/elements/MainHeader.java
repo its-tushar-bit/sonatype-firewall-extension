@@ -5,16 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.SelenideElement;
-
-import static com.codeborne.selenide.Selenide.$;
-
 public class MainHeader
 {
-  public static SelenideElement userMenuToggle() {
-    return $("#user-menu-dropdown-toggle");
-  }
-
   public static MainHeaderNavigationButton dashboardNavigationButton() {
     return new MainHeaderNavigationButton("#dashboard-navigation-button");
   }
@@ -23,8 +15,8 @@ public class MainHeader
     return new MainHeaderNavigationButton("#labs-navigation-button");
   }
 
-  public static SelenideElement userName() {
-    return $("#user-name");
+  public static UserMenu userMenu() {
+    return new UserMenu();
   }
 
   public static HelpMenu helpMenu() {

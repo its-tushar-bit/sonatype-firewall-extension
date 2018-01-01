@@ -188,9 +188,9 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void logout() {
-    MainHeader.userMenuToggle().shouldBe(visible).click();
-    UserMenu.root().should(appear);
-    UserMenu.logout().click();
+    UserMenu userMenu = MainHeader.userMenu();
+    userMenu.dropdownToggle().shouldBe(visible).click();
+    userMenu.logout().should(appear).click();
   }
 
   /**

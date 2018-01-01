@@ -5,22 +5,32 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
 public class UserMenu
+    extends BasicElement<UserMenu>
 {
-
-  public static SelenideElement root() {
-    return $("#user-menu div");
+  public UserMenu() {
+    super("#user-menu");
   }
 
-  public static SelenideElement changePassword() {
+  public SelenideElement userName() {
+    return $("#user-name");
+  }
+
+  public SelenideElement dropdownToggle() {
+    return $("#user-menu-dropdown-toggle");
+  }
+
+  public SelenideElement changePassword() {
     return $("#change-password");
   }
 
-  public static SelenideElement logout() {
+  public SelenideElement logout() {
     return $("#logout");
   }
 }

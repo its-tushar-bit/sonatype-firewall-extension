@@ -247,7 +247,7 @@ public class SessionTimeoutTest
   private void assertUiCleared() {
     // ensure that the main UI is empty - we can't directly test that the page was refreshed but this is close
     MainView.uiView().$$("*").shouldHaveSize(0);
-    MainHeader.userName().shouldHave(text(""));
+    MainHeader.userMenu().userName().shouldHave(text(""));
   }
 
   private void assertUiClearedAndLogBackIn() {

@@ -53,7 +53,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -85,14 +84,6 @@ public abstract class AbstractSummaryViewTest
   public static void boot() {
     refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
-  }
-
-  @After
-  public void cleanup() throws Exception {
-    if (productLicenseManager.wasChanged()) {
-      productLicenseManager.reset();
-      clmLicenseManager.installLicense(null);
-    }
   }
 
   protected void init(Owner currentOwner) {
@@ -803,12 +794,11 @@ public abstract class AbstractSummaryViewTest
   }
 
   @Test
-  public void testPolicyTile_LimitedStageLicensing() throws Exception {
+  public void testPolicyTile_LimitedStageLicensing() {
     List<Policy> localPolicies = new ArrayList<>();
     localPolicies.add(tempEntity.newPolicy(currentOwner.getId(), "Release", 10, Action.ID_FAIL, Stage.ID_RELEASE, null));
 
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
-    clmLicenseManager.installLicense(null);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK);
     
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     PolicyTile policyTile = OwnerSummaryPage.policyTile();

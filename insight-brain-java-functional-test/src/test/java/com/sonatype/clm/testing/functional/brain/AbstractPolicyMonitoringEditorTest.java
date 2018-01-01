@@ -68,9 +68,8 @@ public abstract class AbstractPolicyMonitoringEditorTest
   }
 
   @Test
-  public void testNotLicensed() throws Exception {
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    clmLicenseManager.installLicense(null);
+  public void testNotLicensed() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
 
     Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
@@ -99,9 +98,6 @@ public abstract class AbstractPolicyMonitoringEditorTest
     Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
     NotificationsSection.notificationFor("a@b").deleteButton().hover(); // tooltip obscures button, discard it
     NotificationsSection.notificationFor("a@b").deleteButton().click();
-
-    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
-    clmLicenseManager.installLicense(null);
   }
 
   private void assertEditMonitoredStageStateIsCorrect(String selectedStageText) {

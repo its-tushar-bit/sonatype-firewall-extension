@@ -147,10 +147,24 @@ public abstract class AbstractFunctionalTest
   }
 
   @After
-  public void reset() {
+  public void reset() throws Exception {
     testCLMServer.getHdsServer().reset();
+    if (productLicenseManager.wasChanged()) {
+      productLicenseManager.reset();
+      clmLicenseManager.installLicense(null);
+    }
     refreshOrOpen("about"); // so we aren't on app between page loads
     clearAlerts();
+  }
+
+  protected void setLicensedProducts(String... products) {
+    productLicenseManager.setProducts(products);
+    try {
+      clmLicenseManager.installLicense(null);
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static List<Module> getBrainModules() {

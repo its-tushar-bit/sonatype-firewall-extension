@@ -56,10 +56,6 @@ public class LdapUserAndGroupSettingsForm
     return child("#userEmailAttribute");
   }
 
-  public SelenideElement useUserPasswordAttribute() {
-    return child("#useUserPasswordAttribute");
-  }
-
   public SelenideElement userPasswordAttribute() {
     return child("#userPasswordAttribute");
   }

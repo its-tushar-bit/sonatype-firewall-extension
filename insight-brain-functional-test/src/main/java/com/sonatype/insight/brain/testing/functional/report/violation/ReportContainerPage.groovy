@@ -29,7 +29,7 @@ class ReportContainerPage
    */
   static url = 'assets/index.html#/reports'
 
-  static at = { $('#evaluationReportContainer') }
+  static at = { $('#evaluation-report-container') }
 
   static content = {
     reportTitle { $('#report-title') }

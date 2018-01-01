@@ -35,7 +35,7 @@ extends Page {
     resultsWithNoScore { results.findAll { it.threatGroup == none
       } }
     waiver(required: false) { $('#add-waiver-modal').module(AddPolicyWaiver) }
-    policyDetailWaivers(required: false) { $('#componentExistingWaiverModal').module(PolicyDetailWaivers) }
+    policyDetailWaivers(required: false) { $('#component-existing-waiver-modal').module(PolicyDetailWaivers) }
     removeWaiverModal(required: false) { $('#confirm-delete-waiver-modal').module(RemoveWaiverModal) }
     summaryViolations { $('#policy-violation-filter li a', text: 'Summary') }
     allViolations { $('#policy-violation-filter li a', text: 'All') }

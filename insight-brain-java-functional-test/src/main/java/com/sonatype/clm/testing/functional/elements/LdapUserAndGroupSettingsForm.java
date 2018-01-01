@@ -29,35 +29,35 @@ public class LdapUserAndGroupSettingsForm
   }
 
   public SelenideElement userBaseDN() {
-    return child("#userBaseDN");
+    return child("#ldap-user-base-dn");
   }
 
   public SelenideElement userSubtree() {
-    return child("#userSubtree");
+    return child("#ldap-user-subtree");
   }
 
   public SelenideElement userObjectClass() {
-    return child("#userObjectClass");
+    return child("#ldap-user-object-class");
   }
 
   public SelenideElement userFilter() {
-    return child("#userFilter");
+    return child("#ldap-user-filter");
   }
 
   public SelenideElement userIDAttribute() {
-    return child("#userIDAttribute");
+    return child("#ldap-user-id-attribute");
   }
 
   public SelenideElement userRealNameAttribute() {
-    return child("#userRealNameAttribute");
+    return child("#ldap-user-real-name-attribute");
   }
 
   public SelenideElement userEmailAttribute() {
-    return child("#userEmailAttribute");
+    return child("#ldap-user-email-attribute");
   }
 
   public SelenideElement userPasswordAttribute() {
-    return child("#userPasswordAttribute");
+    return child("#ldap-user-password-attribute");
   }
 
   @Override
@@ -66,35 +66,35 @@ public class LdapUserAndGroupSettingsForm
   }
 
   public SelenideElement groupMappingType() {
-    return child("#groupMappingType");
+    return child("#ldap-group-mapping-type");
   }
 
   public SelenideElement groupBaseDN() {
-    return child("#groupBaseDN");
+    return child("#ldap-group-base-dn");
   }
 
   public SelenideElement groupSubtree() {
-    return child("#groupSubtree");
+    return child("#ldap-group-subtree");
   }
 
   public SelenideElement groupObjectClass() {
-    return child("#groupObjectClass");
+    return child("#ldap-group-object-class");
   }
 
   public SelenideElement groupIDAttribute() {
-    return child("#groupIDAttribute");
+    return child("#ldap-group-id-attribute");
   }
 
   public SelenideElement groupMemberAttribute() {
-    return child("#groupMemberAttribute");
+    return child("#ldap-group-member-attribute");
   }
 
   public SelenideElement groupMemberFormat() {
-    return child("#groupMemberFormat");
+    return child("#ldap-group-member-format");
   }
 
   public SelenideElement userMemberOfGroupAttribute() {
-    return child("#userMemberOfGroupAttribute");
+    return child("#ldap-user-member-of-group-attribute");
   }
 
   public SelenideElement groupSearchWarning() {

@@ -23,11 +23,11 @@ public class LdapConnectionForm
   }
 
   public SelenideElement authenticationMethod() {
-    return child("#authenticationMethod");
+    return child("#ldap-authentication-method");
   }
 
   public SelenideElement connectionTimeout() {
-    return child("#connectionTimeout");
+    return child("#ldap-connection-timeout");
   }
 
   @Override
@@ -36,35 +36,35 @@ public class LdapConnectionForm
   }
 
   public SelenideElement hostname() {
-    return child("#hostname");
+    return child("#ldap-hostname");
   }
 
   public SelenideElement port() {
-    return child("#port");
+    return child("#ldap-port");
   }
 
   public SelenideElement protocol() {
-    return child("#protocol");
+    return child("#ldap-protocol");
   }
 
   public SelenideElement retryDelay() {
-    return child("#retryDelay");
+    return child("#ldap-retry-delay");
   }
 
   public SelenideElement saslRealm() {
-    return child("#saslRealm");
+    return child("#ldap-sasl-realm");
   }
 
   public SelenideElement searchBase() {
-    return child("#searchBase");
+    return child("#ldap-search-base");
   }
 
   public SelenideElement systemPassword() {
-    return child("#systemPassword");
+    return child("#ldap-system-password");
   }
 
   public SelenideElement systemUsername() {
-    return child("#systemUsername");
+    return child("#ldap-system-username");
   }
 
   public SelenideElement successAlertBox() {

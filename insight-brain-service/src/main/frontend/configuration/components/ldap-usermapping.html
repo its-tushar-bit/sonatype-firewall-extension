@@ -8,35 +8,35 @@
         <div class="content-header">
           <h4>User Element Mapping</h4>
         </div>
-        <div clm-control-group for="userBaseDN" label="Base DN">
-          <input clm-input type='text' maxlength='255' name='userBaseDN' id='userBaseDN'
+        <div clm-control-group for="ldap-user-base-dn" label="Base DN">
+          <input clm-input type='text' maxlength='255' name='ldap-user-base-dn' id='ldap-user-base-dn'
                  ng-model="ldapUserMapping.userBaseDN">
         </div>
-        <div clm-control-group for="userSubtree" label="User Subtree">
-          <input type='checkbox' name='userSubtree' id='userSubtree' ng-model="ldapUserMapping.userSubtree">
+        <div clm-control-group for="ldap-user-subtree" label="User Subtree">
+          <input type='checkbox' name='ldap-user-subtree' id='ldap-user-subtree' ng-model="ldapUserMapping.userSubtree">
         </div>
-        <div clm-control-group for="userObjectClass" label="Object Class">
-          <input clm-input type='text' maxlength='255' name='userObjectClass' id="userObjectClass"
+        <div clm-control-group for="ldap-user-object-class" label="Object Class">
+          <input clm-input type='text' maxlength='255' name='ldap-user-object-class' id="ldap-user-object-class"
                  ng-model='ldapUserMapping.userObjectClass' required>
         </div>
-        <div clm-control-group for="userFilter" label="User Filter">
-          <input clm-input type='text' maxlength='255' name='userFilter' id='userFilter'
+        <div clm-control-group for="ldap-user-filter" label="User Filter">
+          <input clm-input type='text' maxlength='255' name='ldap-user-filter' id='ldap-user-filter'
                  ng-model='ldapUserMapping.userFilter'>
         </div>
-        <div clm-control-group for="userIDAttribute" label="Username Attribute">
-          <input clm-input type='text' maxlength='255' name='userIDAttribute' id='userIDAttribute'
+        <div clm-control-group for="ldap-user-id-attribute" label="Username Attribute">
+          <input clm-input type='text' maxlength='255' name='ldap-user-id-attribute' id='ldap-user-id-attribute'
                  ng-model='ldapUserMapping.userIDAttribute' required>
         </div>
-        <div clm-control-group for="userRealNameAttribute" label="Real Name Attribute">
-          <input clm-input type='text' maxlength='255' name='userRealNameAttribute' id='userRealNameAttribute'
+        <div clm-control-group for="ldap-user-real-name-attribute" label="Real Name Attribute">
+          <input clm-input type='text' maxlength='255' name='ldap-user-real-name-attribute' id='ldap-user-real-name-attribute'
                  ng-model='ldapUserMapping.userRealNameAttribute' required>
         </div>
-        <div clm-control-group for="userEmailAttribute" label="E-mail Attribute">
-          <input clm-input type='text' maxlength='255' name='userEmailAttribute' id='userEmailAttribute'
+        <div clm-control-group for="ldap-user-email-attribute" label="E-mail Attribute">
+          <input clm-input type='text' maxlength='255' name='ldap-user-email-attribute' id='ldap-user-email-attribute'
                  ng-model='ldapUserMapping.userEmailAttribute' required>
         </div>
-        <div clm-control-group for="userPasswordAttribute" label="Password Attribute">
-          <input clm-input type='text' maxlength='255' name='userPasswordAttribute' id='userPasswordAttribute'
+        <div clm-control-group for="ldap-user-password-attribute" label="Password Attribute">
+          <input clm-input type='text' maxlength='255' name='ldap-user-password-attribute' id='ldap-user-password-attribute'
                  ng-model='ldapUserMapping.userPasswordAttribute'>
         </div>
 
@@ -44,53 +44,53 @@
           <h4>Group Element Mapping</h4>
         </div>
         <div class="control-group">
-          <label class="control-label" for="groupMappingType">Group Type</label>
+          <label class="control-label" for="ldap-group-mapping-type">Group Type</label>
           <div class="controls">
-            <select name='groupMappingType' id='groupMappingType' ng-model='ldapUserMapping.groupMappingType'
+            <select name='ldap-group-mapping-type' id='ldap-group-mapping-type' ng-model='ldapUserMapping.groupMappingType'
                     ng-options="p for p in groupMappingTypes" required></select>
           </div>
         </div>
         <div ng-show='ldapUserMapping.groupMappingType == "STATIC"'>
-          <div clm-control-group for="groupBaseDN" label="Base DN">
-            <input clm-input type='text' maxlength='255' name='groupBaseDN' id='groupBaseDN'
+          <div clm-control-group for="ldap-group-base-dn" label="Base DN">
+            <input clm-input type='text' maxlength='255' name='ldap-group-base-dn' id='ldap-group-base-dn'
                    ng-model='ldapUserMapping.groupBaseDN'>
           </div>
-          <div clm-control-group for="groupSubtree" label="Group Subtree">
-            <input type='checkbox' name='groupSubtree' id='groupSubtree' ng-model='ldapUserMapping.groupSubtree'>
+          <div clm-control-group for="ldap-group-subtree" label="Group Subtree">
+            <input type='checkbox' name='ldap-group-subtree' id='ldap-group-subtree' ng-model='ldapUserMapping.groupSubtree'>
           </div>
-          <div clm-control-group for="groupObjectClass" label="Object Class">
-            <input clm-input type='text' maxlength='255' name='groupObjectClass' id='groupObjectClass'
+          <div clm-control-group for="ldap-group-object-class" label="Object Class">
+            <input clm-input type='text' maxlength='255' name='ldap-group-object-class' id='ldap-group-object-class'
                    ng-model='ldapUserMapping.groupObjectClass' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
-          <div clm-control-group for="groupIDAttribute" label="Group ID Attribute">
-            <input clm-input type='text' maxlength='255' name='groupIDAttribute' id='groupIDAttribute'
+          <div clm-control-group for="ldap-group-id-attribute" label="Group ID Attribute">
+            <input clm-input type='text' maxlength='255' name='ldap-group-id-attribute' id='ldap-group-id-attribute'
                    ng-model='ldapUserMapping.groupIDAttribute' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
-          <div clm-control-group for="groupMemberAttribute" label="Group Member Attribute">
-            <input clm-input type='text' maxlength='255' name='groupMemberAttribute' id='groupMemberAttribute'
+          <div clm-control-group for="ldap-group-member-attribute" label="Group Member Attribute">
+            <input clm-input type='text' maxlength='255' name='ldap-group-member-attribute' id='ldap-group-member-attribute'
                    ng-model='ldapUserMapping.groupMemberAttribute' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
-          <div clm-control-group for="groupMemberFormat" label="Group Member Format">
-            <input clm-input type='text' maxlength='255' name='groupMemberFormat' id='groupMemberFormat'
+          <div clm-control-group for="ldap-group-member-format" label="Group Member Format">
+            <input clm-input type='text' maxlength='255' name='ldap-group-member-format' id='ldap-group-member-format'
                    ng-model='ldapUserMapping.groupMemberFormat' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
         </div>
         <div ng-show='ldapUserMapping.groupMappingType == "DYNAMIC"'>
-          <div clm-control-group for="userMemberOfGroupAttribute"
+          <div clm-control-group for="ldap-user-member-of-group-attribute"
                label="Member of Attribute">
-            <input clm-input type='text' maxlength='255' name='userMemberOfGroupAttribute'
-                   id='userMemberOfGroupAttribute'
+            <input clm-input type='text' maxlength='255' name='ldap-user-member-of-group-attribute'
+                   id='ldap-user-member-of-group-attribute'
                    ng-model='ldapUserMapping.userMemberOfGroupAttribute'
                    ng-required='isGroupFieldRequired("DYNAMIC")'>
           </div>
-          <div clm-control-group for="dynamicGroupSearchEnabled"
+          <div clm-control-group for="ldap-dynamic-group-search-enabled"
                label="Group Search">
             <span class="group-search-warning">
               <i class="fa fa-exclamation-triangle size-16px"></i><!--
               -->Disabling group search may improve performance, but groups will not appear in search results.
             </span>
             <div class="toggle-checkbox">
-              <input type="checkbox" name='dynamicGroupSearchEnabled' id='dynamicGroupSearchEnabled' toggle-checkbox  data-on="Enabled" data-off="Disabled" ng-model="ldapUserMapping.dynamicGroupSearchEnabled">
+              <input type="checkbox" name='ldap-dynamic-group-search-enabled' id='ldap-dynamic-group-search-enabled' toggle-checkbox  data-on="Enabled" data-off="Disabled" ng-model="ldapUserMapping.dynamicGroupSearchEnabled">
             </div>
           </div>
         </div>

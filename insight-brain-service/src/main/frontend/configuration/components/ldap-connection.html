@@ -10,54 +10,54 @@
         <h4>Connection Details</h4>
       </div>
       <div class="control-group">
-        <label class="control-label" for="protocol">Protocol</label>
+        <label class="control-label" for="ldap-protocol">Protocol</label>
         <div class="controls">
-          <select name='protocol' id="protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"
+          <select name='ldap-protocol' id="ldap-protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"
                   autofocus></select>
         </div>
       </div>
-      <div clm-control-group for="hostname" label="Hostname">
-        <input clm-input name='hostname' id='hostname' ng-model='ldapConn.hostname' required type='text'>
+      <div clm-control-group for="ldap-hostname" label="Hostname">
+        <input clm-input name='ldap-hostname' id='ldap-hostname' ng-model='ldapConn.hostname' required type='text'>
       </div>
-      <div clm-control-group for="port" label="Port">
-        <input clm-input name='port' id='port' ng-model='ldapConn.port' required type='number' min='1' max='65535'
+      <div clm-control-group for="ldap-port" label="Port">
+        <input clm-input name='ldap-port' id='ldap-port' ng-model='ldapConn.port' required type='number' min='1' max='65535'
                placeholder="Integer between 1 to 65535"/>
       </div>
-      <div clm-control-group for="searchBase" label="Search Base">
-        <input clm-input name='searchBase' id='searchBase' ng-model='ldapConn.searchBase' required type='text'>
+      <div clm-control-group for="ldap-search-base" label="Search Base">
+        <input clm-input name='ldap-search-base' id='ldap-search-base' ng-model='ldapConn.searchBase' required type='text'>
       </div>
       <div class="content-header">
         <h4>Authentication</h4>
       </div>
       <div class="control-group">
-        <label class="control-label" for="authenticationMethod">Method</label>
+        <label class="control-label" for="ldap-authentication-method">Method</label>
         <div class="controls">
-          <select name='authenticationMethod' id='authenticationMethod' ng-model="ldapConn.authenticationMethod"
+          <select name='ldap-authentication-method' id='ldap-authentication-method' ng-model="ldapConn.authenticationMethod"
                   ng-options="m for m in ldapMethods"></select>
         </div>
       </div>
       <div ng-show="ldapConn.authenticationMethod != 'NONE'">
-        <div clm-control-group for="saslRealm" label="SASL Realm">
-          <input clm-input name='saslRealm' id='saslRealm' ng-model='ldapConn.saslRealm' type='text'>
+        <div clm-control-group for="ldap-sasl-realm" label="SASL Realm">
+          <input clm-input name='ldap-sasl-realm' id='ldap-sasl-realm' ng-model='ldapConn.saslRealm' type='text'>
         </div>
-        <div clm-control-group for="systemUsername" label="Username">
-          <input clm-input name='systemUsername' id='systemUsername' ng-model='ldapConn.systemUsername' type='text'
+        <div clm-control-group for="ldap-system-username" label="Username">
+          <input clm-input name='ldap-system-username' id='ldap-system-username' ng-model='ldapConn.systemUsername' type='text'
                  ng-required="ldapConn.authenticationMethod != 'NONE'">
         </div>
-        <div clm-control-group for="systemPassword" label="Password">
-          <input clm-input name='systemPassword' id='systemPassword' ng-model='ldapConn.systemPassword' type='password'
+        <div clm-control-group for="ldap-system-password" label="Password">
+          <input clm-input name='ldap-system-password' id='ldap-system-password' ng-model='ldapConn.systemPassword' type='password'
                  ng-required="ldapConn.authenticationMethod != 'NONE'">
         </div>
       </div>
       <div class="content-header">
         <h4>Timeouts</h4>
       </div>
-      <div clm-control-group for="connectionTimeout" label="Connection">
-        <input clm-input name='connectionTimeout' id='connectionTimeout' ng-model='ldapConn.connectionTimeout'
+      <div clm-control-group for="ldap-connection-timeout" label="Connection">
+        <input clm-input name='ldap-connection-timeout' id='ldap-connection-timeout' ng-model='ldapConn.connectionTimeout'
                type='number' min='0' max='999' placeholder="Integer between 0 (default) to 999">
       </div>
-      <div clm-control-group for="retryDelay" label="Retry Delay">
-        <input clm-input name='retryDelay' id='retryDelay' ng-model='ldapConn.retryDelay' type='number' min='0'
+      <div clm-control-group for="ldap-retry-delay" label="Retry Delay">
+        <input clm-input name='ldap-retry-delay' id='ldap-retry-delay' ng-model='ldapConn.retryDelay' type='number' min='0'
                max='999' placeholder="Integer between 0 (default) to 999">
       </div>
   </form>

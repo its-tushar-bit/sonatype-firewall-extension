@@ -5,10 +5,26 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Selenide.$;
+
 public class MainHeader
 {
+  public static SelenideElement productVersion() {
+    return $(".iq-title__version");
+  }
+
   public static MainHeaderNavigationButton dashboardNavigationButton() {
     return new MainHeaderNavigationButton("#dashboard-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton reportingNavigationButton() {
+    return new MainHeaderNavigationButton("#reporting-navigation-button");
+  }
+
+  public static MainHeaderNavigationButton policiesNavigationButton() {
+    return new MainHeaderNavigationButton("#policies-navigation-button");
   }
 
   public static MainHeaderNavigationButton labsNavigationButton() {

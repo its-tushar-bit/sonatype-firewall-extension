@@ -14,10 +14,6 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class ReportPage
 {
-  public static SelenideElement root() {
-    return $("#evaluationReportContainer");
-  }
-
   public static SelenideElement policyTabButton() {
     return $("#componentcontainerBtn");
   }

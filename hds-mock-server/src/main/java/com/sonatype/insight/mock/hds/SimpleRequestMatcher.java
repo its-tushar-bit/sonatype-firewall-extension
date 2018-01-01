@@ -13,7 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.mock.hds.InsightMockServer.RequestMatcher;
+import com.sonatype.insight.mock.hds.HdsMockServer.RequestMatcher;
 
 import org.eclipse.jetty.util.UrlEncoded;
 

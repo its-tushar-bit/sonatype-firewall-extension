@@ -37,7 +37,7 @@ import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Password;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-public class InsightMockServer
+public class HdsMockServer
 {
   static {
     SslProperties.use();
@@ -102,7 +102,7 @@ public class InsightMockServer
     return null;
   }
 
-  public InsightMockServer setHttpPort(int httpPort) {
+  public HdsMockServer setHttpPort(int httpPort) {
     this.httpPort = httpPort;
     return this;
   }
@@ -118,7 +118,7 @@ public class InsightMockServer
     return "http://localhost:" + getHttpPort();
   }
 
-  public InsightMockServer setHttpsPort(int httpsPort) {
+  public HdsMockServer setHttpsPort(int httpsPort) {
     this.httpsPort = httpsPort;
     return this;
   }
@@ -134,19 +134,19 @@ public class InsightMockServer
     return "https://localhost:" + getHttpsPort();
   }
 
-  public InsightMockServer setAuthentication(String username, String password) {
+  public HdsMockServer setAuthentication(String username, String password) {
     this.username = username;
     this.password = password;
     return this;
   }
 
-  public InsightMockServer setProxyAuthentication(String username, String password) {
+  public HdsMockServer setProxyAuthentication(String username, String password) {
     this.proxyUsername = username;
     this.proxyPassword = password;
     return this;
   }
 
-  public InsightMockServer setKeyStore(String path, String password) {
+  public HdsMockServer setKeyStore(String path, String password) {
     keyStoreLocation = path;
     keyStorePassword = password;
     return this;
@@ -168,7 +168,7 @@ public class InsightMockServer
     return connector;
   }
 
-  public InsightMockServer start() throws Exception {
+  public HdsMockServer start() throws Exception {
     if (server != null) {
       return this;
     }
@@ -370,7 +370,7 @@ public class InsightMockServer
   }
 
   public static void main(String[] args) throws Exception {
-    InsightMockServer server = new InsightMockServer();
+    HdsMockServer server = new HdsMockServer();
     server.setHttpPort(9000);
     server.setProxyAuthentication("proxyuser", "proxypass");
     // server.setKeyStore(System.getProperty("javax.net.ssl.trustStore"), "server-pwd");

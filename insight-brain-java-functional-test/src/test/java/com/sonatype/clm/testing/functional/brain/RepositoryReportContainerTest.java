@@ -102,6 +102,6 @@ public class RepositoryReportContainerTest
     ComponentEvaluationDataList dataList = new ComponentEvaluationDataList();
     dataList.components.add(evalData);
 
-    testCLMServer.getInsightServer().setResponseForURI("rest/component/details/firewall", dataList, 200);
+    testCLMServer.getHdsServer().setResponseForURI("rest/component/details/firewall", dataList, 200);
   }
 }

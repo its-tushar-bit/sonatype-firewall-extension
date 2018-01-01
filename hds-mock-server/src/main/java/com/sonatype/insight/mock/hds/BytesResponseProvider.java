@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.mock.hds.InsightMockServer.ResponseProvider;
+import com.sonatype.insight.mock.hds.HdsMockServer.ResponseProvider;
 
 class BytesResponseProvider
     implements ResponseProvider

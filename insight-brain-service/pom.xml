@@ -907,7 +907,7 @@
               <includes>
                 <include>**/PortAllocator*</include>
                 <include>**/AbstractBrainServiceTest*</include>
-                <include>**/InsightMockServerRule*</include>
+                <include>**/HdsMockServerRule*</include>
                 <include>**/TestInsightBrainService*</include>
                 <include>**/TestInsightBrainServiceRule*</include>
                 <include>**/TestCLMServer*</include>

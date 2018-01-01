@@ -20,7 +20,7 @@ import com.google.inject.Module;
 public class TestCLMServer
 {
 
-  private final InsightMockServerRule insightMockServer;
+  private final HdsMockServerRule hdsMockServer;
 
   private final TestInsightBrainServiceRule brain;
 
@@ -37,11 +37,11 @@ public class TestCLMServer
   public TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
-    int insightMockServerPort = PortAllocator.findFreePort(8090);
+    int hdsMockServerPort = PortAllocator.findFreePort(8090);
 
-    insightMockServer = new InsightMockServerRule(insightMockServerPort, isProxyRequiredToReachHds);
+    hdsMockServer = new HdsMockServerRule(hdsMockServerPort, isProxyRequiredToReachHds);
     brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070), PortAllocator.findFreePort(8071),
-        null /* baseUrl */, "http://localhost:" + insightMockServerPort, isProxyRequiredToReachHds, modules)
+        null /* baseUrl */, "http://localhost:" + hdsMockServerPort, isProxyRequiredToReachHds, modules)
         .setConfigurator(configurator);
   }
 
@@ -49,7 +49,7 @@ public class TestCLMServer
     long start = System.currentTimeMillis();
     startCount++;
 
-    insightMockServer.start();
+    hdsMockServer.start();
     brain.start();
 
     long startTime = System.currentTimeMillis() - start;
@@ -64,7 +64,7 @@ public class TestCLMServer
     stopCount++;
 
     brain.stop();
-    insightMockServer.stop();
+    hdsMockServer.stop();
 
     long stopTime = System.currentTimeMillis() - start;
     totalStopTime += stopTime;
@@ -77,8 +77,8 @@ public class TestCLMServer
     return brain;
   }
 
-  public InsightMockServerRule getInsightServer() {
-    return insightMockServer;
+  public HdsMockServerRule getHdsServer() {
+    return hdsMockServer;
   }
 
   public boolean isReusable(boolean proxyRequired, Configurator configurator) {

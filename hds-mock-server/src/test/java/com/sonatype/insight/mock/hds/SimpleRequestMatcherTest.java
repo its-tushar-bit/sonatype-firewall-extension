@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.mock.hds;
 
-import com.sonatype.insight.mock.hds.InsightMockServer.RequestMatcher;
+import com.sonatype.insight.mock.hds.HdsMockServer.RequestMatcher;
 
 import org.junit.Test;
 

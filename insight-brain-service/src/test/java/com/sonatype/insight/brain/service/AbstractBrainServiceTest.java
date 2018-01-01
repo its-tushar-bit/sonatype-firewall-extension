@@ -141,7 +141,7 @@ public abstract class AbstractBrainServiceTest
     }
 
     if (testCLMServer != null) {
-      testCLMServer.getInsightServer().reset();
+      testCLMServer.getHdsServer().reset();
       if (installLicense) {
         installLicense();
       }
@@ -194,7 +194,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void setHdsResponseForURI(String uri, Object body, int status) {
-    getInsightServer().setResponseForURI(uri, body, status);
+    getHdsServer().setResponseForURI(uri, body, status);
   }
 
   protected void setHdsResponseForURI(String uri, int status, String bodyResource) {
@@ -266,8 +266,8 @@ public abstract class AbstractBrainServiceTest
     return testCLMServer.getCLMServer();
   }
 
-  protected InsightMockServerRule getInsightServer() {
-    return testCLMServer.getInsightServer();
+  protected HdsMockServerRule getHdsServer() {
+    return testCLMServer.getHdsServer();
   }
 
   protected TestProductLicenseManager getTestProductLicenseManager() {

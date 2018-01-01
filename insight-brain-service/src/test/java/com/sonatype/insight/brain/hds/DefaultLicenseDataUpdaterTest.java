@@ -108,7 +108,7 @@ public class DefaultLicenseDataUpdaterTest
 
   @Test
   public void testNoHdsServer() throws Exception {
-    getInsightServer().stop();
+    getHdsServer().stop();
 
     try {
       String newId = "New license id";
@@ -122,7 +122,7 @@ public class DefaultLicenseDataUpdaterTest
       }
     }
     finally {
-      getInsightServer().start();
+      getHdsServer().start();
     }
   }
 

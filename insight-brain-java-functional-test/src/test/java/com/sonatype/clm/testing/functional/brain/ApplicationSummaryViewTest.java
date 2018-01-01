@@ -375,9 +375,9 @@ public class ApplicationSummaryViewTest
     }
     finally {
       if (tempFile != null) {
-        testCLMServer.getInsightServer().setResponseForURI("rest/application/analysis",
+        testCLMServer.getHdsServer().setResponseForURI("rest/application/analysis",
             "{\"scanId\": \"blah\", \"timeToReport\": 0}", 200);
-        testCLMServer.getInsightServer().setResponseForURI("rest/application/analysis/blah",
+        testCLMServer.getHdsServer().setResponseForURI("rest/application/analysis/blah",
             getClass().getResource("/AppEvalReport/report.zip"), 200);
 
         ActionDropDown.actionButton().click();

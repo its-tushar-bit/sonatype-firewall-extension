@@ -13,7 +13,7 @@ import java.net.URL;
 
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.mock.hds.InsightMockServer.ResponseProvider;
+import com.sonatype.insight.mock.hds.HdsMockServer.ResponseProvider;
 
 import org.eclipse.jetty.util.IO;
 

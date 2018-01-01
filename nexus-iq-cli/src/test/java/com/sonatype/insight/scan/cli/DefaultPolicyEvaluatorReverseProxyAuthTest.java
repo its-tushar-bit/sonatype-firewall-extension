@@ -68,7 +68,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     startProxiedIQServer();
 
     // return a valid report zip file when asked
-    testCLMServer.getInsightServer().setResponseForURI("rest/application/analysis/SCAN-ID",
+    testCLMServer.getHdsServer().setResponseForURI("rest/application/analysis/SCAN-ID",
         new File("src/test/resources/PolicyEvaluatorReverseProxyAuthTest/small-report.zip"), 200);
 
     // Setup the log capture after dropwizard's logging setup

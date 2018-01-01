@@ -104,11 +104,11 @@ public class DashboardFilters
     }
 
     public SelenideElement saveFilter() {
-      return $("#show-save-filter-dialog");
+      return $("#show-save-filter-modal");
     }
 
     public SelenideElement deleteFilters() {
-      return $("#show-delete-filters-dialog");
+      return $("#show-delete-filters-modal");
     }
 
     public SelenideElement tooltip() {

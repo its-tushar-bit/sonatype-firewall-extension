@@ -1,6 +1,6 @@
 <div load-wrapper loading="vm.isLoadingSavedFilters()">
   <div class="iq-dropdown-menu__actions">
-    <a id="show-save-filter-dialog"
+    <a id="show-save-filter-modal"
        class="btn iq-btn--dropdown"
        ng-click="vm.openSaveFilterModal($event)"
        ng-class="{disabled: vm.isSaveFilterDisabled}"
@@ -10,7 +10,7 @@
        tooltip-class="filter-label-tooltip">
       <i class="fa fa-floppy-o iq-dropdown__action-icon"></i>Save...
     </a>
-    <a id="show-delete-filters-dialog"
+    <a id="show-delete-filters-modal"
        class="btn iq-btn--dropdown"
        ng-click="vm.openDeleteFiltersModal($event)"
        ng-class="{disabled: !vm.hasSavedFilters()}">

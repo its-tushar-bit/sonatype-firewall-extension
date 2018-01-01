@@ -11,7 +11,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class ImportPolicyModal
 {
-  public static final String ROOT_SELECTOR = "#import-policy-dialog";
+  public static final String ROOT_SELECTOR = "#import-policy-modal";
 
   public static SelenideElement root() {
     return $(ROOT_SELECTOR);

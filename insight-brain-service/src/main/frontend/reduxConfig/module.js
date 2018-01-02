@@ -6,14 +6,15 @@
 
 import ngReduxModule from 'ng-redux';
 import reduxUiRouterModule from '../reduxUiRouter/module';
-import {createLogger} from 'redux-logger';
 import thunk from 'redux-thunk';
 import reducers from './reducers';
 
 const middleware = [thunk, 'routerMiddleware'];
 
 // don't use redux-logger in PROD or in Browser with no console.log.apply (IE9)
-if (window.angularDebug && window.console.log.apply) {
+if (window.angularDebug && window.console && window.console.log.apply) {
+  // use require because es6 import redux-logger breaks in IE9
+  const createLogger = require('redux-logger').createLogger;
   const logger = createLogger({level: 'info', collapsed: true, diff: true});
   middleware.push(logger);
 }

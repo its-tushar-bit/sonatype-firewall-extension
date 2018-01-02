@@ -11,7 +11,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
+import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
@@ -72,5 +74,30 @@ public class MainHeaderTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refreshOrOpen(IndexPage.url());
     waitUntilUrl(ReportListPage.URL);
+  }
+
+  @Test
+  public void testNavigation_ToDashboard() {
+    MainHeader.dashboardNavigationButton().click();
+    waitUntilUrl(DashboardPage.URL);
+  }
+
+  @Test
+  public void testNavigation_ToReporting() {
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
+    MainHeader.reportingNavigationButton().click();
+    waitUntilUrl(ReportListPage.URL);
+  }
+
+  @Test
+  public void testNavigation_ToPolicies() {
+    MainHeader.policiesNavigationButton().click();
+    waitUntilUrl(OrganizationManagementPage.ROOT_ORG_URL);
+  }
+
+  @Test
+  public void testNavigation_ToLabs() {
+    MainHeader.labsNavigationButton().click();
+    waitUntilUrl(SuccessMetricsReportListPage.URL);
   }
 }

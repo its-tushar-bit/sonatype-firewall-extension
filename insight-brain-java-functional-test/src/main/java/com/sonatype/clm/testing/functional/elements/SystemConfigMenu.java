@@ -12,14 +12,12 @@ import com.codeborne.selenide.SelenideElement;
 public class SystemConfigMenu
     extends BasicElement<SystemConfigMenu>
 {
-  private static final String ROOT_SELECTOR = "#system-configuration-menu";
-
   public SystemConfigMenu() {
-    super(ROOT_SELECTOR);
+    super("#system-configuration-menu");
   }
 
-  public SelenideElement menu() {
-    return child(".iq-dropdown-toggle");
+  public SelenideElement dropdownToggle() {
+    return child("#system-configuration-menu-dropdown-toggle");
   }
 
   public SelenideElement users() {

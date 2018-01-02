@@ -35,6 +35,10 @@ public class MainHeader
     return new UserMenu();
   }
 
+  public static SystemConfigMenu systemConfigMenu() {
+    return new SystemConfigMenu();
+  }
+
   public static HelpMenu helpMenu() {
     return new HelpMenu();
   }

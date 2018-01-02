@@ -68,17 +68,17 @@ public class SessionTimeoutTest
    */
   @Test
   public void testReloginPromptOnAjaxDetectedSessionExpiration() {
-    SystemConfigMenu systemConfigMenu = new SystemConfigMenu();
+    SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
     loginAsAdmin();
 
     // wait for login to finish
-    systemConfigMenu.menu().shouldBe(visible);
+    systemConfigMenu.dropdownToggle().shouldBe(visible);
     hardreset();
 
     // try to open the Webhooks page. Since the session cookie has been deleted this should trigger the session
     // timeout detection
-    systemConfigMenu.menu().shouldBe(visible).click();
+    systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
 
     assertUiClearedAndLogBackIn();
@@ -194,7 +194,7 @@ public class SessionTimeoutTest
 
   @Test
   public void testRefreshAfterServerTimeoutWithCookieUpdate() throws Exception {
-    SystemConfigMenu systemConfigMenu = new SystemConfigMenu();
+    SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
     // set session timeout to 3 second
     sessionManager.setGlobalSessionTimeout(3000);
@@ -205,7 +205,7 @@ public class SessionTimeoutTest
 
     // Perform an interaction that will cause a server request
     // Current Time: 2000; Timeout Time: 3000
-    systemConfigMenu.menu().shouldBe(visible).click();
+    systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
 
     // wait until after the initial timeout would've expired, but not after the timeout from the most recent
@@ -228,13 +228,13 @@ public class SessionTimeoutTest
    */
   @Test
   public void testRefreshDespiteDirtyPage() throws Exception {
-    SystemConfigMenu systemConfigMenu = new SystemConfigMenu();
+    SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
     // set session timeout to 1 second
     sessionManager.setGlobalSessionTimeout(2000);
 
     loginAsAdmin();
-    systemConfigMenu.menu().shouldBe(visible).click();
+    systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
     new WebhookConfigurationPage().newWebhook().shouldBe(visible).click();
     new WebhookEditPage().url().shouldBe(visible).setValue("test");

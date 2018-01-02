@@ -38,7 +38,7 @@ public class SuccessMetricsConfigurationTest
   private final static String SUCCESS_METRICS_DISABLED_TEXT =
       "Success metrics have been disabled by your system administrator";
 
-  private final SystemConfigMenu systemConfigMenu = new SystemConfigMenu();
+  private final SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
   private final SuccessMetricsConfigurationPage metricsConfigPage = new SuccessMetricsConfigurationPage();
 
@@ -58,17 +58,17 @@ public class SuccessMetricsConfigurationTest
         JsonUtils.format(new SuccessMetricsReportScopeDTO()));
     String successMetricsChartsPageUrl = SuccessMetricsReportPage.getUrl(successMetricsReport.getId());
 
-    systemConfigMenu.menu().click();
+    systemConfigMenu.dropdownToggle().click();
     systemConfigMenu.successMetrics().parent().shouldNotHave(cssClass("active"));
     systemConfigMenu.successMetrics().shouldBe(visible).shouldHave(text("Success Metrics")).click();
     waitUntilUrl(SuccessMetricsConfigurationPage.URL);
 
     // check configuration menu entry is selected
-    systemConfigMenu.menu().click();
+    systemConfigMenu.dropdownToggle().click();
     systemConfigMenu.successMetrics().parent().shouldHave(cssClass("active"));
 
     // close the menu
-    systemConfigMenu.menu().click();
+    systemConfigMenu.dropdownToggle().click();
     systemConfigMenu.successMetrics().shouldNotBe(visible);
 
     // check initial state

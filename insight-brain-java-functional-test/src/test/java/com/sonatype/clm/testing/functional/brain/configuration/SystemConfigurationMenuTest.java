@@ -6,13 +6,13 @@
 package com.sonatype.clm.testing.functional.brain.configuration;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.visible;
 
 public class SystemConfigurationMenuTest
@@ -26,12 +26,11 @@ public class SystemConfigurationMenuTest
 
   @Test
   public void menuEntriesAppear() {
-    SystemConfigMenu systemConfigMenu = new SystemConfigMenu();
+    SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
-    systemConfigMenu.should(appear);
     systemConfigMenu.shouldBe(visible);
 
-    systemConfigMenu.menu().click();
+    systemConfigMenu.dropdownToggle().click();
 
     systemConfigMenu.users().shouldBe(visible);
 

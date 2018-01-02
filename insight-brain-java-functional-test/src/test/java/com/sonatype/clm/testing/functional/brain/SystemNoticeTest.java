@@ -12,10 +12,12 @@ import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.RoleManagementPage;
 import com.sonatype.clm.testing.functional.pages.SystemNoticeConfigurationPage;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 
 import com.codeborne.selenide.Condition;
@@ -55,10 +57,9 @@ public class SystemNoticeTest
       DashboardPage.URL,
       ReportListPage.URL,
       OrganizationManagementPage.URL,
-
-      BaseUrl.uriBuilder().fragment("/users").build().toString(),
-      BaseUrl.uriBuilder().fragment("/roles").build().toString(),
-      BaseUrl.uriBuilder().fragment("/productlicense").build().toString(),
+      UserManagementPage.url(),
+      RoleManagementPage.url(),
+      ProductLicensePage.url(),
       AdministratorsPage.URL,
       LdapServerListPage.URL,
       WebhookConfigurationPage.URL,

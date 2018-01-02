@@ -5,26 +5,36 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class LoginDialog
+public class LoginModal
+    extends BasicElement<LoginModal>
 {
-
-  public static SelenideElement root() {
-    return $("#login-modal");
+  public LoginModal() {
+    super("#login-modal");
   }
 
-  public static SelenideElement username() {
+  public SelenideElement username() {
     return $("#login-username");
   }
 
-  public static SelenideElement password() {
+  public SelenideElement password() {
     return $("#login-password");
   }
 
-  public static SelenideElement loginButton() {
+  public SelenideElement loginButton() {
     return $("#login-action");
+  }
+
+  public SelenideElement systemNotice() {
+    return child("system-notice div");
+  }
+
+  public SelenideElement errorMessage() {
+    return $("#login-error");
   }
 }

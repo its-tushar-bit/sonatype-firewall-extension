@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.io.IOException;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.LoginDialog;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainView;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
@@ -86,11 +86,10 @@ public class SessionTimeoutTest
     logout();
 
     // verify that after logging out properly, the login dialog is fully useable again
-    LoginDialog.root().shouldBe(visible);
-    LoginDialog.username().shouldHave(value(""));
-    LoginDialog.username().shouldBe(enabled);
-    LoginDialog.password().shouldHave(value(""));
-    LoginDialog.password().shouldBe(enabled);
+    LoginModal loginModal = new LoginModal();
+    loginModal.shouldBe(visible);
+    loginModal.username().shouldHave(value("")).shouldBe(enabled);
+    loginModal.password().shouldHave(value("")).shouldBe(enabled);
   }
 
   /**

@@ -6,7 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.LoginDialog;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.SystemNotice;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -114,7 +114,7 @@ public class SystemNoticeTest
   {
     systemNoticeDAO.update(systemNotice);
     refreshOrOpen(DashboardPage.URL);
-    LoginDialog.root().find(SystemNotice.ROOT_SELECTOR).shouldBe(visibility);
+    new LoginModal().systemNotice().shouldBe(visibility);
   }
 
   private void checkSystemNoticeVisibilityAfterLogin(final com.sonatype.insight.brain.model.configuration.SystemNotice systemNotice,

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-import com.sonatype.clm.testing.functional.elements.LoginDialog;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
@@ -194,11 +194,12 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void login(String username, String password) {
-    LoginDialog.root().shouldBe(visible);
-    LoginDialog.username().setValue(username);
-    LoginDialog.password().setValue(password);
-    LoginDialog.loginButton().click();
-    LoginDialog.root().shouldNotBe(visible);
+    LoginModal loginModal = new LoginModal();
+    loginModal.shouldBe(visible);
+    loginModal.username().setValue(username);
+    loginModal.password().setValue(password);
+    loginModal.loginButton().click();
+    loginModal.shouldNotBe(visible);
   }
 
   protected static void logout() {

@@ -8,34 +8,102 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.BeforeClass;
+import com.codeborne.selenide.Selenide;
+import org.junit.After;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.visible;
 
 public class SystemConfigurationMenuTest
     extends AbstractFunctionalTest
 {
-  @BeforeClass
-  public static void startup() {
-    refreshOrOpen(DashboardPage.URL);
-    loginAsAdmin();
+  private SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
+
+  @After
+  public void clearCookies() {
+    Selenide.clearBrowserCookies();
+  }
+
+  private User newUser(Permission... perms) {
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(true, perms);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
+    return user;
   }
 
   @Test
-  public void menuEntriesAppear() {
-    SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
+  public void testPermissionAwareness_NoPermissionsAtAll() {
+    User user = newUser();
+
+    refreshOrOpen(ReportListPage.URL);
+    login(user.getUsername(), user.getPassword());
+
+    MainHeader.userMenu().userName().shouldNotBe(empty);
+    systemConfigMenu.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testPermissionAwareness_Admin() {
+    refreshOrOpen(ReportListPage.URL);
+    loginAsAdmin();
 
     systemConfigMenu.shouldBe(visible);
-
     systemConfigMenu.dropdownToggle().click();
 
     systemConfigMenu.users().shouldBe(visible);
-
+    systemConfigMenu.roles().shouldBe(visible);
+    systemConfigMenu.administrators().shouldBe(visible);
+    systemConfigMenu.productLicense().shouldBe(visible);
+    systemConfigMenu.ldap().shouldBe(visible);
     systemConfigMenu.webhooks().shouldBe(visible);
-
+    systemConfigMenu.systemNotice().shouldBe(visible);
     systemConfigMenu.successMetrics().shouldBe(visible);
+  }
+
+  @Test
+  public void testPermissionAwareness_CONFIGURE_SYSTEM() {
+    User user = newUser(Permission.CONFIGURE_SYSTEM);
+
+    refreshOrOpen(ReportListPage.URL);
+    login(user.getUsername(), user.getPassword());
+
+    systemConfigMenu.shouldBe(visible);
+    systemConfigMenu.dropdownToggle().click();
+
+    systemConfigMenu.users().shouldBe(visible);
+    systemConfigMenu.roles().shouldNotBe(visible);
+    systemConfigMenu.administrators().shouldBe(visible);
+    systemConfigMenu.productLicense().shouldBe(visible);
+    systemConfigMenu.ldap().shouldBe(visible);
+    systemConfigMenu.webhooks().shouldBe(visible);
+    systemConfigMenu.systemNotice().shouldBe(visible);
+    systemConfigMenu.successMetrics().shouldBe(visible);
+  }
+
+  @Test
+  public void testPermissionAwareness_VIEW_ROLES() {
+    User user = newUser(Permission.VIEW_ROLES);
+
+    refreshOrOpen(ReportListPage.URL);
+    login(user.getUsername(), user.getPassword());
+
+    systemConfigMenu.shouldBe(visible);
+    systemConfigMenu.dropdownToggle().click();
+
+    systemConfigMenu.users().shouldNotBe(visible);
+    systemConfigMenu.roles().shouldBe(visible);
+    systemConfigMenu.administrators().shouldNotBe(visible);
+    systemConfigMenu.productLicense().shouldNotBe(visible);
+    systemConfigMenu.ldap().shouldNotBe(visible);
+    systemConfigMenu.webhooks().shouldNotBe(visible);
+    systemConfigMenu.systemNotice().shouldNotBe(visible);
+    systemConfigMenu.successMetrics().shouldNotBe(visible);
   }
 }

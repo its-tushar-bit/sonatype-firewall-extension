@@ -24,8 +24,28 @@ public class SystemConfigMenu
     return child("#system-configuration-users a");
   }
 
+  public SelenideElement roles() {
+    return child("#system-configuration-roles a");
+  }
+
+  public SelenideElement administrators() {
+    return child("#system-configuration-administrators a");
+  }
+
+  public SelenideElement productLicense() {
+    return child("#system-configuration-product-license a");
+  }
+
+  public SelenideElement ldap() {
+    return child("#system-configuration-ldap a");
+  }
+
   public SelenideElement webhooks() {
     return child("#system-configuration-webhooks a");
+  }
+
+  public SelenideElement systemNotice() {
+    return child("#system-configuration-system-notice a");
   }
 
   public SelenideElement successMetrics() {

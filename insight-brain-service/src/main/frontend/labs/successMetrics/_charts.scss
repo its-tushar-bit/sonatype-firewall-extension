@@ -55,6 +55,8 @@ $iq-chart-horizontal-bar-min-width: 490px;
 
 .iq-tile-scroll-container--success-metrics {
   height: calc(100% - 16px);
+  margin: 0;
+  width: 100%;
 }
 
 .iq-chart--horizontal-bar {

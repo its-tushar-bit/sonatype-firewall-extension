@@ -61,6 +61,13 @@
           </includes>
           <trimStackTrace>false</trimStackTrace>
           <skipITs>${skip.functional.tests}</skipITs>
+
+          <!--
+               Starting a separate JVM for each test class is both slow and problematic when it comes to generating
+               run timestamps for use as applitools batch ids, so reuse the same JVM.
+          -->
+          <reuseForks>true</reuseForks>
+          <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>
             <selenide.browserSize>1400x1050</selenide.browserSize>

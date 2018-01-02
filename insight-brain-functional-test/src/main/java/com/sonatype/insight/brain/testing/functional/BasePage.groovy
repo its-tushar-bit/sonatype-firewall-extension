@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.testing.functional.modules.ChangePasswordModule
 import com.sonatype.insight.brain.testing.functional.modules.HelpModule
 import com.sonatype.insight.brain.testing.functional.modules.LoginModule
 import com.sonatype.insight.brain.testing.functional.modules.NotificationModule
@@ -21,7 +20,6 @@ abstract class BasePage
     extends Page
 {
   static content = {
-    changePassword { module ChangePasswordModule }
     login { module LoginModule }
     notificationMenu { module NotificationModule }
     userOptions { module UserOptionsModule }

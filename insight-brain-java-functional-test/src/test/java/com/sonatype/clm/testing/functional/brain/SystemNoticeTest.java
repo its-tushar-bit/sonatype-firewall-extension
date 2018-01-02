@@ -124,7 +124,7 @@ public class SystemNoticeTest
     refresh();
     for (String url : PAGE_URLS) {
       refreshOrOpen(url);
-      this.systemNotice.root().shouldBe(visibility);
+      this.systemNotice.shouldBe(visibility);
     }
   }
 

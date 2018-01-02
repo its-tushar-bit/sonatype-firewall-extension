@@ -234,8 +234,7 @@ public class SystemNoticeConfigurationTest
 
   private void systemNoticeMatchesConfiguration() {
     if (systemNoticeConfigurationPage.isDisplayed()) {
-      systemNotice.shouldBe(visible);
-      systemNotice.root().shouldHave(exactText(systemNoticeConfigurationPage.getText()));
+      systemNotice.shouldBe(visible).shouldHave(exactText(systemNoticeConfigurationPage.getText()));
     }
     else {
       systemNotice.shouldBe(hidden);

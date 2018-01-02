@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -145,6 +146,41 @@ public class PolicyMonitorTest
       Date val = lastRun.get(stageType);
       assertThat((val == null && eval == null) || (val != null && eval != null && val.equals(eval.getTime())), is(true));
     }
+  }
+
+  @Test
+  public void testMonitoringEnabledForAuditorProductLicense() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Stage stage = new Stage(ReleaseStageType.ID);
+
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+    String scanId1 = "PolicyMonitorTest_scanId";
+
+    createScanFile(app, scanId1);
+
+    // Simulate that the report is available
+    mockScanReceiptAndReport(scanId1);
+
+    evaluatePolicy(app.getPublicId(), scanId1, stage);
+
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation policyEvaluationBefore = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
+
+    // Set the product license to Auditor (aka Risk).
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_RISK);
+
+    String scanId2 = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(scanId2);
+    policyMonitor.run();
+
+    PolicyEvaluation policyEvaluationAfter = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
+    assertThat(policyEvaluationAfter.getId(), is(not(policyEvaluationBefore.getId())));
   }
 
   @Test

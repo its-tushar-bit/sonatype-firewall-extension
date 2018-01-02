@@ -17,11 +17,11 @@ class ChangePasswordModule
   static content = {
     //this content is all in the popup dialog
     dialog(required: false) { $('form[name="passwordForm"]') }
-    oldPassword(required: false) { dialog.originalPassword() }
-    newPassword(required: false) { dialog.newPassword() }
-    newPasswordValidate(required: false) { dialog.confirmPassword() }
-    invalidCredentialsError(required: false) { dialog.find('div.section.with-icon') }
-    ok(required: false) { $('form[name="passwordForm"] #change-password-submit').module(FormElement) }
-    cancel(required: false) { $('form[name="passwordForm"] button.btn-cancel)').module(FormElement) }
+    oldPassword(required: false) { $('#original-password') }
+    newPassword(required: false) { $('#new-password') }
+    newPasswordValidate(required: false) { $('#confirm-password') }
+    invalidCredentialsError(required: false) { $('#change-password-error') }
+    ok(required: false) { $('#change-password-submit').module(FormElement) }
+    cancel(required: false) { $('#change-password-cancel').module(FormElement) }
   }
 }

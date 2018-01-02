@@ -1,29 +1,29 @@
 <div>
   <script type="text/ng-template" id="change-password-template">
-    <div>
+    <div id="change-password-modal">
       <div class="iq-modal-header">
         <h2>Change Password</h2>
       </div>
       <form name="passwordForm" class="clm-form" ng-submit="save()">
         <div class="iq-modal-content">
-          <div clm-control-group for="originalPassword" label="Current Password">
+          <div clm-control-group for="original-password" label="Current Password">
             <input clm-input
                    type="password"
-                   id="originalPassword"
-                   name="originalPassword"
+                   id="original-password"
+                   name="original-password"
                    ng-model="result.originalPassword"
                    required
                    focus-input="true">
           </div>
           <hr/>
-          <div clm-control-group for="newPassword" label="New Password">
-            <input clm-input type="password" id="newPassword" name="newPassword" ng-model="result.newPassword" required>
+          <div clm-control-group for="new-password" label="New Password">
+            <input clm-input type="password" id="new-password" name="new-password" ng-model="result.newPassword" required>
           </div>
-          <div clm-control-group for="confirmPassword" label="Confirm New Password">
+          <div clm-control-group for="confirm-password" label="Confirm New Password">
             <input clm-input
                    type="password"
-                   id="confirmPassword"
-                   name="confirmPassword"
+                   id="confirm-password"
+                   name="confirm-password"
                    ng-model="result.confirmPassword"
                    required ui-validate=" '$value==result.newPassword' "
                    ui-validate-watch=" 'result.newPassword' "
@@ -31,7 +31,7 @@
           </div>
         </div>
         <div class="iq-modal-footer" ng-class="{error: error}">
-          <div ng-if="error" class="section with-icon"><i class="fa fa-warning"></i>{{error}}</div>
+          <div id="change-password-error" ng-if="error" class="section with-icon"><i class="fa fa-warning"></i>{{error}}</div>
           <button type="submit"
                   class="btn btn-error"
                   id="change-password-submit"
@@ -46,7 +46,7 @@
                   ng-disabled="passwordForm.$invalid || submitActive">
             Change
           </button>
-          <button type="button" class="btn btn-cancel" ng-click="$dismiss()">Cancel</button>
+          <button type="button" class="btn btn-cancel" id="change-password-cancel" ng-click="$dismiss()">Cancel</button>
         </div>
       </form>
     </div>

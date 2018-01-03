@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -77,9 +78,11 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyListOf;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -301,6 +304,73 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
     // emailAddress4 should not get a message
     assertEmailAddresses(emailAddress1, emailAddress2, emailAddress3);
+  }
+
+  /**
+   * See CLM-8161.
+   */
+  @Test
+  public void test_Notification_Role_ObservesEmailChange() {
+    Application app = tempEntity.newApplicationWithParent();
+    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    String oldAddress = "oldaddress@sonatype.com";
+
+    User user = tempEntity.newUser("test", "FirstName", "LastName", oldAddress);
+
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), user.getUsername());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = "scan-id";
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(app.getId(), "test");
+    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policyDAO.update(policy);
+    List<PolicyViolation> policyViolations = Collections.singletonList(tempEntity.newPolicyViolation(eval, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT)).sendHtml(endsWith(scanId), anyList(), anyString(),
+        anyString());
+
+    String newAddress = "newaddress@sonatype.com";
+    user.setEmail(newAddress);
+    new UserDAO().update(user);
+
+    policyAlertEmailer.sendNotifications(app, "scan-id2", stage, policyNotifications);
+    assertEmailAddresses(oldAddress, newAddress);
+  }
+
+  /**
+   * See CLM-8161.
+   */
+  @Test
+  public void test_Notification_Role_ObservesLdapUserEmailChange() throws Exception {
+    startLdapServer1();
+
+    Application app = tempEntity.newApplicationWithParent("test");
+
+    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(app.getId(), role.getId(),"xb", MemberType.GROUP);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = "scan-id";
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(app.getId(), "test");
+    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policyDAO.update(policy);
+    List<PolicyViolation> policyViolations = Collections.singletonList(tempEntity.newPolicyViolation(eval, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT))
+        .sendHtml(endsWith(scanId), anyList(), anyString(), anyString());
+
+    testLdapServer1.loadData("/PolicyAlertEmailerTest/alter_testuser1_1_email.ldif");
+
+    policyAlertEmailer.sendNotifications(app, "scan-id2", stage, policyNotifications);
+    assertEmailAddresses("test.user1_1@company.com", "test.user1_1modified@company.com");
   }
 
   @Test

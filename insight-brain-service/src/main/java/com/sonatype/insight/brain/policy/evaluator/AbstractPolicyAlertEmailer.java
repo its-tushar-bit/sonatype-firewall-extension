@@ -56,7 +56,7 @@ public abstract class AbstractPolicyAlertEmailer
 
   private final MembershipMappingDAO membershipMappingDAO;
 
-  private final MemberAttributeResolver memberAttributeResolver;
+  private final UserDirectory userDirectory;
 
   private final LdapService ldapService;
 
@@ -71,7 +71,7 @@ public abstract class AbstractPolicyAlertEmailer
                                     final MembershipMappingDAO membershipMappingDAO)
   {
     this.mail = mail;
-    memberAttributeResolver = new MemberAttributeResolver(userDirectory);
+    this.userDirectory = userDirectory;
     this.ldapService = ldapService;
     this.ownerDAO = ownerDAO;
     this.membershipMappingDAO = membershipMappingDAO;
@@ -155,7 +155,7 @@ public abstract class AbstractPolicyAlertEmailer
     }
 
     // Fill in email addresses
-    memberAttributeResolver.resolve(members);
+    new MemberAttributeResolver(userDirectory).resolve(members);
 
     Set<String> emailAddresses = new HashSet<>();
     for (Member member : members) {

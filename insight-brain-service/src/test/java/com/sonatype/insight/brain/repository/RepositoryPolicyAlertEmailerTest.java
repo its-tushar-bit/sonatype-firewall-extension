@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -85,11 +86,28 @@ public class RepositoryPolicyAlertEmailerTest
     PolicyNotification notification = createPolicyNotification(policy,
         tempEntity.newRepositoryComponent(repository.getId()));
 
-    emailer.sendNotifications(repository, Collections.singletonList(notification));
+    sendNotificationsAndVerify(repository, user, Collections.singletonList(notification));
+  }
 
-    verify(mail).sendHtml(eq("SONATYPE-IQ-" + repository.getPublicId()),
-        argThat(new AddressListEq(Collections.singletonList(new Address("email@sonatype.com")))), anyString(),
-        anyString());
+  @Test
+  public void testSendNotifications_observeEmailAddressChanges() {
+    Repository repository = tempEntity.newRepository();
+    User user = tempEntity.newUser();
+    Policy policy = createPolicy(user);
+    PolicyNotification notification = createPolicyNotification(policy,
+        tempEntity.newRepositoryComponent(repository.getId()));
+
+    sendNotificationsAndVerify(repository, user, Collections.singletonList(notification));
+
+    user.setEmail("newaddress@sonatype.com");
+    UserDAO userDAO = new UserDAO();
+    userDAO.update(user);
+
+    sendNotificationsAndVerify(repository, user, Collections.singletonList(notification));
+  }
+
+  private void sendNotificationsAndVerify(Repository repository, User user, List<PolicyNotification> notifications) {
+    emailer.sendNotifications(repository, notifications);
 
     verify(mail).sendHtml(eq("SONATYPE-IQ-" + repository.getPublicId()),
         argThat(new AddressListEq(Collections.singletonList(new Address(user.getEmail())))), anyString(), anyString());

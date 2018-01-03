@@ -38,11 +38,11 @@ public class CategoryTile
     return Condition.text("available to apps in " + organization.getName());
   }
 
-  public static Condition buttonText(Application application) {
+  public static Condition buttonText(@SuppressWarnings("unused") Application application) {
     return Condition.text("assign app categories");
   }
 
-  public static Condition buttonText(Organization organization) {
+  public static Condition buttonText(@SuppressWarnings("unused") Organization organization) {
     return Condition.text("add a category");
   }
 

@@ -27,13 +27,13 @@ public class EyesWatcher
 
   private static BatchInfo batch;
 
-  private static final String APPLITOOLS_KEY = "bg21K3t6KY1073109q6J9lZzCQBfxEDGh5tHgYR9wl1kHxk110";
+  private static final String APPLITOOLS_KEY = System.getProperty("applitoolsKey");
 
   static {
     String localBranchName = System.getProperty("branchName", System.getenv("bamboo_planRepository_branchName"));
-    eyes.setIsDisabled(!Boolean.getBoolean("visualTestingEnabled"));
+    eyes.setIsDisabled(APPLITOOLS_KEY == null);
 
-    if (localBranchName != null) {
+    if (!eyes.getIsDisabled() && localBranchName != null) {
       String buildNumber = System.getenv("bamboo_buildNumber");
       batch = new BatchInfo(localBranchName + (buildNumber != null ? " #" + buildNumber : ""));
 
@@ -53,7 +53,8 @@ public class EyesWatcher
   protected void starting(Description description) {
     if (!eyes.getIsDisabled() && eyes.getBatch() == null) {
       throw new IllegalArgumentException(
-          "The branchName parameter or the Bamboo environment variables are required if visualTestingEnabled is true");
+          "The branchName parameter or the Bamboo environment variables are required if visual testing is enabled " + 
+              "(the applitoolsKey property is provided).");
     }
     testName = description.getTestClass().getSimpleName() + "." + description.getMethodName();
   }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.applitools.eyes.BatchInfo;
@@ -32,26 +31,30 @@ public class EyesWatcher
 
   static {
     String localBranchName = System.getProperty("branchName", System.getenv("bamboo_planRepository_branchName"));
-    String buildNumber = System.getenv("bamboo_buildNumber");
-
-    batch = new BatchInfo(localBranchName + (buildNumber != null ? " #" + buildNumber :
-        " " + System.getProperty("batchName", new SimpleDateFormat("MMM dd yyyy").format(new Date()))));
-
     eyes.setIsDisabled(!Boolean.getBoolean("visualTestingEnabled"));
 
-    // Aggregates tests under the same batch when tests are run in different processes (e.g. split tests in bamboo).
-    batch.setId(batch.getName());
-    eyes.setApiKey(APPLITOOLS_KEY);
-    eyes.setBatch(batch);
+    if (localBranchName != null) {
+      String buildNumber = System.getenv("bamboo_buildNumber");
+      batch = new BatchInfo(localBranchName + (buildNumber != null ? " #" + buildNumber : ""));
 
-    eyes.setBranchName(localBranchName);
+      // Aggregates tests under the same batch when tests are run in different processes (e.g. split tests in bamboo).
+      batch.setId(buildNumber != null ? batch.getName() : batch.getName() + new Date().toString());
+      eyes.setApiKey(APPLITOOLS_KEY);
+      eyes.setBatch(batch);
 
-    // set the default parent branch to master if the parent branch is not specified
-    eyes.setParentBranchName(System.getProperty("parentBranchName", "master"));
+      eyes.setBranchName(localBranchName);
+
+      // set the default parent branch to master if the parent branch is not specified
+      eyes.setParentBranchName(System.getProperty("parentBranchName", "master"));
+    }
   }
 
   @Override
   protected void starting(Description description) {
+    if (!eyes.getIsDisabled() && eyes.getBatch() == null) {
+      throw new IllegalArgumentException(
+          "The branchName parameter or the Bamboo environment variables are required if visualTestingEnabled is true");
+    }
     testName = description.getTestClass().getSimpleName() + "." + description.getMethodName();
   }
 

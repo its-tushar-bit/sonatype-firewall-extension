@@ -6,7 +6,7 @@
                      get-current-members="getCurrentMembers"
                      is-dirty="isDirty"
                      group-search-enabled="groupSearchEnabled"
-                     has-mixed-group-search="hasMixedGroupSearch" ldap-realm="context.ldapRealm">
+                     ldap-realm="context.ldapRealm">
       <div clm-alerts="alerts"></div>
       <button class="btn btn-primary" type="submit">Save</button>
       <button class="btn" type="button" ng-click="cancel()">Cancel</button>
@@ -75,9 +75,9 @@
                 <i class="fa fa-fw fa-pencil"></i>
               </button>
             </div>
-            <app-security-editor role="role" group-search-enabled="context.groupSearchEnabled"
-                                 hide="$parent.editMode = false"
-                                 has-mixed-group-search="context.hasMixedGroupSearch">
+            <app-security-editor role="role"
+                                 group-search-enabled="context.groupSearchEnabled"
+                                 hide="$parent.editMode = false">
             </app-security-editor>
           </div>
         </div>

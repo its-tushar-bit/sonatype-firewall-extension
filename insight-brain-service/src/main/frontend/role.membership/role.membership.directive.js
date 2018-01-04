@@ -9,7 +9,6 @@ function RoleMembershipDirective() {
       role: '<',
       save: '<',
       groupSearchEnabled: '<',
-      hasMixedGroupSearch: '<',
       originalMembers: '<',
       getCurrentMembers: '=',
       isDirty: '='

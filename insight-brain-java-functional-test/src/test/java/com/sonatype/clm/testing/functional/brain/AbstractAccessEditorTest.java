@@ -42,7 +42,7 @@ import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.PRISTINE;
-import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.MIXED_GROUP_SEARCH_WARNING;
+import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.DISABLED_GROUP_SEARCH_WARNING;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -207,7 +207,7 @@ public abstract class AbstractAccessEditorTest
   }
 
   @Test
-  public void testMixedGroupSearchWarning() {
+  public void testDisabledGroupSearchWarning() {
     // start with two LDAP servers, both with dynamic group search disabled
     String ldap_1 = tempEntity.newLdapServer("LDAP_1").getId();
     tempEntity.newLdapConnection(ldap_1);
@@ -229,21 +229,21 @@ public abstract class AbstractAccessEditorTest
     goFromSummaryToAddRole();
 
     AccessEditorPage.searchBox().shouldBe(visible);
-    AccessEditorPage.mixedGroupSearchWarning().shouldNot(exist);
+    AccessEditorPage.disabledGroupSearchWarning().shouldBe(visible).shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
 
     // enable group search for one
     userMapping1.setDynamicGroupSearchEnabled(true);
     new LdapUserMappingDAO().update(userMapping1);
     refresh();
 
-    AccessEditorPage.mixedGroupSearchWarning().shouldBe(visible).shouldHave(text(MIXED_GROUP_SEARCH_WARNING));
+    AccessEditorPage.disabledGroupSearchWarning().shouldBe(visible).shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
 
     // ... and then the other one, too
     userMapping2.setDynamicGroupSearchEnabled(true);
     new LdapUserMappingDAO().update(userMapping2);
     refresh();
 
-    AccessEditorPage.mixedGroupSearchWarning().shouldNot(exist);
+    AccessEditorPage.disabledGroupSearchWarning().shouldNot(exist);
   }
 
   private void assertThatRoleNotAvailableInDropdown(final String roleName) {

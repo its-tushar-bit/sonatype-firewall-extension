@@ -349,10 +349,6 @@ public class UserDirectory
     return ldapService.isDynamicGroupSearchDisabled();
   }
 
-  public boolean hasMixedGroupSearch() {
-    return ldapService.hasMixedGroupSearch();
-  }
-
   public boolean isLdapUser(final User user) throws NamingException {
     String[] userNames = { user.getUsername() };
     for (LdapServer ldapServer : new LdapServerDAO().getAll()) {

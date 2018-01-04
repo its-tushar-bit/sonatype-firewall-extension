@@ -50,8 +50,7 @@ var AccessMockData = {
           ]
         }
       ],
-      groupSearchEnabled: true,
-      hasMixedGroupSearch: true
+      groupSearchEnabled: true
     };
   },
 

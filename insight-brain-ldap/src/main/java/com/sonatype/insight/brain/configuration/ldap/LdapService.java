@@ -201,41 +201,6 @@ public class LdapService
     return false;
   }
 
-  /**
-   * Finds whether the search in multiple ldap servers has mixed group search, meaning that there is at least one
-   * ldap server with dynamic group search disabled and at least one group search enabled in either dynamic or static.
-   */
-  public boolean hasMixedGroupSearch() {
-    boolean hasDynamicGroupSearchEnabled = false;
-    boolean hasDynamicGroupSearchDisabled = false;
-    boolean hasNonDynamicGroupSearchEnabled = false;
-
-    for (final LdapServer ldapServer : serverDao.getAll()) {
-      if (isLdapEnabled(ldapServer)) {
-        LdapUserMapping mapping = userDao.getByServerId(ldapServer.getId());
-
-        if (mapping.getGroupMappingType() != LdapGroupMappingType.NONE) {
-          boolean isDynamicGroup = mapping.getGroupMappingType() == LdapGroupMappingType.DYNAMIC;
-
-          if (isDynamicGroup && mapping.isDynamicGroupSearchEnabled()) {
-            hasDynamicGroupSearchEnabled = true;
-          }
-          else if (isDynamicGroup && !mapping.isDynamicGroupSearchEnabled()) {
-            hasDynamicGroupSearchDisabled = true;
-          }
-          else {
-            hasNonDynamicGroupSearchEnabled = true;
-          }
-        }
-
-        if (hasDynamicGroupSearchDisabled && (hasDynamicGroupSearchEnabled || hasNonDynamicGroupSearchEnabled)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-  
   private LdapUserMapping getUserMapping(LdapConnection connection) {
     LdapUserMapping umap = userDao.getByServerId(connection.getServerId());
     if (umap == null) {

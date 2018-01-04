@@ -95,7 +95,6 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings actual = membershipMappingService
         .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
 
-    assertThat(actual.hasMixedGroupSearch, is(false));
     assertThat(actual.groupSearchEnabled, is(true));
   }
 
@@ -107,7 +106,6 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings actual = membershipMappingService
         .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
 
-    assertThat(actual.hasMixedGroupSearch, is(true));
     assertThat(actual.groupSearchEnabled, is(false));
   }
 
@@ -120,7 +118,6 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings actual = membershipMappingService
         .getApplicableMembershipMappings(OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID");
 
-    assertThat(actual.hasMixedGroupSearch, is(true));
     assertThat(actual.groupSearchEnabled, is(false));
   }
 

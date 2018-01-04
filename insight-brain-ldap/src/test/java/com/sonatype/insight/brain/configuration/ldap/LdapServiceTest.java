@@ -1413,55 +1413,6 @@ public class LdapServiceTest
 
     assertThat(ldapService.isGroupSearchEnabled(ldapServer), is(false));
   }
-  
-  @Test
-  public void testHasMixedGroupSearch_MultipleDynamicGroupSearchesEnabled() throws Exception {
-    setupLdapWithDynamicGroupType("test server 1", true);
-    setupLdapWithDynamicGroupType("test server 2", true);
-    
-    assertThat(ldapService.hasMixedGroupSearch(), is(false));
-  }
-
-  @Test
-  public void testHasMixedGroupSearch_MultipleDynamicGroupSearchesDisabled() throws Exception {
-    setupLdapWithDynamicGroupType("test server 1", false);
-    setupLdapWithDynamicGroupType("test server 2", false);
-    
-    assertThat(ldapService.hasMixedGroupSearch(), is(false));
-  }
-
-  @Test
-  public void testHasMixedGroupSearch_MultipleStaticGroupSearchesEnabled() throws Exception {
-    setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.STATIC);
-    setupLdapWithNonDynamicGroupType("test server 2", LdapGroupMappingType.STATIC);
-    
-    assertThat(ldapService.hasMixedGroupSearch(), is(false));
-  }
-
-  @Test
-  public void testHasMixedGroupSearch_SingleDynamicGroupSearchDisabled() throws Exception {
-    setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.NONE);
-    setupLdapWithDynamicGroupType("test server 2", false);
-    
-    assertThat(ldapService.hasMixedGroupSearch(), is(false));
-  }
-
-  @Test
-  public void testHasMixedGroupSearch_MixedGroupSearches() throws Exception {
-    setupLdapWithNonDynamicGroupType("test server 1", LdapGroupMappingType.NONE);
-    setupLdapWithDynamicGroupType("test server 2", false);
-    setupLdapWithNonDynamicGroupType("test server 3", LdapGroupMappingType.STATIC);
-    
-    assertThat(ldapService.hasMixedGroupSearch(), is(true));
-  }
-
-  @Test
-  public void testHasMixedGroupSearch_MixedDynamicGroupSearches() throws Exception {
-    setupLdapWithDynamicGroupType("test server 1", false);
-    setupLdapWithDynamicGroupType("test server 2", true);
-
-    assertThat(ldapService.hasMixedGroupSearch(), is(true));
-  }
 
   @Test
   public void testIsDynamicGroupSearchDisabled_MultipleDynamicGroupMappingTypes() {

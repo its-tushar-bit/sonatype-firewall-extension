@@ -13,6 +13,4 @@ public class ApplicableMembershipMappings
   public List<MembersByRole> membersByRole = new ArrayList<>();
   
   public boolean groupSearchEnabled;
-
-  public boolean hasMixedGroupSearch;
 }

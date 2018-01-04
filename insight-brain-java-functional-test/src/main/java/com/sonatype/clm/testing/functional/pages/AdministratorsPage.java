@@ -65,7 +65,7 @@ public class AdministratorsPage
       public static class Content
           extends BasicElement<Content>
       {
-        public static final String MIXED_GROUP_SEARCH_WARNING = "One or more LDAP servers have group search " +
+        public static final String DISABLED_GROUP_SEARCH_WARNING = "One or more LDAP servers have group search " +
             "disabled, which will affect your results";
 
         public Content(String... selectors) {
@@ -77,7 +77,7 @@ public class AdministratorsPage
         }
 
         public SelenideElement groupSearchWarning() {
-          return child("#mixed-group-search-warning");
+          return child("#disabled-group-search-warning");
         }
 
         public SelenideElement cancelButton() {

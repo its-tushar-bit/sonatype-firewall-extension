@@ -54,7 +54,6 @@ function AccessEditorController($rootScope, $scope, $stateParams, Messages, Loca
         }
       }
       vm.groupSearchEnabled = roleMappings.groupSearchEnabled;
-      vm.hasMixedGroupSearch = roleMappings.hasMixedGroupSearch;
       vm.availableRoles = LocalRoleService.getRolesWithoutLocalMembers(roleMappings.membersByRole);
     }, function(error) {
       vm.loadError = Messages.getHttpErrorMessage(error);

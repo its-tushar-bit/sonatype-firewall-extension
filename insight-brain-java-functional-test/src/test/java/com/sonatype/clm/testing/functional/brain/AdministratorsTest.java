@@ -204,7 +204,8 @@ public class AdministratorsTest
 
     policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(0);
     policyAdministrator.shouldBe(visible).editButton().click();
-    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldNotBe(visible);
+    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldBe(visible).shouldHave(text(
+        Content.DISABLED_GROUP_SEARCH_WARNING));
 
     // mix servers have group search disabled and disabled
     userMapping2.setDynamicGroupSearchEnabled(true);
@@ -216,7 +217,7 @@ public class AdministratorsTest
     policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(0);
     policyAdministrator.shouldBe(visible).editButton().click();
     policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldBe(visible).shouldHave(text(
-        Content.MIXED_GROUP_SEARCH_WARNING));
+        Content.DISABLED_GROUP_SEARCH_WARNING));
 
     // all servers have group search enabled
     userMapping1.setDynamicGroupSearchEnabled(true);

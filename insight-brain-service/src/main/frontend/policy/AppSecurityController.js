@@ -57,8 +57,7 @@ function AppSecurityController($scope, $http, clmAppLocations, isAuthorized) {
         var data = response.data;
         $scope.context = {
           roles: data.membersByRole,
-          groupSearchEnabled: data.groupSearchEnabled,
-          hasMixedGroupSearch: data.hasMixedGroupSearch
+          groupSearchEnabled: data.groupSearchEnabled
         };
       }, function(error) {
         $scope.error = error;
@@ -154,8 +153,7 @@ function AppSecurityEditorDirective() {
     scope: {
       hide: '&',
       role: '<',
-      groupSearchEnabled: '<',
-      hasMixedGroupSearch: '<'
+      groupSearchEnabled: '<'
     },
     controller: 'AppSecurityEditorController',
     templateUrl: 'appSecurityEditor'

@@ -4,7 +4,7 @@ const CSSSplitPlugin = require('css-split-webpack-plugin').default;
 const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
 const transformRuntime = require('babel-plugin-transform-runtime');
 
-const WebpackCopyModulesPlugin = require('./WebpackCopyModulesPlugin');
+const CopyModulesPlugin = require('copy-modules-webpack-plugin');
 
 const webpackOutputPath = 'assets';
 const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutputPath);
@@ -28,7 +28,7 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
         })
       ],
       productionPlugins = [
-        new WebpackCopyModulesPlugin({
+        new CopyModulesPlugin({
           destination: path.join('target', 'webpack-modules')
         })
       ],

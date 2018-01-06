@@ -15,15 +15,11 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.configuration.ldap.LdapService;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
-import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
@@ -51,12 +47,9 @@ public class PolicyAlertEmailer
   public PolicyAlertEmailer(final InsightMail mail,
                             final BaseUrl baseUrl,
                             final ApplicationAdapter applicationAdapter,
-                            final UserDirectory userDirectory,
-                            final LdapService ldapService,
-                            final OwnerDAO ownerDAO,
-                            final MembershipMappingDAO membershipMappingDAO)
+                            final PolicyAlertEmailResolver policyAlertEmailResolver)
   {
-    super(mail, userDirectory, ldapService, ownerDAO, membershipMappingDAO);
+    super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
   }

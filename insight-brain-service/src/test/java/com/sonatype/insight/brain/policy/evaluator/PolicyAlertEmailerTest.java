@@ -95,10 +95,7 @@ public class PolicyAlertEmailerTest
   private static final int NOTIFICATION_WAIT_TIMEOUT = 5000; // millisecs
 
   @Rule
-  public LogOutput logOutput = new LogOutput(PolicyAlertEmailer.class);
-
-  @Rule
-  public LogOutput abstractPolicyAlertEmailerLogOutput = new LogOutput(AbstractPolicyAlertEmailer.class);
+  public LogOutput logOutput = new LogOutput(AbstractPolicyAlertEmailer.class.getPackage().getName());
 
   @Inject
   private InsightConfig config;
@@ -435,12 +432,12 @@ public class PolicyAlertEmailerTest
     BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo, null);
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://localhost:8080")));
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, baseUrl, new ApplicationAdapter(userDirectory),
-        userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO());
+        new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()));
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications);
     // make sure emails from server 2 still go out
     assertEmailAddresses("test.user1_2@company.com", "test.user2_2@company.com", "test.user3_2@company.com");
-    abstractPolicyAlertEmailerLogOutput.assertError(
+    logOutput.assertError(
         "Cannot send notifications to members of group " + groupName + " using ldap server " +
             ldapServers.get(0).getName(), expectedException);
   }

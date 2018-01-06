@@ -15,16 +15,13 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.configuration.ldap.LdapService;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyAlertEmailer;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
-import com.sonatype.insight.brain.security.UserDirectory;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertEmailResolver;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 
@@ -46,13 +43,10 @@ public class RepositoryPolicyAlertEmailer
 
   @Inject
   public RepositoryPolicyAlertEmailer(final InsightMail mail,
-                                      final UserDirectory userDirectory,
-                                      final LdapService ldapService,
-                                      final OwnerDAO ownerDAO,
-                                      final MembershipMappingDAO membershipMappingDAO,
+                                      final PolicyAlertEmailResolver policyAlertEmailResolver,
                                       final BaseUrl baseUrl)
   {
-    super(mail, userDirectory, ldapService, ownerDAO, membershipMappingDAO);
+    super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
   }
 

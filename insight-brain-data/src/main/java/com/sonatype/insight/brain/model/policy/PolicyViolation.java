@@ -38,6 +38,11 @@ public class PolicyViolation
   /** The pathnames delimiter character escaped for regular expressions. */
   static final String PATHNAMES_DELIMITER_REGEX = "\\" + PATHNAMES_DELIMITER_CHAR;
 
+  static final char NOTIFICATIONS_DELIMITER_CHAR = '\n';
+
+  /** The notifications delimiter character escaped for regular expressions. */
+  static final String NOTIFICATIONS_DELIMITER_REGEX = "\\" + NOTIFICATIONS_DELIMITER_CHAR;
+
   @Id
   @Column(name = "policy_violation_id")
   private String id;

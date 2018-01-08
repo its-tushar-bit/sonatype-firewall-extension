@@ -31,11 +31,6 @@ abstract class AbstractPolicyViolation
     extends HasComponentId
     implements PolicyViolationComparable
 {
-  static final char NOTIFICATIONS_DELIMITER_CHAR = '\n';
-
-  /** The notifications delimiter character escaped for regular expressions. */
-  static final String NOTIFICATIONS_DELIMITER_REGEX = "\\" + NOTIFICATIONS_DELIMITER_CHAR;
-
   @Column(name = "time")
   private Date time;
 

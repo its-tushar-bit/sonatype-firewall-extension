@@ -36,6 +36,15 @@ public class RepositoryPolicyViolation
   @Column(name = "pathname")
   private String pathname;
 
+  @Column(name = "time")
+  private Date time;
+
+  /**
+   * @since 1.12
+   */
+  @Column(name = "waived")
+  private boolean isWaived;
+
   @Column(name = "active")
   private boolean active = true;
 
@@ -53,9 +62,10 @@ public class RepositoryPolicyViolation
                                    ComponentIdentifier componentIdentifier,
                                    String constraintFactsJson)
   {
-    super(time, policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFactsJson);
+    super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFactsJson);
     this.repositoryId = repositoryId;
     this.pathname = pathname;
+    this.time = time;
   }
 
   public RepositoryPolicyViolation(String repositoryId,
@@ -69,9 +79,10 @@ public class RepositoryPolicyViolation
                                    ComponentIdentifier componentIdentifier,
                                    List<ConstraintFact> constraintFacts)
   {
-    super(time, policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);
+    super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);
     this.repositoryId = repositoryId;
     this.pathname = pathname;
+    this.time = time;
   }
 
   @Override
@@ -106,5 +117,24 @@ public class RepositoryPolicyViolation
 
   public void setPathname(String pathname) {
     this.pathname = pathname;
+  }
+
+  public Date getTime() {
+    return time;
+  }
+
+  public void setTime(Date time) {
+    this.time = time;
+  }
+
+  public boolean isWaived() {
+    return isWaived;
+  }
+
+  public void setWaived(boolean isWaived) {
+    if (this.isWaived && !isWaived) {
+      throw new IllegalStateException("Cannot un-waive a policy violation.");
+    }
+    this.isWaived = isWaived;
   }
 }

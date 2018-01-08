@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.model.policy;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -50,6 +51,15 @@ public class PolicyViolation
   @Column(name = "policy_evaluation_id")
   private String policyEvaluationId;
 
+  @Column(name = "time")
+  private Date time;
+
+  /**
+   * @since 1.12
+   */
+  @Column(name = "waived")
+  private boolean isWaived;
+
   @Column(name = "pathnames")
   private String pathnames;
 
@@ -75,8 +85,8 @@ public class PolicyViolation
                          String constraintFactsJson,
                          String filename)
   {
-    super(evaluation.getTime(), policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier,
-        constraintFactsJson);
+    super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFactsJson);
+    this.time = evaluation.getTime();
     this.policyEvaluationId = evaluation.getId();
     this.pathnames = filename;
   }
@@ -102,8 +112,8 @@ public class PolicyViolation
                          List<ConstraintFact> constraintFacts,
                          String filename)
   {
-    super(evaluation.getTime(), policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier,
-        constraintFacts);
+    super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);
+    this.time = evaluation.getTime();
     this.policyEvaluationId = evaluation.getId();
     this.pathnames = filename;
   }
@@ -125,7 +135,26 @@ public class PolicyViolation
   public void setPolicyEvaluationId(String policyEvaluationId) {
     this.policyEvaluationId = policyEvaluationId;
   }
-  
+
+  public Date getTime() {
+    return time;
+  }
+
+  public void setTime(Date time) {
+    this.time = time;
+  }
+
+  public boolean isWaived() {
+    return isWaived;
+  }
+
+  public void setWaived(boolean isWaived) {
+    if (this.isWaived && !isWaived) {
+      throw new IllegalStateException("Cannot un-waive a policy violation.");
+    }
+    this.isWaived = isWaived;
+  }
+
   public String getFilename() {
     // Return the first pathname's filename, unless pathnames/first pathname is blank, then return null
     if (filename != null) {

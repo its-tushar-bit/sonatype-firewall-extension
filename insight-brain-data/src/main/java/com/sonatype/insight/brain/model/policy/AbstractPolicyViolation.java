@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -31,9 +30,6 @@ abstract class AbstractPolicyViolation
     extends HasComponentId
     implements PolicyViolationComparable
 {
-  @Column(name = "time")
-  private Date time;
-
   @Column(name = "policy_id")
   private String policyId;
 
@@ -56,20 +52,13 @@ abstract class AbstractPolicyViolation
   @Column(name = "action_type_id")
   private String actionTypeId;
 
-  /**
-   * @since 1.12
-   */
-  @Column(name = "waived")
-  private boolean isWaived;
-
   @Transient
   private List<ConstraintFact> constraintFacts;
 
   public AbstractPolicyViolation() {
   }
 
-  protected AbstractPolicyViolation(Date time,
-                                    String policyId,
+  protected AbstractPolicyViolation(String policyId,
                                     String policyName,
                                     int threatLevel,
                                     PolicyThreatCategory threatCategory,
@@ -77,7 +66,6 @@ abstract class AbstractPolicyViolation
                                     ComponentIdentifier componentIdentifier,
                                     String constraintFactsJson)
   {
-    this.time = time;
     this.policyId = policyId;
     this.policyName = policyName;
     this.threatLevel = threatLevel;
@@ -87,8 +75,7 @@ abstract class AbstractPolicyViolation
     setConstraintFactsJson(constraintFactsJson);
   }
 
-  protected AbstractPolicyViolation(Date time,
-                                    String policyId,
+  protected AbstractPolicyViolation(String policyId,
                                     String policyName,
                                     int threatLevel,
                                     PolicyThreatCategory threatCategory,
@@ -96,7 +83,6 @@ abstract class AbstractPolicyViolation
                                     ComponentIdentifier componentIdentifier,
                                     List<ConstraintFact> constraintFacts)
   {
-    this.time = time;
     this.policyId = policyId;
     this.policyName = policyName;
     this.threatLevel = threatLevel;
@@ -183,30 +169,11 @@ abstract class AbstractPolicyViolation
     return constraintFacts;
   }
 
-  public Date getTime() {
-    return time;
-  }
-
-  public void setTime(Date time) {
-    this.time = time;
-  }
-
   public String getActionTypeId() {
     return actionTypeId;
   }
 
   public void setActionTypeId(String actionTypeId) {
     this.actionTypeId = actionTypeId;
-  }
-
-  public boolean isWaived() {
-    return isWaived;
-  }
-
-  public void setWaived(boolean isWaived) {
-    if (this.isWaived && !isWaived) {
-      throw new IllegalStateException("Cannot un-waive a policy violation.");
-    }
-    this.isWaived = isWaived;
   }
 }

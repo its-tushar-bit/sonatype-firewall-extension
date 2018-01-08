@@ -5,24 +5,19 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.jira.JiraPolicyAlertNotifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
@@ -69,7 +64,6 @@ public class PolicyAlertNotifier
       List<PolicyNotification> policyNotifications = PolicyNotificationUtil
           .createPolicyNotifications(diff.getAppeared(), currentEvaluation.getStageTypeId(),
               currentEvaluation.isForMonitoring());
-      addNotificationsToPolicyViolations(diff.getAppeared(), policyNotifications);
 
       // sort the alerts by threat-level, which is common means to represent in most notifiers
       Collections.sort(policyNotifications, new Comparator<PolicyNotification>()
@@ -127,25 +121,5 @@ public class PolicyAlertNotifier
       previousViolations = policyViolationDAO.getActiveByEvaluationId(previousEvaluation.getId());
     }
     return PolicyViolationDigester.digestPolicyViolations(previousViolations, currentViolations);
-  }
-
-  private void addNotificationsToPolicyViolations(List<PolicyViolation> policyViolations,
-                                                  List<PolicyNotification> policyNotifications)
-  {
-    Map<String, PolicyNotification> policyNotificationsByPolicyId = new HashMap<>();
-    for (PolicyNotification policyNotification : policyNotifications) {
-      policyNotificationsByPolicyId.put(policyNotification.getPolicyFact().getPolicyId(), policyNotification);
-    }
-
-    for (PolicyViolation policyViolation : policyViolations) {
-      PolicyNotification policyNotification = policyNotificationsByPolicyId.get(policyViolation.getPolicyId());
-      List<String> notifications = new ArrayList<>();
-      for (Notification notification : policyNotification.getNotifications().getAllNotifications()) {
-        Action action = notification.toAction();
-        notifications.add(action.getTarget());
-      }
-      policyViolation.setNotifications(notifications);
-      policyViolationDAO.update(policyViolation);
-    }
   }
 }

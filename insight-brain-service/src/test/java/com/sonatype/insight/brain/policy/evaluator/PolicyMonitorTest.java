@@ -333,7 +333,6 @@ public class PolicyMonitorTest
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation1.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
-      assertThat(policyViolation.getNotificationsString(), is(notifyEmail));
     }
     assertThat(scanFile1.exists(), is(true));
 
@@ -348,7 +347,6 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation2.getTime(), is(greaterThan(policyEvaluation1.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation2.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
-      assertThat(policyViolation.getNotificationsString(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 0);
@@ -372,7 +370,6 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation3.getTime(), is(greaterThan(policyEvaluation2.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation3.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
-      assertThat(policyViolation.getNotificationsString(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 0);
@@ -395,12 +392,6 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation4.getTime(), is(greaterThan(policyEvaluation3.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation4.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
-      if (policyViolation.getPolicyId().equals(policy1.getId())) {
-        assertThat(policyViolation.getNotificationsString(), is(monitorNotifyEmail1));
-      }
-      else {
-        assertThat(policyViolation.getNotificationsString(), is(nullValue()));
-      }
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor2, 0, 0);
@@ -424,12 +415,6 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation5.getTime(), is(greaterThan(policyEvaluation4.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation5.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
-      if (policyViolation.getPolicyId().equals(policy2.getId())) {
-        assertThat(policyViolation.getNotificationsString(), is(monitorNotifyEmail2));
-      }
-      else {
-        assertThat(policyViolation.getNotificationsString(), is(nullValue()));
-      }
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 0);
@@ -453,12 +438,6 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation6.getTime(), is(greaterThan(policyEvaluation5.getTime())));
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation6.getId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
-      if (policyViolation.getPolicyId().equals(policy4.getId())) {
-        assertThat(policyViolation.getNotificationsString(), is(monitorNotifyEmail3));
-      }
-      else {
-        assertThat(policyViolation.getNotificationsString(), is(nullValue()));
-      }
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 0);

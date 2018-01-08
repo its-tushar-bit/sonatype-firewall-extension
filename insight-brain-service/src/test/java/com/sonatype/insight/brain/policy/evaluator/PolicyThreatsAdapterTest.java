@@ -137,10 +137,8 @@ public class PolicyThreatsAdapterTest
 
     PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, false,
         Action.ID_FAIL);
-    mavenViolation.setNotifications(Lists.newArrayList("a", "b"));
     PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, false,
         Action.ID_FAIL);
-    nugetViolation.setNotifications(Lists.newArrayList("a", "b"));
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
@@ -149,17 +147,13 @@ public class PolicyThreatsAdapterTest
     // Make sure we have two components.
     Assert.assertThat(threats.aaData, hasSize(2));
 
-    // Each component has a fail action and two notify actions.
+    // Each component has a fail action
     for (PolicyThreats.Component component : threats.aaData) {
       Assert.assertThat(component.activeViolations, hasSize(1));
-      Assert.assertThat(component.activeViolations.get(0).actions, hasSize(3));
+      Assert.assertThat(component.activeViolations.get(0).actions, hasSize(1));
       List<PolicyThreats.PolicyAction> actions = component.activeViolations.get(0).actions;
       Assert.assertThat(actions.get(0).actionType, is(Action.ID_FAIL));
       Assert.assertThat(actions.get(0).actionSummary, is(ActionTypes.getById(Action.ID_FAIL).getSummary()));
-      Assert.assertThat(actions.get(1).actionType, is(Action.ID_NOTIFY));
-      Assert.assertThat(actions.get(1).actionSummary, is(ActionTypes.getById(Action.ID_NOTIFY).getSummary()));
-      Assert.assertThat(actions.get(2).actionType, is(Action.ID_NOTIFY));
-      Assert.assertThat(actions.get(2).actionSummary, is(ActionTypes.getById(Action.ID_NOTIFY).getSummary()));
     }
   }
 

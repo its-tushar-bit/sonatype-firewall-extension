@@ -402,12 +402,9 @@ public class PolicyEvaluateResourceTest
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
         assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
-        assertThat(policyViolation.getNotificationsString(),
-            is("manager@example.com\njohn.doe@example.com\nprojectKey1"));
       }
       else {
         assertThat(policyViolation.getActionTypeId(), is(nullValue()));
-        assertThat(policyViolation.getNotificationsString(), is(nullValue()));
       }
     }
 
@@ -462,7 +459,6 @@ public class PolicyEvaluateResourceTest
       else {
         assertThat(policyViolation.getActionTypeId(), is(nullValue()));
       }
-      assertThat(policyViolation.getNotificationsString(), is(nullValue()));
     }
 
     // notification message should not have been sent since the results are the same

@@ -13,7 +13,6 @@ import java.util.Map;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -93,13 +92,6 @@ public class PolicyThreatsAdapter
       PolicyThreats.PolicyAction action = new PolicyThreats.PolicyAction();
       action.actionType = violation.getActionTypeId();
       action.actionSummary = ActionTypes.getById(violation.getActionTypeId()).getSummary();
-      result.add(action);
-    }
-
-    for (int i = 0; i < violation.getNotifications().size(); i++) {
-      PolicyThreats.PolicyAction action = new PolicyThreats.PolicyAction();
-      action.actionType = Action.ID_NOTIFY;
-      action.actionSummary = ActionTypes.getById(Action.ID_NOTIFY).getSummary();
       result.add(action);
     }
 

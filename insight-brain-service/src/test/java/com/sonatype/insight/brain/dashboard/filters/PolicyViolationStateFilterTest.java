@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dashboard.filters;
 
 import java.util.Set;
 
+import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.PolicyViolationState;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;

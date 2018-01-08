@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.PolicyViolationState;
 
 /**
  * @since 1.11.0

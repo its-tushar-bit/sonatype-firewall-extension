@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.policy;
+package com.sonatype.insight.brain.dashboard;
+
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 /**
  * The state for a violation policy is based on the conditions in the constraints of that violation policy.

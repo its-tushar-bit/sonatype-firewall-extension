@@ -11,8 +11,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.PolicyViolationState;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.base.Function;

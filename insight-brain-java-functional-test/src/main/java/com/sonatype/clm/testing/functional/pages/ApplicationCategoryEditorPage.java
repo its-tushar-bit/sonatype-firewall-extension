@@ -25,7 +25,7 @@ public class ApplicationCategoryEditorPage
   }
 
   public static String urlToEdit(String ownerId) {
-    return BaseUrl.uriBuilder().fragment("/management/edit/application/{ownerId}/category").build(ownerId).toString();
+    return BaseUrl.resolvePageUrl("/management/edit/application/{ownerId}/category", ownerId);
   }
 
   public static SelenideElement root() {

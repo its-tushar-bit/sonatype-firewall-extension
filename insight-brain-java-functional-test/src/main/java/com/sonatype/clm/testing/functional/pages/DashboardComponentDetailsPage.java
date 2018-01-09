@@ -15,7 +15,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSele
 public class DashboardComponentDetailsPage
 {
   public static String url(String hash) {
-    return BaseUrl.uriBuilder().fragment("/dashboard/component/{hash}").build(hash).toString();
+    return BaseUrl.resolvePageUrl("/dashboard/component/{hash}", hash);
   }
 
   private static final String ROOT = ".component-container";

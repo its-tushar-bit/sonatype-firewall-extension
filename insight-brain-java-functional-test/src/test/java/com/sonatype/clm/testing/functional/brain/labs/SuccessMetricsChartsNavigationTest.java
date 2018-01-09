@@ -9,9 +9,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -38,7 +38,7 @@ public class SuccessMetricsChartsNavigationTest
     tempEntity.newSuccessMetricsReport("admin", "Test Success Metrics",
         JsonUtils.format(new SuccessMetricsReportScopeDTO()));
 
-    refreshOrOpen(BaseUrl.uriBuilder().build().toString());
+    refreshOrOpen(IndexPage.url());
     loginAsAdmin();
 
     SuccessMetricsReportListPage successMetricsPage = new SuccessMetricsReportListPage();

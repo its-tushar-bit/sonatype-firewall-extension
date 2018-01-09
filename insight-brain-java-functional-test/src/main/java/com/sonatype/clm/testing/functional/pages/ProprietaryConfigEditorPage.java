@@ -36,8 +36,7 @@ public class ProprietaryConfigEditorPage
   }
 
   public static String url(OwnerType ownerType, String ownerId) {
-    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/proprietary").build(ownerType, ownerId)
-        .toString();
+    return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/proprietary", ownerType, ownerId);
   }
 
   public static ElementsCollection localMatchers() {

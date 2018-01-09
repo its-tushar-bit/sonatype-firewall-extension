@@ -10,6 +10,6 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 public class UserManagementPage
 {
   public static final String url() {
-    return BaseUrl.uriBuilder().fragment("/users").build().toString();
+    return BaseUrl.resolvePageUrl("/users");
   }
 }

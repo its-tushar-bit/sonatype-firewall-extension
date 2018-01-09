@@ -28,8 +28,7 @@ public class MonitoredStageEditorPage
   }
 
   public static String url(OwnerType ownerType, String ownerId) {
-    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/monitoring").build(ownerType, ownerId)
-        .toString();
+    return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/monitoring", ownerType, ownerId);
   }
 
   public static String inheritFromParentDoNotMonitorText(String parentsName) {

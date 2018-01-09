@@ -27,6 +27,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations.Violatio
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -57,7 +58,6 @@ import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.AGE_FILTER_FEATURE_FLAG;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.VIOLATIONS_URL;
-import static com.sonatype.clm.testing.functional.utils.BaseUrl.uriBuilder;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
@@ -74,7 +74,7 @@ public class DashboardViolationsTest
 
   private static final String CSV_HEADERS = "Threat Level,Policy Name,Application Name,Component Name,Date First Seen,Timestamp First Seen";
 
-  private static final String NEWEST_RISK_URL = uriBuilder().fragment("/dashboard/newest-risk").build().toString();
+  private static final String NEWEST_RISK_URL = BaseUrl.resolvePageUrl("/dashboard/newest-risk");
 
   private static final ViolationsHeaders headers = DashboardPage.violationsView().headers();
 

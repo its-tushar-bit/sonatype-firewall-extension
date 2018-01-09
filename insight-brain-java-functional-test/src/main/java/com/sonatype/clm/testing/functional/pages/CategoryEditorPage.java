@@ -28,7 +28,7 @@ public class CategoryEditorPage
   }
 
   public static String urlToCreate(String ownerId) {
-    return BaseUrl.uriBuilder().fragment("/management/edit/organization/{ownerId}/category").build(ownerId).toString();
+    return BaseUrl.resolvePageUrl("/management/edit/organization/{ownerId}/category", ownerId);
   }
 
   public static SelenideElement root() {

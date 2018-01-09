@@ -31,8 +31,7 @@ public class LTGEditorPage
   }
 
   public static String urlToCreate(OwnerType ownerType, String ownerId) {
-    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/licenseThreatGroup")
-        .build(ownerType.toString(), ownerId).toString();
+    return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/licenseThreatGroup", ownerType, ownerId);
   }
 
   public static SelenideElement title() {

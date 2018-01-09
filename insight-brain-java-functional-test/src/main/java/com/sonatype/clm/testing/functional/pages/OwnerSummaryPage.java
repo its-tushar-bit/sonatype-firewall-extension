@@ -23,10 +23,9 @@ public class OwnerSummaryPage
 
   public static String url(OwnerType ownerType, String id) {
     if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType)) {
-      return BaseUrl.uriBuilder().fragment("/management/view/repositories").build().toString();
+      return BaseUrl.resolvePageUrl("/management/view/repositories");
     }
-
-    return BaseUrl.uriBuilder().fragment("/management/view/{ownerType}/{ownerId}").build(ownerType, id).toString();
+    return BaseUrl.resolvePageUrl("/management/view/{ownerType}/{ownerId}", ownerType, id);
   }
 
   public static OwnerSummaryTile summaryTile() {

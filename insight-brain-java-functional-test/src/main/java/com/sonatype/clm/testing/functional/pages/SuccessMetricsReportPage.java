@@ -62,7 +62,7 @@ public class SuccessMetricsReportPage
   }
 
   public static String getUrl(String successMetricsId) {
-    return BaseUrl.uriBuilder().fragment("/labs/successMetrics/{successMetricsId}").build(successMetricsId).toString();
+    return BaseUrl.resolvePageUrl("/labs/successMetrics/{successMetricsId}", successMetricsId);
   }
 
   public static Condition confirmRemovalText(String successMetricsName) {

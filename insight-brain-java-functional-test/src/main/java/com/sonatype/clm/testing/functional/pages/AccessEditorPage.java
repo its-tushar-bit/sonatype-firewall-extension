@@ -45,11 +45,9 @@ public class AccessEditorPage
 
   public static String urlToCreate(OwnerType ownerType, String ownerId) {
     if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType)) {
-      return BaseUrl.uriBuilder().fragment("/management/edit/repositories/access").build().toString();
+      return BaseUrl.resolvePageUrl("/management/edit/repositories/access");
     }
-
-    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/access").build(ownerType, ownerId)
-        .toString();
+    return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/access", ownerType, ownerId);
   }
 
   public static SelenideElement title() {

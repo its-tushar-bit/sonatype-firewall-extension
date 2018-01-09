@@ -31,8 +31,7 @@ public class LabelEditorPage
   }
 
   public static String urlToCreate(OwnerType ownerType, String ownerId) {
-    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/label").build(ownerType, ownerId)
-        .toString();
+    return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/label", ownerType, ownerId);
   }
 
   public static SelenideElement title() {

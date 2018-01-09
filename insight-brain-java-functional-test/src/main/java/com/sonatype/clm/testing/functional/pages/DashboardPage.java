@@ -9,23 +9,23 @@ import com.sonatype.clm.testing.functional.elements.DashboardApplications;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents;
 import com.sonatype.clm.testing.functional.elements.DashboardTab;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.utils.BaseUrl.uriBuilder;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class DashboardPage
 {
   public static final Condition ACTIVE = cssClass("active");
 
-  public static final String URL = uriBuilder().fragment("/dashboard/violations").build().toString();
-  public static final String COMPONENTS_URL = uriBuilder().fragment("/dashboard/components").build().toString();
-  public static final String VIOLATIONS_URL = uriBuilder().fragment("/dashboard/violations").build().toString();
-  public static final String APPLICATIONS_URL = uriBuilder().fragment("/dashboard/applications").build().toString();
+  public static final String URL = BaseUrl.resolvePageUrl("/dashboard/violations");
+  public static final String COMPONENTS_URL = BaseUrl.resolvePageUrl("/dashboard/components");
+  public static final String VIOLATIONS_URL = BaseUrl.resolvePageUrl("/dashboard/violations");
+  public static final String APPLICATIONS_URL = BaseUrl.resolvePageUrl("/dashboard/applications");
   public static final String AGE_FILTER_FEATURE_FLAG = "?timeFilterFeature=true";
 
   public static final String ROOT =  ".dashboard-container";

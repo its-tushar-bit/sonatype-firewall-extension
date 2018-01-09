@@ -14,7 +14,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ProductLicensePage
 {
   public static final String url() {
-    return BaseUrl.uriBuilder().fragment("/productlicense").build().toString();
+    return BaseUrl.resolvePageUrl("/productlicense");
   }
 
   public static SelenideElement expiry() {

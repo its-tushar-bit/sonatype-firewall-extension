@@ -10,9 +10,8 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 public class ManagementPage
 {
 
-  public static final String URL = BaseUrl.uriBuilder().fragment("/management/view").build().toString();
+  public static final String URL = BaseUrl.resolvePageUrl("/management/view");
 
-  public static final String ROOT_ORG_URL = BaseUrl.uriBuilder()
-      .fragment("/management/view/organization/ROOT_ORGANIZATION_ID").build().toString();
+  public static final String ROOT_ORG_URL = BaseUrl.resolvePageUrl("/management/view/organization/ROOT_ORGANIZATION_ID");
 
 }

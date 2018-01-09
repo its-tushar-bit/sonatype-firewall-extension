@@ -10,6 +10,6 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 public class RoleManagementPage
 {
   public static final String url() {
-    return BaseUrl.uriBuilder().fragment("/roles").build().toString();
+    return BaseUrl.resolvePageUrl("/roles");
   }
 }

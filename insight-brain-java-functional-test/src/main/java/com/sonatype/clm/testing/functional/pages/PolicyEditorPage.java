@@ -40,8 +40,7 @@ public class PolicyEditorPage
   }
 
   public static String urlToCreate(OwnerType ownerType, String ownerId) {
-    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/policy").build(ownerType, ownerId)
-        .toString();
+    return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/policy", ownerType, ownerId);
   }
 
   static SelenideElement scrollContainer() {

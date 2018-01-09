@@ -10,6 +10,6 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 public class IndexPage
 {
   public static String url() {
-    return BaseUrl.uriBuilder().build().toString();
+    return BaseUrl.resolvePageUrl(null);
   }
 }

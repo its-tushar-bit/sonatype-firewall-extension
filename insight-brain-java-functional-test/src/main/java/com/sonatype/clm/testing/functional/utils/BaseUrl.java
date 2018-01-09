@@ -18,7 +18,11 @@ import com.codeborne.selenide.Configuration;
 
 public class BaseUrl
 {
-  public static UriBuilder uriBuilder() {
+  public static String resolvePageUrl(String path, Object... parameters) {
+    return pageUriBuilder().fragment(path).build(parameters).toString();
+  }
+
+  private static UriBuilder pageUriBuilder() {
     return rootUriBuilder().path("assets/index.html");
   }
 

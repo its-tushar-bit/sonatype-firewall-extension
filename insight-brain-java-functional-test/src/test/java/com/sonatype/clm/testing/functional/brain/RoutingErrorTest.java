@@ -20,7 +20,7 @@ import org.junit.Test;
 public class RoutingErrorTest
     extends AbstractFunctionalTest
 {
-  private static String INVALID_URL = BaseUrl.uriBuilder().fragment("/foo").build().toString();
+  private static String INVALID_URL = BaseUrl.resolvePageUrl("/foo");
 
   @BeforeClass
   public static void startup() {

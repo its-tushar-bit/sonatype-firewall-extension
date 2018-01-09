@@ -14,7 +14,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ApplicationReportContainerPage
 {
   public static String url(String appId, String scanId) {
-    return BaseUrl.uriBuilder().fragment("/reports/{appId}/{scanId}").build(appId, scanId).toString();
+    return BaseUrl.resolvePageUrl("/reports/{appId}/{scanId}", appId, scanId);
   }
 
   public static SelenideElement getReportTitle() {

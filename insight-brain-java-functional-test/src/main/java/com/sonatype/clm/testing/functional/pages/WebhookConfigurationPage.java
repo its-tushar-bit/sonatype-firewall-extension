@@ -14,7 +14,7 @@ import com.codeborne.selenide.SelenideElement;
 public class WebhookConfigurationPage
     extends BasicElement<WebhookConfigurationPage>
 {
-  public static String URL = BaseUrl.uriBuilder().fragment("/webhooks/list").build().toString();
+  public static String URL = BaseUrl.resolvePageUrl("/webhooks/list");
 
   private static String ROOT_SELECTOR = "#webhooks-list";
 

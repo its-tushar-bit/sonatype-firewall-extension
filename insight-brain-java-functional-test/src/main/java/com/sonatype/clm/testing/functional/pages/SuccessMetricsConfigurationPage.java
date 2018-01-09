@@ -14,7 +14,7 @@ import com.codeborne.selenide.SelenideElement;
 public class SuccessMetricsConfigurationPage
     extends BasicElement<SuccessMetricsConfigurationPage>
 {
-  public static final String URL = BaseUrl.uriBuilder().fragment("/successMetricsConfiguration").build().toString();
+  public static final String URL = BaseUrl.resolvePageUrl("/successMetricsConfiguration");
 
   private static final String ROOT_SELECTOR = "#success-metrics-configuration";
 

@@ -22,7 +22,7 @@ public class AdministratorsPage
 {
   private static final String ROOT_SELECTOR = ".iq-tile-content";
 
-  public static String URL = BaseUrl.uriBuilder().fragment("/administrators").build().toString();
+  public static String URL = BaseUrl.resolvePageUrl("/administrators");
 
   public AdministratorsPage() {
     super(ROOT_SELECTOR);

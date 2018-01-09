@@ -20,11 +20,11 @@ public class LdapConfigurationPage
   private static final String ROOT_SELECTOR = "#ldap-configuration-editor";
 
   public static String editLdapUrl(String ldapId) {
-    return BaseUrl.uriBuilder().fragment("/ldap/edit/{ldapId}").build(ldapId).toString();
+    return BaseUrl.resolvePageUrl("/ldap/edit/{ldapId}", ldapId);
   }
 
   public static String createLdapUrl() {
-    return BaseUrl.uriBuilder().fragment("/ldap/create").build().toString();
+    return BaseUrl.resolvePageUrl("/ldap/create");
   }
 
   public static SelenideElement root() {

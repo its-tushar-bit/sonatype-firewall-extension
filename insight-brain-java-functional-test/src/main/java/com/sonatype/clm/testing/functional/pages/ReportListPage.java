@@ -14,7 +14,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ReportListPage
 {
 
-  public static String URL = BaseUrl.uriBuilder().fragment("/reports/violations").build().toString();
+  public static String URL = BaseUrl.resolvePageUrl("/reports/violations");
 
   public static SelenideElement listContainer() {
     return $(".report-list-container");

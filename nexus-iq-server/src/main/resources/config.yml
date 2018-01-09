@@ -216,3 +216,6 @@ logging:
   # Configures the number of threads used for the EventBus
   # Defaults to 500 if not provided.
   # maxPoolSize: 500
+
+# Sample data is created for new installs.
+createSampleData: true

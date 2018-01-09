@@ -200,6 +200,13 @@ public class InsightConfig
   @JsonProperty
   private boolean needsAcknowledgementOfInitialDashboardFilter = false;
 
+  /**
+   * @since 1.43
+   */
+  @NotNull
+  @JsonProperty
+  private boolean createSampleData = false;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -508,6 +515,22 @@ public class InsightConfig
    */
   public void setNeedsAcknowledgementOfInitialDashboardFilter(boolean needsAcknowledgementOfInitialDashboardFilter) {
     this.needsAcknowledgementOfInitialDashboardFilter = needsAcknowledgementOfInitialDashboardFilter;
+  }
+
+  /**
+   * If true, sample data is created for new installs.
+   *
+   * @since 1.43
+   */
+  public boolean isCreateSampleData() {
+    return createSampleData;
+  }
+
+  /**
+   * @since 1.43
+   */
+  public void setCreateSampleData(boolean createSampleData) {
+    this.createSampleData = createSampleData;
   }
 
   /**

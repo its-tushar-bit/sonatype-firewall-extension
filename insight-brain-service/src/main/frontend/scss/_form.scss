@@ -346,11 +346,27 @@ dropdown-selector {
   # Read-only form groups
 */
 
-.iq-form-group--read-only {
-  margin-bottom: 24px;
+.iq-read-only {
+  margin-top: 0;
+  margin-bottom: 13px;
+  
+  dt {
+    @include semi-bold();
+    
+    color: $iq-off-black;
+    display: block;
+    font-size: 16px;
+    margin-top: 12px;
+    margin-bottom: 1px;
+    
+    &:first-child {
+      margin-top: 0;
+    }
+  }
 }
 
 .iq-read-only-data {
+  margin-left: 0;
   padding-left: 12px;
 
   .fa {
@@ -360,6 +376,7 @@ dropdown-selector {
   span {
     display: inline-block;
     margin-right: 12px;
+    margin-left: 0;
 
     &:last-child {
       margin-right: 0;
@@ -372,6 +389,12 @@ dropdown-selector {
     display: block;
     margin-right: 0;
     margin-bottom: 8px;
+  }
+}
+
+.iq-read-only-data--horizontal {
+  dd {
+    display: inline-block;
   }
 }
 

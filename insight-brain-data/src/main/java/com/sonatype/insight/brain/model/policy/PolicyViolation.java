@@ -177,7 +177,8 @@ public class PolicyViolation
     this.pathnames = pathnames;
   }
 
-  public void setPathnames(List<String> pathnames) {
+  @VisibleForTesting
+  void setPathnames(List<String> pathnames) {
     if (pathnames == null || pathnames.isEmpty()) {
       // If the path names are null or empty we want to persist a null value.
       setPathnames((String) null);

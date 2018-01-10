@@ -49,7 +49,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
-import org.apache.commons.io.FilenameUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -266,13 +265,7 @@ public class ComponentDetailService
     private final HasComponentId hasComponentId;
     public final String hash;
 
-    // a map containing the basenames of all pathnames seen for this component, along with a count of how many times
-    // they've been seen
-    private final Map<String, Integer> basenameMap = new HashMap<>();
-
-    private String mostCommonBasename;
-
-    private int mostCommonBasenameCount = 0;
+    private final ComponentDisplayFilename componentDisplayFilename = new ComponentDisplayFilename();
 
     // the return value of the getDisplayName method, cached here
     private String displayName;
@@ -285,25 +278,7 @@ public class ComponentDetailService
     }
 
     public void addPathnames(Collection<String> pathnames) {
-      if (pathnames != null) {
-        for (String pathname : pathnames) {
-          String basename = FilenameUtils.getName(FilenameUtils.normalizeNoEndSeparator(pathname));
-          Integer currentCount = basenameMap.get(basename);
-          int newCount = currentCount == null ? 1 : currentCount + 1;
-
-          basenameMap.put(basename, newCount);
-
-          if (newCount > mostCommonBasenameCount) {
-            mostCommonBasename = basename;
-            mostCommonBasenameCount = newCount;
-          }
-          else if (newCount == mostCommonBasenameCount) {
-            // in the event of a tie go with the alphabetically first basename.  Otherwise the order in which
-            // pathnames are added would determine who wins a tie
-            mostCommonBasename = basename.compareTo(mostCommonBasename) > 0 ? mostCommonBasename : basename;
-          }
-        }
-      }
+      componentDisplayFilename.addPathnames(pathnames);
     }
 
     public void incrementCount() {
@@ -324,11 +299,8 @@ public class ComponentDetailService
         if (componentIdentifier != null) {
           displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
         }
-        else if (mostCommonBasename != null) {
-          displayName = mostCommonBasename;
-        }
         else {
-          displayName = "Unknown";
+          displayName = componentDisplayFilename.getFilename().orElse("Unknown");
         }
       }
 

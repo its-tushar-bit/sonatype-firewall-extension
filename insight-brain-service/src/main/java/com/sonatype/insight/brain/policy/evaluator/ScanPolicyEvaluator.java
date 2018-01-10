@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
@@ -198,8 +199,7 @@ public class ScanPolicyEvaluator
             PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(),
                 policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
                 componentFact.getComponentIdentifier(), componentFact.getConstraintFacts(),
-                null);
-            policyViolation.setPathnames(componentFact.getPathnames());
+                getFilename(componentFact));
             for (Action action : policyAlert.getActions()) {
               // Don't save notification data into policy violations here because at this point we don't really know if
               // the notifications will be sent or not.
@@ -262,6 +262,10 @@ public class ScanPolicyEvaluator
         return policyEvaluation;
       }
     }
+  }
+
+  private String getFilename(ComponentFact componentFact) {
+    return new ComponentDisplayFilename().addPathnames(componentFact.getPathnames()).getFilename().orElse(null);
   }
 
   private void deletePreviousScanFile(String appId, Stage stage, String previousScanId) {

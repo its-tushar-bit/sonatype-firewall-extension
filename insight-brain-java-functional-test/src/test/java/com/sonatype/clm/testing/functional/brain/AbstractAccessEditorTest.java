@@ -127,7 +127,6 @@ public abstract class AbstractAccessEditorTest
     Role role = APPLICATION_ROLES.get(0);
     goFromSummaryToEditRole(role);
 
-    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
     OwnerDetailTreeView.accessGroup().item(1).shouldBe(CLM.SELECTED);
     AccessEditorPage.title().shouldHave(text(role.getName()));
 

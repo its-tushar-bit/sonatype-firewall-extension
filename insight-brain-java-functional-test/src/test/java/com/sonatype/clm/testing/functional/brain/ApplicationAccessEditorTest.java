@@ -48,12 +48,14 @@ public class ApplicationAccessEditorTest
   protected void goFromSummaryToAddRole() {
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().addRoleButton().click();
+    waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner));
   }
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().localAccessRole(role.getName()).click();
+    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
   }
 
   @Test

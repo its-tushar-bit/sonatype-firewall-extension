@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -33,10 +34,12 @@ public class RepositoriesAccessEditorTest
   @Override
   protected void goFromSummaryToAddRole() {
     RepositoriesSummaryPage.accessTile().addRoleButton().click();
+    waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner));
   }
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
     RepositoriesSummaryPage.accessTile().localAccessRole(role.getName()).click();
+    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
   }
 }

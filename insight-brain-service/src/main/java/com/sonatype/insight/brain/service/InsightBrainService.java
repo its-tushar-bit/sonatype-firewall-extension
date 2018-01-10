@@ -27,13 +27,13 @@ import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.migration.DataMigrator;
+import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.TraceMethodBlockFilter;
-import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
@@ -156,6 +156,10 @@ public class InsightBrainService
     LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
 
     getInstance(DataMigrator.class).migrate();
+
+    // This call must come after the DataMigrator. Specifically, the RootOrganizationConfigMigrator as the sample data
+    // will interfere with its decision to determine a fresh install and mistakenly trigger the root org migration.
+    SampleDataCreator.createSampleData(configuration);
 
     new Thread("Startup license data updater")
     {
@@ -313,8 +317,6 @@ public class InsightBrainService
 
     // Create the default LTGs on the root organization (must be called after the database is initialized)
     new LicenseThreatGroupDAO().createDefaultLicenseThreatGroups();
-    
-    SampleDataCreator.createSampleData(config);
   }
 
   @Override

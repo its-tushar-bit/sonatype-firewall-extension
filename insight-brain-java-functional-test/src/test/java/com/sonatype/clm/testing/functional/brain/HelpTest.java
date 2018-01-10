@@ -16,6 +16,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 
 public class HelpTest
@@ -45,7 +46,7 @@ public class HelpTest
         attribute("href", "http://links.sonatype.com/products/clm/support"));
 
     help.dropdownToggle().shouldBe(visible).click();
-    help.documentationLink().shouldNotBe(visible);
-    help.supportLink().shouldNotBe(visible);
+    help.documentationLink().shouldBe(hidden);
+    help.supportLink().shouldBe(hidden);
   }
 }

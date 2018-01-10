@@ -32,6 +32,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -119,7 +120,7 @@ public abstract class AbstractLTGEditorTest
 
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     assertNewLTGStateIsCorrect();
     assertThat(ltgDAO.getById(ltg.getId()), is(nullValue()));

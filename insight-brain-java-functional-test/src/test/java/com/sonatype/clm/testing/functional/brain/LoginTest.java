@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -45,7 +46,7 @@ public class LoginTest
     loginModal.username().setValue("admin");
     loginModal.password().setValue("admin123");
     loginModal.loginButton().shouldBe(enabled).click();
-    loginModal.shouldNotBe(visible);
+    loginModal.shouldBe(hidden);
   }
 
   @Test

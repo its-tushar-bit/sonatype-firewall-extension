@@ -51,6 +51,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -159,14 +160,14 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldNotBe(visible);
+    table.maxResultsMessage().shouldBe(hidden);
     table.violations().shouldHaveSize(3);
     showLowRiskViolations();
     table.violations().shouldHaveSize(4);
 
     // age filter should not be displayed without url query parameter
     AgeFilter ageFilter = DashboardFilters.ageFilter();
-    ageFilter.shouldNotBe(visible);
+    ageFilter.shouldBe(hidden);
     refreshOrOpen(VIOLATIONS_URL + AGE_FILTER_FEATURE_FLAG);
     ageFilter.shouldBe(visible).counter().shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
@@ -188,11 +189,11 @@ public class DashboardViolationsTest
     firstViolation.threatBar().shouldHave(SEVERE);
     firstViolation.threatNumber().shouldHave(text("7"));
     firstViolation.policy().shouldHave(text(licensePolicy.getName())).hover();
-    DashboardPage.tooltip().shouldNotBe(visible);
+    DashboardPage.tooltip().shouldBe(hidden);
     firstViolation.application().shouldHave(text(app1.getName())).hover();
-    DashboardPage.tooltip().shouldNotBe(visible);
+    DashboardPage.tooltip().shouldBe(hidden);
     firstViolation.component().shouldHave(text("g1 : a1 : v1")).hover();
-    DashboardPage.tooltip().shouldNotBe(visible);
+    DashboardPage.tooltip().shouldBe(hidden);
     firstViolation.age().shouldHave(text("1min"));
 
     // check that tooltips do show for long names
@@ -218,7 +219,7 @@ public class DashboardViolationsTest
     DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
     firstViolation.component().click(5, 5);
     waitUntilUrl(DashboardComponentDetailsPage.url("g1a1v1"));
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("g1 : a1 : v1"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -392,7 +393,7 @@ public class DashboardViolationsTest
     createViolations(100, 5, buildEvalNow);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.violationsView().results().maxResultsMessage().shouldNotBe(visible);
+    DashboardPage.violationsView().results().maxResultsMessage().shouldBe(hidden);
   }
 
   @Test

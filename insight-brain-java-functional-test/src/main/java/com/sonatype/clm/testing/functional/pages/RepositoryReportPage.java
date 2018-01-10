@@ -12,6 +12,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ex.UIAssertionError;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
@@ -47,7 +48,7 @@ public class RepositoryReportPage
         return;
       }
     }
-    updaterModal.shouldNotBe(visible);
+    updaterModal.shouldBe(hidden);
     // We probably missed it. Probably...
   }
 

@@ -30,6 +30,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -179,7 +180,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
       // Testing with an application owner we will leave the root org empty
       if (OwnerType.APPLICATION.equals(currentOwner.getType()) && i == 0) {
-        list.ownerName().shouldNotBe(visible);
+        list.ownerName().shouldBe(hidden);
       }
       else {
         list.ownerName().shouldBe(visible)

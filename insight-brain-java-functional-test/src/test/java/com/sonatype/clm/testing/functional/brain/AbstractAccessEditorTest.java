@@ -37,6 +37,7 @@ import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -180,7 +181,7 @@ public abstract class AbstractAccessEditorTest
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.body().shouldNotBe(visible);
+    DeleteModal.body().shouldBe(hidden);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), is(empty()));
@@ -199,7 +200,7 @@ public abstract class AbstractAccessEditorTest
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.body().shouldNotBe(visible);
+    DeleteModal.body().shouldBe(hidden);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), is(empty()));
@@ -256,7 +257,7 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);
     AccessEditorPage.roleDropdown().listItems().shouldHaveSize(numAvailableRoles);
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(AccessEditorPage.picker(), 0, false);
-    AccessEditorPage.removeRoleButton().shouldNotBe(visible);
+    AccessEditorPage.removeRoleButton().shouldBe(hidden);
     assertCommonInitialStateIsCorrect(AccessEditorPage.picker());
   }
 

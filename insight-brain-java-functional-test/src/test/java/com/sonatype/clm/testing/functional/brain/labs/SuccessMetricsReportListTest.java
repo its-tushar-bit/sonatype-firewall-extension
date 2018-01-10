@@ -33,6 +33,7 @@ import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.S
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -100,7 +101,7 @@ public class SuccessMetricsReportListTest
     
     refresh();
 
-    reportList.emptyDescriptor().shouldNotBe(visible);
+    reportList.emptyDescriptor().shouldBe(hidden);
     reportList.elements().shouldHaveSize(1);
 
     ActionListElement row = reportList.element(0);
@@ -118,7 +119,7 @@ public class SuccessMetricsReportListTest
     // First just test the cancel button.
     modal.shouldBe(visible);
     modal.cancelBtn().shouldBe(enabled).click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
 
     page.addSuccessMetricsBtn().shouldBe(visible).click();
 
@@ -203,7 +204,7 @@ public class SuccessMetricsReportListTest
     DeleteModal.header().shouldHave(SuccessMetricsReportPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.body().shouldNotBe(visible);
+    DeleteModal.body().shouldBe(hidden);
     page.successMetricsChartActionItems().elements().shouldHaveSize(2);
 
     // Then add and test a SuccessMetricsReport with only an empty Organization selected.
@@ -228,7 +229,7 @@ public class SuccessMetricsReportListTest
     chartPage.deleteBtn().shouldBe(visible).click();
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.body().shouldNotBe(visible);
+    DeleteModal.body().shouldBe(hidden);
     page.successMetricsChartActionItems().elements().shouldHaveSize(2);
   }
 
@@ -243,7 +244,7 @@ public class SuccessMetricsReportListTest
 
     modal.name().setValue("test");
     modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS)).click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
 
     page.addSuccessMetricsBtn().click();
 

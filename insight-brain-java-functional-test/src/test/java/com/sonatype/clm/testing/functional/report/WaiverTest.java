@@ -35,6 +35,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -127,14 +128,14 @@ public class WaiverTest
 
     ViewWaiversDialog.row(0).removeButton().click();
     ConfirmRemoveWaiverDialog.cancelButton().shouldBe(visible).click();
-    ConfirmRemoveWaiverDialog.cancelButton().shouldNotBe(visible);
+    ConfirmRemoveWaiverDialog.cancelButton().shouldBe(hidden);
 
     ViewWaiversDialog.rows().shouldHaveSize(1);
     assertWaiver(ViewWaiversDialog.row(0), truncatedLongComment);
 
     ViewWaiversDialog.closeButton().click();
 
-    ViewWaiversDialog.closeButton().shouldNotBe(visible);
+    ViewWaiversDialog.closeButton().shouldBe(hidden);
   }
 
   @Test
@@ -177,7 +178,7 @@ public class WaiverTest
 
     waiveComponent();
 
-    AddWaiverDialog.scopeContainer().shouldNotBe(visible);
+    AddWaiverDialog.scopeContainer().shouldBe(hidden);
   }
 
   @Test

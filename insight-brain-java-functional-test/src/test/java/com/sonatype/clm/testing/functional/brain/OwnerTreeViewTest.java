@@ -29,6 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -145,7 +146,7 @@ public class OwnerTreeViewTest
 
     refreshOrOpen(OrganizationManagementPage.URL);
     SelenideElement repositoriesTreeViewElement = OwnerTreeView.repositories();
-    repositoriesTreeViewElement.shouldNotBe(visible);
+    repositoriesTreeViewElement.shouldBe(hidden);
 
     logout();
     loginAsAdmin();

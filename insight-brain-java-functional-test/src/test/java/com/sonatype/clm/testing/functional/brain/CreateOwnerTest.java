@@ -53,6 +53,7 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -216,7 +217,7 @@ public class CreateOwnerTest
 
   private void testEditApplication_withRobotIcon() throws Exception {
     ActionDropDown.actionButton().click();
-    OwnerEditorDialog.root().shouldNotBe(visible);
+    OwnerEditorDialog.root().shouldBe(hidden);
     ActionDropDown.editOwner().shouldHave(text("App")).click();
     OwnerEditorDialog.root().shouldBe(visible);
     OwnerEditorDialog.title().shouldHave(text("Application"));
@@ -258,7 +259,7 @@ public class CreateOwnerTest
 
   private void testEditOrganization_withRobotIcon() throws Exception {
     ActionDropDown.actionButton().click();
-    OwnerEditorDialog.root().shouldNotBe(visible);
+    OwnerEditorDialog.root().shouldBe(hidden);
     ActionDropDown.editOwner().shouldHave(text("Org")).click();
     OwnerEditorDialog.root().shouldBe(visible);
     OwnerEditorDialog.title().shouldHave(text("Organization"));
@@ -380,7 +381,7 @@ public class CreateOwnerTest
 
     UnsavedModal unsavedModal = new UnsavedModal();
     refreshOrOpen(ReportListPage.URL);
-    unsavedModal.shouldNotBe(visible);
+    unsavedModal.shouldBe(hidden);
     ReportListPage.listContainer().should(appear);
     WebDriverRunner.getWebDriver().navigate().back();
   }

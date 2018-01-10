@@ -27,6 +27,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -73,12 +74,12 @@ public class MoveApplicationTest
     ActionDropDown.moveApplication().shouldBe(visible).click();
     MoveApplicationDialog modal = new MoveApplicationDialog();
     modal.shouldBe(visible);
-    modal.moveButton().shouldNotBe(visible);
-    modal.body().shouldNotBe(visible);
+    modal.moveButton().shouldBe(hidden);
+    modal.body().shouldBe(hidden);
     modal.footer().shouldHave(ERROR);
     modal.footer().shouldHave(text("No available destination organizations."));
     modal.dismissButton().shouldHave(text("OK")).shouldBe(visible).click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
   }
 
   @Test
@@ -87,16 +88,16 @@ public class MoveApplicationTest
 
     MoveApplicationDialog modal = new MoveApplicationDialog();
     selectFirstOptionAndSubmit(modal);
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
 
     // success modal should have only info messages
     MoveApplicationSuccessModal successDialog = new MoveApplicationSuccessModal();
     successDialog.shouldBe(visible);
     successDialog.infoSection().shouldBe(visible);
-    successDialog.warningSection().shouldNotBe(visible);
+    successDialog.warningSection().shouldBe(hidden);
     successDialog.okButton().click();
-    successDialog.shouldNotBe(visible);
-    modal.shouldNotBe(visible);
+    successDialog.shouldBe(hidden);
+    modal.shouldBe(hidden);
 
     // test new parent
     Application updatedApp = appDAO.getById(application.getId());
@@ -112,7 +113,7 @@ public class MoveApplicationTest
 
     MoveApplicationDialog modal = new MoveApplicationDialog();
     selectFirstOptionAndSubmit(modal);
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
 
     // success modal should have warning messages
     MoveApplicationSuccessModal successModal = new MoveApplicationSuccessModal();
@@ -120,8 +121,8 @@ public class MoveApplicationTest
     successModal.infoSection().shouldBe(visible);
     successModal.warningSection().shouldBe(visible).shouldHave(text(POLICY_MONITORING_MISSING_MSG));
     successModal.okButton().click();
-    successModal.shouldNotBe(visible);
-    modal.shouldNotBe(visible);
+    successModal.shouldBe(hidden);
+    modal.shouldBe(hidden);
 
     // check continuous policy monitoring text is updated
     OwnerSummaryPage.policyTile().monitoredStage()
@@ -149,21 +150,21 @@ public class MoveApplicationTest
     modal.footer().shouldBe(visible).shouldHave(ERROR);
     modal.retryButton().shouldBe(visible);
     modal.detailsButton().shouldBe(visible).click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
 
     // error details modal
     MoveApplicationErrorModal errorModal = new MoveApplicationErrorModal();
     errorModal.shouldBe(visible);
     errorModal.body().shouldHave(text("Incompatible Destination"));
     errorModal.okButton().click();
-    errorModal.shouldNotBe(visible);
+    errorModal.shouldBe(hidden);
 
     // retry and cancel
     modal.shouldBe(visible);
     modal.retryButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
     modal.dismissButton().click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
   }
 
   private void selectFirstOptionAndSubmit(MoveApplicationDialog modal) {

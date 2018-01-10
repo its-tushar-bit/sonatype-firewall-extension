@@ -28,6 +28,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -69,7 +70,7 @@ public class SuccessMetricsConfigurationTest
 
     // close the menu
     systemConfigMenu.dropdownToggle().click();
-    systemConfigMenu.successMetrics().shouldNotBe(visible);
+    systemConfigMenu.successMetrics().shouldBe(hidden);
 
     // check initial state
     metricsConfigPage.header().shouldHave(text("Success Metrics"));
@@ -107,8 +108,8 @@ public class SuccessMetricsConfigurationTest
     waitUntilUrl(SuccessMetricsReportListPage.URL);
     successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(0);
     successMetricsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
-    successMetricsPage.errorBox().retryButton().shouldNotBe(visible);
-    successMetricsPage.addSuccessMetricsBtn().shouldNotBe(visible);
+    successMetricsPage.errorBox().retryButton().shouldBe(hidden);
+    successMetricsPage.addSuccessMetricsBtn().shouldBe(hidden);
 
     // ... and the success metrics details page for root org
     refreshOrOpen(successMetricsChartsPageUrl);
@@ -116,7 +117,7 @@ public class SuccessMetricsConfigurationTest
     SummaryStatementTile.root().shouldNot(exist);
     ApplicationCountsTile.root().shouldNot(exist);
     successMetricsChartsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
-    successMetricsChartsPage.errorBox().retryButton().shouldNotBe(visible);
+    successMetricsChartsPage.errorBox().retryButton().shouldBe(hidden);
 
     // now re-enable success metrics.
     refreshOrOpen(SuccessMetricsConfigurationPage.URL);
@@ -130,13 +131,13 @@ public class SuccessMetricsConfigurationTest
     waitUntilUrl(SuccessMetricsReportListPage.URL);
 
     // ... the success metrics list page,
-    successMetricsPage.errorBox().shouldNotBe(visible);
+    successMetricsPage.errorBox().shouldBe(hidden);
     successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(1);
     successMetricsPage.successMetricsChartActionItems().element(0).click();
 
     // ... and the success metrics details page for root org
     waitUntilUrl(successMetricsChartsPageUrl);
     successMetricsChartsPage.noDataInfoPane().shouldBe(visible);
-    successMetricsChartsPage.errorBox().shouldNotBe(visible);
+    successMetricsChartsPage.errorBox().shouldBe(hidden);
   }
 }

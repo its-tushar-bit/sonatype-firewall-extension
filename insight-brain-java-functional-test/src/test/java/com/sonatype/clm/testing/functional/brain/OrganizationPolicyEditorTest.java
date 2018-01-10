@@ -19,6 +19,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -50,14 +51,14 @@ public class OrganizationPolicyEditorTest
     inheritance.allChildrenInheritRadio().shouldHave(allRadioText(organization.getName()));
     inheritance.specifiedChildrenInheritRadio().shouldBe(visible, enabled).shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText(organization.getName()));
-    inheritance.associationEditor().shouldNotBe(visible);
+    inheritance.associationEditor().shouldBe(hidden);
   }
 
   @Override
   protected void testCreatePolicy_inheritanceSection() {
     PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
     inheritance.allChildrenInheritRadio().click();
-    inheritance.associationEditor().shouldNotBe(visible);
+    inheritance.associationEditor().shouldBe(hidden);
 
     inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
     inheritance.associationEditor().shouldBe(visible);
@@ -68,7 +69,7 @@ public class OrganizationPolicyEditorTest
   protected void testEditPolicy_inheritanceSection() {
     PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
     inheritance.allChildrenInheritRadio().click();
-    inheritance.associationEditor().shouldNotBe(visible);
+    inheritance.associationEditor().shouldBe(hidden);
     PolicyEditorPage.savePolicy();
 
     inheritance.allChildrenInheritRadio().shouldBe(selected);

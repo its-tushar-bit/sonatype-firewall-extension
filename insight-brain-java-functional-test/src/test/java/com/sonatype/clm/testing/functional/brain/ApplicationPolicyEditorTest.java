@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -133,7 +134,7 @@ public class ApplicationPolicyEditorTest
       inheritance.allChildrenInheritRadio().shouldHave(allRadioText(YE_OLE_ORGANIZATION));
       inheritance.specifiedChildrenInheritRadio().shouldBe(visible).shouldNotBe(selected);
       inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText(YE_OLE_ORGANIZATION));
-      inheritance.associationEditor().shouldNotBe(visible);
+      inheritance.associationEditor().shouldBe(hidden);
     }
     else {
       assertInheritanceSectionDoesNotExist();
@@ -141,7 +142,7 @@ public class ApplicationPolicyEditorTest
   }
 
   private void assertInheritanceSectionDoesNotExist() {
-    PolicyEditorPage.inheritanceSection().shouldNotBe(visible);
-    PolicyEditorPage.inhertancePill().shouldNotBe(visible);
+    PolicyEditorPage.inheritanceSection().shouldBe(hidden);
+    PolicyEditorPage.inhertancePill().shouldBe(hidden);
   }
 }

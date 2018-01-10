@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -63,7 +64,7 @@ public class ApplicationLTGEditorTest
 
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg2.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
@@ -73,7 +74,7 @@ public class ApplicationLTGEditorTest
     DeleteModal.root().shouldBe(visible);
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     // no more ltgs left to delete so take user back to the summary page
     waitUntilUrl(OwnerSummaryPage.url(application));

@@ -21,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
@@ -69,11 +70,11 @@ public class AdministratorsTest
     Content content = roleRow.content();
     roleRow.shouldBe(visible);
     content.members().shouldHave(texts("Admin BuiltIn"));
-    content.editor().shouldNotBe(visible);
+    content.editor().shouldBe(hidden);
 
     RoleMappingElement policyAdminRoleRow = mapping.element(1);
     policyAdminRoleRow.shouldBe(visible);
-    policyAdminRoleRow.content().editor().shouldNotBe(visible);
+    policyAdminRoleRow.content().editor().shouldBe(hidden);
   }
 
   @Test
@@ -170,7 +171,7 @@ public class AdministratorsTest
     //make sure we grab latest dom, as the save will rebuild it
     roleRow = AdministratorsPage.administratorsRoleMappingList().element(0);
 
-    content.editor().shouldNotBe(visible);
+    content.editor().shouldBe(hidden);
     content.members().shouldHave(texts("Admin BuiltIn, John Doe"));
   }
 
@@ -180,7 +181,7 @@ public class AdministratorsTest
     RoleMappingElement policyAdministrator = AdministratorsPage.administratorsRoleMappingList()
         .element(0);
     policyAdministrator.shouldBe(visible).shouldHave(text("Policy Administrator")).editButton().click();
-    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldNotBe(visible);
+    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldBe(hidden);
 
     // all servers have group search disabled
     LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
@@ -228,6 +229,6 @@ public class AdministratorsTest
 
     policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(1);
     policyAdministrator.shouldBe(visible).editButton().click();
-    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldNotBe(visible);
+    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldBe(hidden);
   }
 }

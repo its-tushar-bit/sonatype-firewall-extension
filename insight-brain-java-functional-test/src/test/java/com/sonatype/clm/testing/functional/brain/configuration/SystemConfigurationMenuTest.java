@@ -19,6 +19,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 
 public class SystemConfigurationMenuTest
@@ -46,7 +47,7 @@ public class SystemConfigurationMenuTest
     login(user.getUsername(), user.getPassword());
 
     MainHeader.userMenu().userName().shouldNotBe(empty);
-    systemConfigMenu.shouldNotBe(visible);
+    systemConfigMenu.shouldBe(hidden);
   }
 
   @Test
@@ -78,7 +79,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.dropdownToggle().click();
 
     systemConfigMenu.users().shouldBe(visible);
-    systemConfigMenu.roles().shouldNotBe(visible);
+    systemConfigMenu.roles().shouldBe(hidden);
     systemConfigMenu.administrators().shouldBe(visible);
     systemConfigMenu.productLicense().shouldBe(visible);
     systemConfigMenu.ldap().shouldBe(visible);
@@ -97,13 +98,13 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.shouldBe(visible);
     systemConfigMenu.dropdownToggle().click();
 
-    systemConfigMenu.users().shouldNotBe(visible);
+    systemConfigMenu.users().shouldBe(hidden);
     systemConfigMenu.roles().shouldBe(visible);
-    systemConfigMenu.administrators().shouldNotBe(visible);
-    systemConfigMenu.productLicense().shouldNotBe(visible);
-    systemConfigMenu.ldap().shouldNotBe(visible);
-    systemConfigMenu.webhooks().shouldNotBe(visible);
-    systemConfigMenu.systemNotice().shouldNotBe(visible);
-    systemConfigMenu.successMetrics().shouldNotBe(visible);
+    systemConfigMenu.administrators().shouldBe(hidden);
+    systemConfigMenu.productLicense().shouldBe(hidden);
+    systemConfigMenu.ldap().shouldBe(hidden);
+    systemConfigMenu.webhooks().shouldBe(hidden);
+    systemConfigMenu.systemNotice().shouldBe(hidden);
+    systemConfigMenu.successMetrics().shouldBe(hidden);
   }
 }

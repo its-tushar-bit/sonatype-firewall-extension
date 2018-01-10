@@ -58,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
@@ -199,7 +200,7 @@ public abstract class AbstractFunctionalTest
     loginModal.username().setValue(username);
     loginModal.password().setValue(password);
     loginModal.loginButton().click();
-    loginModal.shouldNotBe(visible);
+    loginModal.shouldBe(hidden);
   }
 
   protected static void logout() {

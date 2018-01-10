@@ -292,13 +292,13 @@ public class RepositoryReportTest
     RepositoryReportPage.Table.row(0).openCip();
 
     RepositoryReportPage.Table.cipTab("Component Info").shouldBe(visible);
-    VersionsCIP.selectComponentMessage().shouldNotBe(visible);
+    VersionsCIP.selectComponentMessage().shouldBe(hidden);
     VersionsCIP.unknownComponentMessage().shouldBe(visible);
 
     RepositoryReportPage.Table.cipTab("Policy").shouldBe(visible);
-    RepositoryReportPage.Table.cipTab("Labels").shouldNotBe(visible);
-    RepositoryReportPage.Table.cipTab("Licenses").shouldNotBe(visible);
-    RepositoryReportPage.Table.cipTab("Vulnerabilities").shouldNotBe(visible);
+    RepositoryReportPage.Table.cipTab("Labels").shouldBe(hidden);
+    RepositoryReportPage.Table.cipTab("Licenses").shouldBe(hidden);
+    RepositoryReportPage.Table.cipTab("Vulnerabilities").shouldBe(hidden);
   }
 
   @Test
@@ -391,7 +391,7 @@ public class RepositoryReportTest
 
     // close CIP
     RepositoryReportPage.Table.row(0).component().click();
-    RepositoryReportPage.Table.cip().shouldNotBe(visible);
+    RepositoryReportPage.Table.cip().shouldBe(hidden);
   }
 
   @Test
@@ -418,7 +418,7 @@ public class RepositoryReportTest
     AddLabelModal.scopes().shouldHaveSize(3);
     AddLabelModal.saveButton().click();
 
-    AddLabelModal.root().shouldNotBe(visible);
+    AddLabelModal.root().shouldBe(hidden);
     RepositoryReportPage.waitForComponentUpdater();
 
     // label persisted
@@ -449,7 +449,7 @@ public class RepositoryReportTest
     assertThat(appliedLabels.get(0).getLabelId(), is(elJunko.getId()));
 
     // CIP should disappear
-    RepositoryReportPage.Table.cip().shouldNotBe(visible);
+    RepositoryReportPage.Table.cip().shouldBe(hidden);
     // Bad labels is gone
     RepositoryReportPage.Table.rows().shouldHaveSize(2);
 
@@ -613,7 +613,7 @@ public class RepositoryReportTest
 
     // close CIP
     RepositoryReportPage.Table.cipCloseButton().click();
-    RepositoryReportPage.Table.cip().shouldNotBe(visible);
+    RepositoryReportPage.Table.cip().shouldBe(hidden);
   }
 
   private static void assertRow(SVTableRow actualRow, Integer threatLevel, String identifier) {

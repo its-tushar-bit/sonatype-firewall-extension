@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.is;
@@ -68,14 +69,14 @@ public class RepositoryReportContainerTest
     RepositoryReportContainerPage.ReEvaluateModal.root().shouldBe(visible);
     RepositoryReportContainerPage.ReEvaluateModal.cancelButton().click();
 
-    RepositoryReportContainerPage.ReEvaluateModal.root().shouldNotBe(visible);
+    RepositoryReportContainerPage.ReEvaluateModal.root().shouldBe(hidden);
 
     RepositoryReportContainerPage.refreshButton().click();
 
     RepositoryReportContainerPage.ReEvaluateModal.root().shouldBe(visible);
     RepositoryReportContainerPage.ReEvaluateModal.submitButton().click();
 
-    RepositoryReportContainerPage.ReEvaluateModal.root().shouldNotBe(visible);
+    RepositoryReportContainerPage.ReEvaluateModal.root().shouldBe(hidden);
 
     for (int i = 0; i < 100; i++) {
       Thread.sleep(100);

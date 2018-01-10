@@ -29,6 +29,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -145,7 +146,7 @@ public class CategoryEditorTest
     // when
     DeleteModal.cancelButton().click();
     // then
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
     CategoryEditorPage.categoryName().shouldHave(value(category.getName()));
     category = tagDAO.getById(category.getId());
     assertThat(category, is(not(nullValue())));
@@ -154,7 +155,7 @@ public class CategoryEditorTest
     // then
     DeleteModal.continueButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     waitUntilUrl(CategoryEditorPage.urlToCreate(org.getId()));
 
@@ -178,7 +179,7 @@ public class CategoryEditorTest
     DeleteModal.body().shouldHave(CategoryEditorPage.deleteWarningText(app.getName()));
     DeleteModal.continueButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     waitUntilUrl(CategoryEditorPage.urlToCreate(org.getId()));
 
@@ -200,7 +201,7 @@ public class CategoryEditorTest
     DeleteErrorModal.root().shouldBe(visible);
     DeleteErrorModal.message().shouldHave(DeleteErrorModal.associatedPoliciesText("policy UNO", "policy DOS"));
     DeleteErrorModal.closeButton().shouldBe(visible).click();
-    DeleteErrorModal.root().shouldNotBe(visible);
+    DeleteErrorModal.root().shouldBe(hidden);
   }
 
   private void assertInitialStateIsCorrect() {

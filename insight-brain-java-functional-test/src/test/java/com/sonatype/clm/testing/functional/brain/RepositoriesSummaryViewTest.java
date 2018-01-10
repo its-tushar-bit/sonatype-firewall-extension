@@ -38,6 +38,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
@@ -96,7 +97,7 @@ public class RepositoriesSummaryViewTest
     configurationTile = RepositoriesSummaryPage.configTile();
     configurationTable = configurationTile.configurationTable();
     configurationTable.rows().shouldHaveSize(3); // 2 repository rows and header
-    configurationTile.emptyDescriptor().shouldNotBe(visible);
+    configurationTile.emptyDescriptor().shouldBe(hidden);
 
     for (int i = 0; i < repositories.size(); i++) {
       ConfigurationTableRow configurationRow = configurationTable.row(i + 1);
@@ -123,7 +124,7 @@ public class RepositoriesSummaryViewTest
     DeleteModal.body().shouldHave(ConfigurationTableRow.deleteRepositoryText(repositoryToDelete.getPublicId()));
     DeleteModal.continueButton().shouldBe(visible);
     DeleteModal.cancelButton().shouldBe(visible).click();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     assertThat(repositoryDAO.getById(repositoryToDelete.getId()), is(not(nullValue())));
 
@@ -132,7 +133,7 @@ public class RepositoriesSummaryViewTest
     DeleteModal.cancelButton().shouldBe(visible);
     DeleteModal.continueButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     assertThat(repositoryDAO.getById(repositoryToDelete.getId()), is(nullValue()));
   }
@@ -154,8 +155,8 @@ public class RepositoriesSummaryViewTest
 
     AccessTileList inheritedList = accessTile.accessList(1);
 
-    inheritedList.ownerName().shouldNotBe(visible);
-    inheritedList.emptyDescriptor().shouldNotBe(visible);
+    inheritedList.ownerName().shouldBe(hidden);
+    inheritedList.emptyDescriptor().shouldBe(hidden);
   }
 
   @Test
@@ -181,7 +182,7 @@ public class RepositoriesSummaryViewTest
     RepositoriesSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     AccessTileList localList = accessTile.accessList(0);
-    localList.emptyDescriptor().shouldNotBe(visible);
+    localList.emptyDescriptor().shouldBe(hidden);
 
     localList.elements().shouldHaveSize(2);
     localList.ownerName().shouldBe(visible).shouldHave(text("Local"));
@@ -200,7 +201,7 @@ public class RepositoriesSummaryViewTest
 
     AccessTileList inheritedList = accessTile.accessList(1);
 
-    inheritedList.ownerName().shouldNotBe(visible);
+    inheritedList.ownerName().shouldBe(hidden);
     inheritedList.elements().shouldHaveSize(0);
   }
 
@@ -228,18 +229,18 @@ public class RepositoriesSummaryViewTest
 
     AccessTileList inheritedList = accessTile.accessList(1);
 
-    inheritedList.emptyDescriptor().shouldNotBe(visible);
+    inheritedList.emptyDescriptor().shouldBe(hidden);
     inheritedList.ownerName().shouldBe(visible).shouldHave(AccessTile.inheritedText("Root Organization"));
     inheritedList.elements().shouldHaveSize(2);
 
     AccessTileListElement readOnly = inheritedList.element(0);
-    readOnly.chevron().shouldNotBe(visible);
+    readOnly.chevron().shouldBe(hidden);
     readOnly.role().shouldBe(visible).shouldHave(text("Read Only"));
     readOnly.groupIcon().shouldBe(visible);
     readOnly.members().shouldBe(visible).shouldHave(text("Group"));
 
     AccessTileListElement writeOnly = inheritedList.element(1);
-    writeOnly.chevron().shouldNotBe(visible);
+    writeOnly.chevron().shouldBe(hidden);
     writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
     writeOnly.userIcon().shouldBe(visible);
     writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));

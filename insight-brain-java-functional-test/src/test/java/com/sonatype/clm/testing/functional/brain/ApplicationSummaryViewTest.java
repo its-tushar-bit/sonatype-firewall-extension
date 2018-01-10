@@ -53,6 +53,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.textCaseSensitive;
@@ -91,7 +92,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.users().shouldHaveSize(0);
     SelectContactModal.searchButton().shouldBe(disabled);
     SelectContactModal.cancelButton().shouldBe(visible).click();
-    SelectContactModal.body().shouldNotBe(visible);
+    SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
     // wildcard search returns all users
     ActionDropDown.actionButton().click();
@@ -107,7 +108,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.updateButton().shouldHave(DISABLED);
     SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
-    SelectContactModal.body().shouldNotBe(visible);
+    SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
     // attempt removal but cancel out of confirmation dialog
     ActionDropDown.actionButton().click();
@@ -115,19 +116,19 @@ public class ApplicationSummaryViewTest
     SelectContactModal.currentUserLabel().shouldHave(text(tempUser.calculateDisplayName()));
     SelectContactModal.searchBox().val("preserves modal state");
     SelectContactModal.removeButton().shouldBe(visible, enabled).click();
-    SelectContactModal.body().shouldNotBe(visible);
+    SelectContactModal.body().shouldBe(hidden);
     RemoveModal.body().shouldBe(visible).shouldHave(RemoveModal.bodyText(tempUser.calculateDisplayName()));
     RemoveModal.header().shouldHave(RemoveModal.headerText("Contact"));
     RemoveModal.cancelButton().click();
-    RemoveModal.body().shouldNotBe(visible);
+    RemoveModal.body().shouldBe(hidden);
     SelectContactModal.body().shouldBe(visible);
     SelectContactModal.searchBox().shouldHave(value("preserves modal state"));
     // remove contact
     SelectContactModal.removeButton().click();
     RemoveModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    RemoveModal.body().shouldNotBe(visible);
-    SelectContactModal.body().shouldNotBe(visible);
+    RemoveModal.body().shouldBe(hidden);
+    SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
   }
 
@@ -146,14 +147,14 @@ public class ApplicationSummaryViewTest
     // update contact
     SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
-    SelectContactModal.body().shouldNotBe(visible);
+    SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
 
     // edit the application name
     String shortTypeName = "App";
     String newAppName = "New Name";
     ActionDropDown.actionButton().click();
-    OwnerEditorDialog.root().shouldNotBe(visible);
+    OwnerEditorDialog.root().shouldBe(hidden);
     ActionDropDown.editOwner().shouldHave(text(shortTypeName)).click();
     OwnerEditorDialog.root().shouldBe(visible);
     OwnerEditorDialog.title().shouldHave(text(OwnerType.APPLICATION.toString()));
@@ -220,7 +221,7 @@ public class ApplicationSummaryViewTest
 
     LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
     ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
-    ltgTile.newButton().shouldNotBe(visible);
+    ltgTile.newButton().shouldBe(hidden);
 
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
 
@@ -228,13 +229,13 @@ public class ApplicationSummaryViewTest
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
 
       if (i != hierarchySize - 1) {
-        list.ownerName().shouldNotBe(visible);
-        list.emptyDescriptor().shouldNotBe(visible);
+        list.ownerName().shouldBe(hidden);
+        list.emptyDescriptor().shouldBe(hidden);
         list.elements().shouldBe(empty);
       }
       else {
         list.ownerName().shouldBe(visible);
-        list.emptyDescriptor().shouldNotBe(visible);
+        list.emptyDescriptor().shouldBe(hidden);
         list.elements().shouldHaveSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT);
       }
     }
@@ -291,12 +292,12 @@ public class ApplicationSummaryViewTest
 
     TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
 
-    appliedCategoryList.emptyDescriptor().shouldNotBe(visible);
+    appliedCategoryList.emptyDescriptor().shouldBe(hidden);
     appliedCategoryList.elements().shouldHaveSize(1);
     appliedCategoryList.element(0).name().shouldBe(visible).shouldHave(text(category.getName()));
     appliedCategoryList.element(0).description().shouldBe(visible).shouldHave(text(category.getDescription()));
     appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toValue()));
-    appliedCategoryList.element(0).chevron().shouldNotBe(visible);
+    appliedCategoryList.element(0).chevron().shouldBe(hidden);
   }
 
   @Override
@@ -310,7 +311,7 @@ public class ApplicationSummaryViewTest
   @Test
   public void testMoveApplicationLink() {
     MoveApplicationDialog moveAppModal = new MoveApplicationDialog();
-    moveAppModal.shouldNotBe(visible);
+    moveAppModal.shouldBe(hidden);
     ActionDropDown.actionButton().click();
     ActionDropDown.moveApplication().shouldBe(visible).shouldHave(text("Move " + application.getName())).click();
     moveAppModal.shouldBe(visible);
@@ -319,7 +320,7 @@ public class ApplicationSummaryViewTest
   @Test
   public void testChangeApplicationId() {
     ChangeApplicationIdDialog changeApplicationIdDialog = new ChangeApplicationIdDialog();
-    changeApplicationIdDialog.shouldNotBe(visible);
+    changeApplicationIdDialog.shouldBe(hidden);
     ActionDropDown.actionButton().click();
     ActionDropDown.changeApplicationId().shouldBe(visible).shouldNotBe(DISABLED).click();
     changeApplicationIdDialog.shouldBe(visible);
@@ -336,7 +337,7 @@ public class ApplicationSummaryViewTest
     changeApplicationIdDialog.newId().shouldNotHave(cssClass("ng-invalid"));
     changeApplicationIdDialog.changeButton().shouldBe(enabled).click();
     FormMask.seeAndWaitForDismissal();
-    changeApplicationIdDialog.shouldNotBe(visible);
+    changeApplicationIdDialog.shouldBe(hidden);
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
     OwnerSummaryPage.summaryTile().publicId().shouldHave(text("newAppId"));
     // check that sidebar app link is updated
@@ -356,7 +357,7 @@ public class ApplicationSummaryViewTest
       refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
       ActionDropDown.actionButton().click();
       ActionDropDown.changeApplicationId().shouldBe(visible).shouldHave(DISABLED).click();
-      changeApplicationIdDialog.shouldNotBe(visible);
+      changeApplicationIdDialog.shouldBe(hidden);
     }
     finally {
       logout();
@@ -442,7 +443,7 @@ public class ApplicationSummaryViewTest
       ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldHave(DISABLED).hover();
       Tooltip.get().shouldBe(visible).shouldHave(text("Insufficient permissions to evaluate application"));
       ActionDropDown.evaluateBinaryButton().click();
-      new EvaluateApplicationModal().shouldNotBe(visible);
+      new EvaluateApplicationModal().shouldBe(hidden);
     }
     finally {
       logout();

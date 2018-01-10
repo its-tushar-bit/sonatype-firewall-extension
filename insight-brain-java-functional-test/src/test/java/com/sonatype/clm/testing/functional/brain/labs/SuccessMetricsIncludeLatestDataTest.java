@@ -25,6 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -66,7 +67,7 @@ public class SuccessMetricsIncludeLatestDataTest
     successMetricsReportListPage.addSuccessMetricsBtn().shouldBe(visible).click();
     addSuccessMetricsModal.shouldBe(visible);
     addSuccessMetricsModal.name().setValue("Test Latest Data");
-    addSuccessMetricsModal.byMostRecentWarning().shouldNotBe(visible);
+    addSuccessMetricsModal.byMostRecentWarning().shouldBe(hidden);
     addSuccessMetricsModal.byMostRecentRadioBtn().shouldNotBe(selected).click();
     addSuccessMetricsModal.byMostRecentWarning().shouldBe(visible).shouldHave(AddSuccessMetricsModal.ON_LOAD_WARNING_TEXT);
     addSuccessMetricsModal.createBtn().click();
@@ -82,7 +83,7 @@ public class SuccessMetricsIncludeLatestDataTest
 
     // With latest data flag the new violation should appear immediately.
     refresh();
-    successMetricsChartsPage.noDataInfoPane().shouldNotBe(visible);
+    successMetricsChartsPage.noDataInfoPane().shouldBe(hidden);
     SummaryStatementTile.months().shouldBe(visible).shouldHave(text("1 month"));
     ViolationAveragesTile.averageEvaluations().shouldHave(text("1"));
     ViolationAveragesTile.averagePolicyViolations().shouldHave(text("1"));

@@ -30,6 +30,7 @@ import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.hamcrest.Matchers.equalTo;
@@ -74,7 +75,7 @@ public class OrganizationSummaryViewTest
       }
       else {
         list.ownerName().scrollTo().shouldBe(visible);
-        list.emptyDescriptor().shouldNotBe(visible);
+        list.emptyDescriptor().shouldBe(hidden);
         list.elements().shouldHaveSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT);
       }
     }
@@ -90,7 +91,7 @@ public class OrganizationSummaryViewTest
   @Test
   public void testMoveApplicationLink() {
     ActionDropDown.actionButton().click();
-    ActionDropDown.moveApplication().shouldNotBe(visible);
+    ActionDropDown.moveApplication().shouldBe(hidden);
   }
 
   private void testApplicationCategoryTile_Empty() {

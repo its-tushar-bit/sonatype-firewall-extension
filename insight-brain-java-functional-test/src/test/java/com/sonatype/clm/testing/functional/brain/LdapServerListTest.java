@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -67,7 +68,7 @@ public class LdapServerListTest
 
     refresh();
 
-    serverList.emptyDescriptor().shouldNotBe(visible);
+    serverList.emptyDescriptor().shouldBe(hidden);
     serverList.elements().shouldHaveSize(2);
 
     ActionListElement row = serverList.element(0);

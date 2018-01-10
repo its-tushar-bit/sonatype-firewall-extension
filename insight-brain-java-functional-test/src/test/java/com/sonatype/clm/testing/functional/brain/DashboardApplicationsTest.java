@@ -41,6 +41,7 @@ import org.openqa.selenium.Dimension;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.allHaveClass;
@@ -97,7 +98,7 @@ public class DashboardApplicationsTest
     createApplicationsWithViolation(100);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldNotBe(visible);
+    table.maxResultsMessage().shouldBe(hidden);
     table.applications().shouldHaveSize(100);
 
     // 101 results
@@ -335,11 +336,11 @@ public class DashboardApplicationsTest
     ApplicationsResults table = DashboardPage.applicationsView().results();
     refresh();
 
-    Tooltip.get().shouldNotBe(visible);
+    Tooltip.get().shouldBe(hidden);
     table.firstApplication().name().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("A long name to ensure overflow in cell"));
     table.lastApplication().name().hover();
-    Tooltip.get().shouldNotBe(visible);
+    Tooltip.get().shouldBe(hidden);
   }
 
   @Test

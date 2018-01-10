@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -81,17 +82,17 @@ public class AddProprietaryMatchersTest
 
     // test AddProprietaryButton is not visible if all pathNames are maven coordinates
     ReportPolicyPage.row(2).openCip();
-    VersionsCIP.addProprietaryMatchersButton().shouldNotBe(visible);
+    VersionsCIP.addProprietaryMatchersButton().shouldBe(hidden);
 
     // test AddProprietaryButton is not visible if already proprietary
     ReportPolicyPage.row(1).openCip();
-    VersionsCIP.addProprietaryMatchersButton().shouldNotBe(visible);
+    VersionsCIP.addProprietaryMatchersButton().shouldBe(hidden);
 
     // test Cancel button
     ReportPolicyPage.row(0).openCip();
     VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
     modal.cancelButton().shouldBe(visible).click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
 
     // test init state
     VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
@@ -107,7 +108,7 @@ public class AddProprietaryMatchersTest
     // submit all pathNames plus regex
     modal.regexInput().val("foo");
     modal.addButton().shouldNotBe(DISABLED).click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(app.getId());
     assertThat(config.getRegexes(), hasSize(3));
     assertThat(config.getRegexes().get(0), is("\\QHelloWorldApp.jar/HelloWorld.jar\\E"));
@@ -118,7 +119,7 @@ public class AddProprietaryMatchersTest
     VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
     modal.regexInput().val("foo");
     modal.addButton().shouldNotBe(DISABLED).click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
     config = proprietaryConfigDAO.getByOwnerId(app.getId());
     assertThat(config.getRegexes(), hasSize(3));
     assertThat(config.getRegexes().get(0), is("\\QHelloWorldApp.jar/HelloWorld.jar\\E"));
@@ -150,7 +151,7 @@ public class AddProprietaryMatchersTest
     modal.pathMatcherCheckboxes().last().shouldBe(selected);
     modal.regexInput().val("bar");
     modal.retryButton().shouldNotBe(DISABLED).click();
-    modal.shouldNotBe(visible);
+    modal.shouldBe(hidden);
     config = proprietaryConfigDAO.getByOwnerId(app.getId());
     assertThat(config.getRegexes(), hasSize(4));
     assertThat(config.getRegexes().get(0), is("\\QHelloWorldApp.jar/HelloWorld.jar\\E"));

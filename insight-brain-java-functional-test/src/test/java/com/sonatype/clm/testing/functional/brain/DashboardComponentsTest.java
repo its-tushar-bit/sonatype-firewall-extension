@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
@@ -84,7 +85,7 @@ public class DashboardComponentsTest
     addComponents(100, 5);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldNotBe(visible);
+    table.maxResultsMessage().shouldBe(hidden);
 
     // 101 results
     addComponentWithViolation(101, 5);
@@ -105,7 +106,7 @@ public class DashboardComponentsTest
 
     DashboardPage.dashboardContainer().shouldBe(visible);
     ComponentsResults table = DashboardPage.componentsView().results();
-    table.maxResultsMessage().shouldNotBe(visible);
+    table.maxResultsMessage().shouldBe(hidden);
 
     // components should be sorted by risk
     table.components().shouldHaveSize(4).shouldHave(texts(
@@ -139,19 +140,19 @@ public class DashboardComponentsTest
     // open component details and back
     DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
     table.firstComponent().click();
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group4 : Artifact4 : Version4"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     table.component(1).click();
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group3 : Artifact3 : Version3"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     table.lastComponent().click();
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group1 : Artifact1 : Version1"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -284,12 +285,12 @@ public class DashboardComponentsTest
     DashboardPage.dashboardContainer().shouldBe(visible);
     ComponentsResults table = DashboardPage.componentsView().results();
 
-    Tooltip.get().shouldNotBe(visible);
+    Tooltip.get().shouldBe(hidden);
     table.firstComponent().name().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text(
         "A superficially artificial, perfunctorily slapdash : protracted and interminable name : to ensure overflow in cell"));
     table.lastComponent().name().hover();
-    Tooltip.get().shouldNotBe(visible);
+    Tooltip.get().shouldBe(hidden);
   }
 
   @Test

@@ -61,6 +61,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.COLUMN_SELECTED;
@@ -101,7 +102,7 @@ public abstract class AbstractSummaryViewTest
       OwnerSummaryPage.summaryTile().publicId().shouldBe(visible).shouldHave(text(currentOwner.getPublicId()));
     }
     else {
-      OwnerSummaryPage.summaryTile().publicId().shouldNotBe(visible);
+      OwnerSummaryPage.summaryTile().publicId().shouldBe(hidden);
     }
   }
 
@@ -117,18 +118,18 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testActionDropDown() {
-    ActionDropDown.menu().shouldNotBe(visible);
+    ActionDropDown.menu().shouldBe(hidden);
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.menu().shouldBe(visible);
     ActionDropDown.actionButton().click();
-    ActionDropDown.menu().shouldNotBe(visible);
+    ActionDropDown.menu().shouldBe(hidden);
   }
 
   @Test
   public void testEditAppOrgNameLink() {
     String shortTypeName = currentOwner.getType().toString().equalsIgnoreCase("application") ? "App" : "Org";
     ActionDropDown.actionButton().click();
-    OwnerEditorDialog.root().shouldNotBe(visible);
+    OwnerEditorDialog.root().shouldBe(hidden);
     ActionDropDown.editOwner().shouldHave(text(shortTypeName)).click();
     OwnerEditorDialog.root().shouldBe(visible);
     OwnerEditorDialog.title().shouldHave(text(currentOwner.getType().toString()));
@@ -161,7 +162,7 @@ public abstract class AbstractSummaryViewTest
         list.emptyDescriptor().shouldBe(visible);
       }
       else {
-        list.subsectionHeader().shouldNotBe(visible);
+        list.subsectionHeader().shouldBe(hidden);
       }
 
       list.elements().shouldBe(empty);
@@ -188,8 +189,8 @@ public abstract class AbstractSummaryViewTest
 
       }
       else {
-        list.ownerName().shouldNotBe(visible);
-        list.emptyDescriptor().shouldNotBe(visible);
+        list.ownerName().shouldBe(hidden);
+        list.emptyDescriptor().shouldBe(hidden);
       }
     }
   }
@@ -211,7 +212,7 @@ public abstract class AbstractSummaryViewTest
         list.emptyDescriptor().shouldBe(visible);
       }
       else {
-        list.ownerName().shouldNotBe(visible);
+        list.ownerName().shouldBe(hidden);
       }
 
       list.rows().shouldBe(empty);
@@ -299,7 +300,7 @@ public abstract class AbstractSummaryViewTest
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
 
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
-      ltgTile.newButton().shouldNotBe(visible);
+      ltgTile.newButton().shouldBe(hidden);
     }
     else {
       ltgTile.newButton().shouldBe(visible);
@@ -333,7 +334,7 @@ public abstract class AbstractSummaryViewTest
       }
       else {
         list.ownerName().shouldBe(visible);
-        list.emptyDescriptor().shouldNotBe(visible);
+        list.emptyDescriptor().shouldBe(hidden);
         list.elements().shouldHaveSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT);
       }
     }
@@ -350,7 +351,7 @@ public abstract class AbstractSummaryViewTest
 
     for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
-      list.emptyDescriptor().shouldNotBe(visible);
+      list.emptyDescriptor().shouldBe(hidden);
 
       if (i == 0) {
         list.elements().shouldHaveSize(2);
@@ -370,7 +371,7 @@ public abstract class AbstractSummaryViewTest
 
       }
       else {
-        list.ownerName().shouldNotBe(visible);
+        list.ownerName().shouldBe(hidden);
         list.elements().shouldHaveSize(0);
       }
     }
@@ -387,7 +388,7 @@ public abstract class AbstractSummaryViewTest
 
     for (int i = 0; i < hierarchySize; i++) {
       PolicyTileList list = policyTile.policyList(i);
-      list.emptyDescriptor().shouldNotBe(visible);
+      list.emptyDescriptor().shouldBe(hidden);
 
       if (i == 0) {
         list.rows().shouldHaveSize(4); // 3 rows plus header
@@ -430,7 +431,7 @@ public abstract class AbstractSummaryViewTest
         assertPolicy(policyElement3, actualPolicy1);
       }
       else {
-        list.ownerName().shouldNotBe(visible);
+        list.ownerName().shouldBe(hidden);
         list.rows().shouldHaveSize(0);
       }
     }
@@ -543,7 +544,7 @@ public abstract class AbstractSummaryViewTest
     DeleteModal.root().shouldBe(visible);
     DeleteModal.cancelButton().click();
 
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     currentOwner = new OwnerDAO().getById(currentOwner.getId());
 
@@ -560,7 +561,7 @@ public abstract class AbstractSummaryViewTest
     DeleteModal.root().shouldBe(visible);
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     currentOwner = new OwnerDAO().getById(currentOwner.getId());
 
@@ -614,7 +615,7 @@ public abstract class AbstractSummaryViewTest
                 .shouldHave(ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
           }
 
-          actualLTG.chevron().shouldNotBe(visible);
+          actualLTG.chevron().shouldBe(hidden);
         }
       }
     }
@@ -638,18 +639,18 @@ public abstract class AbstractSummaryViewTest
 
       }
       else {
-        list.emptyDescriptor().shouldNotBe(visible);
+        list.emptyDescriptor().shouldBe(hidden);
         list.ownerName().shouldBe(visible).shouldHave(AccessTile.inheritedText(parentOwners.get(i - 1).getName()));
         list.elements().shouldHaveSize(2);
 
         AccessTileListElement readOnly = list.element(0);
-        readOnly.chevron().shouldNotBe(visible);
+        readOnly.chevron().shouldBe(hidden);
         readOnly.role().shouldBe(visible).shouldHave(text("Read Only"));
         readOnly.groupIcon().shouldBe(visible);
         readOnly.members().shouldBe(visible).shouldHave(text("Group"));
 
         AccessTileListElement writeOnly = list.element(1);
-        writeOnly.chevron().shouldNotBe(visible);
+        writeOnly.chevron().shouldBe(hidden);
         writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
         writeOnly.userIcon().shouldBe(visible);
         writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
@@ -674,7 +675,7 @@ public abstract class AbstractSummaryViewTest
         list.emptyDescriptor().should(exist);
       }
       else {
-        list.emptyDescriptor().shouldNotBe(visible);
+        list.emptyDescriptor().shouldBe(hidden);
         list.ownerName().shouldBe(visible).shouldHave(PolicyTile.inheritedText(parentOwners.get(i - 1).getName()));
         list.rows().shouldHaveSize(3); // 2 rows plus header
 
@@ -778,7 +779,7 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     PolicyTileList policyList = policyTile.policyList(0);
-    policyList.emptyDescriptor().shouldNotBe(visible);
+    policyList.emptyDescriptor().shouldBe(hidden);
     policyList.rows().shouldHaveSize(2); // 1 row plus header
     policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
     PolicyTileListElement policyElement = policyList.row(1);

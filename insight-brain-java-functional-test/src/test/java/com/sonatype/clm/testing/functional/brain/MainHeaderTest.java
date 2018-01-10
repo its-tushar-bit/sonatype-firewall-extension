@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -60,7 +61,7 @@ public class MainHeaderTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
     MainHeader.policiesNavigationButton().shouldBe(visible);
-    MainHeader.dashboardNavigationButton().shouldNotBe(visible);
+    MainHeader.dashboardNavigationButton().shouldBe(hidden);
   }
 
   @Test

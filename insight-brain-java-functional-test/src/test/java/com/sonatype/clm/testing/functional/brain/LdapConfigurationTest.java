@@ -41,6 +41,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -100,8 +101,8 @@ public class LdapConfigurationTest
 
     nameEditor.shouldBe(visible).setValue("Another Ldap Server");
     ldapNameEditor.saveButton().shouldBe(visible, enabled).click();
-    ldapNameEditor.saveButton().shouldNotBe(visible);
-    ldapNameEditor.cancelButton().shouldNotBe(visible);
+    ldapNameEditor.saveButton().shouldBe(hidden);
+    ldapNameEditor.cancelButton().shouldBe(hidden);
 
     LdapConfigurationPage.breadCrumb().shouldHave(text("LDAP Servers / Edit Configuration"));
 
@@ -210,7 +211,7 @@ public class LdapConfigurationTest
 
     // Continue and discard changes (reset)
     LdapConfigurationPage.discardChangesModalButton().shouldBe(visible, enabled).click();
-    LdapConfigurationPage.discardChangesModalButton().shouldNotBe(visible);
+    LdapConfigurationPage.discardChangesModalButton().shouldBe(hidden);
   }
 
   private void startTestLdapServer() throws Exception {
@@ -273,7 +274,7 @@ public class LdapConfigurationTest
 
   private void testUserMapping() {
     LdapConfigurationPage.userAndGroupSettingsTab().click();
-    LdapConfigurationPage.ldapConnectionForm().shouldNotBe(visible);
+    LdapConfigurationPage.ldapConnectionForm().shouldBe(hidden);
 
     LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
     userAndGroupSettingsForm.shouldBe(visible);
@@ -290,7 +291,7 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.userEmailAttribute().shouldBe(empty).setValue("mail");
     userAndGroupSettingsForm.userSubtree().shouldNotBe(selected).click();
 
-    userAndGroupSettingsForm.groupSearchWarning().shouldNotBe(visible);
+    userAndGroupSettingsForm.groupSearchWarning().shouldBe(hidden);
     userAndGroupSettingsForm.groupMappingType().shouldBe(text("NONE")).selectOption("DYNAMIC");
     userAndGroupSettingsForm.groupSearchWarning().shouldBe(visible).
         shouldHave(text(LdapUserAndGroupSettingsForm.GROUP_SEARCH_WARNING));
@@ -311,7 +312,7 @@ public class LdapConfigurationTest
     testLoginModal.testLoginButton().shouldBe(enabled).click();
     testLoginModal.successAlertBox().shouldBe(visible).shouldHave(text("Success!"));
     testLoginModal.cancelButton().shouldBe(enabled).click();
-    testLoginModal.shouldNotBe(visible);
+    testLoginModal.shouldBe(hidden);
 
     // Test Check User Mapping
     userAndGroupSettingsForm.checkUserMappingButton().shouldBe(enabled).click();

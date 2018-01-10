@@ -345,9 +345,9 @@ public abstract class AbstractPolicyEditorTest
     //proxyAction.getNotification(1).deleteButton().click();
 
     // Assert no Modal appears when the editor is clean
-    unsavedModal.shouldNotBe(visible);
+    unsavedModal.shouldBe(hidden);
     MainHeader.dashboardNavigationButton().shouldBe(visible, enabled).click();
-    unsavedModal.shouldNotBe(visible);
+    unsavedModal.shouldBe(hidden);
     waitUntilUrl(DashboardPage.URL);
     DashboardPage.dashboardContainer().shouldBe(visible);
 
@@ -365,7 +365,7 @@ public abstract class AbstractPolicyEditorTest
 
     back();
     waitUntilUrl(editorUrl);
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(hidden);
   }
 
   private void handleUnsavedChangesDialog(UnsavedModal unsavedModal, String url) {
@@ -373,7 +373,7 @@ public abstract class AbstractPolicyEditorTest
     MainHeader.dashboardNavigationButton().click();
     unsavedModal.cancelButton().shouldBe(visible).click();
     waitUntilUrl(url);
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    DashboardPage.dashboardContainer().shouldBe(hidden);
   }
 
   private Tag[] createCategories(String ownerId) {
@@ -742,7 +742,7 @@ public abstract class AbstractPolicyEditorTest
 
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldNotBe(visible);
+    DeleteModal.root().shouldBe(hidden);
 
     assertNewPolicyStateIsCorrect();
     assertThat(policyDAO.getById(policy.getId()), is(nullValue()));
@@ -1124,7 +1124,7 @@ public abstract class AbstractPolicyEditorTest
     ThreatLevelSelector.root().shouldBe(visible);
     if (isReadOnly) {
       ThreatLevelSelector.caretButton().shouldBe(visible).shouldHave(DISABLED);
-      ThreatLevelSelector.threatLevelList().shouldNotBe(visible);
+      ThreatLevelSelector.threatLevelList().shouldBe(hidden);
     }
     else {
       ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();

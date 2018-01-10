@@ -37,6 +37,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
@@ -99,10 +100,10 @@ public abstract class AbstractOwnerDetailsEditingTest
     }
     else {
       OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text("Repositories"));
-      OwnerDetailTreeView.applicationCategoryGroup().shouldNotBe(visible);
-      OwnerDetailTreeView.policyGroup().shouldNotBe(visible);
-      OwnerDetailTreeView.componentLabelGroup().shouldNotBe(visible);
-      OwnerDetailTreeView.LTGGroup().shouldNotBe(visible);
+      OwnerDetailTreeView.applicationCategoryGroup().shouldBe(hidden);
+      OwnerDetailTreeView.policyGroup().shouldBe(hidden);
+      OwnerDetailTreeView.componentLabelGroup().shouldBe(hidden);
+      OwnerDetailTreeView.LTGGroup().shouldBe(hidden);
       OwnerDetailTreeView.accessGroup().shouldBe(visible);
       testRouting_Access(OwnerDetailTreeView.accessGroup());
     }
@@ -252,7 +253,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
     }
     else {
-      detailGroup.twisty().shouldNotBe(visible);
+      detailGroup.twisty().shouldBe(hidden);
     }
   }
 

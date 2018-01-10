@@ -41,6 +41,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT_MONTHLY;
@@ -269,7 +270,7 @@ public class SuccessMetricsChartsTest
     // Tooltip is configured to appear after 300ms, so we need to wait at least that long to really make sure its
     // not going to appear.  Without this sleep we'd just be testing that it hasn't appeared _yet_.
     Thread.sleep(1000);
-    Tooltip.get().shouldNotBe(visible);
+    Tooltip.get().shouldBe(hidden);
 
     String[] componentGroupIdsWithMostViolations = {
       "short : name : 0.6", "long.component.name.should.cause.tooltip : artifact : 1.2.3.4",

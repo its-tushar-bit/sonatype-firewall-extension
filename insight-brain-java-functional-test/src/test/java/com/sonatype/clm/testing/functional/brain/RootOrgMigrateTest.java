@@ -19,6 +19,7 @@ import com.codeborne.selenide.Condition;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 
 public class RootOrgMigrateTest
@@ -43,18 +44,18 @@ public class RootOrgMigrateTest
 
   private void testBanner() {
     RootOrgMigrate.migrateBanner().shouldBe(visible);
-    RootOrgMigrate.migrateConfiguredBanner().shouldNotBe(visible);
+    RootOrgMigrate.migrateConfiguredBanner().shouldBe(hidden);
     refreshOrOpen(ReportListPage.URL);
     RootOrgMigrate.migrateBanner().shouldBe(visible);
-    RootOrgMigrate.migrateConfiguredBanner().shouldNotBe(visible);
+    RootOrgMigrate.migrateConfiguredBanner().shouldBe(hidden);
     refreshOrOpen(ManagementPage.ROOT_ORG_URL);
     RootOrgMigrate.migrateBanner().shouldBe(visible);
-    RootOrgMigrate.migrateConfiguredBanner().shouldNotBe(visible);
+    RootOrgMigrate.migrateConfiguredBanner().shouldBe(hidden);
   }
 
   private void testModal() {
     RootOrgMigrate.migrateBanner().shouldBe(visible);
-    RootOrgMigrate.migrateConfiguredBanner().shouldNotBe(visible);
+    RootOrgMigrate.migrateConfiguredBanner().shouldBe(hidden);
 
     RootOrgMigrate.startButton().shouldBe(visible).click();
 
@@ -70,7 +71,7 @@ public class RootOrgMigrateTest
     RootOrgMigrateModal.organizationSelect().shouldBe(Condition.disabled);
 
     RootOrgMigrateModal.cancelButton().click();
-    RootOrgMigrateModal.root().shouldNotBe(visible);
+    RootOrgMigrateModal.root().shouldBe(hidden);
   }
 
   private void testNoMigrate() {
@@ -87,9 +88,9 @@ public class RootOrgMigrateTest
 
     refreshOrOpen(ManagementPage.ROOT_ORG_URL);
 
-    RootOrgMigrateModal.root().shouldNotBe(visible);
-    RootOrgMigrate.migrateBanner().shouldNotBe(visible);
-    RootOrgMigrate.migrateConfiguredBanner().shouldNotBe(visible);
+    RootOrgMigrateModal.root().shouldBe(hidden);
+    RootOrgMigrate.migrateBanner().shouldBe(hidden);
+    RootOrgMigrate.migrateConfiguredBanner().shouldBe(hidden);
   }
 
   private void testBannerChange() throws IOException {
@@ -107,7 +108,7 @@ public class RootOrgMigrateTest
     RootOrgMigrateModal.organizationSelect().shouldBe(visible).selectOption(ORG_NAME);
     RootOrgMigrateModal.continueButton().shouldBe(Condition.enabled).click();
 
-    RootOrgMigrateModal.root().shouldNotBe(visible);
+    RootOrgMigrateModal.root().shouldBe(hidden);
 
     Mockito.verify(rootOrganizationConfigMigrationUtils).setSourceOrganizationId(org.getId());
 
@@ -115,13 +116,13 @@ public class RootOrgMigrateTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(true);
 
     refreshOrOpen(ManagementPage.ROOT_ORG_URL);
-    RootOrgMigrate.migrateBanner().shouldNotBe(visible);
+    RootOrgMigrate.migrateBanner().shouldBe(hidden);
     RootOrgMigrate.migrateConfiguredBanner().shouldBe(visible);
     refreshOrOpen(ReportListPage.URL);
-    RootOrgMigrate.migrateBanner().shouldNotBe(visible);
+    RootOrgMigrate.migrateBanner().shouldBe(hidden);
     RootOrgMigrate.migrateConfiguredBanner().shouldBe(visible);
     refreshOrOpen(DashboardPage.URL);
-    RootOrgMigrate.migrateBanner().shouldNotBe(visible);
+    RootOrgMigrate.migrateBanner().shouldBe(hidden);
     RootOrgMigrate.migrateConfiguredBanner().shouldBe(visible);
   }
 }

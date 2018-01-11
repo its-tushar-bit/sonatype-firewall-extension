@@ -113,12 +113,15 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder, repositoryId);
   }
 
+  private static String buildStableUrl(String path, Object... parameters) {
+    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(path).build(parameters).toString();
+  }
+
   /**
    * Gets the relative URL to the stable hyperlink for the HTML report of the given application and scan.
    */
   public static String getReportUrl(String applicationPublicId, String scanId) {
-    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH + '/' + UserInterfaceLinksResource.REPORT_PATH)
-        .build(applicationPublicId, scanId).toString();
+    return buildStableUrl(UserInterfaceLinksResource.REPORT_PATH, applicationPublicId, scanId);
   }
 
   /**
@@ -127,9 +130,7 @@ public class UserInterfaceLinksResource
    * @since 1.16
    */
   public static String getEmbeddableReportUrl(String applicationPublicId, String scanId) {
-    return UriBuilder
-        .fromPath(UserInterfaceLinksResource.RESOURCE_PATH + '/' + UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH)
-        .build(applicationPublicId, scanId).toString();
+    return buildStableUrl(UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH, applicationPublicId, scanId);
   }
 
   /**
@@ -138,8 +139,7 @@ public class UserInterfaceLinksResource
    * @since 1.9
    */
   public static String getPdfUrl(String applicationPublicId, String scanId) {
-    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH + '/' + UserInterfaceLinksResource.PDF_PATH)
-        .build(applicationPublicId, scanId).toString();
+    return buildStableUrl(UserInterfaceLinksResource.PDF_PATH, applicationPublicId, scanId);
   }
 
   /**
@@ -148,7 +148,6 @@ public class UserInterfaceLinksResource
    * @since 1.17
    */
   public static String getRepositoryReportUrl(String repositoryId) {
-    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(REPO_RESULT_PATH).build(repositoryId)
-        .toString();
+    return buildStableUrl(REPO_RESULT_PATH, repositoryId);
   }
 }

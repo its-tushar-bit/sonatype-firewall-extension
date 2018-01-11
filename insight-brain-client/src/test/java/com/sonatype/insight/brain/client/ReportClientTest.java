@@ -10,6 +10,7 @@ import java.util.zip.ZipFile;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
@@ -80,6 +81,7 @@ public class ReportClientTest
 
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
+    new PolicyClient(config, applicationPublicId).evaluate(scanId, new Stage(Stage.ID_BUILD));
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     client.downloadBundle(retrievedFile);
 

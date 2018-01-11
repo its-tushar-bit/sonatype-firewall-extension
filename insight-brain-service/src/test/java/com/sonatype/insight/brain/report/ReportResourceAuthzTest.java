@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -12,6 +13,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -63,6 +65,7 @@ public class ReportResourceAuthzTest
   public void testDownloadBundle() throws Exception {
     String scanId = "scanId";
     mockReport(scanId, "/ReportResourceTest/report");
+    Report.putEntry(getReportFile(app.getId(), scanId), ScanPolicyEvaluator.POLICY_ALERTS_FILENAME, "[]");
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
@@ -119,6 +122,10 @@ public class ReportResourceAuthzTest
 
   private void createReportFile(String appId, String scanId) throws IOException {
     FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"),
-        new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId));
+        getReportFile(appId, scanId));
+  }
+
+  private File getReportFile(String appId, String scanId) {
+    return new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
   }
 }

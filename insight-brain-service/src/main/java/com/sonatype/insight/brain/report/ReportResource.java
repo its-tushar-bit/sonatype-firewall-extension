@@ -63,7 +63,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
-import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -337,8 +336,8 @@ public class ReportResource
     File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
     ApiReportDataDTOV2 reportData = reportDataService.getDataNoAuth(applicationPublicId, scanId);
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
+    List<PolicyAlert> alerts = Arrays.asList(JsonUtils
+        .parse(Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).buf, PolicyAlert[].class));
 
     File updatedFile = File.createTempFile("report", "zip");
     try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile,

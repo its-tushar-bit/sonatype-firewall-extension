@@ -18,22 +18,11 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 public class PolicyAlertUtil
 {
-  public static List<PolicyAlert> createPolicyAlerts(PolicyEvaluation policyEvaluation) {
-    if (policyEvaluation == null) {
-      return Collections.emptyList();
-    }
-
-    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getActiveByEvaluationId(policyEvaluation.getId());
-    return createPolicyAlerts(policyViolations, policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
-  }
-
   public static List<PolicyAlert> createPolicyAlerts(List<PolicyViolation> policyViolations,
                                                      String stageTypeId,
                                                      boolean forMonitoring)

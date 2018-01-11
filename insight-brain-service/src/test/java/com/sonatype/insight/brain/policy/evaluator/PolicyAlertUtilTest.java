@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -13,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,8 +34,9 @@ public class PolicyAlertUtilTest
     Application app = tempEntity.newApplicationWithParent("app-id");
     Policy policy = new Policy("id", "Deleted Policy");
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
-    tempEntity.newPolicyViolation(policyEval, policy);
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEval);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
+        policyEval.getStageTypeId(), policyEval.isForMonitoring());
     assertThat(alerts, hasSize(1));
     PolicyAlert alert = alerts.get(0);
     assertThat(alert.getTrigger().getPolicyId(), is(policy.getId()));

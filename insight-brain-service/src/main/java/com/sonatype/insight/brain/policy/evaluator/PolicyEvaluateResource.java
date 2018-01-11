@@ -74,7 +74,7 @@ public class PolicyEvaluateResource
     PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluate(applicationPublicId, scanId, stage);
     PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation);
 
-    if (!policyEvaluationResult.isReevaluation()) {
+    if (!policyEvaluation.isReevaluation()) {
       policyAlertNotifier.sendNotifications(application, policyEvaluation, lastPrimaryPolicyEvaluation);
     }
 

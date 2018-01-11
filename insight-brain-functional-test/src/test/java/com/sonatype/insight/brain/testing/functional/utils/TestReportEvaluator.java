@@ -8,13 +8,14 @@ package com.sonatype.insight.brain.testing.functional.utils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.sun.jersey.core.util.Base64;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -78,7 +79,8 @@ class TestReportEvaluator
     HttpPost post = new HttpPost(brainBaseUrl + "rest/policy/" + app.getPublicId() + "/evaluate?scanId=" + scanId);
     post.setEntity(new StringEntity(JsonUtils.format(new Stage(Stage.ID_BUILD)), ContentType.APPLICATION_JSON));
     // please don't change the admin password on me!
-    post.setHeader("Authorization", "Basic " + new String(Base64.encode("admin:admin123")));
+    post.setHeader("Authorization",
+        "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
     HttpResponse response = client.execute(post);
     // evaluation is done synchronously within the request, if the request is successful the eval is complete
     hasEvaluation = true;

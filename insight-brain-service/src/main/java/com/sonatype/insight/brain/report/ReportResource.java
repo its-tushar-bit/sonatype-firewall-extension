@@ -69,7 +69,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.utils.MediaTypeUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -184,7 +183,7 @@ public class ReportResource
       sb.append("</html>");
 
       final ResponseBuilder response = Response.ok(sb.toString());
-      response.type(MediaTypeUtils.byName("index.html"));
+      response.type("text/html;charset=UTF-8");
       response.expires(new Date(0));
       return response.build();
     }
@@ -229,9 +228,16 @@ public class ReportResource
           return Response.status(304).build();
         }
       }
+      String mimeType = httpRequest.getServletContext().getMimeType(name);
+      if (mimeType == null) {
+        mimeType = "application/octet-stream";
+      }
+      else if (mimeType.startsWith("text")) {
+        mimeType += ";charset=UTF-8";
+      }
       final ResponseBuilder response = Response.ok(reportEntry.buf);
       response.lastModified(new Date(reportEntry.time));
-      response.type(MediaTypeUtils.byName(name));
+      response.type(mimeType);
       if (!name.endsWith(".json") && !name.equals("index.html")) {
         response.expires(new Date(System.currentTimeMillis() + YEAR));
       }

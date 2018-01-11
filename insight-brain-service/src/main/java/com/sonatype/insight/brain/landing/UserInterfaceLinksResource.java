@@ -54,7 +54,8 @@ public class UserInterfaceLinksResource
     this.baseUrl = baseUrl;
   }
 
-  private Response redirect(URI uri) {
+  private Response redirect(UriBuilder uriBuilder, Object... parameters) {
+    URI uri = uriBuilder.build(parameters);
     return Response.temporaryRedirect(uri).build();
   }
 
@@ -64,7 +65,7 @@ public class UserInterfaceLinksResource
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html")
         .fragment("/management/view/{ownerType}/{ownerId}");
-    return redirect(uriBuilder.build(ownerType, ownerId));
+    return redirect(uriBuilder, ownerType, ownerId);
   }
 
   @GET
@@ -75,7 +76,7 @@ public class UserInterfaceLinksResource
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(
         "/reports/{applicationPublicId}/{scanId}");
-    return redirect(uriBuilder.build(applicationPublicId, scanId));
+    return redirect(uriBuilder, applicationPublicId, scanId);
   }
 
   /**
@@ -88,7 +89,7 @@ public class UserInterfaceLinksResource
   {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.BROWSE_PATH).path("index.html");
-    return redirect(uriBuilder.build(applicationPublicId, scanId));
+    return redirect(uriBuilder, applicationPublicId, scanId);
   }
 
   /**
@@ -101,7 +102,7 @@ public class UserInterfaceLinksResource
   {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.PRINT_PATH);
-    return redirect(uriBuilder.build(applicationPublicId, scanId));
+    return redirect(uriBuilder, applicationPublicId, scanId);
   }
 
   @GET
@@ -109,8 +110,7 @@ public class UserInterfaceLinksResource
   public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId) {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/" + REPO_RESULT_PATH);
-
-    return redirect(uriBuilder.build(repositoryId));
+    return redirect(uriBuilder, repositoryId);
   }
 
   /**

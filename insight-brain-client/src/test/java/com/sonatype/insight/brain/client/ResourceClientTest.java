@@ -5,18 +5,20 @@
  */
 package com.sonatype.insight.brain.client;
 
+import java.nio.charset.StandardCharsets;
+
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class ResourceClientTest
@@ -30,7 +32,7 @@ public class ResourceClientTest
       fail("No exception thrown");
     }
     catch (HttpResponseException e) {
-      assertEquals(404, e.getStatusCode());
+      assertThat(e.getStatusCode(), is(HttpStatus.SC_NOT_FOUND));
       assertThat(e.getMessage(), containsString("Not Found"));
     }
   }
@@ -38,7 +40,7 @@ public class ResourceClientTest
   @Test
   public void testValidFile() throws Exception {
     Resource resource = new ResourceClient(getCLMServer().getClientConfiguration()).getResource("/assets/index.html");
-    assertTrue(new String(resource.getData()).startsWith("<!DOCTYPE html>"));
+    assertThat(new String(resource.getData(), StandardCharsets.UTF_8), startsWith("<!DOCTYPE html>"));
     // check mime type
     assertThat(resource.getContentType(), is(equalToIgnoringCase("text/html;charset=UTF-8")));
   }

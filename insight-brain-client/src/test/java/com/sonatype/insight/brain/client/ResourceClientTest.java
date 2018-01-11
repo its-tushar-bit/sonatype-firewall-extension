@@ -12,6 +12,8 @@ import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -38,6 +40,6 @@ public class ResourceClientTest
     Resource resource = new ResourceClient(getCLMServer().getClientConfiguration()).getResource("/assets/index.html");
     assertTrue(new String(resource.getData()).startsWith("<!DOCTYPE html>"));
     // check mime type
-    assertEquals("text/html;charset=UTF-8", resource.getContentType());
+    assertThat(resource.getContentType(), is(equalToIgnoringCase("text/html;charset=UTF-8")));
   }
 }

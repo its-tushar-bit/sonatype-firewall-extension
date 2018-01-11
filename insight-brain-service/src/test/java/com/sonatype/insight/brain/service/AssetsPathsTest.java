@@ -24,10 +24,11 @@ public class AssetsPathsTest
   public void testCssUrlsRelative() throws Exception {
     final List<String> CSS_PATHS = Arrays.asList("/assets/audit-report/audit-report.css", "/assets/cip/cip.css",
         "/assets/css/style-1.css", "/assets/css/style-2.css", "/assets/policy/css/cip-loader.css",
-        "/assets/version-graph/version.graph.app.css", "/assets/version-graph/view-details.css");
+        "/assets/version-graph/version.graph.app.css", "/assets/version-graph/viewdetails.css");
     final List<String> failingCssPaths = new ArrayList<>();
     for (String cssPath : CSS_PATHS) {
       HttpResponse response = restRequest().subpath(cssPath).get();
+      assertResponseStatus(200, response);
       String body = response.getBodyText();
       if (body.contains("url(/")) {
         failingCssPaths.add(cssPath);

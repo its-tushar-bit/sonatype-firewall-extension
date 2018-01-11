@@ -15,7 +15,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import static org.eclipse.jetty.http.HttpHeaders.X_FORWARDED_PROTO;
+import static com.google.common.net.HttpHeaders.X_FORWARDED_PROTO;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;

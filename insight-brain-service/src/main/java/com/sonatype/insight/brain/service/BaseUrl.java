@@ -16,8 +16,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import static com.google.common.net.HttpHeaders.X_FORWARDED_PROTO;
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.eclipse.jetty.http.HttpHeaders.X_FORWARDED_PROTO;
 
 @Named
 @Singleton

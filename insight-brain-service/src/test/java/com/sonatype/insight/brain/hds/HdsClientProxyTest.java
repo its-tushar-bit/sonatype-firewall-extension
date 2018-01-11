@@ -25,7 +25,7 @@ import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.test.PortAllocator;
 import com.sonatype.insight.test.SslProperties;
 
-import org.eclipse.jetty.http.HttpHeaders;
+import com.google.common.net.HttpHeaders;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;

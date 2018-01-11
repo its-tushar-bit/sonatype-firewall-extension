@@ -12,9 +12,9 @@ import java.net.URL;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.sun.jersey.core.util.Base64;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -76,7 +76,7 @@ public class TestReportEvaluator
   private void evaluatePolicyForScanId() throws IOException {
     HttpClient client = HttpClientBuilder.create().build();
     HttpPost post = new HttpPost(brainBaseUrl + "rest/policy/" + app.getPublicId() + "/evaluate?scanId=" + scanId);
-    post.setEntity(new StringEntity(JsonHelpers.asJson(new Stage(Stage.ID_BUILD)), ContentType.APPLICATION_JSON));
+    post.setEntity(new StringEntity(JsonUtils.format(new Stage(Stage.ID_BUILD)), ContentType.APPLICATION_JSON));
     // please don't change the admin password on me!
     post.setHeader("Authorization", "Basic " + new String(Base64.encode("admin:admin123")));
     HttpResponse response = client.execute(post);

@@ -11,7 +11,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.RootOrgMigrate;
 import com.sonatype.clm.testing.functional.elements.RootOrgMigrateModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ManagementPage;
+import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Organization;
 
@@ -48,7 +48,7 @@ public class RootOrgMigrateTest
     refreshOrOpen(ReportListPage.URL);
     RootOrgMigrate.migrateBanner().shouldBe(visible);
     RootOrgMigrate.migrateConfiguredBanner().shouldBe(hidden);
-    refreshOrOpen(ManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     RootOrgMigrate.migrateBanner().shouldBe(visible);
     RootOrgMigrate.migrateConfiguredBanner().shouldBe(hidden);
   }
@@ -86,7 +86,7 @@ public class RootOrgMigrateTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
 
-    refreshOrOpen(ManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
 
     RootOrgMigrateModal.root().shouldBe(hidden);
     RootOrgMigrate.migrateBanner().shouldBe(hidden);
@@ -97,7 +97,7 @@ public class RootOrgMigrateTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
 
-    refreshOrOpen(ManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     RootOrgMigrate.startButton().shouldBe(visible).click();
 
     RootOrgMigrateModal.root().shouldBe(visible);
@@ -115,7 +115,7 @@ public class RootOrgMigrateTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(true);
 
-    refreshOrOpen(ManagementPage.ROOT_ORG_URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     RootOrgMigrate.migrateBanner().shouldBe(hidden);
     RootOrgMigrate.migrateConfiguredBanner().shouldBe(visible);
     refreshOrOpen(ReportListPage.URL);

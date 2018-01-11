@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
-import com.sonatype.clm.testing.functional.pages.ManagementPage;
+import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 
@@ -62,7 +62,7 @@ public class LoginTest
 
   @Test
   public void testAuthenticationSessionStateIsRememberedByCookie() {
-    refreshOrOpen(ManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.URL);
     loginAsAdmin();
     OwnerSummaryPage.summaryTile().shouldBe(visible);
     refreshOrOpen(ReportListPage.URL);
@@ -84,7 +84,7 @@ public class LoginTest
   public void testNavigationWhileLoggedOut() {
     refreshOrOpen(ReportListPage.URL);
     loginModal.shouldBe(visible);
-    refreshOrOpen(ManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.URL);
     loginModal.shouldBe(visible);
     Selenide.back();
     loginModal.shouldBe(visible);

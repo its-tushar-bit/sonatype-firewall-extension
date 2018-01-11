@@ -89,6 +89,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
@@ -423,8 +424,21 @@ public class ReportResourceTest
 
       String entry = file.getName();
       final HttpResponse response = request.subpath(entry).get();
-      final String contentType = response.getContentType();
       assertResponseStatus(200, response);
+
+      final String contentType = response.getContentType().replace(" ", "");
+      if (entry.endsWith(".html")) {
+        assertThat(contentType, is(equalToIgnoringCase("text/html;charset=UTF-8")));
+      }
+      else if (entry.endsWith(".css")) {
+        assertThat(contentType, is(equalToIgnoringCase("text/css;charset=UTF-8")));
+      }
+      else if (entry.endsWith(".json")) {
+        assertThat(contentType, is(equalToIgnoringCase("application/json")));
+      }
+      else if (entry.endsWith(".png")) {
+        assertThat(contentType, is(equalToIgnoringCase("image/png")));
+      }
 
       if ("data.json".equals(entry)) {
         String actual = response.getBodyText();
@@ -508,6 +522,7 @@ public class ReportResourceTest
         .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
         .parameter(app.getPublicId(), scanId).getUrl()));
     assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
+    assertThat(response.getContentType().replace(" ", ""), is(equalToIgnoringCase("text/html;charset=UTF-8")));
   }
 
   @Test

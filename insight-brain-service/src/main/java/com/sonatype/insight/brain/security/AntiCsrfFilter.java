@@ -114,9 +114,12 @@ public class AntiCsrfFilter
   }
 
   private Cookie getCsrfCookie(HttpServletRequest request) {
-    for (Cookie cookie : request.getCookies()) {
-      if (CSRF_COOKIE_NAME.equals(cookie.getName())) {
-        return cookie;
+    Cookie[] cookies = request.getCookies();
+    if (cookies != null) {
+      for (Cookie cookie : cookies) {
+        if (CSRF_COOKIE_NAME.equals(cookie.getName())) {
+          return cookie;
+        }
       }
     }
     return null;

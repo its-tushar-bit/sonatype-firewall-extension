@@ -347,7 +347,6 @@ public class ScanPolicyEvaluator
   public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation, boolean createAlerts) {
     List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
-    policyEvaluationResult.setReevaluation(policyEvaluation.isReevaluation());
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
       List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(policyViolations,

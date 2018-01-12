@@ -809,7 +809,6 @@ public class PolicyEvaluateResourceTest
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
-    Assert.assertFalse(policyEvaluationResult.isReevaluation());
     assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
 
     // Notification message should have been sent
@@ -826,7 +825,6 @@ public class PolicyEvaluateResourceTest
     policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
     Assert.assertEquals(1, policyAlerts.size());
-    Assert.assertTrue(policyEvaluationResult.isReevaluation());
     assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
 
     // Notification message should not have been sent since this is a re-evaluation
@@ -1042,7 +1040,6 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(200, response);
     policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
-    Assert.assertTrue(policyEvaluationResult.isReevaluation());
     assertPolicyEvaluation(app.getId(), scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
   }
 

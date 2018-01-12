@@ -20,7 +20,9 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -65,7 +67,7 @@ public class RepositoryPolicyAlertNotificationTaskTest
     verify(emailer).sendNotifications(argThat(new RepositoryEq(repo2)),
         eq(Arrays.asList(policyNotification2, policyNotification3)));
 
-    assertThat(notificationQueue.remove()).isEmpty();
+    assertThat(notificationQueue.remove().entrySet(), is(empty()));
   }
 
   //This is required as Repository doesn't implement equals/hashCode

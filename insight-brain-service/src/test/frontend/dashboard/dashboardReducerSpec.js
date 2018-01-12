@@ -507,4 +507,24 @@ describe('dashboardReducer', function() {
       expect(newState.currentTab).toBe('foo');
     });
   });
+
+  describe('APPLY_SAVED_FILTER action', function() {
+    it('sets filtersAreDirty to false', function() {
+      var state = Object.freeze({filtersAreDirty: true, other: otherObject});
+      var action = { type: 'APPLY_SAVED_FILTER' };
+      var newState = reduce(state, action);
+      expect(newState.filtersAreDirty).toBe(false);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SAVE_FILTER_FULFILLED action', function() {
+    it('sets filtersAreDirty to false', function() {
+      var state = Object.freeze({filtersAreDirty: true, other: otherObject});
+      var action = { type: 'SAVE_FILTER_FULFILLED' };
+      var newState = reduce(state, action);
+      expect(newState.filtersAreDirty).toBe(false);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
 });

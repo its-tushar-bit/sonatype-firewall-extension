@@ -11,6 +11,7 @@ import utilityDirectivesModule from '../utility/directives/utility.directives.mo
 import FuseFilterFactory from './filters/fuzzy.filter';
 import CachedServiceFactory from './services/cached.service.factory';
 import DeleteModalController from './services/delete.modal.controller';
+import DeleteModalReduxController from './services/delete.modal.redux.controller';
 import DeleteModalService from './services/delete.modal.service';
 import eventNameConstant from './services/event.name.constant';
 import FormDataHttpInterceptor from './services/form.data.http.interceptor.factory';
@@ -36,6 +37,7 @@ export default angular.module('utility', [
     .filter('fuzzy', FuseFilterFactory)
     .service('cached.service.factory', CachedServiceFactory)
     .controller('DeleteModalController', DeleteModalController)
+    .controller('DeleteModalReduxController', DeleteModalReduxController)
     .service('DeleteModalService', DeleteModalService)
     .constant('event.name.constant', eventNameConstant)
     .factory('form.data.http.interceptor', FormDataHttpInterceptor)

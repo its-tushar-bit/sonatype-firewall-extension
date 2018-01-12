@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { prop, pick, contains, map } from 'ramda';
+
 import template from './manageFilterMenu.html';
 
 var manageFilterMenu = {
@@ -10,9 +12,7 @@ var manageFilterMenu = {
   controller: ManageFilterMenuController,
   controllerAs: 'vm',
   bindings: {
-    activeFilterName: '<',
     isSaveFilterDisabled: '<',
-    currentFilter: '<',
     onActiveFilterDeleted: '&',
     onFilterSelected: '&',
     onFilterSaved: '&'
@@ -21,83 +21,76 @@ var manageFilterMenu = {
 
 export default manageFilterMenu;
 
-function ManageFilterMenuController($http, CLMLocations, SaveFilterModal, DeleteFiltersModal, filterService) {
-  var vm = this;
+function mapStateToThis({ manageFilters }) {
+  return pick(['appliedFilterName', 'savedFilters', 'savedFilterListError', 'currentlyOpenModal', 'filtersToDelete',
+    'pageChangePending'], manageFilters);
+}
 
-  vm.savedFiltersHasError = false;
-  vm.savedNamedFilters = null;
+function ManageFilterMenuController($ngRedux, $scope, SaveFilterModal, DeleteFiltersModal, DeleteModalService,
+                                    filterService, manageFiltersActions) {
+  const vm = this;
 
-  vm.applySavedFilter = applySavedFilter;
-  vm.openSaveFilterModal = openSaveFilterModal;
-  vm.openDeleteFiltersModal = openDeleteFiltersModal;
-  vm.isLoadingSavedFilters = isLoadingSavedFilters;
-  vm.hasSavedFilters = hasSavedFilters;
-  vm.$onInit = load;
+  Object.assign(vm, {
+    $onInit() {
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, manageFiltersActions)(vm);
 
-  function load() {
-    vm.savedFiltersHasError = false;
+      vm.fetchSavedFilters();
+    },
 
-    return getSavedFilters().then(function(data) {
-      vm.savedNamedFilters = data;
-    }, function() {
-      vm.savedFiltersHasError = true;
-    });
-  }
+    $onDestroy() {
+      vm.unsubscribe();
+    },
 
-  /**
-   * move this to dashboard.filter.service
-   * @returns Promise resolving to array of saved filters
-   */
-  function getSavedFilters() {
-    return $http.get(CLMLocations.getDashboardSavedFilters()).then(function(response) {
-      return response.data;
-    });
-  }
+    openSaveFilterModal($event) {
+      if (vm.isSaveFilterDisabled) {
+        $event.stopPropagation();
+        return;
+      }
 
-  function openSaveFilterModal($event) {
-    if (vm.isSaveFilterDisabled) {
-      $event.stopPropagation();
-      return;
+      SaveFilterModal.open().then(function(name) {
+        vm.onFilterSaved({filterName: name});
+      }).finally(vm.resetSaveFilterStatus);
+    },
+
+    openDeleteFiltersModal($event) {
+      const currentSavedFilterName = vm.appliedFilterName;
+
+      if (!vm.hasSavedFilters()) {
+        $event.stopPropagation();
+        return;
+      }
+
+      DeleteFiltersModal.open(vm.savedFilters)
+          .then(function(newSavedFilters) {
+            // NOTE by the time this executes the manageFilterMenu will be closed and thus
+            // won't be subscribed to the redux store anymore
+            if (!contains(currentSavedFilterName, map(prop('name'), newSavedFilters))) {
+              // legacy - remove when dashboardFilters is redux-ified
+              vm.onActiveFilterDeleted();
+            }
+          })
+          .finally(vm.resetDeleteFiltersStatus);
+    },
+
+    doApplySavedFilter(savedFilter) {
+      // redux
+      vm.applySavedFilter(savedFilter);
+
+      // legacy, remove when dashboardFilter is fully redux-ified
+      vm.onFilterSelected({ savedFilter: { ...savedFilter } });
+    },
+
+    isLoadingSavedFilters() {
+      return vm.savedFilters === null && !vm.savedFilterListError;
+    },
+
+    hasSavedFilters() {
+      return vm.savedFilters !== null && vm.savedFilters.length > 0;
     }
-    SaveFilterModal.open(filterService.filterToJson(vm.currentFilter), vm.activeFilterName, vm.savedNamedFilters).then(function(name) {
-      vm.onFilterSaved({filterName: name});
-    });
-  }
-
-  function openDeleteFiltersModal($event) {
-    if (!vm.hasSavedFilters()) {
-      $event.stopPropagation();
-      return;
-    }
-
-    DeleteFiltersModal.open(vm.savedNamedFilters).finally(function() {
-      getSavedFilters().then(function(savedNamedFilters) {
-        // see if the active filter was deleted
-        var deletedActiveFilter = !savedNamedFilters.some(function(filter) {
-          return filter.name === vm.activeFilterName;
-        });
-
-        if (deletedActiveFilter) {
-          vm.onActiveFilterDeleted();
-        }
-      });
-    });
-  }
-
-  function applySavedFilter(savedFilter) {
-    vm.onFilterSelected({savedFilter: savedFilter});
-  }
-
-  function isLoadingSavedFilters() {
-    return vm.savedNamedFilters === null && !vm.savedFiltersHasError;
-  }
-
-  function hasSavedFilters() {
-    return vm.savedNamedFilters !== null && vm.savedNamedFilters.length > 0;
-  }
-
+  });
 }
 
 ManageFilterMenuController.$inject = [
-  '$http', 'CLMLocations', 'saveFilterModal', 'deleteFiltersModal', 'dashboardFilterService'
+  '$ngRedux', '$scope', 'saveFilterModal', 'deleteFiltersModal', 'DeleteModalService', 'dashboardFilterService',
+  'manageFiltersActions'
 ];

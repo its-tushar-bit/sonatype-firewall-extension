@@ -17,6 +17,7 @@ import {
   UPDATE_FILTERS_FULFILLED
 } from './filter/dashboardFilterActions';
 
+import { APPLY_SAVED_FILTER, SAVE_FILTER_FULFILLED } from './filter/manageFiltersActions';
 import {UI_ROUTER_ON_FINISH} from '../reduxUiRouter/routerActions';
 
 const initState = {
@@ -83,6 +84,14 @@ export default function(state = initState, {type, payload}) {
     case SORT_RESULTS_FULFILLED: {
       const {resultsType, results} = payload;
       return updateResults(state, resultsType, {results});
+    }
+
+    case APPLY_SAVED_FILTER: {
+      return { ...state, filtersAreDirty: false };
+    }
+
+    case SAVE_FILTER_FULFILLED: {
+      return { ...state, filtersAreDirty: false };
     }
 
     default:

@@ -231,7 +231,7 @@ function DashboardFilterController($scope, $http, $q, CLMLocations, ApplicationS
       if (savedNamedFilter && !angular.equals(activeFilter, savedNamedFilter.filter)) {
         vm.showDirtyAsterisk = true;
       }
-      vm.updateFiltersFulfilled(activeFilter, vm.needsAcknowledgement);
+      vm.updateFiltersFulfilled(activeFilter, vm.needsAcknowledgement, vm.activeFilterName);
     }, function(error) {
       vm.loadError = error;
     });
@@ -383,7 +383,8 @@ function DashboardFilterController($scope, $http, $q, CLMLocations, ApplicationS
     return $http.put(CLMLocations.getDashboardFilters(), filterJson).then(function(activeFilter) {
       appliedFilterName = vm.activeFilterName;
       vm.needsAcknowledgement = false;
-      vm.updateFiltersFulfilled(activeFilter.data, vm.needsAcknowledgement);
+      vm.updateFiltersFulfilled(activeFilter.data, vm.needsAcknowledgement,
+          filterJson.name || filterJson.basedOnFilterName);
       return activeFilter.data;
     });
   }

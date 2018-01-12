@@ -1,201 +1,336 @@
 describe('manageFilterMenu', function() {
 
-  var $rootScope, $q, $componentController, $httpBackend, CLMLocations, SaveFilterModal,
-      DeleteFiltersModal, filterService, manageFilterMenu;
+  var $componentController,
+      $httpBackend,
+      CLMLocations,
+      saveFilterModal,
+      deleteFiltersModal,
+      vm,
+      unsubscribeSpy,
+      scope;
 
-  var filterData = {
-        organizationFilters: ['orgId1', 'orgId2'],
-        policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
-        stageTypeFilters: ['release', 'stage-release', 'build'],
-        tagFilters: ['tagId1', 'tagId2'],
-        applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
-        minPolicyThreatLevel: 3,
-        maxPolicyThreatLevel: 6
-      },
-      savedFilterData = [
-        {
-          'name': 'Test1',
-          'filter': filterData
-        },
-        {
-          'name': 'Test2',
-          'filter': filterData
-        }
-      ];
+  beforeEach(module('dashboard.module', 'legacyConfiguration', function($provide) {
+    unsubscribeSpy = SpecUtil.mockNgRedux($provide);
+  }));
 
-  beforeEach(module('dashboard.module'));
+  beforeEach(inject(function($rootScope, _$httpBackend_, _$http_, _CLMLocations_, _saveFilterModal_,
+                             _deleteFiltersModal_, _$componentController_) {
 
-  beforeEach(inject([
-    '$rootScope', '$q', '$httpBackend', '$http', 'CLMLocations', 'saveFilterModal', 'deleteFiltersModal',
-    'dashboardFilterService', '$componentController',
-    function(_$rootScope_, _$q_, _$httpBackend_, _$http_, _CLMLocations_, _SaveFilterModal_, _DeleteFiltersModal_,
-             _filterService_, _$componentController_) {
+    $httpBackend = _$httpBackend_;
+    CLMLocations = _CLMLocations_;
+    saveFilterModal = _saveFilterModal_;
+    deleteFiltersModal = _deleteFiltersModal_;
+    $componentController = _$componentController_;
+    scope = $rootScope.$new();
 
-      $rootScope = _$rootScope_;
-      $q = _$q_;
-      $httpBackend = _$httpBackend_;
-      CLMLocations = _CLMLocations_;
-      SaveFilterModal = _SaveFilterModal_;
-      DeleteFiltersModal = _DeleteFiltersModal_;
-      filterService = _filterService_;
-      $componentController = _$componentController_;
+    var bindings = {
+      activeFilterName: '',
+      currentFilter: {},
+      isSaveFilterDisabled: false,
+      onFilterSelected: null,
+      onActiveFilterDeleted: jasmine.createSpy('onActiveFilterDeleted'),
+      onFilterSaved: jasmine.createSpy('onFilterSaved')
+    };
 
-      var bindings = {
-        activeFilterName: '',
-        currentFilter: {},
-        isSaveFilterDisabled: false,
-        onFilterSelected: null,
-        onActiveFilterDeleted: jasmine.createSpy('onActiveFilterDeleted'),
-        onFilterSaved: jasmine.createSpy('onFilterSaved')
-      };
+    vm = $componentController('manageFilterMenu', {
+      $http: _$http_,
+      CLMLocations: CLMLocations,
+      saveFilterModal: saveFilterModal,
+      deleteFiltersModal: deleteFiltersModal,
+      $scope: scope
+    }, bindings);
 
-      manageFilterMenu = $componentController('manageFilterMenu', {
-        $http: _$http_,
-        CLMLocations: CLMLocations,
-        SaveFilterModal: SaveFilterModal,
-        DeleteFiltersModal: DeleteFiltersModal,
-        filterService: filterService
-      }, bindings);
-    }
-  ]));
+    vm.filtersToDelete = [];
+
+    vm.$onInit();
+  }));
 
   afterEach(function() {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   });
 
-  describe('openSaveFilterModal()', function() {
+  describe('$onDestroy', function() {
+    it('unsubscribes from the redux store', function() {
+      expect(unsubscribeSpy).not.toHaveBeenCalled();
 
-    it('passes filter json', function() {
-      var expectedFilterJson = angular.copy(filterData);
-      expectedFilterJson.policyThreatCategoryFilters.splice(0, 1); // remove QUALITY
-      expectedFilterJson.stageTypeFilters.splice(0, 1); // remove release
-      expectedFilterJson.tagFilters.splice(0, 1); // remove tagId1
-      expectedFilterJson.applicationFilters.splice(0, 1); // remove applicationIdZ
-      expectedFilterJson.applicationFilters.push('applicationIdR'); // pickup orgId2 application which wasn't in the original filter
-      expectedFilterJson.minPolicyThreatLevel = 0;
-      manageFilterMenu.activeFilterName = undefined;
+      vm.$onDestroy();
 
-      var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-      spyOn(SaveFilterModal, 'open').and.returnValue($q.resolve('Test2'));
-      spyOn(filterService, 'filterToJson').and.returnValue(expectedFilterJson);
-
-      manageFilterMenu.isSaveFilterDisabled = false;
-
-      manageFilterMenu.openSaveFilterModal($event);
-      $rootScope.$apply();
-
-      expect($event.stopPropagation).not.toHaveBeenCalled();
-      expect(SaveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, undefined, manageFilterMenu.savedNamedFilters);
-      expect(manageFilterMenu.onFilterSaved).toHaveBeenCalledWith({filterName: 'Test2'});
-    });
-
-    it('passes name for filter', function() {
-      var expectedFilterJson = angular.copy(filterData);
-      manageFilterMenu.activeFilterName = 'My First Filter';
-
-      var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-      spyOn(SaveFilterModal, 'open').and.returnValue($q.resolve(manageFilterMenu.activeFilterName));
-      spyOn(filterService, 'filterToJson').and.returnValue(expectedFilterJson);
-      manageFilterMenu.isSaveFilterDisabled = false;
-
-      manageFilterMenu.openSaveFilterModal($event);
-      $rootScope.$apply();
-
-      expect($event.stopPropagation).not.toHaveBeenCalled();
-      expect(SaveFilterModal.open).toHaveBeenCalledWith(expectedFilterJson, 'My First Filter', manageFilterMenu.savedNamedFilters);
-      expect(manageFilterMenu.isSaveFilterDisabled).toBe(false);
-      expect(manageFilterMenu.onFilterSaved).toHaveBeenCalledWith({filterName: 'My First Filter'});
+      expect(unsubscribeSpy).toHaveBeenCalled();
     });
   });
 
-  describe('openDeleteFiltersModal()', function() {
-    it('passes filter names', function() {
-      manageFilterMenu.activeFilterName = 'Test1';
+  describe('openSaveFilterModal', function() {
+    var SaveFilterModal,
+        modalDeferred,
+        modalPromise;
 
-      var originalSavedFilterJson = angular.copy(savedFilterData);
-      var afterDeleteSavedFilterJson = originalSavedFilterJson.slice(1); //remove first named filter simulating a delete
-      manageFilterMenu.savedNamedFilters = originalSavedFilterJson;
+    beforeEach(inject(function($q, _saveFilterModal_) {
+      SaveFilterModal = _saveFilterModal_;
 
-      var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-      spyOn(DeleteFiltersModal, 'open').and.returnValue($q.resolve());
-      $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(afterDeleteSavedFilterJson);
-      expect(manageFilterMenu.savedNamedFilters).toBeDefined();
+      modalDeferred = $q.defer();
+      modalPromise = modalDeferred.promise;
 
-      manageFilterMenu.openDeleteFiltersModal($event);
-      $httpBackend.flush();
+      spyOn(SaveFilterModal, 'open').and.returnValue(modalPromise);
+    }));
 
-      $rootScope.$apply();
-      expect($event.stopPropagation).not.toHaveBeenCalled();
-      expect(DeleteFiltersModal.open).toHaveBeenCalledWith(originalSavedFilterJson);
-      expect(manageFilterMenu.onActiveFilterDeleted).toHaveBeenCalled();
+    it('calls stopPropagation on the event and does nothing else if isSaveFilterDisabled', function() {
+      var evt = jasmine.createSpyObj('$event', ['stopPropagation']);
+
+      vm.isSaveFilterDisabled = true;
+
+      vm.openSaveFilterModal(evt);
+
+      expect(evt.stopPropagation).toHaveBeenCalled();
+      expect(SaveFilterModal.open).not.toHaveBeenCalled();
     });
 
-    it('active filter was not deleted', function() {
-      manageFilterMenu.activeFilterName = 'Test2';
+    it('opens the save filter modal if isSaveFilterDisabled is false', function() {
+      var evt = jasmine.createSpyObj('$event', ['stopPropagation']);
 
-      var originalSavedFilterJson = angular.copy(savedFilterData);
-      var afterDeleteSavedFilterJson = originalSavedFilterJson.slice(1); //remove first named filter simulating a delete
-      manageFilterMenu.savedNamedFilters = originalSavedFilterJson;
+      vm.isSaveFilterDisabled = false;
 
-      var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-      spyOn(DeleteFiltersModal, 'open').and.returnValue($q.resolve());
-      $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(afterDeleteSavedFilterJson);
-      expect(manageFilterMenu.savedNamedFilters).toBeDefined();
+      vm.openSaveFilterModal(evt);
 
-      manageFilterMenu.openDeleteFiltersModal($event);
-      $httpBackend.flush();
-
-      $rootScope.$apply();
-      expect($event.stopPropagation).not.toHaveBeenCalled();
-      expect(DeleteFiltersModal.open).toHaveBeenCalledWith(originalSavedFilterJson);
-      expect(manageFilterMenu.onActiveFilterDeleted).not.toHaveBeenCalled();
+      expect(evt.stopPropagation).not.toHaveBeenCalled();
+      expect(SaveFilterModal.open).toHaveBeenCalled();
     });
 
-    it('does nothing when there are no filters', function() {
-      var $event = jasmine.createSpyObj('$event', ['stopPropagation']);
-      expect(manageFilterMenu.savedNamedFilters).toBeFalsy();
-      spyOn(DeleteFiltersModal, 'open').and.returnValue($q.resolve());
-      manageFilterMenu.openDeleteFiltersModal($event);
-      expect($event.stopPropagation).toHaveBeenCalled();
-      expect(DeleteFiltersModal.open).not.toHaveBeenCalled();
-      expect(manageFilterMenu.onActiveFilterDeleted).not.toHaveBeenCalled();
+    it('calls vm.onFilterSaved when the modal promise resolves', function() {
+      vm.isSaveFilterDisabled = false;
+      vm.onFilterSaved = jasmine.createSpy('onFilterSaved');
+
+      vm.openSaveFilterModal();
+
+      expect(vm.onFilterSaved).not.toHaveBeenCalled();
+
+      modalDeferred.resolve('New Filter');
+      scope.$digest();
+
+      expect(vm.onFilterSaved).toHaveBeenCalledWith({ filterName: 'New Filter' });
+    });
+
+    it('does not call vm.onFilterSaved when the modal promise is rejected', function() {
+      vm.isSaveFilterDisabled = false;
+      vm.onFilterSaved = jasmine.createSpy('onFilterSaved');
+
+      vm.openSaveFilterModal();
+
+      expect(vm.onFilterSaved).not.toHaveBeenCalled();
+
+      modalDeferred.reject();
+      scope.$digest();
+
+      expect(vm.onFilterSaved).not.toHaveBeenCalled();
+    });
+
+    it('calls the resetSaveFilterStatus action when the modal promise resolves', function() {
+      vm.isSaveFilterDisabled = false;
+      vm.resetSaveFilterStatus = jasmine.createSpy('resetSaveFilterStatus');
+
+      vm.openSaveFilterModal();
+
+      expect(vm.onFilterSaved).not.toHaveBeenCalled();
+
+      modalDeferred.resolve('New Filter');
+      scope.$digest();
+
+      expect(vm.resetSaveFilterStatus).toHaveBeenCalled();
+    });
+
+    it('calls the resetSaveFilterStatus action when the modal promise is rejected', function() {
+      vm.isSaveFilterDisabled = false;
+      vm.resetSaveFilterStatus = jasmine.createSpy('resetSaveFilterStatus');
+
+      vm.openSaveFilterModal();
+
+      expect(vm.onFilterSaved).not.toHaveBeenCalled();
+
+      modalDeferred.reject();
+      scope.$digest();
+
+      expect(vm.resetSaveFilterStatus).toHaveBeenCalled();
     });
   });
 
-  describe('$onInit()', function() {
-    it('successful load', function() {
-      var expectedSavedFilterData = angular.copy(savedFilterData);
-      $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(expectedSavedFilterData);
-      manageFilterMenu.$onInit();
-      expect(manageFilterMenu.isLoadingSavedFilters()).toBe(true);
-      $httpBackend.flush();
-      expect(manageFilterMenu.hasSavedFilters()).toBe(true);
-      expect(manageFilterMenu.isLoadingSavedFilters()).toBe(false);
-      expect(manageFilterMenu.savedNamedFilters).toEqual(expectedSavedFilterData);
-      expect(manageFilterMenu.savedFiltersHasError).toBe(false);
+  describe('openDeleteFiltersModal', function() {
+    var DeleteFiltersModal,
+        modalDeferred,
+        modalPromise;
+
+    beforeEach(inject(function($q, _deleteFiltersModal_) {
+      DeleteFiltersModal = _deleteFiltersModal_;
+
+      modalDeferred = $q.defer();
+      modalPromise = modalDeferred.promise;
+
+      spyOn(DeleteFiltersModal, 'open').and.returnValue(modalPromise);
+    }));
+
+    it('calls stopPropagation on the event and does nothing else if vm.savedFilters isnt a non-empty list',
+        function() {
+          var evt = jasmine.createSpyObj('$event', ['stopPropagation']);
+
+          vm.savedFilters = [];
+
+          vm.openDeleteFiltersModal(evt);
+
+          expect(evt.stopPropagation).toHaveBeenCalled();
+          expect(DeleteFiltersModal.open).not.toHaveBeenCalled();
+        }
+    );
+
+    it('opens the delete filter modal if vm.savedFilters is non-empty', function() {
+      var evt = jasmine.createSpyObj('$event', ['stopPropagation']);
+
+      vm.savedFilters = [{ name: 'foo' }];
+
+      vm.openDeleteFiltersModal(evt);
+
+      expect(evt.stopPropagation).not.toHaveBeenCalled();
+      expect(DeleteFiltersModal.open).toHaveBeenCalled();
     });
 
-    it('empty load', function() {
-      expect(manageFilterMenu.savedFiltersHasError).toBe(false);
-      $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond([]);
-      manageFilterMenu.$onInit();
-      expect(manageFilterMenu.isLoadingSavedFilters()).toBe(true);
-      $httpBackend.flush();
-      expect(manageFilterMenu.savedFiltersHasError).toBe(false);
-      expect(manageFilterMenu.hasSavedFilters()).toBe(false);
-      expect(manageFilterMenu.isLoadingSavedFilters()).toBe(false);
+    it('calls vm.onActiveFilterDeleted when the modal promise resolves if the current filter was deleted', function() {
+      vm.savedFilters = [{ name: 'foo' }];
+      vm.appliedFilterName = 'foo';
+      vm.onActiveFilterDeleted = jasmine.createSpy('onActiveFilterDeleted');
+
+      vm.openDeleteFiltersModal();
+
+      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
+
+      modalDeferred.resolve([]);
+      scope.$digest();
+
+      expect(vm.onActiveFilterDeleted).toHaveBeenCalled();
     });
 
-    it('error during load', function() {
-      expect(manageFilterMenu.savedFiltersHasError).toBe(false);
-      $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(500);
-      manageFilterMenu.$onInit();
-      expect(manageFilterMenu.isLoadingSavedFilters()).toBe(true);
-      $httpBackend.flush();
-      expect(manageFilterMenu.savedFiltersHasError).toBe(true);
-      expect(manageFilterMenu.hasSavedFilters()).toBe(false);
-      expect(manageFilterMenu.isLoadingSavedFilters()).toBe(false);
+    it('does not call vm.onActiveFilterDeleted when the modal promise resolves with a list that does not include ' +
+        'the active filter', function() {
+      vm.savedFilters = [{ name: 'foo' }, { name: 'bar' }];
+      vm.appliedFilterName = 'foo';
+      vm.onActiveFilterDeleted = jasmine.createSpy('onActiveFilterDeleted');
+
+      vm.openDeleteFiltersModal();
+
+      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
+
+      modalDeferred.resolve();
+      vm.savedFilters = [{ name: 'foo' }];
+      scope.$digest();
+
+      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
+    });
+
+    it('does not call vm.onActiveFilterDeleted when the modal promise is rejected', function() {
+      vm.savedFilters = [{ name: 'foo' }, { name: 'bar' }];
+      vm.appliedFilterName = 'foo';
+      vm.onActiveFilterDeleted = jasmine.createSpy('onActiveFilterDeleted');
+
+      vm.openDeleteFiltersModal();
+
+      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
+
+      modalDeferred.reject();
+      vm.savedFilters = [];
+      scope.$digest();
+
+      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
+    });
+
+    it('calls the resetDeleteFiltersStatus action when the modal promise resolves', function() {
+      vm.savedFilters = [{ name: 'foo' }, { name: 'bar' }];
+      vm.resetDeleteFiltersStatus = jasmine.createSpy('resetDeleteFiltersStatus');
+
+      vm.openDeleteFiltersModal();
+
+      expect(vm.resetDeleteFiltersStatus).not.toHaveBeenCalled();
+
+      modalDeferred.resolve();
+      scope.$digest();
+
+      expect(vm.resetDeleteFiltersStatus).toHaveBeenCalled();
+    });
+
+    it('calls the resetDeleteFiltersStatus action when the modal promise is rejected', function() {
+      vm.savedFilters = [{ name: 'foo' }, { name: 'bar' }];
+      vm.resetDeleteFiltersStatus = jasmine.createSpy('resetDeleteFiltersStatus');
+
+      vm.openDeleteFiltersModal();
+
+      expect(vm.resetDeleteFiltersStatus).not.toHaveBeenCalled();
+
+      modalDeferred.reject();
+      scope.$digest();
+
+      expect(vm.resetDeleteFiltersStatus).toHaveBeenCalled();
+    });
+  });
+
+  describe('doApplySavedFilter', function() {
+    var onFilterSelectedSpy;
+
+    beforeEach(function() {
+      vm.onFilterSelected = onFilterSelectedSpy = jasmine.createSpy('onFilterSelected');
+    });
+
+    it('fires the applySavedFilter action with its argument', function() {
+      var filter = { name: 'filter 1' };
+
+      vm.doApplySavedFilter(filter);
+      expect(vm.applySavedFilter).toHaveBeenCalledWith(filter);
+    });
+
+    it('calls vm.onFilterSelected with a copy of its argument as the savedFilter property', function() {
+      var filter = { name: 'filter 1' };
+
+      vm.doApplySavedFilter(filter);
+      expect(onFilterSelectedSpy).toHaveBeenCalledWith({ savedFilter: { name: 'filter 1' } });
+    });
+  });
+
+  describe('isLoadingSavedFilters', function() {
+    it('returns true if vm.savedFilters is null and vm.savedFilterListError is falsey', function() {
+      vm.savedFilters = null;
+      vm.savedFilterListError = null;
+
+      var result = vm.isLoadingSavedFilters();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false if vm.savedFilters is not null', function() {
+      vm.savedFilters = [];
+      vm.savedFilterListError = null;
+
+      var result = vm.isLoadingSavedFilters();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false if vm.savedFilterListError is truthy', function() {
+      vm.savedFilters = null;
+      vm.savedFilterListError = 'error!';
+
+      expect(vm.isLoadingSavedFilters()).toBe(false);
+    });
+  });
+
+  describe('hasSavedFilters', function() {
+    it('returns true if vm.savedFilters is a non-empty list', function() {
+      vm.savedFilters = [{ name: 'foo' }];
+      expect(vm.hasSavedFilters()).toBe(true);
+    });
+
+    it('returns false if vm.savedFilters is an empty list', function() {
+      vm.savedFilters = [];
+      expect(vm.hasSavedFilters()).toBe(false);
+    });
+
+    it('returns false if vm.savedFilters is null', function() {
+      vm.savedFilters = null;
+      expect(vm.hasSavedFilters()).toBe(false);
     });
   });
 });

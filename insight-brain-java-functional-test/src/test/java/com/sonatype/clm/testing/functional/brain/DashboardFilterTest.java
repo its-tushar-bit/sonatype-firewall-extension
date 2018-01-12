@@ -829,6 +829,7 @@ public class DashboardFilterTest
       saveDialog.saveButton().shouldNotBe(DISABLED).shouldHave(text("Save"));
       saveDialog.overwriteRadio().shouldBe(selected);
       saveDialog.saveAsRadio().shouldNotBe(selected);
+      saveDialog.overwriteRadio().label().shouldHave(text("save (overwrite " + existingFilterName + ")"));
       saveDialog.nameInput().shouldBe(hidden);
 
       saveDialog.saveAsRadio().click();

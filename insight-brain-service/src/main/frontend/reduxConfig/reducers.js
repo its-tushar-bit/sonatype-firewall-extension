@@ -6,8 +6,10 @@
 import {combineReducers} from 'redux';
 import routerStateReducer from '../reduxUiRouter/routerStateReducer';
 import dashboardReducer from '../dashboard/dashboardReducer';
+import manageFiltersReducer from '../dashboard/filter/manageFiltersReducer';
 
 export default combineReducers({
   router: routerStateReducer,
-  dashboard: dashboardReducer
+  dashboard: dashboardReducer,
+  manageFilters: manageFiltersReducer
 });

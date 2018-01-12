@@ -81,28 +81,39 @@ function FormMaskController($q, $timeout, $attrs) {
       skipSuccess = $attrs.hasOwnProperty('maskSkipSuccess');
 
   maskController.wrap = wrap;
+  maskController.showSuccessMaskBriefly = showSuccessMaskBriefly;
 
   function wrap(promise) {
-    var deferred = $q.defer();
     maskController.activateMask();
 
-    promise.then(function() {
+    return promise.then(function() {
       var args = arguments;
 
       if (!skipSuccess) {
         maskController.showSuccessMask();
       }
 
-      $timeout(function() {
-        maskController.removeMask();
-        deferred.resolve.apply(deferred, args);
-      }, 800);
+      return waitAndRemove(args);
     }, function() {
       maskController.removeMask();
-      deferred.reject.apply(deferred, arguments);
+      return $q.reject.apply($q, arguments);
     });
+  }
 
-    return deferred.promise;
+  // show the success mask for 800 ms and then remove it.  Returns a promise for when this is complete
+  function showSuccessMaskBriefly() {
+    maskController.showSuccessMask();
+
+    return waitAndRemove(arguments);
+  }
+
+  function waitAndRemove(resolutionArgs) {
+    return $q(function(resolve) {
+      $timeout(function() {
+        maskController.removeMask();
+        resolve.apply(null, resolutionArgs);
+      }, 800);
+    });
   }
 }
 

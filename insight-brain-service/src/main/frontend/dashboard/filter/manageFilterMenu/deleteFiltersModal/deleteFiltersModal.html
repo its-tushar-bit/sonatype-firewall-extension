@@ -8,10 +8,10 @@
     <div class="iq-modal-content iq-scrollable" load-wrapper loading="vm.isLoading">
       <div class="section">
         <div class="field" ng-class="{ 'error' : vm.deleteError }">
-          <iq-checkbox ng-repeat="(deleteFilter, selected) in vm.filters"
-                       label="{{::deleteFilter}}"
-                       is-checked="vm.filters[deleteFilter]"
-                       on-click="vm.toggleSelected(deleteFilter)">
+          <iq-checkbox ng-repeat="filter in vm.savedFilters"
+                       label="{{::filter.name}}"
+                       is-checked="vm.filters[filter.name]"
+                       on-click="vm.toggleSelected(filter.name)">
           </iq-checkbox>
         </div>
       </div>

@@ -9,6 +9,8 @@ import dashboardFilterDimension from './dashboardFilterDimension/dashboardFilter
 import dashboardFilterRadioDimension from './dashboardFilterRadioDimension/dashboardFilterRadioDimension';
 import dashboardFilter from './dashboardFilter/dashboardFilter';
 import dashboardFilterService from './dashboardFilterService';
+import manageFiltersActions from './manageFiltersActions';
+import manageFiltersReducer from './manageFiltersReducer';
 
 import deleteFiltersModalController from './manageFilterMenu/deleteFiltersModal/deleteFiltersModalController';
 import deleteFiltersModal from './manageFilterMenu/deleteFiltersModal/deleteFiltersModal';
@@ -35,6 +37,8 @@ var module = angular.module('dashboardFilter',
     .service('deleteFiltersModal', deleteFiltersModal)
     .controller('saveFilterModalController', saveFilterModalController)
     .service('saveFilterModal', saveFilterModal)
-    .component('manageFilterMenu', manageFilterMenu);
+    .component('manageFilterMenu', manageFilterMenu)
+    .factory('manageFiltersActions', manageFiltersActions)
+    .value('manageFiltersReducer', manageFiltersReducer);
 
 export default module;

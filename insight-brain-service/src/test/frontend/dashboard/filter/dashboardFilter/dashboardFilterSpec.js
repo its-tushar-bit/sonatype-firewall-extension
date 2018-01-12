@@ -351,7 +351,7 @@ describe('dashboard.filter.controller', function() {
         vm.applyCurrentFilter();
         $httpBackend.flush();
         expect(vm.showDirtyAsterisk).toBe(true);
-        expect(vm.updateFiltersFulfilled).toHaveBeenCalledWith(expected, false);
+        expect(vm.updateFiltersFulfilled).toHaveBeenCalledWith(expected, false, 'Test1');
 
         expected = angular.copy(vm.selected);
         delete vm.selected.policyTypes.OTHER;
@@ -412,7 +412,7 @@ describe('dashboard.filter.controller', function() {
         expect(vm.loadFilterFromJson).toHaveBeenCalledWith(savedFilter.filter);
         expect(vm.isDirty()).toBe(false);
         expect(vm.showDirtyAsterisk).toBe(false);
-        expect(vm.updateFiltersFulfilled).toHaveBeenCalledWith(savedFilter.filter, false);
+        expect(vm.updateFiltersFulfilled).toHaveBeenCalledWith(savedFilter.filter, false, 'test filter');
       });
 
       it('handles error', function() {
@@ -619,7 +619,7 @@ describe('dashboard.filter.controller', function() {
       $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), savedFilter).respond(savedFilter.filter);
       vm.onFilterSelected(savedFilter);
       $httpBackend.flush();
-      expect(vm.updateFiltersFulfilled).toHaveBeenCalledWith(savedFilter.filter, false);
+      expect(vm.updateFiltersFulfilled).toHaveBeenCalledWith(savedFilter.filter, false, undefined);
       expect(vm.isDirty()).toBe(false);
       expect(vm.needsAcknowledgement).toBe(false);
     });

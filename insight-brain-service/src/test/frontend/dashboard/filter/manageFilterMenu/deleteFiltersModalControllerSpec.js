@@ -1,103 +1,239 @@
 describe('deleteFiltersModalController', function() {
 
-  beforeEach(module('dashboard.module'));
+  var unsubscribeSpy;
 
-  var vm,
-      $q,
-      scope,
-      $timeout,
-      $httpBackend,
-      deleteServiceResourceDefer,
-      mockDeleteService,
-      CLMLocations,
-      savedFilterData = [
-        {
-          'name': 'Test1',
-          'filter': {}
-        }
-      ];
-
-  beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMLocations_) {
-    scope = $rootScope.$new();
-    $q = _$q_;
-    $timeout = _$timeout_;
-    deleteServiceResourceDefer = $q.defer();
-    mockDeleteService = {
-      deleteCustom: function() {
-        return deleteServiceResourceDefer.promise;
-      }
-    };
-    $httpBackend = _$httpBackend_;
-    CLMLocations = _CLMLocations_;
+  beforeEach(module('dashboard.module', 'legacyConfiguration', function($provide) {
+    unsubscribeSpy = SpecUtil.mockNgRedux($provide);
   }));
 
-  it('Successful delete closes modal', function() {
-    scope.$close = jasmine.createSpy();
-    inject(function($controller) {
-      vm = $controller('deleteFiltersModalController',
-          {$scope: scope, savedNamedFilters: savedFilterData, DeleteModalService: mockDeleteService});
-    });
-    vm.filters = {Test1: true};
-    $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
+  var vm,
+      scope,
+      actions;
 
-    vm.deleteFilters();
-    deleteServiceResourceDefer.resolve();
-    $timeout.flush();
-    expect(scope.$close).toHaveBeenCalled();
+  beforeEach(inject(function($rootScope, $controller) {
+    actions = jasmine.createSpyObj('actions', ['deleteSpecifiedFilters', 'fetchSavedFilters']);
+
+    scope = $rootScope.$new();
+    vm = $controller('deleteFiltersModalController as vm', { $scope: scope, manageFiltersActions: actions }, {
+      savedFilters: []
+    });
+  }));
+
+  describe('$destroy event', function() {
+    it('unsubcribes from the redux store', function() {
+      expect(unsubscribeSpy).not.toHaveBeenCalled();
+
+      scope.$destroy();
+
+      expect(unsubscribeSpy).toHaveBeenCalled();
+    });
   });
 
-  it('Delete service error returns control', function() {
-    inject(function($controller) {
-      vm = $controller('deleteFiltersModalController',
-          {$scope: scope, savedNamedFilters: savedFilterData, DeleteModalService: mockDeleteService});
-    });
-    vm.filters = {Test1: true};
-    $httpBackend.expectGET(CLMLocations.getDashboardSavedFilters()).respond(savedFilterData);
+  describe('isDirty', function() {
+    it('returns whether or not vm.filters has changed', function() {
+      expect(vm.isDirty()).toBe(false);
 
-    vm.deleteFilters();
-    expect(vm.deleteMode).toBe(true);
-    deleteServiceResourceDefer.reject(['error']);
-    $timeout.flush();
-    expect(vm.deleteError).toEqual(['error']);
-    expect(vm.deleteMode).toBe(false);
+      vm.filters['foo'] = true;
+      scope.$digest();
+
+      expect(vm.isDirty()).toBe(true);
+    });
   });
 
-  it('Checks dirty state', function() {
-    inject(function($controller) {
-      vm = $controller('deleteFiltersModalController', {$scope: scope, savedNamedFilters: savedFilterData});
-    });
-    vm.filters = {Test1: false};
-    expect(vm.isDirty()).toBe(false);
-    vm.filters = {Test1: true};
-    expect(vm.isDirty()).toBe(true);
-  });
+  describe('deleteFilters', function() {
+    var $q,
+        DeleteModalService;
 
-  describe('Page Changes', function() {
-    beforeEach(inject(function($controller) {
-      vm = $controller('deleteFiltersModalController', {$scope: scope, savedNamedFilters: savedFilterData});
+    beforeEach(inject(function(_$q_, _DeleteModalService_) {
+      $q = _$q_;
+      DeleteModalService = _DeleteModalService_;
     }));
 
-    it('clean', function() {
+    it('sets isLoading and deleteMode and calls DeleteModalService.deleteRedux if there are filters to delete',
+        function() {
+          vm.filters['foo'] = true;
+          vm.isLoading = false;
+          vm.deleteMode = false;
+          scope.$digest();
+
+          spyOn(DeleteModalService, 'deleteRedux').and.returnValue($q.defer().promise);
+
+          vm.deleteFilters();
+
+          expect(DeleteModalService.deleteRedux).toHaveBeenCalled();
+          expect(vm.isLoading).toBe(true);
+          expect(vm.deleteMode).toBe(true);
+        }
+    );
+
+    it('does not call DeleteModalService.deleteRedux or set isLoading and deleteMode if there are no filters to delete',
+        function() {
+          vm.filters['foo'] = false;
+          vm.isLoading = false;
+          vm.deleteMode = false;
+
+          spyOn(DeleteModalService, 'deleteRedux').and.returnValue($q.defer().promise);
+
+          vm.deleteFilters();
+
+          expect(DeleteModalService.deleteRedux).not.toHaveBeenCalled();
+          expect(vm.isLoading).toBe(false);
+          expect(vm.deleteMode).toBe(false);
+        }
+    );
+
+    it('passes a continueAction which calls deleteSpecifiedFilters with the list of filters to delete', function() {
+      vm.filters['foo'] = true;
+      vm.filters['bar'] = false;
+      scope.$digest();
+
+      spyOn(DeleteModalService, 'deleteRedux').and.returnValue($q.defer().promise);
+
+      vm.deleteFilters();
+
+      var continueAction = DeleteModalService.deleteRedux.calls.first().args[3];
+
+      expect(continueAction).toEqual(jasmine.any(Function));
+      expect(actions.deleteSpecifiedFilters).not.toHaveBeenCalled();
+
+      continueAction();
+
+      expect(actions.deleteSpecifiedFilters).toHaveBeenCalledWith(['foo']);
+    });
+
+    it('passes a stateMapper which maps the errorState, deleting, and success from the manageFilters', function() {
+      var stateToMap = Object.freeze({
+        manageFilters: Object.freeze({
+          deleteFiltersError: 'error!',
+          deleteFiltersSaving: true,
+          deleteFiltersSuccess: false
+        })
+      });
+
+      vm.filters['foo'] = true;
+      scope.$digest();
+
+      spyOn(DeleteModalService, 'deleteRedux').and.returnValue($q.defer().promise);
+
+      vm.deleteFilters();
+
+      var stateMapper = DeleteModalService.deleteRedux.calls.first().args[4];
+
+      expect(stateMapper).toEqual(jasmine.any(Function));
+
+      var results = stateMapper(stateToMap);
+      expect(results.errorState).toBe('error!');
+      expect(results.deleting).toBe(true);
+      expect(results.success).toBe(false);
+    });
+
+    it('calls $scope.$close when the service\'s promise is resolved', function() {
+      var servicedDeferred = $q.defer(),
+          servicePromise = servicedDeferred.promise;
+
+      scope.$close = jasmine.createSpy('$close');
+      spyOn(DeleteModalService, 'deleteRedux').and.returnValue(servicePromise);
+
+      vm.filters['foo'] = true;
+      scope.$digest();
+
+      vm.deleteFilters();
+
+      expect(scope.$close).not.toHaveBeenCalled();
+
+      servicedDeferred.resolve();
+      scope.$digest();
+
+      expect(scope.$close).toHaveBeenCalled();
+    });
+
+    it('sets vm.deleteError, vm.deleteMode, and vm.isLoading, and calls fetchSavedFilters when the promise is rejected',
+        function() {
+          var servicedDeferred = $q.defer(),
+              servicePromise = servicedDeferred.promise;
+
+          spyOn(DeleteModalService, 'deleteRedux').and.returnValue(servicePromise);
+
+          vm.filters['foo'] = true;
+          scope.$digest();
+
+          vm.deleteFilters();
+
+          expect(actions.fetchSavedFilters).not.toHaveBeenCalled();
+
+          servicedDeferred.reject('error!');
+          scope.$digest();
+
+          expect(vm.deleteError).toBe('error!');
+          expect(vm.isLoading).toBe(false);
+          expect(vm.deleteMode).toBe(false);
+          expect(actions.fetchSavedFilters).toHaveBeenCalled();
+        }
+    );
+  });
+
+  describe('pageChangeStarted', function() {
+    it('does not preventDefault when not dirty', function() {
       spyOn(vm, 'isDirty').and.returnValue(false);
 
       SpecUtil.expectStateChangeNotPrevented(scope);
-      expect(vm.unsavedModalVisible).toBeFalsy();
       expect(vm.isDirty).toHaveBeenCalled();
     });
 
-    it('dirty', function() {
+    it('prevents default and sets unsavedModalVisible to true when dirty', function() {
       spyOn(vm, 'isDirty').and.returnValue(true);
+      vm.unsavedModalVisible = false;
 
       SpecUtil.expectStateChangePrevented(scope);
-      expect(vm.unsavedModalVisible).toBeTruthy();
       expect(vm.isDirty).toHaveBeenCalled();
+      expect(vm.unsavedModalVisible).toBe(true);
     });
+  });
 
-    it('Closes', function() {
-      scope.$dismiss = jasmine.createSpy();
+  describe('pageChangeCanceled', function() {
+    it('sets unsavedModalVisible to false', function() {
+      vm.unsavedModalVisible = true;
+
+      scope.$broadcast('pageChangeCanceled');
+
+      expect(vm.unsavedModalVisible).toBe(false);
+    });
+  });
+
+  describe('pageChangeAccepted', function() {
+    it('calls scope.$dismiss', function() {
+      scope.$dismiss = jasmine.createSpy('$dismiss');
 
       scope.$broadcast('pageChangeAccepted');
+
       expect(scope.$dismiss).toHaveBeenCalled();
+    });
+  });
+
+  describe('toggleSelected', function() {
+    it('sets the specified property of vm.filters to true if it is falsy', function() {
+      vm.filters['foo'] = false;
+      vm.filters['bar'] = undefined;
+
+      vm.toggleSelected('foo');
+
+      expect(vm.filters['foo']).toBe(true);
+      expect(vm.filters['bar']).toBeFalsy();
+
+      vm.toggleSelected('bar');
+
+      expect(vm.filters['foo']).toBe(true);
+      expect(vm.filters['bar']).toBe(true);
+    });
+
+    it('sets the specified property of vm.filters to false if it is true', function() {
+      vm.filters['foo'] = true;
+      vm.filters['bar'] = undefined;
+
+      vm.toggleSelected('foo');
+
+      expect(vm.filters['foo']).toBe(false);
+      expect(vm.filters['bar']).toBeFalsy();
     });
   });
 });

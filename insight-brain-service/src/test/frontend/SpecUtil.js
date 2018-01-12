@@ -137,8 +137,10 @@ var SpecUtil = {
    *  Also connect() returns a spy to enable testing of unsubscribe.
    */
   mockNgRedux: function($provide) {
+    var unsubscribeSpy = jasmine.createSpy('unsubscribe');
+
     $provide.service('$ngRedux', function() {
-      this.connect = function(mapStateToThis, actions) {
+      this.connect = jasmine.createSpy('connect').and.callFake(function(mapStateToThis, actions) {
         if (actions) {
           // stub each action creator with spy
           Object.keys(actions).forEach(function(actionCreator) {
@@ -151,10 +153,12 @@ var SpecUtil = {
         }
         return function(vm) {
           angular.extend(vm, actions);
-          return jasmine.createSpy('unsubscribe');
+          return unsubscribeSpy;
         };
-      };
+      });
     });
+
+    return unsubscribeSpy;
   },
 
   /**

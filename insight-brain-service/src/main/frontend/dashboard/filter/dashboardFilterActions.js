@@ -27,11 +27,11 @@ function dashboardFilterActions(dashboardResultsActions, $http, CLMLocations, $q
     };
   }
 
-  function updateFiltersFulfilled(filters, needsAcknowledgement) {
+  function updateFiltersFulfilled(filters, needsAcknowledgement, appliedFilterName) {
     return (dispatch, getState) => {
       dispatch({
         type: UPDATE_FILTERS_FULFILLED,
-        payload: {filters, needsAcknowledgement}
+        payload: {filters, needsAcknowledgement, appliedFilterName}
       });
       if (!needsAcknowledgement) {
         return dispatch(dashboardResultsActions.loadResults(getState().dashboard.currentTab));

@@ -112,6 +112,36 @@ describe('form.mask.directive.spec.js', function() {
       expect(maskController.showSuccessMask).not.toHaveBeenCalled();
     }));
 
+    describe('showSuccessMaskBriefly', function() {
+      var $timeout;
+
+      beforeEach(inject(function(_$timeout_) {
+        $timeout = _$timeout_;
+      }));
+
+      it('displays the success mask and then removes it after a timeout', function() {
+        maskController.activateMask();
+        maskController.showSuccessMaskBriefly();
+        expect(getFormMaskElement().find('h3').text()).toEqual(' Success!');
+
+        $timeout.flush();
+
+        expect(getFormMaskElement().length).toEqual(0);
+      });
+
+      it('resolves the promise with the specified argument after the timeout', function() {
+        var resolveSpy = jasmine.createSpy('resolve');
+
+        maskController.activateMask();
+        maskController.showSuccessMaskBriefly(1).then(resolveSpy);
+        expect(resolveSpy).not.toHaveBeenCalled();
+
+        $timeout.flush();
+
+        expect(resolveSpy).toHaveBeenCalledWith(1);
+      });
+    });
+
     function getFormMaskElement() {
       return attachToBody ? angular.element($('div.form-mask', $('body'))) : element.find('div.form-mask');
     }

@@ -12,9 +12,7 @@
       </button>
       <manage-filter-menu ng-if="vm.isManageFiltersDropdownOpen"
                           class="dropdown-menu iq-dropdown-menu"
-                          active-filter-name="vm.activeFilterName"
                           is-save-filter-disabled="vm.isDirty()"
-                          current-filter="vm.selected"
                           on-filter-selected="vm.onFilterSelected(savedFilter)"
                           on-active-filter-deleted="vm.onActiveFilterDeleted()"
                           on-filter-saved="vm.onFilterSaved(filterName)">

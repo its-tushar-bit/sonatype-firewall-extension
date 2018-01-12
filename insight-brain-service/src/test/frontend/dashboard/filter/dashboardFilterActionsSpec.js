@@ -34,7 +34,8 @@ describe('dashboardFilterActions', function() {
     it('simply fires the action if needsAcknowledgement is true', function() {
       var store = SpecUtil.mockReduxStore(initialState);
       var successSpy = jasmine.createSpy('successSpy');
-      store.dispatch(dashboardFilterActions.updateFiltersFulfilled('updated filters', true)).then(successSpy);
+      store.dispatch(dashboardFilterActions.updateFiltersFulfilled('updated filters', true, 'filterName'))
+          .then(successSpy);
       $rootScope.$apply();
       expect(successSpy).toHaveBeenCalled();
       expect(store.getActions().length).toBe(1);
@@ -42,7 +43,8 @@ describe('dashboardFilterActions', function() {
         type: 'UPDATE_FILTERS_FULFILLED',
         payload: {
           filters: 'updated filters',
-          needsAcknowledgement: true
+          needsAcknowledgement: true,
+          appliedFilterName: 'filterName'
         }
       });
     });
@@ -54,14 +56,16 @@ describe('dashboardFilterActions', function() {
       dashboardDataServiceMock.getNewestRisks.and.returnValue(deferred.promise);
       var store = SpecUtil.mockReduxStore(initialState);
 
-      store.dispatch(dashboardFilterActions.updateFiltersFulfilled('updated filters', false)).then(successSpy);
+      store.dispatch(dashboardFilterActions.updateFiltersFulfilled('updated filters', false, 'filterName'))
+          .then(successSpy);
       expect(dashboardDataServiceMock.getNewestRisks).toHaveBeenCalledWith('current filters', expectedSortFields);
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[0]).toEqual({
         type: 'UPDATE_FILTERS_FULFILLED',
         payload: {
           filters: 'updated filters',
-          needsAcknowledgement: false
+          needsAcknowledgement: false,
+          appliedFilterName: 'filterName'
         }
       });
       expect(store.getActions()[1]).toEqual({
@@ -90,7 +94,8 @@ describe('dashboardFilterActions', function() {
       dashboardDataServiceMock.getNewestRisks.and.returnValue(deferred.promise);
       var store = SpecUtil.mockReduxStore(initialState);
 
-      store.dispatch(dashboardFilterActions.updateFiltersFulfilled('updated filters', false)).catch(errorSpy);
+      store.dispatch(dashboardFilterActions.updateFiltersFulfilled('updated filters', false, 'filterName'))
+          .catch(errorSpy);
 
       deferred.reject('load results error');
       $rootScope.$apply();
@@ -126,7 +131,8 @@ describe('dashboardFilterActions', function() {
         type: 'UPDATE_FILTERS_FULFILLED',
         payload: {
           filters: 'new filters',
-          needsAcknowledgement: false
+          needsAcknowledgement: false,
+          appliedFilterName: undefined
         }
       });
       expect(store.getActions()[1]).toEqual({

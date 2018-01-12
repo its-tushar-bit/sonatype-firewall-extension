@@ -11,18 +11,13 @@ function DeleteFiltersModal(Modal) {
     open: openModal
   };
 
-  function openModal(savedNamedFilters) {
+  function openModal() {
     return Modal.open({
       animation: false,
       backdrop: 'static',
       keyboard: false,
       controller: 'deleteFiltersModalController as vm',
-      template: template,
-      resolve: {
-        savedNamedFilters: function() {
-          return savedNamedFilters;
-        }
-      }
+      template: template
     }).result;
   }
 }

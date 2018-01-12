@@ -1,174 +1,187 @@
 describe('saveFilterModalController', function() {
-  function createController(name, existingFilters, filter) {
+  var unsubscribeSpy,
+      maskDeferred,
+      maskPromise;
+
+  function createController(name) {
     var scope;
 
     inject(function($controller, $rootScope) {
       scope = $rootScope.$new();
-      scopes.push(scope);
-      $controller('saveFilterModalController as vm', {
-        $scope: scope,
-        filterJson: filter,
-        filterName: name,
-        existingFilters: existingFilters
-      });
-      scope.$close = jasmine.createSpy('$close').and.callFake(angular.noop);
-      scope.vm.formMask = { wrap: jasmine.createSpy('formMask').and.callFake(function (x) { return x; }) };
+      $controller('saveFilterModalController as vm', { $scope: scope });
+
+      scope.vm.appliedFilterName = name;
+      scope.vm.saveFilterSaving = false;
+      scope.vm.saveFilterSuccess = false;
+      scope.vm.saveFilterError = null;
+
+      scope.vm.formMask = {
+        showSuccessMaskBriefly: jasmine.createSpy('showSuccessMaskBriefly').and.returnValue(maskPromise),
+        activateMask: jasmine.createSpy('activateMask'),
+        removeMask: jasmine.createSpy('removeMask')
+      };
+
       scope.$digest();
     });
 
     return scope;
   }
 
-  var scopes,
-      $httpBackend,
-      CLMLocations;
-
-  beforeEach(module('dashboard.module'));
-
-  beforeEach(inject(function(_$httpBackend_, _CLMLocations_) {
-    scopes = [];
-
-    $httpBackend = _$httpBackend_;
-    CLMLocations = _CLMLocations_;
+  beforeEach(module('dashboard.module', function($provide) {
+    unsubscribeSpy = SpecUtil.mockNgRedux($provide);
   }));
 
-  afterEach(function () {
-    scopes.forEach(function (scope) {
+  beforeEach(inject(function($q) {
+    maskDeferred = $q.defer();
+    maskPromise = maskDeferred.promise;
+  }));
+
+  describe('$destroy', function() {
+    it('unsubscribes from the redux store', function() {
+      var scope = createController('foo');
+
+      expect(unsubscribeSpy).not.toHaveBeenCalled();
+
       scope.$destroy();
+
+      expect(unsubscribeSpy).toHaveBeenCalled();
     });
   });
 
-  describe('initial state', function() {
-    it('sets savedFilterName from the passed-in filter name and sets filterName to blank', function() {
-      var scope = createController('foo', []);
+  describe('pageChangeAccepted', function() {
+    it('calls $scope.$dismiss', function() {
+      var scope = createController('foo');
 
-      expect(scope.vm.savedFilterName).toEqual('foo');
-      expect(scope.vm.filterName).toEqual('');
-    });
+      scope.$dismiss = jasmine.createSpy('$dismiss');
 
-    it('sets savedFilterName to undefined if the passed-in filter name is blank', function() {
-      var scope = createController('', []);
+      expect(scope.$dismiss).not.toHaveBeenCalled();
 
-      expect(scope.vm.savedFilterName).toBeUndefined();
-      expect(scope.vm.filterName).toEqual('');
-    });
+      scope.$broadcast('pageChangeAccepted');
+      scope.$digest();
 
-    it('sets saveMode to "overwrite" if a filter name was passed in', function() {
-      var scope = createController('foo', []);
-
-      expect(scope.vm.saveMode).toBe('overwrite');
-    });
-
-    it('sets saveMode to "saveAs" if a filter name was not passed in', function() {
-      var scope = createController(undefined, []);
-
-      expect(scope.vm.saveMode).toBe('saveAs');
-    });
-
-    it('sets warning to undefined', function() {
-      var scope = createController('foo', []);
-
-      expect(scope.vm.warning).not.toBeDefined();
+      expect(scope.$dismiss).toHaveBeenCalled();
     });
   });
 
-  describe('trySave', function() {
-    it('does nothing if isSaveEnabled would return false', function() {
-      var scope = createController('foo', []);
+  describe('pageChangeStarted', function() {
+    it('calls $event.preventDefault', function() {
+      var scope = createController('foo');
 
-      scope.vm.saveMode = 'saveAs';
-      scope.vm.warning = undefined;
-      scope.vm.saveFilterForm = { $invalid: true };
+      SpecUtil.expectStateChangePrevented(scope);
+    });
+  });
 
-      scope.vm.trySave();
+  describe('watcher of vm.saveFilterSaving and vm.saveFilterSuccess', function() {
+    it('calls vm.formMask.showSuccessMaskBriefly when vm.saveFilterSuccess is true', function() {
+      var scope = createController('foo'),
+          vm = scope.vm;
 
-      expect(scope.vm.warning).toBeUndefined();
+      expect(vm.formMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
+      expect(vm.formMask.activateMask).not.toHaveBeenCalled();
+      expect(vm.formMask.removeMask).toHaveBeenCalledTimes(1);
+
+      vm.saveFilterSuccess = true;
+      scope.$digest();
+
+      expect(vm.formMask.showSuccessMaskBriefly).toHaveBeenCalled();
+      expect(vm.formMask.activateMask).not.toHaveBeenCalled();
+      expect(vm.formMask.removeMask).toHaveBeenCalledTimes(1);
     });
 
-    it('saves the filter if vm.warning is already set', function() {
-      var scope = createController('foo', [], { x: 1 });
+    it('calls $scope.$close when the mask promise is resolved, passing the value of getFilterNameToSave', function() {
+      var scope = createController('foo'),
+          vm = scope.vm;
 
-      $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
-        name: 'foo',
-        filter: {
-          x: 1
-        }
-      }).respond(204);
-      scope.vm.warning = 'overwrite';
-      scope.vm.saveFilterForm = { $invalid: true };
+      scope.$close = jasmine.createSpy('$close');
+      spyOn(vm, 'getFilterNameToSave').and.returnValue('Filter Name');
 
-      scope.vm.trySave();
+      vm.saveFilterSuccess = true;
+      scope.$digest();
 
-      $httpBackend.flush();
+      expect(scope.$close).not.toHaveBeenCalled();
 
-      expect(scope.$close).toHaveBeenCalledWith('foo');
+      maskDeferred.resolve();
+      scope.$digest();
+
+      expect(scope.$close).toHaveBeenCalledWith('Filter Name');
     });
 
-    it('sets vm.warning to "overwrite" if it is not set and vm.saveMode is "overwrite"', function() {
-      var scope = createController('foo', []);
-
-      scope.vm.saveMode = 'overwrite';
-      scope.vm.saveFilterForm = { $invalid: true };
-
-      scope.vm.trySave();
-
-      expect(scope.vm.warning).toBe('overwrite');
-    });
-
-    it('sets vm.warning to "nameInUse" if it is not set and vm.saveMode is "saveAs" and vm.filterName matches an' +
-        ' existing filter', function() {
-      var scope = createController('foo', [{ name: 'bar' }]);
-
-      scope.vm.saveMode = 'saveAs';
-      scope.vm.filterName = 'bar';
-      scope.vm.saveFilterForm = { $invalid: false };
-
-      scope.vm.trySave();
-
-      expect(scope.vm.warning).toBe('nameInUse');
-    });
-
-    it('saves if vm.warning is not set, saveMode is "saveAs", and vm.filterName does not match an existing filter',
+    it('calls vm.formMask.showSuccessMaskBriefly when vm.saveFilterSuccess and vm.saveFilterSaving are both true',
         function() {
-          var scope = createController('bar', [{ name: 'baz' }], { x: 1 });
+          var scope = createController('foo'),
+              vm = scope.vm;
 
-          $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), {
-            name: 'foo',
-            filter: {
-              x: 1
-            }
-          }).respond(204);
-          scope.vm.saveMode = 'saveAs';
-          scope.vm.filterName = 'foo';
-          scope.vm.saveFilterForm = { $invalid: false };
+          expect(vm.formMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
+          expect(vm.formMask.activateMask).not.toHaveBeenCalled();
+          expect(vm.formMask.removeMask).toHaveBeenCalledTimes(1);
 
-          scope.vm.trySave();
+          vm.saveFilterSuccess = true;
+          vm.saveFilterSaving = true;
+          scope.$digest();
 
-          $httpBackend.flush();
+          expect(vm.formMask.showSuccessMaskBriefly).toHaveBeenCalled();
+          expect(vm.formMask.activateMask).not.toHaveBeenCalled();
+          expect(vm.formMask.removeMask).toHaveBeenCalledTimes(1);
+        }
+    );
 
-          expect(scope.$close).toHaveBeenCalledWith('foo');
+    it('calls vm.formMask.activateMask when vm.saveFilterSuccess is false and vm.saveFilterSaving is true',
+        function() {
+          var scope = createController('foo'),
+              vm = scope.vm;
+
+          expect(vm.formMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
+          expect(vm.formMask.activateMask).not.toHaveBeenCalled();
+          expect(vm.formMask.removeMask).toHaveBeenCalledTimes(1);
+
+          vm.saveFilterSaving = true;
+          scope.$digest();
+
+          expect(vm.formMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
+          expect(vm.formMask.activateMask).toHaveBeenCalled();
+          expect(vm.formMask.removeMask).toHaveBeenCalledTimes(1);
+        }
+    );
+
+    it('calls vm.formMask.removeMask when vm.saveFilterSuccess is false and vm.saveFilterSaving is false',
+        function() {
+          var scope = createController('foo'),
+              vm = scope.vm;
+
+          // have to first set it to true in order to test setting it to false again afterwards
+          vm.saveFilterSaving = true;
+          scope.$digest();
+
+          expect(vm.formMask.activateMask).toHaveBeenCalled();
+
+          vm.saveFilterSaving = false;
+          scope.$digest();
+
+          expect(vm.formMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
+          expect(vm.formMask.activateMask).toHaveBeenCalledTimes(1);
+          expect(vm.formMask.removeMask).toHaveBeenCalledTimes(2);
         }
     );
   });
 
   describe('isSaveEnabled', function() {
     it('returns false before vm.saveFilterForm is defined', function() {
-      var scope = createController('foo', []);
+      var scope = createController('foo');
 
       expect(scope.vm.isSaveEnabled()).toBe(false);
     });
 
-    it('returns true if vm.saveFilterForm is defined and vm.saveMode is "overwrite"', function() {
-      var scope = createController('foo', []);
+    it('returns true if vm.saveFilterForm is defined and vm.filterSaveMode is "overwrite"', function() {
+      var scope = createController('foo');
 
       scope.vm.saveFilterForm = { $invalid: true };
-      scope.vm.saveMode = 'overwrite';
+      scope.vm.filterSaveMode = 'overwrite';
 
       expect(scope.vm.isSaveEnabled()).toBe(true);
     });
 
     it('returns true if vm.saveFilterForm is defined valid', function() {
-      var scope = createController('foo', []);
+      var scope = createController('foo');
 
       scope.vm.saveFilterForm = { $invalid: false };
       scope.vm.saveMode = 'saveAs';
@@ -176,37 +189,66 @@ describe('saveFilterModalController', function() {
       expect(scope.vm.isSaveEnabled()).toBe(true);
     });
 
-    it('returns false if vm.saveFilterForm is invalid and saveMode is "saveAs"', function() {
-      var scope = createController('foo', []);
+    it('returns false if vm.saveFilterForm is invalid and filterSaveMode is "saveAs"', function() {
+      var scope = createController('foo');
 
       scope.vm.saveFilterForm = { $invalid: true };
-      scope.vm.saveMode = 'saveAs';
+      scope.vm.filterSaveMode = 'saveAs';
 
       expect(scope.vm.isSaveEnabled()).toBe(false);
     });
   });
 
-  describe('onCancel', function() {
-    it('calls $dismiss if vm.warning is undefined', function() {
-      var scope = createController('foo', []);
+  describe('mapStateToThis', function() {
+    var mapStateToThis;
 
-      scope.$dismiss = jasmine.createSpy('$dismiss');
+    beforeEach(inject(function($ngRedux) {
+      createController('foo');
 
-      scope.vm.onCancel();
+      mapStateToThis = $ngRedux.connect.calls.first().args[0];
+    }));
 
-      expect(scope.$dismiss).toHaveBeenCalled();
+    it('returns an object containing the savedFilters, appliedFilterName, saveFilterSaving, saveFilterSuccess, and ' +
+        'saveFilterError properties from the manageFilters object in the state', function() {
+      var state = Object.freeze({
+        manageFilters: Object.freeze({
+          savedFilters: [],
+          appliedFilterName: 'filterName',
+          saveFilterSaving: false,
+          saveFilterSuccess: true,
+          saveFilterError: 'error!'
+        })
+      });
+
+      var result = mapStateToThis(state);
+
+      expect(result.savedFilters).toBe(state.manageFilters.savedFilters);
+      expect(result.appliedFilterName).toBe(state.manageFilters.appliedFilterName);
+      expect(result.saveFilterSaving).toBe(state.manageFilters.saveFilterSaving);
+      expect(result.saveFilterSuccess).toBe(state.manageFilters.saveFilterSuccess);
+      expect(result.saveFilterError).toBe(state.manageFilters.saveFilterError);
     });
 
-    it('unsets vm.warning and does not call $dismiss if vm.warning is set', function() {
-      var scope = createController('foo', []);
+    it('sets saveError to the result of passing saveFilterError through Messages.getHttpErrorMessage',
+        inject(function(Messages) {
+          var messagesReturnValue = {},
+              state = Object.freeze({
+                manageFilters: Object.freeze({
+                  appliedFilterName: 'filterName',
+                  filterNameInputValue: 'input',
+                  filterSaveMode: 'saveAs',
+                  filterSaveWarningType: 'nameInUse',
+                  saveFilterSaving: false,
+                  saveFilterSuccess: true,
+                  saveFilterError: 'error!'
+                })
+              });
 
-      scope.$dismiss = jasmine.createSpy('$dismiss');
-      scope.vm.warning = 'overwrite';
+          spyOn(Messages, 'getHttpErrorMessage').and.returnValue(messagesReturnValue);
 
-      scope.vm.onCancel();
-
-      expect(scope.$dismiss).not.toHaveBeenCalled();
-      expect(scope.vm.warning).toBeUndefined();
-    });
+          expect(mapStateToThis(state).saveError).toBe(messagesReturnValue);
+          expect(Messages.getHttpErrorMessage).toHaveBeenCalledWith('error!');
+        })
+    );
   });
 });

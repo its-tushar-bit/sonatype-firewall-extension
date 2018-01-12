@@ -22,18 +22,18 @@
       LOAD
     </h4>
     <div class="iq-action-list__item iq-action-list__item--empty"
-         ng-hide="vm.hasSavedFilters() || vm.isLoadingSavedFilters() || vm.savedFiltersHasError">
+         ng-hide="vm.hasSavedFilters() || vm.isLoadingSavedFilters() || vm.savedFilterListError">
       No saved filters.
     </div>
-    <div class="iq-action-list__item iq-error" ng-if="vm.savedFiltersHasError">
+    <div class="iq-action-list__item iq-error" ng-if="vm.savedFilterListError">
       <i class="fa fa-warning"></i>Failed to open the saved filter list.
     </div>
-    <ul ng-hide="vm.savedFiltersHasError"
+    <ul ng-hide="vm.savedFilterListError"
         id="manage-filter-list"
         class="iq-scrollable">
       <li class="iq-action-list__item iq-clickable"
-          ng-repeat="savedFilter in vm.savedNamedFilters"
-          ng-click="vm.applySavedFilter(savedFilter)">
+          ng-repeat="savedFilter in vm.savedFilters"
+          ng-click="vm.doApplySavedFilter(savedFilter)">
         {{::savedFilter.name}}
       </li>
     </ul>

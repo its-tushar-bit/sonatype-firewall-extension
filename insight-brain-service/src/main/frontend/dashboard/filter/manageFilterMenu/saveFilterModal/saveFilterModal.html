@@ -18,7 +18,7 @@
       <div ng-if="vm.warning" id="save-filter-confirmation" class="iq-alert">
         <i class="fa fa-warning"></i><!--
      --><span ng-if="vm.warning === vm.OVERWRITE"><!--
-       -->You are about to permanently overwrite {{::vm.savedFilterName}}. This action cannot be undone.
+       -->You are about to permanently overwrite {{::vm.appliedFilterName}}. This action cannot be undone.
         </span><!--
      --><span ng-if="vm.warning === vm.NAME_IN_USE"><!--
        -->"{{::vm.filterName}}" is already in use. Continuing will permanently overwrite {{::vm.filterName}}.
@@ -30,8 +30,8 @@
         <iq-radio id="dashboard-filter-overwrite"
                   model="vm.saveMode"
                   value="vm.OVERWRITE"
-                  is-disabled="vm.savedFilterName === undefined">
-          save (overwrite{{::(vm.savedFilterName ? ' ' + vm.savedFilterName : '')}})
+                  is-disabled="vm.appliedFilterName === null">
+          save (overwrite{{::(vm.appliedFilterName ? ' ' + vm.appliedFilterName : '')}})
         </iq-radio>
         <iq-radio id="dashboard-filter-save-as" model="vm.saveMode" value="vm.SAVE_AS">
           save as…

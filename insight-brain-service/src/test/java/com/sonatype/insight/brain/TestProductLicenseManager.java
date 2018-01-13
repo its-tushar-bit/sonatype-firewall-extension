@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -193,20 +194,10 @@ public class TestProductLicenseManager
       Map<String, Feature> featureMap = new HashMap<>();
       featureMap.put(CLMFeature.ID, new CLMFeature());
       Properties properties = new Properties();
-
-      StringBuffer sb = new StringBuffer();
-
-      for (CLMEnforcementPoint ep : enforcementPoints) {
-        sb.append(ep.name()).append(",");
-      }
-
-      if (sb.length() > 0) {
-        sb.setLength(sb.length() - 1);
-      }
-
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
       properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
-      properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
+      properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS,
+          enforcementPoints.stream().map(CLMEnforcementPoint::name).collect(Collectors.joining(",")));
       if (applicationLimit != null) {
         properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, applicationLimit.toString());
       }

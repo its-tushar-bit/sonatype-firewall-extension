@@ -147,7 +147,7 @@ public class CLMLicenseManager
   /**
    * Get the application limit in the license, if no license, 0 will be returned
    */
-  public int getApplicationCountLimit() {
+  public Integer getApplicationCountLimit() {
     return licenseCache.getApplicationLimit();
   }
 
@@ -397,9 +397,9 @@ public class CLMLicenseManager
   }
 
   private Integer getApplicationLimit(ProductLicenseKey key) throws LicensingException {
-    String prop = getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT);
+    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT);
     try {
-      return Integer.decode(prop);
+      return prop != null ? Integer.decode(prop) : null;
     }
     catch (IllegalArgumentException e) {
       throw new LicensingException("Invalid application limit: " + prop, e);

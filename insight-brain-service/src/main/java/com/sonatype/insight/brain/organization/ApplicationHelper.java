@@ -95,8 +95,8 @@ public class ApplicationHelper
   }
 
   private void validate(final Application application) {
-    int appLimit = licenseManager.getApplicationCountLimit();
-    if (applicationDAO.getAll().size() >= appLimit) {
+    Integer appLimit = licenseManager.getApplicationCountLimit();
+    if (appLimit != null && applicationDAO.getAll().size() >= appLimit) {
       throw new PaymentRequiredException("You have exceeded the licensed limit of " + appLimit + " applications.");
     }
 

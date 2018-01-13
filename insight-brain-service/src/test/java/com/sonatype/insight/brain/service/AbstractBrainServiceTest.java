@@ -318,7 +318,7 @@ public abstract class AbstractBrainServiceTest
     installLicense();
   }
 
-  protected void setApplicationLimit(int applicationLimit) throws Exception {
+  protected void setApplicationLimit(Integer applicationLimit) throws Exception {
     licenseManager.setApplicationLimit(applicationLimit);
     installLicense();
   }

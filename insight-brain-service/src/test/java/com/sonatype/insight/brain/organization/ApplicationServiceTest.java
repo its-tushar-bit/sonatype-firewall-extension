@@ -12,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -51,6 +53,12 @@ public class ApplicationServiceTest
 
   @Inject
   private AsyncEventBus eventBus;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
 
   @Before
   public void before() {
@@ -125,6 +133,15 @@ public class ApplicationServiceTest
     List<Application> apps = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
         Collections.singleton(org.getId()), null, null);
     assertThat(apps, hasSize(0));
+  }
+
+  @Test
+  public void testAddApplication_LicenseWithoutApplicationLimit() throws Exception {
+    productLicenseManager.setApplicationLimit(null);
+    clmLicenseManager.installLicense(null);
+    Application app = new Application("appPublicId", "appName", org.getId());
+    app = applicationService.addApplication(app);
+    tempEntity.register(app);
   }
 
   @Test

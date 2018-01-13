@@ -93,7 +93,7 @@ public class TestProductLicenseManager
     return mockProductLicenseManager.isValid();
   }
 
-  public void setApplicationLimit(int applicationLimit) {
+  public void setApplicationLimit(Integer applicationLimit) {
     wasChanged = true;
     mockProductLicenseManager.setApplicationLimit(applicationLimit);
   }
@@ -142,7 +142,7 @@ public class TestProductLicenseManager
 
     private int version = 1;
 
-    private int appCount = 100;
+    private Integer applicationLimit = 100;
 
     private Date expirationDate = new Date(System.currentTimeMillis() + 6000 * 1000);
 
@@ -207,7 +207,9 @@ public class TestProductLicenseManager
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
       properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
       properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
-      properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString(appCount));
+      if (applicationLimit != null) {
+        properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, applicationLimit.toString());
+      }
       properties.putAll(this.properties);
 
       ProductLicenseKey key = new DefaultLicenseKey(new Features(featureMap));
@@ -274,9 +276,9 @@ public class TestProductLicenseManager
       }
     }
 
-    public void setApplicationLimit(int applicationLimit) {
+    public void setApplicationLimit(Integer applicationLimit) {
       if (valid) {
-        this.appCount = applicationLimit;
+        this.applicationLimit = applicationLimit;
         createKey();
       }
     }

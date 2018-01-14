@@ -19,11 +19,14 @@ public class FormMask
     SelenideElement mask = $(".form-mask");
 
     try {
-      mask.shouldBe(visible);
+      mask.waitUntil(visible, 500);
     }
-    catch (ElementNotFound | StaleElementReferenceException e) {
-      // ok the mask opened and closed before we got a chance to check
-      return mask;
+    catch (AssertionError e) {
+      if (e instanceof ElementNotFound || e.getCause() instanceof StaleElementReferenceException) {
+        // ok the mask opened and closed before we got a chance to check
+        return mask;
+      }
+      throw e;
     }
 
     return mask.shouldBe(hidden);

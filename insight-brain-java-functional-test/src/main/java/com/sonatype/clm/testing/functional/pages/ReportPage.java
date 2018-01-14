@@ -22,6 +22,10 @@ public class ReportPage
     return $("#summaryBtn");
   }
 
+  public static SelenideElement licenseChart() {
+    return $("#license-chart");
+  }
+
   public static String url(Application app, String scanId) {
     return BaseUrl.rootUriBuilder().path("rest/report/{applicationPublicId}/{scanId}/browseReport/index.html")
         .build(app.getPublicId(), scanId).toString();

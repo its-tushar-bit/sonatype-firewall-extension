@@ -32,7 +32,6 @@ import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.JavascriptExecutor;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
@@ -109,7 +108,7 @@ public class SessionTimeoutTest
     refreshOrOpen(ApplicationReportContainerPage.url(app.getPublicId(), scanId));
 
     Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
-    waitForScriptsToLoad("license-chart");
+    ReportPage.licenseChart().shouldBe(visible);
 
     hardreset();
 
@@ -156,7 +155,7 @@ public class SessionTimeoutTest
     refreshOrOpen(RepositoryReportContainerPage.url(repo.getId()));
 
     Selenide.switchTo().frame(RepositoryReportContainerPage.getIframe());
-    waitForScriptsToLoad("componentTable");
+    RepositoryReportPage.table().shouldBe(visible);
 
     hardreset();
 
@@ -246,16 +245,5 @@ public class SessionTimeoutTest
   private void assertUiClearedAndLogBackIn() {
     assertUiCleared();
     loginAsAdmin();
-  }
-
-  private void waitForScriptsToLoad(String expectedElementId) {
-    // wait until the iframe document has fully loaded. Otherwise there is a race condition
-    // where some of the css and js for the iframe won't load. To determine when the scripts have executed, we
-    // wait until jquery ($) is defined
-    Selenide.Wait() //
-        .withMessage("Report did not complete loading") //
-        .until(webDriver -> ((JavascriptExecutor) webDriver)
-              .executeScript("return document.getElementById('" + expectedElementId + "') === null;")
-              .equals(Boolean.FALSE));
   }
 }

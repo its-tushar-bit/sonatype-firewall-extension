@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
@@ -50,6 +52,10 @@ public class RepositoryReportPage
     }
     updaterModal.shouldBe(hidden);
     // We probably missed it. Probably...
+  }
+
+  public static Table table() {
+    return new Table();
   }
 
   public static class ComponentUpdater
@@ -166,6 +172,7 @@ public class RepositoryReportPage
   }
 
   public static class Table
+      extends BasicElement<Table>
   {
     public static final Condition CRITICAL_THREAT = cssClass("criticalScore");
 
@@ -178,6 +185,10 @@ public class RepositoryReportPage
     public static final Condition NO_THREAT = cssClass("noScore");
 
     public static final Condition IGNORED_SCORE = cssClass("ignoredScore");
+
+    public Table() {
+      super("#componentTable");
+    }
 
     public static Row row(int num) {
       return new Row($(createSelector(TABLE_ROW_SELECTOR, "[row='" + num + "']")));

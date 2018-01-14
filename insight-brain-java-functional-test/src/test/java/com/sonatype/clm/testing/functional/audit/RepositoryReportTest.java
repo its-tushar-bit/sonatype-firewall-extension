@@ -136,28 +136,28 @@ public class RepositoryReportTest
 
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
-    RepositoryReportPage.Summary.root().shouldBe(visible);
+    RepositoryReportPage.summary().shouldBe(visible);
 
-    RepositoryReportPage.Summary.moderateCount().shouldBe(visible).shouldHave(text("1"));
-    RepositoryReportPage.Summary.severeCount().shouldBe(visible).shouldHave(text("2"));
-    RepositoryReportPage.Summary.criticalCount().shouldBe(visible).shouldHave(text("3"));
-    RepositoryReportPage.Summary.violatingComponentsCount().shouldBe(visible).shouldHave(text("6"));
-    RepositoryReportPage.Summary.quarantinedCount().shouldBe(visible).shouldHave(text("2"));
+    RepositoryReportPage.summary().moderateCount().shouldBe(visible).shouldHave(text("1"));
+    RepositoryReportPage.summary().severeCount().shouldBe(visible).shouldHave(text("2"));
+    RepositoryReportPage.summary().criticalCount().shouldBe(visible).shouldHave(text("3"));
+    RepositoryReportPage.summary().violatingComponentsCount().shouldBe(visible).shouldHave(text("6"));
+    RepositoryReportPage.summary().quarantinedCount().shouldBe(visible).shouldHave(text("2"));
 
-    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("3"));
-    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("75"));
+    RepositoryReportPage.summary().identifiedCount().shouldBe(visible).shouldHave(text("3"));
+    RepositoryReportPage.summary().identifiedPercent().shouldBe(visible).shouldHave(text("75"));
   }
 
   @Test
   public void testSummary_Empty() throws Exception {
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
-    RepositoryReportPage.Summary.root().shouldBe(visible);
+    RepositoryReportPage.summary().shouldBe(visible);
 
-    RepositoryReportPage.Summary.noPolicyViolations().shouldBe(visible).shouldHave(text("0"));
-    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("0"));
-    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("0"));
-    RepositoryReportPage.Summary.quarantinedCount().shouldBe(visible).shouldHave(text("0"));
+    RepositoryReportPage.summary().noPolicyViolations().shouldBe(visible).shouldHave(text("0"));
+    RepositoryReportPage.summary().identifiedCount().shouldBe(visible).shouldHave(text("0"));
+    RepositoryReportPage.summary().identifiedPercent().shouldBe(visible).shouldHave(text("0"));
+    RepositoryReportPage.summary().quarantinedCount().shouldBe(visible).shouldHave(text("0"));
   }
 
   @Test
@@ -178,7 +178,7 @@ public class RepositoryReportTest
     WaiverCip.row(0).actions().shouldHave(texts("Proxy fail"));
     WaiverCip.unquarantineButton().shouldBe(visible, CLM.DISABLED).click();
     UnquarantineDialog.releaseButton().shouldNot(appear);
-    Table.row(0).component().click(); // hide CIP
+    RepositoryReportPage.table().row(0).component().click(); // hide CIP
 
     // Unquarantine a component
     openCip(1, "Policy");
@@ -239,8 +239,8 @@ public class RepositoryReportTest
     testReportSummary();
 
     // Default filter settings
-    Filter.allMatchState().shouldBe(Filter.ACTIVE);
-    Filter.summaryViolations().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().allMatchState().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().summaryViolations().shouldBe(Filter.ACTIVE);
 
     assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, UNKNOWN, NO_VIOLATION_ROW);
 
@@ -289,16 +289,16 @@ public class RepositoryReportTest
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     // Open CIP for unknown component
-    RepositoryReportPage.Table.row(0).openCip();
+    RepositoryReportPage.table().row(0).openCip();
 
-    RepositoryReportPage.Table.cipTab("Component Info").shouldBe(visible);
+    RepositoryReportPage.table().cipTab("Component Info").shouldBe(visible);
     VersionsCIP.selectComponentMessage().shouldBe(hidden);
     VersionsCIP.unknownComponentMessage().shouldBe(visible);
 
-    RepositoryReportPage.Table.cipTab("Policy").shouldBe(visible);
-    RepositoryReportPage.Table.cipTab("Labels").shouldBe(hidden);
-    RepositoryReportPage.Table.cipTab("Licenses").shouldBe(hidden);
-    RepositoryReportPage.Table.cipTab("Vulnerabilities").shouldBe(hidden);
+    RepositoryReportPage.table().cipTab("Policy").shouldBe(visible);
+    RepositoryReportPage.table().cipTab("Labels").shouldBe(hidden);
+    RepositoryReportPage.table().cipTab("Licenses").shouldBe(hidden);
+    RepositoryReportPage.table().cipTab("Vulnerabilities").shouldBe(hidden);
   }
 
   @Test
@@ -365,7 +365,7 @@ public class RepositoryReportTest
     assertNull(override);
 
     // Close CIP should disappear
-    RepositoryReportPage.Table.closeCipButton().shouldBe(visible).click();
+    RepositoryReportPage.table().closeCipButton().shouldBe(visible).click();
   }
 
   @Test
@@ -374,9 +374,9 @@ public class RepositoryReportTest
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     // open CIP
-    RepositoryReportPage.Table.row(0).openCip();
+    RepositoryReportPage.table().row(0).openCip();
 
-    RepositoryReportPage.Table.cipTab("Component Info").click();
+    RepositoryReportPage.table().cipTab("Component Info").click();
     VersionsCIP.groupId().shouldHave(text("critical"));
     VersionsCIP.artifactId().shouldHave(text("threat"));
     VersionsCIP.version().shouldHave(text("1.0"));
@@ -390,8 +390,8 @@ public class RepositoryReportTest
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
 
     // close CIP
-    RepositoryReportPage.Table.row(0).component().click();
-    RepositoryReportPage.Table.cip().shouldBe(hidden);
+    RepositoryReportPage.table().row(0).component().click();
+    RepositoryReportPage.table().cip().shouldBe(hidden);
   }
 
   @Test
@@ -425,10 +425,10 @@ public class RepositoryReportTest
     assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(), criticalComponentHash).size(), is(2));
 
     // new table row for the policy violation
-    Filter.allViolationsButton().click();
-    assertRow(RepositoryReportPage.Table.rowByName("Bad Label"), new ExpectedRow(Table.IGNORED_SCORE, "Bad Label",
+    RepositoryReportPage.filter().allViolations().click();
+    assertRow(RepositoryReportPage.table().rowByName("Bad Label"), new ExpectedRow(Table.IGNORED_SCORE, "Bad Label",
         "critical : threat : 1.0", false, false), false);
-    RepositoryReportPage.Table.rows().shouldHaveSize(3);
+    RepositoryReportPage.table().rows().shouldHaveSize(3);
 
     // re-open CIP
     openCip(0, "Labels");
@@ -449,12 +449,12 @@ public class RepositoryReportTest
     assertThat(appliedLabels.get(0).getLabelId(), is(elJunko.getId()));
 
     // CIP should disappear
-    RepositoryReportPage.Table.cip().shouldBe(hidden);
+    RepositoryReportPage.table().cip().shouldBe(hidden);
     // Bad labels is gone
-    RepositoryReportPage.Table.rows().shouldHaveSize(2);
+    RepositoryReportPage.table().rows().shouldHaveSize(2);
 
     // reset filter
-    Filter.summaryViolationsButton().click();
+    RepositoryReportPage.filter().summaryViolations().click();
   }
 
   @Test
@@ -499,12 +499,12 @@ public class RepositoryReportTest
     ReportCip.policyTab().should(disappear);
 
     // Verify table has been updated and violation is waived
-    RepositoryReportPage.Table.rows().shouldHaveSize(1);
-    Filter.allViolationsButton().click();
-    RepositoryReportPage.Table.row(0).waived().should(exist).click();
+    RepositoryReportPage.table().rows().shouldHaveSize(1);
+    RepositoryReportPage.filter().allViolations().click();
+    RepositoryReportPage.table().row(0).waived().should(exist).click();
 
     // re-open CIP
-    RepositoryReportPage.Table.cipTab("Policy").click();
+    RepositoryReportPage.table().cipTab("Policy").click();
 
     // remove waiver
     WaiverCip.viewWaivers().should(appear).click();
@@ -537,11 +537,11 @@ public class RepositoryReportTest
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
 
     // Warning about all component waivers should appear
-    RepositoryReportPage.ComponentUpdater.root().shouldBe(visible);
-    RepositoryReportPage.ComponentUpdater.dismiss().click();
+    RepositoryReportPage.componentUpdater().shouldBe(visible);
+    RepositoryReportPage.componentUpdater().dismissButton().click();
 
     // re-open CIP
-    RepositoryReportPage.Table.cipTab("Policy").click();
+    RepositoryReportPage.table().cipTab("Policy").click();
 
     // remove waiver
     WaiverCip.viewWaivers().should(appear).click();
@@ -552,12 +552,12 @@ public class RepositoryReportTest
     WaiverCip.ConfirmRemoveWaiverDialog.removeButton().should(disappear);
 
     // Warning about all component waivers should appear
-    RepositoryReportPage.ComponentUpdater.root().shouldBe(visible);
-    RepositoryReportPage.ComponentUpdater.dismiss().click();
+    RepositoryReportPage.componentUpdater().shouldBe(visible);
+    RepositoryReportPage.componentUpdater().dismissButton().click();
     ViewWaiversDialog.closeButton().should(appear).click();
 
     // close CIP & reset filter
-    Filter.summaryViolationsButton().click();
+    RepositoryReportPage.filter().summaryViolations().click();
   }
 
   @Test
@@ -612,8 +612,8 @@ public class RepositoryReportTest
     assertThat(allLogJsonData.get(0).get("data").get("comment").asText(), is("woot"));
 
     // close CIP
-    RepositoryReportPage.Table.cipCloseButton().click();
-    RepositoryReportPage.Table.cip().shouldBe(hidden);
+    RepositoryReportPage.table().cipCloseButton().click();
+    RepositoryReportPage.table().cip().shouldBe(hidden);
   }
 
   private static void assertRow(SVTableRow actualRow, Integer threatLevel, String identifier) {
@@ -624,20 +624,19 @@ public class RepositoryReportTest
   }
 
   private void testReportSummary() {
-    RepositoryReportPage.Summary.root().shouldBe(visible);
+    RepositoryReportPage.summary().shouldBe(visible);
 
-    RepositoryReportPage.Summary.moderateCount().shouldBe(visible).shouldHave(text("1"));
-    RepositoryReportPage.Summary.severeCount().shouldBe(visible).shouldHave(text("1"));
-    RepositoryReportPage.Summary.criticalCount().shouldBe(visible).shouldHave(text("2"));
-    RepositoryReportPage.Summary.violatingComponentsCount().shouldBe(visible).shouldHave(text("4"));
+    RepositoryReportPage.summary().moderateCount().shouldBe(visible).shouldHave(text("1"));
+    RepositoryReportPage.summary().severeCount().shouldBe(visible).shouldHave(text("1"));
+    RepositoryReportPage.summary().criticalCount().shouldBe(visible).shouldHave(text("2"));
+    RepositoryReportPage.summary().violatingComponentsCount().shouldBe(visible).shouldHave(text("4"));
 
-    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("6"));
-    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("86"));
+    RepositoryReportPage.summary().identifiedCount().shouldBe(visible).shouldHave(text("6"));
+    RepositoryReportPage.summary().identifiedPercent().shouldBe(visible).shouldHave(text("86"));
   }
 
   private void testUnknownMatchesFilter() {
-    Filter.unknownMatchStateButton().click();
-    Filter.unknownMatchState().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().unknownMatchState().click().shouldBe(Filter.ACTIVE);
 
     assertRows(UNKNOWN);
 
@@ -645,8 +644,7 @@ public class RepositoryReportTest
   }
 
   private void testExactMatchesFilter() {
-    Filter.exactMatchStateButton().click();
-    Filter.exactMatchState().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().exactMatchState().click().shouldBe(Filter.ACTIVE);
 
     assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, NO_VIOLATION_ROW);
 
@@ -654,8 +652,7 @@ public class RepositoryReportTest
   }
 
   private void testAllViolationsFilter() {
-    Filter.allViolationsButton().click();
-    Filter.allViolations().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().allViolations().click().shouldBe(Filter.ACTIVE);
 
     assertRows(CRITICAL_ROW, QUARANTINED, WAIVED_ROW, CRITICAL_ROW_SECONDARY, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW,
         UNKNOWN);
@@ -663,26 +660,22 @@ public class RepositoryReportTest
   }
 
   private void testQuarantinedFilter() {
-    Filter.quarantinedViolationsButton().click();
-    Filter.quarantinedViolations().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().quarantinedViolations().click().shouldBe(Filter.ACTIVE);
 
     assertRows(QUARANTINED);
     resetFilter();
   }
 
   private void testWaivedFilter() {
-    Filter.waivedViolationsButton().click();
-    Filter.waivedViolations().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().waivedViolations().click().shouldBe(Filter.ACTIVE);
 
     assertRows(WAIVED_ROW);
     resetFilter();
   }
 
   private void resetFilter() {
-    Filter.allMatchStateButton().click();
-    Filter.summaryViolationsButton().click();
-    Filter.allMatchState().shouldBe(Filter.ACTIVE);
-    Filter.summaryViolations().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().allMatchState().click().shouldBe(Filter.ACTIVE);
+    RepositoryReportPage.filter().summaryViolations().click().shouldBe(Filter.ACTIVE);
   }
 
   private void setupHdsFirewallResponse() {
@@ -698,11 +691,12 @@ public class RepositoryReportTest
   }
 
   private static void assertRows(ExpectedRow... expectedRows) {
-    Table.rows().shouldHaveSize(expectedRows.length);
+    RepositoryReportPage.table().rows().shouldHaveSize(expectedRows.length);
 
     String previousPolicyName = null;
     for (int i = 0; i < expectedRows.length; i++) {
-      assertRow(Table.row(i), expectedRows[i], expectedRows[i].policyName.equals(previousPolicyName));
+      assertRow(RepositoryReportPage.table().row(i), expectedRows[i],
+          expectedRows[i].policyName.equals(previousPolicyName));
       previousPolicyName = expectedRows[i].policyName;
     }
   }
@@ -733,8 +727,8 @@ public class RepositoryReportTest
   }
 
   private static void openCip(int row, String tab) {
-    RepositoryReportPage.Table.row(row).openCip();
-    RepositoryReportPage.Table.cipTab(tab).click();
+    RepositoryReportPage.table().row(row).openCip();
+    RepositoryReportPage.table().cipTab(tab).click();
   }
 
   private Policy createPolicy(int threatLevel, String name, String conditionType, String op, String value) {

@@ -159,13 +159,13 @@ public class SessionTimeoutTest
 
     hardreset();
 
-    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.table().row(0).component().click();
 
     Selenide.switchTo().defaultContent();
     assertUiClearedAndLogBackIn();
 
     Selenide.switchTo().frame(RepositoryReportContainerPage.getIframe());
-    RepositoryReportPage.Table.row(0).component().shouldBe(visible);
+    RepositoryReportPage.table().row(0).component().shouldBe(visible);
 
     // cleanup
     Selenide.switchTo().defaultContent();

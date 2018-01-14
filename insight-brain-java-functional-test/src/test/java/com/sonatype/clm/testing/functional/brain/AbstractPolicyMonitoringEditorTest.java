@@ -45,7 +45,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   @BeforeClass
   public static void boot() {
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
   }
 

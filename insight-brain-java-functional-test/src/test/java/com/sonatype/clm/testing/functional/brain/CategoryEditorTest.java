@@ -58,7 +58,7 @@ public class CategoryEditorTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
   }
 

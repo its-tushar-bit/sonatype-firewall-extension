@@ -55,7 +55,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
   @BeforeClass
   public static void boot() {
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
   }
 

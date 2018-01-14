@@ -51,7 +51,7 @@ public class LabelEditorTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
   }
 

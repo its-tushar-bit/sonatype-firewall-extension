@@ -66,6 +66,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     this.currentOwner = currentOwner;
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
   }
 
   @Test

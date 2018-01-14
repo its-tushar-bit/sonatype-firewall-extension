@@ -59,6 +59,7 @@ public class LabelEditorTest
   public void init() {
     app = tempEntity.newApplicationWithParent("test_app");
     refreshOrOpen(OwnerSummaryPage.url(app));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(app.getName()));
   }
 
   @After

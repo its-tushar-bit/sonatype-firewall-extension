@@ -81,6 +81,11 @@ public abstract class AbstractAccessEditorTest
     tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
 
     refreshOrOpen(OwnerSummaryPage.url(owner));
+    shouldBeOnInitialPage();
+  }
+
+  protected void shouldBeOnInitialPage() {
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
   }
 
   @Test

@@ -41,7 +41,6 @@ public class ApplicationLTGEditorTest
 
   @Test
   public void testCreateLTG() {
-    waitUntilUrl(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.licenseThreatGroupTile().addLTGButton().shouldNot(exist);
   }
 

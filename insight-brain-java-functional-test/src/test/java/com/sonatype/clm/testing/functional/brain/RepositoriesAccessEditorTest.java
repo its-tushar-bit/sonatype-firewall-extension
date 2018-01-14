@@ -15,12 +15,19 @@ import com.sonatype.insight.brain.model.security.Role;
 import org.junit.After;
 import org.junit.Before;
 
+import static com.codeborne.selenide.Condition.text;
+
 public class RepositoriesAccessEditorTest
     extends AbstractAccessEditorTest
 {
   @Before
   public void init() {
     super.init(RepositoryContainer.SINGLETON);
+  }
+
+  @Override
+  protected void shouldBeOnInitialPage() {
+    RepositoriesSummaryPage.summaryTile().name().shouldHave(text("Repositories"));
   }
 
   @After

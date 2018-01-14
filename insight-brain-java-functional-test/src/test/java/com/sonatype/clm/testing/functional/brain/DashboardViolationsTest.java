@@ -207,12 +207,12 @@ public class DashboardViolationsTest
 
     // check the report link - opens new window
     firstViolation.latestReport().shouldNotBe(DISABLED).shouldHave(text("Build")).click();
-    switchToWindow(1);
+    Selenide.switchTo().window(1);
     waitUntilUrl(ApplicationReportContainerPage.url(app1.getPublicId(), buildEvalNow.getScanId()));
     ApplicationReportContainerPage.getReportTitle().shouldBe(visible)
         .shouldHave(text(app1.getName() + now().toString(" - YYYY-MM-dd -") + " Build Report"));
     WebDriverRunner.getWebDriver().close();
-    switchToWindow(0);
+    Selenide.switchTo().window(0);
     waitUntilUrl(DashboardPage.VIOLATIONS_URL);
 
     // open component details and back

@@ -28,12 +28,10 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.WebDriverRunner;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.JavascriptExecutor;
 
 import static com.codeborne.selenide.Condition.enabled;
@@ -97,8 +95,6 @@ public class SessionTimeoutTest
    */
   @Test
   public void testReloginPromptOnAjaxDetectedSessionExpirationInReport() throws IOException {
-    WebDriver driver = WebDriverRunner.getWebDriver();
-
     String scanId = "306e0a923df34c64b836358182b1b902";
 
     Organization org = tempEntity.newOrganization();
@@ -112,7 +108,7 @@ public class SessionTimeoutTest
     loginAsAdmin();
     refreshOrOpen(ApplicationReportContainerPage.url(app.getPublicId(), scanId));
 
-    driver.switchTo().frame(ApplicationReportContainerPage.getIframe());
+    Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
     waitForScriptsToLoad("license-chart");
 
     hardreset();
@@ -123,11 +119,11 @@ public class SessionTimeoutTest
     ReportPage.policyTabButton().click();
 
     // switch back to the parent frame in order to deal with the login dialog
-    driver.switchTo().defaultContent();
+    Selenide.switchTo().defaultContent();
     assertUiClearedAndLogBackIn();
 
     // ensure that after logging back in, the report page loaded correctly
-    driver.switchTo().frame(ApplicationReportContainerPage.getIframe());
+    Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
     ReportPage.summaryTabButton().shouldBe(visible);
 
     ReportPage.policyTabButton().click();
@@ -138,22 +134,20 @@ public class SessionTimeoutTest
     // click a row. This triggers the re-login using different logic so it needs to be tested separately
     ReportPolicyPage.row(0).openCip();
 
-    driver.switchTo().defaultContent();
+    Selenide.switchTo().defaultContent();
     assertUiClearedAndLogBackIn();
 
     // ensure the report is loaded again. Since a full page refresh happened the state within the iframe is lost
-    driver.switchTo().frame(ApplicationReportContainerPage.getIframe());
+    Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
     ReportPage.summaryTabButton().shouldBe(visible);
 
     // cleanup
-    driver.switchTo().defaultContent();
+    Selenide.switchTo().defaultContent();
     logout();
   }
 
   @Test
   public void testReloginPromptOnAjaxDetectedSessionExpirationInRepositoryReport() {
-    WebDriver driver = WebDriverRunner.getWebDriver();
-
     Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "central");
     tempEntity.newRepositoryComponent(repo.getId());
 
@@ -161,21 +155,21 @@ public class SessionTimeoutTest
 
     refreshOrOpen(RepositoryReportContainerPage.url(repo.getId()));
 
-    driver.switchTo().frame(RepositoryReportContainerPage.getIframe());
+    Selenide.switchTo().frame(RepositoryReportContainerPage.getIframe());
     waitForScriptsToLoad("componentTable");
 
     hardreset();
 
     RepositoryReportPage.Table.row(0).component().click();
 
-    driver.switchTo().defaultContent();
+    Selenide.switchTo().defaultContent();
     assertUiClearedAndLogBackIn();
 
-    driver.switchTo().frame(RepositoryReportContainerPage.getIframe());
+    Selenide.switchTo().frame(RepositoryReportContainerPage.getIframe());
     RepositoryReportPage.Table.row(0).component().shouldBe(visible);
 
     // cleanup
-    driver.switchTo().defaultContent();
+    Selenide.switchTo().defaultContent();
     logout();
   }
 

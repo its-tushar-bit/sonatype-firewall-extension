@@ -34,8 +34,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -383,7 +383,7 @@ public class CreateOwnerTest
     refreshOrOpen(ReportListPage.URL);
     unsavedModal.shouldBe(hidden);
     ReportListPage.listContainer().should(appear);
-    WebDriverRunner.getWebDriver().navigate().back();
+    Selenide.back();
   }
 
   private void assertImageEquals(BufferedImage image1, BufferedImage image2) throws IOException {

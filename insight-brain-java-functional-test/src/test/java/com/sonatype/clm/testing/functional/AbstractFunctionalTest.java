@@ -290,10 +290,6 @@ public abstract class AbstractFunctionalTest
     }
   }
 
-  protected static void switchToWindow(final int index) {
-    Selenide.switchTo().window(index);
-  }
-
   protected static void waitUntilUrl(final String url) {
     waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), urlEquals(url)));
   }

@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -202,12 +203,12 @@ public class ApplicationSummaryViewTest
           .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
 
       ActionDropDown.reportLink(i).followLink();
-      switchToWindow(1);
+      Selenide.switchTo().window(1);
 
       waitUntilUrl(ApplicationReportContainerPage.url(application.getPublicId(), policyEvaluations.get(i).getScanId()));
 
       WebDriverRunner.getWebDriver().close();
-      switchToWindow(0);
+      Selenide.switchTo().window(0);
 
       waitUntilUrl(OwnerSummaryPage.url(application));
 
@@ -418,12 +419,12 @@ public class ApplicationSummaryViewTest
 
         modal.viewReportButton().shouldBe(visible, enabled).click();
 
-        switchToWindow(1);
+        Selenide.switchTo().window(1);
 
         waitUntilUrl(ApplicationReportContainerPage.url(application.getPublicId(), policyEvaluations.getScanId()));
 
         WebDriverRunner.getWebDriver().close();
-        switchToWindow(0);
+        Selenide.switchTo().window(0);
       }
     }
   }

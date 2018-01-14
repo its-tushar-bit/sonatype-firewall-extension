@@ -22,7 +22,8 @@ public class MainHeaderNavigationButton
   }
 
   @Override
-  public void click() {
-    this.child("a").click();
+  public MainHeaderNavigationButton click() {
+    child("a").click();
+    return me();
   }
 }

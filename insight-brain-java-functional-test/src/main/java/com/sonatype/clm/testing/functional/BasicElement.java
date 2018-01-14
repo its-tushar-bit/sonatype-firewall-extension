@@ -14,7 +14,6 @@ import static com.codeborne.selenide.Selenide.$$;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
-@SuppressWarnings("unchecked")
 public abstract class BasicElement<T extends BasicElement<T>>
 {
   protected final String selector;
@@ -25,47 +24,53 @@ public abstract class BasicElement<T extends BasicElement<T>>
     selector = createSelector(selectors);
   }
 
+  @SuppressWarnings("unchecked")
+  protected final T me() {
+    return (T) this;
+  }
+
   public SelenideElement parent() {
     return getElement().parent();
   }
 
   public T should(Condition... conditions) {
     getElement().should(conditions);
-    return (T) this;
+    return me();
   }
 
   public T shouldNot(Condition... conditions) {
     getElement().shouldNot(conditions);
-    return (T) this;
+    return me();
   }
 
   public T shouldBe(Condition... conditions) {
     getElement().shouldBe(conditions);
-    return (T) this;
+    return me();
   }
 
   public T shouldNotBe(Condition... conditions) {
     getElement().shouldNotBe(conditions);
-    return (T) this;
+    return me();
   }
 
   public T shouldHave(Condition... conditions) {
     getElement().shouldHave(conditions);
-    return (T) this;
+    return me();
   }
 
   public T shouldNotHave(Condition... conditions) {
     getElement().shouldNotHave(conditions);
-    return (T) this;
+    return me();
   }
 
   public T hover() {
     getElement().hover();
-    return (T) this;
+    return me();
   }
 
-  public void click() {
+  public T click() {
     getElement().click();
+    return me();
   }
 
   protected String childSelector(String... selectors) {

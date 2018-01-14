@@ -21,9 +21,10 @@ public class PillButton
   }
 
   @Override
-  public void click() {
+  public PillButton click() {
     scrollContainer.shouldHave(ScrollUtil.scrollSpyInitialized);
     super.click();
     ScrollUtil.awaitEndOfScrolling(scrollContainer.find(":first-child"));
+    return me();
   }
 }

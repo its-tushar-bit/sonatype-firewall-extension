@@ -52,7 +52,8 @@ public class Toggle
   }
 
   @Override
-  public void click() {
+  public Toggle click() {
     toggleButton().click();
+    return me();
   }
 }

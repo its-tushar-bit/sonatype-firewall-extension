@@ -19,7 +19,8 @@ public class IqBackButton
   }
 
   @Override
-  public void click() {
-    this.child("a").click();
+  public IqBackButton click() {
+    child("a").click();
+    return me();
   }
 }

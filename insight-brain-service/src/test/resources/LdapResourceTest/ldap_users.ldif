@@ -38,6 +38,20 @@ mail: beta.user@company.com
 departmentNumber: testUsers
 departmentNumber: primaryUsers
 
+dn: uid=cryptuser,ou=users,dc=company,dc=com
+uid: cryptuser
+givenName: Crypt User
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Crypt User
+userPassword: {CRYPT}jNv5PUd.CGmgs
+mail: crypt.user@company.com
+departmentNumber: testUsers
+departmentNumber: primaryUsers
+
 dn: cn=Alpha,ou=groups,dc=company,dc=com
 cn: Alpha
 objectClass: top

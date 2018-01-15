@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
@@ -492,7 +493,7 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapUser[] users = response.getBody(LdapUser[].class);
     Arrays.sort(users);
-    assertThat(users.length, is(2));
+    assertThat(users.length, is(3));
     assertThat(users[0].getUsername(), is("Beta"));
     assertThat(users[0].getRealName(), is("Beta User"));
     assertThat(users[0].getEmail(), is("beta.user@company.com"));
@@ -529,6 +530,33 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     status = response.getBody(LdapConnectionStatus.class);
     assertThat(status.getMessage(), status.getStatus(), is(LdapConnectionStatus.Status.OK));
+  }
+
+  /**
+   * CLM-9430, sanity check the classpath of the server contains a recent version of commons-codec as needed by our
+   * LDAP client to support passwords hashed using crypt.
+   */
+  @Test
+  public void testTestLogin_UserPasswordAttributeUsingCrypt() throws Exception {
+    ldapServer.start();
+    ldapServer.loadData("/LdapResourceTest/ldap_users.ldif");
+
+    LdapServer server = tempEntity.newLdapServer("test");
+    tempEntity.newLdapConnection(server.getId(), ldapServer.getPort());
+    LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
+    mapping.setUserPasswordAttribute("userPassword");
+    new LdapUserMappingDAO().update(mapping);
+
+    LdapTestLoginRequest login = new LdapTestLoginRequest();
+    login.setUserMapping(mapping);
+    login.setUsername("cryptuser");
+    login.setPassword("brianf123");
+
+    HttpResponse response = restRequest().path(LdapResource.TEST_LOGIN_PATH).parameter(mapping.getServerId())
+        .body(login).put();
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
+    assertThat(status.getStatus(), is(LdapConnectionStatus.Status.OK));
   }
 
   private File getTestResourceFile(String path) throws IOException {

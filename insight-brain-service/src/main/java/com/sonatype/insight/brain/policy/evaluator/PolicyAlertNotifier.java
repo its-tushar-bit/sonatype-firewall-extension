@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.jira.JiraPolicyAlertNotifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -36,17 +35,13 @@ public class PolicyAlertNotifier
 
   private final PolicyAlertEmailer policyAlertEmailer;
 
-  private final PolicyViolationDAO policyViolationDAO;
-
   private final JiraPolicyAlertNotifier jiraPolicyAlertNotifier;
 
   @Inject
   public PolicyAlertNotifier(final PolicyAlertEmailer policyAlertEmailer,
-                             final PolicyViolationDAO policyViolationDAO,
                              final JiraPolicyAlertNotifier jiraPolicyAlertNotifier)
   {
     this.policyAlertEmailer = policyAlertEmailer;
-    this.policyViolationDAO = policyViolationDAO;
     this.jiraPolicyAlertNotifier = jiraPolicyAlertNotifier;
   }
 
@@ -56,13 +51,11 @@ public class PolicyAlertNotifier
    */
   public void sendNotifications(final Application app,
                                 final PolicyEvaluation currentEvaluation,
-                                final PolicyEvaluation previousEvaluation)
+                                final List<PolicyViolation> appearedViolations)
   {
-    PolicyViolationDiff<PolicyViolation> diff = createPolicyViolationDiff(previousEvaluation, currentEvaluation);
-
-    if (diff.hasAppeared()) {
+    if (!appearedViolations.isEmpty()) {
       List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-          .createPolicyNotifications(diff.getAppeared(), currentEvaluation.getStageTypeId(),
+          .createPolicyNotifications(appearedViolations, currentEvaluation.getStageTypeId(),
               currentEvaluation.isForMonitoring());
 
       // sort the alerts by threat-level, which is common means to represent in most notifiers
@@ -110,16 +103,5 @@ public class PolicyAlertNotifier
    */
   private static Stage makeStage(final String stageTypeId) {
     return new Stage(stageTypeId, StageTypes.getById(stageTypeId).getName());
-  }
-
-  private PolicyViolationDiff<PolicyViolation> createPolicyViolationDiff(final PolicyEvaluation previousEvaluation,
-                                                        final PolicyEvaluation currentEvaluation)
-  {
-    List<PolicyViolation> currentViolations = policyViolationDAO.getActiveByEvaluationId(currentEvaluation.getId());
-    List<PolicyViolation> previousViolations = null;
-    if (previousEvaluation != null) {
-      previousViolations = policyViolationDAO.getActiveByEvaluationId(previousEvaluation.getId());
-    }
-    return PolicyViolationDigester.digestPolicyViolations(previousViolations, currentViolations);
   }
 }

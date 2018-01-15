@@ -20,9 +20,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -65,17 +63,13 @@ public class PolicyEvaluateResource
         scanId, stage.getStageTypeId());
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    String appId = application.getId();
 
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(appId,
-        stage.getStageTypeId());
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(applicationPublicId, scanId, stage);
+    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
+        .createPolicyEvaluationResult(results.evaluation);
 
-    PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluate(applicationPublicId, scanId, stage);
-    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation);
-
-    if (!policyEvaluation.isReevaluation()) {
-      policyAlertNotifier.sendNotifications(application, policyEvaluation, lastPrimaryPolicyEvaluation);
+    if (!results.evaluation.isReevaluation()) {
+      policyAlertNotifier.sendNotifications(application, results.evaluation, results.notifiableViolations);
     }
 
     return policyEvaluationResult;

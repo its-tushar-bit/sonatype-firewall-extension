@@ -100,22 +100,23 @@ public class ScanPolicyEvaluator
     this.applicationEvaluationEventService = applicationEvaluationEventService;
   }
 
-  public PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage)
+  public ScanPolicyEvaluatorResults evaluate(final String applicationPublicId, final String scanId, final Stage stage)
       throws IOException
   {
     return evaluate(applicationPublicId, scanId, stage, false /* forMonitoring */);
   }
 
-  public PolicyEvaluation evaluateForMonitoring(String applicationPublicId, String scanId, Stage stage)
+  public ScanPolicyEvaluatorResults evaluateForMonitoring(String applicationPublicId, String scanId, Stage stage)
       throws IOException
   {
     return evaluate(applicationPublicId, scanId, stage, true /* forMonitoring */);
   }
 
-  private PolicyEvaluation evaluate(final String applicationPublicId,
-                                    final String scanId,
-                                    final Stage stage,
-                                    boolean forMonitoring) throws IOException
+  private ScanPolicyEvaluatorResults evaluate(final String applicationPublicId,
+                                              final String scanId,
+                                              final Stage stage,
+                                              boolean forMonitoring)
+      throws IOException
   {
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
@@ -142,7 +143,7 @@ public class ScanPolicyEvaluator
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, components, forMonitoring);
 
     // Save the policy evaluation and violations
-    PolicyEvaluation policyEvaluation = persistPolicyResults(appId, scanId, stage, forMonitoring, policyResults,
+    ScanPolicyEvaluatorResults results = persistPolicyResults(appId, scanId, stage, forMonitoring, policyResults,
         components);
     final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
@@ -150,21 +151,21 @@ public class ScanPolicyEvaluator
     Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, alertsFileContent);
 
     Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreatsAdapter
-        .createPolicyThreats(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()))));
+        .createPolicyThreats(results.allViolations)));
 
     ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
 
-    postEvaluateEvent(policyEvaluation);
+    postEvaluateEvent(results.evaluation);
 
-    return policyEvaluation;
+    return results;
   }
 
-  private PolicyEvaluation persistPolicyResults(String appId,
-                                                String scanId,
-                                                Stage stage,
-                                                boolean forMonitoring,
-                                                PolicyResults policyResults,
-                                                List<Component> components)
+  private ScanPolicyEvaluatorResults persistPolicyResults(String appId,
+                                                          String scanId,
+                                                          Stage stage,
+                                                          boolean forMonitoring,
+                                                          PolicyResults policyResults,
+                                                          List<Component> components)
   {
     Object lock = getPersistenceLock(appId);
     synchronized (lock) {
@@ -186,8 +187,12 @@ public class ScanPolicyEvaluator
         }
         policyEvaluationDAO.insert(tx, policyEvaluation);
 
+        ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
+        results.evaluation = policyEvaluation;
+        results.allViolations = new ArrayList<>();
+        results.activeViolations = new ArrayList<>();
+
         // Persist policy violations
-        List<PolicyViolation> newPolicyViolations = new ArrayList<>();
         List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
         allPolicyAlerts.addAll(policyResults.getActiveAlerts());
         allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
@@ -218,8 +223,9 @@ public class ScanPolicyEvaluator
               waivedPolicyViolationDAO.insert(tx, waivedPolicyViolation);
             }
             else {
-              newPolicyViolations.add(policyViolation);
+              results.activeViolations.add(policyViolation);
             }
+            results.allViolations.add(policyViolation);
           }
         }
 
@@ -230,7 +236,7 @@ public class ScanPolicyEvaluator
           List<PolicyViolation> oldPolicyViolations = policyViolationDAO
               .getFirstOccurrenceByApplicationIdAndStageTypeId(tx, appId, stage.getStageTypeId());
           PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
-              .digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
+              .digestPolicyViolations(oldPolicyViolations, results.activeViolations);
           FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
           // Delete cleared first occurrence policy violations
           for (PolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
@@ -255,11 +261,23 @@ public class ScanPolicyEvaluator
           deletePreviousScanFile(appId, stage, previousScanId);
         }
 
+        if (!isReevaluation) {
+          if (lastPrimaryPolicyEvaluation != null) {
+            List<PolicyViolation> oldViolations = policyViolationDAO
+                .getActiveByEvaluationId(lastPrimaryPolicyEvaluation.getId());
+            results.notifiableViolations = PolicyViolationDigester
+                .digestPolicyViolations(oldViolations, results.activeViolations).getAppeared();
+          }
+          else {
+            results.notifiableViolations = new ArrayList<>(results.activeViolations);
+          }
+        }
+
         log.debug(
             "Persisted policy evaluation results (active={}, waived={}) for application {} from stage {} in {} ms",
             policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
             stage.getStageTypeId(), System.currentTimeMillis() - start);
-        return policyEvaluation;
+        return results;
       }
     }
   }

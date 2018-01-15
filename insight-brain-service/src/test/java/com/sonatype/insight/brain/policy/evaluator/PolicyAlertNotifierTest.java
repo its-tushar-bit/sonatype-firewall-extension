@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.Arrays;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -52,7 +54,7 @@ public class PolicyAlertNotifierTest
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
 
-    notifier.sendNotifications(app, eval, null);
+    notifier.sendNotifications(app, eval, Arrays.asList());
     logOutput.assertDebug("Not sending notifications for application " + app.getPublicId() + " and scan "
         + eval.getScanId() + " in stage " + eval.getStageTypeId() + ", no new policy violations since last evaluation");
   }
@@ -61,9 +63,9 @@ public class PolicyAlertNotifierTest
   public void test_Notification_Email() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test");
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
-    newPolicyViolationWantingAlerts(app, eval);
+    PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
 
-    notifier.sendNotifications(app, eval, null);
+    notifier.sendNotifications(app, eval, Arrays.asList(violation));
     verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class),
         anyListOf(PolicyNotification.class));
   }

@@ -168,12 +168,9 @@ public class PolicyMonitor
     Files.move(tempScanFile.toPath(), work.getScanFile(app.getId(), newScanId).toPath());
 
     // Evaluate policies and send notifications
-    PolicyEvaluation lastMonitoringPolicyEvaluation = policyEvaluationDAO
-        .getLastMonitoringByApplicationIdAndScanId(app.getId(), lastScanId);
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluateForMonitoring(app.getPublicId(), newScanId, stage);
-    policyAlertNotifier.sendNotifications(app, policyEvaluation,
-        lastMonitoringPolicyEvaluation != null ? lastMonitoringPolicyEvaluation : lastPrimaryPolicyEvaluation);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluateForMonitoring(app.getPublicId(), newScanId, stage);
+    policyAlertNotifier.sendNotifications(app, results.evaluation, results.notifiableViolations);
 
     log.debug("Policy monitoring evaluated for application '{}' in {} ms", app.getName(), System.currentTimeMillis()
         - start);

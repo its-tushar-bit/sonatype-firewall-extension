@@ -16,12 +16,11 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -197,13 +196,10 @@ class ScanTask
 
       // get report/perform evaluation
       state = State.EVALUATING_POLICY;
-      PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-      PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
-          app.getId(), stage.getStageTypeId());
       // The ScanPolicyEvaluator will fetch the report if it's not there
-      PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluate(appPublicId, scanReceipt.getScanId(), stage);
+      ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(appPublicId, scanReceipt.getScanId(), stage);
       if (sendNotifications) {
-        policyAlertNotifier.sendNotifications(app, policyEvaluation, lastPrimaryPolicyEvaluation);
+        policyAlertNotifier.sendNotifications(app, results.evaluation, results.notifiableViolations);
       }
 
       // provide report/scanId once evaluation is completed successfully

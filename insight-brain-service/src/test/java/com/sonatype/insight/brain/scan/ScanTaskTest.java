@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -199,13 +201,15 @@ public class ScanTaskTest
   public void sendsNotifications() throws Exception {
     task.init(app, bundleFile, bundleFilename, stage, true);
 
-    PolicyEvaluation eval = new PolicyEvaluation();
+    ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
+    results.evaluation = new PolicyEvaluation();
+    results.notifiableViolations = new ArrayList<>();
     when(scanPolicyEvaluator.evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage))).thenReturn(
-        eval);
+        results);
 
     task.run();
 
-    verify(notifier).sendNotifications(eq(app), same(eval), (PolicyEvaluation) any());
+    verify(notifier).sendNotifications(eq(app), same(results.evaluation), same(results.notifiableViolations));
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

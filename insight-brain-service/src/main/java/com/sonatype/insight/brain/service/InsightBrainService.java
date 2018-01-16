@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.TraceMethodBlockFilter;
+import com.sonatype.insight.brain.telemetry.TelemetryCollector;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
@@ -171,6 +172,20 @@ public class InsightBrainService
         catch (Exception e) {
           log.info("Failed to retrieve license data from Sonatype HDS");
           log.debug("Failed to retrieve license data from Sonatype HDS", e);
+        }
+      }
+    }.start();
+
+    new Thread("Startup telemetry")
+    {
+      @Override
+      public void run() {
+        try {
+          getInstance(TelemetryCollector.class).collectAppsAndOrgs();
+          //TODO:  Next subtask is to send it to HDS.  Will be a separate PR.
+        }
+        catch (Exception e) {
+          log.warn("Failed telemetry on start", e);
         }
       }
     }.start();

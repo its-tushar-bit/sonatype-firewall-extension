@@ -89,7 +89,7 @@ public class OrganizationDAO
 
   @Override
   public void insert(TransactionContext tx, Organization organization) {
-    NameHelper.validate(organization.getName());
+    NameHelper.validate("Name", organization.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
 
     if (getByName(tx, organization.getName()) != null) {
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
@@ -112,7 +112,7 @@ public class OrganizationDAO
 
   @Override
   public void update(TransactionContext tx, Organization organization) {
-    NameHelper.validate(organization.getName());
+    NameHelper.validate("Name", organization.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(organization.getId())) {
       // Make sure root org updates do not set the parent org

@@ -865,14 +865,14 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameLength_Insert() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
+    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     Application app = new Application("publicId", name + "a", organization.getId());
     try {
       applicationDAO.insert(app);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("Name must be 60 characters or less."));
+      assertThat(expected.getMessage(), is("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less."));
     }
 
     app.setName(name);
@@ -881,14 +881,14 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameLength_Update() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
+    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     application.setName(name + "a");
     try {
       applicationDAO.update(application);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("Name must be 60 characters or less."));
+      assertThat(expected.getMessage(), is("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less."));
     }
 
     application.setName(name);

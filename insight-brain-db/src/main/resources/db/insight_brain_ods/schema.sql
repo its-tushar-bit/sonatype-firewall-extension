@@ -17,8 +17,8 @@ INSERT INTO schema_info (schema_info_id, drools_code_version, policy_json_versio
 CREATE TABLE organization (
   organization_id varchar(50) NOT NULL,
   parent_organization_id varchar(50) NULL,
-  name varchar(60) NOT NULL,
-  name_lowercase_no_whitespace varchar(60) NOT NULL,
+  name varchar(100) NOT NULL,
+  name_lowercase_no_whitespace varchar(100) NOT NULL,
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
@@ -30,8 +30,8 @@ CREATE TABLE application (
   application_id varchar(50) NOT NULL,
   public_id varchar(200) NOT NULL,
   public_id_lowercase varchar(200) NOT NULL,
-  name varchar(60) NOT NULL,
-  name_lowercase_no_whitespace varchar(60) NOT NULL,
+  name varchar(100) NOT NULL,
+  name_lowercase_no_whitespace varchar(100) NOT NULL,
   organization_id varchar(50) NOT NULL,
   contact_internal_name varchar(60) NULL, -- The internal name of the contact User (CLM User or LDAP user)
   CONSTRAINT application_pk PRIMARY KEY (application_id),

@@ -413,13 +413,13 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameLength_Insert() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
+    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     try {
       tempEntity.newOrganization(name + "a");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
+      assertEquals("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.", expected.getMessage());
     }
 
     tempEntity.newOrganization(name);
@@ -427,14 +427,14 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameLength_Update() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
+    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     organization.setName(name + "a");
     try {
       dao.update(organization);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("Name must be 60 characters or less.", expected.getMessage());
+      assertEquals("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.", expected.getMessage());
     }
 
     organization.setName(name);

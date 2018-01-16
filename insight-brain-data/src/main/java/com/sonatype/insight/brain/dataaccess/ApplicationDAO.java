@@ -372,7 +372,7 @@ public class ApplicationDAO
   }
 
   private void validate(Application application) {
-    NameHelper.validate(application.getName());
+    NameHelper.validate("Name", application.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
   }
 
   private void validatePublicId(String publicId) {

@@ -13,6 +13,8 @@ public class NameHelper
 
   public static final int MAX_NAME_LENGTH = 60;
 
+  public static final int MAX_NAME_LENGTH_APP_ORG = 100;
+
   private NameHelper() {
   }
 

@@ -66,7 +66,7 @@ public class PolicyEvaluateResource
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(applicationPublicId, scanId, stage);
     PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
-        .createPolicyEvaluationResult(results.evaluation);
+        .createPolicyEvaluationResult(results.evaluation, results.activeViolations, true);
 
     if (!results.evaluation.isReevaluation()) {
       policyAlertNotifier.sendNotifications(application, results.evaluation, results.notifiableViolations);

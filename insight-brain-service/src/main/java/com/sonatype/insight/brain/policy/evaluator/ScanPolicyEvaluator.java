@@ -155,7 +155,7 @@ public class ScanPolicyEvaluator
 
     ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
 
-    postEvaluateEvent(results.evaluation);
+    postEvaluateEvent(results.evaluation, results.activeViolations);
 
     return results;
   }
@@ -358,12 +358,15 @@ public class ScanPolicyEvaluator
     policyEvaluationResult.setModerateComponentCount(moderateCount);
   }
 
-  public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation) {
-    return createPolicyEvaluationResult(policyEvaluation, true);
-  }
-
   public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation, boolean createAlerts) {
     List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
+    return createPolicyEvaluationResult(policyEvaluation, policyViolations, createAlerts);
+  }
+
+  public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation,
+                                                             List<PolicyViolation> policyViolations,
+                                                             boolean createAlerts)
+  {
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
@@ -377,8 +380,9 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.25.0
    */
-  private void postEvaluateEvent(PolicyEvaluation policyEvaluation) {
-    PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation);
+  private void postEvaluateEvent(PolicyEvaluation policyEvaluation, List<PolicyViolation> policyViolations) {
+    PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(policyEvaluation, policyViolations,
+        true);
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
   }
 

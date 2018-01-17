@@ -2,7 +2,7 @@
   <script type="text/ng-template" id="install-license-form">
     <form id="license-form" ng-upload="uploadCompleted(content)" action='{{uploadUrl}}' class='form'
         style='margin: 0px;display: inline-block' method='post'>
-      <label for="license-input" firefox-input-click class='btn btn-primary'>
+      <label for="license-input" class='btn btn-primary'>
         <i class="fa fa-download"></i>{{ license ? 'Update' : 'Install' }} License
       </label>
       <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file"

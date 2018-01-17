@@ -285,21 +285,6 @@ angularCommon.directive('clmInclude', [
   }
 ]);
 
-angularCommon.directive('firefoxInputClick', function() {
-  return {
-    link: function(scope, element) {
-      // Firefox v21 and below have a bug where clicking a file input label does not open the file input dialog
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=838695
-      if (navigator.userAgent.indexOf('Firefox') !== -1 &&
-          navigator.userAgent.substring(navigator.userAgent.lastIndexOf('/') + 1) < 22) {
-        element.on('click', function() {
-          angular.element('#' + element.attr('for')).click();
-        });
-      }
-    }
-  };
-});
-
 /**
  * Render four tiles representing threat levels. By default will only render tiles for set values, unless 'always-show="true"'
  * is specified.

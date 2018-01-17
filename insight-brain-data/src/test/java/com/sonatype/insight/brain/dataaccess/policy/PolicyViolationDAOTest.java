@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -122,8 +121,7 @@ public class PolicyViolationDAOTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), applicationId);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyViolationDAOTest");
-    WaivedPolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
-        policyWaiver);
+    PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
     WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
     assertThat(waivedPolicyViolationDAO.getById(waivedPolicyViolation.getId()), is(notNullValue()));
 
@@ -215,8 +213,7 @@ public class PolicyViolationDAOTest
     PolicyViolation activeViolation = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1",
         null);
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);
-    WaivedPolicyViolation waivedPolicyViolation = tempEntity
-        .newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
+    PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
 
     PolicyEvaluation evaluation2 = tempEntity
         .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
@@ -277,8 +274,7 @@ public class PolicyViolationDAOTest
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation activeViolation1 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1",
         null);
-    WaivedPolicyViolation waivedPolicyViolation = tempEntity
-        .newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
+    PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
 
     PolicyEvaluation evaluation2 = tempEntity
         .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
@@ -325,7 +321,7 @@ public class PolicyViolationDAOTest
     PolicyViolationDAO dao = new PolicyViolationDAO();
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);
-    WaivedPolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(evaluation, policy, policyWaiver);
+    PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(evaluation, policy, policyWaiver);
     String hash = dao.getById(waivedPolicyViolation.getId()).getHash();
     PolicyViolation activeViolation = tempEntity.newPolicyViolation(evaluation, policy, "gid", "aid", "1", hash, null);
 

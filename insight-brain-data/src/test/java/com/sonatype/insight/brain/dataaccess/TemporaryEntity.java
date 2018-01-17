@@ -1035,36 +1035,39 @@ public class TemporaryEntity
         "Artifact1", "Version1");
   }
 
-  public WaivedPolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
-                                                        Policy policy,
-                                                        ComponentIdentifier componentIdentifier,
-                                                        String hash,
-                                                        PolicyWaiver policyWaiver)
+  public PolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
+                                                  Policy policy,
+                                                  ComponentIdentifier componentIdentifier,
+                                                  String hash,
+                                                  PolicyWaiver policyWaiver)
   {
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
-        policy.getThreatLevel(), policy.getThreatCategory(), hash, componentIdentifier, "[]", "unknown.jar");
-
-    policyViolationDAO.insert(policyViolation);
-
-    return newWaivedPolicyViolation(policyViolation, policyWaiver);
+    return newWaivedPolicyViolation(evaluation, policy, policy.getThreatLevel(), policy.getThreatCategory(),
+        componentIdentifier, hash, policyWaiver);
   }
 
-  public WaivedPolicyViolation newWaivedPolicyViolation(PolicyViolation policyViolation,
-                                                        PolicyWaiver policyWaiver)
+  public PolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
+                                                  Policy policy,
+                                                  int threatLevel,
+                                                  PolicyThreatCategory threatCategory,
+                                                  ComponentIdentifier componentIdentifier,
+                                                  String hash,
+                                                  PolicyWaiver policyWaiver)
   {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
+        threatCategory, hash, componentIdentifier, "[]", "unknown.jar");
     policyViolation.setWaived(true);
-    policyViolationDAO.update(policyViolation);
+    policyViolationDAO.insert(policyViolation);
 
     WaivedPolicyViolation waivedPolicyViolation = new WaivedPolicyViolation(policyViolation.getId(),
         policyWaiver.getId(), policyWaiver.getComment());
     waivedPolicyViolationDAO.insert(waivedPolicyViolation);
 
-    return waivedPolicyViolation;
+    return policyViolation;
   }
 
-  public WaivedPolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
-                                                        Policy policy,
-                                                        PolicyWaiver policyWaiver)
+  public PolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
+                                                  Policy policy,
+                                                  PolicyWaiver policyWaiver)
   {
     return newWaivedPolicyViolation(evaluation, policy,
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), "hash", policyWaiver);

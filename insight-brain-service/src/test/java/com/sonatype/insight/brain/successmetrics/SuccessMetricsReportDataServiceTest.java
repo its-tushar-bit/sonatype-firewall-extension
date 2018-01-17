@@ -286,12 +286,12 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(eval1, policy1);
     tempEntity.newPolicyViolation(eval2, policy1);
     tempEntity.newPolicyViolation(eval2, policy2);
-    tempEntity.newWaivedPolicyViolation(tempEntity.newPolicyViolation(eval3, policy1), waiver1);
+    tempEntity.newWaivedPolicyViolation(eval3, policy1, waiver1);
     tempEntity.newPolicyViolation(eval3, policy2);
     tempEntity.newPolicyViolation(eval4, policy1);
     tempEntity.newPolicyViolation(eval4, policy2);
-    tempEntity.newWaivedPolicyViolation(tempEntity.newPolicyViolation(eval5, policy1), waiver1);
-    tempEntity.newWaivedPolicyViolation(tempEntity.newPolicyViolation(eval5, policy2), waiver2);
+    tempEntity.newWaivedPolicyViolation(eval5, policy1, waiver1);
+    tempEntity.newWaivedPolicyViolation(eval5, policy2, waiver2);
 
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(appId));
     List<MttrDTO> results = service.getChartData(successMetricsReport.getId()).mttrs;

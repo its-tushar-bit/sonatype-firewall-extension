@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -32,9 +33,8 @@ public class WaivedPolicyViolationDAOTest
     WaivedPolicyViolationDAO dao = new WaivedPolicyViolationDAO();
 
     // Create
-    WaivedPolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
-        policyWaiver);
-    waivedPolicyViolation = dao.getById(waivedPolicyViolation.getId());
+    PolicyViolation policyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
+    WaivedPolicyViolation waivedPolicyViolation = dao.getById(policyViolation.getId());
     assertThat(waivedPolicyViolation, is(notNullValue()));
 
     // Read

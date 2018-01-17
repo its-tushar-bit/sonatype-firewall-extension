@@ -191,10 +191,9 @@ public class DashboardFilterTest
         .newFirstOccurrencePolicyViolation(secondViolation.getId(), secondPolicyEvaluation.getApplicationId(),
             secondPolicyEvaluation.getStageTypeId());
 
-    PolicyViolation waivedPolicyViolation = staticTempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 3,
-        PolicyThreatCategory.QUALITY, "Group2", "Artifact2", "Version2", "hash-waived");
     PolicyWaiver policyWaiver = staticTempEntity.newWaiver("hash-waived", policy.getId(), secondApp.getId());
-    staticTempEntity.newWaivedPolicyViolation(waivedPolicyViolation, policyWaiver);
+    staticTempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,
+        ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), "hash-waived", policyWaiver);
   }
 
   /**

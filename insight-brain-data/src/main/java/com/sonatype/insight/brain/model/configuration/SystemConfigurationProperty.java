@@ -20,6 +20,10 @@ import com.sonatype.insight.model.HasStringId;
 public class SystemConfigurationProperty
     implements HasStringId
 {
+  public static final String AUTOMATIC_APPLICATION_CREATION_ENABLED = "AUTOMATIC_APPLICATION_CREATION_ENABLED";
+
+  public static final String AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID = "AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

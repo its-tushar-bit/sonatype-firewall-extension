@@ -205,6 +205,7 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('0
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('869815aecdc849a8ade21ffc5ccc41ea', 'b9646757e98e486da7d730025f5245f8', 'EDIT_ROLES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('f3fe74d34577471c936c332293c5ba0a', 'b9646757e98e486da7d730025f5245f8', 'CLAIM_COMPONENT');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('f3fe74d34577471c936c332293c5ba0b', 'b9646757e98e486da7d730025f5245f8', 'ADD_APPLICATION');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('043024fcd34c47a1bea907cc0c84955f', 'b9646757e98e486da7d730025f5245f8', 'MANAGE_AUTOMATIC_APPLICATION_CREATION');
 -- Owner role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c8d6f420845466bbc1eb5eaf6d4baa2', '1cddabf7fdaa47d6833454af10e0a3ef', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c2587ba144341fd9d937dd36c850f5a', '1cddabf7fdaa47d6833454af10e0a3ef', 'READ');
@@ -538,3 +539,6 @@ CREATE TABLE system_configuration_property (
 );
 -- Add  default value for SUCCESS_METRICS_ENABLED (true)
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('39ae05576fcf474da6771b9f879759f7', 'SUCCESS_METRICS_ENABLED', 'true');
+-- Add default values for automatic application configuration settings
+INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('3a927fda2992470e9fc479376702c6b5', 'AUTOMATIC_APPLICATION_CREATION_ENABLED', 'false');
+INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('3ba8d0f1601946efb376fd841a149bb0', 'AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID', '');

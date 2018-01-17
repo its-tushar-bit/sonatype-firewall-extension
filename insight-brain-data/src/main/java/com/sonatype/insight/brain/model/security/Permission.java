@@ -32,7 +32,10 @@ public enum Permission
 
   EVALUATE_COMPONENT("Evaluate", PermissionCategory.IQ, "Individual Components", false /* global */, true /* allowedInCustomRoles */),
 
-  ADD_APPLICATION("Add", PermissionCategory.IQ, "Applications", false /* global */, true /* allowedInCustomRoles */);
+  ADD_APPLICATION("Add", PermissionCategory.IQ, "Applications", false /* global */, true /* allowedInCustomRoles */),
+  
+  MANAGE_AUTOMATIC_APPLICATION_CREATION("Manage", PermissionCategory.IQ, "Automatic Application Creation",
+      true /* global */, true /* allowedInCustomRoles */);
 
   private final String displayName;
 

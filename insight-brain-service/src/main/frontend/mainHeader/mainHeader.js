@@ -25,7 +25,9 @@ function MainHeaderController($state, $scope, ProductFeatures, PermissionService
   }
 
   function doLoad() {
-    PermissionService.getValidPermissions(['CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES']).then(
+    const validPermissions = ['CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES',
+      'MANAGE_AUTOMATIC_APPLICATION_CREATION'];
+    PermissionService.getValidPermissions(validPermissions).then(
         function(data) {
           angular.forEach(data, function(permission) {
             vm.permissions[permission] = true;

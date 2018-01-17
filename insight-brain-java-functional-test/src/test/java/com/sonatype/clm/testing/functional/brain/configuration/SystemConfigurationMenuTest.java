@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
+import com.sonatype.clm.testing.functional.pages.AutomaticApplicationsConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -66,6 +67,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.webhooks().shouldBe(visible);
     systemConfigMenu.systemNotice().shouldBe(visible);
     systemConfigMenu.successMetrics().shouldBe(visible);
+    systemConfigMenu.automaticApplications().shouldBe(visible);
   }
 
   @Test
@@ -86,6 +88,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.webhooks().shouldBe(visible);
     systemConfigMenu.systemNotice().shouldBe(visible);
     systemConfigMenu.successMetrics().shouldBe(visible);
+    systemConfigMenu.automaticApplications().shouldBe(hidden);
   }
 
   @Test
@@ -106,5 +109,27 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.webhooks().shouldBe(hidden);
     systemConfigMenu.systemNotice().shouldBe(hidden);
     systemConfigMenu.successMetrics().shouldBe(hidden);
+    systemConfigMenu.automaticApplications().shouldBe(hidden);
+  }
+
+  @Test
+  public void testPermissionAwareness_MANAGE_AUTOMATIC_APPLICATION_CREATION() {
+    User user = newUser(Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+
+    refreshOrOpen(AutomaticApplicationsConfigurationPage.URL);
+    login(user.getUsername(), user.getPassword());
+
+    systemConfigMenu.shouldBe(visible);
+    systemConfigMenu.dropdownToggle().click();
+
+    systemConfigMenu.users().shouldBe(hidden);
+    systemConfigMenu.roles().shouldBe(hidden);
+    systemConfigMenu.administrators().shouldBe(hidden);
+    systemConfigMenu.productLicense().shouldBe(hidden);
+    systemConfigMenu.ldap().shouldBe(hidden);
+    systemConfigMenu.webhooks().shouldBe(hidden);
+    systemConfigMenu.systemNotice().shouldBe(hidden);
+    systemConfigMenu.successMetrics().shouldBe(hidden);
+    systemConfigMenu.automaticApplications().shouldBe(visible);
   }
 }

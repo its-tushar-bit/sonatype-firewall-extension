@@ -33,7 +33,7 @@ public class SystemConfigurationPropertyDAO
     return get(tx, sQuery, name);
   }
 
-  private SystemConfigurationProperty getByNameNotNull(TransactionContext tx, String name) {
+  public SystemConfigurationProperty getByNameNotNull(TransactionContext tx, String name) {
     SystemConfigurationProperty property = getByName(tx, name);
     if (property == null) {
       throw new NotFoundException("A system configuration property '" + name + "' does not exist.");

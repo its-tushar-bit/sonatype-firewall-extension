@@ -51,4 +51,8 @@ public class SystemConfigMenu
   public SelenideElement successMetrics() {
     return child("#system-configuration-success-metrics a");
   }
+
+  public SelenideElement automaticApplications() {
+    return child("#system-configuration-automatic-applications a");
+  }
 }

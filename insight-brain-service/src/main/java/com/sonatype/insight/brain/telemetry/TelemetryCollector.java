@@ -32,15 +32,15 @@ public class TelemetryCollector
 
   private final OrganizationDAO organizationDAO;
 
-  static final String NUMBER_OF_ORGS = "number-of-orgs";
+  static final String NUMBER_OF_ORGS = "number_of_orgs";
 
-  static final String NUMBER_OF_APPS = "number-of-apps";
+  static final String NUMBER_OF_APPS = "number_of_apps";
 
-  static final String MIN_APPS_PER_ORG = "min-apps-per-org";
+  static final String MIN_APPS_PER_ORG = "min_apps_per_org";
 
-  static final String MAX_APPS_PER_ORG = "max-apps-per-org";
+  static final String MAX_APPS_PER_ORG = "max_apps_per_org";
 
-  static final String P90_APPS_PER_ORG = "p90-apps-per-org";
+  static final String P90_APPS_PER_ORG = "p90_apps_per_org";
 
   @Inject
   public TelemetryCollector(ApplicationDAO applicationDAO, OrganizationDAO organizationDAO) {

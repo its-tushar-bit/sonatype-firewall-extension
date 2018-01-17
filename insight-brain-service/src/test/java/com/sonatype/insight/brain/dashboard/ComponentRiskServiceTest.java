@@ -302,8 +302,8 @@ public class ComponentRiskServiceTest
   @Test
   public void testGetPolicyViolations_FilterByPolicyViolationState() throws Exception {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
-    WaivedPolicyViolation waivedViolation = tempEntity
-        .newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy, "gid", "aid", "1", "hash1", policyWaiver);
+    WaivedPolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation violation = policyViolationDAO.getById(waivedViolation.getId());
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
@@ -571,8 +571,8 @@ public class ComponentRiskServiceTest
   @Test
   public void testGetComponentRisks_FilterByPolicyViolationState() throws Exception {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
-    WaivedPolicyViolation waivedViolation = tempEntity
-        .newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy, "gid", "aid", "1", "hash1", policyWaiver);
+    WaivedPolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
@@ -617,8 +617,8 @@ public class ComponentRiskServiceTest
   @Test
   public void testGetComponentRisks_FilterByApplicationAndPolicyViolationState() throws Exception {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
-    WaivedPolicyViolation waivedViolation = tempEntity
-        .newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy, "gid", "aid", "1", "hash1", policyWaiver);
+    WaivedPolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService

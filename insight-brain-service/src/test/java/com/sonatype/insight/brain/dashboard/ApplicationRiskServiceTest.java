@@ -149,7 +149,8 @@ public class ApplicationRiskServiceTest
   @Test
   public void testGetApplicationRisks_FilterByPolicyViolationState() throws Exception {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
-    tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy, "gid", "aid", "1", "hash1", policyWaiver);
+    tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 1000);

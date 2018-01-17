@@ -1064,21 +1064,10 @@ public class TemporaryEntity
 
   public WaivedPolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
                                                         Policy policy,
-                                                        String groupId,
-                                                        String artifactId,
-                                                        String version,
-                                                        String hash,
                                                         PolicyWaiver policyWaiver)
   {
     return newWaivedPolicyViolation(evaluation, policy,
-        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), hash, policyWaiver);
-  }
-
-  public WaivedPolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
-                                                        Policy policy,
-                                                        PolicyWaiver policyWaiver)
-  {
-    return newWaivedPolicyViolation(evaluation, policy, "Group1", "Artifact1", "Version1", "hash", policyWaiver);
+        ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), "hash", policyWaiver);
   }
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,

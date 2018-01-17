@@ -30,6 +30,16 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   padding-bottom: 0;
 }
 
+.iq-tile--grid-tile {
+  .iq-tile-header {
+    margin-bottom: 0;
+  }
+
+  .iq-tile-footer {
+    margin-top: 0;
+  }
+}
+
 // Tile headers
 
 .iq-tile-header {

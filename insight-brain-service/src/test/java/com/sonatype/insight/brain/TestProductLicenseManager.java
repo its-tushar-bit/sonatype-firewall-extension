@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.inject.Named;
@@ -196,6 +197,7 @@ public class TestProductLicenseManager
       Properties properties = new Properties();
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
       properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
+      properties.put(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, Integer.toString(45));
       properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS,
           enforcementPoints.stream().map(CLMEnforcementPoint::name).collect(Collectors.joining(",")));
       if (applicationLimit != null) {
@@ -203,9 +205,20 @@ public class TestProductLicenseManager
       }
       properties.putAll(this.properties);
 
-      ProductLicenseKey key = new DefaultLicenseKey(new Features(featureMap));
-      key.setEffectiveDate(new Date(System.currentTimeMillis() - 10000));
+      DefaultLicenseKey key = new DefaultLicenseKey(new Features(featureMap)) {
+        @Override
+        public int getLicensedUsers() {
+          // DefaultLicenseKey gives no convenient way to set its internal licensedUsers field
+          return 50;
+        }
+      };
+
+      // effective date is yesterday
+      key.setEffectiveDate(new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)));
       key.setExpirationDate(expirationDate);
+      key.setContactName("Billy");
+      key.setContactCompany("Acme");
+      key.setContactEmailAddress("billy@example.com");
       key.setProperties(properties);
       this.key = key;
     }

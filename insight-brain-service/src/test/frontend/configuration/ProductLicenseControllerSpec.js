@@ -1,8 +1,21 @@
 describe('ProductLicenseController', function() {
 
-  var scope, mockWindow, modalOpenSpy, modalResultSpy, mockLicenseSummary = {
-    expiryTimestamp: 1601182800000
-  };
+  var scope,
+      mockWindow,
+      modalOpenSpy,
+      modalResultSpy,
+      mockNow = 1601182800000,
+      mockLicenseSummary = Object.freeze({
+        expiryTimestamp: mockNow + 86400001, // just over 1 day after mockNow
+        contactName: 'Billy',
+        contactCompany: 'Acme',
+        contactEmail: 'billy@example.com',
+        licensedUsersToDisplay: 50,
+        firewallLicensedUsers: 45,
+        applicationLimitToDisplay: 30,
+        products: ['Nexus Pro+', 'Nexus Auditor', 'Nexus Lifecycle', 'Nexus Firewall'],
+        productEdition: 'Lifecycle'
+      });
 
   function getController($controller, scope) {
     return $controller('ProductLicenseController', {
@@ -52,18 +65,124 @@ describe('ProductLicenseController', function() {
   }));
 
   describe('successful load', function() {
-    beforeEach(inject(function($controller, CLMLocations, $httpBackend) {
+    var $controller, CLMLocations, $httpBackend;
+
+    beforeEach(inject(function(_$controller_, _CLMLocations_, _$httpBackend_) {
+      $controller = _$controller_;
+      CLMLocations = _CLMLocations_;
+      $httpBackend = _$httpBackend_;
+    }));
+
+    it('should be set with data', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
           .respond(mockLicenseSummary);
       getController($controller, scope);
       $httpBackend.flush();
-    }));
 
-    it('should be set with data', function() {
       expect(scope.summaryUrl).toBeDefined();
       expect(scope.uploadUrl).toBeDefined();
-      expect(scope.license).toEqual(mockLicenseSummary);
       expect(scope.isLoaded()).toBeTruthy();
+      expect(scope.license.expiryTimestamp).toEqual(mockLicenseSummary.expiryTimestamp);
+      expect(scope.license.contactName).toEqual(mockLicenseSummary.contactName);
+      expect(scope.license.contactCompany).toEqual(mockLicenseSummary.contactCompany);
+      expect(scope.license.contactEmail).toEqual(mockLicenseSummary.contactEmail);
+      expect(scope.license.licensedUsers).toEqual(mockLicenseSummary.licensedUsers);
+      expect(scope.license.applicationLimit).toEqual(mockLicenseSummary.applicationLimit);
+      expect(scope.license.products).toEqual(mockLicenseSummary.products);
+    });
+
+    it('sets displayUserLimits to true if licensedUsersToDisplay or firewallLicensedUsers are not null', function() {
+      var response = mockLicenseSummary,
+          url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
+
+      $httpBackend.expectGET(url).respond(response);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.displayUserLimits).toBe(true);
+
+      response = Object.assign({}, mockLicenseSummary, { licensedUsersToDisplay: null });
+
+      $httpBackend.expectGET(url).respond(response);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.displayUserLimits).toBe(true);
+
+      response = Object.assign({}, mockLicenseSummary, { firewallLicensedUsers: null });
+
+      $httpBackend.expectGET(url).respond(response);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.displayUserLimits).toBe(true);
+
+      response = Object.assign({}, mockLicenseSummary, { firewallLicensedUsers: null, licensedUsersToDisplay: null });
+
+      $httpBackend.expectGET(url).respond(response);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.displayUserLimits).toBe(false);
+    });
+
+    it('sets displayApplicationLimit to true if applicationLimitToDisplay is not null', function() {
+      var response = mockLicenseSummary,
+          url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
+
+      $httpBackend.expectGET(url).respond(response);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.displayApplicationLimit).toBe(true);
+
+      response = Object.assign({}, mockLicenseSummary, { applicationLimitToDisplay: null });
+
+      $httpBackend.expectGET(url).respond(response);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.displayApplicationLimit).toBe(false);
+    });
+
+    it('sets displayFirewallLimit to true if firewallLicensedUsers is not null', function() {
+      var response = mockLicenseSummary,
+          url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
+
+      $httpBackend.expectGET(url).respond(response);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.displayFirewallLimit).toBe(true);
+
+      response = Object.assign({}, mockLicenseSummary, { firewallLicensedUsers: null });
+
+      $httpBackend.expectGET(url).respond(response);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.displayFirewallLimit).toBe(false);
+    });
+
+    it('sets daysToExpiration to the number of days before the license expires', function() {
+      var now = mockNow;
+
+      spyOn(Date, 'now').and.callFake(function() { return now; });
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
+          .respond(mockLicenseSummary);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.license.daysToExpiration).toBe(1);
+
+      now = mockNow + 5;
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
+          .respond(mockLicenseSummary);
+      getController($controller, scope);
+      $httpBackend.flush();
+
+      expect(scope.license.daysToExpiration).toBe(0);
     });
   });
 

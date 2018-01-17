@@ -350,7 +350,7 @@ dropdown-selector {
   margin-top: 0;
   margin-bottom: 13px;
   
-  dt {
+  > dt, > div > dt {
     @include semi-bold();
     
     color: $iq-off-black;

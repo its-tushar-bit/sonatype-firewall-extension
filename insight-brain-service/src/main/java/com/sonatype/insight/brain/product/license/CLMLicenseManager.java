@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -58,18 +59,37 @@ public class CLMLicenseManager
 
     private final long expirationTimestamp;
 
+    private final int licensedUsers;
+
+    private final String contactName;
+
+    private final String contactCompany;
+
+    private final String contactEmail;
+
     public CachedLicenseData(final String fingerprint,
                              final int version,
                              Integer applicationLimit,
                              final Set<String> products,
                              final String[] features,
                              final Set<CLMEnforcementPoint> enforcementPoints,
-                             final long expirationTimestamp)
+                             final long expirationTimestamp,
+                             final int licensedUsers,
+                             final Integer maxFirewallUsers,
+                             final String contactName,
+                             final String contactCompany,
+                             final String contactEmail)
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
+      this.licensedUsers = licensedUsers;
+      this.contactName = contactName;
+      this.contactCompany = contactCompany;
+      this.contactEmail = contactEmail;
+
       setVersion(version);
       super.setApplicationLimit(applicationLimit);
+      super.setMaxFirewallUsers(maxFirewallUsers);
       super.setEnforcementPoints(enforcementPoints.toArray(new CLMEnforcementPoint[enforcementPoints.size()]));
       super.setFeatures(features);
       setProducts(products);
@@ -80,24 +100,75 @@ public class CLMLicenseManager
     }
   }
 
-  public static final class LicenseSummary
+  public static class LicenseSummary
   {
-    public String fingerprint;
-
-    public long expiryTimestamp;
-
-    public String[] features;
-
     public String productEdition;
 
     public LicenseSummary() {
     }
 
-    public LicenseSummary(String fingerprint, long timestamp, String[] features, String productEdition) {
-      this.fingerprint = fingerprint;
-      this.expiryTimestamp = timestamp;
-      this.features = features;
+    public LicenseSummary(String productEdition) {
       this.productEdition = productEdition;
+    }
+  }
+
+  public static final class LicenseInfo
+      extends LicenseSummary
+  {
+    public String fingerprint;
+
+    public long expiryTimestamp;
+
+    /*
+     * NOTE: The next two fields aren't necessarily the real limits, they're just the limits that we want
+     * to show to users in the License info page. In particular, Lifecycle licenses aren't sold by application limit,
+     * so we don't want to display it for those licenses. However, they do still technically have an application
+     * limit, which will not be reflected in the value of this property. Similarly, Auditor licenses don't really use
+     * the licensedUsers field, but it still has a value in the license simply because it isn't nullable.
+     */
+    public Integer licensedUsersToDisplay;
+
+    public Integer applicationLimitToDisplay;
+
+    public Integer firewallLicensedUsers;
+
+    public String contactName;
+
+    public String contactCompany;
+
+    public String contactEmail;
+
+    public String[] features;
+
+    public String[] products;
+
+    public LicenseInfo() {
+    }
+
+    public LicenseInfo(String fingerprint,
+                       long expiryTimestamp,
+                       Integer licensedUsersToDisplay,
+                       Integer firewallLicensedUsers,
+                       Integer applicationLimitToDisplay,
+                       String contactName,
+                       String contactCompany,
+                       String contactEmail,
+                       String[] features,
+                       String[] products,
+                       String productEdition)
+    {
+      super(productEdition);
+
+      this.fingerprint = fingerprint;
+      this.expiryTimestamp = expiryTimestamp;
+      this.licensedUsersToDisplay = licensedUsersToDisplay;
+      this.firewallLicensedUsers = firewallLicensedUsers;
+      this.applicationLimitToDisplay = applicationLimitToDisplay;
+      this.contactName = contactName;
+      this.contactCompany = contactCompany;
+      this.contactEmail = contactEmail;
+      this.features = features;
+      this.products = products;
     }
   }
 
@@ -253,6 +324,33 @@ public class CLMLicenseManager
     return licenseCache.getProducts();
   }
 
+  /**
+   * A function to map from product names stored in the license to product names suitable for
+   * display to the end-user
+   */
+  private static String getProductMarketingName(String internalName) {
+    String marketingNameSuffix;
+
+    switch (internalName) {
+      case ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION:
+        marketingNameSuffix = PRODUCT_LIFECYCLE;
+        break;
+      case ProductLicenseDetails.PRODUCT_FIREWALL:
+        marketingNameSuffix = PRODUCT_FIREWALL;
+        break;
+      case ProductLicenseDetails.PRODUCT_NEXUS:
+        marketingNameSuffix = PRODUCT_PRO_PLUS;
+        break;
+      case ProductLicenseDetails.PRODUCT_RISK:
+        marketingNameSuffix = PRODUCT_AUDITOR;
+        break;
+      default:
+        return null;
+    }
+
+    return "Nexus " + marketingNameSuffix;
+  }
+
   public Set<CLMEnforcementPoint> getEnforcementPoints() {
     Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     Collections.addAll(enforcementPoints, licenseCache.getEnforcementPoints());
@@ -260,8 +358,29 @@ public class CLMLicenseManager
   }
 
   public LicenseSummary getLicenseSummary() {
-    return new LicenseSummary(licenseCache.getFingerprint(), licenseCache.expirationTimestamp,
-        licenseCache.getFeatures(), getProductEdition());
+    return new LicenseSummary(getProductEdition());
+  }
+
+  public LicenseInfo getLicenseInfo() {
+    String[] products = licenseCache.getProducts().stream() //
+        .map(CLMLicenseManager::getProductMarketingName) //
+        .filter(Objects::nonNull) //
+        .toArray(String[]::new);
+
+    String productEdition = getProductEdition();
+    Integer applicationLimitToDisplay = null;
+    Integer licensedUsersToDisplay = null;
+
+    if (productEdition.equals(PRODUCT_AUDITOR)) {
+      applicationLimitToDisplay = licenseCache.getApplicationLimit();
+    }
+    else {
+      licensedUsersToDisplay = licenseCache.licensedUsers;
+    }
+
+    return new LicenseInfo(licenseCache.getFingerprint(), licenseCache.expirationTimestamp, licensedUsersToDisplay,
+        licenseCache.getMaxFirewallUsers(), applicationLimitToDisplay, licenseCache.contactName,
+        licenseCache.contactCompany, licenseCache.contactEmail, licenseCache.getFeatures(), products, productEdition);
   }
 
   private String getProductEdition() {
@@ -306,6 +425,7 @@ public class CLMLicenseManager
     int version = getVersion(key);
 
     Integer applicationCount = getApplicationLimit(key);
+    Integer maxFirewallUsers = getMaxFirewallUsers(key);
 
     Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     String[] enforcementPointIds = getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS)
@@ -355,7 +475,9 @@ public class CLMLicenseManager
     }
 
     licenseCache = new CachedLicenseData(licenseFingerprint, version, applicationCount, products,
-        features.toArray(new String[features.size()]), enforcementPoints, key.getExpirationDate().getTime());
+        features.toArray(new String[features.size()]), enforcementPoints, key.getExpirationDate().getTime(),
+        key.getLicensedUsers(), maxFirewallUsers, key.getContactName(), key.getContactCompany(), 
+        key.getContactEmailAddress());
     notifyListeners();
   }
 
@@ -415,9 +537,25 @@ public class CLMLicenseManager
     return products;
   }
 
+  private Integer getMaxFirewallUsers(ProductLicenseKey key) throws LicensingException {
+    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS);
+
+    if (prop != null) {
+      try {
+        return Integer.decode(prop);
+      }
+      catch (IllegalArgumentException e) {
+        throw new LicensingException("Invalid value for max firewall users: " + prop, e);
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
   private void clearLicenseCache() {
     licenseCache = new CachedLicenseData(null, 0, 0, Collections.<String> emptySet(), new String[0],
-        Collections.<CLMEnforcementPoint> emptySet(), 0);
+        Collections.<CLMEnforcementPoint> emptySet(), 0, 0, null, null, null, null);
     notifyListeners();
   }
 

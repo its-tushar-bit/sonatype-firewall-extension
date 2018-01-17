@@ -22,6 +22,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
@@ -82,7 +83,7 @@ public class ProductLicenseResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseSummary getLicenseSummary() {
-    return productLicenseService.getLicenseSummary();
+  public LicenseInfo getLicenseInfo() {
+    return productLicenseService.getLicenseInfo();
   }
 }

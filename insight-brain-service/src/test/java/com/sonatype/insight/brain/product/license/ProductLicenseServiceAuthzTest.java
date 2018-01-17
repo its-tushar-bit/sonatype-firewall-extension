@@ -67,19 +67,19 @@ public class ProductLicenseServiceAuthzTest
   }
 
   @Test
-  public void testGetLicenseSummary_Authorized() {
+  public void testGetLicenseInfo_Authorized() {
     grantConfigureSystemPermission();
-    productLicenseService.getLicenseSummary();
+    productLicenseService.getLicenseInfo();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetLicenseSummary_Unauthorized() {
+  public void testGetLicenseInfo_Unauthorized() {
     login();
-    productLicenseService.getLicenseSummary();
+    productLicenseService.getLicenseInfo();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetLicenseSummary_Unauthenticated() {
-    productLicenseService.getLicenseSummary();
+  public void testGetLicenseInfo_Unauthenticated() {
+    productLicenseService.getLicenseInfo();
   }
 }

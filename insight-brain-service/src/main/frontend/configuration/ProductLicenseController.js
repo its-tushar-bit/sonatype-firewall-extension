@@ -26,6 +26,8 @@ var module = angular.module('ProductLicense',
     }
     ]);
 
+const getDaysToExpiration = expiryTimestamp => Math.floor((expiryTimestamp - Date.now()) / (1000 * 60 * 60 * 24));
+
 module.controller('ProductLicenseController', [
   '$http', '$scope', 'CLMLocations', '$timeout', '$window', '$cookies', 'Modal', 'Messages', 'ErrorDialog', 'isAuthorized',
   function($http, $scope, clmLocations, $timeout, $window, $cookies, Modal, Messages, ErrorDialog, isAuthorized) {
@@ -35,12 +37,22 @@ module.controller('ProductLicenseController', [
     $scope.isAuthorized = isAuthorized;
     $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
     $scope.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
+    $scope.displayUserLimits = undefined;
+    $scope.displayApplicationLimit = undefined;
+    $scope.displayFirewallLimit = undefined;
 
     $scope.doLoad = function() {
       if (isAuthorized) {
         $scope.error = null;
-        $http.get($scope.summaryUrl).then(function(response) {
-          $scope.license = response.data;
+
+        $http.get($scope.summaryUrl).then(function({ data }) {
+          $scope.license = Object.assign({}, data, {
+            daysToExpiration: getDaysToExpiration(data.expiryTimestamp)
+          });
+
+          $scope.displayFirewallLimit = data.firewallLicensedUsers !== null;
+          $scope.displayUserLimits = data.licensedUsersToDisplay !== null || $scope.displayFirewallLimit;
+          $scope.displayApplicationLimit = data.applicationLimitToDisplay !== null;
         }, function(errorResponse) {
           if (errorResponse.status !== 402) {
             $scope.error = {

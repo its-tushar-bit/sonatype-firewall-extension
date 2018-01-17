@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.product.license;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -15,7 +16,6 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 
 public class ProductLicenseResourceTest
@@ -81,15 +81,15 @@ public class ProductLicenseResourceTest
         ProductLicenseResource.VALIDATE_PATH).get();
     assertResponseStatus(200, response);
     LicenseSummary licenseSummary = response.getBody(LicenseSummary.class);
-    assertThat(licenseSummary.fingerprint, is(nullValue()));
+    assertThat(licenseSummary.productEdition, is(notNullValue()));
   }
 
   @Test
-  public void testGetLicenseSummary() throws Exception {
+  public void testGetLicenseInfo() throws Exception {
     installLicense();
     HttpResponse response = restRequest().path(ProductLicenseResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
-    LicenseSummary licenseSummary = response.getBody(LicenseSummary.class);
-    assertThat(licenseSummary.fingerprint, is(notNullValue()));
+    LicenseInfo licenseInfo = response.getBody(LicenseInfo.class);
+    assertThat(licenseInfo.fingerprint, is(notNullValue()));
   }
 }

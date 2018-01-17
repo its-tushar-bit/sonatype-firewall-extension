@@ -209,7 +209,7 @@ class SupportService
             new File(workDir, "product-version.json")), "product-version", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getProductLicense(productLicenseService.getLicenseSummary()),
+        writeTextToFile(systemInfo.getProductLicense(productLicenseService.getLicenseInfo()),
             new File(workDir, "product-license.json")), "product-license", SupportFileType.INFO, true);
 
     addFileIfExists(filesToZip,

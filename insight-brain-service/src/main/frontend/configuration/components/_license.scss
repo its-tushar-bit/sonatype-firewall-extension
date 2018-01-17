@@ -1,0 +1,40 @@
+.body-container--license {
+  width: 100%;
+
+  label.btn {
+    margin-bottom: 0;
+  }
+}
+
+.iq-license-info {
+  margin: 8px 0;
+
+  > dt:first-child {
+    margin-top: 12px;
+  }
+
+  > dd:last-child {
+    margin-bottom: 10px;
+  }
+}
+
+.iq-license-install-form--standalone {
+  padding-top: 10px;
+}
+
+.iq-license-info__nested-definitions {
+  margin: 0;
+
+  dt, dd {
+    display: inline;
+    margin: 0;
+  }
+
+  dt {
+    font-weight: normal;
+
+    &::after {
+      content: " — ";
+    }
+  }
+}

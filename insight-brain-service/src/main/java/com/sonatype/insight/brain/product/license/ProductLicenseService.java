@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -67,14 +68,11 @@ public class ProductLicenseService
 
   public LicenseSummary validateLicense() {
     licenseManager.validate();
-    LicenseSummary licenseSummary = licenseManager.getLicenseSummary();
-    // Don't return the license fingerprint from a method that is not authorized. See CLM-5200.
-    licenseSummary.fingerprint = null;
-    return licenseSummary;
+    return licenseManager.getLicenseSummary();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public LicenseSummary getLicenseSummary() {
-    return licenseManager.getLicenseSummary();
+  public LicenseInfo getLicenseInfo() {
+    return licenseManager.getLicenseInfo();
   }
 }

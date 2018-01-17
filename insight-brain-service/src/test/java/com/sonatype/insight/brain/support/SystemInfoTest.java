@@ -24,7 +24,7 @@ import java.util.TreeSet;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseInfo;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -396,13 +396,22 @@ public class SystemInfoTest
 
   @Test
   public void testGetProduceLicense() throws Exception {
-    final LicenseSummary licenseSummary = new LicenseSummary("fprint", -1, null, "edition");
-    final String json = systemInfo.getProductLicense(licenseSummary);
+    final LicenseInfo licenseInfo = new LicenseInfo("fprint", -1, -2, -3, -4, "Contact Name",
+        "Contact Company", "contact@example.com", null, new String[] { "Pro+" }, "edition");
+
+    final String json = systemInfo.getProductLicense(licenseInfo);
     assertThat(json, is("{" + lineSeparator +
+        "  \"productEdition\" : \"edition\"," + lineSeparator +
         "  \"fingerprint\" : \"fprint\"," + lineSeparator +
         "  \"expiryTimestamp\" : -1," + lineSeparator +
+        "  \"licensedUsersToDisplay\" : -2," + lineSeparator +
+        "  \"applicationLimitToDisplay\" : -4," + lineSeparator +
+        "  \"firewallLicensedUsers\" : -3," + lineSeparator +
+        "  \"contactName\" : \"Contact Name\"," + lineSeparator +
+        "  \"contactCompany\" : \"Contact Company\"," + lineSeparator +
+        "  \"contactEmail\" : \"contact@example.com\"," + lineSeparator +
         "  \"features\" : null," + lineSeparator +
-        "  \"productEdition\" : \"edition\"" + lineSeparator +
+        "  \"products\" : [ \"Pro+\" ]" + lineSeparator +
         "}"));
   }
 

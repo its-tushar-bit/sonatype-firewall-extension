@@ -13,7 +13,10 @@
         Here you can configure automatic creation of applications. You can enable or disable automatic creation of applications
         using the toggle. You will also need to specify a parent organization for any automatically-created applications.
       </p>
-      <form name="vm.automaticApplicationsConfigurationForm" class="iq-form">
+      <form name="vm.automaticApplicationsConfigurationForm"
+            class="iq-form" 
+            form-mask="vm.automaticApplicationsConfigurationFormMask" 
+            mask-attach-to-body>
         <div id="automatic-applications-toggle-control-group" class="iq-form-group">
           <label class="iq-label" for="automatic-applications-toggle">Automatic Application Creation</label>
           <div id="automatic-applications-toggle-checkbox" class="toggle-checkbox">

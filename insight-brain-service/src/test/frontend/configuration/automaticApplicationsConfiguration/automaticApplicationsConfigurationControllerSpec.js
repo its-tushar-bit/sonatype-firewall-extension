@@ -30,6 +30,9 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function() {
     vm.automaticApplicationsConfigurationForm = {
       $valid: true
     };
+    vm.automaticApplicationsConfigurationFormMask = {
+      wrap: SpecUtil.promiseWrapper($q)
+    };
   }));
 
   describe('loading options and settings from the server', function() {

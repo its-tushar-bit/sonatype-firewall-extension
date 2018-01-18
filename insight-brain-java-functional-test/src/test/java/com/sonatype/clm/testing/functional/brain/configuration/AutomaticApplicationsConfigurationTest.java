@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AutomaticApplicationsConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -60,6 +61,7 @@ public class AutomaticApplicationsConfigurationTest
     automaticApplicationsConfigurationPage.toggle().click();
     automaticApplicationsConfigurationPage.organization().chooseOption(new Option(0, org1.getName()));
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
     automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
     verifyConfiguration(true, org1);
 
@@ -83,6 +85,7 @@ public class AutomaticApplicationsConfigurationTest
     automaticApplicationsConfigurationPage.toggle().click();
     automaticApplicationsConfigurationPage.organization().chooseOption(new Option(1, org2.getName()));
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
     automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
     verifyConfiguration(false, org2);
   }

@@ -64,7 +64,8 @@ function AutomaticApplicationsConfigurationController($q, OrganizationStore, aut
         parentOrganizationId: vm.automaticApplicationCreationOrganizationId
       };
 
-      automaticApplicationsConfigurationService.saveConfiguration(configuration).then(function(data) {
+      const savePromise = automaticApplicationsConfigurationService.saveConfiguration(configuration);
+      vm.automaticApplicationsConfigurationFormMask.wrap(savePromise).then(function(data) {
         vm.savedAutomaticApplicationCreationEnabled = data.enabled;
         vm.savedAutomaticApplicationCreationOrganizationId = data.parentOrganizationId;
       }).catch(function(error) {

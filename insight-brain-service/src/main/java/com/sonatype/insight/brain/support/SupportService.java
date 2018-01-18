@@ -141,7 +141,7 @@ class SupportService
 
     final boolean isDeleteAfterZipped;
 
-    private SupportFile(final SupportFileType supportFileType, final File file, final boolean isDeleteAfterZipped) {
+    SupportFile(final SupportFileType supportFileType, final File file, final boolean isDeleteAfterZipped) {
       this.supportFileType = supportFileType;
       this.file = file;
       this.isDeleteAfterZipped = isDeleteAfterZipped;
@@ -178,7 +178,9 @@ class SupportService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  synchronized File createSupportZip(final boolean includeDb, final String requestUrl) throws IOException {
+  synchronized File createSupportZip(final boolean includeDb, final String requestUrl, final boolean noLimit)
+      throws IOException
+  {
     final File workDir = getWorkDir();
     if (!workDir.exists()) {
       if (!workDir.mkdirs()) {
@@ -242,7 +244,16 @@ class SupportService
       addAllDbData(filesToZip, workDir);
     }
 
-    log.info("Populating support.zip: {}", supportZip);
+    populateZip(prefix, supportZip, filesToZip, noLimit);
+    return supportZip;
+  }
+
+  void populateZip(final String prefix,
+                   final File supportZip,
+                   final List<SupportFile> filesToZip,
+                   final boolean noLimit) throws IOException
+  {
+    log.info("Populating support.zip: {}, noLimit: {}", supportZip, noLimit);
     try (final ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(supportZip))) {
 
       boolean isTruncated = false;
@@ -252,14 +263,23 @@ class SupportService
         final ZipEntry zipEntry = new ZipEntry(
             prefix + "/" + fileToAdd.supportFileType.getDirName() + "/" + fileToAdd.file.getName());
         zos.putNextEntry(zipEntry);
-        // Limit max size of file content we allow to copy
-        try (LimitedFileInputStream lis = new LimitedFileInputStream(fileToAdd.file,
-            config.getSupportConfig().getReadLimitBytes())) {
-          copyLimited(lis, zos);
-          if (lis.isReadLimitMet()) {
-            isTruncated = true;
+
+        if (noLimit) {
+          try (FileInputStream fis = new FileInputStream(fileToAdd.file)) {
+            ByteStreams.copy(fis, zos);
           }
         }
+        else {
+          // Limit max size of file content we allow to copy
+          try (LimitedFileInputStream lis = new LimitedFileInputStream(fileToAdd.file,
+              config.getSupportConfig().getReadLimitBytes())) {
+            copyLimited(lis, zos);
+            if (lis.isReadLimitMet()) {
+              isTruncated = true;
+            }
+          }
+        }
+
         zos.closeEntry();
         if (fileToAdd.isDeleteAfterZipped) {
           if (fileToAdd.file.exists()) {
@@ -276,7 +296,6 @@ class SupportService
       }
     }
     log.info("Created support.zip: {}", supportZip);
-    return supportZip;
   }
 
   private static void copyLimited(final LimitedFileInputStream input, final OutputStream output) throws IOException

@@ -35,6 +35,7 @@ import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONF
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
@@ -53,7 +54,7 @@ public class SupportServiceTest
 
   @Test
   public void testCreateSupportZip() throws Exception {
-    assertThat(supportService.createSupportZip(false, null), notNullValue());
+    assertThat(supportService.createSupportZip(false, null, false), notNullValue());
   }
 
   @Test
@@ -61,20 +62,20 @@ public class SupportServiceTest
     final String now = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
     final String nowPrefix = now.substring(0, now.indexOf("-"));
 
-    final File firstZip = supportService.createSupportZip(false, null);
+    final File firstZip = supportService.createSupportZip(false, null, false);
     final String firstFilename = firstZip.getName();
     assertThat(firstFilename, startsWith("support-" + nowPrefix));
     final int zipIndex = firstFilename.indexOf(".zip");
     final int counterValue = Integer.parseInt(firstFilename.substring(zipIndex - 1, zipIndex));
 
-    final File secondZip = supportService.createSupportZip(false, null);
+    final File secondZip = supportService.createSupportZip(false, null, false);
     assertThat(secondZip.getName(), startsWith("support-" + nowPrefix));
     assertThat(secondZip.getName(), endsWith(("-" + (counterValue + 1) + ".zip")));
   }
 
   @Test
   public void testCreateSupportZip_UsesSubDir() throws Exception {
-    supportService.createSupportZip(false, null);
+    supportService.createSupportZip(false, null, false);
     assertThat(supportService.getWorkDir().exists(), is(true));
   }
 
@@ -84,7 +85,7 @@ public class SupportServiceTest
     final File origArg = InsightBrainService.getConfigFile();
     try {
       InsightBrainService.setConfigFile(configYml);
-      supportService.createSupportZip(false, null);
+      supportService.createSupportZip(false, null, false);
       final File filteredConfigYml = new File(supportService.getWorkDir(), "filtered-" + configYml.getName());
       assertThat(filteredConfigYml.exists(), is(false));
     }
@@ -102,7 +103,7 @@ public class SupportServiceTest
 
       insightConfig.getSupportConfig().setReadLimitBytes(500);
 
-      final File supportZip = supportService.createSupportZip(false, null);
+      final File supportZip = supportService.createSupportZip(false, null, false);
       // read file from zip and assert token suffix
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -132,7 +133,7 @@ public class SupportServiceTest
 
       insightConfig.getSupportConfig().setReadLimitBytes(5);
 
-      final File supportZip = supportService.createSupportZip(false, null);
+      final File supportZip = supportService.createSupportZip(false, null, false);
       // read zip and assert truncated entry
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -177,7 +178,7 @@ public class SupportServiceTest
     final File origArg = InsightBrainService.getConfigFile();
     try {
       InsightBrainService.setConfigFile(configYml);
-      final File supportZip = supportService.createSupportZip(false, null);
+      final File supportZip = supportService.createSupportZip(false, null, false);
       // read file from zip and assert no config file entry
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -195,7 +196,7 @@ public class SupportServiceTest
     final File origArg = InsightBrainService.getConfigFile();
     try {
       InsightBrainService.setConfigFile(new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile()));
-      final File supportZip = supportService.createSupportZip(false, null);
+      final File supportZip = supportService.createSupportZip(false, null, false);
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
         if (InsightBrainService.getConfigFile() != null) {
@@ -217,7 +218,7 @@ public class SupportServiceTest
     final File origArg = InsightBrainService.getConfigFile();
     try {
       InsightBrainService.setConfigFile(new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile()));
-      final File supportZip = supportService.createSupportZip(false, null);
+      final File supportZip = supportService.createSupportZip(false, null, false);
       try (final ZipFile zipFile = new ZipFile(supportZip)) {
         final Enumeration<? extends ZipEntry> entries = zipFile.entries();
         if (InsightBrainService.getConfigFile() != null) {
@@ -295,5 +296,58 @@ public class SupportServiceTest
       expectedFiles[i] = new File(workDir, basenames[i] + ".json");
     }
     return expectedFiles;
+  }
+
+  private File createPopulatedZip(final boolean noLimit, final File fileToAdd) throws Exception {
+    insightConfig.getSupportConfig().setReadLimitBytes(1);
+    final File workDir = tempDir.newFolder("populateZipTest");
+    final String prefix = "prefix";
+    final File supportZip = new File(workDir, prefix + ".zip").getCanonicalFile();
+
+    assertThat(fileToAdd.length(), greaterThan(insightConfig.getSupportConfig().getReadLimitBytes()));
+    final List<SupportFile> filesToZip = new ArrayList<>();
+    filesToZip.add(new SupportFile(SupportFileType.CONFIG, fileToAdd, false));
+
+    supportService.populateZip(prefix, supportZip, filesToZip, noLimit);
+    return supportZip;
+  }
+
+  @Test
+  public void testPopulateZip_Limit() throws Exception {
+    final File fileToAdd = new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
+
+    final File supportZip = createPopulatedZip(false, fileToAdd);
+
+    try (final ZipFile zipFile = new ZipFile(supportZip)) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      final ZipEntry firstEntry = entries.nextElement();
+      assertThat(firstEntry.getName(),
+          is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME));
+      assertThat(firstEntry.getSize(),
+          // expected size includes the limit size, plus the appended "Truncated" message, plus a newline
+          is(insightConfig.getSupportConfig().getReadLimitBytes()
+              + (SupportService.TRUNCATED_TOKEN + "\n").length()));
+
+      assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/truncated"));
+
+      assertThat(entries.hasMoreElements(), is(false));
+    }
+  }
+
+  @Test
+  public void testPopulateZip_NoLimit() throws Exception {
+    final File fileToAdd = new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
+
+    final File supportZip = createPopulatedZip(true, fileToAdd);
+
+    try (final ZipFile zipFile = new ZipFile(supportZip)) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      final ZipEntry firstEntry = entries.nextElement();
+      assertThat(firstEntry.getName(),
+          is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME));
+      assertThat(firstEntry.getSize(), is(fileToAdd.length()));
+
+      assertThat(entries.hasMoreElements(), is(false));
+    }
   }
 }

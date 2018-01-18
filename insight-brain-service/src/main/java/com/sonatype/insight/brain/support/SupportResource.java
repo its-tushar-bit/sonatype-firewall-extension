@@ -42,11 +42,12 @@ public class SupportResource
   @GET
   @Produces("application/zip")
   public Response createSupportZip(@QueryParam("includeDb") final boolean includeDb,
+                                   @QueryParam("noLimit") final boolean noLimit,
                                    @Context final HttpServletRequest request) throws IOException
   {
     final String requestUrl = request.getRequestURL().toString();
 
-    final File supportZip = supportService.createSupportZip(includeDb, requestUrl);
+    final File supportZip = supportService.createSupportZip(includeDb, requestUrl, noLimit);
 
     final ResponseBuilder response = Response.ok();
     response.entity(supportZip);

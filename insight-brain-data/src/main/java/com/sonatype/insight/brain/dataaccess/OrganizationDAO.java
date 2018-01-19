@@ -139,7 +139,7 @@ public class OrganizationDAO
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(organization.getId())) {
       // Do not allow the deletion of the root organization
-      throw new BadRequestException("Cannot delete root organization: " + organization.getName());
+      throw new BadRequestException("Cannot delete the root organization: " + organization.getName());
     }
 
     SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
@@ -150,8 +150,8 @@ public class OrganizationDAO
           SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED);
       if (Boolean.parseBoolean(automaticApplicationEnabled.getValue())) {
         // Do not allow the deletion of the parent organization for automatic application creation if enabled
-        throw new BadRequestException(
-            "Cannot delete parent organization for automatic application creation: " + organization.getName() + ".");
+        throw new BadRequestException("Cannot delete the parent organization for automatic application creation: "
+            + organization.getName() + ".");
       }
       else {
         // Remove the organization ID from the system configuration properties if not enabled

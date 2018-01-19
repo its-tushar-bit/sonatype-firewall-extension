@@ -159,7 +159,7 @@ public class OrganizationDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Cannot delete root organization: Root Organization"));
+      assertThat(e.getMessage(), is("Cannot delete the root organization: Root Organization"));
     }
   }
 
@@ -638,8 +638,8 @@ public class OrganizationDAOTest
       fail("Expected exception");
     }
     catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("Cannot delete parent organization for automatic application creation: " + organization.getName() + "."));
+      assertThat(e.getMessage(), is(
+          "Cannot delete the parent organization for automatic application creation: " + organization.getName() + "."));
     }
 
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(

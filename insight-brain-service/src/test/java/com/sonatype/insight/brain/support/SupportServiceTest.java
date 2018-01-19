@@ -141,7 +141,7 @@ public class SupportServiceTest
             is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/filtered-" +
                 CONFIG_YML_FILENAME));
         verifyRequiredEntries(supportZip, entries);
-        assertThat(entries.nextElement().toString(), is(getZipFileBasename(supportZip) + "/" + "truncated"));
+        assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/" + "truncated"));
       }
     }
     finally {
@@ -226,16 +226,16 @@ public class SupportServiceTest
               is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() +
                   "/filtered-" + CONFIG_YML_FILENAME));
         }
-        assertThat(entries.nextElement().toString(),
+        assertThat(entries.nextElement().getName(),
             is(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json"));
 
         final ZipEntry zipEntry = entries.nextElement();
-        assertThat(zipEntry.toString(),
+        assertThat(zipEntry.getName(),
             is(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/product-version.json"));
         try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
           try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
             IOUtil.copy(zipEntryStream, zipEntryContent);
-            final JsonNode result = JsonUtils.parse(zipEntryContent.toString());
+            final JsonNode result = JsonUtils.parse(zipEntryContent.toString("UTF-8"));
             assertThat(result.size(), is(1));
             final JsonNode parentNode = result.get("product-version");
             final Iterator<String> children = parentNode.fieldNames();

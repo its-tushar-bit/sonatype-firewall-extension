@@ -101,16 +101,16 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
       vm.systemNotice.enabled = true;
       spyOn($rootScope, '$broadcast');
       vm.save();
-      saveSystemNoticeDeferred.resolve({status: 204, data: 'no content'});
+      saveSystemNoticeDeferred.resolve({enabled: true, message: 'saved message'});
       expect($rootScope.$broadcast).not.toHaveBeenCalledWith('systemNoticeUpdated', vm.systemNotice);
       $scope.$apply();
 
       expect(systemNoticeService.getSystemNotice).toHaveBeenCalled();
       expect(systemNoticeService.saveSystemNotice).toHaveBeenCalledWith(vm.systemNotice);
       expect(vm.error).toBeUndefined();
-      expect(vm.savedSystemNotice.message).toEqual('updated message');
+      expect(vm.savedSystemNotice.message).toEqual('saved message');
       expect(vm.savedSystemNotice.enabled).toBe(true);
-      expect($rootScope.$broadcast).toHaveBeenCalledWith('systemNoticeUpdated', SystemNoticeMockData.getSystemNotice('updated message', true));
+      expect($rootScope.$broadcast).toHaveBeenCalledWith('systemNoticeUpdated', SystemNoticeMockData.getSystemNotice('saved message', true));
     });
 
     it('sets the error if it fails to send it to the server', function() {

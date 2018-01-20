@@ -31,9 +31,9 @@ function systemNoticeConfigurationController(isAuthorized, systemNoticeService, 
 
   function save() {
     vm.error = undefined;
-    systemNoticeService.saveSystemNotice(vm.systemNotice).then(function() {
-      vm.savedSystemNotice = angular.copy(vm.systemNotice);
-      $rootScope.$broadcast('systemNoticeUpdated', angular.copy(vm.systemNotice));
+    systemNoticeService.saveSystemNotice(vm.systemNotice).then(function(data) {
+      vm.savedSystemNotice = data;
+      $rootScope.$broadcast('systemNoticeUpdated', angular.copy(vm.savedSystemNotice));
     }).catch(function(error) {
       vm.error = error;
     });

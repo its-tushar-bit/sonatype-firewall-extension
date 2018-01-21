@@ -12,7 +12,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Point;
-import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -86,17 +85,14 @@ public class ScrollUtil
    * doesn't help for containers with scrollable content.
    */
   public static SelenideElement scrollIntoView(final SelenideElement element, final boolean alignToTop) {
-    Selenide.Wait().ignoring(StaleElementReferenceException.class).until(webDriver -> ((JavascriptExecutor) webDriver)
-        .executeScript("arguments[0].scrollIntoView(arguments[1]); return 1", element, alignToTop));
-    awaitEndOfScrolling(element);
-    return element;
+    return awaitEndOfScrolling(element.scrollIntoView(alignToTop));
   }
 
   /**
    * Waits for any scrolling affecting the given element to finish to ensure later clicks don't miss their target.
    */
-  public static void awaitEndOfScrolling(final SelenideElement element) {
-    element.waitUntil(new Condition("done scrolling")
+  public static SelenideElement awaitEndOfScrolling(final SelenideElement element) {
+    return element.waitUntil(new Condition("done scrolling")
     {
       Point previousLocation, currentLocation;
 

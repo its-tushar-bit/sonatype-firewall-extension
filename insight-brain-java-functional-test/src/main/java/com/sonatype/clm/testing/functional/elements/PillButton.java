@@ -10,6 +10,8 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
+
 public class PillButton
     extends BasicElement<PillButton>
 {
@@ -23,8 +25,9 @@ public class PillButton
   @Override
   public PillButton click() {
     scrollContainer.shouldHave(ScrollUtil.scrollSpyInitialized);
+    SelenideElement scrollTarget = $(getElement().data("target"));
     super.click();
-    ScrollUtil.awaitEndOfScrolling(scrollContainer.find(":first-child"));
+    ScrollUtil.awaitEndOfScrolling(scrollTarget);
     return me();
   }
 }

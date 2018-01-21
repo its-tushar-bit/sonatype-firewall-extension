@@ -5,16 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.utils;
 
-import java.util.function.Function;
-
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -98,16 +96,21 @@ public class ScrollUtil
    * Waits for any scrolling affecting the given element to finish to ensure later clicks don't miss their target.
    */
   public static void awaitEndOfScrolling(final SelenideElement element) {
-    Selenide.Wait().until(new Function<WebDriver, Boolean>()
+    element.waitUntil(new Condition("done scrolling")
     {
-      Point location;
+      Point previousLocation, currentLocation;
 
       @Override
-      public Boolean apply(WebDriver input) {
-        Point oldLocation = location;
-        location = element.getLocation();
-        return location.equals(oldLocation);
+      public boolean apply(WebElement element) {
+        previousLocation = currentLocation;
+        currentLocation = element.getLocation();
+        return currentLocation.equals(previousLocation);
       }
-    });
+
+      @Override
+      public String actualValue(WebElement element) {
+        return previousLocation + " vs " + currentLocation;
+      }
+    }, Configuration.timeout * 2, 100);
   }
 }

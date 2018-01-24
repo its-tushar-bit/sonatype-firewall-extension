@@ -107,7 +107,7 @@ public class ApiOrganizationResourceV2Test
   @Test
   public void testLdapOrgRoles() throws Exception {
     embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/AbstractApiOrganizationResourceTest/ldap_users.ldif");
+    embeddedLdapServer.loadData("/ApiOrganizationResourceV2Test/ldap_users.ldif");
 
     final LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());

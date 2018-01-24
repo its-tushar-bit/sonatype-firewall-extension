@@ -56,7 +56,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testSimpleLdapSchema() throws Exception {
-    startLdapServer().loadData("/schemas/SimpleLdapSchema.ldif");
+    startLdapServer().loadData("SimpleLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -66,7 +66,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testCramMd5AuthLdapSchema() throws Exception {
-    withCramAuth().startLdapServer().loadData("/schemas/CramMd5AuthLdapSchema.ldif");
+    withCramAuth().startLdapServer().loadData("CramMd5AuthLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -80,7 +80,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testDigestMd5AuthLdapSchema() throws Exception {
-    withDigestAuth().startLdapServer().loadData("/schemas/DigestMd5AuthLdapSchema.ldif");
+    withDigestAuth().startLdapServer().loadData("DigestMd5AuthLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -94,7 +94,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testDigestMd5NoRealmLdapSchema() throws Exception {
-    withDigestAuth().startLdapServer().loadData("/schemas/DigestMd5NoRealmLdapSchema.ldif");
+    withDigestAuth().startLdapServer().loadData("DigestMd5NoRealmLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -107,7 +107,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testEncryptedPassSchema() throws Exception {
-    startLdapServer().loadData("/schemas/EncryptedPassSchema.ldif");
+    startLdapServer().loadData("EncryptedPassSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -119,7 +119,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testUserHasGroupLdapSchema() throws Exception {
-    startLdapServer().loadData("/schemas/UserHasGroupLdapSchema.ldif");
+    startLdapServer().loadData("UserHasGroupLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -139,7 +139,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testDynaGroupMissingSchema() throws Exception {
-    startLdapServer().loadData("/schemas/DynaGroupMissingSchema.ldif");
+    startLdapServer().loadData("DynaGroupMissingSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -159,7 +159,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testDynamicNoUserBaseDnLdapSchema() throws Exception {
-    startLdapServer().loadData("/schemas/DynamicNoUserBaseDnLdapSchema.ldif");
+    startLdapServer().loadData("DynamicNoUserBaseDnLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -182,7 +182,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testNestedGroupsLdapSchema() throws Exception {
-    startLdapServer().loadData("/schemas/NestedGroupsLdapSchema.ldif");
+    startLdapServer().loadData("NestedGroupsLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -194,7 +194,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testNestedGroupsNoGroupDNLdapSchema() throws Exception {
-    startLdapServer().loadData("/schemas/NestedGroupsNoGroupDNLdapSchema.ldif");
+    startLdapServer().loadData("NestedGroupsNoGroupDNLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -207,7 +207,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testNestedUsersDnGroupLdapSchema() throws Exception {
-    startLdapServer().loadData("/schemas/NestedUsersDnGroupLdapSchema.ldif");
+    startLdapServer().loadData("NestedUsersDnGroupLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -220,7 +220,7 @@ public class LdapUserAndGroupMappingTest
 
   @Test
   public void testNestedUsersLdapSchema() throws Exception {
-    startLdapServer().loadData("/schemas/NestedUsersLdapSchema.ldif");
+    startLdapServer().loadData("NestedUsersLdapSchema.ldif");
 
     LdapConnection conn = createLdapConnection();
     LdapUserMapping umap = createUserMapping();
@@ -295,7 +295,7 @@ public class LdapUserAndGroupMappingTest
   }
 
   private LdapUserAndGroupMappingTest loadData(String resource) throws Exception {
-    ldapServer.loadData(resource);
+    ldapServer.loadData("/" + getClass().getSimpleName() + "/" + resource);
 
     return this;
   }

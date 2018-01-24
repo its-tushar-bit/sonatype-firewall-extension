@@ -519,7 +519,7 @@ public class PolicyAlertEmailerTest
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server 1");
 
     testLdapServer1.start();
-    testLdapServer1.loadData("/ldap_users1.ldif");
+    testLdapServer1.loadData("/PolicyAlertEmailerTest/ldap_users1.ldif");
 
     ldapService.saveConnection(createLdapConnection(ldapServer1, testLdapServer1));
 
@@ -530,7 +530,7 @@ public class PolicyAlertEmailerTest
     LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server 2");
 
     testLdapServer2.start();
-    testLdapServer2.loadData("/ldap_users2.ldif");
+    testLdapServer2.loadData("/PolicyAlertEmailerTest/ldap_users2.ldif");
 
     ldapService.saveConnection(createLdapConnection(ldapServer2, testLdapServer2));
 

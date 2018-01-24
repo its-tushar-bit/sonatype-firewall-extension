@@ -344,12 +344,26 @@ public class HdsClient
                     Object jsonSerializableObject,
                     String... uriParams) throws IOException
   {
+    return post(null, clazz, path, clientUserAgent, jsonSerializableObject, uriParams);
+  }
+
+  /**
+   * @since 1.43
+   */
+  public <T> T post(HdsClientAnalytics analytics,
+                    Class<T> clazz,
+                    String path,
+                    final String clientUserAgent,
+                    Object jsonSerializableObject,
+                    String... uriParams)
+      throws IOException
+  {
     long start = System.currentTimeMillis();
     try {
       HttpPost cloudReq = new HttpPost(buildUri(path, uriParams));
       StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
       cloudReq.setEntity(entity);
-      populateRequest(null /* base request */, cloudReq, null);
+      populateRequest(null /* base request */, cloudReq, analytics);
       if (clientUserAgent != null) { // will be null when called from Repository View Re-evaluate
         cloudReq.setHeader(CLM_CLIENT_USER_AGENT_HEADER, clientUserAgent);
       }

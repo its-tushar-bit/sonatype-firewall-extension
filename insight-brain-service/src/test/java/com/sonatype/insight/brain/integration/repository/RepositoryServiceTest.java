@@ -1767,7 +1767,7 @@ public class RepositoryServiceTest
           pathname, hash));
     }
     when((quarantine ? quarantineHdsClient : auditHdsClient)
-        .post(eq(ComponentEvaluationDataList.class), eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+        .post(any(), eq(ComponentEvaluationDataList.class), eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
             isNull(String.class), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
@@ -2094,7 +2094,7 @@ public class RepositoryServiceTest
     component.declaredLicenses = Collections.emptySet();
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
-    when(auditHdsClient.post(eq(ComponentEvaluationDataList.class),
+    when(auditHdsClient.post(any(), eq(ComponentEvaluationDataList.class),
         eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
         any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
@@ -2154,7 +2154,7 @@ public class RepositoryServiceTest
     component.declaredLicenses = Collections.emptySet();
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
-    when(auditHdsClient.post(eq(ComponentEvaluationDataList.class),
+    when(auditHdsClient.post(any(), eq(ComponentEvaluationDataList.class),
         eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
         any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 

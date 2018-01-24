@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -102,7 +103,7 @@ public class RepositoryPolicyEvaluator
 
     Date now = new Date();
 
-    ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(withQuarantine,
+    ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(repository, withQuarantine,
         componentEvaluationDataRequestList, clientUserAgent);
     List<Component> components = new ArrayList<>();
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
@@ -295,7 +296,8 @@ public class RepositoryPolicyEvaluator
     return componentDetailsLoader.augmentComponentDetails(repository, componentDetails);
   }
 
-  private ComponentEvaluationDataList getComponentDetailsFromHds(boolean withQuarantine,
+  private ComponentEvaluationDataList getComponentDetailsFromHds(Repository repository,
+                                                                 boolean withQuarantine,
                                                                  final RepositoryComponentEvaluationDataRequestList hdsRequest,
                                                                  final String clientUserAgent)
   {
@@ -304,7 +306,8 @@ public class RepositoryPolicyEvaluator
 
       HdsClient hdsClient = withQuarantine ? quarantineHdsClient : auditHdsClient;
       ComponentEvaluationDataList result = hdsClient
-          .post(ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH, clientUserAgent, hdsRequest);
+          .post(HdsClientAnalytics.forOwner(repository), ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH, clientUserAgent,
+              hdsRequest);
 
       log.debug("Got component details from HDS for {} components in {} ms.", hdsRequest.components.size(),
           System.currentTimeMillis() - start);

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.Objects;
 
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.scan.util.HashUtils;
 
@@ -29,6 +30,16 @@ public class HdsClientAnalytics
     HdsClientAnalytics analytics = new HdsClientAnalytics();
     analytics.ownerType = OwnerType.APPLICATION;
     analytics.ownerId = obfuscate(appId);
+    return analytics;
+  }
+
+  /**
+   * @since 1.43
+   */
+  public static HdsClientAnalytics forOwner(Owner owner) {
+    HdsClientAnalytics analytics = new HdsClientAnalytics();
+    analytics.ownerType = owner.getType();
+    analytics.ownerId = obfuscate(owner.getId());
     return analytics;
   }
 

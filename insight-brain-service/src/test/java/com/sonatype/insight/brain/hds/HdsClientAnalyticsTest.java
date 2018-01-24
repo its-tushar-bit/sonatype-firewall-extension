@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,6 +25,17 @@ public class HdsClientAnalyticsTest
 
     assertThat(analytics.getOwnerId(), is(notNullValue()));
     assertThat(analytics.getOwnerId(), is(not(appId)));
+    assertThat(analytics.getOwnerType(), is(OwnerType.APPLICATION));
+  }
+
+  @Test
+  public void testRepositoryIdIsObfuscated() throws Exception {
+    Owner owner = new Repository("my-repo-man-id", "central");
+    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(owner);
+
+    assertThat(analytics.getOwnerId(), is(notNullValue()));
+    assertThat(analytics.getOwnerId(), is(not("central")));
+    assertThat(analytics.getOwnerType(), is(OwnerType.REPOSITORY));
   }
 
   /**

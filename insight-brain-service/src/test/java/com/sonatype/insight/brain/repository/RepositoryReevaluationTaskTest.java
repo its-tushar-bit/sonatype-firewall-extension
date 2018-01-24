@@ -204,7 +204,7 @@ public class RepositoryReevaluationTaskTest
     response.components.add(createComponentResponse(unknownComponent.getHash(), newIdentifier,
         MatchState.EXACT.getId(), 1));
 
-    when(auditHdsClient.post(eq(ComponentEvaluationDataList.class),
+    when(auditHdsClient.post(any(), eq(ComponentEvaluationDataList.class),
         eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
         any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
   }

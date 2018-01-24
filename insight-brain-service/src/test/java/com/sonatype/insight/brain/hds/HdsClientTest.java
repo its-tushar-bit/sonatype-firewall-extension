@@ -457,7 +457,7 @@ public class HdsClientTest
   }
 
   @Test
-  public void testAppIdOnRequests() throws Exception {
+  public void testAnalyticsIdOnRequests() throws Exception {
     final Map<String, String> headers = new HashMap<>();
     String testPath = "/rest/test";
     handler = new AbstractHandler()
@@ -484,6 +484,10 @@ public class HdsClientTest
     assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
 
     client.put(analytics, String.class, testPath, tempDir.newFile(), new String[] {});
+    assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
+    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
+
+    client.post(analytics, String.class, testPath, null, tempDir.newFile(), new String[] {});
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
     assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
   }

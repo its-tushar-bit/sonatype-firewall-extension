@@ -16,11 +16,11 @@ export default function resultsControllerMixinFactory($ngRedux, dashboardDataSer
       const vm = this;
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, {...actions, stateGo})(vm);
-      if (vm.state.filters && !vm.state.needsAcknowledgement) {
+      if (!vm.filterLoading && !vm.needsAcknowledgement) {
         vm.loadResults(resultsType);
       }
 
-      $scope.$watch('vm.state.filtersAreDirty', function(filtersAreDirty) {
+      $scope.$watch('vm.filtersAreDirty', function(filtersAreDirty) {
         vm.maskController[filtersAreDirty ? 'activateMask' : 'removeMask']();
       });
     },
@@ -30,11 +30,11 @@ export default function resultsControllerMixinFactory($ngRedux, dashboardDataSer
     },
 
     getColor(score) {
-      return this.state[resultsType].classyBrew.getColor(score);
+      return this.results[resultsType].classyBrew.getColor(score);
     },
 
     getTextColorClass(score) {
-      return score === 0 ? 'grey-text' : this.state[resultsType].classyBrew.isWhiteText(score) ? 'white-text'
+      return score === 0 ? 'grey-text' : this.results[resultsType].classyBrew.isWhiteText(score) ? 'white-text'
         : undefined;
     },
 
@@ -47,6 +47,10 @@ export default function resultsControllerMixinFactory($ngRedux, dashboardDataSer
 // Which part of the Redux global state does our component want to receive?
 function mapStateToThis(state) {
   return {
-    state: state.dashboard
+    results: state.dashboard,
+    filterLoading: state.dashboardFilter.loading,
+    needsAcknowledgement: state.dashboardFilter.needsAcknowledgement,
+    filtersAreDirty: state.dashboardFilter.filtersAreDirty,
+    appliedFilter: state.dashboardFilter.appliedFilter
   };
 }

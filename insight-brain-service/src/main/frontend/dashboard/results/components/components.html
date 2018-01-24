@@ -1,10 +1,10 @@
 <div id="dashboard-components">
   <div class="iq-tile iq-tile--dashboard-table-container">
-    <div class="iq-scrollable" detect-scrollbar="vm.state.filters">
+    <div class="iq-scrollable" detect-scrollbar="vm.appliedFilter">
       <table class="iq-table iq-table--dashboard-components">
         <thead class="iq-dashboard-headers">
           <tr class="iq-table-row components-row"
-              sort="vm.state.components.sortFields"
+              sort="vm.results.components.sortFields"
               on-sort-change="vm.sortResults('components', sortFields)">
             <th class="iq-cell iq-cell--header iq-cell--component-name" sort-column="derivedComponentName">
               <span class="header-text">Name</span>
@@ -40,7 +40,7 @@
                form-mask="vm.maskController"
                mask-message="">
           <tr class="iq-table-row iq-clickable"
-              ng-repeat="component in vm.state.components.results | limitTo: vm.maxResults"
+              ng-repeat="component in vm.results.components.results | limitTo: vm.maxResults"
               ng-click="vm.goToComponentDetails(component)">
             <td class="iq-cell iq-cell--component-name iq-cell--label"
                 iq-tooltip
@@ -74,11 +74,11 @@
           </tr>
         </tbody>
       </table>
-      <dashboard-common-results results="vm.state.components.results"
+      <dashboard-common-results results="vm.results.components.results"
                                 is-violations-tab="false"
-                                needs-acknowledgement="vm.state.needsAcknowledgement"
+                                needs-acknowledgement="vm.needsAcknowledgement"
                                 max-results="vm.maxResults"
-                                error="vm.state.components.error"
+                                error="vm.results.components.error"
                                 reload="vm.reload()">
       </dashboard-common-results>
     </div>

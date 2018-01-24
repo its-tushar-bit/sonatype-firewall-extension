@@ -53,12 +53,12 @@ describe('dashboardFilterService', function() {
 
   describe('filterToJson()', function() {
     var filter = {
-      organizations: {'orgId1': true, 'orgId2': true},
-      policyTypes: {'QUALITY': true, 'OTHER': true, 'SECURITY': true},
-      stages: {'release': true, 'stage-release': true, 'build': true},
-      categories: {'tagId1': true, 'tagId2': true, 'null': true},
-      applications: {'applicationIdZ': true, 'applicationIdA': true, 'applicationIdQ': true, 'applicationIdR': true},
-      policyViolationStates: {'OPEN': true, 'WAIVED': true},
+      organizations: new Set(['orgId1', 'orgId2']),
+      policyTypes: new Set(['QUALITY', 'OTHER', 'SECURITY']),
+      stages: new Set(['release', 'stage-release', 'build']),
+      categories: new Set(['tagId1', 'tagId2', null]),
+      applications: new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']),
+      policyViolationStates: new Set(['OPEN', 'WAIVED']),
       age: {maxDaysOld: 90},
       policyThreatLevels: [3, 6]
     };

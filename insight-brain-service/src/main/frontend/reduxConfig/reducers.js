@@ -7,9 +7,11 @@ import {combineReducers} from 'redux';
 import routerStateReducer from '../reduxUiRouter/routerStateReducer';
 import dashboardReducer from '../dashboard/dashboardReducer';
 import manageFiltersReducer from '../dashboard/filter/manageFiltersReducer';
+import dashboardFilterReducer from '../dashboard/filter/dashboardFilterReducer';
 
 export default combineReducers({
   router: routerStateReducer,
   dashboard: dashboardReducer,
-  manageFilters: manageFiltersReducer
+  manageFilters: manageFiltersReducer,
+  dashboardFilter: dashboardFilterReducer
 });

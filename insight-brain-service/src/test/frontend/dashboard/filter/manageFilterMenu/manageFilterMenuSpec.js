@@ -23,22 +23,13 @@ describe('manageFilterMenu', function() {
     $componentController = _$componentController_;
     scope = $rootScope.$new();
 
-    var bindings = {
-      activeFilterName: '',
-      currentFilter: {},
-      isSaveFilterDisabled: false,
-      onFilterSelected: null,
-      onActiveFilterDeleted: jasmine.createSpy('onActiveFilterDeleted'),
-      onFilterSaved: jasmine.createSpy('onFilterSaved')
-    };
-
     vm = $componentController('manageFilterMenu', {
       $http: _$http_,
       CLMLocations: CLMLocations,
       saveFilterModal: saveFilterModal,
       deleteFiltersModal: deleteFiltersModal,
       $scope: scope
-    }, bindings);
+    });
 
     vm.filtersToDelete = [];
 
@@ -74,10 +65,10 @@ describe('manageFilterMenu', function() {
       spyOn(SaveFilterModal, 'open').and.returnValue(modalPromise);
     }));
 
-    it('calls stopPropagation on the event and does nothing else if isSaveFilterDisabled', function() {
+    it('calls stopPropagation on the event and does nothing else if filtersAreDirty', function() {
       var evt = jasmine.createSpyObj('$event', ['stopPropagation']);
 
-      vm.isSaveFilterDisabled = true;
+      vm.filtersAreDirty = true;
 
       vm.openSaveFilterModal(evt);
 
@@ -85,10 +76,10 @@ describe('manageFilterMenu', function() {
       expect(SaveFilterModal.open).not.toHaveBeenCalled();
     });
 
-    it('opens the save filter modal if isSaveFilterDisabled is false', function() {
+    it('opens the save filter modal if filtersAreDirty is false', function() {
       var evt = jasmine.createSpyObj('$event', ['stopPropagation']);
 
-      vm.isSaveFilterDisabled = false;
+      vm.filtersAreDirty = false;
 
       vm.openSaveFilterModal(evt);
 
@@ -96,41 +87,11 @@ describe('manageFilterMenu', function() {
       expect(SaveFilterModal.open).toHaveBeenCalled();
     });
 
-    it('calls vm.onFilterSaved when the modal promise resolves', function() {
-      vm.isSaveFilterDisabled = false;
-      vm.onFilterSaved = jasmine.createSpy('onFilterSaved');
-
-      vm.openSaveFilterModal();
-
-      expect(vm.onFilterSaved).not.toHaveBeenCalled();
-
-      modalDeferred.resolve('New Filter');
-      scope.$digest();
-
-      expect(vm.onFilterSaved).toHaveBeenCalledWith({ filterName: 'New Filter' });
-    });
-
-    it('does not call vm.onFilterSaved when the modal promise is rejected', function() {
-      vm.isSaveFilterDisabled = false;
-      vm.onFilterSaved = jasmine.createSpy('onFilterSaved');
-
-      vm.openSaveFilterModal();
-
-      expect(vm.onFilterSaved).not.toHaveBeenCalled();
-
-      modalDeferred.reject();
-      scope.$digest();
-
-      expect(vm.onFilterSaved).not.toHaveBeenCalled();
-    });
-
     it('calls the resetSaveFilterStatus action when the modal promise resolves', function() {
-      vm.isSaveFilterDisabled = false;
+      vm.filtersAreDirty = false;
       vm.resetSaveFilterStatus = jasmine.createSpy('resetSaveFilterStatus');
 
       vm.openSaveFilterModal();
-
-      expect(vm.onFilterSaved).not.toHaveBeenCalled();
 
       modalDeferred.resolve('New Filter');
       scope.$digest();
@@ -139,12 +100,10 @@ describe('manageFilterMenu', function() {
     });
 
     it('calls the resetSaveFilterStatus action when the modal promise is rejected', function() {
-      vm.isSaveFilterDisabled = false;
+      vm.filtersAreDirty = false;
       vm.resetSaveFilterStatus = jasmine.createSpy('resetSaveFilterStatus');
 
       vm.openSaveFilterModal();
-
-      expect(vm.onFilterSaved).not.toHaveBeenCalled();
 
       modalDeferred.reject();
       scope.$digest();
@@ -191,54 +150,6 @@ describe('manageFilterMenu', function() {
       expect(DeleteFiltersModal.open).toHaveBeenCalled();
     });
 
-    it('calls vm.onActiveFilterDeleted when the modal promise resolves if the current filter was deleted', function() {
-      vm.savedFilters = [{ name: 'foo' }];
-      vm.appliedFilterName = 'foo';
-      vm.onActiveFilterDeleted = jasmine.createSpy('onActiveFilterDeleted');
-
-      vm.openDeleteFiltersModal();
-
-      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
-
-      modalDeferred.resolve([]);
-      scope.$digest();
-
-      expect(vm.onActiveFilterDeleted).toHaveBeenCalled();
-    });
-
-    it('does not call vm.onActiveFilterDeleted when the modal promise resolves with a list that does not include ' +
-        'the active filter', function() {
-      vm.savedFilters = [{ name: 'foo' }, { name: 'bar' }];
-      vm.appliedFilterName = 'foo';
-      vm.onActiveFilterDeleted = jasmine.createSpy('onActiveFilterDeleted');
-
-      vm.openDeleteFiltersModal();
-
-      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
-
-      modalDeferred.resolve();
-      vm.savedFilters = [{ name: 'foo' }];
-      scope.$digest();
-
-      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
-    });
-
-    it('does not call vm.onActiveFilterDeleted when the modal promise is rejected', function() {
-      vm.savedFilters = [{ name: 'foo' }, { name: 'bar' }];
-      vm.appliedFilterName = 'foo';
-      vm.onActiveFilterDeleted = jasmine.createSpy('onActiveFilterDeleted');
-
-      vm.openDeleteFiltersModal();
-
-      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
-
-      modalDeferred.reject();
-      vm.savedFilters = [];
-      scope.$digest();
-
-      expect(vm.onActiveFilterDeleted).not.toHaveBeenCalled();
-    });
-
     it('calls the resetDeleteFiltersStatus action when the modal promise resolves', function() {
       vm.savedFilters = [{ name: 'foo' }, { name: 'bar' }];
       vm.resetDeleteFiltersStatus = jasmine.createSpy('resetDeleteFiltersStatus');
@@ -265,28 +176,6 @@ describe('manageFilterMenu', function() {
       scope.$digest();
 
       expect(vm.resetDeleteFiltersStatus).toHaveBeenCalled();
-    });
-  });
-
-  describe('doApplySavedFilter', function() {
-    var onFilterSelectedSpy;
-
-    beforeEach(function() {
-      vm.onFilterSelected = onFilterSelectedSpy = jasmine.createSpy('onFilterSelected');
-    });
-
-    it('fires the applySavedFilter action with its argument', function() {
-      var filter = { name: 'filter 1' };
-
-      vm.doApplySavedFilter(filter);
-      expect(vm.applySavedFilter).toHaveBeenCalledWith(filter);
-    });
-
-    it('calls vm.onFilterSelected with a copy of its argument as the savedFilter property', function() {
-      var filter = { name: 'filter 1' };
-
-      vm.doApplySavedFilter(filter);
-      expect(onFilterSelectedSpy).toHaveBeenCalledWith({ savedFilter: { name: 'filter 1' } });
     });
   });
 

@@ -33,7 +33,7 @@ function dashboardResultsActions(dashboardDataService, $filter, $q) {
         type: LOAD_RESULTS_REQUESTED,
         payload: resultsType
       });
-      return fetchResults(resultsType, getState().dashboard)
+      return fetchResults(resultsType, getState())
           .then(({results, numResults, classyBrew}) => dispatch(
               loadResultsFulfilled(resultsType, results, numResults, classyBrew)))
           .catch(error => {
@@ -70,9 +70,9 @@ function dashboardResultsActions(dashboardDataService, $filter, $q) {
     };
   }
 
-  function fetchResults(resultsType, dashboardState) {
-    const sortFields = dashboardState[resultsType].sortFields;
-    return dashboardDataService[getServiceMethod(resultsType)](dashboardState.filters, sortFields);
+  function fetchResults(resultsType, state) {
+    const sortFields = state.dashboard[resultsType].sortFields;
+    return dashboardDataService[getServiceMethod(resultsType)](state.dashboardFilter.appliedFilter, sortFields);
   }
 
   return {

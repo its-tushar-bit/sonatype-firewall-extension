@@ -20,7 +20,7 @@ describe('components component', function() {
       'dashboard.data.service': dashboardDataServiceMock
     });
 
-    vm.state = {};
+    vm.results = {};
     vm.maskController = jasmine.createSpyObj('maskController', ['activateMask', 'removeMask']);
 
     $scope.vm = vm; // needed to be able to test scope.$watch
@@ -32,22 +32,22 @@ describe('components component', function() {
     });
 
     describe('$onInit()', function() {
-      it('does not fire LOAD_RESULTS_REQUESTED action if filter is falsy', function() {
-        vm.state.filters = null;
+      it('does not fire LOAD_RESULTS_REQUESTED action if filter is loading', function() {
+        vm.filterLoading = true;
         vm.$onInit();
         expect(vm.loadResults).not.toHaveBeenCalled();
       });
 
-      it('does not fire LOAD_RESULTS_REQUESTED action if filter is truthy and state.needsAcknowledgement is true', function() {
-        vm.state.filters = {};
-        vm.state.needsAcknowledgement = true;
+      it('does not fire LOAD_RESULTS_REQUESTED action if filter is loaded and state.needsAcknowledgement is true', function() {
+        vm.filterLoading = false;
+        vm.needsAcknowledgement = true;
         vm.$onInit();
         expect(vm.loadResults).not.toHaveBeenCalled();
       });
 
-      it('fires LOAD_RESULTS_REQUESTED action if filter is truthy and state.needsAcknowledgement is false', function() {
-        vm.state.filters = {};
-        vm.state.needsAcknowledgement = false;
+      it('fires LOAD_RESULTS_REQUESTED action if filter is loaded and state.needsAcknowledgement is false', function() {
+        vm.filterLoading = false;
+        vm.needsAcknowledgement = false;
         vm.$onInit();
         expect(vm.loadResults).toHaveBeenCalled();
       });
@@ -66,16 +66,16 @@ describe('components component', function() {
       });
     });
 
-    describe('$watch "vm.state.filtersAreDirty"', function() {
+    describe('$watch "vm.filtersAreDirty"', function() {
       it('removes mask if value is false', function() {
-        vm.state.filtersAreDirty = false;
+        vm.filtersAreDirty = false;
         $scope.$digest();
         expect(vm.maskController.removeMask).toHaveBeenCalled();
         expect(vm.maskController.activateMask).not.toHaveBeenCalled();
       });
 
       it('activates mask if value is true', function() {
-        vm.state.filtersAreDirty = true;
+        vm.filtersAreDirty = true;
         $scope.$digest();
         expect(vm.maskController.removeMask).not.toHaveBeenCalled();
         expect(vm.maskController.activateMask).toHaveBeenCalled();
@@ -84,37 +84,37 @@ describe('components component', function() {
 
     describe('getColor', function() {
       it('retrieves color from current tab state', function() {
-        vm.state.components = {
+        vm.results.components = {
           classyBrew: jasmine.createSpyObj('classyBrew', ['getColor'])
         };
-        vm.state.components.classyBrew.getColor.and.returnValue('blue1234');
+        vm.results.components.classyBrew.getColor.and.returnValue('blue1234');
         expect(vm.getColor(1234)).toEqual('blue1234');
-        expect(vm.state.components.classyBrew.getColor).toHaveBeenCalledWith(1234);
+        expect(vm.results.components.classyBrew.getColor).toHaveBeenCalledWith(1234);
       });
     });
 
     describe('getTextColorClass', function() {
       beforeEach(function() {
-        vm.state.components = {
+        vm.results.components = {
           classyBrew: jasmine.createSpyObj('classyBrew', ['isWhiteText'])
         };
       });
 
       it('returns grey-text if score is 0', function() {
         expect(vm.getTextColorClass(0)).toEqual('grey-text');
-        expect(vm.state.components.classyBrew.isWhiteText).not.toHaveBeenCalled();
+        expect(vm.results.components.classyBrew.isWhiteText).not.toHaveBeenCalled();
       });
 
       it('returns white-text if score is not 0 and classyBrew.isWhiteText is true', function() {
-        vm.state.components.classyBrew.isWhiteText.and.returnValue(true);
+        vm.results.components.classyBrew.isWhiteText.and.returnValue(true);
         expect(vm.getTextColorClass(1234)).toEqual('white-text');
-        expect(vm.state.components.classyBrew.isWhiteText).toHaveBeenCalledWith(1234);
+        expect(vm.results.components.classyBrew.isWhiteText).toHaveBeenCalledWith(1234);
       });
 
       it('returns undefined if score is not 0 and classyBrew.isWhiteText is false', function() {
-        vm.state.components.classyBrew.isWhiteText.and.returnValue(false);
+        vm.results.components.classyBrew.isWhiteText.and.returnValue(false);
         expect(vm.getTextColorClass(1234)).toBeUndefined();
-        expect(vm.state.components.classyBrew.isWhiteText).toHaveBeenCalledWith(1234);
+        expect(vm.results.components.classyBrew.isWhiteText).toHaveBeenCalledWith(1234);
       });
     });
 

@@ -29,18 +29,65 @@ describe('manageFiltersReducer', function() {
     });
   });
 
-  describe('UPDATE_FILTERS_FULFILLED action', function() {
-    it('sets the appliedFilterName to the appliedFilterName in the payload', function() {
-      var state = Object.freeze({ appliedFilterName: 'foo', other: otherObject });
-      var action = {
-        type: 'UPDATE_FILTERS_FULFILLED',
-        payload: { appliedFilterName: 'bar' }
-      };
-      var newState = reduce(state, action);
-      expect(newState.appliedFilterName).toBe('bar');
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+  function testSetsAppliedFilterNameAndShowDirtyAsterisk(actionType) {
+    describe(actionType + ' action', function() {
+      var initState, action, filterJson;
+
+      beforeEach(function() {
+        filterJson = {
+          organizationFilters: ['orgId1', 'orgId2'],
+          policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
+          stageTypeFilters: ['release', 'stage-release', 'build'],
+          tagFilters: ['tagId1', 'tagId2', null],
+          applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
+          policyViolationStates: ['OPEN', 'WAIVED'],
+          maxDaysOld: 90,
+          minPolicyThreatLevel: 3,
+          maxPolicyThreatLevel: 6
+        };
+        initState = {
+          appliedFilterName: 'foo',
+          savedFilters: [{'name': 'Test1', 'filter': filterJson}],
+          other: otherObject
+        };
+        action = {
+          type: actionType,
+          payload: {
+            filter: filterJson,
+            basedOnFilterName: 'Test1'
+          }
+        };
+      });
+
+      it('sets the appliedFilterName to the basedOnFilterName in the payload', function() {
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.appliedFilterName).toBe('Test1');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets showDirtyAsterisk to false if filter is same as corresponding saved filter', function() {
+        initState.showDirtyAsterisk = true;
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets showDirtyAsterisk to true if filter has changed', function() {
+        initState.showDirtyAsterisk = false;
+        var state = Object.freeze(initState);
+        action.payload.filter = angular.copy(filterJson);
+        action.payload.filter.minPolicyThreatLevel = 2;
+        var newState = reduce(state, action);
+        expect(newState.showDirtyAsterisk).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
     });
-  });
+  }
+
+  testSetsAppliedFilterNameAndShowDirtyAsterisk('FETCH_CURRENT_FILTER_FULFILLED');
+  testSetsAppliedFilterNameAndShowDirtyAsterisk('APPLY_FILTER_FULFILLED');
 
   describe('FETCH_SAVED_FILTERS_FULFILLED action', function() {
     it('sets savedFilters to the payload and sets savedFilterListError to null', function() {
@@ -70,19 +117,6 @@ describe('manageFiltersReducer', function() {
     });
   });
 
-  describe('APPLY_SAVED_FILTER action', function() {
-    it('sets appliedFilterName from the payload', function() {
-      var state = Object.freeze({ appliedFilterName: null, isManageFiltersOpen: true, other: otherObject });
-      var action = {
-        type: 'APPLY_SAVED_FILTER',
-        payload: { name: 'foo' }
-      };
-      var newState = reduce(state, action);
-      expect(newState.appliedFilterName).toBe('foo');
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
   describe('SAVE_FILTER_REQUESTED action', function() {
     it('sets saveFilterSaving to true', function() {
       var state = Object.freeze({ saveFilterSaving: false, other: otherObject });
@@ -94,10 +128,11 @@ describe('manageFiltersReducer', function() {
   });
 
   describe('SAVE_FILTER_FULFILLED action', function() {
-    it('sets saveFilterSuccess to true, savedFiltername from the payload name, and appends the payload to ' +
-        'savedFilters', function() {
+    it('sets saveFilterSuccess to true, sets appliedFilterName from the payload name, appends the payload to ' +
+        'savedFilters and resets showDirtyAsterisk', function() {
       var state = Object.freeze({
         saveFilterSaving: false,
+        showDirtyAsterisk: true,
         appliedFilterName: 'bar',
         savedFilters: Object.freeze([{ name: 'bar' }]),
         other: otherObject
@@ -110,6 +145,7 @@ describe('manageFiltersReducer', function() {
       expect(newState.savedFilters).toEqual([{ name: 'bar' }, { name: 'foo' }]);
       expect(newState.appliedFilterName).toBe('foo');
       expect(newState.saveFilterSuccess).toBe(true);
+      expect(newState.showDirtyAsterisk).toBe(false);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
@@ -200,6 +236,20 @@ describe('manageFiltersReducer', function() {
       expect(newState.deleteFiltersSaving).toBe(false);
       expect(newState.deleteFiltersSuccess).toBe(false);
       expect(newState.deleteFiltersError).toBe(error);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('CLEAR_FILTER action', function() {
+    it('resets appliedFilterName and showDirtyAsterisk', function() {
+      var state = Object.freeze({
+        appliedFilterName: 'Test filter name',
+        showDirtyAsterisk: true,
+        other: otherObject
+      });
+      var newState = reduce(state, {type: 'CLEAR_FILTER'});
+      expect(newState.appliedFilterName).toBeNull();
+      expect(newState.showDirtyAsterisk).toBe(false);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

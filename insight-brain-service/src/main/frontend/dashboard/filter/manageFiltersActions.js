@@ -5,7 +5,6 @@
  */
 export const FETCH_SAVED_FILTERS_FULFILLED = 'FETCH_SAVED_FILTERS_FULFILLED';
 export const FETCH_SAVED_FILTERS_FAILED = 'FETCH_SAVED_FILTERS_FAILED';
-export const APPLY_SAVED_FILTER = 'APPLY_SAVED_FILTER';
 export const SAVE_FILTER_REQUESTED = 'SAVE_FILTER_REQUESTED';
 export const SAVE_FILTER_FULFILLED = 'SAVE_FILTER_FULFILLED';
 export const SAVE_FILTER_FAILED = 'SAVE_FILTER_FAILED';
@@ -42,18 +41,11 @@ function manageFiltersActions($http, CLMLocations, $q, $timeout, filterService) 
     };
   }
 
-  function applySavedFilter(savedFilter) {
-    return {
-      type: APPLY_SAVED_FILTER,
-      payload: savedFilter
-    };
-  }
-
   function saveFilter(name) {
     return (dispatch, getState) => {
-      const { dashboard } = getState(),
-          { filters } = dashboard,
-          namedFilter = { name: name, filter: filters };
+      const { dashboardFilter } = getState(),
+          { appliedFilter } = dashboardFilter,
+          namedFilter = { name: name, filter: filterService.filterToJson(appliedFilter) };
 
       dispatch({ type: SAVE_FILTER_REQUESTED });
 
@@ -94,7 +86,6 @@ function manageFiltersActions($http, CLMLocations, $q, $timeout, filterService) 
 
   return {
     fetchSavedFilters,
-    applySavedFilter,
     deleteSpecifiedFilters,
     saveFilter,
     resetSaveFilterStatus,

@@ -269,7 +269,7 @@ public class DashboardFilters
     }
 
     public IqCheckbox noCategory() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child:last-child iq-checkbox"));
+      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child:last-child"));
     }
   }
 

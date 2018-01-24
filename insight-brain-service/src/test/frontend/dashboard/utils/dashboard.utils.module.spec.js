@@ -15,66 +15,106 @@ describe('dashboard.utils.module', function() {
 
     it('converts policyThreatLevel to string', function() {
       var params = createDashboardDataRequestPayload({
-        minPolicyThreatLevel: 2,
-        maxPolicyThreatLevel: 7
+        policyThreatLevels: [2, 7]
       });
       expect(params.policyThreatLevelRange).toBe('2,7');
     });
 
-    it('converts policyThreatLevel to undefined if minPolicyThreatLevel is undefined', function() {
+    it('does not set policyThreatLevelRange if policyThreatLevels is undefined', function() {
       var params = createDashboardDataRequestPayload({
-        minPolicyThreatLevel: undefined,
-        maxPolicyThreatLevel: 7
+        policyThreatLevels: undefined
       });
       expect(params.policyThreatLevelRange).toBeUndefined();
     });
 
-    it('converts policyThreatLevel to undefined if maxPolicyThreatLevel is undefined', function() {
-      var params = createDashboardDataRequestPayload({
-        minPolicyThreatLevel: 2,
-        maxPolicyThreatLevel: undefined
-      });
-      expect(params.policyThreatLevelRange).toBeUndefined();
-    });
-
-    it('sets applicationIds to provided array of ids', function() {
-      var filter = {applicationFilters: ['app1', 'app2']};
+    it('sets applicationIds to array of provided ids', function() {
+      var filter = {applications: new Set(['app1', 'app2'])};
       var params = createDashboardDataRequestPayload(filter);
-      expect(params.applicationIds).toBe(filter.applicationFilters);
+      expect(params.applicationIds).toEqual(['app1', 'app2']);
     });
 
-    it('does not set policyThreatCategories if policyThreatCategoryFilters is empty', function() {
-      var params = createDashboardDataRequestPayload({policyThreatCategoryFilters: []});
+    it('does not set applicationIds if applications is undefined', function() {
+      var params = createDashboardDataRequestPayload({
+        applications: undefined
+      });
+      expect(params.applicationIds).toBeUndefined();
+    });
+
+    it('sets organizationIds to array of provided ids', function() {
+      var filter = {organizations: new Set(['org1', 'org2'])};
+      var params = createDashboardDataRequestPayload(filter);
+      expect(params.organizationIds).toEqual(['org1', 'org2']);
+    });
+
+    it('does not set organizationIds if organizations is undefined', function() {
+      var params = createDashboardDataRequestPayload({
+        organizations: undefined
+      });
+      expect(params.organizationIds).toBeUndefined();
+    });
+
+    it('does not set policyThreatCategories if policyTypes is empty', function() {
+      var params = createDashboardDataRequestPayload({policyTypes: new Set()});
       expect(params.policyThreatCategories).toBeUndefined();
     });
 
-    it('converts policyThreatCategoryFilters to string', function() {
-      var params = createDashboardDataRequestPayload({policyThreatCategoryFilters: ['SECURITY', 'LICENSE']});
+    it('converts policyTypes to string', function() {
+      var params = createDashboardDataRequestPayload({policyTypes: new Set(['SECURITY', 'LICENSE'])});
       expect(params.policyThreatCategories).toBe('SECURITY,LICENSE');
     });
 
-    it('sets stageIds to provided array of stageTypes', function() {
-      var filter = {stageTypeFilters: ['stage1']};
+    it('sets stageIds to array of provided stages', function() {
+      var filter = {stages: new Set(['stage1', 'stage2'])};
       var params = createDashboardDataRequestPayload(filter);
-      expect(params.stageIds).toBe(filter.stageTypeFilters);
+      expect(params.stageIds).toEqual(['stage1', 'stage2']);
     });
 
-    it('sets tagIds to provided array of tagFilters', function() {
-      var filter = {tagFilters: ['tag1']};
-      var params = createDashboardDataRequestPayload(filter);
-      expect(params.tagIds).toBe(filter.tagFilters);
+    it('does not set stageIds if stages is undefined', function() {
+      var params = createDashboardDataRequestPayload({
+        stages: undefined
+      });
+      expect(params.stageIds).toBeUndefined();
     });
 
-    it('sets policyViolationStates to provided array of states', function() {
-      var filter = {policyViolationStates: ['OPEN', 'WAIVED']};
+    it('sets tagIds to array of provided categories', function() {
+      var filter = {categories: new Set(['tag1', 'tag2'])};
       var params = createDashboardDataRequestPayload(filter);
-      expect(params.policyViolationStates).toBe(filter.policyViolationStates);
+      expect(params.tagIds).toEqual(['tag1', 'tag2']);
+    });
+
+    it('does not set tagIds if categories is undefined', function() {
+      var params = createDashboardDataRequestPayload({
+        categories: undefined
+      });
+      expect(params.tagIds).toBeUndefined();
+    });
+
+    it('sets policyViolationStates to array of provided states', function() {
+      var filter = {policyViolationStates: new Set(['OPEN', 'WAIVED'])};
+      var params = createDashboardDataRequestPayload(filter);
+      expect(params.policyViolationStates).toEqual(['OPEN', 'WAIVED']);
+    });
+
+    it('does not set policyViolationStates if provided policyViolationStates is undefined', function() {
+      var params = createDashboardDataRequestPayload({
+        policyViolationStates: undefined
+      });
+      expect(params.policyViolationStates).toBeUndefined();
     });
 
     it('sets maxDaysOld to provided value', function() {
-      var filter = {maxDaysOld: 90};
+      var filter = {
+        age: {name: 'past 90 days', maxDaysOld: 90}
+      };
       var params = createDashboardDataRequestPayload(filter);
-      expect(params.maxDaysOld).toBe(filter.maxDaysOld);
+      expect(params.maxDaysOld).toBe(90);
+    });
+
+    it('does not set maxDaysOld if age is undefined', function() {
+      var params = createDashboardDataRequestPayload({
+        age: undefined
+      });
+      expect(params.maxDaysOld).toBeUndefined();
     });
 
     it('ignores null sortFields', function() {

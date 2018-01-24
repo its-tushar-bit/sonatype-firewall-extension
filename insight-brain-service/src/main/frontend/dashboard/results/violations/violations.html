@@ -1,10 +1,10 @@
 <div id="dashboard-violations">
   <div class="iq-tile iq-tile--dashboard-table-container">
-    <div class="iq-scrollable" detect-scrollbar="vm.state.filters">
+    <div class="iq-scrollable" detect-scrollbar="vm.appliedFilter">
       <table class="iq-table iq-table--dashboard-violations">
         <thead class="dashboard-headers iq-dashboard-headers">
           <tr class="iq-table-row"
-              sort="vm.state.violations.sortFields"
+              sort="vm.results.violations.sortFields"
               on-sort-change="vm.sortResults('violations', sortFields)">
             <th class="iq-cell iq-cell--header iq-cell--threat" sort-column="-threatLevel,-firstOccurrenceTime">
               <span class="iq-cell__text--header">Threat</span>
@@ -33,17 +33,17 @@
                form-mask="vm.maskController"
                mask-message="">
           <tr violations-table-row risk="risk"
-              ng-repeat="risk in vm.state.violations.results | limitTo: vm.maxResults | emptyToEnd:vm.state.violations.sortFields"
+              ng-repeat="risk in vm.results.violations.results | limitTo: vm.maxResults | emptyToEnd:vm.results.violations.sortFields"
               class="iq-table-row">
           </tr>
         </tbody>
       </table>
-      <dashboard-common-results results="vm.state.violations.results"
+      <dashboard-common-results results="vm.results.violations.results"
                                 is-violations-tab="true"
-                                needs-acknowledgement="vm.state.needsAcknowledgement"
+                                needs-acknowledgement="vm.needsAcknowledgement"
                                 max-results="vm.maxResults"
-                                max-days-old="vm.state.filters.maxDaysOld"
-                                error="vm.state.violations.error"
+                                max-days-old="vm.appliedFilter.age.maxDaysOld"
+                                error="vm.results.violations.error"
                                 reload="vm.reload()">
       </dashboard-common-results>
     </div>

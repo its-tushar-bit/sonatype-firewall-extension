@@ -35,8 +35,10 @@ describe('dashboardResultsActions', function() {
     dashboardResultsActions = $injector.get('dashboardResultsActions');
 
     initialState = {
+      dashboardFilter: {
+        appliedFilter: 'current filters'
+      },
       dashboard: {
-        filters: 'current filters',
         violations: {sortFields: ['-time', '-threatLevel']},
         components: {sortFields: ['-score']},
         applications: {sortFields: ['-totalApplicationRisk.totalRisk']}

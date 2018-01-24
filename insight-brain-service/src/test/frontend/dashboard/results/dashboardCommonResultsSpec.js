@@ -2,15 +2,27 @@ describe('dashboardCommonResultsSpec', function() {
   beforeEach(module('dashboard.utils'));
 
   var vm,
-      dialogMock;
+      dialogMock,
+      applicationStoreMock,
+      $ngRedux,
+      dashboardFilterActionsMock;
 
-  beforeEach(module('dashboard.module', 'dashboard.utils'));
+  beforeEach(module('dashboard.module', 'dashboard.utils', function($provide) {
+    $provide.service('$ngRedux', function() {
+      return jasmine.createSpyObj('$ngRedux', ['dispatch']);
+    });
+  }));
 
   beforeEach(inject(
-      function($componentController) {
+      function($componentController, _$ngRedux_) {
+        $ngRedux = _$ngRedux_;
         dialogMock = jasmine.createSpyObj('Dialog', ['open']);
+        applicationStoreMock = jasmine.createSpyObj('ApplicationStore', ['refresh']);
+        dashboardFilterActionsMock = jasmine.createSpyObj('dashboardFilterActions', ['loadFilter']);
         vm = $componentController('dashboardCommonResults', {
-          Dialog: dialogMock
+          Dialog: dialogMock,
+          ApplicationStore: applicationStoreMock,
+          dashboardFilterActions: dashboardFilterActionsMock
         });
         vm.maxResults = 1;
         vm.needsAcknowledgement = false;
@@ -56,7 +68,7 @@ describe('dashboardCommonResultsSpec', function() {
   });
 
   describe('$onChanges()', function() {
-    it('opens Filter invalid dialog if got 403 error', function() {
+    it('opens "Filter invalid" dialog if got 403 error', function() {
       vm.$onChanges({error: {currentValue: {status: 403}}});
       expect(dialogMock.open).toHaveBeenCalled();
       expect(vm.errorMessage).toBeUndefined();
@@ -66,6 +78,20 @@ describe('dashboardCommonResultsSpec', function() {
       vm.$onChanges({error: {currentValue: {status: 404}}});
       expect(dialogMock.open).not.toHaveBeenCalled();
       expect(vm.errorMessage).toBe('Error 404');
+    });
+
+    describe('"Filter invalid" dialog', function() {
+      it('reloads filter when OK button is clicked', function() {
+        vm.$onChanges({error: {currentValue: {status: 403}}});
+        expect(dialogMock.open).toHaveBeenCalled();
+        expect(dialogMock.open.calls.count()).toEqual(1);
+        var dialogConfig = dialogMock.open.calls.argsFor(0)[0];
+        dashboardFilterActionsMock.loadFilter.and.returnValue('load filter action');
+        // click OK button in the dialog
+        dialogConfig.buttons[0].click();
+        expect(applicationStoreMock.refresh).toHaveBeenCalled();
+        expect($ngRedux.dispatch).toHaveBeenCalledWith('load filter action');
+      });
     });
   });
 });

@@ -11,11 +11,12 @@ bootstrapAddons.directive('slider', function() {
   return {
     restrict: 'A',
     scope: {
-      model: '=ngModel',
+      model: '<value',
       min: '@',
       max: '@',
       hideLabels: '@',
-      rangeHighlights: '<?'
+      rangeHighlights: '<?',
+      onChange: '&'
     },
     priority: 99,
     link: function(scope, element) {
@@ -31,9 +32,9 @@ bootstrapAddons.directive('slider', function() {
         showHandleValues: true,
         rangeHighlights: scope.rangeHighlights
       }).on('slide', function(event) {
-        scope.$apply(function() {
-          scope.model = event.value;
-        });
+        if (!angular.equals(event.value, scope.model)) {
+          scope.onChange({value: event.value});
+        }
       });
 
       scope.$watch('model', function(newValue) {

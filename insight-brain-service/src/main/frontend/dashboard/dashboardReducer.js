@@ -12,18 +12,13 @@ import {
 } from './results/dashboardResultsActions';
 
 import {
-  UPDATE_FILTERS_DIRTINESS,
-  UPDATE_FILTERS_REQUESTED,
-  UPDATE_FILTERS_FULFILLED
+  APPLY_FILTER_REQUESTED,
+  LOAD_FILTER_REQUESTED
 } from './filter/dashboardFilterActions';
 
-import { APPLY_SAVED_FILTER, SAVE_FILTER_FULFILLED } from './filter/manageFiltersActions';
 import {UI_ROUTER_ON_FINISH} from '../reduxUiRouter/routerActions';
 
 const initState = {
-  filters: null,
-  filtersAreDirty: false,
-  needsAcknowledgement: false,
   currentTab: 'violations',
   violations: {
     results: null,
@@ -52,16 +47,9 @@ export default function(state = initState, {type, payload}) {
     case UI_ROUTER_ON_FINISH:
       return setCurrentTab(state, payload);
 
-    case UPDATE_FILTERS_DIRTINESS:
-      return {...state, filtersAreDirty: payload};
-
-    case UPDATE_FILTERS_REQUESTED:
-      return {...resetAllTabs(state), filters: null};
-
-    case UPDATE_FILTERS_FULFILLED: {
-      const {filters, needsAcknowledgement} = payload;
-      return {...state, filters, needsAcknowledgement};
-    }
+    case LOAD_FILTER_REQUESTED:
+    case APPLY_FILTER_REQUESTED:
+      return resetAllTabs(state);
 
     case LOAD_RESULTS_REQUESTED:
       return resetResults(state, payload);
@@ -84,14 +72,6 @@ export default function(state = initState, {type, payload}) {
     case SORT_RESULTS_FULFILLED: {
       const {resultsType, results} = payload;
       return updateResults(state, resultsType, {results});
-    }
-
-    case APPLY_SAVED_FILTER: {
-      return { ...state, filtersAreDirty: false };
-    }
-
-    case SAVE_FILTER_FULFILLED: {
-      return { ...state, filtersAreDirty: false };
     }
 
     default:

@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import template from './dashboardFilterRadioDimension.html';
+import template from './iqTreeViewRadioSelect.html';
 
 /**
  * @ngDoc directive
- * @name dashboardFilterRadioDimension
+ * @name iqTreeViewRadioSelect
  * @restrict E
  *
  * @description
@@ -19,22 +19,25 @@ import template from './dashboardFilterRadioDimension.html';
  * @param idField field used by the entity for the id (defaults to 'id')
  * @param nameField field used by the entity for the name (defaults to 'name')
  * @param name used for the 'name' attribute of radio inputs
+ * @param readOnly if true, renders collapsed and disabled tree view (defaults to 'false')
+ * @param onChange callback expression - called with the id of the selected option. Context: {selected:Object|String}
  */
 export default
-function dashboardFilterRadioDimension() {
+function iqTreeViewRadioSelect() {
   return {
     restrict: 'E',
     transclude: true,
     template: template,
     scope: {
       available: '<',
-      selectedEntry: '=',
+      selectedEntry: '<',
       idField: '@?',
       nameField: '@?',
       name: '@',
-      readOnly: '<?'
+      readOnly: '<?',
+      onChange: '&'
     },
-    controller: DashboardFilterRadioDimensionController,
+    controller: IqTreeViewRadioSelectController,
     controllerAs: 'vm',
     link: function ($scope) {
       $scope.idField = $scope.idField || 'id';
@@ -43,14 +46,14 @@ function dashboardFilterRadioDimension() {
   };
 }
 
-function DashboardFilterRadioDimensionController($scope) {
+function IqTreeViewRadioSelectController($scope) {
   var vm = this;
 
   vm.select = select;
   vm.isChecked = isChecked;
 
   function select(item) {
-    $scope.selectedEntry = item;
+    $scope.onChange({selected: item[$scope.idField]});
   }
 
   function isChecked(entity) {
@@ -58,4 +61,4 @@ function DashboardFilterRadioDimensionController($scope) {
   }
 }
 
-DashboardFilterRadioDimensionController.$inject = ['$scope'];
+IqTreeViewRadioSelectController.$inject = ['$scope'];

@@ -69,7 +69,7 @@ dashboardResultsContainerController.$inject = [
 // Which part of the Redux global state does our component want to receive?
 function mapStateToThis(state) {
   return {
-    filters: state.dashboard.filters,
+    filters: state.dashboardFilter.appliedFilter,
     title: state.router.currentState.data.title,
     routeStateName: state.router.currentState.name,
     applicationsSortFields: state.dashboard.applications.sortFields,

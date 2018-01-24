@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import {setToArray} from '../../util/jsUtil';
 
 export default
 function dashboardFilterService($http, $q, CLMLocations, Messages) {
@@ -23,17 +24,12 @@ function dashboardFilterService($http, $q, CLMLocations, Messages) {
 
   function filterToJson(filter) {
     return {
-      organizationFilters: Object.keys(filter.organizations),
-      applicationFilters: Object.keys(filter.applications),
-      policyThreatCategoryFilters: Object.keys(filter.policyTypes),
-      stageTypeFilters: Object.keys(filter.stages),
-
-      // the uncategorized filter uses null but since it's an object key it gets turned into a string; we need to
-      // fix that
-      tagFilters: Object.keys(filter.categories).map(function(cat) {
-        return cat === 'null' ? null : cat;
-      }),
-      policyViolationStates: Object.keys(filter.policyViolationStates),
+      organizationFilters: setToArray(filter.organizations),
+      applicationFilters: setToArray(filter.applications),
+      policyThreatCategoryFilters: setToArray(filter.policyTypes),
+      stageTypeFilters: setToArray(filter.stages),
+      tagFilters: setToArray(filter.categories),
+      policyViolationStates: setToArray(filter.policyViolationStates),
       maxDaysOld: filter.age.maxDaysOld,
       minPolicyThreatLevel: filter.policyThreatLevels[0],
       maxPolicyThreatLevel: filter.policyThreatLevels[1]

@@ -13,6 +13,7 @@ import removeDashes from './filters/removeDashes.filter';
 import wrapWith from './filters/wrap.with.filter';
 import angularCommonModule from '../../util/AngularCommon';
 import storesModule from '../../util/Stores';
+import {setToArray} from '../../util/jsUtil';
 
 export default angular.module('dashboard.utils',
     ['ui.router', storesModule.name, angularCommonModule.name, 'ComponentModule', 'ComponentDisplay'])
@@ -36,20 +37,18 @@ function createDashboardDataRequestPayload(filter, maxResults, sortFields) {
     params.maxResults = maxResults + 1;
   }
   if (filter) {
-    params.organizationIds = filter.organizationFilters;
-    params.applicationIds = filter.applicationFilters;
-    params.stageIds = filter.stageTypeFilters;
-    params.tagIds = filter.tagFilters;
-    params.policyViolationStates = filter.policyViolationStates;
-    params.maxDaysOld = filter.maxDaysOld;
+    params.organizationIds = setToArray(filter.organizations);
+    params.applicationIds = setToArray(filter.applications);
+    params.stageIds = setToArray(filter.stages);
+    params.tagIds = setToArray(filter.categories);
+    params.policyViolationStates = setToArray(filter.policyViolationStates);
+    params.maxDaysOld = filter.age && filter.age.maxDaysOld;
+    params.policyThreatLevelRange = filter.policyThreatLevels && filter.policyThreatLevels.join(',');
 
-    if (filter.policyThreatCategoryFilters && filter.policyThreatCategoryFilters.length > 0) {
-      params.policyThreatCategories = filter.policyThreatCategoryFilters.join(',');
+    if (filter.policyTypes && filter.policyTypes.size > 0) {
+      params.policyThreatCategories = setToArray(filter.policyTypes).join(',');
     }
 
-    if (filter.minPolicyThreatLevel !== undefined && filter.maxPolicyThreatLevel !== undefined) {
-      params.policyThreatLevelRange = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel].join(',');
-    }
   }
   return params;
 }

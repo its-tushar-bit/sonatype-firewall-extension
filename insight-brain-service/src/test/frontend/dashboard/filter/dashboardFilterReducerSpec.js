@@ -1,0 +1,831 @@
+describe('dashboardFilterReducer', function() {
+  var reduce, otherObject;
+
+  beforeEach(module('dashboardFilter'));
+
+  beforeEach(inject(function($injector) {
+    reduce = $injector.get('dashboardFilterReducer');
+    otherObject = {value: 'test value'};
+  }));
+
+  describe('unknown action', function() {
+    it('returns original state', function() {
+      var state = Object.freeze({foo: 'bar'});
+      var action = {
+        type: 'UNKNOWN'
+      };
+      var newState = reduce(state, action);
+      expect(newState).toBe(state);
+    });
+  });
+
+  describe('initial state', function() {
+    it('is used if no state is provided', function() {
+      var action = {
+        type: 'UNKNOWN'
+      };
+      var newState = reduce(undefined, action);
+      expect(newState).not.toBeUndefined();
+    });
+  });
+
+  describe('LOAD_FILTER_REQUESTED action', function() {
+    it('sets loading to true and resets filter', function() {
+      var state = Object.freeze({
+        loadError: 'error',
+        loading: false,
+        other: otherObject
+      });
+      var action = {type: 'LOAD_FILTER_REQUESTED'};
+      var newState = reduce(state, action);
+      expect(newState.loading).toBe(true);
+      expect(newState.loadError).toBeNull();
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LOAD_FILTER_FAILED action', function() {
+    it('sets loading to false and sets error', function() {
+      var state = Object.freeze({
+        loadError: null,
+        loading: true,
+        other: otherObject
+      });
+      var action = {
+        type: 'LOAD_FILTER_FAILED',
+        payload: 'load filter error'
+      };
+      var newState = reduce(state, action);
+      expect(newState.loadError).toBe('load filter error');
+      expect(newState.loading).toBe(false);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED action', function() {
+    var initState, action;
+
+    beforeEach(function() {
+      initState = {
+        loading: true,
+        other: otherObject
+      };
+      action = {
+        type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
+        payload: {
+          organizations: [
+            {
+              id: 'orgId1',
+              name: 'OrganizationOne'
+            }, {
+              id: 'orgId2',
+              name: 'OrganizationTwo'
+            }, {
+              id: 'ROOT_ORGANIZATION_ID',
+              name: 'Root Organization'
+            }
+          ],
+          applications: [
+            {
+              id: 'applicationIdZ',
+              publicId: 'applicationPublicIdZ',
+              name: 'ApplicationZ <b style="woah" class=\'evenmorewoah\'>&nbsp;shouldnotbebold</b>',
+              organizationId: 'orgId1'
+            }, {
+              id: 'applicationIdA',
+              publicId: 'applicationPublicIdA',
+              name: 'ApplicationA',
+              organizationId: 'orgId2'
+            }, {
+              id: 'applicationIdQ',
+              publicId: 'applicationPublicIdQ',
+              name: 'ApplicationQ',
+              organizationId: 'orgId2'
+            }, {
+              id: 'applicationIdR',
+              publicId: 'applicationPublicIdR',
+              name: 'ApplicationR',
+              organizationId: 'orgId2'
+            }, {
+              id: 'applicationIdS',
+              publicId: 'applicationPublicIdS',
+              name: 'ApplicationS',
+              organizationId: 'noPermissionOrgId',
+              organizationName: 'No Permission'
+            }
+          ],
+          categories: [
+            {
+              id: 'tagId1',
+              organizationId: 'orgId1',
+              name: 'TagOne',
+              nameLowercaseNoWhitespace: 'tagone',
+              description: 'Tag One Description'
+            }, {
+              id: 'tagId2',
+              organizationId: 'orgId2',
+              name: 'TagTwo',
+              nameLowercaseNoWhitespace: 'tagtwo',
+              description: 'Tag Two Description'
+            }
+          ],
+          stages: MockData.getDashboardStageData()
+        }
+      };
+    });
+
+    it('does not set loading to false', function() {
+      var state = Object.freeze(initState);
+      var newState = reduce(state, action);
+      expect(newState.loading).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets available filter options', function() {
+      var state = Object.freeze(initState);
+      var newState = reduce(state, action);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+
+      expect(newState.applications.length).toBe(action.payload.applications.length);
+      expect(newState.applications[0].id).toBe(action.payload.applications[0].id);
+      expect(newState.applications[1].id).toBe(action.payload.applications[1].id);
+
+      // since we have an application but no permissions to the org add 1
+      // and remove ROOT org
+      expect(newState.organizations.length).toBe(3);
+      expect(newState.organizations[0]).toBe(action.payload.organizations[0]);
+      expect(newState.organizations[1]).toBe(action.payload.organizations[1]);
+      // no permission to org scenario
+      expect(newState.organizations[2].id).toBe(action.payload.applications[4].organizationId);
+      expect(newState.organizations[2].name).toBe(action.payload.applications[4].organizationName);
+
+      expect(newState.stages.length).toBe(MockData.getDashboardStageData().length);
+      expect(newState.stages[0].id).toBe(MockData.getDashboardStageData()[0].stageTypeId);
+      expect(newState.stages[0].name).toBe(MockData.getDashboardStageData()[0].stageName);
+      expect(newState.stages[1].id).toBe(MockData.getDashboardStageData()[1].stageTypeId);
+      expect(newState.stages[1].name).toBe(MockData.getDashboardStageData()[1].stageName);
+
+      // one extra for No Category
+      expect(newState.categories.length).toBe(action.payload.categories.length + 1);
+      expect(newState.categories[0].id).toBe(action.payload.categories[0].id);
+      // populates owner
+      expect(newState.categories[0].owner).toBe(action.payload.organizations[0].name);
+      expect(newState.categories[2].id).toBe(null);
+      expect(newState.categories[2].name).toBe('No Category');
+    });
+  });
+
+  describe('applyFilter', function() {
+    var initState, action, filterJson, initSelected;
+
+    beforeEach(function() {
+      initSelected = Object.freeze({
+        organizations: {},
+        applications: {},
+        categories: {},
+        stages: {},
+        policyTypes: {},
+        policyViolationStates: {OPEN: true},
+        age: {name: 'past 30 days', maxDaysOld: 30},
+        policyThreatLevels: [2, 10]
+      });
+      filterJson = {
+        organizationFilters: ['orgId1', 'orgId2', 'org3'],
+        policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
+        stageTypeFilters: ['release', 'stage-release', 'build'],
+        tagFilters: ['tagId1', 'tagId2', null],
+        applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
+        policyViolationStates: ['OPEN', 'WAIVED'],
+        maxDaysOld: 90,
+        minPolicyThreatLevel: 3,
+        maxPolicyThreatLevel: 6
+      };
+      initState = {
+        isTimeFilterFeatureEnabled: false,
+        showAgeFilter: false,
+        isViolationsTab: false,
+        organizations: [
+          {id: 'orgId1', name: 'OrganizationOne'},
+          {id: 'orgId2', name: 'OrganizationTwo'},
+          {id: 'noPermissionOrgId', name: 'No Permission'}
+        ],
+        applications: [
+          {id: 'applicationIdZ', organizationId: 'orgId1'},
+          {id: 'applicationIdA', organizationId: 'orgId2'},
+          {id: 'applicationIdQ', organizationId: 'orgId2'},
+          {id: 'applicationIdR', organizationId: 'orgId2'},
+          {id: 'applicationIdS', organizationId: 'noPermissionOrgId'}
+        ],
+        ages: [
+          {name: 'past 24 hours', maxDaysOld: 1},
+          {name: 'past 7 days', maxDaysOld: 7},
+          {name: 'past 30 days', maxDaysOld: 30},
+          {name: 'past 90 days', maxDaysOld: 90},
+          {name: 'past 12 months', maxDaysOld: 365},
+          {name: 'all time', maxDaysOld: null}
+        ],
+        categories: [
+          {id: 'tagId1', name: 'TagOne'},
+          {id: null, name: 'No Category'}
+        ],
+        appliedFilter: initSelected,
+        selected: initSelected,
+        other: otherObject
+      };
+    });
+
+    describe('FETCH_CURRENT_FILTER_FULFILLED action', function() {
+
+      beforeEach(function() {
+        action = {
+          type: 'FETCH_CURRENT_FILTER_FULFILLED',
+          payload: {
+            filter: filterJson,
+            basedOnFilterName: 'Test1'
+          }
+        };
+      });
+
+      it('sets loading to false', function() {
+        initState.loading = true;
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.loading).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets needsAcknowledgement', function() {
+        initState.needsAcknowledgement = false;
+        action.payload.needsAcknowledgement = true;
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.needsAcknowledgement).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      testApplyFilter();
+    });
+
+    describe('APPLY_FILTER_FULFILLED action', function() {
+      beforeEach(function() {
+        action = {
+          type: 'APPLY_FILTER_FULFILLED',
+          payload: {
+            filter: filterJson,
+            basedOnFilterName: 'Test1'
+          }
+        };
+      });
+
+      it('always resets needsAcknowledgement', function() {
+        initState.needsAcknowledgement = true;
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.needsAcknowledgement).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      testApplyFilter();
+    });
+
+    function testApplyFilter() {
+      it('sets filtersAreDirty to false', function() {
+        initState.filtersAreDirty = true;
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.filtersAreDirty).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      describe('showAgeFilter', function() {
+        it('is set to true if isViolationsTab and time filter is disabled but selected age is not default', function() {
+          initState.isTimeFilterFeatureEnabled = false;
+          initState.isViolationsTab = true;
+          var state = Object.freeze(initState);
+          var newState = reduce(state, action);
+          expect(newState.showAgeFilter).toBe(true);
+          expect(newState.other).toBe(otherObject); // other properties are not modified
+        });
+
+        it('is set to true if isViolationsTab and selected age is default but time filter is enabled', function() {
+          initState.isTimeFilterFeatureEnabled = true;
+          initState.isViolationsTab = true;
+          filterJson.maxDaysOld = 30;
+          var state = Object.freeze(initState);
+          expect(state.showAgeFilter).toBe(false);
+          var newState = reduce(state, action);
+          expect(newState.showAgeFilter).toBe(true);
+          expect(newState.other).toBe(otherObject); // other properties are not modified
+        });
+
+        it('is set to false if isViolationsTab but selected age is default and time filter is disabled', function() {
+          initState.isTimeFilterFeatureEnabled = false;
+          initState.isViolationsTab = true;
+          initState.showAgeFilter = true;
+          filterJson.maxDaysOld = 30;
+          var state = Object.freeze(initState);
+          var newState = reduce(state, action);
+          expect(newState.showAgeFilter).toBe(false);
+          expect(newState.other).toBe(otherObject); // other properties are not modified
+        });
+      });
+
+      it('sets selected and appliedFilter', function() {
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+        expect(newState.selected.policyTypes).toEqual(new Set(['QUALITY', 'OTHER', 'SECURITY']));
+        expect(newState.selected.stages).toEqual(new Set(['release', 'stage-release', 'build']));
+
+        // skips selected category ids that do not exist in vm.categories
+        expect(newState.selected.categories).toEqual(new Set(['tagId1', null]));
+
+        // removes orgs that are not visible (not in state.organizations)
+        expect(newState.selected.organizations).toEqual(new Set(['orgId1', 'orgId2']));
+
+        // adds missing applications for selected organization
+        expect(newState.selected.applications).toEqual(
+            new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']));
+
+        expect(newState.selected.policyViolationStates).toEqual(new Set(['OPEN', 'WAIVED']));
+
+        expect(newState.selected.age).toEqual({maxDaysOld: 90, name: 'past 90 days'});
+        expect(newState.selected.policyThreatLevels).toEqual([3, 6]);
+
+        // sets selected to appliedFilter
+        expect(newState.selected).toBe(newState.appliedFilter);
+      });
+
+      it('sets selected age to default if filter maxDaysOld value is not recognised', function() {
+        filterJson.maxDaysOld = 666;
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.selected.age).toEqual({maxDaysOld: 30, name: 'past 30 days'});
+      });
+
+      it('does not set selected and appliedFilter if filter is not provided', function() {
+        var noFilterAction = {
+          type: action.type,
+          payload: {}
+        };
+        var state = Object.freeze(initState);
+        var newState = reduce(state, noFilterAction);
+        expect(newState.selected).toBe(initState.selected);
+        expect(newState.appliedFilter).toBe(initState.appliedFilter);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+    }
+  });
+
+  describe('APPLY_FILTER_FAILED action', function() {
+    it('sets saveError', function() {
+      var state = Object.freeze({saveError: null, other: otherObject});
+      var action = {
+        type: 'APPLY_FILTER_FAILED',
+        payload: 'update filter error'
+      };
+      expect(state.saveError).toBeNull();
+      var newState = reduce(state, action);
+      expect(newState.saveError).toBe('update filter error');
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('APPLY_FILTER_REQUESTED action', function() {
+    it('resets saveError and loadErrorFilterName', function() {
+      var state = Object.freeze({
+        saveError: 'save error',
+        loadErrorFilterName: 'test filter',
+        other: otherObject
+      });
+      var action = {
+        type: 'APPLY_FILTER_REQUESTED'
+      };
+      var newState = reduce(state, action);
+      expect(newState).toEqual({
+        saveError: null,
+        loadErrorFilterName: null,
+        other: otherObject
+      });
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('APPLY_SAVED_FILTER_FAILED action', function() {
+    it('sets loadErrorFilterName to payload', function() {
+      var state = Object.freeze({loadErrorFilterName: null, other: otherObject});
+      var action = {type: 'APPLY_SAVED_FILTER_FAILED', payload: 'test filter name'};
+      var newState = reduce(state, action);
+      expect(newState.loadErrorFilterName).toBe('test filter name');
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('@@reduxUiRouter/onFinish action', function() {
+    var initState;
+    beforeEach(function() {
+      initState = {
+        isViolationsTab: false,
+        isTimeFilterFeatureEnabled: false,
+        showAgeFilter: false,
+        selected: {
+          age: {name: 'past 30 days', maxDaysOld: 30}
+        },
+        other: otherObject
+      };
+    });
+
+    describe('isViolationsTab', function() {
+      it('is set to true if router state is violations', function() {
+        var state = Object.freeze(initState);
+        var action = {
+          type: '@@reduxUiRouter/onFinish',
+          payload: {
+            toState: {
+              name: 'dashboard.overview.violations'
+            },
+            toParams: {}
+          }
+        };
+        expect(state.isViolationsTab).toBe(false);
+        var newState = reduce(state, action);
+        expect(newState.isViolationsTab).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('is set to false if router state is not violations', function() {
+        initState.isViolationsTab = true;
+        var state = Object.freeze(initState);
+        var action = {
+          type: '@@reduxUiRouter/onFinish',
+          payload: {
+            toState: {
+              name: 'dashboard.overview.applications'
+            },
+            toParams: {}
+          }
+        };
+        expect(state.isViolationsTab).toBe(true);
+        var newState = reduce(state, action);
+        expect(newState.isViolationsTab).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+    });
+
+    describe('isTimeFilterFeatureEnabled', function() {
+      it('is set to false if current router state has no timeFilterFeature parameter', function() {
+        initState.isTimeFilterFeatureEnabled = true;
+        var state = Object.freeze(initState);
+        var action = {
+          type: '@@reduxUiRouter/onFinish',
+          payload: {
+            toState: {
+              name: 'dashboard.overview.violations'
+            },
+            toParams: {}
+          }
+        };
+        expect(state.isTimeFilterFeatureEnabled).toBe(true);
+        var newState = reduce(state, action);
+        expect(newState.isTimeFilterFeatureEnabled).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('is set to true if timeFilterFeature parameter is provided', function() {
+        initState.isTimeFilterFeatureEnabled = false;
+        var state = Object.freeze(initState);
+        var action = {
+          type: '@@reduxUiRouter/onFinish',
+          payload: {
+            toState: {
+              name: 'dashboard.overview.violations'
+            },
+            toParams: {
+              timeFilterFeature: 'foo'
+            }
+          }
+        };
+        expect(state.isTimeFilterFeatureEnabled).toBe(false);
+        var newState = reduce(state, action);
+        expect(newState.isTimeFilterFeatureEnabled).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+    });
+
+    describe('showAgeFilter', function() {
+      it('is set to true if isViolationsTab, time filter is enabled and selected age is default', function() {
+        var state = Object.freeze(initState);
+        var action = {
+          type: '@@reduxUiRouter/onFinish',
+          payload: {
+            toState: {
+              name: 'dashboard.overview.violations'
+            },
+            toParams: {
+              timeFilterFeature: 'foo'
+            }
+          }
+        };
+        expect(state.showAgeFilter).toBe(false);
+        var newState = reduce(state, action);
+        expect(newState.isTimeFilterFeatureEnabled).toBe(true);
+        expect(newState.showAgeFilter).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('is set to true if isViolationsTab, time filter is disabled but selected age is not default', function() {
+        initState.selected.age = {name: 'all time', maxDaysOld: null};
+        var state = Object.freeze(initState);
+        var action = {
+          type: '@@reduxUiRouter/onFinish',
+          payload: {
+            toState: {
+              name: 'dashboard.overview.violations'
+            },
+            toParams: {}
+          }
+        };
+        expect(state.showAgeFilter).toBe(false);
+        var newState = reduce(state, action);
+        expect(newState.isTimeFilterFeatureEnabled).toBe(false);
+        expect(newState.showAgeFilter).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('is set to false if isViolationsTab but time filter is disabled and selected age is default', function() {
+        initState.showAgeFilter = true;
+        var state = Object.freeze(initState);
+        var action = {
+          type: '@@reduxUiRouter/onFinish',
+          payload: {
+            toState: {
+              name: 'dashboard.overview.violations'
+            },
+            toParams: {}
+          }
+        };
+        expect(state.showAgeFilter).toBe(true);
+        var newState = reduce(state, action);
+        expect(newState.isTimeFilterFeatureEnabled).toBe(false);
+        expect(newState.showAgeFilter).toBe(false);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('is set to false if isViolationsTab is false but time filter is enabled and selected age is not default',
+          function() {
+            initState.showAgeFilter = true;
+            initState.selected.age = {name: 'all time', maxDaysOld: null};
+            var state = Object.freeze(initState);
+            var action = {
+              type: '@@reduxUiRouter/onFinish',
+              payload: {
+                toState: {
+                  name: 'dashboard.overview.applications'
+                },
+                toParams: {
+                  timeFilterFeature: 'foo'
+                }
+              }
+            };
+            expect(state.showAgeFilter).toBe(true);
+            var newState = reduce(state, action);
+            expect(newState.isTimeFilterFeatureEnabled).toBe(true);
+            expect(newState.showAgeFilter).toBe(false);
+            expect(newState.other).toBe(otherObject); // other properties are not modified
+          });
+    });
+
+  });
+
+  describe('TOGGLE_APPS_AND_ORGS action', function() {
+    it('sets selected orgs and apps and sets filtersAreDirty to true', function() {
+      var state = Object.freeze({
+        other: otherObject,
+        filtersAreDirty: false,
+        selected: {}
+      });
+      var action = {
+        type: 'TOGGLE_APPS_AND_ORGS',
+        payload: {
+          selectedOrganizations: new Set(['org1']),
+          selectedApplications: new Set(['app1', 'app2'])
+        }
+      };
+      var newState = reduce(state, action);
+      expect(newState.selected.organizations).toBe(action.payload.selectedOrganizations);
+      expect(newState.selected.applications).toBe(action.payload.selectedApplications);
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SELECT_AGE action', function() {
+    var initState;
+
+    beforeEach(function() {
+      initState = {
+        other: otherObject,
+        filtersAreDirty: false,
+        ages: [
+          {name: 'past 24 hours', maxDaysOld: 1},
+          {name: 'past 12 months', maxDaysOld: 365},
+          {name: 'all time', maxDaysOld: null}
+        ],
+        selected: {
+          age: {name: 'past 12 months', maxDaysOld: 365}
+        }
+      };
+    });
+
+    it('sets selected age and sets filtersAreDirty to true', function() {
+      var state = Object.freeze(initState);
+      var newState = reduce(state, {
+        type: 'SELECT_AGE',
+        payload: 1
+      });
+      expect(newState.selected.age).toEqual({name: 'past 24 hours', maxDaysOld: 1});
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets selected age to "all time" sets filtersAreDirty to true', function() {
+      var state = Object.freeze(initState);
+      var newState = reduce(state, {
+        type: 'SELECT_AGE',
+        payload: null
+      });
+      expect(newState.selected.age).toEqual({name: 'all time', maxDaysOld: null});
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('TOGGLE_FILTER action', function() {
+    var initState;
+
+    beforeEach(function() {
+      initState = {
+        other: otherObject,
+        filtersAreDirty: false,
+        appliedFilter: {},
+        selected: {}
+      };
+    });
+
+    it('sets selected categories and sets filtersAreDirty to true', function() {
+      var state = Object.freeze(initState);
+      var action = {
+        type: 'TOGGLE_FILTER',
+        payload: {
+          filterName: 'categories',
+          selectedIds: new Set(['cat1', 'cat2'])
+        }
+      };
+      var newState = reduce(state, action);
+      expect(newState.selected.categories).toBe(action.payload.selectedIds);
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets selected stages and sets filtersAreDirty to true', function() {
+      var state = Object.freeze(initState);
+      var action = {
+        type: 'TOGGLE_FILTER',
+        payload: {
+          filterName: 'stages',
+          selectedIds: new Set(['stage1', 'stage2'])
+        }
+      };
+      var newState = reduce(state, action);
+      expect(newState.selected.stages).toBe(action.payload.selectedIds);
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets selected policyTypes and sets filtersAreDirty to true', function() {
+      var state = Object.freeze(initState);
+      var action = {
+        type: 'TOGGLE_FILTER',
+        payload: {
+          filterName: 'policyTypes',
+          selectedIds: new Set(['SECURITY', 'LICENSE'])
+        }
+      };
+      var newState = reduce(state, action);
+      expect(newState.selected.policyTypes).toBe(action.payload.selectedIds);
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets selected policyViolationStates and sets filtersAreDirty to true', function() {
+      var state = Object.freeze(initState);
+      var action = {
+        type: 'TOGGLE_FILTER',
+        payload: {
+          filterName: 'policyViolationStates',
+          selectedIds: new Set(['OPEN', 'WAIVED'])
+        }
+      };
+      var newState = reduce(state, action);
+      expect(newState.selected.policyViolationStates).toBe(action.payload.selectedIds);
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets selected policyThreatLevels and sets filtersAreDirty to true', function() {
+      var state = Object.freeze(initState);
+      var action = {
+        type: 'TOGGLE_FILTER',
+        payload: {
+          filterName: 'policyThreatLevels',
+          selectedIds: [3, 8]
+        }
+      };
+      var newState = reduce(state, action);
+      expect(newState.selected.policyThreatLevels).toEqual([3, 8]);
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('CLEAR_FILTER action', function() {
+    it('resets selected filter to default and resets loadErrorFilterName', function() {
+      var state = Object.freeze({
+        loadErrorFilterName: 'Test filter name',
+        appliedFilter: {},
+        selected: {},
+        other: otherObject
+      });
+      var newState = reduce(state, {type: 'CLEAR_FILTER'});
+      expect(newState.loadErrorFilterName).toBeNull();
+      expect(newState.selected.organizations).toEqual(new Set());
+      expect(newState.selected.applications).toEqual(new Set());
+      expect(newState.selected.categories).toEqual(new Set());
+      expect(newState.selected.stages).toEqual(new Set());
+      expect(newState.selected.policyTypes).toEqual(new Set());
+      expect(newState.selected.policyViolationStates).toEqual(new Set(['OPEN']));
+      expect(newState.selected.age).toEqual({name: 'past 30 days', maxDaysOld: 30});
+      expect(newState.selected.policyThreatLevels).toEqual([2, 10]);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets filtersAreDirty to true if appliedFilter is not the same as default', function() {
+      var state = Object.freeze({
+        filtersAreDirty: false,
+        appliedFilter: {},
+        selected: {},
+        other: otherObject
+      });
+      var newState = reduce(state, {type: 'CLEAR_FILTER'});
+      expect(newState.filtersAreDirty).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets filtersAreDirty to false if appliedFilter is the same as default', function() {
+      var state = Object.freeze({
+        filtersAreDirty: true,
+        appliedFilter: {
+          organizations: new Set(),
+          applications: new Set(),
+          categories: new Set(),
+          stages: new Set(),
+          policyTypes: new Set(),
+          policyViolationStates: new Set(['OPEN']),
+          age: {name: 'past 30 days', maxDaysOld: 30},
+          policyThreatLevels: [2, 10]
+        },
+        selected: {},
+        other: otherObject
+      });
+      var newState = reduce(state, {type: 'CLEAR_FILTER'});
+      expect(newState.filtersAreDirty).toBe(false);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('REVERT_FILTER action', function() {
+    it('sets selected filter to current appliedFilter, resets filtersAreDirty and loadErrorFilterName', function() {
+      var state = Object.freeze({
+        loadErrorFilterName: 'Test filter name',
+        filtersAreDirty: true,
+        appliedFilter: {
+          organizations: new Set(['org1']),
+          applications: new Set(['app1', 'org2']),
+          categories: new Set(['cat1', 'cat2']),
+          stages: new Set(['stage1', 'stage2']),
+          policyTypes: new Set(['SECURITY', 'LICENSE']),
+          policyViolationStates: new Set(['OPEN', 'WAIVED']),
+          age: {name: 'past 12 months', maxDaysOld: 365},
+          policyThreatLevels: [3, 8]
+        },
+        selected: {},
+        other: otherObject
+      });
+      var newState = reduce(state, {type: 'REVERT_FILTER'});
+      expect(newState.loadErrorFilterName).toBeNull();
+      expect(newState.filtersAreDirty).toBe(false);
+      expect(newState.selected).toEqual(state.appliedFilter);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+});

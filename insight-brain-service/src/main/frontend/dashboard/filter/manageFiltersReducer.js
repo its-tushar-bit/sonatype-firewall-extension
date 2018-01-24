@@ -3,12 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { set, lensProp, compose, append, contains, curry, merge, pick } from 'ramda';
+import { set, lensProp, compose, append, contains, curry, merge, pick, find, propEq } from 'ramda';
+import { propSet } from '../../util/jsUtil';
 
 import {
   FETCH_SAVED_FILTERS_FULFILLED,
   FETCH_SAVED_FILTERS_FAILED,
-  APPLY_SAVED_FILTER,
   SAVE_FILTER_REQUESTED,
   SAVE_FILTER_FULFILLED,
   SAVE_FILTER_FAILED,
@@ -19,7 +19,7 @@ import {
   RESET_DELETE_FILTERS_STATUS
 } from './manageFiltersActions';
 
-import { UPDATE_FILTERS_FULFILLED } from './dashboardFilterActions';
+import { APPLY_FILTER_FULFILLED, FETCH_CURRENT_FILTER_FULFILLED, CLEAR_FILTER } from './dashboardFilterActions';
 
 const initState = {
   savedFilters: null,
@@ -28,6 +28,7 @@ const initState = {
   saveFilterSaving: false,
   saveFilterSuccess: false,
   appliedFilterName: null,
+  showDirtyAsterisk: false,
   deleteFiltersError: null,
   deleteFiltersSaving: false,
   deleteFiltersSuccess: false
@@ -46,12 +47,6 @@ export default function manageFiltersReducer(state = initState, action) {
 }
 
 /*
- * set the specified property.  When partially applied in the first arg, results in a function fit for
- * use in the reducerActionMap below
- */
-const propSet = curry((propName, payload, state) => set(lensProp(propName), payload, state));
-
-/*
  * like propSet but is meant to be partially applied in 2 args.  The payload is ignored and is only an argument
  * to conform to the interface needed by reducerActionMap
  */
@@ -68,10 +63,10 @@ const resetProps = curry((propNames, payload, state) => merge(state, pick(propNa
  * the state
  */
 const reducerActionMap = {
-  [UPDATE_FILTERS_FULFILLED]: updateFiltersFulfilled,
+  [FETCH_CURRENT_FILTER_FULFILLED]: updateAppliedFilterName,
+  [APPLY_FILTER_FULFILLED]: updateAppliedFilterName,
   [FETCH_SAVED_FILTERS_FULFILLED]: fetchSavedFiltersFulfilled,
   [FETCH_SAVED_FILTERS_FAILED]: propSet('savedFilterListError'),
-  [APPLY_SAVED_FILTER]: applySavedFilter,
   [SAVE_FILTER_REQUESTED]: propSetConst('saveFilterSaving', true),
   [SAVE_FILTER_FULFILLED]: saveFilterFulfilled,
   [SAVE_FILTER_FAILED]: saveFilterFailed,
@@ -79,19 +74,19 @@ const reducerActionMap = {
   [DELETE_SPECIFIED_FILTERS_FULFILLED]: deleteSpecifiedFiltersFulfilled,
   [DELETE_SPECIFIED_FILTERS_FAILED]: deleteFiltersFailed,
   [RESET_SAVE_FILTER_STATUS]: resetProps(['saveFilterSaving', 'saveFilterError', 'saveFilterSuccess']),
-  [RESET_DELETE_FILTERS_STATUS]: resetProps(['deleteFiltersSaving', 'deleteFiltersError', 'deleteFiltersSuccess'])
+  [RESET_DELETE_FILTERS_STATUS]: resetProps(['deleteFiltersSaving', 'deleteFiltersError', 'deleteFiltersSuccess']),
+  [CLEAR_FILTER]: resetProps(['appliedFilterName', 'showDirtyAsterisk'])
 };
 
 function fetchSavedFiltersFulfilled(payload, state) {
   return compose(propSet('savedFilters', payload), resetProps(['savedFilterListError'], payload))(state);
 }
 
-function updateFiltersFulfilled(payload, state) {
-  return { ...state, appliedFilterName: payload.appliedFilterName };
-}
-
-function applySavedFilter(payload, state) {
-  return { ...state, appliedFilterName: payload.name };
+function updateAppliedFilterName(payload, state) {
+  return compose(
+      setShowDirtyAsterisk(payload),
+      propSetConst('appliedFilterName', payload.basedOnFilterName, payload)
+  )(state);
 }
 
 function saveFilterFulfilled(payload, state) {
@@ -99,7 +94,8 @@ function saveFilterFulfilled(payload, state) {
     ...state,
     savedFilters: append(payload, state.savedFilters),
     appliedFilterName: payload.name,
-    saveFilterSuccess: true
+    saveFilterSuccess: true,
+    showDirtyAsterisk: false
   };
 }
 
@@ -127,3 +123,10 @@ function deleteFiltersFailed(payload, state) {
   return resetProps(['deleteFiltersSaving', 'deleteFiltersSuccess'], payload,
       { ...state, deleteFiltersError: payload });
 }
+
+const setShowDirtyAsterisk = payload => state => {
+  const {basedOnFilterName, filter} = payload;
+  const savedFilter = basedOnFilterName && find(propEq('name', basedOnFilterName), state.savedFilters);
+  const showDirtyAsterisk = savedFilter && !angular.equals(filter, savedFilter.filter);
+  return {...state, showDirtyAsterisk};
+};

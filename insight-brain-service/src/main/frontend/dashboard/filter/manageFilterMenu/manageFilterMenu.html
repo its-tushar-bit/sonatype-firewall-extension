@@ -3,8 +3,8 @@
     <a id="show-save-filter-modal"
        class="btn iq-btn--dropdown"
        ng-click="vm.openSaveFilterModal($event)"
-       ng-class="{disabled: vm.isSaveFilterDisabled}"
-       data-tooltip="{{vm.isSaveFilterDisabled ? 'Please apply filter before saving': ''}}"
+       ng-class="{disabled: vm.filtersAreDirty}"
+       data-tooltip="{{vm.filtersAreDirty ? 'Please apply filter before saving': ''}}"
        data-tooltip-placement="top-left"
        data-tooltip-append-to-body="true"
        tooltip-class="filter-label-tooltip">
@@ -33,7 +33,7 @@
         class="iq-scrollable">
       <li class="iq-action-list__item iq-clickable"
           ng-repeat="savedFilter in vm.savedFilters"
-          ng-click="vm.doApplySavedFilter(savedFilter)">
+          ng-click="vm.applySavedFilter(savedFilter)">
         {{::savedFilter.name}}
       </li>
     </ul>

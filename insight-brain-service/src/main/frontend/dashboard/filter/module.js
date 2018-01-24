@@ -5,8 +5,7 @@
  */
 import CLMLocationModule from '../../util/CLMLocation';
 
-import dashboardFilterDimension from './dashboardFilterDimension/dashboardFilterDimension';
-import dashboardFilterRadioDimension from './dashboardFilterRadioDimension/dashboardFilterRadioDimension';
+import iqTreeViewRadioSelect from './iqTreeViewRadioSelect/iqTreeViewRadioSelect';
 import dashboardFilter from './dashboardFilter/dashboardFilter';
 import dashboardFilterService from './dashboardFilterService';
 import manageFiltersActions from './manageFiltersActions';
@@ -20,15 +19,17 @@ import manageFilterMenu from './manageFilterMenu/manageFilterMenu';
 import utilityModule from '../../utility/utility.module';
 import storesModule from '../../util/Stores';
 import dashboardUtilsModule from '../utils/dashboard.utils.module';
-import dashboardFilterActionsModule from './dashboardFilterActions';
+import dashboardFilterActions from './dashboardFilterActions';
+import dashboardFilterReducer from './dashboardFilterReducer';
+import dashboardServicesModule from '../services/module';
+import dashboardResultsActionsModule from '../results/dashboardResultsActions';
 
 var module = angular.module('dashboardFilter',
     [
       CLMLocationModule.name, storesModule.name, utilityModule.name, dashboardUtilsModule.name,
-      dashboardFilterActionsModule.name
+      dashboardServicesModule.name, dashboardResultsActionsModule.name
     ])
-    .directive('dashboardFilterDimension', dashboardFilterDimension)
-    .directive('dashboardFilterRadioDimension', dashboardFilterRadioDimension)
+    .directive('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
     .service('dashboardFilterService', dashboardFilterService)
     .component('dashboardFilter', dashboardFilter)
 
@@ -38,7 +39,9 @@ var module = angular.module('dashboardFilter',
     .controller('saveFilterModalController', saveFilterModalController)
     .service('saveFilterModal', saveFilterModal)
     .component('manageFilterMenu', manageFilterMenu)
+    .factory('dashboardFilterActions', dashboardFilterActions)
     .factory('manageFiltersActions', manageFiltersActions)
-    .value('manageFiltersReducer', manageFiltersReducer);
+    .value('manageFiltersReducer', manageFiltersReducer)
+    .value('dashboardFilterReducer', dashboardFilterReducer);
 
 export default module;

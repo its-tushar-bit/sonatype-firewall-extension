@@ -32,22 +32,22 @@ describe('violations component', function() {
     });
 
     describe('$onInit()', function() {
-      it('does not fire LOAD_RESULTS_REQUESTED action if filter is falsy', function() {
-        vm.state.filters = null;
+      it('does not fire LOAD_RESULTS_REQUESTED action if filter is loading', function() {
+        vm.filterLoading = true;
         vm.$onInit();
         expect(vm.loadResults).not.toHaveBeenCalled();
       });
 
-      it('does not fire LOAD_RESULTS_REQUESTED action if filter is truthy and state.needsAcknowledgement is true', function() {
-        vm.state.filters = {};
-        vm.state.needsAcknowledgement = true;
+      it('does not fire LOAD_RESULTS_REQUESTED action if filter is loaded and state.needsAcknowledgement is true', function() {
+        vm.filterLoading = false;
+        vm.needsAcknowledgement = true;
         vm.$onInit();
         expect(vm.loadResults).not.toHaveBeenCalled();
       });
 
-      it('fires LOAD_RESULTS_REQUESTED action if filter is truthy and state.needsAcknowledgement is false', function() {
-        vm.state.filters = {};
-        vm.state.needsAcknowledgement = false;
+      it('fires LOAD_RESULTS_REQUESTED action if filter is loaded and state.needsAcknowledgement is false', function() {
+        vm.filterLoading = false;
+        vm.needsAcknowledgement = false;
         vm.$onInit();
         expect(vm.loadResults).toHaveBeenCalled();
       });
@@ -66,16 +66,16 @@ describe('violations component', function() {
       });
     });
 
-    describe('$watch "vm.state.filtersAreDirty"', function() {
+    describe('$watch "vm.filtersAreDirty"', function() {
       it('removes mask if value is false', function() {
-        vm.state.filtersAreDirty = false;
+        vm.filtersAreDirty = false;
         $scope.$digest();
         expect(vm.maskController.removeMask).toHaveBeenCalled();
         expect(vm.maskController.activateMask).not.toHaveBeenCalled();
       });
 
       it('activates mask if value is true', function() {
-        vm.state.filtersAreDirty = true;
+        vm.filtersAreDirty = true;
         $scope.$digest();
         expect(vm.maskController.removeMask).not.toHaveBeenCalled();
         expect(vm.maskController.activateMask).toHaveBeenCalled();

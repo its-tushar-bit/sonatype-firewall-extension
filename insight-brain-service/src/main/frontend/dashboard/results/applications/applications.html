@@ -1,10 +1,10 @@
 <div id="dashboard-applications">
   <div class="iq-tile iq-tile--dashboard-table-container">
-    <div class="iq-scrollable" detect-scrollbar="vm.state.filters">
+    <div class="iq-scrollable" detect-scrollbar="vm.appliedFilter">
       <table class="iq-table iq-table--dashboard-applications">
         <thead class="dashboard-headers iq-dashboard-headers">
           <tr class="iq-table-row"
-              sort="vm.state.applications.sortFields"
+              sort="vm.results.applications.sortFields"
               on-sort-change="vm.sortResults('applications', sortFields)">
             <th class="iq-cell iq-cell--header iq-cell--application-name" sort-column="applicationName">
               <span class="header-text">Name</span>
@@ -38,7 +38,7 @@
                mask-message="">
           <tr id="app{{$index}}_"
               class="iq-table-row applications-row total-application-risks"
-              ng-repeat-start="application in vm.state.applications.results | limitTo: vm.maxResults">
+              ng-repeat-start="application in vm.results.applications.results | limitTo: vm.maxResults">
             <td class="iq-cell iq-cell--label iq-cell--application-name"
                 iq-tooltip
                 tooltip-attach-to-body
@@ -84,11 +84,11 @@
           </tr>
         </tbody>
       </table>
-      <dashboard-common-results results="vm.state.applications.results"
+      <dashboard-common-results results="vm.results.applications.results"
                                 is-violations-tab="false"
-                                needs-acknowledgement="vm.state.needsAcknowledgement"
+                                needs-acknowledgement="vm.needsAcknowledgement"
                                 max-results="vm.maxResults"
-                                error="vm.state.applications.error"
+                                error="vm.results.applications.error"
                                 reload="vm.reload()">
       </dashboard-common-results>
     </div>

@@ -39,34 +39,28 @@ describe('dashboardReducer', function() {
     });
   });
 
-  describe('UPDATE_FILTERS_DIRTINESS action', function() {
-    it('updates filtersAreDirty state', function() {
-      var state = Object.freeze({filtersAreDirty: false, other: otherObject});
-      var action = {
-        type: 'UPDATE_FILTERS_DIRTINESS',
-        payload: true
-      };
-      var newState = reduce(state, action);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+  describe('LOAD_FILTER_REQUESTED action', function() {
+    testResetsResults({
+      type: 'LOAD_FILTER_REQUESTED'
     });
   });
 
-  describe('UPDATE_FILTERS_REQUESTED action', function() {
-    it('resets filters and results', function() {
+  describe('APPLY_FILTER_REQUESTED action', function() {
+    testResetsResults({
+      type: 'APPLY_FILTER_REQUESTED'
+    });
+  });
+
+  function testResetsResults(action) {
+    it('resets results', function() {
       var state = Object.freeze({
-        filters: {},
         violations: {results: [], numResults: 3, error: 'foo'},
         components: {results: [], numResults: 3, error: 'foo'},
         applications: {results: [], numResults: 3, error: 'foo'},
         other: otherObject
       });
-      var action = {
-        type: 'UPDATE_FILTERS_REQUESTED'
-      };
       var newState = reduce(state, action);
       expect(newState).toEqual({
-        filters: null,
         violations: {results: null, numResults: null, error: null},
         components: {results: null, numResults: null, error: null},
         applications: {results: null, numResults: null, error: null},
@@ -74,21 +68,7 @@ describe('dashboardReducer', function() {
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
-  });
-
-  describe('UPDATE_FILTERS_FULFILLED action', function() {
-    it('sets filters and needsAcknowledgement flag', function() {
-      var state = Object.freeze({filters: null, needsAcknowledgement: false, other: otherObject});
-      var action = {
-        type: 'UPDATE_FILTERS_FULFILLED',
-        payload: {filters: {}, needsAcknowledgement: true}
-      };
-      var newState = reduce(state, action);
-      expect(newState.filters).toBe(action.payload.filters);
-      expect(newState.needsAcknowledgement).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
+  }
 
   describe('LOAD_RESULTS_REQUESTED action', function() {
     it('resets violations state', function() {
@@ -505,26 +485,6 @@ describe('dashboardReducer', function() {
       };
       var newState = reduce(state, action);
       expect(newState.currentTab).toBe('foo');
-    });
-  });
-
-  describe('APPLY_SAVED_FILTER action', function() {
-    it('sets filtersAreDirty to false', function() {
-      var state = Object.freeze({filtersAreDirty: true, other: otherObject});
-      var action = { type: 'APPLY_SAVED_FILTER' };
-      var newState = reduce(state, action);
-      expect(newState.filtersAreDirty).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('SAVE_FILTER_FULFILLED action', function() {
-    it('sets filtersAreDirty to false', function() {
-      var state = Object.freeze({filtersAreDirty: true, other: otherObject});
-      var action = { type: 'SAVE_FILTER_FULFILLED' };
-      var newState = reduce(state, action);
-      expect(newState.filtersAreDirty).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 });

@@ -38,14 +38,14 @@ describe('dashboardResultsContainer', function() {
   describe('getExportRequestJson()', function() {
 
     beforeEach(function() {
+
       vm.filters = {
-        organizationFilters: ['org1'],
-        applicationFilters: ['app1', 'app2'],
-        policyThreatCategoryFilters: [],
-        stageTypeFilters: [],
-        tagFilters: [],
-        minPolicyThreatLevel: 3,
-        maxPolicyThreatLevel: 8
+        organizations: new Set(['org1']),
+        applications: new Set(['app1', 'app2']),
+        categories: new Set(),
+        stages: new Set(),
+        policyTypes: new Set(),
+        policyThreatLevels: [3, 8]
       };
     });
 

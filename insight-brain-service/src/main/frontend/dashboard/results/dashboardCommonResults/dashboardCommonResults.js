@@ -22,7 +22,8 @@ const dashboardCommonResults = {
   replace: true
 };
 
-function DashboardCommonResultsController(Dialog, ApplicationStore, $rootScope, Messages) {
+function DashboardCommonResultsController(Dialog, ApplicationStore, Messages, $ngRedux,
+                                          dashboardFilterActions) {
   const vm = this;
 
   Object.assign(vm, {
@@ -54,14 +55,20 @@ function DashboardCommonResultsController(Dialog, ApplicationStore, $rootScope, 
           click: function() {
             //make sure to get any stale apps out of the app list
             ApplicationStore.refresh();
-            $rootScope.$broadcast('reloadFilter');
+            reloadFilter();
           }
         }
       ]
     });
   }
+
+  function reloadFilter() {
+    $ngRedux.dispatch(dashboardFilterActions.loadFilter());
+  }
 }
 
-DashboardCommonResultsController.$inject = ['Dialog', 'ApplicationStore', '$rootScope', 'Messages'];
+DashboardCommonResultsController.$inject = [
+  'Dialog', 'ApplicationStore', 'Messages', '$ngRedux', 'dashboardFilterActions'
+];
 
 export default dashboardCommonResults;

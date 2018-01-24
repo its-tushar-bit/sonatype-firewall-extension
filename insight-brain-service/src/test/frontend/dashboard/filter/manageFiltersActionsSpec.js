@@ -77,33 +77,19 @@ describe('manageFiltersActions', function() {
     });
   });
 
-  describe('applySavedFilter', function() {
-    it('immediately sends an APPLY_SAVED_FILTER action with its parameter as the payload', function() {
-      var payload = {},
-          mockReduxStore = SpecUtil.mockReduxStore(initialState);
-
-      mockReduxStore.dispatch(manageFiltersActions.applySavedFilter(payload));
-
-      var actions = mockReduxStore.getActions();
-
-      expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe('APPLY_SAVED_FILTER');
-      expect(actions[0].payload).toBe(payload);
-    });
-  });
-
   describe('saveFilter', function() {
     var initialState = {
-          dashboard: {
-            filters: { applications: ['1234'] }
+          dashboardFilter: {
+            filterJson: { applications: ['1234'] }
           }
         },
         expectedPUTBody = {
           name: 'foo',
-          filter: { applications: ['1234'] }
+          filter: { applicationFilters: ['1234'] }
         };
 
     it('immediately sends a SAVE_FILTER_REQUESTED action', function() {
+      spyOn(dashboardFilterService, 'filterToJson').and.returnValue(expectedPUTBody.filter);
       var mockReduxStore = SpecUtil.mockReduxStore(initialState);
 
       $httpBackend.expectPUT(CLMLocations.getDashboardSavedFilters(), expectedPUTBody).respond({});
@@ -122,6 +108,7 @@ describe('manageFiltersActions', function() {
 
     it('PUTs the filter to the server and then dispatches SAVE_FILTERS_FULFILLED and fetches the saved filters',
         function() {
+          spyOn(dashboardFilterService, 'filterToJson').and.returnValue(expectedPUTBody.filter);
           var mockReduxStore = SpecUtil.mockReduxStore(initialState),
               putSavedFilterResponse = { foo: 'bar' },
               getSavedFiltersResponse = { baz: 'buzz' },
@@ -160,6 +147,7 @@ describe('manageFiltersActions', function() {
     );
 
     it('dispatches SAVE_FILTER_FAILED and does not fetch the saved filters if the PUT fails', function() {
+      spyOn(dashboardFilterService, 'filterToJson').and.returnValue(expectedPUTBody.filter);
       var mockReduxStore = SpecUtil.mockReduxStore(initialState),
           failureSpy = jasmine.createSpy('failure');
 
@@ -183,6 +171,7 @@ describe('manageFiltersActions', function() {
     });
 
     it('rejects the returned promise if the saved filter fetching fails', function() {
+      spyOn(dashboardFilterService, 'filterToJson').and.returnValue(expectedPUTBody.filter);
       var mockReduxStore = SpecUtil.mockReduxStore(initialState),
           putSavedFilterResponse = { foo: 'bar' },
           failureSpy = jasmine.createSpy('failure');

@@ -38,3 +38,8 @@
     }
   }
 }
+
+#license-fingerprint {
+  word-wrap: break-word; // non-standard IE name for overflow-wrap
+  overflow-wrap: break-word;
+}

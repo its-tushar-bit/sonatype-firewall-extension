@@ -69,9 +69,10 @@ public class LdapServiceTest
 
   @Before
   public void before() {
-    testLdapServer1.setWorkingDirectory(tempDir).setLdifResourceName("/ldap_users1.ldif");
-    testLdapServer2.setWorkingDirectory(tempDir).setLdifResourceName("/ldap_users2.ldif");
-    testLdapServer3.setWorkingDirectory(tempDir).setLdifResourceName("/ldap_users2.ldif");
+    String testClassName = getClass().getSimpleName();
+    testLdapServer1.setWorkingDirectory(tempDir).setLdifResourceName("/" + testClassName + "/ldap_users1.ldif");
+    testLdapServer2.setWorkingDirectory(tempDir).setLdifResourceName("/" + testClassName + "/ldap_users2.ldif");
+    testLdapServer3.setWorkingDirectory(tempDir).setLdifResourceName("/" + testClassName + "/ldap_users2.ldif");
   }
 
   @Inject

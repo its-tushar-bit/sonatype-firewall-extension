@@ -300,7 +300,7 @@ public class LdapRealmTest
     new LdapUserMappingDAO().insert(userMappingDetails);
 
     ldapServer.start();
-    ldapServer.loadData("/ldap_users1.ldif");
+    ldapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users1.ldif");
 
     connectionDetails.setPort(ldapServer.getPort());
     ldapService.saveConnection(connectionDetails);

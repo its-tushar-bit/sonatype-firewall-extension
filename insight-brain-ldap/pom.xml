@@ -113,8 +113,12 @@
               <goal>test-jar</goal>
             </goals>
             <configuration>
+              <includes>
+                <include>**/EmbeddedLdapServer*</include>
+                <include>**/TestLdapServer*</include>
+              </includes>
               <excludes>
-                <exclude>com/sonatype/insight/brain/ldap/test/**</exclude>
+                <exclude>**/*Test.class</exclude>
               </excludes>
             </configuration>
           </execution>

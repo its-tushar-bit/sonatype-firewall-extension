@@ -55,8 +55,9 @@ public class SessionTimeoutTest
   }
 
   @After
-  public void restoreSessionTimeout() {
+  public void after() {
     sessionManager.setGlobalSessionTimeout(oldSessionTimeout);
+    Selenide.clearBrowserCookies();
   }
 
   /**
@@ -142,7 +143,6 @@ public class SessionTimeoutTest
 
     // cleanup
     Selenide.switchTo().defaultContent();
-    logout();
   }
 
   @Test
@@ -169,7 +169,6 @@ public class SessionTimeoutTest
 
     // cleanup
     Selenide.switchTo().defaultContent();
-    logout();
   }
 
   @Test

@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -77,6 +78,8 @@ public class LoginTest
     refreshOrOpen(ReportListPage.URL);
     loginAsAdmin();
     logout();
+    MainHeader.mainHeaderButtons().shouldBe(hidden);
+    eyesWatcher.eyesCheck();
     loginModal.shouldBe(visible);
   }
 

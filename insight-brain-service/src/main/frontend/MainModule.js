@@ -102,7 +102,6 @@ angular.module('InitModule', [
 
     function initSuccess(data) {
       $rootScope.licensed = true;
-      $rootScope.username = data[1].username;
       $rootScope.initialized = true;
       $rootScope.productEdition = data[0].productEdition;
       $rootScope.$state = $state;
@@ -144,7 +143,11 @@ angular.module('InitModule', [
     }
 
     function doStart() {
-      $q.all([licenseChecker.check(), currentUser, ProductFeatures.load()]).then(function(data) {
+      currentUser.then(function(authenticationStatus) {
+        $rootScope.username = authenticationStatus.username;
+      }).then(function() {
+        return $q.all([licenseChecker.check(), ProductFeatures.load()]);
+      }).then(function(data) {
         initSuccess(data);
       }, function(data) {
         initFailure(data);

@@ -57,4 +57,34 @@ describe('mainHeaderSpec', function() {
 
     expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
+
+  describe('isLoggedIn()', function() {
+    it('Not Loaded', function() {
+      expect(vm.isLoggedIn()).toBeFalsy();
+    });
+    it('Logged In', function() {
+      $rootScope.username = 'user';
+      vm.$onInit();
+      expect(vm.isLoggedIn()).toBeTruthy();
+    });
+    it('Not LoggedIn', function() {
+      vm.$onInit();
+      expect(vm.isLoggedIn()).toBeFalsy();
+    });
+  });
+
+  describe('isLicensed()', function() {
+    it('Not Loaded', function() {
+      expect(vm.isLicensed()).toBeFalsy();
+    });
+    it('Licensed', function() {
+      $rootScope.licensed = true;
+      vm.$onInit();
+      expect(vm.isLicensed()).toBeTruthy();
+    });
+    it('Not Licensed', function() {
+      vm.$onInit();
+      expect(vm.isLicensed()).toBeFalsy();
+    });
+  });
 });

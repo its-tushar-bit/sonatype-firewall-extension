@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, clmServerVersion, clmBuildTimestamp */
-function MainHeaderController($state, $scope, ProductFeatures, PermissionService,
+function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService,
                               systemConfigurationPropertyService) {
   var vm = this;
 
@@ -15,6 +15,8 @@ function MainHeaderController($state, $scope, ProductFeatures, PermissionService
   vm.$onInit = doLoad;
   vm.getServerVersion = getServerVersion;
   vm.hasAnyPermission = hasAnyPermission;
+  vm.isLoggedIn = isLoggedIn;
+  vm.isLicensed = isLicensed;
 
   function getServerVersion() {
     return clmServerVersion;
@@ -41,10 +43,18 @@ function MainHeaderController($state, $scope, ProductFeatures, PermissionService
   $scope.$on('successMetricsConfigurationUpdated', function(event, newValue) {
     vm.isSuccessMetricsEnabled = newValue;
   });
+
+  function isLoggedIn() {
+    return $rootScope.username;
+  }
+
+  function isLicensed() {
+    return $rootScope.licensed;
+  }
 }
 
 MainHeaderController.$inject = [
-  '$state', '$scope', 'ProductFeatures', 'PermissionService', 'systemConfigurationPropertyService'
+  '$rootScope', '$state', '$scope', 'ProductFeatures', 'PermissionService', 'systemConfigurationPropertyService'
 ];
 
 angular.module('mainHeader').component('mainHeader', {

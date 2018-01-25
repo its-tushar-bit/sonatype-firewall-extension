@@ -9,8 +9,8 @@ import java.io.IOException;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
-import com.sonatype.clm.testing.functional.elements.MainView;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.MainView;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -34,7 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -239,7 +239,7 @@ public class SessionTimeoutTest
   private void assertUiCleared() {
     // ensure that the main UI is empty - we can't directly test that the page was refreshed but this is close
     MainView.uiView().$$("*").shouldHaveSize(0);
-    MainHeader.userMenu().userName().shouldHave(text(""));
+    MainHeader.mainHeaderButtons().should(hidden);
   }
 
   private void assertUiClearedAndLogBackIn() {

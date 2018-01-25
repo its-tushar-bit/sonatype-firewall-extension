@@ -58,12 +58,11 @@ describe('mainModuleSpec', function() {
       expect($rootScope.licensed).toBeFalsy();
       expect($window.location.replace).toHaveBeenCalled();
       expect($rootScope.initialized).toBeFalsy();
+      expect($rootScope.username).toBe('myname');
     }));
 
     it('validate state after logged in check error', inject(function($httpBackend, CLMLocations, initService, $rootScope) {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(500);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       $rootScope.error = undefined;
       initService.start();
       $httpBackend.flush();

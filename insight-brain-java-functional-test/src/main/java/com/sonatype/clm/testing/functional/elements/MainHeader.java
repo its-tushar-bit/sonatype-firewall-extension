@@ -42,4 +42,8 @@ public class MainHeader
   public static HelpMenu helpMenu() {
     return new HelpMenu();
   }
+
+  public static SelenideElement mainHeaderButtons() {
+    return $("#main-header-buttons");
+  }
 }

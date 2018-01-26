@@ -79,24 +79,16 @@ public class ProductLicensePage
       super("#eulaModal");
     }
 
+    public SelenideElement header() {
+      return child(".iq-modal-header");
+    }
+
     public SelenideElement eula() {
-      return child(".modal-body .well");
+      return child(".iq-modal-content");
     }
 
     public SelenideElement acceptBtn() {
       return child(".btn-primary");
-    }
-  }
-
-  public static class ProductLicenseInstalledModal
-      extends BasicElement<ProductLicenseInstalledModal>
-  {
-    public ProductLicenseInstalledModal() {
-      super("#licenseInstalledModal");
-    }
-
-    public SelenideElement refreshBtn() {
-      return child("button");
     }
   }
 
@@ -109,18 +101,6 @@ public class ProductLicensePage
 
     public SelenideElement uninstallBtn() {
       return child(".btn-primary");
-    }
-  }
-
-  public static class ProductLicenseUninstalledModal
-      extends BasicElement<ProductLicenseUninstalledModal>
-  {
-    public ProductLicenseUninstalledModal() {
-      super("#licenseUninstalledModal");
-    }
-
-    public SelenideElement refreshBtn() {
-      return child("button");
     }
   }
 }

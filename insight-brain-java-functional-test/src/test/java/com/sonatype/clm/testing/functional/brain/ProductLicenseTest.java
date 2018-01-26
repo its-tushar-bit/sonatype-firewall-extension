@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 
 import org.junit.BeforeClass;
@@ -68,10 +69,7 @@ public class ProductLicenseTest
     uninstallModal.uninstallBtn().shouldBe(visible);
     uninstallModal.uninstallBtn().click();
 
-    ProductLicensePage.ProductLicenseUninstalledModal uninstalledModal = new ProductLicensePage.ProductLicenseUninstalledModal();
-
-    uninstalledModal.shouldBe(visible);
-    uninstalledModal.refreshBtn().shouldBe(visible).click();
+    FormMask.seeAndWaitForDismissal();
 
     ProductLicensePage.fingerprint().shouldBe(hidden);
     ProductLicensePage.uninstallLicenseBtn().shouldBe(hidden);
@@ -90,13 +88,11 @@ public class ProductLicenseTest
 
     ProductLicensePage.ProductLicenseEulaModal eulaModal = new ProductLicensePage.ProductLicenseEulaModal();
     eulaModal.shouldBe(visible);
-    eulaModal.eula().shouldHave(text("END USER LICENSE AGREEMENT"));
+    eulaModal.header().shouldHave(text("End User License Agreement"));
+    eulaModal.eula().shouldHave(text("READ THIS AGREEMENT CAREFULLY"));
     eulaModal.acceptBtn().shouldBe(visible).click();
 
-    ProductLicensePage.ProductLicenseInstalledModal installedModal = new ProductLicensePage.ProductLicenseInstalledModal();
-
-    installedModal.shouldBe(visible);
-    installedModal.refreshBtn().shouldBe(visible).click();
+    FormMask.seeAndWaitForDismissal();
 
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));

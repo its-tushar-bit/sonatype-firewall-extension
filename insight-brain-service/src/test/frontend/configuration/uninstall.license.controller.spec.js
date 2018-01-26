@@ -1,23 +1,27 @@
 describe('uninstall.license.controller.spec.js', function () {
-  var scope,
-      vm;
+  var vm,
+      scope,
+      reloadSpy;
 
   beforeEach(module('ProductLicense'));
 
-  beforeEach(inject(function($rootScope, $controller) {
+  beforeEach(inject(function($rootScope, $controller, $q) {
     scope = $rootScope.$new();
-    scope.$close = jasmine.createSpy('closeSpy');
+    reloadSpy = jasmine.createSpy('reloadSpy');
 
     vm = $controller('uninstall.license.controller', {
-      $scope: scope
+      $scope: scope,
+      $window: { location: { reload: reloadSpy }}
     });
+
+    vm.formMask = {wrap: SpecUtil.promiseWrapper($q)};
   }));
 
   afterEach(function() {
     scope.$destroy();
   });
 
-  it('uninstall failure', inject(function($httpBackend, CLMLocations) {
+  it('sets the error variable correctly upon failure', inject(function($httpBackend, CLMLocations) {
     $httpBackend.expectDELETE(CLMLocations.getLicenseUploadUrl()).respond(500, 'failed');
 
     vm.uninstall();
@@ -26,12 +30,12 @@ describe('uninstall.license.controller.spec.js', function () {
     expect(vm.error).toEqual('failed');
   }));
 
-  it('uninstall', inject(function($httpBackend, CLMLocations) {
+  it('reloads page upon success', inject(function($httpBackend, CLMLocations) {
     $httpBackend.expectDELETE(CLMLocations.getLicenseUploadUrl()).respond(204);
 
     vm.uninstall();
     $httpBackend.flush();
 
-    expect(scope.$close).toHaveBeenCalled();
+    expect(reloadSpy).toHaveBeenCalled();
   }));
 });

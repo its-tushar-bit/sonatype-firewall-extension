@@ -1,6 +1,10 @@
 .body-container--license {
   width: 100%;
 
+  p {
+    max-width: $iq-paragraph-width-maximum;
+  }
+
   label.btn {
     margin-bottom: 0;
   }
@@ -16,10 +20,6 @@
   > dd:last-child {
     margin-bottom: 10px;
   }
-}
-
-.iq-license-install-form--standalone {
-  padding-top: 10px;
 }
 
 .iq-license-info__nested-definitions {
@@ -42,4 +42,13 @@
 #license-fingerprint {
   word-wrap: break-word; // non-standard IE name for overflow-wrap
   overflow-wrap: break-word;
+}
+
+#uninstall-license {
+  margin-left: 8px;
+}
+
+#license-form {
+  display: inline-block;
+  margin: 0;
 }

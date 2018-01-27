@@ -14,6 +14,7 @@ import com.google.common.eventbus.Subscribe;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -45,41 +46,31 @@ public class AsyncEventBusImplTest
   public void testRegister_EventsDispatched() throws Exception {
     underTest.post("foo");
 
-    handler1.getLatch().await(5, TimeUnit.SECONDS);
-    handler2.getLatch().await(5, TimeUnit.SECONDS);
-
-    assertThat(handler1.getLatch().getCount(), is(0L));
-    assertThat(handler2.getLatch().getCount(), is(0L));
+    assertThat(handler1.getLatch().await(5, TimeUnit.SECONDS), is(true));
+    assertThat(handler2.getLatch().await(5, TimeUnit.SECONDS), is(true));
   }
 
   @Test
   public void testRegister_HandlerException() throws Exception {
     underTest.post("foo");
 
-    handler1.getLatch().await(5, TimeUnit.SECONDS);
-    handler2.getLatch().await(5, TimeUnit.SECONDS);
-    handlerWithException.getLatch().await(5, TimeUnit.SECONDS);
-
-    assertThat(handler1.getLatch().getCount(), is(0L));
-    assertThat(handler2.getLatch().getCount(), is(0L));
-    assertThat(handlerWithException.getLatch().getCount(), is(0L));
+    assertThat(handler1.getLatch().await(5, TimeUnit.SECONDS), is(true));
+    assertThat(handler2.getLatch().await(5, TimeUnit.SECONDS), is(true));
+    assertThat(handlerWithException.getLatch().await(5, TimeUnit.SECONDS), is(true));
   }
 
   @Test
   public void testRegister_LogsDiscarded() throws InterruptedException {
-    final int sleepTime = 50;
-
     config.setMaxPoolSize(1);
     underTest = new AsyncEventBusImpl(config);
 
-    HandlerWithLongExecution longHandler = new HandlerWithLongExecution(underTest, new CountDownLatch(2), sleepTime);
+    HandlerWithLongExecution longHandler = new HandlerWithLongExecution(underTest, new CountDownLatch(2), 200);
 
     underTest.post("foo");
     underTest.post("bar");
 
-    Thread.sleep(sleepTime + 10);
-
     logOutput.assertError("Discarding event because the thread bounds and queue capacities are reached");
+    assertThat(longHandler.getLatch().await(2, TimeUnit.SECONDS), is(false));
     assertThat(longHandler.getLatch().getCount(), is(1L));
   }
 
@@ -98,6 +89,7 @@ public class AsyncEventBusImplTest
 
     @Subscribe
     public void handleEvent(@SuppressWarnings("unused") final String message) {
+      LoggerFactory.getLogger(getClass()).info("Handling {}", message);
       latch.countDown();
     }
   }
@@ -117,6 +109,7 @@ public class AsyncEventBusImplTest
 
     @Subscribe
     public void handle(@SuppressWarnings("unused") final String message) {
+      LoggerFactory.getLogger(getClass()).info("Handling {}", message);
       latch.countDown();
       throw new RuntimeException("something bad happened");
     }
@@ -142,8 +135,9 @@ public class AsyncEventBusImplTest
 
     @Subscribe
     public void handle(@SuppressWarnings("unused") final String message) throws InterruptedException {
-      Thread.sleep(sleepTime);
+      LoggerFactory.getLogger(getClass()).info("Handling {}", message);
       latch.countDown();
+      Thread.sleep(sleepTime);
     }
   }
 }

@@ -234,6 +234,7 @@ public class ApplicationResource
         .createApplicationManagementSummaries(applications);
 
     loadPolicyEvaluations(applicationManagementSummaryDTOs);
+    loadPolicyEvaluationsResults(applicationManagementSummaryDTOs);
 
     return applicationManagementSummaryDTOs;
   }
@@ -264,7 +265,9 @@ public class ApplicationResource
         summary.getPolicyEvaluations().put(policyEvaluation.getStageTypeId(), policyEvaluation);
       }
     }
+  }
 
+  private void loadPolicyEvaluationsResults(List<ApplicationManagementSummaryDTO> applicationManagementSummaries) {
     for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaries) {
       Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<>();
       for (PolicyEvaluation policyEvaluation : applicationManagement.getPolicyEvaluations().values()) {

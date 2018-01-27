@@ -430,17 +430,7 @@ public class ApplicationResourceTest
     stageTypeIds = policyEvaluationsResults.keySet().toArray(new String[0]);
 
     Assert.assertNotNull(policyEvaluationsResults);
-    Assert.assertEquals(2, policyEvaluationsResults.size());
-    Assert.assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
-    Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[0]).getAffectedComponentCount());
-    Assert.assertEquals(0, policyEvaluationsResults.get(stageTypeIds[0]).getCriticalComponentCount());
-    Assert.assertEquals(0, policyEvaluationsResults.get(stageTypeIds[0]).getModerateComponentCount());
-    Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[0]).getSevereComponentCount());
-    Assert.assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
-    Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[1]).getAffectedComponentCount());
-    Assert.assertEquals(0, policyEvaluationsResults.get(stageTypeIds[1]).getCriticalComponentCount());
-    Assert.assertEquals(0, policyEvaluationsResults.get(stageTypeIds[1]).getModerateComponentCount());
-    Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[1]).getSevereComponentCount());
+    Assert.assertEquals(0, policyEvaluationsResults.size());
   }
 
   @Test(timeout = 10000)

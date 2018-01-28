@@ -309,11 +309,6 @@ public class TemporaryEntity
         SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, ""));
     delete(systemConfigurationProperties, entity -> systemConfigurationPropertyDAO.getByName(entity.getName()),
         systemConfigurationPropertyDAO::delete);
-
-    /*
-     * For our purposes, it's irrelevant whether the entity has been manually deleted or updated in the meantime, we
-     * just want it gone. Hence the defensive coding below to avoid optimistic lock errors and other JPA fun.
-     */
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
     delete(policyTags, policyTagDAO);
@@ -352,6 +347,10 @@ public class TemporaryEntity
 
   private <T> void delete(Collection<T> entities, Function<T, T> reloader, Consumer<T> deleter) {
     for (T entity : entities) {
+      /*
+       * For our purposes, it's irrelevant whether the entity has been manually deleted or updated in the meantime, we
+       * just want it gone. Hence the defensive coding below to avoid optimistic lock errors and other JPA fun.
+       */
       if ((entity = reloader.apply(entity)) != null) {
         deleter.accept(entity);
       }

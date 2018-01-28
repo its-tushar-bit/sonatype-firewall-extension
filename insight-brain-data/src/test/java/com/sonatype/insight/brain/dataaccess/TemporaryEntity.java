@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -111,7 +113,9 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.codehaus.plexus.util.StringUtils;
@@ -303,148 +307,53 @@ public class TemporaryEntity
         new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED, "false"));
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
         SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, ""));
-    for (SystemConfigurationProperty systemConfigurationProperty : this.systemConfigurationProperties) {
-      if ((systemConfigurationProperty = systemConfigurationPropertyDAO
-          .getByName(systemConfigurationProperty.getName())) != null) {
-        systemConfigurationPropertyDAO.delete(systemConfigurationProperty);
-      }
-    }
+    delete(systemConfigurationProperties, entity -> systemConfigurationPropertyDAO.getByName(entity.getName()),
+        systemConfigurationPropertyDAO::delete);
 
     /*
      * For our purposes, it's irrelevant whether the entity has been manually deleted or updated in the meantime, we
      * just want it gone. Hence the defensive coding below to avoid optimistic lock errors and other JPA fun.
      */
-    for (MembershipMapping membershipMapping : membershipMappings) {
-      if ((membershipMapping = membershipMappingDAO.getById(membershipMapping.getId())) != null) {
-        membershipMappingDAO.delete(membershipMapping);
-      }
-    }
-    for (DashboardFilter dashboardFilter : dashboardFilters) {
-      if ((dashboardFilter = dashboardFilterDAO.getById(dashboardFilter.getId())) != null) {
-        dashboardFilterDAO.delete(dashboardFilter);
-      }
-    }
-    for (PolicyTag policyTag : policyTags) {
-      if ((policyTag = policyTagDAO.getById(policyTag.getId())) != null) {
-        policyTagDAO.delete(policyTag);
-      }
-    }
-    for (Application app : apps) {
-      if ((app = appDAO.getById(app.getId())) != null) {
-        appDAO.delete(app);
-      }
-    }
-    for (Organization org : orgs) {
-      if ((org = orgDAO.getById(org.getId())) != null) {
-        orgDAO.delete(org);
-      }
-    }
-    for (LicenseOverride override : licenseOverrides) {
-      if ((override = licenseOverrideDAO.getById(override.getId())) != null) {
-        licenseOverrideDAO.delete(override);
-      }
-    }
-    for (SecurityVulnerabilityOverride override : securityVulnerabilityOverrides) {
-      if ((override = securityVulnerabilityOverrideDAO.getById(override.getId())) != null) {
-        securityVulnerabilityOverrideDAO.delete(override);
-      }
-    }
-    for (User user : users) {
-      if ((user = userDAO.getById(user.getId())) != null) {
-        userDAO.delete(user);
-      }
-    }
-    for (Role role : roles) {
-      if ((role = roleDAO.getById(role.getId())) != null) {
-        roleDAO.delete(role);
-      }
-    }
-    for (LdapServer ldapServer : ldapServers) {
-      if ((ldapServer = ldapServerDAO.getById(ldapServer.getId())) != null) {
-        ldapServerDAO.delete(ldapServer);
-      }
-    }
-    for (HashComponentIdentifier claimedComponent : claimedComponents) {
-      if ((claimedComponent = hashComponentIdentifierDAO.getById(claimedComponent.getId())) != null) {
-        hashComponentIdentifierDAO.delete(claimedComponent);
-      }
-    }
-
-    for (UserViewedProductNotification userViewedNotificationMapping : userViewedNotificationMappings) {
-      if ((userViewedNotificationMapping = userViewedNotificationMappingDAO.getByUsernameAndNotificationId(
-          userViewedNotificationMapping.getUsername(), userViewedNotificationMapping.getNotificationId())) != null) {
-        userViewedNotificationMappingDAO.delete(userViewedNotificationMapping);
-      }
-    }
-    for (Policy policy : policies) {
-      if ((policy = policyDAO.getById(policy.getId())) != null) {
-        policyDAO.delete(policy);
-      }
-    }
-
-    for (Label label : labels) {
-      if ((label = labelDAO.getById(label.getId())) != null) {
-        labelDAO.delete(label);
-      }
-    }
-    for (Tag tag : tags) {
-      if ((tag = tagDAO.getById(tag.getId())) != null) {
-        tagDAO.delete(tag);
-      }
-    }
-
-    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      if ((licenseThreatGroup = licenseThreatGroupDAO.getById(licenseThreatGroup.getId())) != null) {
-        licenseThreatGroupDAO.delete(licenseThreatGroup);
-      }
-    }
-
-    for (PolicyMonitoring policyMonitoring : policyMonitorings) {
-      if ((policyMonitoring = policyMonitoringDAO.getById(policyMonitoring.getId())) != null) {
-        policyMonitoringDAO.delete(policyMonitoring);
-      }
-    }
-
-    for (RepositoryManager repositoryManager : repositoryManagers) {
-      if ((repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId())) != null) {
-        repositoryManagerDAO.delete(repositoryManager);
-      }
-    }
+    delete(membershipMappings, membershipMappingDAO);
+    delete(dashboardFilters, dashboardFilterDAO);
+    delete(policyTags, policyTagDAO);
+    delete(apps, appDAO);
+    delete(orgs, orgDAO);
+    delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
+    delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
+    delete(users, userDAO);
+    delete(roles, roleDAO);
+    delete(ldapServers, ldapServerDAO);
+    delete(claimedComponents, hashComponentIdentifierDAO);
+    delete(userViewedNotificationMappings, entity -> userViewedNotificationMappingDAO
+            .getByUsernameAndNotificationId(entity.getUsername(), entity.getNotificationId()),
+        userViewedNotificationMappingDAO::delete);
+    delete(policies, entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
+    delete(labels, labelDAO);
+    delete(tags, tagDAO);
+    delete(licenseThreatGroups, licenseThreatGroupDAO);
+    delete(policyMonitorings, policyMonitoringDAO);
+    delete(repositoryManagers, repositoryManagerDAO);
+    delete(webhooks, webhookDAO);
+    delete(policyViolationAggregations, policyViolationAggregationDAO);
+    delete(policyViolationResolutionStates, policyViolationResolutionStateDAO);
+    delete(successMetricsReportDatas, successMetricsReportDataDAO);
+    delete(successMetricsReports, successMetricsReportDAO);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
       proprietaryConfigDAO.delete(config);
     }
+  }
 
-    for (Webhook webhook : webhooks) {
-      if ((webhook = webhookDAO.getById(webhook.getId())) != null) {
-        webhookDAO.delete(webhook);
-      }
-    }
+  private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
+    delete(entities, entity -> dao.getById(entity.getId()), dao::delete);
+  }
 
-    for (PolicyViolationAggregation policyViolationAggregation : policyViolationAggregations) {
-      if ((policyViolationAggregation = policyViolationAggregationDAO
-          .getById(policyViolationAggregation.getId())) != null) {
-        policyViolationAggregationDAO.delete(policyViolationAggregation);
-      }
-    }
-
-    for (PolicyViolationResolutionState policyViolationResolutionState : policyViolationResolutionStates) {
-      if ((policyViolationResolutionState = policyViolationResolutionStateDAO
-          .getById(policyViolationResolutionState.getId())) != null) {
-        policyViolationResolutionStateDAO.delete(policyViolationResolutionState);
-      }
-    }
-
-    for (SuccessMetricsReportData successMetricsReportData : this.successMetricsReportDatas) {
-      if ((successMetricsReportData = successMetricsReportDataDAO.getById(successMetricsReportData.getId())) != null) {
-        successMetricsReportDataDAO.delete(successMetricsReportData);
-      }
-    }
-
-    for (SuccessMetricsReport successMetricsReport : this.successMetricsReports) {
-      if ((successMetricsReport = successMetricsReportDAO.getById(successMetricsReport.getId())) != null) {
-        successMetricsReportDAO.delete(successMetricsReport);
+  private <T> void delete(Collection<T> entities, Function<T, T> reloader, Consumer<T> deleter) {
+    for (T entity : entities) {
+      if ((entity = reloader.apply(entity)) != null) {
+        deleter.accept(entity);
       }
     }
   }

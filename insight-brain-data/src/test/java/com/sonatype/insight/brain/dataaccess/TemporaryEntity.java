@@ -219,6 +219,8 @@ public class TemporaryEntity
 
   private final SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -265,6 +267,8 @@ public class TemporaryEntity
 
   private Collection<SuccessMetricsReportData> successMetricsReportDatas;
 
+  private Collection<SystemConfigurationProperty> systemConfigurationProperties;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -290,15 +294,21 @@ public class TemporaryEntity
     policyViolationResolutionStates = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
+    systemConfigurationProperties = new ArrayList<>();
   }
 
   @Override
   protected void after() {
-    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
     systemConfigurationPropertyDAO.update(
         new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED, "false"));
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
         SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, ""));
+    for (SystemConfigurationProperty systemConfigurationProperty : this.systemConfigurationProperties) {
+      if ((systemConfigurationProperty = systemConfigurationPropertyDAO
+          .getByName(systemConfigurationProperty.getName())) != null) {
+        systemConfigurationPropertyDAO.delete(systemConfigurationProperty);
+      }
+    }
 
     /*
      * For our purposes, it's irrelevant whether the entity has been manually deleted or updated in the meantime, we
@@ -1713,5 +1723,12 @@ public class TemporaryEntity
     this.successMetricsReportDatas.add(successMetricsReportData);
     this.successMetricsReportDataDAO.insert(successMetricsReportData);
     return successMetricsReportData;
+  }
+
+  public SystemConfigurationProperty newSystemConfigurationProperty(String name, String value) {
+    SystemConfigurationProperty property = new SystemConfigurationProperty(name, value);
+    systemConfigurationProperties.add(property);
+    systemConfigurationPropertyDAO.insert(property);
+    return property;
   }
 }

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.configuration;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -27,24 +26,19 @@ public class SystemConfigurationPropertyResourceTest
 
   @Test
   public void testGet() throws Exception {
-    HttpResponse response = restRequest().path("SUCCESS_METRICS_ENABLED").get();
+    tempEntity.newSystemConfigurationProperty("TEST-NAME", "TEST-VALUE");
+    HttpResponse response = restRequest().path("TEST-NAME").get();
     assertResponseStatus(HttpStatus.SC_OK, response);
     SystemConfigurationProperty property = response.getBody(SystemConfigurationProperty.class);
-    assertThat(property.getValue(), is("true"));
+    assertThat(property.getValue(), is("TEST-VALUE"));
   }
 
   @Test
   public void testUpdate() throws Exception {
-    try {
-      HttpResponse response = restRequest().body(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "false"))
-          .put();
-      assertResponseStatus(HttpStatus.SC_OK, response);
-      SystemConfigurationProperty property = response.getBody(SystemConfigurationProperty.class);
-      assertThat(property.getValue(), is("false"));
-    }
-    finally {
-      // restore global value
-      new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
-    }
+    tempEntity.newSystemConfigurationProperty("TEST-NAME", "TEST-VALUE");
+    HttpResponse response = restRequest().body(new SystemConfigurationProperty("TEST-NAME", "UPDATED-VALUE")).put();
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    SystemConfigurationProperty property = response.getBody(SystemConfigurationProperty.class);
+    assertThat(property.getValue(), is("UPDATED-VALUE"));
   }
 }

@@ -12,54 +12,56 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 
 public class SystemConfigurationPropertyServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
+  private static final String PROPERTY_NAME = "TEST-NAME";
+
   @Inject
   private SystemConfigurationPropertyService service;
 
+  @Before
+  public void init() {
+    tempEntity.newSystemConfigurationProperty(PROPERTY_NAME, "TEST-VALUE");
+  }
+
   @Test
   public void testGetByName_Unauthenticated() throws Exception {
-    service.getByName("SUCCESS_METRICS_ENABLED");
+    service.getByName(PROPERTY_NAME);
   }
 
   @Test
   public void testGetByName_Unauthorized() throws Exception {
     login();
 
-    service.getByName("SUCCESS_METRICS_ENABLED");
+    service.getByName(PROPERTY_NAME);
   }
 
   @Test
   public void testGetByName_Authorized() throws Exception {
     grantConfigureSystemPermission();
 
-    service.getByName("SUCCESS_METRICS_ENABLED");
+    service.getByName(PROPERTY_NAME);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdate_Unauthorized() {
     login();
 
-    service.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "false"));
+    service.update(new SystemConfigurationProperty(PROPERTY_NAME, "false"));
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testUpdate_Unauthenticated() {
-    service.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "false"));
+    service.update(new SystemConfigurationProperty(PROPERTY_NAME, "false"));
   }
 
   @Test
   public void testUpdate_Authorized() {
     grantConfigureSystemPermission();
-
-    try {
-      service.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "false"));
-    }
-    finally {
-      service.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
-    }
+    service.update(new SystemConfigurationProperty(PROPERTY_NAME, "false"));
   }
 }

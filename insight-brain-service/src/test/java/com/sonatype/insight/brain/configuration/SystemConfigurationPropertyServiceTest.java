@@ -14,7 +14,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -31,8 +30,10 @@ public class SystemConfigurationPropertyServiceTest
 
   @Test
   public void testGetByName() {
-    SystemConfigurationProperty property = service.getByName("SUCCESS_METRICS_ENABLED");
+    tempEntity.newSystemConfigurationProperty("TEST-NAME", "TEST-VALUE");
+    SystemConfigurationProperty property = service.getByName("TEST-NAME");
     assertThat(property, is(notNullValue()));
+    assertThat(property.getValue(), is("TEST-VALUE"));
   }
 
   @Test
@@ -48,14 +49,9 @@ public class SystemConfigurationPropertyServiceTest
 
   @Test
   public void testUpdate() {
-    try {
-      service.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "false"));
-      SystemConfigurationProperty updated = dao.getByNameNotNull("SUCCESS_METRICS_ENABLED");
-      assertThat(updated.getValue(), equalTo("false"));
-    }
-    finally {
-      // restore global value
-      new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
-    }
+    tempEntity.newSystemConfigurationProperty("TEST-NAME", "TEST-VALUE");
+    service.update(new SystemConfigurationProperty("TEST-NAME", "UPDATED-VALUE"));
+    SystemConfigurationProperty updated = dao.getByNameNotNull("TEST-NAME");
+    assertThat(updated.getValue(), is("UPDATED-VALUE"));
   }
 }

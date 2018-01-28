@@ -12,7 +12,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 
 public class SystemConfigurationPropertyDAOTest
@@ -21,24 +23,30 @@ public class SystemConfigurationPropertyDAOTest
   private SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
 
   @Test
-  public void testGetByNameNotNullAndUpdate() throws Exception {
-    // get by name
-    SystemConfigurationProperty property = dao.getByNameNotNull("SUCCESS_METRICS_ENABLED");
-    assertThat(property.getName(), is("SUCCESS_METRICS_ENABLED"));
-    assertThat(property.getValue(), is("true"));
+  public void testCRUD() throws Exception {
+    SystemConfigurationProperty property = new SystemConfigurationProperty("TEST-NAME", "TEST-VALUE");
+    dao.insert(property);
 
-    // Update
+    property = dao.getByNameNotNull("TEST-NAME");
+    assertThat(property.getName(), is("TEST-NAME"));
+    assertThat(property.getValue(), is("TEST-VALUE"));
+
+    property.setValue("UPDATED-VALUE");
+    dao.update(property);
+
+    property = dao.getByNameNotNull("TEST-NAME");
+    assertThat(property.getValue(), is("UPDATED-VALUE"));
+
+    dao.delete(property);
+
+    property = dao.getByName("TEST-NAME");
+    assertThat(property, is(nullValue()));
     try {
-      property.setValue("false");
-      dao.update(property);
-
-      // Read
-      property = dao.getByNameNotNull("SUCCESS_METRICS_ENABLED");
-      assertThat(property.getName(), is("SUCCESS_METRICS_ENABLED"));
-      assertThat(property.getValue(), is("false"));
-    } finally {
-      // restore global value
-      dao.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
+      dao.getByNameNotNull("TEST-NAME");
+      fail("Expected exception");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), containsString("TEST-NAME"));
     }
   }
 

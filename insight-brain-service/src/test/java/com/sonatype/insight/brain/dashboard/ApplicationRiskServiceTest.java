@@ -227,6 +227,20 @@ public class ApplicationRiskServiceTest
   }
 
   @Test
+  public void testGetApplicationRisks_ExcludesStageWithoutViolations() throws Exception {
+    tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scan app1 id");
+
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
+        Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK", 100);
+
+    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.numResults, is(1));
+    ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
+    assertThat(appDTO.stageRisks, hasSize(1));
+    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
+  }
+
+  @Test
   public void testGetApplicationRisks_SortedByRiskThenAppId() {
     Application app0 = tempEntity.newApplication("app0", "app0", org.getId());
     PolicyEvaluation policyEvaluation0 = tempEntity.newPolicyEvaluation(app0.getId(), BuildStageType.ID,

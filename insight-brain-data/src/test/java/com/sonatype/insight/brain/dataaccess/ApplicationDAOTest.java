@@ -222,6 +222,24 @@ public class ApplicationDAOTest
     assertApplications(retrievedApplications, Lists.newArrayList(taggedApplication));
   }
 
+  /**
+   * A given application should only be returned once, no matter how many matching tags it has (cf. CLM-3385).
+   */
+  @Test
+  public void testGetApplicationsByIdsAndTagIds_UniqueResults() {
+    Tag tag1 = tempEntity.newTag(organization.getId(), "test-tag-1");
+    Tag tag2 = tempEntity.newTag(organization.getId(), "test-tag-2");
+    Application taggedApplication = tempEntity.newApplication(organization.getId());
+    tempEntity.newApplicationTag(taggedApplication.getId(), tag1.getId());
+    tempEntity.newApplicationTag(taggedApplication.getId(), tag2.getId());
+
+    List<Application> applications = applicationDAO.getByIdsAndTagIds(Collections.singleton(taggedApplication.getId()),
+        Sets.newHashSet(tag1.getId(), tag2.getId()));
+
+    assertThat(applications, hasSize(1));
+    assertApplications(applications, Arrays.asList(taggedApplication));
+  }
+
   @Test
   public void testGetApplicationsByIdsAndTagIds_Untagged() {
     int numTaggedApplication = 2;

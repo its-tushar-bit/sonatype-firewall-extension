@@ -570,6 +570,12 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <dependency>
+        <!-- avoid HV-912 and CVE-2017-7536, otherwise pulled in via dropwizard-core -->
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-validator</artifactId>
+        <version>5.4.2.Final</version>
+      </dependency>
 
       <dependency>
         <!-- Avoid SVs in earlier versions -->

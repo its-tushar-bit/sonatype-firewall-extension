@@ -117,6 +117,23 @@ public class ApiPolicyViolationServiceV2Test
     assertPolicyViolation(apiApplicationViolationDTO, appPolicyData);
   }
 
+  @Test
+  public void testGetPolicyViolations_ExcludeWaivedViolations() {
+    PolicyData policyData = createPolicyTestData("org-policy", "scanId", null /* componentIdentifier */, "testhash",
+        "testreason");
+    tempEntity.newWaivedPolicyViolation(policyData.policyEvaluation1, policyData.orgPolicy,
+        tempEntity.newWaiver(policyData.orgPolicy.getId(), policyData.organization.getId()));
+
+    Set<String> policyIds = Collections.singleton(policyData.orgPolicy.getId());
+    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
+        .getPolicyViolations(policyIds);
+
+    assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
+    ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
+        .get(0);
+    assertPolicyViolation(apiApplicationViolationDTO, policyData);
+  }
+
   private void assertPolicyViolation(ApiApplicationViolationDTOV2 apiApplicationViolationDTO, PolicyData appPolicyData)
   {
     assertThat(apiApplicationViolationDTO.application, notNullValue());

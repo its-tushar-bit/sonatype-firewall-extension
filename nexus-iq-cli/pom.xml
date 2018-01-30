@@ -19,7 +19,7 @@
   <artifactId>nexus-iq-cli</artifactId>
 
   <properties>
-    <jetty.version>8.1.10.v20130312</jetty.version>
+    <jetty.version>9.4.7.v20170914</jetty.version>
     <dependency-check-version>3.0.1</dependency-check-version>
   </properties>
 

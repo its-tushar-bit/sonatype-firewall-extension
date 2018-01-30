@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.sun.jersey.core.header.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
 abstract class AbstractResourceWithIcon
 {

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
@@ -261,6 +262,21 @@ public class ScanHandlerTest
     @Override
     public int read() throws IOException {
       return wrappedInputStream.read();
+    }
+
+    @Override
+    public boolean isFinished() {
+      return false;
+    }
+
+    @Override
+    public boolean isReady() {
+      return false;
+    }
+
+    @Override
+    public void setReadListener(final ReadListener readListener) {
+      // No implementation necessary
     }
   }
 }

@@ -12,7 +12,7 @@ import javax.inject.Named;
 
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMultimap;
-import com.yammer.dropwizard.tasks.Task;
+import io.dropwizard.servlets.tasks.Task;
 
 @Named
 public class ReleaseGraphTask

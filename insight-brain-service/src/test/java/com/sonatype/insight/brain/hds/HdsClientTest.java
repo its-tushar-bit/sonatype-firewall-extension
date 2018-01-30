@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.ReadListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +34,8 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.test.SslProperties;
 
 import com.google.common.net.HttpHeaders;
+import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -40,6 +43,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -104,9 +108,10 @@ public class HdsClientTest
     server.start();
 
     config = new InsightConfig();
-    config.setHdsUrl("http://localhost:" + server.getConnectors()[0].getLocalPort());
+    config.setHdsUrl("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
     config.setUserAgentSuffix(USER_AGENT_SUFFIX);
-    config.getHttpConfiguration().setPort(1234);
+    ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
+        .setPort(1234);
     telemetryId = new TelemetryId(config);
     initClient();
   }
@@ -622,6 +627,21 @@ public class HdsClientTest
     @Override
     public int read() throws IOException {
       return wrappedInputStream.read();
+    }
+
+    @Override
+    public boolean isFinished() {
+      return false;
+    }
+
+    @Override
+    public boolean isReady() {
+      return false;
+    }
+
+    @Override
+    public void setReadListener(final ReadListener readListener) {
+      // No implementation necessary
     }
   }
 

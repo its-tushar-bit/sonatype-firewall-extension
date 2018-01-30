@@ -9,30 +9,23 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.container.DynamicFeature;
 import javax.ws.rs.ext.Provider;
 
+import com.codahale.metrics.health.HealthCheck;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
-import com.sun.jersey.api.core.ResourceConfig;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ioc.IoCComponentProvider;
-import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
-import com.sun.jersey.core.spi.component.ioc.IoCInstantiatedComponentProvider;
-import com.sun.jersey.spi.container.ResourceFilterFactory;
-import com.sun.jersey.spi.inject.InjectableProvider;
-import com.yammer.dropwizard.Service;
-import com.yammer.dropwizard.config.Configuration;
-import com.yammer.dropwizard.config.Environment;
-import com.yammer.dropwizard.lifecycle.Managed;
-import com.yammer.dropwizard.tasks.Task;
-import com.yammer.metrics.core.HealthCheck;
+import io.dropwizard.Application;
+import io.dropwizard.Configuration;
+import io.dropwizard.lifecycle.Managed;
+import io.dropwizard.servlets.tasks.Task;
+import io.dropwizard.setup.Environment;
 import org.eclipse.sisu.BeanEntry;
 import org.eclipse.sisu.inject.BeanLocator;
 import org.eclipse.sisu.space.BeanScanning;
@@ -47,10 +40,10 @@ import org.slf4j.LoggerFactory;
  * Local copy of SisuService from https://github.com/tesla/dropwizard-sisu with various tweaks for CLM.
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public abstract class SisuService<T extends Configuration>
-    extends Service<T>
+public abstract class SisuApplication<T extends Configuration>
+    extends Application<T>
 {
-  private static final Logger logger = LoggerFactory.getLogger(SisuService.class);
+  private static final Logger logger = LoggerFactory.getLogger(SisuApplication.class);
 
   private final List<Module> initModules = new ArrayList<>();
 
@@ -117,12 +110,11 @@ public abstract class SisuService<T extends Configuration>
   private void runWithInjector(T configuration, Environment environment, Injector injector) {
     customize(configuration, environment);
     BeanLocator locator = injector.getInstance(BeanLocator.class);
-    environment.addProvider(new SisuComponentProviderFactory(locator));
     addHealthChecks(environment, locator);
     addProviders(environment, locator);
-    addInjectableProviders(environment, locator);
+    addRestComponents(environment, locator);
     addResources(environment, locator);
-    addResourceFilterFactories(environment, locator);
+    addDynamicFeatures(environment, locator);
     addTasks(environment, locator);
     addManaged(environment, locator);
   }
@@ -157,7 +149,7 @@ public abstract class SisuService<T extends Configuration>
   private void addManaged(Environment environment, BeanLocator locator) {
     for (BeanEntry<Annotation, Managed> managedBeanEntry : locate(locator, Managed.class)) {
       Managed managed = managedBeanEntry.getValue();
-      environment.manage(managed);
+      environment.lifecycle().manage(managed);
       logger.debug("Added managed: {}", managed);
     }
   }
@@ -165,7 +157,7 @@ public abstract class SisuService<T extends Configuration>
   private void addTasks(Environment environment, BeanLocator locator) {
     for (BeanEntry<Annotation, Task> taskBeanEntry : locate(locator, Task.class)) {
       Task task = taskBeanEntry.getValue();
-      environment.addTask(task);
+      environment.admin().addTask(task);
       logger.debug("Added task: {}", task);
     }
   }
@@ -173,24 +165,23 @@ public abstract class SisuService<T extends Configuration>
   private void addHealthChecks(Environment environment, BeanLocator locator) {
     for (BeanEntry<Annotation, HealthCheck> healthCheckBeanEntry : locate(locator, HealthCheck.class)) {
       HealthCheck healthCheck = healthCheckBeanEntry.getValue();
-      environment.addHealthCheck(healthCheck);
+      environment.healthChecks().register(healthCheck.toString(), healthCheck);
       logger.debug("Added healthCheck: {}", healthCheck);
     }
   }
 
-  private void addInjectableProviders(Environment environment, BeanLocator locator) {
-    for (BeanEntry<Annotation, InjectableProvider> injectableProviderBeanEntry : locate(locator,
-        InjectableProvider.class)) {
-      InjectableProvider injectableProvider = injectableProviderBeanEntry.getValue();
-      environment.addProvider(injectableProvider);
-      logger.debug("Added injectableProvider: {}", injectableProvider);
+  private void addRestComponents(Environment environment, BeanLocator locator) {
+    for (BeanEntry<Annotation, RestComponent> restComponentBeanEntry : locate(locator, RestComponent.class)) {
+      RestComponent restComponent = restComponentBeanEntry.getValue();
+      environment.jersey().register(restComponent);
+      logger.debug("Added base rest component: {}", restComponent);
     }
   }
 
   private void addProviders(Environment environment, BeanLocator locator) {
     for (BeanEntry<Annotation, Provider> providerBeanEntry : locate(locator, Provider.class)) {
       Provider provider = providerBeanEntry.getValue();
-      environment.addProvider(provider);
+      environment.jersey().register(provider);
       logger.debug("Added provider: {}", provider);
     }
   }
@@ -205,13 +196,9 @@ public abstract class SisuService<T extends Configuration>
       Class<?> impl = resourceBeanEntry.getImplementationClass();
       if (impl != null && impl.isAnnotationPresent(Path.class)) {
         try {
-          /*
-           * NOTE: Not using addResource(Object) to avoid https://java.net/jira/browse/JERSEY-692 and not using explicit
-           * root resources to avoid https://java.net/jira/browse/JERSEY-2141. Instead, SisuComponentProviderFactory
-           * teaches Jersey how to instantiante the resource.
-           */
-          environment.addResource(impl);
-          logger.debug("Added resource: {}", impl);
+          Object resource = resourceBeanEntry.getValue();
+          environment.jersey().register(resource);
+          logger.debug("Added resource: {}", resource);
         }
         catch (Exception e) {
           logger.warn("Unable to add resource: {}", impl, e);
@@ -220,55 +207,11 @@ public abstract class SisuService<T extends Configuration>
     }
   }
 
-  private void addResourceFilterFactories(Environment environment, BeanLocator locator) {
-    List<ResourceFilterFactory> resourceFilterFactories = new ArrayList<>();
-    for (BeanEntry<Annotation, ResourceFilterFactory> beanEntry : locate(locator, ResourceFilterFactory.class)) {
-      ResourceFilterFactory resourceFilterFactory = beanEntry.getValue();
-      logger.debug("Added resource filter factory: {}", resourceFilterFactory);
-      resourceFilterFactories.add(resourceFilterFactory);
-    }
-    if (!resourceFilterFactories.isEmpty()) {
-      environment.setJerseyProperty(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, resourceFilterFactories);
-    }
-  }
-
-  private static class SisuComponentProviderFactory
-      implements IoCComponentProviderFactory
-  {
-    private final BeanLocator container;
-
-    public SisuComponentProviderFactory(final BeanLocator container) {
-      this.container = container;
-    }
-
-    @Override
-    public IoCComponentProvider getComponentProvider(final Class<?> type) {
-      IoCComponentProvider provider = null;
-
-      Iterator<BeanEntry<Annotation, ?>> iter = container.locate(Key.get((Class) type)).iterator();
-      if (iter.hasNext()) {
-        final BeanEntry entry = iter.next();
-
-        provider = new IoCInstantiatedComponentProvider()
-        {
-          @Override
-          public Object getInjectableInstance(final Object obj) {
-            return obj;
-          }
-
-          @Override
-          public Object getInstance() {
-            return entry.getValue();
-          }
-        };
-      }
-
-      return provider;
-    }
-
-    @Override
-    public IoCComponentProvider getComponentProvider(final ComponentContext context, final Class<?> type) {
-      return getComponentProvider(type);
+  private void addDynamicFeatures(Environment environment, BeanLocator locator) {
+    for (BeanEntry<Annotation, DynamicFeature> dynamicFeatureBeanEntry : locate(locator, DynamicFeature.class)) {
+      DynamicFeature dynamicFeature = dynamicFeatureBeanEntry.getValue();
+      environment.jersey().register(dynamicFeature);
+      logger.debug("Added dynamic feature: {}", dynamicFeature);
     }
   }
 }

@@ -20,7 +20,7 @@
 
   <properties>
     <clm.skip>true</clm.skip>
-    <jetty.version>8.1.10.v20130312</jetty.version>
+    <jetty.version>9.4.7.v20170914</jetty.version>
   </properties>
 
   <dependencies>
@@ -32,6 +32,11 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-proxy</artifactId>
       <version>${jetty.version}</version>
     </dependency>
     <dependency>

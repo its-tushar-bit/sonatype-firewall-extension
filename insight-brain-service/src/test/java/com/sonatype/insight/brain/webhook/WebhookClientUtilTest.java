@@ -24,6 +24,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.test.SslProperties;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -158,7 +159,7 @@ public class WebhookClientUtilTest
 
   private void doWebhookClientUtilPost() {
     Webhook webhook = new Webhook();
-    webhook.setUrl("http://localhost:" + server.getConnectors()[0].getLocalPort());
+    webhook.setUrl("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
     webhook.setSecretKey("secret");
     WebhookPayload webhookPayload = new WebhookPayload()
     {

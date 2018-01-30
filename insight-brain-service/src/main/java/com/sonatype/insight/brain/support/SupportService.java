@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -37,6 +38,11 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.io.ByteStreams;
+import io.dropwizard.logging.AppenderFactory;
+import io.dropwizard.logging.DefaultLoggingFactory;
+import io.dropwizard.logging.FileAppenderFactory;
+import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,23 +102,36 @@ class SupportService
   }
 
   static File getServerLog(final InsightConfig config) {
-    final String configuredLogFilename = config.getLoggingConfiguration().getFileConfiguration()
-        .getCurrentLogFilename();
-
-    if (configuredLogFilename == null) {
+    List<String> configuredLogFilenames = getFilenames(
+        ((DefaultLoggingFactory) config.getLoggingFactory()).getAppenders());
+    if (configuredLogFilenames.isEmpty()) {
       return null;
     }
-    return new File(configuredLogFilename);
+    if (configuredLogFilenames.size() > 1) {
+      log.warn("Multiple server log files {}", configuredLogFilenames);
+    }
+    return new File(configuredLogFilenames.get(0));
   }
 
   static File getRequestLog(final InsightConfig config) {
-    final String configuredLogFilename = config.getHttpConfiguration().getRequestLogConfiguration()
-        .getFileConfiguration().getCurrentLogFilename();
-
-    if (configuredLogFilename == null) {
+    List<String> requestLogFilenames = getFilenames(
+        ((LogbackAccessRequestLogFactory) ((DefaultServerFactory) config.getServerFactory()).getRequestLogFactory())
+            .getAppenders());
+    if (requestLogFilenames.isEmpty()) {
       return null;
     }
-    return new File(configuredLogFilename);
+    if (requestLogFilenames.size() > 1) {
+      log.warn("Multiple request log files {}", requestLogFilenames);
+    }
+    return new File(requestLogFilenames.get(0));
+  }
+
+  private static List<String> getFilenames(List<? extends AppenderFactory<?>> appenderFactories) {
+    return appenderFactories
+        .stream()
+        .filter(appenderFactory -> appenderFactory instanceof FileAppenderFactory)
+        .map(appenderFactory -> ((FileAppenderFactory) appenderFactory).getCurrentLogFilename())
+        .collect(Collectors.toList());
   }
 
   private File createFilteredYml(final File rawYml, final File workDir) throws IOException {

@@ -55,7 +55,8 @@ public class SupportResourceTest
             "    org.apache.directory: ERROR, com.sonatype.insight.error.ErrorResponseGenerator: TRACE,\n" +
             "    org.apache.shiro.realm.AuthenticatingRealm: INFO, org.springframework.jdbc.datasource.SimpleDriverDataSource: INFO,\n" +
             "    org.apache.commons.beanutils.converters: INFO}\n" +
-            "  console: {logFormat: '%date %level [%thread%X{DC}] %logger - %msg%n'}\n"));
+            "  appenders:\n" +
+            "  - {type: console, logFormat: '%date %level [%thread%X{DC}] %logger - %msg%n'}\n"));
       }
     }
   }

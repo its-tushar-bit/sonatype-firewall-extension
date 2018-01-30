@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
+import java.util.EnumSet;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -14,7 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-import com.yammer.dropwizard.config.Environment;
+import io.dropwizard.setup.Environment;
 
 /**
  * A servlet filter that puts web clients into slow motion by delaying most requests. This is useful to reveal timing
@@ -28,8 +30,10 @@ class SlowMoFilter
     Long delay = Long.getLong("slowmo.delay");
     if (enable && delay != null && delay > 0) {
       SlowMoFilter filter = new SlowMoFilter(delay);
-      env.addFilter(filter, "/rest/*");
-      env.addFilter(filter, "*.html");
+      env.servlets().addFilter("RestSlowMoFilter", filter)
+          .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/rest/*");
+      env.servlets().addFilter("HtmlSlowMoFilter", filter)
+          .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "*.html");
     }
   }
 

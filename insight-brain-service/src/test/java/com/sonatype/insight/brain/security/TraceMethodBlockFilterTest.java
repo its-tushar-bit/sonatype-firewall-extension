@@ -28,7 +28,7 @@ public class TraceMethodBlockFilterTest
   @Test
   public void testTrackMethodBlocked() throws Exception {
     HttpResponse response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACK");
-    assertResponseStatus(HttpStatus.NOT_IMPLEMENTED_501, response);
+    assertResponseStatus(HttpStatus.METHOD_NOT_ALLOWED_405, response);
 
     response = restRequest().path(VersionResource.RESOURCE_PATH).send("TRACK");
     assertResponseStatus(HttpStatus.METHOD_NOT_ALLOWED_405, response);

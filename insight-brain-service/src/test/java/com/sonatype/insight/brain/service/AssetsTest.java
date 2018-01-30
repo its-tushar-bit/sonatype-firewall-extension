@@ -56,7 +56,7 @@ public class AssetsTest
 
     response = restRequest().path("bundle.js").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType(), is(equalToIgnoringCase("application/x-javascript")));
+    assertThat(response.getContentType(), is(equalToIgnoringCase("application/javascript")));
 
     response = restRequest().path("fonts/glyphicons-regular.woff").get();
     assertResponseStatus(200, response);

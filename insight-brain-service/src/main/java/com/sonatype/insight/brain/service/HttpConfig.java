@@ -7,17 +7,19 @@ package com.sonatype.insight.brain.service;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.yammer.dropwizard.config.HttpConfiguration;
-import com.yammer.dropwizard.util.Duration;
+import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.server.DefaultServerFactory;
+import io.dropwizard.util.Duration;
+import org.eclipse.jetty.server.HttpConfiguration;
 
 /**
- * Custom {@link HttpConfiguration} with updated defaults. We used to set them externally in InsightConfig, but if
+ * Custom {@link DefaultServerFactory} with updated defaults. We used to set them externally in InsightConfig, but if
  * someone chose to customize one of the properties then the newly deserialized class would not include our changes.
  * Setting them in the constructor means they always get applied first. Uses mixin to apply "JsonDeserialize.as".
  */
 @JsonDeserialize(as = HttpConfig.class)
 public class HttpConfig
-    extends HttpConfiguration
+    extends DefaultServerFactory
 {
   public static class Module
       extends SimpleModule
@@ -31,10 +33,12 @@ public class HttpConfig
   }
 
   public HttpConfig() {
-    setPort(8070);
-    setAdminPort(8071);
-    setMaxIdleTime(Duration.minutes(15));
-    // NOTE: DropWizard's default connector (BLOCKING) is known to cause hanging requests, cf. CLM-1297
-    setConnectorType(ConnectorType.NONBLOCKING);
+    setRegisterDefaultExceptionMappers(false);
+    
+    HttpConnectorFactory applicationConnector = (HttpConnectorFactory) getApplicationConnectors().get(0);
+    applicationConnector.setPort(8070);
+    applicationConnector.setIdleTimeout(Duration.minutes(15));
+    HttpConnectorFactory adminConnector = (HttpConnectorFactory) getAdminConnectors().get(0);
+    adminConnector.setPort(8071);
   }
 }

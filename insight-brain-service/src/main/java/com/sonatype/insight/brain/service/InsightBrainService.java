@@ -9,11 +9,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Named;
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
@@ -33,23 +35,32 @@ import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
-import com.sonatype.insight.brain.security.TraceMethodBlockFilter;
 import com.sonatype.insight.brain.telemetry.TelemetryCollector;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
-import com.sun.jersey.api.core.ResourceConfig;
-import com.sun.jersey.server.impl.resource.SingletonFactory;
-import com.yammer.dropwizard.assets.AssetsBundle;
-import com.yammer.dropwizard.cli.Cli;
-import com.yammer.dropwizard.cli.ServerCommand;
-import com.yammer.dropwizard.config.Bootstrap;
-import com.yammer.dropwizard.config.Environment;
-import com.yammer.dropwizard.jersey.LoggingExceptionMapper;
+import io.dropwizard.assets.AssetsBundle;
+import io.dropwizard.cli.Cli;
+import io.dropwizard.cli.ServerCommand;
+import io.dropwizard.forms.MultiPartBundle;
+import io.dropwizard.jackson.AnnotationSensitivePropertyNamingStrategy;
+import io.dropwizard.jackson.DiscoverableSubtypeResolver;
+import io.dropwizard.jackson.GuavaExtrasModule;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+import io.dropwizard.util.JarLocation;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.slf4j.Logger;
@@ -57,7 +68,7 @@ import org.slf4j.LoggerFactory;
 
 @Named
 public class InsightBrainService
-    extends SisuService<InsightConfig>
+    extends SisuApplication<InsightConfig>
 {
   private static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
@@ -130,7 +141,8 @@ public class InsightBrainService
       }
     });
     initialize(bootstrap);
-    final Cli cli = new Cli(this.getClass(), bootstrap);
+    new ConfigurationChecker().check(arguments, bootstrap);
+    final Cli cli = new Cli(new JarLocation(this.getClass()), bootstrap, System.out, System.err);
     cli.run(arguments);
   }
 
@@ -253,15 +265,44 @@ public class InsightBrainService
 
   @Override
   public void initialize(final Bootstrap<InsightConfig> bootstrap) {
-    bootstrap.addBundle(new AssetsBundle("/assets/", BRAIN_ASSET_PATH, "index.html"));
+    bootstrap.addBundle(new MultiPartBundle());
+
+    bootstrap.addBundle(new AssetsBundle("/assets/", BRAIN_ASSET_PATH, "index.html", "assets"));
 
     // Legacy support for old reports
-    bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html"));
+    bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html", "policyAssets"));
 
-    // workaround to let us set different defaults in the core HTTP configuration
-    bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());
+    bootstrap.setObjectMapper(getObjectMapper());
 
     bootstrap.addCommand(new CompactCommand());
+  }
+
+  private ObjectMapper getObjectMapper() {
+    // Use an object mapper mostly matching the default for Dropwizard version 1.2.2 i.e.
+    // https://github.com/dropwizard/dropwizard/blob/v1.2.2/dropwizard-jackson/src/main/java/io/dropwizard/jackson/Jackson.java#L65
+    ObjectMapper objectMapper = new ObjectMapper();
+    // Register default modules except io.dropwizard.jackson.FuzzyEnumModule so enums using @JsonValue can be
+    // deserialized without needing @JsonCreator methods
+    objectMapper.registerModule(new GuavaModule());
+    objectMapper.registerModule(new GuavaExtrasModule());
+    objectMapper.registerModule(new JodaModule());
+    objectMapper.registerModule(new AfterburnerModule());
+    objectMapper.registerModule(new ParameterNamesModule());
+    objectMapper.registerModule(new Jdk8Module());
+    objectMapper.registerModule(new JavaTimeModule());
+
+    // Workaround to let us set different defaults in the core HTTP configuration
+    objectMapper.registerModule(new HttpConfig.Module());
+
+    // More defaults
+    objectMapper.setPropertyNamingStrategy(new AnnotationSensitivePropertyNamingStrategy());
+    objectMapper.setSubtypeResolver(new DiscoverableSubtypeResolver());
+
+    // Ignore unknown properties during deserialization, matching Dropwizard 0.6.2
+    // once CLM-9426 is done we should be able to remove this
+    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+    return objectMapper;
   }
 
   protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName)
@@ -275,16 +316,10 @@ public class InsightBrainService
 
     config.getSonatypeWork().mkdirs();
 
-    env.enableJerseyFeature(ResourceConfig.FEATURE_CANONICALIZE_URI_PATH);
-    env.enableJerseyFeature(ResourceConfig.FEATURE_NORMALIZE_URI);
-    env.setJerseyProperty(ResourceConfig.PROPERTY_DEFAULT_RESOURCE_COMPONENT_PROVIDER_FACTORY_CLASS,
-        SingletonFactory.class);
-
-    env.addFilter(getInstance(HttpHeaderValidatorFilter.class), HttpHeaderValidatorFilter.URL_PATTERN);
-    env.addFilter(getInstance(TraceMethodBlockFilter.class), TraceMethodBlockFilter.URL_PATTERN);
-    env.addFilter(getInstance(GuiceShiroFilter.class), "/*");
-    env.addFilter(getInstance(IndexCacheControlFilter.class), IndexCacheControlFilter.URL_PATTERN);
-    env.addFilter(getInstance(AuthenticationLoggingFilter.class), AuthenticationLoggingFilter.URL_PATTERN);
+    addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
+    addServletFilter(env, GuiceShiroFilter.class, "/*");
+    addServletFilter(env, IndexCacheControlFilter.class, IndexCacheControlFilter.URL_PATTERN);
+    addServletFilter(env, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);
 
     if (config.isForceBaseUrl()) {
       log.error("DEPRECATION NOTICE: Forcing use of server base URL: {}, any 'X-Forwarded-*' headers will be " +
@@ -297,23 +332,16 @@ public class InsightBrainService
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
   }
 
-  // Copied from IdeScanService
-  private void replaceGenericExceptionMapper(final Environment environment, InsightConfig config) {
-    // DW has an exception mapper that turns exceptions into 500. Boo for us.
-    // Remove it so that our mapper will always be used to handle exceptions.
-    final Set<Object> singletons = environment.getJerseyResourceConfig().getSingletons();
-    for (Object candidate : singletons) {
-      if (candidate instanceof LoggingExceptionMapper) {
-        log.debug("Removing LoggingExceptionMapper");
-        singletons.remove(candidate);
-        break;
-      }
-    }
+  private void addServletFilter(Environment env, Class<? extends Filter> filterType, String urlPattern) {
+    env.servlets().addFilter(filterType.getSimpleName(), getInstance(filterType))
+        .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPattern);
+  }
 
+  private void replaceGenericExceptionMapper(final Environment environment, InsightConfig config) {
     // Add our own mapper for exceptions.
     JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
     jaxRsExceptionMapper.setExitOnFatalError(config.isExitOnFatalError());
-    environment.addProvider(jaxRsExceptionMapper);
+    environment.jersey().register(jaxRsExceptionMapper);
   }
 
   private void initializeDatabases(final InsightConfig config) {

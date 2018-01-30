@@ -20,9 +20,11 @@ import javax.validation.constraints.Size;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.jira.JiraConfig;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.yammer.dropwizard.config.Configuration;
-import com.yammer.dropwizard.validation.ValidationMethod;
+import io.dropwizard.Configuration;
+import io.dropwizard.server.DefaultServerFactory;
+import io.dropwizard.validation.ValidationMethod;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +37,7 @@ public class InsightConfig
   public static final String DEFAULT_BACKUP_DIR = "db-backup";
 
   {
-    setHttpConfiguration(new HttpConfig());
+    setServerFactory(new HttpConfig());
   }
 
   @Valid
@@ -228,6 +230,7 @@ public class InsightConfig
     return new File(sonatypeWork);
   }
 
+  @JsonIgnore
   public File getConfigDir() {
     return new File(sonatypeWork, "config");
   }
@@ -283,6 +286,7 @@ public class InsightConfig
     this.forceBaseUrl = forceBaseUrl;
   }
 
+  @JsonIgnore
   @ValidationMethod(message = "baseUrl is invalid")
   public boolean isValidBaseUrl() {
     try {
@@ -298,6 +302,7 @@ public class InsightConfig
     }
   }
 
+  @JsonIgnore
   @ValidationMethod(message = "mail.systemEmail is invalid")
   public boolean isValidSystemMailAddress() {
     try {
@@ -321,6 +326,7 @@ public class InsightConfig
     }
   }
 
+  @JsonIgnore
   @ValidationMethod(message = "cdnUrl is invalid")
   public boolean isValidCdnUrl() {
     try {
@@ -332,6 +338,13 @@ public class InsightConfig
       log.error("Invalid cndUrl: {}", e.getMessage());
       return false;
     }
+  }
+
+
+  @JsonIgnore
+  @ValidationMethod(message = "server.applicationConnectors cannot be empty")
+  public boolean isValidApplicationConnectors() {
+    return !((DefaultServerFactory) getServerFactory()).getApplicationConnectors().isEmpty();
   }
 
   /**

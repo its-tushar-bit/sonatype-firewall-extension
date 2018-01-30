@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.excilys.ebi.gatling.core.config.GatlingPropertiesBuilder;
 import com.google.common.io.Resources;
-import com.yammer.dropwizard.testing.junit.DropwizardServiceRule;
+import io.dropwizard.testing.junit.DropwizardAppRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -32,7 +32,7 @@ import org.junit.rules.TestRule;
 public class AbstractLdapSimulationTest
 {
   @ClassRule
-  public static TestRule startServiceRule = new DropwizardServiceRule<>(InsightBrainService.class,
+  public static TestRule startServiceRule = new DropwizardAppRule<>(InsightBrainService.class,
       Resources.getResource("config-test.yml").getPath());
 
   @Rule

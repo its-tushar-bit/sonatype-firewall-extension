@@ -8,12 +8,13 @@ package com.sonatype.insight.brain.releasegraph;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.service.AbstractOperationalCheck;
+
 import com.google.common.cache.LoadingCache;
-import com.yammer.metrics.core.HealthCheck;
 
 @Named
 public class ReleaseGraphHealthCheck
-    extends HealthCheck
+    extends AbstractOperationalCheck
 {
   private LoadingCache<ReleaseGraphKey, byte[]> cache;
 

@@ -20,18 +20,22 @@ logging:
     "org.apache.shiro.realm.AuthenticatingRealm": INFO
     "org.springframework.jdbc.datasource.SimpleDriverDataSource" : INFO
     "org.apache.commons.beanutils.converters": INFO
-  console:
-    logFormat: "%date %level [%thread%X{DC}] %logger - %msg%n"
+  appenders:
+    - type: console
+      logFormat: "%date %level [%thread%X{DC}] %logger - %msg%n"
 
 # HTTP-specific options.
-http:
-
-  # The port on which the HTTP server listens for service requests.
-  # Because Java cannot drop privileges in a POSIX system, these
-  # ports cannot be in the range 1-1024. A port value of 0 will
-  # make the OS use an arbitrary unused port.
-  port: 9070
-
-  # The port on which the HTTP server listens for administrative
-  # requests. Subject to the same limitations as "port".
-  adminPort: 9071
+server:
+  applicationConnectors:
+    - type: http
+      # The port on which the HTTP server listens for service requests.
+      # Because Java cannot drop privileges in a POSIX system, these
+      # ports cannot be in the range 1-1024. A port value of 0 will
+      # make the OS use an arbitrary unused port.
+      port: 9070
+  
+  adminConnectors:
+    - type: http
+      # The port on which the HTTP server listens for administrative
+      # requests. Subject to the same limitations as "port".
+      port: 9071

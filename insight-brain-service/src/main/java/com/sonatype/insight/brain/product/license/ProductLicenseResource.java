@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSumma
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
-import com.sun.jersey.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Path(ProductLicenseResource.RESOURCE_PATH)
 @Named

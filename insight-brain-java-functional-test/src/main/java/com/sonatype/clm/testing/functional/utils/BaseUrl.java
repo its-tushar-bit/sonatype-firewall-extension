@@ -19,7 +19,7 @@ import com.codeborne.selenide.Configuration;
 public class BaseUrl
 {
   public static String resolvePageUrl(String path, Object... parameters) {
-    return pageUriBuilder().fragment(path).build(parameters).toString();
+    return pageUriBuilder().fragment(path).build(parameters).toString().replaceAll("%2F", "/");
   }
 
   private static UriBuilder pageUriBuilder() {

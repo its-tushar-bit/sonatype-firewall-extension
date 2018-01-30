@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.util.List;
 
-import com.yammer.dropwizard.validation.Validator;
+import io.dropwizard.jersey.validation.Validators;
+import io.dropwizard.validation.ConstraintViolations;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -60,14 +61,13 @@ public class InsightConfigTest
 
   @Test
   public void testUserAgentSuffix_NoControlCharactersToBlockHeaderInjection() {
-    Validator validator = new Validator();
     InsightConfig config = new InsightConfig();
     config.setUserAgentSuffix("\nInjected-Header: Value");
-    List<String> errors = validator.validate(config);
+    List<String> errors = ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
     assertThat(errors, hasSize(1));
     assertThat(errors.get(0), containsString("userAgentSuffix")); // validator messages are localized...
     config.setUserAgentSuffix("Valid User Agent Suffix (Custom/1.0, Bla)");
-    errors = validator.validate(config);
+    errors = ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
     assertThat(errors, hasSize(0));
   }
 

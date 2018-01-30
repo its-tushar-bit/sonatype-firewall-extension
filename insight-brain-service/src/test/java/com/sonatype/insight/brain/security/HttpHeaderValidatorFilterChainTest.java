@@ -47,4 +47,19 @@ public class HttpHeaderValidatorFilterChainTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("Illegal header value detected in 'Host'"));
   }
+
+  @Test
+  public void testInvalidHeader_ForwardedProto() throws Exception {
+    HttpResponse response = restRequest().header("Forwarded", "proto=http\"><script>alert(document.domain)</script>")
+        .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), is("Illegal header value detected in 'Forwarded'"));
+  }
+
+  @Test
+  public void testInvalidHeader_ForwardedHost() throws Exception {
+    HttpResponse response = restRequest().header("Forwarded", "host=\"><script>alert(document.domain)</script>").post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), is("Illegal header value detected in 'Forwarded'"));
+  }
 }

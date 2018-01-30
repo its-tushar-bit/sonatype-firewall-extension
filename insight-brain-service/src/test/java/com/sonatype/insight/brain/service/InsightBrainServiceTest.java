@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class InsightBrainServiceTest
     extends AbstractBrainServiceTest
@@ -49,5 +50,26 @@ public class InsightBrainServiceTest
     assertThat(sampleOrg, is(nullValue()));
     Application sampleApp = new ApplicationDAO().getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
     assertThat(sampleApp, is(nullValue()));
+  }
+
+  @Test
+  @ManualServerInit
+  public void testConfigWithHttp_SuggestsUpdateConfig() throws Exception {
+    try {
+      initServer(new Configurator()
+      {
+        @Override
+        public void configure(final InsightConfig config) { }
+
+        @Override
+        public String getConfigFilePath() {
+          return InsightBrainService.class.getResource("/InsightBrainServiceTest/config-with-http.yml").getFile();
+        }
+      });
+      fail("Expected exception");
+    }
+    catch (RuntimeException ex) {
+      assertThat(ex.getMessage(), is(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
+    }
   }
 }

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.yammer.dropwizard.validation.PortRange;
+import io.dropwizard.validation.PortRange;
 
 public class ProxyConfig
 {

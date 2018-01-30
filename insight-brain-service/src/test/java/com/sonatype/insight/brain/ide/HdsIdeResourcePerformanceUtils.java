@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 
+import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.mockito.Mockito;
 
 public class HdsIdeResourcePerformanceUtils
@@ -66,7 +68,8 @@ public class HdsIdeResourcePerformanceUtils
   static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
     config.setHdsUrl(hdsUrl);
-    config.getHttpConfiguration().setPort(8877);
+    ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
+        .setPort(8877);
     return new HdsClient(new InsightProxy(config),
         new CLMLicenseManager(new TestProductLicenseManager(), new TestLicenseFingerprinter()), config,
         new VersionService(), Mockito.mock(IdleConnectionReaper.class), new TelemetryId(config));

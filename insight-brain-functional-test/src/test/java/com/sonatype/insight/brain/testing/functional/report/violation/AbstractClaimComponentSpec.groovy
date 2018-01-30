@@ -263,8 +263,8 @@ extends BaseSpec {
   }
 
   String createUri(ComponentIdentifier componentIdentifier) {
-    return UriBuilder.fromPath('rest/component/summary').
-        queryParam('componentIdentifier', ComponentIdentifierAdapter.toJson(componentIdentifier)).build().toString()
+    return UriBuilder.fromPath('rest/component/summary').queryParam('componentIdentifier',
+        URLEncoder.encode(ComponentIdentifierAdapter.toJson(componentIdentifier), "UTF-8")).build().toString()
   }
 
   void mockHdsComponentDetailsListResponse(ComponentIdentifier identifier) {

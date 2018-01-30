@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.net.URI;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -122,5 +123,15 @@ class ServletOutputStreamCopier
   public void flush() throws IOException {
     outputStream.flush();
     copy.flush();
+  }
+
+  @Override
+  public boolean isReady() {
+    return false;
+  }
+
+  @Override
+  public void setWriteListener(final WriteListener writeListener) {
+    // No implementation necessary
   }
 }

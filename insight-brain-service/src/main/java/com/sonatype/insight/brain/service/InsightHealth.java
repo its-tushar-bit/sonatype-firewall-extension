@@ -9,8 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.yammer.metrics.core.HealthCheck;
-
 /**
  * This is a Dropwizard health check. It has nothing to do with Insight's Health Check features like "Application Health
  * Check" or "Repository Health Check". :)
@@ -18,7 +16,7 @@ import com.yammer.metrics.core.HealthCheck;
 @Named
 @Singleton
 public class InsightHealth
-    extends HealthCheck
+    extends AbstractOperationalCheck
 {
   private final InsightConfig insightConfig;
 

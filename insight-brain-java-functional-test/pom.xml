@@ -106,9 +106,8 @@
       <artifactId>insight-json-store</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
-      <version>${jersey.version}</version>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -117,16 +116,9 @@
     </dependency>
     <!-- DW testing to start services -->
     <dependency>
-      <groupId>com.yammer.dropwizard</groupId>
+      <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-testing</artifactId>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <!-- Conflicts with org.ow2.asm:asm-*:4.x used by enhanced matching. -->
-          <groupId>asm</groupId>
-          <artifactId>asm</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <!-- The app to test against -->
     <dependency>
@@ -185,7 +177,7 @@
     </dependency>
     <dependency>
       <groupId>com.applitools</groupId>
-      <artifactId>eyes-selenium-java3-jersey1x</artifactId>
+      <artifactId>eyes-selenium-java3</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

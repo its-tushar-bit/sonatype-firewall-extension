@@ -16,7 +16,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.yammer.metrics.annotation.Timed;
+import com.codahale.metrics.annotation.Timed;
 
 /**
  * @since 1.18.0

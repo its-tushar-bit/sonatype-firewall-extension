@@ -22,7 +22,7 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 @Named
 @Singleton
 public class BaseUrl
-    extends AbstractInjectable<BaseUrl>
+    implements RestComponent
 {
 
   static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "baseUrl is not configured.";

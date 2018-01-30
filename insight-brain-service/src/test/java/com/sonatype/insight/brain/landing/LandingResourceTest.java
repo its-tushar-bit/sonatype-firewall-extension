@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.landing;
 
+import java.util.Collections;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -12,9 +14,9 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.SslProperties;
 
-import com.google.common.base.Optional;
-import com.yammer.dropwizard.config.HttpConfiguration;
-import com.yammer.dropwizard.config.SslConfiguration;
+import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.jetty.HttpsConnectorFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.startsWith;
@@ -237,11 +239,13 @@ public class LandingResourceTest
         config.setForceBaseUrl(forceBaseUrl);
         config.setBaseUrl(BASE_URL);
         if (ssl) {
-          config.getHttpConfiguration().setConnectorType(HttpConfiguration.ConnectorType.NONBLOCKING_SSL);
-          SslConfiguration sslConfig = new SslConfiguration();
-          sslConfig.setKeyStore(Optional.of(SslProperties.SERVER_STORE_FILE));
-          sslConfig.setKeyStorePassword(Optional.of(SslProperties.KEY_STORE_PASSWORD));
-          config.getHttpConfiguration().setSslConfiguration(sslConfig);
+          HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
+          applicationHttpsConnector.setKeyStorePath(SslProperties.SERVER_STORE_FILE.getAbsolutePath());
+          applicationHttpsConnector.setKeyStorePassword(SslProperties.KEY_STORE_PASSWORD);
+          DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
+          applicationHttpsConnector
+              .setPort(((HttpConnectorFactory) defaultServerFactory.getApplicationConnectors().get(0)).getPort());
+          defaultServerFactory.setApplicationConnectors(Collections.singletonList(applicationHttpsConnector));
         }
       }
     });

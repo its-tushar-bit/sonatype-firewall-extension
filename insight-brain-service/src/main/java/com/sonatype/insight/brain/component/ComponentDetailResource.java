@@ -21,8 +21,8 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.successmetrics.OwnerFilterDTO;
 
-import com.yammer.metrics.annotation.ExceptionMetered;
-import com.yammer.metrics.annotation.Timed;
+import com.codahale.metrics.annotation.ExceptionMetered;
+import com.codahale.metrics.annotation.Timed;
 
 /**
  * @since 1.11

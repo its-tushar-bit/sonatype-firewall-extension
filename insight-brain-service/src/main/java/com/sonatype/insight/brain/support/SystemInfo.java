@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -41,7 +42,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.yammer.metrics.core.VirtualMachineMetrics;
+import com.codahale.metrics.jvm.ThreadDump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -350,7 +351,7 @@ class SystemInfo
 
   String getThreadDump() throws IOException {
     try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      VirtualMachineMetrics.getInstance().threadDump(outputStream);
+      new ThreadDump(ManagementFactory.getThreadMXBean()).dump(outputStream);
       return outputStream.toString();
     }
   }

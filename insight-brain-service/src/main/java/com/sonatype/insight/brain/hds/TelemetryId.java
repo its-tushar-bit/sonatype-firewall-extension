@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,6 +24,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,15 +113,19 @@ public class TelemetryId
       }
     }
 
-    String derivedId = calculateDerivedId(hostname, insightConfig.getHttpConfiguration().getPort(), hardwareAddresses);
+    String ports = ((DefaultServerFactory) insightConfig.getServerFactory()).getApplicationConnectors().stream()
+        .map(applicationConnector -> ((HttpConnectorFactory) applicationConnector).getPort()).sorted()
+        .map(String::valueOf).collect(Collectors.joining(","));
+
+    String derivedId = calculateDerivedId(hostname, ports, hardwareAddresses);
     id = generatedIdProperty.getValue() + "-" + derivedId;
   }
 
   @SuppressWarnings("deprecation")
-  static String calculateDerivedId(String hostname, int port, List<byte[]> hardwareAddresses) {
+  static String calculateDerivedId(String hostname, String ports, List<byte[]> hardwareAddresses) {
     // Calculate the derived ID as the SHA1 of the bytes of hostname + port + all network interface hardware addresses.
     Hasher hasher = Hashing.sha1().newHasher();
-    hasher.putString(hostname + port, StandardCharsets.UTF_8);
+    hasher.putString(hostname + ports, StandardCharsets.UTF_8);
 
     for (byte[] hardwareAddress : hardwareAddresses) {
       hasher.putBytes(hardwareAddress);

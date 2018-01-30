@@ -13,7 +13,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitor;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.yammer.dropwizard.tasks.Task;
+import io.dropwizard.servlets.tasks.Task;
 
 /**
  * @since 1.8

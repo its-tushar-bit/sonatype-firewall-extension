@@ -13,6 +13,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.file.FileStore;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +31,11 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 
-import com.yammer.dropwizard.config.LoggingConfiguration;
-import com.yammer.dropwizard.config.LoggingConfiguration.FileConfiguration;
-import com.yammer.dropwizard.config.RequestLogConfiguration;
+import com.google.common.collect.ImmutableList;
+import io.dropwizard.logging.DefaultLoggingFactory;
+import io.dropwizard.logging.FileAppenderFactory;
+import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.hamcrest.core.Is;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -67,17 +70,17 @@ public class SystemInfoTest
   @Inject
   @Override
   protected void customizeConfig(final InsightConfig config) {
-    final LoggingConfiguration serverLoggingConfiguration = new LoggingConfiguration();
-    final FileConfiguration serverFileConfiguration = new FileConfiguration();
-    serverFileConfiguration.setCurrentLogFilename(SERVER_LOG_FILENAME);
-    serverLoggingConfiguration.setFileConfiguration(serverFileConfiguration);
-    config.setLoggingConfiguration(serverLoggingConfiguration);
+    DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
+    FileAppenderFactory serverFileAppenderFactory = new FileAppenderFactory();
+    serverFileAppenderFactory.setCurrentLogFilename(SERVER_LOG_FILENAME);
+    defaultLoggingFactory.setAppenders(Collections.singletonList(serverFileAppenderFactory));
 
-    final RequestLogConfiguration requestLoggingConfiguration = new RequestLogConfiguration();
-    final FileConfiguration requestFileConfiguration = new FileConfiguration();
-    requestFileConfiguration.setCurrentLogFilename(REQUEST_LOG_FILENAME);
-    requestLoggingConfiguration.setFileConfiguration(requestFileConfiguration);
-    config.getHttpConfiguration().setRequestLogConfiguration(requestLoggingConfiguration);
+    DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
+    LogbackAccessRequestLogFactory logbackAccessRequestLogFactory = 
+        (LogbackAccessRequestLogFactory) defaultServerFactory.getRequestLogFactory();
+    FileAppenderFactory requestFileAppenderFactory = new FileAppenderFactory();
+    requestFileAppenderFactory.setCurrentLogFilename(REQUEST_LOG_FILENAME);
+    logbackAccessRequestLogFactory.setAppenders(ImmutableList.of(requestFileAppenderFactory));
   }
 
   @Test
@@ -150,21 +153,25 @@ public class SystemInfoTest
 
     assertThat(obufscatedMap.get("sonatypeWork"), Is.<Object>is("./sonatype-work/clm-server"));
 
-    final Map<String, Object> entryHttp = (Map<String, Object>) obufscatedMap.get("http");
-    assertThat(entryHttp.get("port"), Is.<Object>is(8070));
-    assertThat(entryHttp.get("adminPort"), Is.<Object>is(8071));
+    final Map<String, Object> entryServer = (Map<String, Object>) obufscatedMap.get("server");
+    final Map<String, Object> entryApplicationConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
+        .get("applicationConnectors")).get(0);
+    final Map<String, Object> entryAdminConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
+        .get("adminConnectors")).get(0);
+    assertThat(entryApplicationConnectors.get("port"), Is.<Object>is(8070));
+    assertThat(entryAdminConnectors.get("port"), Is.<Object>is(8071));
 
-    final Map<String, Map<String, Object>> entryHttpRequest = (Map<String, Map<String, Object>>) entryHttp
-        .get("requestLog");
-    assertThat(entryHttpRequest.get("console").get("enabled"), Is.<Object>is(false));
-    assertThat(entryHttpRequest.get("console").size(), Is.<Object>is(1));
+    final Map<String, Object> entryHttpRequest = (Map<String, Object>) entryServer.get("requestLog");
+    final ArrayList<Object> entryHttpRequestAppenders = (ArrayList<Object>) entryHttpRequest.get("appenders");
+    assertThat(entryHttpRequestAppenders.size(), Is.is(1));
+    final Map<String, Object> entryFileHttpRequestAppender = (Map<String, Object>) entryHttpRequestAppenders.get(0);
 
-    assertThat(entryHttpRequest.get("file").get("enabled"), Is.<Object>is(true));
-    assertThat(entryHttpRequest.get("file").get("currentLogFilename"), Is.<Object>is("./log/request.log"));
-    assertThat(entryHttpRequest.get("file").get("archivedLogFilenamePattern"),
+    assertThat(entryFileHttpRequestAppender.get("type"), Is.<Object>is("file"));
+    assertThat(entryFileHttpRequestAppender.get("currentLogFilename"), Is.<Object>is("./log/request.log"));
+    assertThat(entryFileHttpRequestAppender.get("archivedLogFilenamePattern"),
         Is.<Object>is("./log/request-%d.log.gz"));
-    assertThat(entryHttpRequest.get("file").get("archivedFileCount"), Is.<Object>is(50));
-    assertThat(entryHttpRequest.get("file").size(), Is.<Object>is(4));
+    assertThat(entryFileHttpRequestAppender.get("archivedFileCount"), Is.<Object>is(50));
+    assertThat(entryFileHttpRequestAppender.size(), Is.<Object>is(4));
 
     // validate obfuscation
     assertThat(obufscatedMap.get("testPassword"), Is.<Object>is(SystemInfo.MASK));
@@ -418,7 +425,7 @@ public class SystemInfoTest
   @Test
   public void testGetThreadDump() throws Exception {
     final String text = systemInfo.getThreadDump();
-    assertTrue(text.contains("VirtualMachineMetrics"));
+    assertTrue(text.contains("ThreadDump"));
   }
 
   @Test

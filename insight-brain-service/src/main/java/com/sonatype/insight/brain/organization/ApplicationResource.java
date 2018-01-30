@@ -45,9 +45,9 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.FormDataParam;
-import com.yammer.metrics.annotation.Timed;
+import com.codahale.metrics.annotation.Timed;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
 @Path(ApplicationResource.RESOURCE_PATH)
@@ -193,7 +193,7 @@ public class ApplicationResource
   @Authorize(permission = Permission.WRITE)
   public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
                           @Context HttpHeaders headers,
-                          @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+                          @AuthzContext(AuthzContext.Key.APPLICATION_ID) @FormDataParam("applicationId") String applicationId,
                           @FormDataParam("hasRobotSource") boolean hasRobotSource,
                           @FormDataParam("hashcode") String hashcode,
                           @FormDataParam("file") InputStream uploadedInputStream,

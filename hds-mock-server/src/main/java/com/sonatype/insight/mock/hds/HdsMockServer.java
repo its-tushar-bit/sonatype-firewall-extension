@@ -18,19 +18,25 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.test.SslProperties;
 
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.proxy.ConnectHandler;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.UserStore;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.ConnectHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.util.B64Code;
 import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.util.security.Constraint;
@@ -109,7 +115,7 @@ public class HdsMockServer
 
   public int getHttpPort() {
     if (httpPort >= 0 && server != null && server.isRunning()) {
-      return server.getConnectors()[0].getLocalPort();
+      return ((NetworkConnector) server.getConnectors()[0]).getLocalPort();
     }
     return httpPort;
   }
@@ -125,7 +131,7 @@ public class HdsMockServer
 
   public int getHttpsPort() {
     if (httpsPort >= 0 && server != null && server.isRunning()) {
-      return server.getConnectors()[(httpPort < 0) ? 0 : 1].getLocalPort();
+      return ((NetworkConnector) server.getConnectors()[(httpPort < 0) ? 0 : 1]).getLocalPort();
     }
     return httpsPort;
   }
@@ -153,7 +159,7 @@ public class HdsMockServer
   }
 
   private Connector newHttpConnector() {
-    SelectChannelConnector connector = new SelectChannelConnector();
+    ServerConnector connector = new ServerConnector(server);
     connector.setPort(httpPort);
     return connector;
   }
@@ -163,7 +169,11 @@ public class HdsMockServer
     ssl.setKeyStorePath(new File(keyStoreLocation).getAbsolutePath());
     ssl.setKeyStorePassword(keyStorePassword);
     ssl.setKeyManagerPassword(keyStorePassword);
-    SslSocketConnector connector = new SslSocketConnector(ssl);
+    HttpConfiguration httpsConfiguration = new HttpConfiguration();
+    httpsConfiguration.setSecureScheme("https");
+    httpsConfiguration.addCustomizer(new SecureRequestCustomizer());
+    ServerConnector connector = new ServerConnector(server,
+        new SslConnectionFactory(ssl, HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(httpsConfiguration));
     connector.setPort(httpsPort);
     return connector;
   }
@@ -185,8 +195,10 @@ public class HdsMockServer
     Handler mainHandler = new RestHandler();
 
     if (username != null && username.length() > 0) {
+      UserStore userStore = new UserStore();
+      userStore.addUser(username, new Password(password), new String[]{"uploader"});
       HashLoginService loginService = new HashLoginService("TestRealm");
-      loginService.putUser(username, new Password(password), new String[] { "uploader" });
+      loginService.setUserStore(userStore);
       server.addBean(loginService);
 
       Constraint constraint = new Constraint("auth", "uploader");

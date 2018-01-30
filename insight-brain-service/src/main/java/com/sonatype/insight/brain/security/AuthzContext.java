@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 /**
  * Marks method parameters which denote the context for the authorization check. If no parameters are annotated, the
  * global context applies for the authorization check. Warning: Some parts of Jersey bail if this annotation isn't
- * properly ordered among other parameter annotations (e.g. FormDataParam), putting it last seems to work.
+ * properly ordered among other parameter annotations (e.g. FormDataParam), putting it first seems to work.
  * 
  * @since 1.7
  * @see ContextResolver#resolveContextIds(java.util.Map)

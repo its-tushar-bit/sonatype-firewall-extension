@@ -35,8 +35,8 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
 @Path(OrganizationResource.RESOURCE_PATH)
@@ -135,7 +135,7 @@ public class OrganizationResource
   @Authorize(permission = Permission.WRITE)
   public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
                           @Context HttpHeaders headers,
-                          @FormDataParam("organizationId") @AuthzContext(Key.ORGANIZATION_ID) String organizationId,
+                          @AuthzContext(Key.ORGANIZATION_ID) @FormDataParam("organizationId") String organizationId,
                           @FormDataParam("hasRobotSource") boolean hasRobotSource,
                           @FormDataParam("hashcode") String hashcode,
                           @FormDataParam("file") InputStream uploadedInputStream,

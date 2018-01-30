@@ -5,46 +5,45 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.DynamicFeature;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
-import com.sun.jersey.api.model.AbstractMethod;
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
-import com.sun.jersey.spi.container.ContainerResponseFilter;
-import com.sun.jersey.spi.container.ResourceFilter;
-import com.sun.jersey.spi.container.ResourceFilterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-public class LicenseAwareContainerResourceFilterFactory
-    implements ResourceFilterFactory
+public class LicenseAwareContainerDynamicFeature
+    implements DynamicFeature
 {
   private final CLMLicenseManager licenseManager;
 
   private final BaseUrl baseUrl;
 
   @Inject
-  public LicenseAwareContainerResourceFilterFactory(CLMLicenseManager licenseManager, BaseUrl baseUrl) {
+  public LicenseAwareContainerDynamicFeature(CLMLicenseManager licenseManager, BaseUrl baseUrl) {
     this.licenseManager = licenseManager;
     this.baseUrl = baseUrl;
   }
 
   private class Filter
-      implements ResourceFilter, ContainerRequestFilter
+      implements ContainerRequestFilter
   {
     private final Set<CLMEnforcementPoint> enforcementPoints;
 
@@ -55,8 +54,8 @@ public class LicenseAwareContainerResourceFilterFactory
     }
 
     @Override
-    public ContainerRequest filter(ContainerRequest request) {
-      String path = request.getPath();
+    public void filter(final ContainerRequestContext request) throws IOException {
+      String path = request.getUriInfo().getPath();
 
       try {
         licenseManager.validate();
@@ -75,35 +74,27 @@ public class LicenseAwareContainerResourceFilterFactory
           throw e;
         }
       }
-
-      return request;
-    }
-
-    @Override
-    public ContainerRequestFilter getRequestFilter() {
-      return this;
-    }
-
-    @Override
-    public ContainerResponseFilter getResponseFilter() {
-      return null;
     }
   }
 
   @Override
-  public List<ResourceFilter> create(AbstractMethod am) {
-    // If the method is unlicensed, simply return null, no filter
-    // If the resource is unlicensed, make sure the method isn't looking for enforcement points, if not, return null, no
-    // filter
-    if (am.isAnnotationPresent(UnlicensedPath.class)
-        || (am.getResource().isAnnotationPresent(UnlicensedPath.class) && !am
-            .isAnnotationPresent(ProductLicenseEnforcementPoint.class))) {
-      return null;
+  public void configure(final ResourceInfo resourceInfo, final FeatureContext featureContext) {
+    // If the method is unlicensed,
+    // or if the resource (class) is unlicensed AND the method is NOT looking for enforcement points,
+    // then DO NOT register a filter
+    // Note that ResourceInfo.getResourceClass() and ResourceInfo.getResourceMethod() may return proxied classes/methods
+    // without any annotations unless they're inherited, so make sure any annotations we're checking for are @Inherited
+    Class<?> resourceClass = resourceInfo.getResourceClass();
+    Method resourceMethod = resourceInfo.getResourceMethod();
+    if (resourceMethod.isAnnotationPresent(UnlicensedPath.class) ||
+        (resourceClass.isAnnotationPresent(UnlicensedPath.class) &&
+            !resourceMethod.isAnnotationPresent(ProductLicenseEnforcementPoint.class))) {
+      return;
     }
 
     Set<CLMEnforcementPoint> enforcementPoints = new HashSet<>();
 
-    ProductLicenseEnforcementPoint ep = am.getAnnotation(ProductLicenseEnforcementPoint.class);
+    ProductLicenseEnforcementPoint ep = resourceMethod.getAnnotation(ProductLicenseEnforcementPoint.class);
 
     if (ep != null) {
       enforcementPoints.addAll(Arrays.asList(ep.value()));
@@ -111,13 +102,13 @@ public class LicenseAwareContainerResourceFilterFactory
 
     // method level enforcement annos will override whatever is in the resource, so dont check unless necessary
     if (enforcementPoints.isEmpty()) {
-      ep = am.getResource().getAnnotation(ProductLicenseEnforcementPoint.class);
+      ep = resourceClass.getAnnotation(ProductLicenseEnforcementPoint.class);
 
       if (ep != null) {
         enforcementPoints.addAll(Arrays.asList(ep.value()));
       }
     }
 
-    return Collections.<ResourceFilter> singletonList(new Filter(enforcementPoints));
+    featureContext.register(new Filter(enforcementPoints));
   }
 }

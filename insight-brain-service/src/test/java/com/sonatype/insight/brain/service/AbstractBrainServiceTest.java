@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -242,7 +243,7 @@ public abstract class AbstractBrainServiceTest
       throws Exception
   {
     String uri = UriBuilder.fromPath("rest/component/summary")
-        .queryParam("componentIdentifier", toJson(componentIdentifier)).build().toString();
+        .queryParam("componentIdentifier", URLEncoder.encode(toJson(componentIdentifier), "UTF-8")).build().toString();
     setHdsResponseForURI(uri, componentSummary, 200);
   }
 

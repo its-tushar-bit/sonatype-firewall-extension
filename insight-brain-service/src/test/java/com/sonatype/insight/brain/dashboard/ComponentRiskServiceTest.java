@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -108,7 +107,7 @@ public class ComponentRiskServiceTest
   public void testGetPolicyViolationsWithBadStageTypeId() {
     String badStageTypeId = "not a real stage type id";
     try {
-      componentRiskService.getPolicyViolations(Sets.newHashSet(badStageTypeId), null, null);
+      componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(badStageTypeId), null, null, null, null);
       fail("Expected BadRequestException to be thrown.");
     }
     catch (BadRequestException e) {
@@ -122,12 +121,13 @@ public class ComponentRiskServiceTest
     clmLicenseManager.installLicense(null);
 
     // Since we are not licensed for the build stage existing violations will not be returned.
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
+        null, null, null);
     assertThat(policyViolationDTOs, hasSize(0));
 
     Set<String> stageTypeIds = Sets.newHashSet(BuildStageType.ID);
     try {
-      policyViolationDTOs = componentRiskService.getPolicyViolations(stageTypeIds, null, null);
+      policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, stageTypeIds, null, null, null, null);
       fail("Expected BadRequestException");
     }
     catch (BadRequestException e) {
@@ -142,7 +142,8 @@ public class ComponentRiskServiceTest
     PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation, app1Policy);
 
     // If no stages are given return violations for all stages.
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
+        null, null, null);
 
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
@@ -151,7 +152,7 @@ public class ComponentRiskServiceTest
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
 
     Set<String> stageTypeIds = Collections.emptySet();
-    policyViolationDTOs = componentRiskService.getPolicyViolations(stageTypeIds, null, null);
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, stageTypeIds, null, null, null, null);
 
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
@@ -161,32 +162,9 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithNullApplicationIds() {
-    Set<String> nullApplicationId = null;
-    try {
-      componentRiskService.getPolicyViolationsByApplicationIds(nullApplicationId, null, null, null);
-      fail("Expected BadRequestException to be thrown.");
-    }
-    catch (BadRequestException e) {
-      assertEquals(e.getMessage(), "Unable to get policy violations for null or empty application IDs.");
-    }
-  }
-
-  @Test
-  public void testGetPolicyViolationsWithEmptyApplicationIds() {
-    Set<String> emptyApplicationId = new HashSet<>();
-    try {
-      componentRiskService.getPolicyViolationsByApplicationIds(emptyApplicationId, null, null, null);
-      fail("Expected BadRequestException to be thrown.");
-    }
-    catch (BadRequestException e) {
-      assertEquals(e.getMessage(), "Unable to get policy violations for null or empty application IDs.");
-    }
-  }
-
-  @Test
   public void testGetPolicyViolations() {
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
+        null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -199,8 +177,8 @@ public class ComponentRiskServiceTest
         "re-scan app1");
     PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation, app1Policy);
 
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(
-        Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
+        Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null, null, null);
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -213,11 +191,13 @@ public class ComponentRiskServiceTest
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "newScanIdApp1");
     tempEntity.newPolicyViolation(evaluation, app1Policy);
 
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
+        null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
 
     try {
-      componentRiskService.getPolicyViolations(Collections.singleton(DevelopStageType.ID), null, null);
+      componentRiskService.getPolicyViolations(null, null, Collections.singleton(DevelopStageType.ID), null, null, null,
+          null);
       fail("Expected exception");
     }
     catch (BadRequestException e) {
@@ -231,14 +211,14 @@ public class ComponentRiskServiceTest
         "re-scan app1");
     PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation, app1Policy);
 
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
         Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER).asPolicyViolationPredicate());
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER), null, null);
 
     assertThat(policyViolationDTOs, hasSize(0));
 
-    policyViolationDTOs = componentRiskService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate());
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(ReleaseStageType.ID),
+        null, new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), null, null);
 
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
@@ -251,14 +231,14 @@ public class ComponentRiskServiceTest
     PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation, app1Policy);
 
     // Violation out of threat level range.
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(
-        Sets.newHashSet(ReleaseStageType.ID), null, new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate());
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
+        Sets.newHashSet(ReleaseStageType.ID), null, null, new PolicyThreatLevelFilter(6, 7), null);
 
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range.
-    policyViolationDTOs = componentRiskService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate());
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(ReleaseStageType.ID),
+        null, null, new PolicyThreatLevelFilter(5, 7), null);
 
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
@@ -271,28 +251,24 @@ public class ComponentRiskServiceTest
     PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation, app1Policy);
 
     // Violation out of threat level range and wrong threat category.
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(Sets
-        .newHashSet(ReleaseStageType.ID), null, Predicates.and(new PolicyThreatCategoryFilter(
-        PolicyThreatCategory.OTHER).asPolicyViolationPredicate(), new PolicyThreatLevelFilter(6, 7)
-        .asPolicyViolationPredicate()));
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
+        Sets.newHashSet(ReleaseStageType.ID), null, new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER),
+        new PolicyThreatLevelFilter(6, 7), null);
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation out of threat level range and correct threat category.
-    policyViolationDTOs = componentRiskService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        Predicates.and(new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate(),
-            new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate()));
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(ReleaseStageType.ID),
+        null, new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), new PolicyThreatLevelFilter(6, 7), null);
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range, but wrong threat category.
-    policyViolationDTOs = componentRiskService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        Predicates.and(new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER).asPolicyViolationPredicate(),
-            new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate()));
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(ReleaseStageType.ID),
+        null, new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER), new PolicyThreatLevelFilter(5, 7), null);
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range and in the correct category.
-    policyViolationDTOs = componentRiskService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        Predicates.and(new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate(),
-            new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate()));
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(ReleaseStageType.ID),
+        null, new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), new PolicyThreatLevelFilter(5, 7), null);
 
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
@@ -305,21 +281,20 @@ public class ComponentRiskServiceTest
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation violation = policyViolationDAO.getById(waivedViolation.getId());
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED).asPolicyViolationPredicate());
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
+        null, null, new PolicyViolationStateFilter(PolicyViolationState.WAIVED));
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
 
-    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.OPEN).asPolicyViolationPredicate());
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN));
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
 
-    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN)
-            .asPolicyViolationPredicate());
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN));
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -331,7 +306,8 @@ public class ComponentRiskServiceTest
   public void testGetPolicyViolationsReturnsLatest() {
     // Create a new evaluation for app1 that does not include any violations.
     tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "re-scan app1");
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
+        null, null, null);
 
     // The violations count should be 1, all of which come from app2.
     assertThat(policyViolationDTOs, hasSize(1));
@@ -340,8 +316,8 @@ public class ComponentRiskServiceTest
 
   @Test
   public void testGetPolicyViolationsByApplicationIds() {
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app1.getId(), app2.getId()), null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null,
+        Sets.newHashSet(app1.getId(), app2.getId()), null, null, null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -354,9 +330,9 @@ public class ComponentRiskServiceTest
         "re-scan app1");
     PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation, app1Policy);
 
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolationsByApplicationIds(
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null,
         Sets.newHashSet(app1.getId(), app2.getId()), Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null,
-        null);
+        null, null, null);
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -368,8 +344,8 @@ public class ComponentRiskServiceTest
   public void testGetPolicyViolationsByApplicationIdsReturnsLatest() {
     // Create a new evaluation for app1 that does not include any violations.
     tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "re-scan app1");
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app1.getId(), app2.getId()), null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null,
+        Sets.newHashSet(app1.getId(), app2.getId()), null, null, null, null, null);
 
     // The violations count should be 1, all of which come from app2.
     assertThat(policyViolationDTOs, hasSize(1));
@@ -381,8 +357,8 @@ public class ComponentRiskServiceTest
     Tag app1Tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app1.getId(), app1Tag.getId());
 
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null,
-        Sets.newHashSet(app1Tag.getId()), null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null,
+        Sets.newHashSet(app1Tag.getId()), null, null, null);
     assertThat(policyViolationDTOs, hasSize(2));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -390,8 +366,8 @@ public class ComponentRiskServiceTest
     Tag app2Tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
 
-    policyViolationDTOs = componentRiskService.getPolicyViolations(null,
-        Sets.newHashSet(app1Tag.getId(), app2Tag.getId()), null);
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null,
+        Sets.newHashSet(app1Tag.getId(), app2Tag.getId()), null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -405,14 +381,14 @@ public class ComponentRiskServiceTest
     // an entry for Application Tag must exist
     tempEntity.newApplicationTag(app1.getId(), app1Tag.getId());
 
-    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null,
-        new HashSet<String>(), null);
+    List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null,
+        new HashSet<String>(), null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
 
-    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null);
+    policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -759,8 +735,8 @@ public class ComponentRiskServiceTest
    */
   @Test
   public void testGetPolicyViolationsForApplicationWithMultipleTags() {
-    List<PolicyViolationDTO> policyViolations = componentRiskService.getPolicyViolations(null,
-        Sets.newHashSet(tag1.getId(), tag2.getId()), null);
+    List<PolicyViolationDTO> policyViolations = componentRiskService.getPolicyViolations(null, null, null,
+        Sets.newHashSet(tag1.getId(), tag2.getId()), null, null, null);
     assertThat(policyViolations, hasSize(2));
     assertPolicyViolationDTO(policyViolations, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolations, app1PolicyViolation, app1, app1Policy);

@@ -6,26 +6,19 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
-import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
-import com.google.common.collect.Sets;
-import org.apache.shiro.authz.UnauthenticatedException;
-import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class ComponentRiskServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -33,80 +26,31 @@ public class ComponentRiskServiceAuthzTest
   @Inject
   private ComponentRiskService componentRiskService;
 
-  @Test
-  public void testGetPolicyViolations() throws Exception {
-    login();
-
-    List<PolicyViolationDTO> result = componentRiskService.getPolicyViolations(null, null, null);
-    // We don't have read permissions for any application.
-    assertThat(result, empty());
-
-    grantReadPermission(app.getId());
-
-    PolicyViolation violation = createPolicyViolation(app.getId());
-    result = componentRiskService.getPolicyViolations(null, null, null);
-    assertThat(result, hasSize(1));
-    PolicyViolationDTO dto = result.get(0);
-    assertThat(dto.id, is(violation.getId()));
+  @Before
+  public void init() {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan id");
+    tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app.getId(), "test policy name"));
   }
 
   @Test
-  public void testGetPolicyViolationsByApplicationIds() throws Exception {
-    try {
-      componentRiskService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getId()), null, null, null);
-      fail("Should throw an UnauthenticatedException as we haven't logged in.");
-    }
-    catch (UnauthenticatedException e) {
-      // Properly thrown exception.
-    }
-
-    login();
-
-    try {
-      componentRiskService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getId()), null, null, null);
-      fail("Should throw an UnauthorizedException as the application does not have read permissions.");
-    }
-    catch (UnauthorizedException e) {
-      // Properly thrown exception.
-    }
-
-    grantReadPermission(app.getId());
-
-    PolicyViolation violation = createPolicyViolation(app.getId());
-    List<PolicyViolationDTO> result = componentRiskService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app.getId()), null, null, null);
-    assertThat(result, hasSize(1));
-    PolicyViolationDTO dto = result.get(0);
-    assertThat(dto.id, is(violation.getId()));
-
-    Application application = tempEntity.newApplication("nonReadableApplicationId", org.getId());
-
-    try {
-      componentRiskService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getId(), application.getId()), null,
-          null, null);
-      fail("Should throw an UnauthorizedException as one of the applications does not have read permissions.");
-    }
-    catch (UnauthorizedException e) {
-      // Properly thrown exception.
-    }
-  }
-
-  @Test(expected = UnauthenticatedException.class)
   public void testGetComponentRisks_ExplicitApplicationFilter_Unauthenticated() {
-    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
-        "-TOTAL_RISK" ,1);
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null,
+        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetComponentRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
-    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
-        "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null,
+        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
   }
 
   @Test
   public void testGetComponentRisks_ExplicitApplicationFilter_Authorized() {
-    createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null,
         Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
@@ -116,17 +60,14 @@ public class ComponentRiskServiceAuthzTest
 
   @Test
   public void testGetComponentRisks_ImplicitApplicationFilter_Unauthenticated() {
-    createPolicyViolation(app.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
     assertThat(result.dashboardResults, hasSize(0));
     assertThat(result.numResults, is(0));
-
   }
 
   @Test
   public void testGetComponentRisks_ImplicitApplicationFilter_Unauthorized() {
-    createPolicyViolation(app.getId());
     login();
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
@@ -136,7 +77,6 @@ public class ComponentRiskServiceAuthzTest
 
   @Test
   public void testGetComponentRisks_ImplicitApplicationFilter_Authorized() {
-    createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
@@ -144,31 +84,29 @@ public class ComponentRiskServiceAuthzTest
     assertThat(result.numResults, is(1));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetComponentRisks_ExplicitOrganizationFilter_Unauthenticated() {
-    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
-        "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
+        .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 1);
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetComponentRisks_ExplicitOrganizationFilter_Unauthorized() {
     login();
-    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
-        "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
+        .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 1);
+    assertThat(result.dashboardResults, hasSize(0));
+    assertThat(result.numResults, is(0));
   }
 
   @Test
   public void testGetComponentRisks_ExplicitOrganizationFilter_Authorized() {
-    createPolicyViolation(app.getId());
     grantReadPermission(org.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 1);
     assertThat(result.dashboardResults, hasSize(1));
     assertThat(result.numResults, is(1));
-  }
-
-  private PolicyViolation createPolicyViolation(String appId) {
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
-    return tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app.getId(), "test policy name"));
   }
 }

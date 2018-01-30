@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -29,8 +28,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.Applica
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,9 +81,7 @@ public class ApplicationRiskService
 
     Collection<ApplicationView> appViews = policyViolationLoader.getViolations(appsToSearch, stageTypes, filter);
 
-    List<ApplicationRiskScoreDTO> applicationRisks = createApplicationRiskScores(appViews);
-
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = filterApplicationRiskScore(applicationRisks);
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews);
     Collections.sort(applicationRiskScoreDTOs, applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
     result.numResults = applicationRiskScoreDTOs.size();
@@ -103,6 +98,11 @@ public class ApplicationRiskService
     for (ApplicationView appView : appViews) {
       ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(appView.getApplication().getName(),
           appView.getApplication().getPublicId());
+
+      updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
+      if (applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {
+        continue;
+      }
       applicationRiskScores.add(applicationRiskScore);
 
       for (ApplicationStageView appStageView : appView.getStageViews()) {
@@ -116,8 +116,6 @@ public class ApplicationRiskService
           applicationRiskScore.addStageRiskScore(stageRiskScore);
         }
       }
-
-      updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
     }
     return applicationRiskScores;
   }
@@ -162,24 +160,5 @@ public class ApplicationRiskService
       risk.lowRisk += threatLevel;
     }
     risk.totalRisk += threatLevel;
-  }
-
-  /**
-   * @param applicationRisks - Risks we want to filter.
-   * @return the risks filtered. Any guys with a Risk of 0 are removed.
-   */
-  private List<ApplicationRiskScoreDTO> filterApplicationRiskScore(final Iterable<ApplicationRiskScoreDTO> applicationRisks)
-  {
-    List<ApplicationRiskScoreDTO> filteredApplicationRiskScores = Lists.newArrayList(Iterables.filter(applicationRisks,
-        new Predicate<ApplicationRiskScoreDTO>()
-        {
-
-          @Override
-          public boolean apply(@Nullable final ApplicationRiskScoreDTO input) {
-            return input != null && input.totalApplicationRisk.totalRisk > 0;
-          }
-        }));
-
-    return filteredApplicationRiskScores;
   }
 }

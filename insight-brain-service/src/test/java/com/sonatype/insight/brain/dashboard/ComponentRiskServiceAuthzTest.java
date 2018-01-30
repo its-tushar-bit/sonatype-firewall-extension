@@ -106,9 +106,12 @@ public class ComponentRiskServiceAuthzTest
 
   @Test
   public void testGetComponentRisks_ExplicitApplicationFilter_Authorized() {
+    createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
-    componentRiskService.getComponentRisks(null, Collections.singleton(app.getId()), null, null, null, null, null,
-        "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null,
+        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.numResults, is(1));
   }
 
   @Test
@@ -156,9 +159,12 @@ public class ComponentRiskServiceAuthzTest
 
   @Test
   public void testGetComponentRisks_ExplicitOrganizationFilter_Authorized() {
+    createPolicyViolation(app.getId());
     grantReadPermission(org.getId());
-    componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
-        "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
+        .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 1);
+    assertThat(result.dashboardResults, hasSize(1));
+    assertThat(result.numResults, is(1));
   }
 
   private PolicyViolation createPolicyViolation(String appId) {

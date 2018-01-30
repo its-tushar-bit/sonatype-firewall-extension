@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,20 +20,17 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationService;
-import com.sonatype.insight.model.HasStringId;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,21 +43,17 @@ public class ApplicationRiskService
 
   private final ApplicationService applicationService;
 
-  private final PolicyEvaluationDAO policyEvaluationDAO;
-
-  private final PolicyViolationDAO policyViolationDAO;
+  private final PolicyViolationLoader policyViolationLoader;
 
   private final DashboardUtils dashboardUtils;
 
   @Inject
   public ApplicationRiskService(ApplicationService applicationService,
-                                PolicyEvaluationDAO policyEvaluationDAO,
-                                PolicyViolationDAO policyViolationDAO,
+                                PolicyViolationLoader policyViolationLoader,
                                 DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
-    this.policyEvaluationDAO = policyEvaluationDAO;
-    this.policyViolationDAO = policyViolationDAO;
+    this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
   }
 
@@ -90,16 +82,9 @@ public class ApplicationRiskService
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
-    List<PolicyEvaluation> evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
-        dashboardUtils.getApplicationIds(appsToSearch), dashboardUtils.getStageTypeIds(stageTypes));
-    log.debug("Loaded {} policy evaluations", evaluations.size());
+    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(appsToSearch, stageTypes, filter);
 
-    Map<String, PolicyEvaluation> policyEvaluationsById = mapCollectionById(evaluations);
-    Map<String, List<PolicyViolation>> policyViolationsByAppId = createAllPolicyViolations(filter, evaluations,
-        policyEvaluationsById);
-
-    Iterable<ApplicationRiskScoreDTO> applicationRisks = createApplicationRiskScores(appsToSearch, stageTypes,
-        policyEvaluationsById, policyViolationsByAppId);
+    List<ApplicationRiskScoreDTO> applicationRisks = createApplicationRiskScores(appViews);
 
     List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = filterApplicationRiskScore(applicationRisks);
     Collections.sort(applicationRiskScoreDTOs, applicationRiskComparator);
@@ -113,91 +98,47 @@ public class ApplicationRiskService
     return result;
   }
 
-  private Map<String, List<PolicyViolation>> createAllPolicyViolations(final Predicate<PolicyViolation> filter,
-                                                                       final List<PolicyEvaluation> evaluations,
-                                                                       final Map<String, PolicyEvaluation> policyEvaluationsById)
-  {
-    Map<String, List<PolicyViolation>> violationsByAppId = new HashMap<>();
-    for (PolicyViolation violation : getPolicyViolations(evaluations, filter)) {
-      PolicyEvaluation sourceEvaluation = policyEvaluationsById.get(violation.getPolicyEvaluationId());
-      List<PolicyViolation> violations = violationsByAppId.get(sourceEvaluation.getApplicationId());
-      if (violations == null) {
-        violations = new ArrayList<>();
-        violationsByAppId.put(sourceEvaluation.getApplicationId(), violations);
-      }
-      violations.add(violation);
-    }
-    return violationsByAppId;
-  }
+  private List<ApplicationRiskScoreDTO> createApplicationRiskScores(Collection<ApplicationView> appViews) {
+    List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>(appViews.size());
+    for (ApplicationView appView : appViews) {
+      ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(appView.getApplication().getName(),
+          appView.getApplication().getPublicId());
+      applicationRiskScores.add(applicationRiskScore);
 
-  private Iterable<ApplicationRiskScoreDTO> createApplicationRiskScores(final List<Application> appsToSearch,
-                                                                        final Set<StageType> stagesToSearch,
-                                                                        final Map<String, PolicyEvaluation> policyEvaluationsById,
-                                                                        final Map<String, List<PolicyViolation>> violationsByAppId)
-  {
-    List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>();
-    for (Application application : appsToSearch) {
-      ApplicationRiskScoreDTO applicationRisk = new ApplicationRiskScoreDTO(application.getName(),
-          application.getPublicId());
-
-      List<PolicyViolation> violationsForApp = violationsByAppId.get(application.getId());
-      if (violationsForApp != null) {
-        Map<String, StageRiskScoreDTO> stageRiskScoresByStageTypeId = new LinkedHashMap<>();
-        for (StageType stageType : stagesToSearch) {
-          // this merely establishes the order of stages within the map
-          stageRiskScoresByStageTypeId.put(stageType.getId(), null);
-        }
-        for (PolicyViolation violation : violationsForApp) {
-          PolicyEvaluation currentPolicyEvaluation = policyEvaluationsById.get(violation.getPolicyEvaluationId());
-          updateStageRisk(stageRiskScoresByStageTypeId, violation, currentPolicyEvaluation.getStageTypeId(),
-              currentPolicyEvaluation.getScanId());
-        }
-        for (StageRiskScoreDTO stageRiskScore : stageRiskScoresByStageTypeId.values()) {
-          if (stageRiskScore != null) {
-            applicationRisk.addStageRiskScore(stageRiskScore);
+      for (ApplicationStageView appStageView : appView.getStageViews()) {
+        if (!appStageView.getFilteredViolations().isEmpty()) {
+          StageRiskScoreDTO stageRiskScore = new StageRiskScoreDTO(appStageView.getStageType().getId());
+          stageRiskScore.stageTypeName = appStageView.getStageType().getName();
+          stageRiskScore.scanId = appStageView.getLastEvaluation().getScanId();
+          for (PolicyViolation violation : appStageView.getFilteredViolations()) {
+            updateRisk(stageRiskScore.risk, violation.getThreatLevel());
           }
+          applicationRiskScore.addStageRiskScore(stageRiskScore);
         }
-
-        updateTotalApplicationRisks(applicationRisk, violationsForApp);
       }
-      applicationRiskScores.add(applicationRisk);
-    }
 
+      updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
+    }
     return applicationRiskScores;
   }
 
-  private <T extends HasStringId> Map<String, T> mapCollectionById(Collection<T> col) {
-    Map<String, T> result = new HashMap<>();
-    for (T item : col) {
-      result.put(item.getId(), item);
-    }
-    return result;
-  }
-
-  private List<PolicyViolation> getPolicyViolations(final List<PolicyEvaluation> evaluations,
-                                                    final Predicate<PolicyViolation> violationFilter)
-  {
-    Set<String> evaluationIds = Sets.newHashSet(Iterables.transform(evaluations, DashboardUtils.hasIdIdSelector));
-    List<PolicyViolation> violations = policyViolationDAO.getByEvaluationIds(evaluationIds);
-    log.debug("Loaded {} policy violations", violations.size());
-    return dashboardUtils.filter(violations, violationFilter);
-  }
-
   private void updateTotalApplicationRisks(final ApplicationRiskScoreDTO applicationRiskScore,
-                                           final List<PolicyViolation> violationsForApp)
+                                           final Collection<ApplicationStageView> appStageViews)
   {
     // squish down any dupes we have across stages
     final Map<String, PolicyViolation> compHashToViolation = new HashMap<>();
-    for (final PolicyViolation violation1 : violationsForApp) {
-      String vioHash = violation1.getPolicyId() + SECRET_JOIN_STRING + violation1.getHash();
-      PolicyViolation existing = compHashToViolation.get(vioHash);
-      if (existing == null) {
-        // first time we see a violation, we make it
-        compHashToViolation.put(vioHash, violation1);
-      }
-      else if (violation1.getTime().after(existing.getTime())) {
-        // we have a newer violation, update existing
-        compHashToViolation.put(vioHash, violation1);
+    for (ApplicationStageView appStageView : appStageViews) {
+      for (final PolicyViolation violation1 : appStageView.getFilteredViolations()) {
+        String vioHash = violation1.getPolicyId() + SECRET_JOIN_STRING + violation1.getHash();
+        PolicyViolation existing = compHashToViolation.get(vioHash);
+        if (existing == null) {
+          // first time we see a violation, we make it
+          compHashToViolation.put(vioHash, violation1);
+        }
+        else if (violation1.getTime().after(existing.getTime())) {
+          // we have a newer violation, update existing
+          compHashToViolation.put(vioHash, violation1);
+        }
       }
     }
 
@@ -205,22 +146,6 @@ public class ApplicationRiskService
     for (final PolicyViolation violation : compHashToViolation.values()) {
       updateRisk(applicationRiskScore.totalApplicationRisk, violation.getThreatLevel());
     }
-  }
-
-  private void updateStageRisk(Map<String, StageRiskScoreDTO> stageRiskScoresByStageTypeId,
-                               PolicyViolation violation,
-                               String stageTypeId,
-                               String scanId)
-  {
-    StageRiskScoreDTO currentStageRiskScore = stageRiskScoresByStageTypeId.get(stageTypeId);
-    if (currentStageRiskScore == null) {
-      StageType stage = StageTypes.getById(stageTypeId);
-      currentStageRiskScore = new StageRiskScoreDTO(stage.getId());
-      currentStageRiskScore.stageTypeName = stage.getName();
-      currentStageRiskScore.scanId = scanId;
-      stageRiskScoresByStageTypeId.put(stageTypeId, currentStageRiskScore);
-    }
-    updateRisk(currentStageRiskScore.risk, violation.getThreatLevel());
   }
 
   private void updateRisk(RiskDTO risk, int threatLevel) {

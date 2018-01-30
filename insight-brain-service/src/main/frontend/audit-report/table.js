@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
+
 /*global $, window, window, Slick, Insight, setTimeout*/
 (function() {
   'use strict';
@@ -171,7 +173,7 @@
     if (!this.options.disableFilter) {
       this.table.registerPlugin(this.filter);
     }
-    this.table.registerPlugin(new Slick.Tipsy());
+    this.table.registerPlugin(new SlickGridTooltip());
 
     if (!this.options.resizeFn) {
       this.options.resizeFn = function() {

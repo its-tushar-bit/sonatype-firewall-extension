@@ -36,7 +36,6 @@ import './cip.label.editor/label.add.controller';
 import './cip.label.editor/label.remove.controller';
 import './cip.label.editor/labels.controller';
 import './cip.label.editor/spinner.directive';
-import './cip.label.editor/tip.directive';
 import './cip.label.editor/cip.label.editor.directive';
 import './cip.label.editor/label.modification.service';
 

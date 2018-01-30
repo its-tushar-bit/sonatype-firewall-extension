@@ -5,7 +5,7 @@
     <div class='cip-label-container'>
       <span ng-repeat="label in availableLabels | filter:isApplied | orderBy:'labelLowercase'"
             class='clmLabel {{label.color}}'>
-        <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
+        <span tooltip='{{label.description || label.label}}' tooltip-placement="right">{{label.label}}</span>&nbsp;
         <i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i>
       </span>
     </div>
@@ -14,7 +14,7 @@
     <h5>Applied <i class='icon-refresh' ng-click='doLoad()' spinner></i></h5>
     <div class='cip-label-container'>
       <span ng-repeat="label in itemLabels | orderBy:'labelLowercase'" class='clmLabel {{label.color}}'>
-        <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
+        <span tooltip='{{label.description || label.label}}' tooltip-placement="top">{{label.label}}</span>&nbsp;
         <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i>
       </span>
     </div>

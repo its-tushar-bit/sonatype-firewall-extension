@@ -21,6 +21,10 @@ span.clmLabel {
   white-space: nowrap;
 }
 
+span.clmLabel .tooltip {
+  white-space: normal;
+}
+
 .clmLabel.light-red {
   background-color: #edb1af;
 }

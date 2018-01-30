@@ -2,15 +2,12 @@ import './jquery/jquery-ui.css';
 import './lib/slickgrid/slick.grid.css';
 import './slickgrid/slick.grid.custom.css';
 import './lib/slickgrid/slick.pager.css';
-import 'jquery.tipsy/src/jquery.tipsy.css';
 import './report.css';
 
 import '@uirouter/angularjs';
 import '@uirouter/angularjs/release/stateEvents';
-import '../lib/protovis/protovis-tipsy';
 import 'dateformat';
-import 'jquery.tipsy';
-import './lib/slickgrid/jquery.event.drag-2.2';
+import './lib/slickgrid/jquery.event.drag-2.3.0';
 
 import '../version-graph/appcheck';
 import './insight';
@@ -27,7 +24,6 @@ import './lib/slickgrid/slick.checkboxselectcolumn';
 import './slickgrid/column-grouping';
 import './slickgrid/filter';
 import './slickgrid/sort';
-import './slickgrid/slick.grid.tipsy';
 
 // repository-cip
 import './cip/SlickGrid.ComponentInformationPlugin';

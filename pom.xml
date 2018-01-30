@@ -571,6 +571,23 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-multipart</artifactId>
+        <version>${jersey.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>javax.inject</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>aopalliance-repackaged</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <!-- avoid HV-912 and CVE-2017-7536, otherwise pulled in via dropwizard-core -->
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-validator</artifactId>

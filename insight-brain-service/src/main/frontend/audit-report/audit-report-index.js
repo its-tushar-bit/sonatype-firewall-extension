@@ -4,6 +4,7 @@ import './slickgrid/slick.grid.custom.css';
 import './lib/slickgrid/slick.pager.css';
 import './report.css';
 
+import '../utility/Polyfills';
 import '@uirouter/angularjs';
 import '@uirouter/angularjs/release/stateEvents';
 import 'dateformat';

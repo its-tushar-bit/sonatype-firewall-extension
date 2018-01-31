@@ -19,7 +19,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -27,13 +26,9 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.model.HasStringId;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 
 @Named
 public class DashboardUtils
@@ -41,14 +36,6 @@ public class DashboardUtils
   private final CLMLicenseManager licenseManager;
 
   private final StageTypeService stageTypeService;
-
-  static final Function<HasStringId, String> hasIdIdSelector = new Function<HasStringId, String>()
-  {
-    @Override
-    public String apply(final HasStringId hasStringId) {
-      return hasStringId.getId();
-    }
-  };
 
   @Inject
   public DashboardUtils(CLMLicenseManager licenseManager, StageTypeService stageTypeService) {
@@ -100,14 +87,6 @@ public class DashboardUtils
     return stageTypeIds;
   }
 
-  Set<String> getApplicationIds(Collection<Application> applications) {
-    Set<String> appIds = new HashSet<>();
-    for (Application application : applications) {
-      appIds.add(application.getId());
-    }
-    return appIds;
-  }
-
   Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
                                                   PolicyThreatLevelFilter threatLevelFilter,
                                                   PolicyViolationStateFilter violationStatusFilter)
@@ -126,13 +105,5 @@ public class DashboardUtils
       predicates.add(violationStatusFilter.asPolicyViolationPredicate());
     }
     return Predicates.and(predicates);
-  }
-
-  List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {
-    if (violationFilter == null || violations == null || violations.isEmpty()) {
-      return violations;
-    }
-
-    return Lists.newArrayList(Collections2.filter(violations, violationFilter));
   }
 }

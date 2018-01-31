@@ -55,7 +55,7 @@ extends BaseSpec {
     roleEditorPage.pageTitle.text() == 'Developer'
 
     DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.IQ.displayName) as DisplayedPermissionCategory
-    policyCategory.permissions.size() == 8
+    policyCategory.permissions.size() == 7
     assertPermission(policyCategory.permission(0), !ON, !ENABLED, Permission.MANAGE_PROPRIETARY)
     assertPermission(policyCategory.permission(1), !ON, !ENABLED, Permission.CLAIM_COMPONENT)
     assertPermission(policyCategory.permission(2), !ON, !ENABLED, Permission.WRITE)
@@ -63,7 +63,8 @@ extends BaseSpec {
     assertPermission(policyCategory.permission(4), !ON, !ENABLED, Permission.EVALUATE_APPLICATION)
     assertPermission(policyCategory.permission(5), ON, !ENABLED, Permission.EVALUATE_COMPONENT)
     assertPermission(policyCategory.permission(6), !ON, !ENABLED, Permission.ADD_APPLICATION)
-    assertPermission(policyCategory.permission(7), !ON, !ENABLED, Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION)
+    // Ignore permission temporarily for CLM-9479
+    // assertPermission(policyCategory.permission(7), !ON, !ENABLED, Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION)
 
     DisplayedPermissionCategory systemCategory = roleEditorPage.permissionCategory(PermissionCategory.ADMINISTRATOR.displayName) as DisplayedPermissionCategory
     systemCategory.permissions.size() == 3

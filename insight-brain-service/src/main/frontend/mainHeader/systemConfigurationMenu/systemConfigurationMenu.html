@@ -46,12 +46,5 @@
          ng-class="{'active': vm.state.includes('successMetricsConfiguration')}">
       <a ui-sref="successMetricsConfiguration" class="iq-dropdown-menu__link--main-header">Success Metrics</a>
     </div>
-    <div id="system-configuration-automatic-applications"
-         ng-if="vm.permissions.MANAGE_AUTOMATIC_APPLICATION_CREATION"
-         ng-class="{'active': vm.state.includes('automaticApplicationsConfiguration')}">
-      <a ui-sref="automaticApplicationsConfiguration" class="iq-dropdown-menu__link--main-header">
-        Automatic Applications
-      </a>
-    </div>
   </div>
 </div>

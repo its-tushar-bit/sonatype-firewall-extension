@@ -64,9 +64,10 @@ public class RoleServiceTest
 
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
+
+    // Do not include MANAGE_AUTOMATIC_APPLICATION_CREATION permission temporarily for CLM-9479
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
-        Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+        Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }
 
   @Test
@@ -87,9 +88,9 @@ public class RoleServiceTest
 
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
+    // Do not include MANAGE_AUTOMATIC_APPLICATION_CREATION permission temporarily for CLM-9479
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
-        Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+        Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }
 
   @Test
@@ -108,9 +109,9 @@ public class RoleServiceTest
 
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName, is(PermissionCategory.IQ.getDisplayName()));
+    // Do not include MANAGE_AUTOMATIC_APPLICATION_CREATION permission temporarily for CLM-9479
     assertListedPermissions(category, Permission.MANAGE_PROPRIETARY, Permission.CLAIM_COMPONENT, Permission.WRITE,
-        Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION,
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
+        Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }
 
   private void setAllowedPermissions(final RoleDTO roleDTO, final List<Permission> permissions) {

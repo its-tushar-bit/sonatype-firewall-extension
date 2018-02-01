@@ -50,14 +50,18 @@ export default function SlickGridTooltip(options) {
     }
   });
 
-  // mapping from "gravity" configuration values (legacy from tipsy tooltips) to bootstrap "placement" settings.
-  // gravity can include diagonal directions, like "ne" or "sw".  Map those to just n/s
+  /**
+   * mapping from "gravity" configuration values (legacy from tipsy tooltips) to bootstrap "placement" settings.
+   * gravity can include diagonal directions, like "ne" or "sw".  Map those to just n/s.
+   * NOTE: tipsy's gravity settings were counter-intuitive.  A gravity of "e" corresponds to a bootstrap placement
+   * of "left".  I guess the concept was that tooltips float away from the gravity direction, like balloons?
+   */
   function getPlacement(gravity) {
     const placementMap = {
-          n: 'top',
-          s: 'bottom',
-          e: 'right',
-          w: 'left'
+          s: 'top',
+          n: 'bottom',
+          w: 'right',
+          e: 'left'
         },
         placement = gravity ? placementMap[gravity.charAt(0)] : undefined;
 

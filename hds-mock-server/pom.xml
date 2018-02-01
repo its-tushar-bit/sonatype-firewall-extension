@@ -20,7 +20,7 @@
 
   <properties>
     <clm.skip>true</clm.skip>
-    <jetty.version>9.4.7.v20170914</jetty.version>
+    <jetty.version>9.4.8.v20171121</jetty.version>
   </properties>
 
   <dependencies>

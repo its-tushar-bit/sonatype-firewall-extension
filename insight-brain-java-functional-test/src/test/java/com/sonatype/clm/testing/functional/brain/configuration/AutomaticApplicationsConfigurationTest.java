@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.checked;
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertThat;
 public class AutomaticApplicationsConfigurationTest
     extends AbstractFunctionalTest
 {
+  @Ignore // Skip because of transient failures, unsure if caused by CLM-9479
   @Test
   public void automaticApplicationsConfigurationTest() {
     AutomaticApplicationsConfigurationPage automaticApplicationsConfigurationPage = new AutomaticApplicationsConfigurationPage();

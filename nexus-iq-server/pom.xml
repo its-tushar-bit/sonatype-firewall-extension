@@ -92,12 +92,6 @@
                     <!-- the server is an uber JAR so we can exclude all its dependencies -->
                     <include>${project.groupId}:insight-brain-service</include>
                   </includes>
-                  <ignoreClasses>
-                    <ignoreClass>com.thoughtworks.xstream.mapper.LambdaMapper</ignoreClass>
-                    <ignoreClass>com.thoughtworks.xstream.converters.reflection.LambdaConverter</ignoreClass>
-                    <ignoreClass>com.thoughtworks.xstream.converters.time.*</ignoreClass>
-                    <ignoreClass>com.thoughtworks.xstream.core.util.ISO8601JavaTimeConverter</ignoreClass>
-                  </ignoreClasses>
                 </enforceBytecodeVersion>
               </rules>
             </configuration>

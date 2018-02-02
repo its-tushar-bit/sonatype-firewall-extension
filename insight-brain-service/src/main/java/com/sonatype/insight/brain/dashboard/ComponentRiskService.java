@@ -126,7 +126,7 @@ public class ComponentRiskService
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
-    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, filter);
+    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false, filter);
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
 

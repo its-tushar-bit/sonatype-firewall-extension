@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,16 +53,21 @@ public class PolicyViolationLoader
 
   public Collection<ApplicationView> getViolations(Collection<Application> applications,
                                                    Collection<StageType> stageTypes,
+                                                   boolean activeViolationsOnly,
                                                    Predicate<PolicyViolation> violationFilter)
   {
     long start = System.currentTimeMillis();
+
+    if (stageTypes == null) {
+      stageTypes = Collections.emptyList();
+    }
 
     Map<String, ApplicationView> appViewsByAppId = new LinkedHashMap<>();
     for (Application application : applications) {
       ApplicationView appView = new ApplicationView();
       appView.application = application;
       appView.stageViewsByStageTypeId = new LinkedHashMap<>();
-      for (StageType stageType : stageTypes) {
+      for (StageType stageType : (stageTypes.isEmpty() ? StageTypes.getAll() : stageTypes)) {
         ApplicationStageView appStageView = new ApplicationStageView();
         appStageView.stageType = stageType;
         appStageView.filteredViolations = Collections.emptyList();
@@ -81,7 +87,7 @@ public class PolicyViolationLoader
       appStageViewsByEvaluationId.put(evaluation.getId(), appStageView);
     }
 
-    Collection<PolicyViolation> violations = loadViolations(appStageViewsByEvaluationId.keySet());
+    Collection<PolicyViolation> violations = loadViolations(appStageViewsByEvaluationId.keySet(), activeViolationsOnly);
     filterViolations(violations, violationFilter, appStageViewsByEvaluationId);
 
     log.debug("Created policy violation views in {} ms", System.currentTimeMillis() - start);
@@ -93,17 +99,29 @@ public class PolicyViolationLoader
                                                        Collection<StageType> stageTypes)
   {
     long start = System.currentTimeMillis();
-    Collection<PolicyEvaluation> evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
-        applications.stream().map(Application::getId).collect(toSet()),
-        stageTypes.stream().map(StageType::getId).collect(toSet()));
+    Set<String> applicationIds = applications.stream().map(Application::getId).collect(toSet());
+    Collection<PolicyEvaluation> evaluations;
+    if (stageTypes.isEmpty()) {
+      evaluations = policyEvaluationDAO.getLastByApplicationIds(applicationIds);
+    }
+    else {
+      evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds,
+          stageTypes.stream().map(StageType::getId).collect(toSet()));
+    }
     log.debug("Loaded {} policy evaluations for {} applications across {} stages in {} ms", evaluations.size(),
-        applications.size(), stageTypes.size(), System.currentTimeMillis() - start);
+        applications.size(), stageTypes.isEmpty() ? "all" : stageTypes.size(), System.currentTimeMillis() - start);
     return evaluations;
   }
 
-  private Collection<PolicyViolation> loadViolations(Set<String> evaluationIds) {
+  private Collection<PolicyViolation> loadViolations(Set<String> evaluationIds, boolean activeViolationsOnly) {
     long start = System.currentTimeMillis();
-    Collection<PolicyViolation> violations = policyViolationDAO.getByEvaluationIds(evaluationIds);
+    Collection<PolicyViolation> violations;
+    if (activeViolationsOnly) {
+      violations = policyViolationDAO.getActiveByEvaluationIds(evaluationIds);
+    }
+    else {
+      violations = policyViolationDAO.getByEvaluationIds(evaluationIds);
+    }
     log.debug("Loaded {} policy violations in {} ms", violations.size(), System.currentTimeMillis() - start);
     return violations;
   }

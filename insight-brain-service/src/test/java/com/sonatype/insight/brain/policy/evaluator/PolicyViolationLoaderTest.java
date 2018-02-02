@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
@@ -40,6 +41,7 @@ public class PolicyViolationLoaderTest
     Application app = tempEntity.newApplicationWithParent();
     Policy policy1 = tempEntity.newPolicy(app.getId(), "Test Policy 1", 10);
     Policy policy2 = tempEntity.newPolicy(app.getId(), "Test Policy 2", 1);
+    PolicyWaiver waiver = tempEntity.newWaiver(policy1.getId(), app.getId());
     long time = System.currentTimeMillis();
     for (StageType stageType : stageTypes) {
       PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stageType.getId(),
@@ -47,7 +49,7 @@ public class PolicyViolationLoaderTest
       tempEntity.newPolicyViolation(eval, policy1);
       eval = tempEntity.newPolicyEvaluation(app.getId(), stageType.getId(), stageType.getId() + "-latest-scan-id",
           new Date(time - 1000));
-      tempEntity.newPolicyViolation(eval, policy1);
+      tempEntity.newWaivedPolicyViolation(eval, policy1, waiver);
       tempEntity.newPolicyViolation(eval, policy2);
     }
     return app;
@@ -58,7 +60,7 @@ public class PolicyViolationLoaderTest
     Application app = createApplication(StageTypes.BUILD);
 
     Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
-        violation -> true);
+        false, violation -> true);
 
     assertThat(appViews, hasSize(1));
     ApplicationView appView = appViews.iterator().next();
@@ -80,7 +82,7 @@ public class PolicyViolationLoaderTest
     Application app3 = createApplication(StageTypes.BUILD);
 
     Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app1, app3),
-        Arrays.asList(StageTypes.BUILD), violation -> true);
+        Arrays.asList(StageTypes.BUILD), false, violation -> true);
 
     assertThat(appViews, hasSize(2));
     assertThat(appViews.stream().map(ApplicationView::getApplication).collect(toSet()), containsInAnyOrder(app1, app3));
@@ -91,7 +93,7 @@ public class PolicyViolationLoaderTest
     Application app = createApplication(StageTypes.BUILD, StageTypes.RELEASE, StageTypes.OPERATE);
 
     Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app),
-        Arrays.asList(StageTypes.BUILD, StageTypes.RELEASE), violation -> true);
+        Arrays.asList(StageTypes.BUILD, StageTypes.RELEASE), false, violation -> true);
 
     assertThat(appViews, hasSize(1));
     ApplicationView appView = appViews.iterator().next();
@@ -102,11 +104,63 @@ public class PolicyViolationLoaderTest
   }
 
   @Test
+  public void testGetViolations_NullStageTypes() {
+    testGetViolations_AllStageTypes(null);
+  }
+
+  @Test
+  public void testGetViolations_EmptyStageTypes() {
+    testGetViolations_AllStageTypes(Arrays.asList());
+  }
+
+  private void testGetViolations_AllStageTypes(Collection<StageType> stageTypes) {
+    StageType[] evaluatedStageTypes = { StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+        StageTypes.OPERATE };
+    Application app = createApplication(evaluatedStageTypes);
+
+    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), stageTypes, false, violation -> true);
+
+    assertThat(appViews, hasSize(1));
+    ApplicationView appView = appViews.iterator().next();
+    assertThat(appView.getApplication(), is(app));
+    assertThat(appView.getStageViews().stream().map(ApplicationStageView::getStageType).collect(toSet()),
+        is(StageTypes.getAll().stream().collect(toSet())));
+    for (ApplicationStageView appStageView : appView.getStageViews()) {
+      StageType stageType = appStageView.getStageType();
+      if (Arrays.asList(evaluatedStageTypes).contains(stageType)) {
+        assertThat(stageType.toString(), appStageView.getLastEvaluation(), is(notNullValue()));
+        assertThat(stageType.toString(), appStageView.getFilteredViolations(), hasSize(2));
+      }
+      else {
+        assertThat(stageType.toString(), appStageView.getLastEvaluation(), is(nullValue()));
+        assertThat(stageType.toString(), appStageView.getFilteredViolations(), hasSize(0));
+      }
+    }
+  }
+
+  @Test
+  public void testGetViolations_ActiveViolationsOnly() {
+    Application app = createApplication(StageTypes.BUILD);
+
+    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
+        true, violation -> true);
+
+    assertThat(appViews, hasSize(1));
+    ApplicationView appView = appViews.iterator().next();
+    assertThat(appView.getApplication(), is(app));
+    assertThat(appView.getStageViews(), hasSize(1));
+    ApplicationStageView appStageView = appView.getStageViews().iterator().next();
+    assertThat(appStageView.getStageType(), is(StageTypes.BUILD));
+    assertThat(appStageView.getFilteredViolations(), hasSize(1));
+    assertThat(appStageView.getFilteredViolations().iterator().next().isWaived(), is(false));
+  }
+
+  @Test
   public void testGetViolations_FilterByViolations() {
     Application app = createApplication(StageTypes.BUILD);
 
     Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
-        violation -> violation.getThreatLevel() == 10);
+        false, violation -> violation.getThreatLevel() == 10);
 
     assertThat(appViews, hasSize(1));
     ApplicationView appView = appViews.iterator().next();
@@ -123,7 +177,7 @@ public class PolicyViolationLoaderTest
     Application app = createApplication(StageTypes.BUILD);
 
     Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
-        null);
+        false, null);
 
     assertThat(appViews, hasSize(1));
     ApplicationView appView = appViews.iterator().next();
@@ -139,7 +193,7 @@ public class PolicyViolationLoaderTest
     Application app = createApplication();
 
     Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
-        violation -> true);
+        false, violation -> true);
 
     assertThat(appViews, hasSize(1));
     ApplicationView appView = appViews.iterator().next();

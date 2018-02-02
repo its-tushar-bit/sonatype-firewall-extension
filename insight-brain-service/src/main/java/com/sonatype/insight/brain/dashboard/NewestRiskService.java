@@ -94,7 +94,7 @@ public class NewestRiskService
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
-    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, filter);
+    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false, filter);
 
     List<NewestRiskDTO> riskDTOs = new ArrayList<>();
 

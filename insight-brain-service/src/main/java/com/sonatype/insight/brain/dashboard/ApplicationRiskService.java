@@ -79,7 +79,7 @@ public class ApplicationRiskService
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter, policyViolationStateFilter);
 
-    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(appsToSearch, stageTypes, filter);
+    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(appsToSearch, stageTypes, false, filter);
 
     List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews);
     Collections.sort(applicationRiskScoreDTOs, applicationRiskComparator);

@@ -13,11 +13,18 @@ import java.util.Map;
  */
 public class TelemetryData
 {
-  private final long timestamp;
+  private long timestamp;
 
   private Long duration;
 
   private Map<String, String> attributes = new HashMap<>();
+
+  /**
+   * Unused constructor required for JSON deserialization support.
+   */
+  @SuppressWarnings("unused")
+  private TelemetryData() {
+  }
 
   public TelemetryData(final long timestamp) {
     this.timestamp = timestamp;

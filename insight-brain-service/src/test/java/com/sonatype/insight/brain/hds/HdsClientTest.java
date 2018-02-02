@@ -19,6 +19,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.servlet.ReadListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
@@ -34,14 +38,18 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.test.SslProperties;
 
 import com.google.common.net.HttpHeaders;
+import org.apache.commons.io.FileUtils;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
@@ -653,7 +661,6 @@ public class HdsClientTest
     {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
       {
         headers.clear();
         headers.put(HdsClient.TELEMETRY_ID_HEADER, request.getHeader(HdsClient.TELEMETRY_ID_HEADER));
@@ -673,5 +680,46 @@ public class HdsClientTest
 
     client.put(null, String.class, testPath, tempDir.newFile(), new String[] {});
     assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
+  }
+
+  @Test
+  public void testPost_Multipart() throws Exception {
+    final int[] statusCode = new int[1];
+    final BodyPart[] fileBodyReceived = new BodyPart[1];
+
+    String testPath = "/rest/test";
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        try {
+          ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(request.getInputStream(),
+              "multipart/form-data");
+          MimeMultipart multipart = new MimeMultipart(multipartDataSource);
+          fileBodyReceived[0] = multipart.getBodyPart(0);
+        }
+        catch (MessagingException e) {
+          throw new IOException("Unable to read multipart body", e);
+        }
+
+        response.setStatus(HttpStatus.NO_CONTENT_204);
+        statusCode[0] = HttpStatus.NO_CONTENT_204;
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+    when(request.getMethod()).thenReturn("POST");
+    File fileSent = tempDir.newFile();
+    FileUtils.write(fileSent, "Test", "UTF-8");
+    FileBody fileBodySent = new FileBody(fileSent);
+    HttpEntity httpEntity = MultipartEntityBuilder.create().addPart("file", fileBodySent).build();
+    client.post(testPath, httpEntity);
+    assertThat(statusCode[0], is(HttpStatus.NO_CONTENT_204));
+    assertThat(fileBodyReceived[0].getFileName(), is(fileBodySent.getFilename()));
+    assertThat(IOUtils.toString(fileBodyReceived[0].getInputStream(), "UTF-8"), is("Test"));
   }
 }

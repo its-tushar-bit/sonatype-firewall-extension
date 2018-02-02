@@ -330,6 +330,24 @@ public class HdsClient
   }
 
   /**
+   * @since 1.43.0
+   */
+  public void post(String path, HttpEntity httpEntity)
+  {
+    long start = System.currentTimeMillis();
+    try {
+      HttpPost cloudReq = new HttpPost(buildUri(path));
+      cloudReq.setEntity(httpEntity);
+      populateRequest(null /* base request */, cloudReq, null);
+      HttpResponse response = execute(cloudReq);
+      throwErrorIfNeeded(response);
+    }
+    finally {
+      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
+    }
+  }
+
+  /**
    * @since 1.13.0
    */
   public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) throws IOException

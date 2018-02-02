@@ -90,6 +90,9 @@ public class HdsMockServer
     else if (body instanceof URL) {
       responseProvider = new UrlResponseProvider(status, (URL) body);
     }
+    else if (body instanceof HttpResponseProcessor) {
+      responseProvider = new HttpResponseProvider(status, (HttpResponseProcessor) body);
+    }
     else {
       responseProvider = new BytesResponseProvider(status, ResponseProvider.CONTENT_TYPE_JSON, Json.write(body));
     }
@@ -297,8 +300,9 @@ public class HdsMockServer
       try {
         ResponseProvider responseProvider = getResponseProvider(uriWithParams);
         if (responseProvider != null) {
-          handleMatchedRequest(request);
-          responseProvider.render(response);
+          validateLicense(request);
+          responseProvider.render(request,response);
+          IO.copy(request.getInputStream(), IO.getNullStream());
           baseRequest.setHandled(true);
         }
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
@@ -378,7 +382,7 @@ public class HdsMockServer
 
     static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
 
-    void render(HttpServletResponse response) throws IOException;
+    void render(HttpServletRequest request, HttpServletResponse response) throws IOException;
   }
 
   public static void main(String[] args) throws Exception {

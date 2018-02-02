@@ -18,15 +18,22 @@ public class TelemetryHeader
    * Format of the event stream (ex. zip-bundle/1).  Used downstream by a handler to process data associated with
    * this header.
    */
-  private final String format;
+  private String format;
 
-  private final String product;
+  private String product;
 
-  private final String telemetryId;
+  private String telemetryId;
 
-  private final Date createTime;
+  private Date createTime;
 
   private Map<String, String> attributes = new HashMap<>();
+
+  /**
+   * Unused constructor required for JSON deserialization support.
+   */
+  @SuppressWarnings("unused")
+  private TelemetryHeader() {
+  }
 
   public TelemetryHeader(final String format, final String product, final Date createTime, final String telemetryId) {
     this.format = format;

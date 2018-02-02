@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.telemetry.TelemetryCollector;
+import com.sonatype.insight.brain.telemetry.TelemetryData;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
@@ -193,8 +195,8 @@ public class InsightBrainService
       @Override
       public void run() {
         try {
-          getInstance(TelemetryCollector.class).collectAppsAndOrgs();
-          //TODO:  Next subtask is to send it to HDS.  Will be a separate PR.
+          TelemetryData telemetryData = getInstance(TelemetryCollector.class).collectAppsAndOrgs();
+          getInstance(TelemetrySender.class).send(telemetryData);
         }
         catch (Exception e) {
           log.warn("Failed telemetry on start", e);

@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.mock.hds.HdsMockServer.ResponseProvider;
@@ -46,7 +47,7 @@ class UrlResponseProvider
   }
 
   @Override
-  public void render(HttpServletResponse response) throws IOException {
+  public void render(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setStatus(status);
     response.setContentType(contentType);
     try (OutputStream os = response.getOutputStream(); InputStream is = body.openStream()) {

@@ -539,6 +539,11 @@
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-multipart</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>${httpcomponents.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

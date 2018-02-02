@@ -1,0 +1,89 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.telemetry;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Date;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.ContentBody;
+
+/**
+ * @since 1.43.0
+ */
+@Named
+@Singleton
+public class TelemetrySender
+{
+  private final HdsClient client;
+
+  private final VersionService versionService;
+
+  private final TelemetryId telemetryId;
+
+  private static final String MULTIPART_FILE_NAME = "file";
+
+  public static final String PRODUCT_PREFIX = "nexus-iq";
+
+  public static final String FILE_FORMAT = "zip-bundle/1";
+
+  public static final String HEADER_ENTRY_NAME = "header.json";
+
+  public static final String DATA_ENTRY_NAME = "data.json";
+
+  public static final String RESOURCE_PATH = "rest/environment/stats";
+
+  public static final String ZIP_FILENAME = "telemetry.zip";
+
+  @Inject
+  public TelemetrySender(HdsClient client, VersionService versionService, TelemetryId telemetryId) {
+    this.client = client;
+    this.versionService = versionService;
+    this.telemetryId = telemetryId;
+  }
+
+  public void send(TelemetryData telemetryData) throws IOException {
+    TelemetryHeader telemetryHeader = createHeader();
+    byte[] zipData = createZip(telemetryHeader, telemetryData);
+    ContentBody fileBody = new ByteArrayBody(zipData, ZIP_FILENAME);
+    HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
+    client.post(RESOURCE_PATH, httpEntity);
+  }
+
+  private TelemetryHeader createHeader() {
+    String product = PRODUCT_PREFIX + "/" + versionService.getVersion();
+    Date createTime = new Date();
+    return new TelemetryHeader(FILE_FORMAT, product, createTime, telemetryId.getId());
+  }
+
+  private byte[] createZip(TelemetryHeader telemetryHeader, TelemetryData telemetryData) throws IOException {
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ZipOutputStream zipOutput = new ZipOutputStream(
+        bos)) {
+      ZipEntry zipEntryHeader = new ZipEntry(HEADER_ENTRY_NAME);
+      zipOutput.putNextEntry(zipEntryHeader);
+      zipOutput.write(JsonUtils.generate(telemetryHeader));
+      ZipEntry zipEntryData = new ZipEntry(DATA_ENTRY_NAME);
+      zipOutput.putNextEntry(zipEntryData);
+      zipOutput.write(JsonUtils.generate(telemetryData));
+      zipOutput.finish();
+      return bos.toByteArray();
+    }
+  }
+}

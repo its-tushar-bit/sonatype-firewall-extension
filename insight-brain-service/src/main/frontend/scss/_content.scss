@@ -63,6 +63,12 @@ body {
   }
 }
 
+// NOTE: This class should be refactored/removed in CLM-9460
+.body-container--login {
+  display: block;
+  width: 100%;
+}
+
 .template-container {
   height: 100%;
 }

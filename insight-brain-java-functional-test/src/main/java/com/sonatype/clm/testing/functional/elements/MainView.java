@@ -23,4 +23,8 @@ public class MainView
   public static SelenideElement uiView() {
     return $(".main-view > [ui-view]");
   }
+
+  public static SelenideElement loginBackground() {
+    return $(".main-view > [ui-view] > .body-container--login");
+  }
 }

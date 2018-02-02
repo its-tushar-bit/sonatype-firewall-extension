@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -15,6 +16,8 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Test;
+
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
@@ -59,6 +62,31 @@ public class LoginTest
     loginModal.loginButton().shouldBe(enabled).click();
     loginModal.shouldBe(visible);
     loginModal.errorMessage().shouldBe(visible).shouldHave(text("Invalid credentials"));
+  }
+
+  @Test
+  public void testLoginDisabledWithEmptyFields() {
+    refreshOrOpen(ReportListPage.URL);
+
+    loginModal.shouldBe(visible);
+    loginModal.loginButton().shouldBe(DISABLED).click();
+    loginModal.shouldBe(visible);
+
+    loginModal.username().setValue("admin");
+    loginModal.loginButton().shouldBe(DISABLED).click();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Unable to Login: fields with invalid or missing data"));
+    loginModal.shouldBe(visible);
+
+    loginModal.username().setValue("");
+    loginModal.password().setValue("admin123");
+    loginModal.loginButton().shouldBe(DISABLED).click();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Unable to Login: fields with invalid or missing data"));
+    loginModal.shouldBe(visible);
+
+    loginModal.username().setValue("admin");
+    loginModal.loginButton().shouldBe(enabled).click();
+    Tooltip.get().shouldBe(hidden);
+    loginModal.shouldBe(hidden);
   }
 
   @Test

@@ -34,7 +34,14 @@
   <main-header product-edition="{{productEdition}}"></main-header>
   <div ng-show='!error' class="main-view">
     <system-notice></system-notice>
-    <div ui-view></div>
+    <div ui-view>
+      <div class="body-container body-container--login" maximize-container-height>
+        <!--
+          This element just makes an empty single-pane page behind the login modal. It gets deleted by 
+          angular-ui-router after login completes
+        -->
+      </div>
+    </div>
   </div>
   <div ng-cloak ng-if="error" class="iq-alert iq-alert--error" style="margin:86px auto;width:50%;max-width:400px">
     <i class="fa fa-warning"></i><strong>Error</strong>

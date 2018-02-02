@@ -1,0 +1,53 @@
+<form id="login-modal"
+      name="loginForm"
+      class="iq-form iq-form--modal-form"
+      ng-submit="vm.signIn()"
+      form-mask="vm.loginMask"
+      mask-message="Signing in"
+      novalidate>
+  <header class="iq-modal-header">
+    <h2>User Login</h2>
+  </header>
+  <div class="iq-modal-content">
+    <system-notice></system-notice>
+    <div class="iq-form-row">
+      <div class="iq-form-group">
+        <label class="iq-label" for="login-username">Username</label>
+        <input id="login-username"
+               class="iq-text-input"
+               clm-input
+               type="text"
+               name="username"
+               ng-model="vm.username"
+               ng-required="true"
+               autofill
+               focus-input="true"
+               autofocus>
+      </div>
+      <div class="iq-form-group">
+        <label class="iq-label" for="login-password">Password</label>
+        <input id="login-password"
+               class="iq-text-input"
+               clm-input
+               type="password"
+               name="password"
+               ng-model="vm.password"
+               ng-required="true"
+               autofill>
+      </div>
+    </div>
+  </div>
+  <footer class="iq-modal-footer" ng-class="{error: vm.error}">
+    <div id="login-error" ng-if="vm.error" class="section with-icon">
+      <i class="fa fa-warning"></i>{{vm.error}}
+    </div>
+    <button id="login-action"
+            class="btn btn-primary"
+            submit-validation
+            submit-type="Login"
+            submit-dirty="true"
+            type="submit">
+      Sign in
+    </button>
+  </footer>
+</form>

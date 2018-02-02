@@ -7,8 +7,8 @@
 export default function LoginModalController($scope, $http, CLMLocations, Messages) {
   var vm = this;
 
-  vm.username = undefined;
-  vm.password = undefined;
+  vm.username = '';
+  vm.password = '';
   vm.error = undefined;
   vm.loginMask = undefined;
 
@@ -21,6 +21,10 @@ export default function LoginModalController($scope, $http, CLMLocations, Messag
   });
 
   vm.signIn = function() {
+    if (!vm.username || !vm.password) {
+      return;
+    }
+
     vm.error = undefined;
 
     vm.loginMask.wrap($http.post(CLMLocations.getSessionUrl(), {}, {

@@ -43,6 +43,11 @@ $iq-form-element-wide: 395px;
   position: relative; // to make a containing block for validation popovers
 }
 
+// styles for a form that is the entirety of a modal
+.iq-form--modal-form {
+  padding-top: 0;
+}
+
 .iq-form-row {
   margin-bottom: 24px;
   

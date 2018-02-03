@@ -10,8 +10,10 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.ex.UIAssertionError;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -36,11 +38,16 @@ public class ScrollUtil
     executor.executeScript(JS_LOCAL_VARS + "parent[0].scrollTop = el[0].offsetTop - parentPadding;", element);
 
     // wait until the scroll completes and the values match what we set them to
-    Selenide.Wait() //
-        .withMessage("Report did not complete loading") //
-        .until(webDriver -> ((JavascriptExecutor) webDriver)
-            .executeScript(JS_LOCAL_VARS + "return parent[0].scrollTop === el[0].offsetTop - parentPadding;", element)
-            .equals(Boolean.TRUE));
+    try {
+      Selenide.Wait() //
+          .withMessage(element.getSearchCriteria() + " did not scroll to destination") //
+          .until(webDriver -> ((JavascriptExecutor) webDriver)
+              .executeScript(JS_LOCAL_VARS + "return parent[0].scrollTop === el[0].offsetTop - parentPadding;", element)
+              .equals(Boolean.TRUE));
+    }
+    catch (TimeoutException e) {
+      throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
+    }
   }
 
   public static final Condition scrolledOffTop = new ScrolledOffTop();

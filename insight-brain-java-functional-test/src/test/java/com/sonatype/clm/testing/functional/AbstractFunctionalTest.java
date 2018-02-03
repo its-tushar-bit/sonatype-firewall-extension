@@ -42,10 +42,12 @@ import com.google.inject.Module;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestName;
 import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.NoAlertPresentException;
@@ -129,6 +131,9 @@ public abstract class AbstractFunctionalTest
   @Rule
   public EyesWatcher eyesWatcher = new EyesWatcher(); // enables visual testing
 
+  @Rule
+  public TestName testName = new TestName();
+
   @BeforeClass
   public static void setup() {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
@@ -147,8 +152,14 @@ public abstract class AbstractFunctionalTest
     WebDriverRunner.getWebDriver().manage().deleteAllCookies();
   }
 
+  @Before
+  public final void beforeTest() {
+    log.info("Before: {}", testName.getMethodName());
+  }
+
   @After
-  public void reset() throws Exception {
+  public final void afterTest() throws Exception {
+    log.info("After: {}", testName.getMethodName());
     testCLMServer.getHdsServer().reset();
     if (productLicenseManager.wasChanged()) {
       productLicenseManager.reset();
@@ -226,6 +237,7 @@ public abstract class AbstractFunctionalTest
 
   protected static void refresh() {
     navigate(() -> {
+      log.info("Refreshing page {}", WebDriverRunner.getWebDriver().getCurrentUrl());
       WebDriverRunner.getWebDriver().navigate().refresh();
       clearAlerts();
       return true;
@@ -236,10 +248,12 @@ public abstract class AbstractFunctionalTest
     navigate(() -> {
       String currentUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
       if (currentUrl != null && currentUrl.endsWith(url)) {
+        log.info("Refreshing page {}", currentUrl);
         WebDriverRunner.getWebDriver().navigate().refresh();
         return true;
       }
       else {
+        log.info("Opening page {}", url);
         Selenide.open(url);
         return !digestUrl(currentUrl).equals(digestUrl(url));
       }

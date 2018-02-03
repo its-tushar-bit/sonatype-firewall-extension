@@ -28,6 +28,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.codehaus.plexus.util.IOUtil;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONFIG_YML;
@@ -51,6 +53,22 @@ public class SupportServiceTest
 
   @Inject
   private SupportService supportService;
+
+  private File originalConfigFile;
+
+  @Before
+  public void before() {
+    originalConfigFile = InsightBrainService.getConfigFile();
+  }
+
+  @After
+  public void after() {
+    InsightBrainService.setConfigFile(originalConfigFile);
+  }
+
+  private File getConfigYml() {
+    return new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
+  }
 
   @Test
   public void testCreateSupportZip() throws Exception {
@@ -81,71 +99,51 @@ public class SupportServiceTest
 
   @Test
   public void testCreateSupportZip_DeletesFilteredFile() throws Exception {
-    final File configYml = new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
-    final File origArg = InsightBrainService.getConfigFile();
-    try {
-      InsightBrainService.setConfigFile(configYml);
-      supportService.createSupportZip(false, null, false);
-      final File filteredConfigYml = new File(supportService.getWorkDir(), "filtered-" + configYml.getName());
-      assertThat(filteredConfigYml.exists(), is(false));
-    }
-    finally {
-      InsightBrainService.setConfigFile(origArg);
-    }
+    final File configYml = getConfigYml();
+    InsightBrainService.setConfigFile(configYml);
+    supportService.createSupportZip(false, null, false);
+    final File filteredConfigYml = new File(supportService.getWorkDir(), "filtered-" + configYml.getName());
+    assertThat(filteredConfigYml.exists(), is(false));
   }
 
   @Test
   public void testCreateSupportZip_TruncatedFileStartsWithToken() throws Exception {
-    final File configYml = new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
-    final File origArg = InsightBrainService.getConfigFile();
-    try {
-      InsightBrainService.setConfigFile(configYml);
+    InsightBrainService.setConfigFile(getConfigYml());
 
-      insightConfig.getSupportConfig().setReadLimitBytes(500);
+    insightConfig.getSupportConfig().setReadLimitBytes(500);
 
-      final File supportZip = supportService.createSupportZip(false, null, false);
-      // read file from zip and assert token suffix
-      try (final ZipFile zipFile = new ZipFile(supportZip)) {
-        final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        final ZipEntry zipEntry = entries.nextElement();
-        assertThat(zipEntry.getName(),
-            is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/filtered-" +
-                CONFIG_YML_FILENAME));
-        try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
-          try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
-            IOUtil.copy(zipEntryStream, zipEntryContent);
-          }
-          assertThat(zipEntryContent.toString("UTF-8"), startsWith(SupportService.TRUNCATED_TOKEN));
+    final File supportZip = supportService.createSupportZip(false, null, false);
+    // read file from zip and assert token suffix
+    try (final ZipFile zipFile = new ZipFile(supportZip)) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      final ZipEntry zipEntry = entries.nextElement();
+      assertThat(zipEntry.getName(),
+          is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/filtered-" +
+              CONFIG_YML_FILENAME));
+      try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
+        try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
+          IOUtil.copy(zipEntryStream, zipEntryContent);
         }
+        assertThat(zipEntryContent.toString("UTF-8"), startsWith(SupportService.TRUNCATED_TOKEN));
       }
-    }
-    finally {
-      InsightBrainService.setConfigFile(origArg);
     }
   }
 
   @Test
   public void testCreateSupportZip_TruncatedZipIncludesTruncatedEntry() throws Exception {
-    final File configYml = new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
-    final File origArg = InsightBrainService.getConfigFile();
-    try {
-      InsightBrainService.setConfigFile(configYml);
+    InsightBrainService.setConfigFile(getConfigYml());
 
-      insightConfig.getSupportConfig().setReadLimitBytes(5);
+    insightConfig.getSupportConfig().setReadLimitBytes(5);
 
-      final File supportZip = supportService.createSupportZip(false, null, false);
-      // read zip and assert truncated entry
-      try (final ZipFile zipFile = new ZipFile(supportZip)) {
-        final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        assertThat(entries.nextElement().getName(),
-            is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/filtered-" +
-                CONFIG_YML_FILENAME));
-        verifyRequiredEntries(supportZip, entries);
-        assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/" + "truncated"));
-      }
-    }
-    finally {
-      InsightBrainService.setConfigFile(origArg);
+    final File supportZip = supportService.createSupportZip(false, null, false);
+    // read zip and assert truncated entry
+    try (final ZipFile zipFile = new ZipFile(supportZip)) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      assertThat(entries.nextElement().getName(),
+          is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/filtered-" +
+              CONFIG_YML_FILENAME));
+      verifyRequiredEntries(supportZip, entries);
+      assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/" + "truncated"));
     }
   }
 
@@ -175,82 +173,58 @@ public class SupportServiceTest
   @Test
   public void testCreateSupportZip_NoConfigFile() throws Exception {
     final File configYml = new File("config-I-dont-exist.yml");
-    final File origArg = InsightBrainService.getConfigFile();
-    try {
-      InsightBrainService.setConfigFile(configYml);
-      final File supportZip = supportService.createSupportZip(false, null, false);
-      // read file from zip and assert no config file entry
-      try (final ZipFile zipFile = new ZipFile(supportZip)) {
-        final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        verifyRequiredEntries(supportZip, entries);
-        assertThat(entries.hasMoreElements(), is(false));
-      }
-    }
-    finally {
-      InsightBrainService.setConfigFile(origArg);
+    InsightBrainService.setConfigFile(configYml);
+    final File supportZip = supportService.createSupportZip(false, null, false);
+    // read file from zip and assert no config file entry
+    try (final ZipFile zipFile = new ZipFile(supportZip)) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      verifyRequiredEntries(supportZip, entries);
+      assertThat(entries.hasMoreElements(), is(false));
     }
   }
 
   @Test
   public void testCreateSupportZip_HasRequiredEntries() throws Exception {
-    final File origArg = InsightBrainService.getConfigFile();
-    try {
-      InsightBrainService.setConfigFile(new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile()));
-      final File supportZip = supportService.createSupportZip(false, null, false);
-      try (final ZipFile zipFile = new ZipFile(supportZip)) {
-        final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        if (InsightBrainService.getConfigFile() != null) {
-          assertThat(entries.nextElement().getName(),
-              is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() +
-                  "/filtered-" + CONFIG_YML_FILENAME));
-        }
-        verifyRequiredEntries(supportZip, entries);
-        assertThat(entries.hasMoreElements(), is(false));
-      }
-    }
-    finally {
-      InsightBrainService.setConfigFile(origArg);
+    InsightBrainService.setConfigFile(getConfigYml());
+    final File supportZip = supportService.createSupportZip(false, null, false);
+    try (final ZipFile zipFile = new ZipFile(supportZip)) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/"
+          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME));
+      verifyRequiredEntries(supportZip, entries);
+      assertThat(entries.hasMoreElements(), is(false));
     }
   }
 
   @Test
   public void testCreateSupportZip_HasEntryProductVersionSorted() throws Exception {
-    final File origArg = InsightBrainService.getConfigFile();
-    try {
-      InsightBrainService.setConfigFile(new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile()));
-      final File supportZip = supportService.createSupportZip(false, null, false);
-      try (final ZipFile zipFile = new ZipFile(supportZip)) {
-        final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        if (InsightBrainService.getConfigFile() != null) {
-          assertThat(entries.nextElement().getName(),
-              is(getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() +
-                  "/filtered-" + CONFIG_YML_FILENAME));
-        }
-        assertThat(entries.nextElement().getName(),
-            is(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json"));
+    InsightBrainService.setConfigFile(getConfigYml());
+    final File supportZip = supportService.createSupportZip(false, null, false);
+    try (final ZipFile zipFile = new ZipFile(supportZip)) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      assertThat(entries.nextElement().getName(), is(getZipFileBasename(supportZip) + "/"
+          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME));
+      assertThat(entries.nextElement().getName(),
+          is(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/sysinfo.json"));
 
-        final ZipEntry zipEntry = entries.nextElement();
-        assertThat(zipEntry.getName(),
-            is(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/product-version.json"));
-        try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
-          try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
-            IOUtil.copy(zipEntryStream, zipEntryContent);
-            final JsonNode result = JsonUtils.parse(zipEntryContent.toString("UTF-8"));
-            assertThat(result.size(), is(1));
-            final JsonNode parentNode = result.get("product-version");
-            final Iterator<String> children = parentNode.fieldNames();
-            assertThat(children.next(), is("build"));
-            assertThat(children.next(), is("name"));
-            assertThat(children.next(), is("tag"));
-            assertThat(children.next(), is("timestamp"));
-            assertThat(children.next(), is("version"));
-            assertThat(parentNode.size(), is(5));
-          }
+      final ZipEntry zipEntry = entries.nextElement();
+      assertThat(zipEntry.getName(),
+          is(getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/product-version.json"));
+      try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
+        try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
+          IOUtil.copy(zipEntryStream, zipEntryContent);
+          final JsonNode result = JsonUtils.parse(zipEntryContent.toString("UTF-8"));
+          assertThat(result.size(), is(1));
+          final JsonNode parentNode = result.get("product-version");
+          final Iterator<String> children = parentNode.fieldNames();
+          assertThat(children.next(), is("build"));
+          assertThat(children.next(), is("name"));
+          assertThat(children.next(), is("tag"));
+          assertThat(children.next(), is("timestamp"));
+          assertThat(children.next(), is("version"));
+          assertThat(parentNode.size(), is(5));
         }
       }
-    }
-    finally {
-      InsightBrainService.setConfigFile(origArg);
     }
   }
 
@@ -314,7 +288,7 @@ public class SupportServiceTest
 
   @Test
   public void testPopulateZip_Limit() throws Exception {
-    final File fileToAdd = new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
+    final File fileToAdd = getConfigYml();
 
     final File supportZip = createPopulatedZip(false, fileToAdd);
 
@@ -336,7 +310,7 @@ public class SupportServiceTest
 
   @Test
   public void testPopulateZip_NoLimit() throws Exception {
-    final File fileToAdd = new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
+    final File fileToAdd = getConfigYml();
 
     final File supportZip = createPopulatedZip(true, fileToAdd);
 

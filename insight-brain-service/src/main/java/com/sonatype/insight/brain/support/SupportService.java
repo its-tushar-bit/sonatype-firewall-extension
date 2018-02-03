@@ -130,7 +130,7 @@ class SupportService
     return appenderFactories
         .stream()
         .filter(appenderFactory -> appenderFactory instanceof FileAppenderFactory)
-        .map(appenderFactory -> ((FileAppenderFactory) appenderFactory).getCurrentLogFilename())
+        .map(appenderFactory -> ((FileAppenderFactory<?>) appenderFactory).getCurrentLogFilename())
         .collect(Collectors.toList());
   }
 

@@ -50,6 +50,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -65,7 +66,9 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.either;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -274,6 +277,7 @@ public abstract class AbstractFunctionalTest
    * a full page reload, thereby ensuring future interactions do not mistake the old page for the new page.
    */
   private static void navigate(BooleanSupplier navigation) {
+    waitUntilUrlStable();
     WebElement body = getWebElement("body");
     boolean fullPageReload = navigation.getAsBoolean();
     if (!fullPageReload || body == null) {
@@ -302,6 +306,37 @@ public abstract class AbstractFunctionalTest
     catch (NoSuchElementException e) {
       return null;
     }
+  }
+
+  /**
+   * Some URLs denote interim page states that route to another page state. Until the final page state is reached, we
+   * cannot reliably navigate the browser.
+   */
+  private static void waitUntilUrlStable() {
+    waitUntil(webDriver -> {
+      try {
+        assertThat(webDriver.getCurrentUrl(),
+            not(anyOf(endsWith("/assets/index.html"), endsWith("/assets/index.html#/management/view"))));
+      }
+      catch (AssertionError e) {
+        // interim URL, unless the login modal is shown ...
+        try {
+          assertThat(webDriver.findElement(By.id("login-modal")).isDisplayed(), is(true));
+        }
+        catch (AssertionError | NoSuchElementException | StaleElementReferenceException suppressed) {
+          e.addSuppressed(suppressed);
+          throw e;
+        }
+        // ... and not currently performing a login
+        try {
+          assertThat(webDriver.findElement(By.cssSelector(".form-mask")).isDisplayed(), is(true));
+          throw e;
+        }
+        catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
+          // no form mask, good
+        }
+      }
+    });
   }
 
   protected static void waitUntilUrl(final String url) {

@@ -118,6 +118,7 @@ public class SuccessMetricsReportListTest
 
     // First just test the cancel button.
     modal.shouldBe(visible);
+    modal.name().shouldBe(visible); // ensure form is fully loaded and stable
     modal.cancelBtn().shouldBe(enabled).click();
     modal.shouldBe(hidden);
 

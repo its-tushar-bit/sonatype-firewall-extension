@@ -91,6 +91,7 @@ public class AddProprietaryMatchersTest
     // test Cancel button
     ReportPolicyPage.row(0).openCip();
     VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
+    modal.regexInput().shouldBe(visible); // ensure form is fully loaded and stable
     modal.cancelButton().shouldBe(visible).click();
     modal.shouldBe(hidden);
 

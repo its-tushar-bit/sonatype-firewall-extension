@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Test;
 
@@ -29,8 +30,8 @@ public class SuccessMetricsChartsNavigationTest
 {
 
   @After
-  public void startup() {
-    logout();
+  public void after() {
+    Selenide.clearBrowserCookies();
   }
 
   @Test

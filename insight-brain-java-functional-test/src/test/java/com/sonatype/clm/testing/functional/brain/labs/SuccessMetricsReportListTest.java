@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.Selenide;
 import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
@@ -83,7 +84,7 @@ public class SuccessMetricsReportListTest
       dao.delete(successMetricsReport);
     }
 
-    logout();
+    Selenide.clearBrowserCookies();
   }
 
   @Test

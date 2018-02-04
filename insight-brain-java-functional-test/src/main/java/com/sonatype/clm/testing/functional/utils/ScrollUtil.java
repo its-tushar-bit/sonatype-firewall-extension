@@ -42,7 +42,7 @@ public class ScrollUtil
       Selenide.Wait() //
           .withMessage(element.getSearchCriteria() + " did not scroll to destination") //
           .until(webDriver -> ((JavascriptExecutor) webDriver)
-              .executeScript(JS_LOCAL_VARS + "return parent[0].scrollTop === el[0].offsetTop - parentPadding;", element)
+              .executeScript(JS_LOCAL_VARS + "return Math.abs(parent[0].scrollTop - (el[0].offsetTop - parentPadding)) < 1;", element)
               .equals(Boolean.TRUE));
     }
     catch (TimeoutException e) {

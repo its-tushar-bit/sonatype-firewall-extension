@@ -283,15 +283,18 @@ public class ApplicationRiskServiceTest
   }
 
   @Test
-  public void testGetApplicationRisks_TotalApplicationRiskDeDupesAcrossStages() {
+  public void testGetApplicationRisks_TotalApplicationRiskDeDupesAcrossStagesUsingLatestEvaluationData() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app.getId(), "app owned policy1", 5);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID,
-        "test scan app id1", new Date());
+        "test scan app id1", new Date(System.currentTimeMillis() - 4000));
     tempEntity.newPolicyViolation(policyEvaluation1, policy);
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID,
-        "test scan app id2", new Date());
+        "test scan app id2", new Date(System.currentTimeMillis() - 2000));
     tempEntity.newPolicyViolation(policyEvaluation2, policy);
+    PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app.getId(), StageReleaseStageType.ID,
+        "test scan app id3", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation3, policy, 10, policy.getThreatCategory());
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
@@ -299,11 +302,14 @@ public class ApplicationRiskServiceTest
     assertThat(result.dashboardResults, hasSize(1));
 
     ApplicationRiskScoreDTO applicationRiskScoreDTO = result.dashboardResults.get(0);
-    assertRisk(applicationRiskScoreDTO.totalApplicationRisk, 0, 5, 0, 0, 5);
-    assertThat(applicationRiskScoreDTO.stageRisks, hasSize(2));
+    assertRisk(applicationRiskScoreDTO.totalApplicationRisk, 10, 0, 0, 0, 10);
+    assertThat(applicationRiskScoreDTO.stageRisks, hasSize(3));
 
     StageRiskScoreDTO buildStageRisk = applicationRiskScoreDTO.getStageRiskScore(BuildStageType.ID);
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
+
+    StageRiskScoreDTO stageReleaseStageRisk = applicationRiskScoreDTO.getStageRiskScore(StageReleaseStageType.ID);
+    assertRisk(stageReleaseStageRisk.risk, 10, 0, 0, 0, 10);
 
     StageRiskScoreDTO releaseStageRisk = applicationRiskScoreDTO.getStageRiskScore(ReleaseStageType.ID);
     assertRisk(releaseStageRisk.risk, 0, 5, 0, 0, 5);

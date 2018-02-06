@@ -196,13 +196,7 @@ public class NewestRiskService
     newestRiskDTO.policyId = policyViolation.getPolicyId();
     newestRiskDTO.policyName = policyViolation.getPolicyName();
     newestRiskDTO.hash = policyViolation.getHash();
-    newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
-    newestRiskDTO.filename = policyViolation.getFilename();
-    newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
-    newestRiskDTO.stageTypeId = policyEvaluation.getStageTypeId();
-    newestRiskDTO.actionTypeId = policyViolation.getActionTypeId();
-    newestRiskDTO.scanId = policyEvaluation.getScanId();
-    newestRiskDTO.lastOccurrenceTime = policyViolation.getTime().getTime();
+    addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation, firstOccurrenceTime);
 
     return newestRiskDTO;
   }
@@ -212,17 +206,17 @@ public class NewestRiskService
                                   PolicyViolation policyViolation,
                                   long firstOccurrenceTime)
   {
-    if (newestRiskDTO.firstOccurrenceTime < policyViolation.getTime().getTime()) {
-      newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
-      newestRiskDTO.filename = policyViolation.getFilename();
-    }
-
-    if (newestRiskDTO.lastOccurrenceTime < policyViolation.getTime().getTime()) {
+    long lastOccurrenceTime = policyEvaluation.getTime().getTime();
+    if (newestRiskDTO.lastOccurrenceTime < lastOccurrenceTime || newestRiskDTO.stageTypeId == null) {
+      newestRiskDTO.lastOccurrenceTime = lastOccurrenceTime;
       // return the latest stage/report
       newestRiskDTO.stageTypeId = policyEvaluation.getStageTypeId();
       newestRiskDTO.actionTypeId = policyViolation.getActionTypeId();
       newestRiskDTO.scanId = policyEvaluation.getScanId();
-      newestRiskDTO.lastOccurrenceTime = policyViolation.getTime().getTime();
+      // return the latest component name
+      newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
+      newestRiskDTO.filename = policyViolation.getFilename();
+      newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
     }
 
     if (newestRiskDTO.firstOccurrenceTime > firstOccurrenceTime) {

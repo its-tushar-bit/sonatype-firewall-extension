@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -125,18 +126,11 @@ public class ApplicationRiskService
   {
     // squish down any dupes we have across stages
     final Map<String, PolicyViolation> compHashToViolation = new HashMap<>();
-    for (ApplicationStageView appStageView : appStageViews) {
+    for (ApplicationStageView appStageView : sortByLastEvaluationTimeDescending(appStageViews)) {
       for (final PolicyViolation violation1 : appStageView.getFilteredViolations()) {
         String vioHash = violation1.getPolicyId() + SECRET_JOIN_STRING + violation1.getHash();
-        PolicyViolation existing = compHashToViolation.get(vioHash);
-        if (existing == null) {
-          // first time we see a violation, we make it
-          compHashToViolation.put(vioHash, violation1);
-        }
-        else if (violation1.getTime().after(existing.getTime())) {
-          // we have a newer violation, update existing
-          compHashToViolation.put(vioHash, violation1);
-        }
+        // first time we see a violation, we make it, any later occurrence is from an older evaluation
+        compHashToViolation.putIfAbsent(vioHash, violation1);
       }
     }
 
@@ -144,6 +138,19 @@ public class ApplicationRiskService
     for (final PolicyViolation violation : compHashToViolation.values()) {
       updateRisk(applicationRiskScore.totalApplicationRisk, violation.getThreatLevel());
     }
+  }
+
+  private List<ApplicationStageView> sortByLastEvaluationTimeDescending(Collection<ApplicationStageView> appStageViews) {
+    List<ApplicationStageView> sorted = new ArrayList<>(appStageViews);
+    sorted.sort((appStageView1, appStageView2) -> {
+      PolicyEvaluation eval1 = appStageView1.getLastEvaluation();
+      PolicyEvaluation eval2 = appStageView2.getLastEvaluation();
+      if (eval1 == null || eval2 == null) {
+        return eval1 == eval2 ? 0 : (eval1 == null ? 1 : -1);
+      }
+      return eval2.getTime().compareTo(eval1.getTime());
+    });
+    return sorted;
   }
 
   private void updateRisk(RiskDTO risk, int threatLevel) {

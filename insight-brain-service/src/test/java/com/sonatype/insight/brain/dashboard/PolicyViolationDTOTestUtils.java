@@ -29,7 +29,6 @@ class PolicyViolationDTOTestUtils
         assertEquals(dto.componentIdentifier, violation.getComponentIdentifier());
         assertEquals(dto.hash, violation.getHash());
         assertEquals(dto.id, violation.getId());
-        assertEquals(dto.policyEvaluationId, violation.getPolicyEvaluationId());
         assertEquals(dto.policyId, policy.getId());
         assertEquals(dto.policyName, policy.getName());
         assertEquals(dto.threatCategory, violation.getThreatCategory());

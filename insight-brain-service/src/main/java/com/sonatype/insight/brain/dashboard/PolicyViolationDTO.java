@@ -26,8 +26,6 @@ public class PolicyViolationDTO
 
   public String id;
 
-  public String policyEvaluationId;
-
   public String policyId;
 
   public String policyName;

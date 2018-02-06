@@ -42,7 +42,6 @@ public class PolicyViolationAdapter
     dto.componentIdentifier = violation.getComponentIdentifier();
     dto.hash = violation.getHash();
     dto.id = violation.getId();
-    dto.policyEvaluationId = violation.getPolicyEvaluationId();
     dto.policyId = violation.getPolicyId();
     dto.policyName = violation.getPolicyName();
     dto.threatCategory = violation.getThreatCategory();

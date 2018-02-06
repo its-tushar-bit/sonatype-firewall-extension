@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -18,23 +15,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 @Singleton
 public class PolicyViolationAdapter
 {
-
-  public List<PolicyViolationDTO> createPolicyViolationDTOs(Application application,
-                                                            List<PolicyViolation> policyViolations)
-  {
-    List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
-
-    if (policyViolations == null) {
-      return policyViolationDTOs;
-    }
-
-    for (PolicyViolation violation : policyViolations) {
-      policyViolationDTOs.add(createPolicyViolationDTO(application, violation));
-    }
-
-    return policyViolationDTOs;
-  }
-
   public PolicyViolationDTO createPolicyViolationDTO(Application application, PolicyViolation violation) {
     PolicyViolationDTO dto = new PolicyViolationDTO();
     dto.applicationId = application.getId();

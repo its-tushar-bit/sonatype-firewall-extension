@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -107,7 +108,8 @@ public class NewestRiskService
       Map<PolicyViolation, NewestRiskDTO> newestRiskDTOsByPolicyViolation = new HashMap<>();
 
       for (ApplicationStageView appStageView : appView.getStageViews()) {
-        if (appStageView.getLastEvaluation() != null) {
+        PolicyEvaluation policyEvaluation = appStageView.getLastEvaluation();
+        if (policyEvaluation != null) {
           policyEvaluationCount++;
         }
         Collection<PolicyViolation> policyViolations = appStageView.getFilteredViolations();
@@ -116,7 +118,6 @@ public class NewestRiskService
         }
         policyViolationCount += policyViolations.size();
         StageType stageType = appStageView.getStageType();
-        String scanId = appStageView.getLastEvaluation().getScanId();
 
         Map<PolicyViolation, PolicyViolation> firstOccurrencePolicyViolationsByLastPolicyViolations = getFirstOccurrencePolicyViolationsForLastPolicyViolations(
             app.getId(), stageType.getId(), policyViolations);
@@ -126,8 +127,8 @@ public class NewestRiskService
         for (PolicyViolation policyViolation : diff.getAppeared()) {
           PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
               .get(policyViolation);
-          NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, stageType, policyViolation,
-              firstOccurrencePolicyViolation.getTime().getTime(), scanId);
+          NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, policyEvaluation, policyViolation,
+              firstOccurrencePolicyViolation.getTime().getTime());
           newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
           riskDTOs.add(newestRiskDTO);
         }
@@ -136,8 +137,8 @@ public class NewestRiskService
           PolicyViolation policyViolation = samePolicyViolationEntry.getValue();
           PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
               .get(policyViolation);
-          addToNewestRiskDTO(newestRiskDTO, stageType, policyViolation, firstOccurrencePolicyViolation.getTime()
-              .getTime(), scanId);
+          addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation, firstOccurrencePolicyViolation.getTime()
+              .getTime());
         }
 
         allUniqueAppPolicyViolations.addAll(diff.getAppeared());
@@ -183,35 +184,33 @@ public class NewestRiskService
   }
 
   private NewestRiskDTO createNewestRiskDTO(Application app,
-                                            StageType stageType,
+                                            PolicyEvaluation policyEvaluation,
                                             PolicyViolation policyViolation,
-                                            long time,
-                                            String scanId)
+                                            long firstOccurrenceTime)
   {
     NewestRiskDTO newestRiskDTO = new NewestRiskDTO();
     newestRiskDTO.applicationPublicId = app.getPublicId();
     newestRiskDTO.applicationName = app.getName();
     newestRiskDTO.threatLevel = policyViolation.getThreatLevel();
-    newestRiskDTO.firstOccurrenceTime = time;
+    newestRiskDTO.firstOccurrenceTime = firstOccurrenceTime;
     newestRiskDTO.policyId = policyViolation.getPolicyId();
     newestRiskDTO.policyName = policyViolation.getPolicyName();
     newestRiskDTO.hash = policyViolation.getHash();
     newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
     newestRiskDTO.filename = policyViolation.getFilename();
     newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
-    newestRiskDTO.stageTypeId = stageType.getId();
+    newestRiskDTO.stageTypeId = policyEvaluation.getStageTypeId();
     newestRiskDTO.actionTypeId = policyViolation.getActionTypeId();
-    newestRiskDTO.scanId = scanId;
+    newestRiskDTO.scanId = policyEvaluation.getScanId();
     newestRiskDTO.lastOccurrenceTime = policyViolation.getTime().getTime();
 
     return newestRiskDTO;
   }
 
   private void addToNewestRiskDTO(NewestRiskDTO newestRiskDTO,
-                                  StageType stageType,
+                                  PolicyEvaluation policyEvaluation,
                                   PolicyViolation policyViolation,
-                                  long time,
-                                  String scanId)
+                                  long firstOccurrenceTime)
   {
     if (newestRiskDTO.firstOccurrenceTime < policyViolation.getTime().getTime()) {
       newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
@@ -220,14 +219,14 @@ public class NewestRiskService
 
     if (newestRiskDTO.lastOccurrenceTime < policyViolation.getTime().getTime()) {
       // return the latest stage/report
-      newestRiskDTO.stageTypeId = stageType.getId();
+      newestRiskDTO.stageTypeId = policyEvaluation.getStageTypeId();
       newestRiskDTO.actionTypeId = policyViolation.getActionTypeId();
-      newestRiskDTO.scanId = scanId;
+      newestRiskDTO.scanId = policyEvaluation.getScanId();
       newestRiskDTO.lastOccurrenceTime = policyViolation.getTime().getTime();
     }
 
-    if (newestRiskDTO.firstOccurrenceTime > time) {
-      newestRiskDTO.firstOccurrenceTime = time;
+    if (newestRiskDTO.firstOccurrenceTime > firstOccurrenceTime) {
+      newestRiskDTO.firstOccurrenceTime = firstOccurrenceTime;
     }
   }
 

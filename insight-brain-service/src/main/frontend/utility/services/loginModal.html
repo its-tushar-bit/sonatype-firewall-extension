@@ -3,8 +3,7 @@
       class="iq-form iq-form--modal-form"
       ng-submit="vm.signIn()"
       form-mask="vm.loginMask"
-      mask-message="Signing in"
-      novalidate>
+      mask-message="Signing in">
   <header class="iq-modal-header">
     <h2>User Login</h2>
   </header>
@@ -15,7 +14,6 @@
         <label class="iq-label" for="login-username">Username</label>
         <input id="login-username"
                class="iq-text-input"
-               clm-input
                type="text"
                name="username"
                ng-model="vm.username"
@@ -28,7 +26,6 @@
         <label class="iq-label" for="login-password">Password</label>
         <input id="login-password"
                class="iq-text-input"
-               clm-input
                type="password"
                name="password"
                ng-model="vm.password"
@@ -43,9 +40,6 @@
     </div>
     <button id="login-action"
             class="btn btn-primary"
-            submit-validation
-            submit-type="Login"
-            submit-dirty="true"
             type="submit">
       Sign in
     </button>

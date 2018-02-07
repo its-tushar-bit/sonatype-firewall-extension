@@ -21,10 +21,6 @@ export default function LoginModalController($scope, $http, CLMLocations, Messag
   });
 
   vm.signIn = function() {
-    if (!vm.username || !vm.password) {
-      return;
-    }
-
     vm.error = undefined;
 
     vm.loginMask.wrap($http.post(CLMLocations.getSessionUrl(), {}, {

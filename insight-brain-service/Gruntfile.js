@@ -208,7 +208,6 @@
     ]);
 
     grunt.registerTask('gallery', [
-      'copy',
       'concurrent:watchGallery'
     ]);
 

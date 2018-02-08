@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
@@ -62,6 +63,11 @@ public class SystemNoticeConfigurationPage
     return root().find(".tooltip");
   }
 
+  private void save() {
+    update().click();
+    update().shouldBe(CLM.DISABLED); // wait until REST request completed (no form mask used...)
+  }
+
   public String getText() {
     return text().getValue();
   }
@@ -72,7 +78,7 @@ public class SystemNoticeConfigurationPage
 
   public void setTextAndUpdate(final String text) {
     setText(text);
-    update().click();
+    save();
   }
 
   public void textMatches(final String text) {
@@ -91,7 +97,7 @@ public class SystemNoticeConfigurationPage
 
   public void setDisplayAndUpdate(final boolean display) {
     setDisplay(display);
-    update().click();
+    save();
   }
 
   public void displayMatches(final boolean display) {
@@ -109,7 +115,7 @@ public class SystemNoticeConfigurationPage
 
   public void toggleDisplayAndUpdate() {
     toggleDisplay();
-    update().click();
+    save();
   }
 
   public void setTextAndDisplay(final String text, final boolean display) {
@@ -119,7 +125,7 @@ public class SystemNoticeConfigurationPage
 
   public void setTextAndDisplayAndUpdate(final String text, final boolean display) {
     setTextAndDisplay(text, display);
-    update().click();
+    save();
   }
 
   public void setTextAndToggleDisplay(final String text) {

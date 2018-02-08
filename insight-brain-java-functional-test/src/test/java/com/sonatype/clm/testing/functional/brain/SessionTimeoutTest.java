@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.MainView;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportPolicyPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
@@ -66,12 +67,15 @@ public class SessionTimeoutTest
    */
   @Test
   public void testReloginPromptOnAjaxDetectedSessionExpiration() {
-    SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
-
+    refreshOrOpen(ProductLicensePage.url());
     loginAsAdmin();
 
-    // wait for login to finish
+    // wait for all REST requests to finish
+    ProductLicensePage.fingerprint().shouldBe(visible);
+    MainHeader.labsNavigationButton().shouldBe(visible);
+    SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
     systemConfigMenu.dropdownToggle().shouldBe(visible);
+
     hardreset();
 
     // try to open the Webhooks page. Since the session cookie has been deleted this should trigger the session

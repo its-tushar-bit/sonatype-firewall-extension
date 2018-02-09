@@ -635,10 +635,6 @@ public class TemporaryEntity
     return newLicenseThreatGroup(ownerId, "LTG" + uuid(), 5);
   }
 
-  public LicenseThreatGroup newLicenseThreatGroup(String ownerId, String name, int threatLevel) {
-    return newLicenseThreatGroup(ownerId, name, threatLevel, new String[0]);
-  }
-
   public LicenseThreatGroup newLicenseThreatGroup(String ownerId, String name, int threatLevel, String... licenseIds) {
     LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, name, threatLevel);
     licenseThreatGroupDAO.insert(ltg);

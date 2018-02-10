@@ -466,6 +466,13 @@
       <groupId>com.sonatype.licensing</groupId>
       <artifactId>license-bundle</artifactId>
       <version>${licensing.version}</version>
+      <exclusions>
+        <exclusion>
+          <!-- avoid clash with javax.annotation:javax.annotation-api -->
+          <groupId>javax.annotation</groupId>
+          <artifactId>jsr250-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.sonatype.aether</groupId>

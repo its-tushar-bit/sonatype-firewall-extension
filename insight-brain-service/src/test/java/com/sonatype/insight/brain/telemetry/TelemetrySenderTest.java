@@ -16,9 +16,9 @@ import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.test.InjectedTest;
 
 import com.google.inject.Binder;
 import org.apache.http.HttpEntity;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
 public class TelemetrySenderTest
-    extends InjectedTest
+    extends AbstractComponentTest
 {
   @Inject
   private TelemetrySender telemetrySender;

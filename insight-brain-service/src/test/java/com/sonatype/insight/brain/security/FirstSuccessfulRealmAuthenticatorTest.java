@@ -10,7 +10,7 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.test.InjectedTest;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FirstSuccessfulRealmAuthenticatorTest
-    extends InjectedTest
+    extends AbstractComponentTest
 {
   @Inject
   private FirstSuccessfulRealmAuthenticator firstSuccessfulRealmAuthenticator;

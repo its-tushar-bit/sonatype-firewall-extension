@@ -257,6 +257,18 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_BadMaxUsers() throws Exception {
+    try {
+      licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_USERS, "Invalid");
+      installLicense();
+      fail("Expected LicensingException");
+    }
+    catch (LicensingException e) {
+      assertThat(e.getMessage(), is("Invalid value for max users: Invalid"));
+    }
+  }
+
+  @Test
   public void testInstallLicense_UnknownEnforcementPointIsIgnored() throws Exception {
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build");
     installLicense();

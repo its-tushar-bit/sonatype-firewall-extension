@@ -59,8 +59,6 @@ public class CLMLicenseManager
 
     private final long expirationTimestamp;
 
-    private final int licensedUsers;
-
     private final String contactName;
 
     private final String contactCompany;
@@ -74,7 +72,7 @@ public class CLMLicenseManager
                              final String[] features,
                              final Set<CLMEnforcementPoint> enforcementPoints,
                              final long expirationTimestamp,
-                             final int licensedUsers,
+                             final Integer maxUsers,
                              final Integer maxFirewallUsers,
                              final String contactName,
                              final String contactCompany,
@@ -82,7 +80,6 @@ public class CLMLicenseManager
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
-      this.licensedUsers = licensedUsers;
       this.contactName = contactName;
       this.contactCompany = contactCompany;
       this.contactEmail = contactEmail;
@@ -90,6 +87,7 @@ public class CLMLicenseManager
       setVersion(version);
       super.setApplicationLimit(applicationLimit);
       super.setMaxFirewallUsers(maxFirewallUsers);
+      super.setMaxUsers(maxUsers);
       super.setEnforcementPoints(enforcementPoints.toArray(new CLMEnforcementPoint[enforcementPoints.size()]));
       super.setFeatures(features);
       setProducts(products);
@@ -375,7 +373,7 @@ public class CLMLicenseManager
       applicationLimitToDisplay = licenseCache.getApplicationLimit();
     }
     else {
-      licensedUsersToDisplay = licenseCache.licensedUsers;
+      licensedUsersToDisplay = licenseCache.getMaxUsers();
     }
 
     return new LicenseInfo(licenseCache.getFingerprint(), licenseCache.expirationTimestamp, licensedUsersToDisplay,
@@ -426,6 +424,7 @@ public class CLMLicenseManager
 
     Integer applicationCount = getApplicationLimit(key);
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
+    Integer maxUsers = getMaxUsers(key);
 
     Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     String[] enforcementPointIds = getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS)
@@ -475,9 +474,8 @@ public class CLMLicenseManager
     }
 
     licenseCache = new CachedLicenseData(licenseFingerprint, version, applicationCount, products,
-        features.toArray(new String[features.size()]), enforcementPoints, key.getExpirationDate().getTime(),
-        key.getLicensedUsers(), maxFirewallUsers, key.getContactName(), key.getContactCompany(), 
-        key.getContactEmailAddress());
+        features.toArray(new String[features.size()]), enforcementPoints, key.getExpirationDate().getTime(), maxUsers,
+        maxFirewallUsers, key.getContactName(), key.getContactCompany(), key.getContactEmailAddress());
     notifyListeners();
   }
 
@@ -535,6 +533,22 @@ public class CLMLicenseManager
       Collections.addAll(products, value.split("\\s*,\\s*"));
     }
     return products;
+  }
+
+  private Integer getMaxUsers(ProductLicenseKey key) throws LicensingException {
+    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_MAX_USERS);
+
+    if (prop != null) {
+      try {
+        return Integer.decode(prop);
+      }
+      catch (IllegalArgumentException e) {
+        throw new LicensingException("Invalid value for max users: " + prop, e);
+      }
+    }
+    else {
+      return null;
+    }
   }
 
   private Integer getMaxFirewallUsers(ProductLicenseKey key) throws LicensingException {

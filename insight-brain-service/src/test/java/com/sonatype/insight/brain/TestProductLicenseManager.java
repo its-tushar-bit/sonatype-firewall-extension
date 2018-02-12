@@ -198,6 +198,7 @@ public class TestProductLicenseManager
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
       properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
       properties.put(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, Integer.toString(45));
+      properties.put(ProductLicenseDetails.PROPERTY_MAX_USERS, Integer.toString(50));
       properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS,
           enforcementPoints.stream().map(CLMEnforcementPoint::name).collect(Collectors.joining(",")));
       if (applicationLimit != null) {
@@ -205,13 +206,7 @@ public class TestProductLicenseManager
       }
       properties.putAll(this.properties);
 
-      DefaultLicenseKey key = new DefaultLicenseKey(new Features(featureMap)) {
-        @Override
-        public int getLicensedUsers() {
-          // DefaultLicenseKey gives no convenient way to set its internal licensedUsers field
-          return 50;
-        }
-      };
+      DefaultLicenseKey key = new DefaultLicenseKey(new Features(featureMap));
 
       // effective date is yesterday
       key.setEffectiveDate(new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)));

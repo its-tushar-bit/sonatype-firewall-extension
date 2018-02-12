@@ -214,5 +214,46 @@ describe('dashboardResultsActions', function() {
         }
       });
     });
+
+    it('updates sortFields and sorts on back end if results is not defined', function() {
+      initialState.dashboard.components.results = null;
+
+      var expectedSortFields = initialState.dashboard.components.sortFields;
+      var deferred = $q.defer();
+      dashboardDataServiceMock.getComponentRisks.and.returnValue(deferred.promise);
+
+      var store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(dashboardResultsActions.sortResults('components', ['-foo', 'bar']));
+      expect(dashboardDataServiceMock.getComponentRisks).toHaveBeenCalledWith('current filters', expectedSortFields);
+
+      expect(store.getActions().length).toBe(2);
+
+      // this action will update sortFields in the state
+      expect(store.getActions()[0]).toEqual({
+        type: 'SORT_RESULTS_REQUESTED',
+        payload: {
+          resultsType: 'components',
+          sortFields: ['-foo', 'bar']
+        }
+      });
+
+      expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_RESULTS_REQUESTED',
+        payload: 'components'
+      });
+
+      deferred.resolve({results: 'sorted results', numResults: 3, classyBrew: 'classyBrew'});
+      $rootScope.$apply();
+      expect(store.getActions().length).toBe(3);
+      expect(store.getActions()[2]).toEqual({
+        type: 'LOAD_RESULTS_FULFILLED',
+        payload: {
+          resultsType: 'components',
+          results: 'sorted results',
+          numResults: 3,
+          classyBrew: 'classyBrew'
+        }
+      });
+    });
   });
 });

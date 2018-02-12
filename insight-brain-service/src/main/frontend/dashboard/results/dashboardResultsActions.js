@@ -52,7 +52,7 @@ function dashboardResultsActions(dashboardDataService, $filter, $q) {
 
       const dashboardState = getState().dashboard;
       const results = dashboardState[resultsType].results;
-      if (results.length > dashboardDataService.MAX_RESULTS) {
+      if (!results || results.length > dashboardDataService.MAX_RESULTS) {
         dispatch(loadResults(resultsType));
       }
       else {

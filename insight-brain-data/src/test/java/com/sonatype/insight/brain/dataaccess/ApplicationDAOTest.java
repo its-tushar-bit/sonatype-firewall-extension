@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -807,6 +808,17 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
     policyEvaluation = new PolicyEvaluationDAO().getById(policyEvaluation.getId());
     assertThat(policyEvaluation, is(nullValue()));
+  }
+
+  @Test
+  public void testCascadeDeleteToPolicyViolations() {
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "testCascadeDeleteToPolicyEvaluations");
+    tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy(application.getId(), "Test Policy"));
+
+    applicationDAO.delete(application);
+
+    assertThat(new PolicyViolationDAO().getByApplicationId(application.getId()), hasSize(0));
   }
 
   @Test

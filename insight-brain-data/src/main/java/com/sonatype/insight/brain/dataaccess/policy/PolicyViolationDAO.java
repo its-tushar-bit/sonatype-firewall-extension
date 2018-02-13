@@ -7,14 +7,10 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -32,134 +28,103 @@ public class PolicyViolationDAO
     return get(tx, sQuery, id);
   }
 
-  public List<PolicyViolation> getActiveByEvaluationId(String evaluationId) {
+  public List<PolicyViolation> getByApplicationId(String applicationId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyEvaluationId=?1 AND entity.isWaived=false" + //
-        " ORDER BY entity.policyId, entity.hash";
-    return getList(sQuery, evaluationId);
+        " WHERE entity.applicationId=?1";
+    return getList(sQuery, applicationId);
   }
 
-  public List<PolicyViolation> getByEvaluationId(String evaluationId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByEvaluationId(tx, evaluationId);
-    }
-  }
-
-  public List<PolicyViolation> getByEvaluationId(TransactionContext tx, String evaluationId) {
+  public List<PolicyViolation> getUnfixedByApplicationIdAndStageId(String applicationId, String stageTypeId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyEvaluationId=?1" + //
-        " ORDER BY entity.policyId, entity.hash";
-    return getList(tx, sQuery, evaluationId);
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
+        " AND entity.fixTime IS NULL";
+    return getList(sQuery, applicationId, stageTypeId);
   }
 
-  public List<PolicyViolation> getActiveByEvaluationIds(Set<String> evaluationIds) {
-    return getByEvaluationIds(evaluationIds, true);
-  }
-
-  public List<PolicyViolation> getByEvaluationIds(Set<String> evaluationIds) {
-    return getByEvaluationIds(evaluationIds, false);
-  }
-
-  private List<PolicyViolation> getByEvaluationIds(Set<String> evaluationIds, boolean onlyActiveViolations) {
+  public List<PolicyViolation> getActiveByApplicationIdAndStageId(String applicationId, String stageTypeId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyEvaluationId IN (?1)" + (onlyActiveViolations ? " AND entity.isWaived=false" : "");
-    if (evaluationIds.size() >= IN_OPERATOR_THRESHOLD) {
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+    return getList(sQuery, applicationId, stageTypeId);
+  }
+
+  public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndHash(String applicationId,
+                                                                         String stageTypeId,
+                                                                         String hash)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.hash=?3" + //
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+    return getList(sQuery, applicationId, stageTypeId, hash);
+  }
+
+  public List<PolicyViolation> getUnfixedByApplicationIds(Collection<String> applicationIds) {
+    return getUnfixedByApplicationIds(applicationIds, false);
+  }
+
+  public List<PolicyViolation> getActiveByApplicationIds(Collection<String> applicationIds) {
+    return getUnfixedByApplicationIds(applicationIds, true);
+  }
+
+  private List<PolicyViolation> getUnfixedByApplicationIds(Collection<String> applicationIds,
+                                                           boolean onlyActiveViolations)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId IN (?1)" + //
+        " AND entity.fixTime IS NULL" + //
+        (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "");
+    return getListChunked(sQuery, applicationIds);
+  }
+
+  public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(Collection<String> applicationIds,
+                                                                     Collection<String> stageTypeIds)
+  {
+    return getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, false);
+  }
+
+  public List<PolicyViolation> getActiveByApplicationIdsAndStageIds(Collection<String> applicationIds,
+                                                                    Collection<String> stageTypeIds)
+  {
+    return getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, true);
+  }
+
+  private List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(Collection<String> applicationIds,
+                                                                      Collection<String> stageTypeIds,
+                                                                      boolean onlyActiveViolations)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)" + //
+        " AND entity.fixTime IS NULL" + //
+        (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "");
+    return getListChunked(sQuery, applicationIds, stageTypeIds);
+  }
+
+  private List<PolicyViolation> getListChunked(String sQuery, Collection<String> ids, Object... otherParameters) {
+    Object[] parameters = new Object[otherParameters.length + 1];
+    System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
+    if (ids.size() >= IN_OPERATOR_THRESHOLD) {
       // As measurements have shown (cf. CLM-6085), H2 doesn't handle an {@code IN} operator with a huge list of values
       // well and query time increases superlinear. Making multiple queries with smaller chunks of the input set keeps
       // the performance more linear. The chunk size below has been found to be a good compromise between DB query
       // overhead and individual query time.
-      List<PolicyViolation> violations = new ArrayList<>(evaluationIds.size());
+      List<PolicyViolation> violations = new ArrayList<>();
       int chunkSize = 200;
-      List<String> evalIds = new ArrayList<>(chunkSize);
-      for (String evaluationId : evaluationIds) {
-        evalIds.add(evaluationId);
-        if (evalIds.size() >= chunkSize) {
-          violations.addAll(getList(sQuery, evalIds));
-          evalIds.clear();
+      List<String> chunk = new ArrayList<>(chunkSize);
+      parameters[0] = chunk;
+      for (String id : ids) {
+        chunk.add(id);
+        if (chunk.size() >= chunkSize) {
+          violations.addAll(getList(sQuery, parameters));
+          chunk.clear();
         }
       }
-      if (!evalIds.isEmpty()) {
-        violations.addAll(getList(sQuery, evalIds));
+      if (!chunk.isEmpty()) {
+        violations.addAll(getList(sQuery, parameters));
       }
       return violations;
     }
-    return getList(sQuery, evaluationIds);
-  }
-
-  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(TransactionContext tx,
-                                                                               String appId,
-                                                                               String stageTypeId)
-  {
-    String sQuery = "SELECT policyViolation" + //
-        " FROM PolicyViolation policyViolation," + //
-        "   FirstOccurrencePolicyViolation firstOccurrencePolicyViolation" + //
-        " WHERE policyViolation.id=firstOccurrencePolicyViolation.id" + //
-        "   AND firstOccurrencePolicyViolation.applicationId=?1" + //
-        "   AND firstOccurrencePolicyViolation.stageTypeId=?2";
-    return getList(tx, sQuery, appId, stageTypeId);
-  }
-
-  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getFirstOccurrenceByApplicationIdAndStageTypeId(tx, appId, stageTypeId);
-    }
-  }
-
-  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeIdAndHash(String appId,
-                                                                                      String stageTypeId,
-                                                                                      String hash)
-  {
-    if (hash == null) {
-      // unhashed components can cause violations but can't be tracked specifically
-      return Collections.emptyList();
-    }
-
-    /*
-     * While this can be done via a single JOIN query at the DB layer, analysis has shown this to be inefficiently
-     * executed by H2 (cf. CLM-4703). Hence we gather the data via two separate queries.
-     */
-    try (TransactionContext tx = createTransactionContext()) {
-      List<FirstOccurrencePolicyViolation> firstOccurrences = new FirstOccurrencePolicyViolationDAO()
-          .getByApplicationIdAndStageId(tx, appId, stageTypeId);
-      Collection<String> violationIds = new ArrayList<>();
-      for (FirstOccurrencePolicyViolation firstOccurrence : firstOccurrences) {
-        violationIds.add(firstOccurrence.getId());
-      }
-
-      String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-          " WHERE entity.hash = ?1 AND entity.id IN (?2)" + //
-          " ORDER BY entity.policyId";
-      return getList(tx, sQuery, hash, violationIds);
-    }
-  }
-
-  @Override
-  public void delete(TransactionContext tx, PolicyViolation entity) {
-    // Cascade to first occurrence policy violation
-    FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
-    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(tx,
-        entity.getId());
-    if (firstOccurrencePolicyViolation != null) {
-      firstOccurrencePolicyViolationDAO.delete(tx, firstOccurrencePolicyViolation);
-    }
-
-    // Cascade to waived policy violation
-    if (entity.isWaived()) {
-      WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
-      WaivedPolicyViolation waivedPolicyViolation = waivedPolicyViolationDAO.getById(tx, entity.getId());
-      if (waivedPolicyViolation != null) {
-        waivedPolicyViolationDAO.delete(tx, waivedPolicyViolation);
-      }
-    }
-
-    super.delete(tx, entity);
-  }
-
-  public List<PolicyViolation> getActiveByEvaluationIdAndHash(String evaluationId, String hash) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyEvaluationId=?1 AND entity.hash=?2 AND entity.isWaived=false" + //
-        " ORDER BY entity.policyId";
-    return getList(sQuery, evaluationId, hash);
+    parameters[0] = ids;
+    return getList(sQuery, parameters);
   }
 
   public int replacePolicyId(String fromPolicyId, String toPolicyId) {
@@ -173,8 +138,7 @@ public class PolicyViolationDAO
   public int replacePolicyId(TransactionContext tx, String applicationId, String fromPolicyId, String toPolicyId) {
     String sQuery = "UPDATE PolicyViolation entity" + //
         " SET entity.policyId=?3" + //
-        " WHERE entity.policyId=?2 AND entity.policyEvaluationId IN" + //
-        " (SELECT evaluation.id FROM PolicyEvaluation evaluation WHERE evaluation.applicationId=?1)";
+        " WHERE entity.applicationId=?1 AND entity.policyId=?2";
     Query query = createQuery(sQuery, applicationId, fromPolicyId, toPolicyId);
     return query.executeUpdate(tx);
   }

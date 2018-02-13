@@ -351,43 +351,48 @@ CREATE INDEX policy_evaluation_time_idx ON policy_evaluation(time);
 
 CREATE TABLE policy_violation (
   policy_violation_id varchar(50) NOT NULL,
-  policy_evaluation_id varchar(50) NOT NULL,
-  time datetime NOT NULL,
-  policy_id varchar(50) NOT NULL,
-  policy_name varchar(60) NOT NULL, -- the policy name as it was when the policy violation was generated
-  threat_level smallint(2) NOT NULL,
-  threat_category varchar(20) NOT NULL,
-  hash varchar(20),
-  component_id_format varchar(10),
-  component_id_coordinates_json varchar(1000), -- the component identifier coordinates (that caused the policy violation) stored in json format
-  constraint_facts_json CLOB NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
-  pathnames CLOB, -- the paths to the component that caused the policy violation, paths are new line delimited
-  action_type_id varchar(20),
-  notifications CLOB, -- email addresses notified for this policy violation, delimited by new lines
-  waived bool DEFAULT false NOT NULL,
-  CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
-  CONSTRAINT policy_violation_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id)
-);
-CREATE INDEX policy_violation_time_idx ON policy_violation(time);
-CREATE INDEX policy_violation_policy_id_idx ON policy_violation(policy_id);
-CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
 
-CREATE TABLE first_occurrence_policy_violation (
-  policy_violation_id varchar(50) NOT NULL,
   application_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
-  CONSTRAINT first_occurrence_policy_violation_pk PRIMARY KEY (policy_violation_id),
-  CONSTRAINT first_occurrence_violation_violation_fk FOREIGN KEY (policy_violation_id) REFERENCES policy_violation(policy_violation_id),
-  CONSTRAINT first_occurrence_violation_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
-);
 
-CREATE TABLE waived_policy_violation (
-  policy_violation_id varchar(50) NOT NULL,
-  policy_waiver_id varchar(50) NOT NULL,
-  comment varchar(1000) NULL,
-  CONSTRAINT waived_policy_violation_pk PRIMARY KEY (policy_violation_id),
-  CONSTRAINT waived_policy_violation_violation_fk FOREIGN KEY (policy_violation_id) REFERENCES policy_violation(policy_violation_id)
+  -- summary of the policy that caused the violation
+  policy_id varchar(50) NOT NULL, -- no foreign key constraint to policy, policies can be deleted at any time
+  policy_name varchar(60) NOT NULL,
+  threat_level smallint(2) NOT NULL,
+  threat_category varchar(20) NOT NULL,
+
+  -- identification of the component that caused the violation
+  hash varchar(20),
+  component_id_format varchar(10),
+  component_id_coordinates_json varchar(1000),
+  filename varchar(1000),
+
+  -- record of the most recent policy constraints/conditions that were violated
+  constraint_facts_json CLOB NOT NULL,
+
+  -- the most recent action during the violation's lifetime
+  action_type_id varchar(20), 
+
+  -- timestamps recording the state and transitions thereof for the violation
+  open_time datetime NOT NULL, -- when the violation first occurred
+  waive_time datetime NULL,    -- when the violation was waived
+  fix_time datetime NULL,      -- when the violation disappeared entirely
+
+  -- details of the waiver that suppressed this violation
+  policy_waiver_id varchar(50) NULL,  -- no foreign key constraint to policy_waiver, waivers can be deleted at any time
+  policy_waiver_comment varchar(1000) NULL,
+
+  -- whether the violation was ever encountered during a non-re-evaluation, supports notifications for ordinary evaluations
+  seen_by_primary_evaluation bool NOT NULL,
+  -- whether the violation was ever encountered during policy monitoring, supports separate notifications for policy monitoring
+  seen_by_monitoring_evaluation bool NOT NULL,
+
+  CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
+  CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
+CREATE INDEX policy_violation_app_fix_time_stage_idx ON policy_violation(application_id, fix_time, stage_type_id);
+CREATE INDEX policy_violation_policy_app_idx ON policy_violation(policy_id, application_id);
+CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
 
 CREATE TABLE dashboard_filter (
   dashboard_filter_id varchar(50) NOT NULL,

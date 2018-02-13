@@ -34,14 +34,12 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -84,7 +82,6 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -93,7 +90,6 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
@@ -174,10 +170,6 @@ public class TemporaryEntity
   private final PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
   private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-
-  private final FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
-
-  private final WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
 
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
@@ -1000,13 +992,10 @@ public class TemporaryEntity
   {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
         threatCategory, hash, componentIdentifier, "[]", "unknown.jar");
-    policyViolation.setWaived(true);
+    policyViolation.setWaiveTime(evaluation.getTime());
+    policyViolation.setPolicyWaiverId(policyWaiver.getId());
+    policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
     policyViolationDAO.insert(policyViolation);
-
-    WaivedPolicyViolation waivedPolicyViolation = new WaivedPolicyViolation(policyViolation.getId(),
-        policyWaiver.getId(), policyWaiver.getComment());
-    waivedPolicyViolationDAO.insert(waivedPolicyViolation);
-
     return policyViolation;
   }
 
@@ -1088,16 +1077,6 @@ public class TemporaryEntity
     policyViolation.setActionTypeId(actionTypeId);
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
-  }
-
-  public FirstOccurrencePolicyViolation newFirstOccurrencePolicyViolation(String policyViolationId,
-                                                                          String applicationId,
-                                                                          String stageTypeId)
-  {
-    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = new FirstOccurrencePolicyViolation(
-        policyViolationId, applicationId, stageTypeId);
-    firstOccurrencePolicyViolationDAO.insert(firstOccurrencePolicyViolation);
-    return firstOccurrencePolicyViolation;
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId,

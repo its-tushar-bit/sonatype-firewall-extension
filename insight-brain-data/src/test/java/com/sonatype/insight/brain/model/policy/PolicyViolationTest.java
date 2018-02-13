@@ -6,8 +6,7 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,23 +14,36 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.google.common.base.Joiner;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class PolicyViolationTest
 {
-  private PolicyEvaluation evaluation = new PolicyEvaluation();
-
   private static final ComponentIdentifier MAVEN_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("groupId",
       "artifactId", "version");
+
+  private PolicyEvaluation evaluation;
+
+  @Before
+  public void setUp() {
+    evaluation = new PolicyEvaluation("app-id", "stage-type-id", "scan-id");
+    evaluation.setTime(new Date(System.currentTimeMillis() - 12345));
+  }
+
+  @Test
+  public void testConstructor_InitializeFromEvaluation() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    assertThat(policyViolation.getApplicationId(), is(evaluation.getApplicationId()));
+    assertThat(policyViolation.getStageTypeId(), is(evaluation.getStageTypeId()));
+    assertThat(policyViolation.getOpenTime(), is(evaluation.getTime()));
+  }
 
   @Test
   public void testConstructorConstraintFacts() throws Exception {
@@ -169,41 +181,12 @@ public class PolicyViolationTest
     }
   }
 
-  @Test
-  public void testConstructorFilename_Null() throws Exception {
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
-        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, JsonUtils.format(createConstraintFacts(2)),
-        null);
-
-    assertNull(policyViolation.getFilename());
-  }
-
-  @Test
-  public void testConstructorFilename_Blank() throws Exception {
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
-        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, JsonUtils.format(createConstraintFacts(2)),
-        " ");
-
-    assertNull(policyViolation.getFilename());
-  }
-
   private List<ConstraintFact> createConstraintFacts(int count) {
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     for (int i = 0; i < count; i++) {
       constraintFacts.add(new ConstraintFact(UUID.randomUUID().toString(), "constraintName " + i, "and"));
     }
     return constraintFacts;
-  }
-
-  private String createNotificationsString(int count) {
-    StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < count; i++) {
-      if (builder.length() > 0) {
-        builder.append(PolicyViolation.NOTIFICATIONS_DELIMITER_CHAR);
-      }
-      builder.append("DonaldDuck").append(i).append("@example.com");
-    }
-    return builder.toString();
   }
 
   private void assertConstraintFacts(List<ConstraintFact> actual, List<ConstraintFact> expected) {
@@ -218,127 +201,21 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testSetNotifications() throws Exception {
-    String notificationsString = createNotificationsString(2);
-    List<String> notifications = Arrays
-        .asList(notificationsString.split(PolicyViolation.NOTIFICATIONS_DELIMITER_REGEX));
-    // Violations must have constraint facts.
-    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+  public void testSetFixTime() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    assertThat(policyViolation.getFixTime(), is(nullValue()));
 
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
-        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts, null /* filename */);
-    policyViolation.setNotifications(notifications);
-
-    assertThat(policyViolation.getNotifications(), is(notifications));
-    assertThat(policyViolation.getNotificationsString(), is(notificationsString));
-  }
-
-  @Test
-  public void testSetNotifications_Empty() throws Exception {
-    List<String> notifications = new ArrayList<>();
-    // Violations must have constraint facts.
-    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
-        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts, null /* filename */);
-    policyViolation.setNotifications(notifications);
-
-    assertThat(policyViolation.getNotifications(), hasSize(0));
-    assertThat(policyViolation.getNotificationsString(), is(nullValue()));
-  }
-
-  @Test
-  public void testSetNotifications_Null() throws Exception {
-    List<String> notifications = null;
-    // Violations must have constraint facts.
-    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
-        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts, null /* filename */);
-    policyViolation.setNotifications(notifications);
-
-    assertThat(policyViolation.getNotifications(), hasSize(0));
-    assertThat(policyViolation.getNotificationsString(), is(nullValue()));
-  }
-
-  @Test
-  public void testSetWaived() {
-    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
-        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts, null /* filename */);
-    assertThat(policyViolation.isWaived(), is(false));
-
-    policyViolation.setWaived(true);
-    assertThat(policyViolation.isWaived(), is(true));
+    Date now = new Date();
+    policyViolation.setFixTime(now);
+    assertThat(policyViolation.getFixTime(), is(now));
 
     try {
-      policyViolation.setWaived(false);
-      fail("Expected IllegalStateException");
+      policyViolation.setFixTime(null);
+      fail("Expected exception");
     }
     catch (IllegalStateException expected) {
-      assertThat(expected.getMessage(), is("Cannot un-waive a policy violation."));
+      assertThat(expected.getMessage(), is("Cannot un-fix a policy violation."));
     }
-  }
-
-  @Test
-  public void testGetFilename_ReturnsNullGivenNullFilename() throws Exception {
-    PolicyViolation policyViolation = new PolicyViolation();
-    policyViolation.setPathnames((String) null);
-    assertThat(policyViolation.getFilename(), is(nullValue()));
-  }
-
-  @Test
-  public void testGetFilename_ReturnsNullGivenEmptyFilename() throws Exception {
-    PolicyViolation policyViolation = new PolicyViolation();
-    policyViolation.setPathnames("");
-    assertThat(policyViolation.getFilename(), is(nullValue()));
-  }
-
-  @Test
-  public void testGetFilename_ReturnsFilenameGivenFilename() throws Exception {
-    PolicyViolation policyViolation = new PolicyViolation();
-    policyViolation.setPathnames("foo");
-    assertThat(policyViolation.getFilename(), is(equalTo("foo")));
-  }
-
-  @Test
-  public void testGetFilename_ReturnsNullGivenNullPathnames() throws Exception {
-    PolicyViolation policyViolation = new PolicyViolation();
-    policyViolation.setPathnames((List<String>) null);
-    assertThat(policyViolation.getFilename(), is(nullValue()));
-  }
-
-  @Test
-  public void testGetFilename_ReturnsNullGivenEmptyPathnames() throws Exception {
-    PolicyViolation policyViolation = new PolicyViolation();
-    policyViolation.setPathnames(Collections.<String>emptyList());
-    assertThat(policyViolation.getFilename(), is(nullValue()));
-  }
-
-  @Test
-  public void testGetFilename_ReturnsCorrectFirstPathFilename() throws Exception {
-    assertFilename("bar", "", "bar");
-    assertFilename("foo", "foo", "bar");
-    assertFilename("foo.jar", "foo.jar", "bar");
-    assertFilename("foo.jar", "some/path/foo.jar", "bar");
-    assertFilename("foo.jar", "/some/path/foo.jar", "bar");
-    assertFilename("foo with spaces.jar", "foo with spaces.jar", "bar");
-    assertFilename("junit:junit:jar:4.9", "dependency:/com.sonatype.test:clm:war:0.1/junit:junit:jar:4.9");
-    String sc = "!£$%^&*()-_+=/`.<>?@'~#{}[];:<>,|\\";
-    assertFilename("g2:a2:jar:0.2", String.format("%sdependency%s:/g1:%sa1%s:%s0.1/g2:a2:jar:0.2", sc, sc, sc, sc, sc));
-  }
-
-  private void assertFilename(String expectedFilename, String... pathnames) {
-    assertFilename(expectedFilename, Arrays.asList(pathnames));
-  }
-
-  private void assertFilename(String expectedFilename, List<String> pathnames) {
-    PolicyViolation policyViolation = new PolicyViolation();
-    // Check filename is correct given unmigrated pathnames String
-    policyViolation.setPathnames(Joiner.on(PolicyViolation.PATHNAMES_DELIMITER_CHAR).skipNulls().join(pathnames));
-    assertThat(policyViolation.getFilename(), is(equalTo(expectedFilename)));
-    // Check filename is correct when set via pathnames list
-    policyViolation.setPathnames(pathnames);
-    assertThat(policyViolation.getFilename(), is(equalTo(expectedFilename)));
   }
 }

@@ -14,7 +14,6 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -167,19 +166,6 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluation, is(notNullValue()));
     assertThat(policyEvaluation.getTime(), is(time1));
     assertThat(policyEvaluation.isForObsoleteScan(), is(false));
-  }
-
-  @Test
-  public void testCascadeDeleteToPolicyViolations() {
-    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToPolicyViolations");
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
-        "PolicyEvaluationDAOTest");
-    tempEntity.newPolicyViolation(policyEvaluation, policy);
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
-
-    new PolicyEvaluationDAO().delete(policyEvaluation);
-    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(0));
   }
 
   private void assertPolicyEvaluation(String applicationId,

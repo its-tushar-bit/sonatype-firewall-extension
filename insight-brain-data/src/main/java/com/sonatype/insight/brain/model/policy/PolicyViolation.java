@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -15,15 +12,10 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.model.HasStringId;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * @since 1.11
@@ -34,43 +26,39 @@ public class PolicyViolation
     extends AbstractPolicyViolation
     implements HasStringId
 {
-  static final char PATHNAMES_DELIMITER_CHAR = '\n';
-
-  /** The pathnames delimiter character escaped for regular expressions. */
-  static final String PATHNAMES_DELIMITER_REGEX = "\\" + PATHNAMES_DELIMITER_CHAR;
-
-  static final char NOTIFICATIONS_DELIMITER_CHAR = '\n';
-
-  /** The notifications delimiter character escaped for regular expressions. */
-  static final String NOTIFICATIONS_DELIMITER_REGEX = "\\" + NOTIFICATIONS_DELIMITER_CHAR;
-
   @Id
   @Column(name = "policy_violation_id")
   private String id;
 
-  @Column(name = "policy_evaluation_id")
-  private String policyEvaluationId;
+  @Column(name = "application_id")
+  private String applicationId;
 
-  @Column(name = "time")
-  private Date time;
+  @Column(name = "stage_type_id")
+  private String stageTypeId;
 
-  /**
-   * @since 1.12
-   */
-  @Column(name = "waived")
-  private boolean isWaived;
-
-  @Column(name = "pathnames")
-  private String pathnames;
-
-  @Column(name = "notifications")
-  private String notificationsString;
-
-  @Transient
-  private List<String> notifications;
-  
-  @Transient
+  @Column(name = "filename")
   private String filename;
+
+  @Column(name = "open_time")
+  private Date openTime;
+
+  @Column(name = "waive_time")
+  private Date waiveTime;
+
+  @Column(name = "fix_time")
+  private Date fixTime;
+
+  @Column(name = "policy_waiver_id")
+  private String policyWaiverId;
+
+  @Column(name = "policy_waiver_comment")
+  private String policyWaiverComment;
+
+  @Column(name = "seen_by_primary_evaluation")
+  private boolean seenByPrimaryEvaluation;
+
+  @Column(name = "seen_by_monitoring_evaluation")
+  private boolean seenByMonitoringEvaluation;
 
   public PolicyViolation() {
   }
@@ -86,9 +74,10 @@ public class PolicyViolation
                          String filename)
   {
     super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFactsJson);
-    this.time = evaluation.getTime();
-    this.policyEvaluationId = evaluation.getId();
-    this.pathnames = filename;
+    applicationId = evaluation.getApplicationId();
+    stageTypeId = evaluation.getStageTypeId();
+    openTime = evaluation.getTime();
+    this.filename = filename;
   }
 
   public PolicyViolation(PolicyEvaluation evaluation,
@@ -113,9 +102,10 @@ public class PolicyViolation
                          String filename)
   {
     super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);
-    this.time = evaluation.getTime();
-    this.policyEvaluationId = evaluation.getId();
-    this.pathnames = filename;
+    applicationId = evaluation.getApplicationId();
+    stageTypeId = evaluation.getStageTypeId();
+    openTime = evaluation.getTime();
+    this.filename = filename;
   }
 
   @Override
@@ -128,108 +118,103 @@ public class PolicyViolation
     this.id = id;
   }
 
-  public String getPolicyEvaluationId() {
-    return policyEvaluationId;
+  public String getApplicationId() {
+    return applicationId;
   }
 
-  public void setPolicyEvaluationId(String policyEvaluationId) {
-    this.policyEvaluationId = policyEvaluationId;
+  public void setApplicationId(String applicationId) {
+    this.applicationId = applicationId;
   }
 
-  public Date getTime() {
-    return time;
+  public String getStageTypeId() {
+    return stageTypeId;
   }
 
-  public void setTime(Date time) {
-    this.time = time;
-  }
-
-  public boolean isWaived() {
-    return isWaived;
-  }
-
-  public void setWaived(boolean isWaived) {
-    if (this.isWaived && !isWaived) {
-      throw new IllegalStateException("Cannot un-waive a policy violation.");
-    }
-    this.isWaived = isWaived;
+  public void setStageTypeId(String stageTypeId) {
+    this.stageTypeId = stageTypeId;
   }
 
   public String getFilename() {
-    // Return the first pathname's filename, unless pathnames/first pathname is blank, then return null
-    if (filename != null) {
-      return filename;
-    }
-    if (StringUtils.isBlank(pathnames)) {
-      return null;
-    }
-    String firstPath = pathnames.trim().split(PATHNAMES_DELIMITER_REGEX)[0];
-    if (StringUtils.isBlank(firstPath)) {
-      return null;
-    }
-    filename = new File(firstPath).getName();
     return filename;
   }
 
-  @VisibleForTesting
-  void setPathnames(String pathnames) {
-    filename = null;
-    this.pathnames = pathnames;
+  public void setFilename(String filename) {
+    this.filename = filename;
   }
 
-  @VisibleForTesting
-  void setPathnames(List<String> pathnames) {
-    if (pathnames == null || pathnames.isEmpty()) {
-      // If the path names are null or empty we want to persist a null value.
-      setPathnames((String) null);
+  public Date getOpenTime() {
+    return openTime;
+  }
+
+  public void setOpenTime(Date openTime) {
+    this.openTime = openTime;
+  }
+
+  public boolean isWaived() {
+    return getWaiveTime() != null;
+  }
+
+  public Date getWaiveTime() {
+    return waiveTime;
+  }
+
+  public void setWaiveTime(Date waiveTime) {
+    this.waiveTime = waiveTime;
+  }
+
+  public boolean isFixed() {
+    return getFixTime() != null;
+  }
+
+  public Date getFixTime() {
+    return fixTime;
+  }
+
+  public void setFixTime(Date fixTime) {
+    if (this.fixTime != null && fixTime == null) {
+      throw new IllegalStateException("Cannot un-fix a policy violation.");
     }
-    else {
-      setPathnames(Joiner.on(PATHNAMES_DELIMITER_CHAR).skipNulls().join(pathnames));
-    }
+    this.fixTime = fixTime;
   }
 
-  public String getNotificationsString() {
-    return notificationsString;
+  public String getPolicyWaiverId() {
+    return policyWaiverId;
   }
 
-  /**
-   * Only used by JPA.
-   */
-  @SuppressWarnings("unused")
-  private void setNotificationsString(String notificationsString) {
-    this.notificationsString = notificationsString;
-    notifications = null;
+  public void setPolicyWaiverId(String policyWaiverId) {
+    this.policyWaiverId = policyWaiverId;
   }
 
-  public void setNotifications(List<String> notifications) {
-    if (notifications == null || notifications.isEmpty()) {
-      this.notifications = Collections.emptyList();
-      notificationsString = null;
-      return;
-    }
-
-    this.notifications = notifications;
-    notificationsString = Joiner.on(NOTIFICATIONS_DELIMITER_CHAR).skipNulls().join(notifications);
+  public String getPolicyWaiverComment() {
+    return policyWaiverComment;
   }
 
-  public List<String> getNotifications() {
-    if (notifications == null) {
-      if (!StringUtils.isBlank(notificationsString)) {
-        notifications = Arrays.asList(notificationsString.split(NOTIFICATIONS_DELIMITER_REGEX));
-      }
-      else {
-        notifications = Collections.emptyList();
-      }
-    }
+  public void setPolicyWaiverComment(String policyWaiverComment) {
+    this.policyWaiverComment = policyWaiverComment;
+  }
 
-    return notifications;
+  public boolean isSeenByPrimaryEvaluation() {
+    return seenByPrimaryEvaluation;
+  }
+
+  public void setSeenByPrimaryEvaluation(boolean seenByPrimaryEvaluation) {
+    this.seenByPrimaryEvaluation = seenByPrimaryEvaluation;
+  }
+
+  public boolean isSeenByMonitoringEvaluation() {
+    return seenByMonitoringEvaluation;
+  }
+
+  public void setSeenByMonitoringEvaluation(boolean seenByMonitoringEvaluation) {
+    this.seenByMonitoringEvaluation = seenByMonitoringEvaluation;
   }
 
   @Override
   public String toString() {
-    return "PolicyViolation [id=" + id + ", policyEvaluationId=" + policyEvaluationId + ", time=" + getTime() + "("
-        + getTime().getTime() + "), policyId=" + getPolicyId() + ", policyName=" + getPolicyName() + ", threatLevel="
-        + getThreatLevel() + ", threatCategory=" + getThreatCategory() + ", hash=" + getHash()
+    return "PolicyViolation [id=" + id + ", applicationId=" + getApplicationId() + ", stageTypeId=" + getStageTypeId()
+        + ", openTime=" + getOpenTime() + "(" + getOpenTime().getTime() + "), waiveTime=" + getWaiveTime()
+        + ", fixTime=" + getFixTime() + ", policyId=" + getPolicyId() + ", policyName=" + getPolicyName()
+        + ", threatLevel=" + getThreatLevel() + ", threatCategory=" + getThreatCategory() + ", hash=" + getHash()
         + ", componentIdentifier=" + getComponentIdentifier() + ", actionTypeId=" + getActionTypeId() + "]";
   }
 }

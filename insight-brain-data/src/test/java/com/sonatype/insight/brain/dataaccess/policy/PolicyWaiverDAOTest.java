@@ -312,12 +312,9 @@ public class PolicyWaiverDAOTest
     PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
-    WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
-    assertThat(waivedPolicyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
 
     new PolicyWaiverDAO().delete(policyWaiver);
     assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
-    assertThat(waivedPolicyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
   }
 
   @Test

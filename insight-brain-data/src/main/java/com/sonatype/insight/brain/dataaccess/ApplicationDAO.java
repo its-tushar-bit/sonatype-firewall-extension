@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -295,6 +297,12 @@ public class ApplicationDAO
       // policy evaluations, the transaction becomes huge and that slows down the delete operation. By doing the policy
       // evaluation deletes outside of the transaction, performance is improved 17 times.
       policyEvaluationDAO.delete(policyEvaluation, false /* updateLastPolicyEvaluation */);
+    }
+
+    // Cascade to policy violations (like policy evaluations, deleted outside of transaction for performance)
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    for (PolicyViolation policyViolation : policyViolationDAO.getByApplicationId(application.getId())) {
+      policyViolationDAO.delete(policyViolation);
     }
 
     // Cascade to license threat groups

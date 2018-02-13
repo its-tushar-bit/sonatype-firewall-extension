@@ -13,7 +13,6 @@ import java.util.Set;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -235,14 +234,7 @@ public class PolicyEvaluationDAO
 
   private void delete(final TransactionContext tx, PolicyEvaluation policyEvaluation, boolean updateLastPolicyEvaluation)
   {
-    final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
-
-    // Cascade to policy violations
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(tx, policyEvaluation.getId());
-    for (PolicyViolation policyViolation : policyViolations) {
-      policyViolationDAO.delete(tx, policyViolation);
-    }
 
     // Cascade to last policy evaluation if this is the last policy evaluation
     LastPolicyEvaluation lastPolicyEvaluation = lastPolicyEvaluationDAO.getByEvaluationId(tx, policyEvaluation.getId());

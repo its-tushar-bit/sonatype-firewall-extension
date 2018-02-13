@@ -38,7 +38,7 @@ public class PolicyViolationResolutionStateDAOTest
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy);
 
     // sanity checks
-    assertThat(violation.getTime(), is(notNullValue()));
+    assertThat(violation.getOpenTime(), is(notNullValue()));
     assertThat(violation.getHash(), is(notNullValue()));
     assertThat(violation.getPolicyId(), is(notNullValue()));
     assertThat(violation.getPolicyName(), is(notNullValue()));
@@ -55,7 +55,7 @@ public class PolicyViolationResolutionStateDAOTest
     resolutionState = dao.getById(resolutionState.getId());
     assertThat(resolutionState, is(notNullValue()));
     assertThat(resolutionState.getApplicationId(), is(app.getId()));
-    assertThat(resolutionState.getFirstOccurrenceTime(), is(violation.getTime()));
+    assertThat(resolutionState.getFirstOccurrenceTime(), is(violation.getOpenTime()));
     assertThat(resolutionState.getPolicyId(), is(violation.getPolicyId()));
     assertThat(resolutionState.getPolicyName(), is(violation.getPolicyName()));
     assertThat(resolutionState.getThreatLevel(), is(violation.getThreatLevel()));

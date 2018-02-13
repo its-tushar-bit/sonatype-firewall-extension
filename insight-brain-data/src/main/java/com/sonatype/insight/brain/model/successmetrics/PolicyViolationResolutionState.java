@@ -79,7 +79,7 @@ public class PolicyViolationResolutionState
 
   public PolicyViolationResolutionState(String applicationId, PolicyViolation policyViolation) {
     this.applicationId = applicationId;
-    this.firstOccurrenceTime = policyViolation.getTime();
+    this.firstOccurrenceTime = policyViolation.getOpenTime();
     this.policyId = policyViolation.getPolicyId();
     this.policyName = policyViolation.getPolicyName();
     this.threatLevel = policyViolation.getThreatLevel();

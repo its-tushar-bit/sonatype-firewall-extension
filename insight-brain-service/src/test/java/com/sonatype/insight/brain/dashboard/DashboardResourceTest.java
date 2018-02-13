@@ -205,7 +205,7 @@ public class DashboardResourceTest
     PolicyViolation v1 = createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
     Policy stagePolicy = tempEntity.newPolicy(app.getId(), "stage policy");
     PolicyViolation v2 = createFirstOccurrencePolicyViolation(app, stagePolicy, StageReleaseStageType.ID,
-        new Date(v1.getTime().getTime() + 10));
+        new Date(v1.getOpenTime().getTime() + 10));
 
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "-POLICY_NAME";
@@ -370,8 +370,7 @@ public class DashboardResourceTest
     Application app = tempEntity.newApplicationWithParent("test_app_1", "test app 1");
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan id");
-    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, buildPolicy);
-    tempEntity.newFirstOccurrencePolicyViolation(violation.getId(), app.getId(), BuildStageType.ID);
+    tempEntity.newPolicyViolation(evaluation, buildPolicy);
     tempEntity.newPolicyViolation(evaluation, buildPolicy, "Group1", "Artifact2", "Version1", "Hash1", "reason");
 
     RisksFilterDTO dto = new RisksFilterDTO();
@@ -443,9 +442,7 @@ public class DashboardResourceTest
                                                                Date time)
   {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id", time);
-    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, tempPolicy);
-    tempEntity.newFirstOccurrencePolicyViolation(violation.getId(), app.getId(), stageTypeId);
-    return violation;
+    return tempEntity.newPolicyViolation(evaluation, tempPolicy);
   }
 
   private void assertResponseOkAndCsvHeadersSet(HttpResponse response, String fileNamePrefix) throws ParseException {
@@ -464,8 +461,8 @@ public class DashboardResourceTest
   }
 
   private String getTimestamps(PolicyViolation policyViolation) {
-    String dateFirstSeen = csvTimestampFormatter.format(policyViolation.getTime());
-    long millisSinceFirstSeen = policyViolation.getTime().getTime();
+    String dateFirstSeen = csvTimestampFormatter.format(policyViolation.getOpenTime());
+    long millisSinceFirstSeen = policyViolation.getOpenTime().getTime();
     return dateFirstSeen + "," + millisSinceFirstSeen;
   }
   

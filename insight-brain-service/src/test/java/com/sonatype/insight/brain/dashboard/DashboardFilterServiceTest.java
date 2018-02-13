@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -71,9 +70,6 @@ public class DashboardFilterServiceTest
   private Policy app1Policy;
   private PolicyEvaluation app1PolicyEvaluation;
   private PolicyEvaluation app2PolicyEvaluation;
-  private PolicyViolation orgPolicyViolation;
-  private PolicyViolation app1PolicyViolation;
-  private PolicyViolation app2PolicyViolation;
   private Tag tag1;
   private Tag tag2;
 
@@ -90,12 +86,9 @@ public class DashboardFilterServiceTest
         new Date(time));
     app2PolicyEvaluation = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "test scan app2 id",
         new Date(time + 1));
-    orgPolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy);
-    app1PolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
-    app2PolicyViolation = tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy);
-    tempEntity.newFirstOccurrencePolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID);
-    tempEntity.newFirstOccurrencePolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
-    tempEntity.newFirstOccurrencePolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy);
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy);
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash-1",
         ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-3", MatchState.SIMILAR, false);

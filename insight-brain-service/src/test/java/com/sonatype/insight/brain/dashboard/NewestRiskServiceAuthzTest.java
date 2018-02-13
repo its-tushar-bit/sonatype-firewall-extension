@@ -10,7 +10,6 @@ import java.util.Collections;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -121,8 +120,6 @@ public class NewestRiskServiceAuthzTest
 
   private void createFirstOccurrencePolicyViolation(String appId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation,
-        tempEntity.newPolicy(app.getId(), "test policy name"));
-    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), appId, BuildStageType.ID);
+    tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app.getId(), "test policy name"));
   }
 }

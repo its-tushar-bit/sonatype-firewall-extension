@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import static org.junit.Assert.assertEquals;
@@ -20,6 +21,7 @@ class PolicyViolationDTOTestUtils
   static void assertPolicyViolationDTO(List<PolicyViolationDTO> dtos,
                                        PolicyViolation violation,
                                        Application application,
+                                       PolicyEvaluation evaluation,
                                        Policy policy)
   {
     for (PolicyViolationDTO dto : dtos) {
@@ -33,7 +35,7 @@ class PolicyViolationDTOTestUtils
         assertEquals(dto.policyName, policy.getName());
         assertEquals(dto.threatCategory, violation.getThreatCategory());
         assertEquals(dto.threatLevel, violation.getThreatLevel());
-        assertEquals(dto.time, violation.getTime().getTime());
+        assertEquals(dto.time, evaluation.getTime().getTime());
         assertEquals(dto.filename, violation.getFilename());
         return;
       }

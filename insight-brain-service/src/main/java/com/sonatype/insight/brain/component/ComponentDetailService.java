@@ -127,8 +127,8 @@ public class ComponentDetailService
           continue;
         }
 
-        List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationIdAndHash(
-            policyEvaluation.getId(), hash);
+        List<PolicyViolation> policyViolations = policyViolationDAO
+            .getActiveByApplicationIdAndStageIdAndHash(application.getId(), stageType.getId(), hash);
         if (policyViolations.isEmpty()) {
           continue;
         }
@@ -137,26 +137,8 @@ public class ComponentDetailService
         appStageDetailDTO.time = policyEvaluation.getTime().getTime();
         appStageDetailDTO.scanId = policyEvaluation.getScanId();
 
-        List<PolicyViolation> firstOccurrences = policyViolationDAO
-            .getFirstOccurrenceByApplicationIdAndStageTypeIdAndHash(application.getId(), stageType.getId(), hash);
-        Map<String, PolicyViolation> firstOccurrencesByPolicyId = new HashMap<>();
-        for (PolicyViolation firstOccurrence : firstOccurrences) {
-          PolicyViolation clash = firstOccurrencesByPolicyId.put(firstOccurrence.getPolicyId(), firstOccurrence);
-          if (clash != null) {
-            throw new IllegalStateException("Duplicate first occurrence for violation, appId = " + application.getId()
-                + ", stageId = " + stageType.getId() + ", policyId = " + firstOccurrence.getPolicyId() + ", hash = "
-                + hash + ", id = " + clash.getId() + " vs " + firstOccurrence.getId());
-          }
-        }
-
         for (PolicyViolation policyViolation : policyViolations) {
           String policyId = policyViolation.getPolicyId();
-
-          PolicyViolation firstOccurrence = firstOccurrencesByPolicyId.get(policyId);
-          if (firstOccurrence == null) {
-            // incomplete data migration between snapshot builds or violations for unhashed components can cause this
-            firstOccurrence = policyViolation;
-          }
 
           Map<String, StageDetailDTO> stageDetailsById = stageDetailsByPolicyId.get(policyId);
           if (stageDetailsById == null) {
@@ -166,7 +148,7 @@ public class ComponentDetailService
           StageDetailDTO policyStageDetailDTO = stageDetailsById.get(stageType.getId());
           policyStageDetailDTO.scanId = policyEvaluation.getScanId();
           policyStageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
-          policyStageDetailDTO.time = firstOccurrence.getTime().getTime();
+          policyStageDetailDTO.time = policyViolation.getOpenTime().getTime();
 
           // Should always have the time/action of the first occurring violation for the stage, to indicate how long
           // violations have been around for this application.
@@ -183,10 +165,10 @@ public class ComponentDetailService
             policyViolationDTOsByPolicyId.put(policyId, policyViolationSummaryDTO);
           }
           // Use the values from the most recent policy violation
-          if (policyViolationSummaryDTO.time < policyViolation.getTime().getTime()) {
+          if (policyViolationSummaryDTO.time < policyEvaluation.getTime().getTime()) {
             policyViolationSummaryDTO.policyName = policyViolation.getPolicyName();
             policyViolationSummaryDTO.threatLevel = policyViolation.getThreatLevel();
-            policyViolationSummaryDTO.time = policyViolation.getTime().getTime();
+            policyViolationSummaryDTO.time = policyEvaluation.getTime().getTime();
           }
         }
       }
@@ -385,7 +367,8 @@ public class ComponentDetailService
         continue;
       }
 
-      Collection<PolicyViolation> violations = policyViolationDAO.getActiveByEvaluationId(evaluation.getId());
+      Collection<PolicyViolation> violations = policyViolationDAO
+          .getActiveByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId());
 
       for (PolicyViolation violation : violations) {
         String hash = violation.getHash();

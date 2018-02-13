@@ -43,10 +43,10 @@ public class PolicyViolationAdapterTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
     PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, violation);
+    PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, violation);
 
     assertNotNull(dto);
-    assertPolicyViolationDTO(Arrays.asList(dto), violation, app, policy);
+    assertPolicyViolationDTO(Arrays.asList(dto), violation, app, policyEvaluation, policy);
   }
 
   @Test
@@ -59,9 +59,9 @@ public class PolicyViolationAdapterTest
 
     new PolicyDAO().delete(policy);
 
-    PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyViolation);
+    PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, policyViolation);
 
     assertNotNull(dto);
-    assertPolicyViolationDTO(Arrays.asList(dto), policyViolation, app, policy);
+    assertPolicyViolationDTO(Arrays.asList(dto), policyViolation, app, policyEvaluation, policy);
   }
 }

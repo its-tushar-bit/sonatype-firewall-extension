@@ -88,9 +88,6 @@ public class ComponentRiskServiceTest
     orgPolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy);
     app1PolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
     app2PolicyViolation = tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy);
-    tempEntity.newFirstOccurrencePolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID);
-    tempEntity.newFirstOccurrencePolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
-    tempEntity.newFirstOccurrencePolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash-1",
         ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-3", MatchState.SIMILAR, false);
@@ -101,6 +98,15 @@ public class ComponentRiskServiceTest
     tag2 = tempEntity.newTag(org.getParentOwnerId());
     tempEntity.newApplicationTag(app1.getId(), tag1.getId());
     tempEntity.newApplicationTag(app1.getId(), tag2.getId());
+  }
+
+  private void fixViolations(PolicyEvaluation evaluation) {
+    PolicyViolationDAO violationDAO = new PolicyViolationDAO();
+    for (PolicyViolation fixedViolation : violationDAO
+        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId())) {
+      fixedViolation.setFixTime(evaluation.getTime());
+      violationDAO.update(fixedViolation);
+    }
   }
 
   @Test
@@ -146,19 +152,19 @@ public class ComponentRiskServiceTest
         null, null, null);
 
     assertThat(policyViolationDTOs, hasSize(4));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
 
     Set<String> stageTypeIds = Collections.emptySet();
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, stageTypeIds, null, null, null, null);
 
     assertThat(policyViolationDTOs, hasSize(4));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
   }
 
   @Test
@@ -166,9 +172,9 @@ public class ComponentRiskServiceTest
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
         null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
   }
 
   @Test
@@ -180,10 +186,10 @@ public class ComponentRiskServiceTest
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null,
         Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null, null, null);
     assertThat(policyViolationDTOs, hasSize(4));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
   }
 
   @Test
@@ -221,7 +227,7 @@ public class ComponentRiskServiceTest
         null, new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), null, null);
 
     assertThat(policyViolationDTOs, hasSize(1));
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
   }
 
   @Test
@@ -241,7 +247,7 @@ public class ComponentRiskServiceTest
         null, null, new PolicyThreatLevelFilter(5, 7), null);
 
     assertThat(policyViolationDTOs, hasSize(1));
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
   }
 
   @Test
@@ -271,7 +277,7 @@ public class ComponentRiskServiceTest
         null, new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), new PolicyThreatLevelFilter(5, 7), null);
 
     assertThat(policyViolationDTOs, hasSize(1));
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
   }
 
   @Test
@@ -284,34 +290,36 @@ public class ComponentRiskServiceTest
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
         null, null, new PolicyViolationStateFilter(PolicyViolationState.WAIVED));
     assertThat(policyViolationDTOs, hasSize(1));
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1PolicyEvaluation, app1Policy);
 
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
         new PolicyViolationStateFilter(PolicyViolationState.OPEN));
     assertThat(policyViolationDTOs, hasSize(3));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
 
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null,
         new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN));
     assertThat(policyViolationDTOs, hasSize(4));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1PolicyEvaluation, app1Policy);
   }
 
   @Test
   public void testGetPolicyViolationsReturnsLatest() {
     // Create a new evaluation for app1 that does not include any violations.
-    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "re-scan app1");
+    PolicyEvaluation newEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "re-scan app1");
+    fixViolations(newEvaluation);
+
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null,
         null, null, null);
 
     // The violations count should be 1, all of which come from app2.
     assertThat(policyViolationDTOs, hasSize(1));
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
   }
 
   @Test
@@ -319,9 +327,9 @@ public class ComponentRiskServiceTest
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null,
         Sets.newHashSet(app1.getId(), app2.getId()), null, null, null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
   }
 
   @Test
@@ -334,22 +342,24 @@ public class ComponentRiskServiceTest
         Sets.newHashSet(app1.getId(), app2.getId()), Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null,
         null, null, null);
     assertThat(policyViolationDTOs, hasSize(4));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, newApp1PolicyEvaluation, app1Policy);
   }
 
   @Test
   public void testGetPolicyViolationsByApplicationIdsReturnsLatest() {
     // Create a new evaluation for app1 that does not include any violations.
-    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "re-scan app1");
+    PolicyEvaluation newEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "re-scan app1");
+    fixViolations(newEvaluation);
+
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null,
         Sets.newHashSet(app1.getId(), app2.getId()), null, null, null, null, null);
 
     // The violations count should be 1, all of which come from app2.
     assertThat(policyViolationDTOs, hasSize(1));
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
   }
 
   @Test
@@ -360,8 +370,8 @@ public class ComponentRiskServiceTest
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null,
         Sets.newHashSet(app1Tag.getId()), null, null, null);
     assertThat(policyViolationDTOs, hasSize(2));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
 
     Tag app2Tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
@@ -369,9 +379,9 @@ public class ComponentRiskServiceTest
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null,
         Sets.newHashSet(app1Tag.getId(), app2Tag.getId()), null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
   }
 
   @Test
@@ -384,15 +394,15 @@ public class ComponentRiskServiceTest
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null,
         new HashSet<String>(), null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
 
     policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null, null, null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, app2PolicyEvaluation, orgPolicy);
   }
 
   @Test
@@ -707,12 +717,8 @@ public class ComponentRiskServiceTest
         MatchState.UNKNOWN, false, evaluation.getTime());
 
     // Create 2 violations without component identifiers: one with a pathname and one without. 
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, null, "hash-4", "unknown");
-    PolicyViolation policyViolationPathName = tempEntity
-        .newPolicyViolation(evaluation, app1Policy, null, "filename-hash", "unknown2", "b.zip");
-
-    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
-    tempEntity.newFirstOccurrencePolicyViolation(policyViolationPathName.getId(), app1.getId(), ReleaseStageType.ID);
+    tempEntity.newPolicyViolation(evaluation, app1Policy, null, "hash-4", "unknown");
+    tempEntity.newPolicyViolation(evaluation, app1Policy, null, "filename-hash", "unknown2", "b.zip");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, null,
         Collections.singleton(ReleaseStageType.ID), null, null, null, null, "NAME", 2);
@@ -738,7 +744,7 @@ public class ComponentRiskServiceTest
     List<PolicyViolationDTO> policyViolations = componentRiskService.getPolicyViolations(null, null, null,
         Sets.newHashSet(tag1.getId(), tag2.getId()), null, null, null);
     assertThat(policyViolations, hasSize(2));
-    assertPolicyViolationDTO(policyViolations, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolations, app1PolicyViolation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolations, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
+    assertPolicyViolationDTO(policyViolations, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
   }
 }

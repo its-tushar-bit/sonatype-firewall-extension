@@ -9,13 +9,17 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 @Named
 @Singleton
 public class PolicyViolationAdapter
 {
-  public PolicyViolationDTO createPolicyViolationDTO(Application application, PolicyViolation violation) {
+  public PolicyViolationDTO createPolicyViolationDTO(Application application,
+                                                     PolicyEvaluation evaluation,
+                                                     PolicyViolation violation)
+  {
     PolicyViolationDTO dto = new PolicyViolationDTO();
     dto.applicationId = application.getId();
     dto.applicationName = application.getName();
@@ -26,7 +30,7 @@ public class PolicyViolationAdapter
     dto.policyName = violation.getPolicyName();
     dto.threatCategory = violation.getThreatCategory();
     dto.threatLevel = violation.getThreatLevel();
-    dto.time = violation.getTime().getTime();
+    dto.time = evaluation.getTime().getTime();
     dto.filename = violation.getFilename();
     return dto;
   }

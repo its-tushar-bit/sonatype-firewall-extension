@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard.filters;
 
+import java.util.Date;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.PolicyViolationState;
@@ -23,10 +24,10 @@ public class PolicyViolationStateFilterTest
   public void testSinglePolicyViolationState() {
     PolicyViolationStateFilter filter = new PolicyViolationStateFilter(PolicyViolationState.OPEN);
     PolicyViolation trueViolation = new PolicyViolation();
-    trueViolation.setWaived(false);
+    trueViolation.setWaiveTime(null);
 
     PolicyViolation falseViolation = new PolicyViolation();
-    falseViolation.setWaived(true);
+    falseViolation.setWaiveTime(new Date());
 
     assertThat(filter.asPolicyViolationPredicate().apply(trueViolation), is(true));
     assertThat(filter.asPolicyViolationPredicate().apply(falseViolation), is(false));
@@ -38,8 +39,8 @@ public class PolicyViolationStateFilterTest
         PolicyViolationState.WAIVED);
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
-    v1.setWaived(false);
-    v2.setWaived(true);
+    v1.setWaiveTime(null);
+    v2.setWaiveTime(new Date());
 
     assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
     assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));
@@ -51,8 +52,8 @@ public class PolicyViolationStateFilterTest
         PolicyViolationState.WAIVED));
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
-    v1.setWaived(false);
-    v2.setWaived(true);
+    v1.setWaiveTime(null);
+    v2.setWaiveTime(new Date());
 
     assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
     assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));
@@ -63,8 +64,8 @@ public class PolicyViolationStateFilterTest
     PolicyViolationStateFilter filter = new PolicyViolationStateFilter();
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
-    v1.setWaived(false);
-    v2.setWaived(true);
+    v1.setWaiveTime(null);
+    v2.setWaiveTime(new Date());
 
     assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
     assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));
@@ -77,8 +78,8 @@ public class PolicyViolationStateFilterTest
     PolicyViolationStateFilter filter = new PolicyViolationStateFilter(nullPolicyViolationState);
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
-    v1.setWaived(false);
-    v2.setWaived(true);
+    v1.setWaiveTime(null);
+    v2.setWaiveTime(new Date());
 
     assertThat(filter.asPolicyViolationPredicate().apply(v1), is(true));
     assertThat(filter.asPolicyViolationPredicate().apply(v2), is(true));

@@ -10,7 +10,6 @@ import java.util.Collections;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -29,10 +28,9 @@ public class ApplicationRiskServiceAuthzTest
 
   @Before
   public void setup() {
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(tempEntity
+    tempEntity.newPolicyViolation(tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId"),
         tempEntity.newPolicy(org.getId(), "policy", 3));
-    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app.getId(), BuildStageType.ID);
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
   }

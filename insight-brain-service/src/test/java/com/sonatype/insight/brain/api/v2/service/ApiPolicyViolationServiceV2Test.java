@@ -213,14 +213,13 @@ public class ApiPolicyViolationServiceV2Test
     long time = System.currentTimeMillis() - 1000;
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(policyTestData.application.getId(),
         BuildStageType.ID, scanId + "1", new Date(time));
-    tempEntity.newPolicyViolation(policyEvaluation, policyTestData.orgPolicy, componentIdentifier, hash, reason);
+    policyTestData.policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation, policyTestData.orgPolicy,
+        componentIdentifier, hash, reason);
 
     MatchState matchState = componentIdentifier != null ? MatchState.EXACT : MatchState.UNKNOWN;
-    // Create a current violation for build stage
+    // Create a new evaluation for build stage, retaining the previous violation
     policyTestData.policyEvaluation1 = tempEntity.newPolicyEvaluation(policyTestData.application.getId(),
         BuildStageType.ID, scanId, new Date());
-    policyTestData.policyViolation1 = tempEntity.newPolicyViolation(policyTestData.policyEvaluation1,
-        policyTestData.orgPolicy, componentIdentifier, hash, reason);
     policyTestData.applicationComponent = tempEntity.newApplicationComponent(policyTestData.application.getId(),
         BuildStageType.ID, hash, componentIdentifier, null, matchState, true, new Date(time));
 

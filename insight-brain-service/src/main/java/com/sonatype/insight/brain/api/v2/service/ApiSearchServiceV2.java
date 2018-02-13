@@ -131,8 +131,8 @@ public class ApiSearchServiceV2
         result.hash = candidateHash;
         result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(candidateComponentIdentifier);
         results.results.add(result);
-        result.threatLevel = getMaxThreatLevel(policyViolationDAO.getActiveByEvaluationIdAndHash(eval.getId(),
-            candidateHash));
+        result.threatLevel = getMaxThreatLevel(
+            policyViolationDAO.getActiveByApplicationIdAndStageIdAndHash(app.getId(), stageId, candidateHash));
 
         if (hash != null) {
           break;

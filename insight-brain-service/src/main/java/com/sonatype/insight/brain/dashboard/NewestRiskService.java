@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,7 +21,6 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -50,19 +48,15 @@ public class NewestRiskService
 
   private final PolicyViolationLoader policyViolationLoader;
 
-  private final PolicyViolationDAO policyViolationDAO;
-
   private final DashboardUtils dashboardUtils;
 
   @Inject
   public NewestRiskService(ApplicationService applicationService,
                            PolicyViolationLoader policyViolationLoader,
-                           PolicyViolationDAO policyViolationDAO,
                            DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
     this.policyViolationLoader = policyViolationLoader;
-    this.policyViolationDAO = policyViolationDAO;
     this.dashboardUtils = dashboardUtils;
   }
 
@@ -117,28 +111,18 @@ public class NewestRiskService
           continue;
         }
         policyViolationCount += policyViolations.size();
-        StageType stageType = appStageView.getStageType();
-
-        Map<PolicyViolation, PolicyViolation> firstOccurrencePolicyViolationsByLastPolicyViolations = getFirstOccurrencePolicyViolationsForLastPolicyViolations(
-            app.getId(), stageType.getId(), policyViolations);
 
         PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
             .digestPolicyViolations(allUniqueAppPolicyViolations, policyViolations);
         for (PolicyViolation policyViolation : diff.getAppeared()) {
-          PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
-              .get(policyViolation);
-          NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, policyEvaluation, policyViolation,
-              firstOccurrencePolicyViolation.getTime().getTime());
+          NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, policyEvaluation, policyViolation);
           newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
           riskDTOs.add(newestRiskDTO);
         }
         for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
           NewestRiskDTO newestRiskDTO = newestRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
           PolicyViolation policyViolation = samePolicyViolationEntry.getValue();
-          PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
-              .get(policyViolation);
-          addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation, firstOccurrencePolicyViolation.getTime()
-              .getTime());
+          addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation);
         }
 
         allUniqueAppPolicyViolations.addAll(diff.getAppeared());
@@ -161,50 +145,26 @@ public class NewestRiskService
     return result;
   }
 
-  private Map<PolicyViolation, PolicyViolation> getFirstOccurrencePolicyViolationsForLastPolicyViolations(String appId,
-                                                                                                          String stageTypeId,
-                                                                                                          Collection<PolicyViolation> lastPolicyViolations)
-  {
-    Map<PolicyViolation, PolicyViolation> result = new LinkedHashMap<>();
-
-    List<PolicyViolation> firstOccurrences = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(appId,
-        stageTypeId);
-    PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester.digestPolicyViolations(lastPolicyViolations,
-        firstOccurrences);
-    for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
-      result.put(samePolicyViolationEntry.getKey(), samePolicyViolationEntry.getValue());
-    }
-    for (PolicyViolation policyViolation : diff.getCleared()) {
-      // PolicyViolation without a corresponding FirstOccurrencePolicyViolation. This can happen only if data was
-      // missing during migration?
-      result.put(policyViolation, policyViolation);
-    }
-
-    return result;
-  }
-
   private NewestRiskDTO createNewestRiskDTO(Application app,
                                             PolicyEvaluation policyEvaluation,
-                                            PolicyViolation policyViolation,
-                                            long firstOccurrenceTime)
+                                            PolicyViolation policyViolation)
   {
     NewestRiskDTO newestRiskDTO = new NewestRiskDTO();
     newestRiskDTO.applicationPublicId = app.getPublicId();
     newestRiskDTO.applicationName = app.getName();
     newestRiskDTO.threatLevel = policyViolation.getThreatLevel();
-    newestRiskDTO.firstOccurrenceTime = firstOccurrenceTime;
+    newestRiskDTO.firstOccurrenceTime = policyViolation.getOpenTime().getTime();
     newestRiskDTO.policyId = policyViolation.getPolicyId();
     newestRiskDTO.policyName = policyViolation.getPolicyName();
     newestRiskDTO.hash = policyViolation.getHash();
-    addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation, firstOccurrenceTime);
+    addToNewestRiskDTO(newestRiskDTO, policyEvaluation, policyViolation);
 
     return newestRiskDTO;
   }
 
   private void addToNewestRiskDTO(NewestRiskDTO newestRiskDTO,
                                   PolicyEvaluation policyEvaluation,
-                                  PolicyViolation policyViolation,
-                                  long firstOccurrenceTime)
+                                  PolicyViolation policyViolation)
   {
     long lastOccurrenceTime = policyEvaluation.getTime().getTime();
     if (newestRiskDTO.lastOccurrenceTime < lastOccurrenceTime || newestRiskDTO.stageTypeId == null) {
@@ -219,6 +179,7 @@ public class NewestRiskService
       newestRiskDTO.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(newestRiskDTO);
     }
 
+    long firstOccurrenceTime = policyViolation.getOpenTime().getTime();
     if (newestRiskDTO.firstOccurrenceTime > firstOccurrenceTime) {
       newestRiskDTO.firstOccurrenceTime = firstOccurrenceTime;
     }

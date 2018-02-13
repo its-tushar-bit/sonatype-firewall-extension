@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -133,8 +134,9 @@ public class ComponentRiskService
     for (ApplicationView appView : appViews) {
       Application application = appView.getApplication();
       for (ApplicationStageView appStageView : appView.getStageViews()) {
+        PolicyEvaluation evaluation = appStageView.getLastEvaluation();
         for (PolicyViolation violation : appStageView.getFilteredViolations()) {
-          policyViolationDTOs.add(policyViolationAdapter.createPolicyViolationDTO(application, violation));
+          policyViolationDTOs.add(policyViolationAdapter.createPolicyViolationDTO(application, evaluation, violation));
         }
       }
     }

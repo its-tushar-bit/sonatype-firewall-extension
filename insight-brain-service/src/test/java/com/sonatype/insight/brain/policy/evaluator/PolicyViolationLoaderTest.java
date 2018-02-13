@@ -46,7 +46,6 @@ public class PolicyViolationLoaderTest
     for (StageType stageType : stageTypes) {
       PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stageType.getId(),
           stageType.getId() + "-scan-id", new Date(time - 2000));
-      tempEntity.newPolicyViolation(eval, policy1);
       eval = tempEntity.newPolicyEvaluation(app.getId(), stageType.getId(), stageType.getId() + "-latest-scan-id",
           new Date(time - 1000));
       tempEntity.newWaivedPolicyViolation(eval, policy1, waiver);

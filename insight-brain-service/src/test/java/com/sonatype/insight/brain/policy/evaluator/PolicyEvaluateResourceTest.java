@@ -23,11 +23,9 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.jira.JiraConfig;
 import com.sonatype.insight.brain.jira.JiraField;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest;
@@ -43,13 +41,11 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -399,7 +395,8 @@ public class PolicyEvaluateResourceTest
     assertThat(policyEvaluation.isReevaluation(), is(false));
     assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
         assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
       }
@@ -452,7 +449,8 @@ public class PolicyEvaluateResourceTest
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation, notNullValue());
     assertThat(policyEvaluation.isReevaluation(), is(true));
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
         assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
       }
@@ -872,17 +870,18 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
+    PolicyEvaluation policyEvaluation1 = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolations1 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
-        app.getId(), stage.getStageTypeId());
+    List<PolicyViolation> policyViolations1 = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyViolations1, hasSize(2));
     policyViolations1 = sort(policyViolations1);
     assertThat(policyViolations1.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID), is("tomcat"));
+    assertThat(policyViolations1.get(0).getOpenTime(), is(policyEvaluation1.getTime()));
     assertThat(policyViolations1.get(1).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
         is("commons-pool"));
-    FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
-    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationUnchanged1 = firstOccurrencePolicyViolationDAO
-        .getById(policyViolations1.get(1).getId());
+    assertThat(policyViolations1.get(1).getOpenTime(), is(policyEvaluation1.getTime()));
 
     // Change one of the policy conditions and re-evaluate the policy.
     // This should cause a policy violation to be cleared and a new policy violation to appear.
@@ -891,17 +890,19 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy again for the same scan
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    List<PolicyViolation> policyViolations2 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
-        app.getId(), stage.getStageTypeId());
+    PolicyEvaluation policyEvaluation2 = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
+    assertThat(policyEvaluation1.getId(), is(not(policyEvaluation2.getId())));
+    List<PolicyViolation> policyViolations2 = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyViolations2, hasSize(2));
     policyViolations2 = sort(policyViolations2);
     assertThat(policyViolations2.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
         is("commons-pool"));
+    assertThat(policyViolations2.get(0).getOpenTime(), is(policyEvaluation1.getTime()));
     assertThat(policyViolations2.get(1).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
         is("commons-dbcp"));
-    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationUnchanged2 = firstOccurrencePolicyViolationDAO
-        .getById(policyViolations2.get(0).getId());
-    assertThat(firstOccurrencePolicyViolationUnchanged2.getId(), is(firstOccurrencePolicyViolationUnchanged1.getId()));
+    assertThat(policyViolations2.get(1).getOpenTime(), is(policyEvaluation2.getTime()));
   }
 
   @Test
@@ -920,36 +921,33 @@ public class PolicyEvaluateResourceTest
     mockReport(scanBuildId, "/PolicyEvaluateResourceTest/report.zip");
     HttpResponse response = evalRequest(applicationPublicId, scanBuildId, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
+    PolicyEvaluation policyEvaluationBuild = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
+        Stage.ID_BUILD);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
-        app.getId(), Stage.ID_BUILD);
+    List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        Stage.ID_BUILD);
     assertThat(policyViolationsBuild, hasSize(1));
     assertThat(policyViolationsBuild.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
         is("commons-pool"));
-    FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
-    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationBuild = firstOccurrencePolicyViolationDAO
-        .getById(policyViolationsBuild.get(0).getId());
+    assertThat(policyViolationsBuild.get(0).getOpenTime(), is(policyEvaluationBuild.getTime()));
 
     // Evaluate policy for the Release stage
     String scanReleaseId = "scanReleaseId";
     mockReport(scanReleaseId, "/PolicyEvaluateResourceTest/report.zip");
     response = evalRequest(applicationPublicId, scanReleaseId, new Stage(Stage.ID_RELEASE)).post();
     assertResponseStatus(200, response);
-    List<PolicyViolation> policyViolationsRelease = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
-        app.getId(), Stage.ID_RELEASE);
+    PolicyEvaluation policyEvaluationRelease = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(),
+        Stage.ID_RELEASE);
+    List<PolicyViolation> policyViolationsRelease = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        Stage.ID_RELEASE);
     assertThat(policyViolationsRelease, hasSize(1));
     assertThat(policyViolationsRelease.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
         is("commons-pool"));
-    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationRelease = firstOccurrencePolicyViolationDAO
-        .getById(policyViolationsRelease.get(0).getId());
-    assertThat(firstOccurrencePolicyViolationRelease.getId(), is(not(firstOccurrencePolicyViolationBuild.getId())));
+    assertThat(policyViolationsRelease.get(0).getOpenTime(), is(policyEvaluationRelease.getTime()));
 
-    policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
-        Stage.ID_BUILD);
+    policyViolationsBuild = policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
     assertThat(policyViolationsBuild, hasSize(1));
-    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationBuild1 = firstOccurrencePolicyViolationDAO
-        .getById(policyViolationsBuild.get(0).getId());
-    assertThat(firstOccurrencePolicyViolationBuild1.getId(), is(firstOccurrencePolicyViolationBuild.getId()));
+    assertThat(policyViolationsBuild.get(0).getOpenTime(), is(policyEvaluationBuild.getTime()));
   }
 
   @Test
@@ -1084,23 +1082,18 @@ public class PolicyEvaluateResourceTest
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
 
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
-    assertThat(policyEvaluation, notNullValue());
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+    List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyViolations, hasSize(3));
-    WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
     for (PolicyViolation policyViolation : policyViolations) {
-      WaivedPolicyViolation waivedPolicyViolation = waivedPolicyViolationDAO.getById(policyViolation.getId());
       if (componentHash.equals(policyViolation.getHash())) {
         assertThat(policyViolation.isWaived(), is(true));
-        assertThat(waivedPolicyViolation, notNullValue());
-        assertThat(waivedPolicyViolation.getPolicyWaiverId(), is(policyWaiver.getId()));
-        assertThat(waivedPolicyViolation.getComment(), is(policyWaiver.getComment()));
+        assertThat(policyViolation.getPolicyWaiverId(), is(policyWaiver.getId()));
+        assertThat(policyViolation.getPolicyWaiverComment(), is(policyWaiver.getComment()));
       }
       else {
         assertThat(policyViolation.isWaived(), is(false));
-        assertThat(waivedPolicyViolation, nullValue());
       }
     }
   }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -173,10 +174,13 @@ public class PolicyThreatsAdapterTest
                                                String actionType)
   {
     PolicyEvaluation evaluation = new PolicyEvaluation("applicationId1", "stageId1", "scanId1");
+    evaluation.setTime(new Date());
 
     PolicyViolation violation = new PolicyViolation(evaluation, policyId, policyId, threatLevel,
         PolicyThreatCategory.OTHER, hash, componentIdentifier, buildConstraintFact(policyId), null);
-    violation.setWaived(waived);
+    if (waived) {
+      violation.setWaiveTime(violation.getOpenTime());
+    }
     violation.setActionTypeId(actionType);
 
     return violation;

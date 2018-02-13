@@ -159,6 +159,9 @@ public class PolicyViolation
   }
 
   public void setWaiveTime(Date waiveTime) {
+    if (this.waiveTime != null && waiveTime == null) {
+      throw new IllegalStateException("Cannot un-waive a policy violation.");
+    }
     this.waiveTime = waiveTime;
   }
 

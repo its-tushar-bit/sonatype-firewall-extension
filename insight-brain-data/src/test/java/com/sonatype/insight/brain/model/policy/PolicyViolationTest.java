@@ -201,6 +201,25 @@ public class PolicyViolationTest
   }
 
   @Test
+  public void testSetWaiveTime() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    assertThat(policyViolation.getWaiveTime(), is(nullValue()));
+
+    Date now = new Date();
+    policyViolation.setWaiveTime(now);
+    assertThat(policyViolation.getWaiveTime(), is(now));
+
+    try {
+      policyViolation.setWaiveTime(null);
+      fail("Expected exception");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(), is("Cannot un-waive a policy violation."));
+    }
+  }
+
+  @Test
   public void testSetFixTime() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");

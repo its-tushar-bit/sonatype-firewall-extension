@@ -29,22 +29,18 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -77,8 +73,6 @@ public class ScanPolicyEvaluator
   private PolicyDAO policyDAO = new PolicyDAO();
 
   private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-
-  private WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
 
   private final PolicyThreatsAdapter policyThreatsAdapter;
 
@@ -191,8 +185,9 @@ public class ScanPolicyEvaluator
         results.evaluation = policyEvaluation;
         results.allViolations = new ArrayList<>();
         results.activeViolations = new ArrayList<>();
+        results.notifiableViolations = isReevaluation ? null : new ArrayList<>();
 
-        // Persist policy violations
+        // Convert the policy alerts into policy violations
         List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
         allPolicyAlerts.addAll(policyResults.getActiveAlerts());
         allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
@@ -214,13 +209,17 @@ public class ScanPolicyEvaluator
                 break;
               }
             }
+            if (forMonitoring) {
+              policyViolation.setSeenByMonitoringEvaluation(true);
+            }
+            else if (!isReevaluation) {
+              policyViolation.setSeenByPrimaryEvaluation(true);
+            }
             PolicyWaiver policyWaiver = policyResults.getPolicyWaiver(componentFact);
-            policyViolation.setWaived(policyWaiver != null);
-            policyViolationDAO.insert(tx, policyViolation);
             if (policyWaiver != null) {
-              WaivedPolicyViolation waivedPolicyViolation = new WaivedPolicyViolation(policyViolation.getId(),
-                  policyWaiver.getId(), policyWaiver.getComment());
-              waivedPolicyViolationDAO.insert(tx, waivedPolicyViolation);
+              policyViolation.setWaiveTime(policyEvaluation.getTime());
+              policyViolation.setPolicyWaiverId(policyWaiver.getId());
+              policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
             }
             else {
               results.activeViolations.add(policyViolation);
@@ -229,26 +228,50 @@ public class ScanPolicyEvaluator
           }
         }
 
-        // Persist the FirstOccurrencePolicyViolations and ApplicationComponents only if there isn't a more recent
+        // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
         if (isForLatestScan) {
-          // Calculate a diff between the current policy violations and the previous first occurrence policy violations
-          List<PolicyViolation> oldPolicyViolations = policyViolationDAO
-              .getFirstOccurrenceByApplicationIdAndStageTypeId(tx, appId, stage.getStageTypeId());
+          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(tx, appId,
+              stage.getStageTypeId());
           PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
-              .digestPolicyViolations(oldPolicyViolations, results.activeViolations);
-          FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
-          // Delete cleared first occurrence policy violations
-          for (PolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
-            FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(
-                tx, clearedPolicyViolation.getId());
-            firstOccurrencePolicyViolationDAO.delete(tx, firstOccurrencePolicyViolation);
+              .digestPolicyViolations(oldPolicyViolations, results.allViolations);
+
+          for (PolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
+            if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
+              results.notifiableViolations.add(newPolicyViolation);
+            }
+            policyViolationDAO.insert(tx, newPolicyViolation);
           }
-          // Add new first occurrence policy violations
-          for (PolicyViolation appearedPolicyViolation : policyViolationDiff.getAppeared()) {
-            FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = new FirstOccurrencePolicyViolation(
-                appearedPolicyViolation.getId(), appId, stage.getStageTypeId());
-            firstOccurrencePolicyViolationDAO.insert(tx, firstOccurrencePolicyViolation);
+          for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
+            oldPolicyViolation.setFixTime(policyEvaluation.getTime());
+            policyViolationDAO.update(tx, oldPolicyViolation);
+          }
+          for (Map.Entry<PolicyViolation, PolicyViolation> entry : policyViolationDiff.getSame().entrySet()) {
+            PolicyViolation oldPolicyViolation = entry.getKey();
+            PolicyViolation newPolicyViolation = entry.getValue();
+            if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
+              oldPolicyViolation.setFixTime(policyEvaluation.getTime());
+              policyViolationDAO.update(tx, oldPolicyViolation);
+              if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
+                results.notifiableViolations.add(newPolicyViolation);
+              }
+              policyViolationDAO.insert(tx, newPolicyViolation);
+            }
+            else {
+              if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {
+                results.notifiableViolations.add(oldPolicyViolation);
+              }
+              oldPolicyViolation.setThreatCategory(newPolicyViolation.getThreatCategory());
+              oldPolicyViolation.setActionTypeId(newPolicyViolation.getActionTypeId());
+              oldPolicyViolation.setConstraintFactsJson(newPolicyViolation.getConstraintFactsJson());
+              oldPolicyViolation.setFilename(newPolicyViolation.getFilename());
+              if (!oldPolicyViolation.isWaived()) {
+                oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
+                oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
+                oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
+              }
+              policyViolationDAO.update(tx, oldPolicyViolation);
+            }
           }
 
           persistApplicationComponents(tx, appId, stage, policyEvaluation.getTime(), components);
@@ -259,18 +282,6 @@ public class ScanPolicyEvaluator
         if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
           String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
           deletePreviousScanFile(appId, stage, previousScanId);
-        }
-
-        if (!isReevaluation) {
-          if (lastPrimaryPolicyEvaluation != null) {
-            List<PolicyViolation> oldViolations = policyViolationDAO
-                .getActiveByEvaluationId(lastPrimaryPolicyEvaluation.getId());
-            results.notifiableViolations = PolicyViolationDigester
-                .digestPolicyViolations(oldViolations, results.activeViolations).getAppeared();
-          }
-          else {
-            results.notifiableViolations = new ArrayList<>(results.activeViolations);
-          }
         }
 
         log.debug(
@@ -284,6 +295,30 @@ public class ScanPolicyEvaluator
 
   private String getFilename(ComponentFact componentFact) {
     return new ComponentDisplayFilename().addPathnames(componentFact.getPathnames()).getFilename().orElse(null);
+  }
+
+  private boolean isNotifiable(PolicyViolation oldPolicyViolation,
+                               PolicyViolation newPolicyViolation,
+                               boolean forMonitoring,
+                               boolean isReevaluation)
+  {
+    if (isReevaluation && !forMonitoring) {
+      return false;
+    }
+    boolean active = !newPolicyViolation.isWaived();
+    boolean wasSeen;
+    if (oldPolicyViolation == null) {
+      wasSeen = false;
+    }
+    else if (forMonitoring) {
+      wasSeen = oldPolicyViolation.isSeenByMonitoringEvaluation() || oldPolicyViolation.isSeenByPrimaryEvaluation();
+      oldPolicyViolation.setSeenByMonitoringEvaluation(active);
+    }
+    else {
+      wasSeen = oldPolicyViolation.isSeenByPrimaryEvaluation();
+      oldPolicyViolation.setSeenByPrimaryEvaluation(active);
+    }
+    return active && !wasSeen;
   }
 
   private void deletePreviousScanFile(String appId, Stage stage, String previousScanId) {
@@ -359,7 +394,8 @@ public class ScanPolicyEvaluator
   }
 
   public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation, boolean createAlerts) {
-    List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
+    List<PolicyViolation> policyViolations = policyViolationDAO
+        .getActiveByApplicationIdAndStageId(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
     return createPolicyEvaluationResult(policyEvaluation, policyViolations, createAlerts);
   }
 

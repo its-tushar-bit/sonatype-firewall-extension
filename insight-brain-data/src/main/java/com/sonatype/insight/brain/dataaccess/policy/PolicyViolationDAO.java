@@ -35,10 +35,19 @@ public class PolicyViolationDAO
   }
 
   public List<PolicyViolation> getUnfixedByApplicationIdAndStageId(String applicationId, String stageTypeId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getUnfixedByApplicationIdAndStageId(tx, applicationId, stageTypeId);
+    }
+  }
+
+  public List<PolicyViolation> getUnfixedByApplicationIdAndStageId(TransactionContext tx,
+                                                                   String applicationId,
+                                                                   String stageTypeId)
+  {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
         " AND entity.fixTime IS NULL";
-    return getList(sQuery, applicationId, stageTypeId);
+    return getList(tx, sQuery, applicationId, stageTypeId);
   }
 
   public List<PolicyViolation> getActiveByApplicationIdAndStageId(String applicationId, String stageTypeId) {

@@ -9,12 +9,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -36,6 +39,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -100,10 +104,14 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
     assertThat(results.allViolations, hasSize(7));
+    assertThat(results.allViolations.stream().filter(PolicyViolation::isFixed).collect(toList()), hasSize(0));
     List<PolicyViolation> waivedViolations = new ArrayList<>(results.allViolations);
     waivedViolations.removeAll(results.activeViolations);
     assertThat(waivedViolations, hasSize(1));
     assertThat(waivedViolations.get(0).getHash(), is(waiver.getHash()));
+    assertThat(waivedViolations.get(0).getWaiveTime(), is(not(nullValue())));
+    assertThat(waivedViolations.get(0).getPolicyWaiverId(), is(waiver.getId()));
+    assertThat(waivedViolations.get(0).getPolicyWaiverComment(), is(waiver.getComment()));
   }
 
   @Test
@@ -119,6 +127,9 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.activeViolations, hasSize(6));
     for (PolicyViolation violation : results.activeViolations) {
       assertThat(violation.getHash(), is(not(waiver.getHash())));
+      assertThat(violation.getWaiveTime(), is(nullValue()));
+      assertThat(violation.getPolicyWaiverId(), is(nullValue()));
+      assertThat(violation.getPolicyWaiverComment(), is(nullValue()));
     }
   }
 
@@ -253,6 +264,82 @@ public class ScanPolicyEvaluatorTest
     // A re-evaluation of the first scan doesn't need the scan so it should succeed.
     assertThat(scanFile1.exists(), is(false));
     scanPolicyEvaluator.evaluate(application.getPublicId(), scanId1, stage);
+  }
+
+  @Test
+  public void testEvaluate_UpdateFixedViolations() throws Exception {
+    String scanId = "scanId";
+    Stage stage = new Stage(Stage.ID_BUILD);
+    mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
+    Policy policy = newSecurityPolicy();
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+
+    assertThat(results.allViolations, hasSize(7));
+
+    new PolicyDAO().delete(policy);
+
+    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+
+    assertThat(results.allViolations, hasSize(0));
+    List<PolicyViolation> violations = new PolicyViolationDAO().getByApplicationId(application.getId());
+    assertThat(violations, hasSize(7));
+    violations = violations.stream().filter(PolicyViolation::isFixed).collect(toList());
+    assertThat(violations, hasSize(7));
+    for (PolicyViolation violation : violations) {
+      assertThat(violation.toString(), violation.getFixTime(), is(results.evaluation.getTime()));
+    }
+  }
+
+  @Test
+  public void testEvaluate_UpdateWaivedViolations() throws Exception {
+    String scanId = "scanId";
+    Stage stage = new Stage(Stage.ID_BUILD);
+    mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
+    Policy policy = newSecurityPolicy();
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+    Date openTime = results.evaluation.getTime();
+
+    assertThat(results.activeViolations, hasSize(7));
+
+    PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId());
+
+    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+
+    assertThat(results.activeViolations, hasSize(6));
+    List<PolicyViolation> violations = new PolicyViolationDAO()
+        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId()).stream()
+        .filter(PolicyViolation::isWaived).collect(toList());
+    assertThat(violations, hasSize(1));
+    PolicyViolation waivedViolation = violations.get(0);
+    assertThat(waivedViolation.getHash(), is(waiver.getHash()));
+    assertThat(waivedViolation.getOpenTime(), is(openTime));
+    assertThat(waivedViolation.getFixTime(), is(nullValue()));
+    assertThat(waivedViolation.getWaiveTime(), is(results.evaluation.getTime()));
+    assertThat(waivedViolation.getPolicyWaiverId(), is(waiver.getId()));
+    assertThat(waivedViolation.getPolicyWaiverComment(), is(waiver.getComment()));
+
+    new PolicyWaiverDAO().delete(waiver);
+
+    results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
+
+    assertThat(results.activeViolations, hasSize(7));
+    violations = new PolicyViolationDAO().getUnfixedByApplicationIdAndStageId(application.getId(),
+        stage.getStageTypeId());
+    assertThat(violations.stream().filter(PolicyViolation::isWaived).collect(toList()), hasSize(0));
+    violations = violations.stream().filter(violation -> violation.getHash().equals(waiver.getHash()))
+        .collect(toList());
+    assertThat(violations, hasSize(1));
+    waivedViolation = violations.get(0);
+    assertThat(waivedViolation.getHash(), is(waiver.getHash()));
+    assertThat(waivedViolation.getOpenTime(), is(results.evaluation.getTime()));
+    assertThat(waivedViolation.getFixTime(), is(nullValue()));
+    assertThat(waivedViolation.getWaiveTime(), is(nullValue()));
+    assertThat(waivedViolation.getPolicyWaiverId(), is(nullValue()));
+    assertThat(waivedViolation.getPolicyWaiverComment(), is(nullValue()));
+
+    assertThat(new PolicyViolationDAO().getByApplicationId(application.getId()), hasSize(8));
   }
 
   private File createScanFile(Application app, String scanId) {

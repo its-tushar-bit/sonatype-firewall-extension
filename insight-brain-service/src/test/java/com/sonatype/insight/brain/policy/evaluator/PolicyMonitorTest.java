@@ -331,7 +331,8 @@ public class PolicyMonitorTest
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation1.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
       assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
     }
     assertThat(scanFile1.exists(), is(true));
@@ -345,7 +346,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation2.getId(), not(is(policyEvaluation1.getId())));
     assertThat(policyEvaluation2.getScanId(), is(scanId2));
     assertThat(policyEvaluation2.getTime(), is(greaterThan(policyEvaluation1.getTime())));
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation2.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -368,7 +370,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation3.getId(), not(is(policyEvaluation2.getId())));
     assertThat(policyEvaluation3.getScanId(), is(scanId3));
     assertThat(policyEvaluation3.getTime(), is(greaterThan(policyEvaluation2.getTime())));
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation3.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -390,7 +393,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation4.getId(), not(is(policyEvaluation3.getId())));
     assertThat(policyEvaluation4.getScanId(), is(scanId4));
     assertThat(policyEvaluation4.getTime(), is(greaterThan(policyEvaluation3.getTime())));
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation4.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -413,7 +417,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation5.getId(), not(is(policyEvaluation4.getId())));
     assertThat(policyEvaluation5.getScanId(), is(scanId5));
     assertThat(policyEvaluation5.getTime(), is(greaterThan(policyEvaluation4.getTime())));
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation5.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -436,7 +441,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation6.getId(), not(is(policyEvaluation5.getId())));
     assertThat(policyEvaluation6.getScanId(), is(scanId6));
     assertThat(policyEvaluation6.getTime(), is(greaterThan(policyEvaluation5.getTime())));
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation6.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId())) {
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);

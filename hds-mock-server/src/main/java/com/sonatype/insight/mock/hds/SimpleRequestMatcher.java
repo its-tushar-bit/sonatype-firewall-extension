@@ -68,7 +68,6 @@ class SimpleRequestMatcher
 
     final Map<String, Collection<Object>> query;
 
-    @SuppressWarnings("unchecked")
     public ParsedUri(String uri) {
       URI u = URI.create(uri);
       path = u.getPath();

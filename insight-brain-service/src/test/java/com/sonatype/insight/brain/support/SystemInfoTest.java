@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 
+import ch.qos.logback.access.spi.IAccessEvent;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -71,14 +73,14 @@ public class SystemInfoTest
   @Override
   protected void customizeConfig(final InsightConfig config) {
     DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
-    FileAppenderFactory serverFileAppenderFactory = new FileAppenderFactory();
+    FileAppenderFactory<ILoggingEvent> serverFileAppenderFactory = new FileAppenderFactory<>();
     serverFileAppenderFactory.setCurrentLogFilename(SERVER_LOG_FILENAME);
     defaultLoggingFactory.setAppenders(Collections.singletonList(serverFileAppenderFactory));
 
     DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
     LogbackAccessRequestLogFactory logbackAccessRequestLogFactory = 
         (LogbackAccessRequestLogFactory) defaultServerFactory.getRequestLogFactory();
-    FileAppenderFactory requestFileAppenderFactory = new FileAppenderFactory();
+    FileAppenderFactory<IAccessEvent> requestFileAppenderFactory = new FileAppenderFactory<>();
     requestFileAppenderFactory.setCurrentLogFilename(REQUEST_LOG_FILENAME);
     logbackAccessRequestLogFactory.setAppenders(ImmutableList.of(requestFileAppenderFactory));
   }

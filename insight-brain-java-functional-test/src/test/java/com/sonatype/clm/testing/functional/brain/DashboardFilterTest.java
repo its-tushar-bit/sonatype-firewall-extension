@@ -139,8 +139,6 @@ public class DashboardFilterTest
     PolicyViolation firstViolation = staticTempEntity
         .newPolicyViolation(firstPolicyEvaluation, policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1",
             "Version1", "hash", FailActionType.ID);
-    staticTempEntity.newFirstOccurrencePolicyViolation(firstViolation.getId(), firstPolicyEvaluation.getApplicationId(),
-        firstPolicyEvaluation.getStageTypeId());
     staticTempEntity
         .newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
             firstViolation.getHash(), DEFAULT_COMPONENT_IDENTIFIER);
@@ -156,8 +154,6 @@ public class DashboardFilterTest
         StageReleaseStageType.ID, "DashboardTestFirstEvaluationSecondStage", now.minusDays(14).toDate());
     PolicyViolation firstViolationSecondStage = staticTempEntity.newPolicyViolation(firstPolicyEvaluationSecondStage,
         policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", WarnActionType.ID);
-    staticTempEntity.newFirstOccurrencePolicyViolation(firstViolationSecondStage.getId(),
-        firstPolicyEvaluationSecondStage.getApplicationId(), firstPolicyEvaluationSecondStage.getStageTypeId());
     staticTempEntity.newApplicationComponent(firstPolicyEvaluationSecondStage.getApplicationId(),
         firstPolicyEvaluationSecondStage.getStageTypeId(), firstViolationSecondStage.getHash(),
         DEFAULT_COMPONENT_IDENTIFIER);
@@ -165,30 +161,20 @@ public class DashboardFilterTest
     // evaluation in yet another stage
     PolicyEvaluation thirdPolicyEvaluation = staticTempEntity.newPolicyEvaluation(firstApp.getId(), ReleaseStageType.ID,
         "DashboardTestThirdEvaluation", now.minusDays(8).toDate());
-    PolicyViolation thirdViolation = staticTempEntity.
-        newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY,
-            "Group1", "Artifact1", "Version1");
-    staticTempEntity.newFirstOccurrencePolicyViolation(thirdViolation.getId(), thirdPolicyEvaluation.getApplicationId(),
-        thirdPolicyEvaluation.getStageTypeId());
+    staticTempEntity.newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY, "Group1",
+        "Artifact1", "Version1");
 
     // and one more stage to cover them all
     PolicyEvaluation forthPolicyEvaluation = staticTempEntity.newPolicyEvaluation(firstApp.getId(), OperateStageType.ID,
         "DashboardTestForthEvaluation", now.minusDays(9).toDate());
-    PolicyViolation forthViolation = staticTempEntity.
-        newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER,
-            "Group1", "Artifact1", "Version1");
-    staticTempEntity.newFirstOccurrencePolicyViolation(forthViolation.getId(), forthPolicyEvaluation.getApplicationId(),
-        forthPolicyEvaluation.getStageTypeId());
+    staticTempEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, "Group1",
+        "Artifact1", "Version1");
 
     //most recent evaluation
     PolicyEvaluation secondPolicyEvaluation = staticTempEntity
         .newPolicyEvaluation(secondApp.getId(), ReleaseStageType.ID,
             "DashboardTestSecondEvaluation", now.minusDays(1).toDate());
-    PolicyViolation secondViolation = staticTempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10,
-        PolicyThreatCategory.QUALITY);
-    staticTempEntity
-        .newFirstOccurrencePolicyViolation(secondViolation.getId(), secondPolicyEvaluation.getApplicationId(),
-            secondPolicyEvaluation.getStageTypeId());
+    staticTempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10, PolicyThreatCategory.QUALITY);
 
     PolicyWaiver policyWaiver = staticTempEntity.newWaiver("hash-waived", policy.getId(), secondApp.getId());
     staticTempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,

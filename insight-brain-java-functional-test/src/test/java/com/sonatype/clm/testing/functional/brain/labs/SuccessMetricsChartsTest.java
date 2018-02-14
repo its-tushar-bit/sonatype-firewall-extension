@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain.labs;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.function.Predicate;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -19,10 +20,12 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTi
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -72,6 +75,17 @@ public class SuccessMetricsChartsTest
 
   private static String successMetricsChartsPageUrl;
 
+  private static void fixViolations(PolicyEvaluation evaluation, Predicate<PolicyViolation> exclude) {
+    PolicyViolationDAO violationDAO = new PolicyViolationDAO();
+    for (PolicyViolation fixedViolation : violationDAO
+        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId())) {
+      if (exclude == null || !exclude.test(fixedViolation)) {
+        fixedViolation.setFixTime(evaluation.getTime());
+        violationDAO.update(fixedViolation);
+      }
+    }
+  }
+
   @BeforeClass
   public static void startup() {
     Application app1 = staticTempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");
@@ -97,7 +111,8 @@ public class SuccessMetricsChartsTest
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "oneMonthAgo", oneMonthAgo.toDate());
     PolicyEvaluation app3Eval1 = staticTempEntity
         .newPolicyEvaluation(app3.getId(), BuildStageType.ID, "app3Eval1", fourMonthsAgo.toDate());
-    staticTempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "app3Eval2", threeMonthsAgo.toDate());
+    PolicyEvaluation app3Eval2 = staticTempEntity
+        .newPolicyEvaluation(app3.getId(), BuildStageType.ID, "app3Eval2", threeMonthsAgo.toDate());
 
     ApplicationComponent buildComponent = staticTempEntity
         .newApplicationComponent(app1.getId(), BuildStageType.ID, "shortnamehash",
@@ -110,6 +125,7 @@ public class SuccessMetricsChartsTest
     // add a few violations
     staticTempEntity.newPolicyViolation(buildEval4MonthsAgo, licensePolicy, 7,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
+
     staticTempEntity.newPolicyViolation(releaseEval3MonthsAgo, securityPolicy, 8,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
     staticTempEntity.newPolicyViolation(releaseEval3MonthsAgo, licensePolicy, 1,
@@ -118,10 +134,9 @@ public class SuccessMetricsChartsTest
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
     staticTempEntity.newPolicyViolation(releaseEval3MonthsAgo, securityPolicy, 10,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(releaseEval2MonthsAgo, securityPolicy, 9,
-        SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(releaseEval2MonthsAgo, securityPolicy, 10,
-        SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
+
+    fixViolations(releaseEval2MonthsAgo, violation -> violation.getThreatLevel() >= 9);
+
     staticTempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 10,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
     staticTempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 7,
@@ -130,10 +145,12 @@ public class SuccessMetricsChartsTest
         QUALITY, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
     staticTempEntity.newPolicyViolation(buildEval2MonthsAgo, otherPolicy, 7,
         OTHER, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(releaseEval1MonthAgo, securityPolicy, 10,
-        SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
+
+    fixViolations(releaseEval1MonthAgo, violation -> violation.getThreatLevel() >= 10);
+
     staticTempEntity.newPolicyViolation(app3Eval1, app3Policy, 10,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
+    fixViolations(app3Eval2, null);
 
     SuccessMetricsReportScopeDTO successMetricsScope = new SuccessMetricsReportScopeDTO();
     successMetricsScope.organizationIds = new HashSet<>(Arrays.asList(app1.getParentOwnerId()));

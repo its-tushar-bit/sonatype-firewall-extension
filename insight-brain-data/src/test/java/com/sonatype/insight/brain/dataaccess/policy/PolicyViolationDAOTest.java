@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -435,6 +436,83 @@ public class PolicyViolationDAOTest
 
     assertThat(violations.stream().map(PolicyViolation::getId).collect(toSet()),
         containsInAnyOrder(openViolation.getId(), otherAppViolation.getId()));
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdAndStageIdsAndTimeRange() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    PolicyWaiver waiver = tempEntity.newWaiver(policy.getId(), applicationId);
+    Date to = new Date(System.currentTimeMillis() - 10 * 1000);
+    Date from = new Date(to.getTime() - 60 * 1000);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-0",
+        new Date(from.getTime() - 1000));
+    // waived before time range
+    tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, waiver);
+    // fixed before time range
+    PolicyViolation fixedBefore = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    fixedBefore.setFixTime(policyEvaluation.getTime());
+    dao.update(fixedBefore);
+    // opened before time range and still unresolved
+    PolicyViolation openedBefore = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    // opened before time range and waived during time range (see below)
+    PolicyViolation openedBeforeWaivedDuring = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    // opened before time range and fixed during time range (see below)
+    PolicyViolation openedBeforeFixedDuring = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1", from);
+    // opened during time range and still unresolved
+    PolicyViolation openedDuring = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    // opened during time range but immediately waived
+    tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, waiver);
+    // opened during time range and waived after time range (see below)
+    PolicyViolation openedDuringWaivedAfter = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    // opened during time range and fixed after time range (see below)
+    PolicyViolation openedDuringFixedAfter = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-2",
+        new Date(from.getTime() + 1000));
+    openedBeforeWaivedDuring.setWaiveTime(policyEvaluation.getTime());
+    dao.update(openedBeforeWaivedDuring);
+    openedBeforeFixedDuring.setFixTime(policyEvaluation.getTime());
+    dao.update(openedBeforeFixedDuring);
+    // opened and waived during time range 
+    PolicyViolation openedAndWaivedDuring = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    // opened and fixed during time range 
+    PolicyViolation openedAndFixedDuring = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-3",
+        new Date(from.getTime() + 2000));
+    openedAndWaivedDuring.setWaiveTime(policyEvaluation.getTime());
+    dao.update(openedAndWaivedDuring);
+    openedAndFixedDuring.setFixTime(policyEvaluation.getTime());
+    dao.update(openedAndFixedDuring);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-4", to);
+    openedDuringWaivedAfter.setWaiveTime(policyEvaluation.getTime());
+    dao.update(openedDuringWaivedAfter);
+    openedDuringFixedAfter.setFixTime(policyEvaluation.getTime());
+    dao.update(openedDuringFixedAfter);
+    // opened after time range
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan-os", from);
+    // matching app and time range but wrong stage
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluation = tempEntity.newPolicyEvaluation(tempEntity.newApplicationWithParent().getId(), BuildStageType.ID,
+        "scan-oa", from);
+    // matching stage and time range but wrong app
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdsAndTimeRange(applicationId,
+        Arrays.asList(BuildStageType.ID), from, to);
+
+    assertThat(violations.toString(), violations.stream().map(PolicyViolation::getId).collect(toSet()),
+        containsInAnyOrder(openedBefore.getId(), openedBeforeWaivedDuring.getId(), openedBeforeFixedDuring.getId(),
+            openedDuring.getId(), openedDuringWaivedAfter.getId(), openedDuringFixedAfter.getId(),
+            openedAndWaivedDuring.getId(), openedAndFixedDuring.getId()));
   }
 
   @Test

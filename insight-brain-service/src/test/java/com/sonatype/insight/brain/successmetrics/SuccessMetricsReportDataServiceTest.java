@@ -13,15 +13,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
@@ -59,6 +61,9 @@ public class SuccessMetricsReportDataServiceTest
   @Inject
   private SuccessMetricsReportDataService service;
 
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
   @Before
   public void fakeDate() {
     // Set current date to December 11 2017 for these tests
@@ -68,6 +73,16 @@ public class SuccessMetricsReportDataServiceTest
   @After
   public void after() {
     DateTimeUtils.setCurrentMillisSystem();
+  }
+
+  private void fixViolations(PolicyEvaluation evaluation, Predicate<PolicyViolation> exclude) {
+    for (PolicyViolation fixedViolation : policyViolationDAO
+        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId())) {
+      if (exclude == null || !exclude.test(fixedViolation)) {
+        fixedViolation.setFixTime(evaluation.getTime());
+        policyViolationDAO.update(fixedViolation);
+      }
+    }
   }
 
   private SuccessMetricsReport createSuccessMetricsReport(Set<String> organizationIds,
@@ -211,12 +226,11 @@ public class SuccessMetricsReportDataServiceTest
 
     // one violation exists in evaluations 1, 2 and 4. The other exists in violations 2, 3, and 4
     tempEntity.newPolicyViolation(eval1, policy1);
-    tempEntity.newPolicyViolation(eval2, policy1);
     tempEntity.newPolicyViolation(eval2, policy2);
-    tempEntity.newPolicyViolation(eval3, policy2);
+    fixViolations(eval3, violation -> policy2.getId().equals(violation.getPolicyId()));
     tempEntity.newPolicyViolation(eval4, policy1);
-    tempEntity.newPolicyViolation(eval4, policy2);
     // no violation in eval5
+    fixViolations(eval5, null);
 
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(appId));
     List<MttrDTO> results = service.getChartData(successMetricsReport.getId()).mttrs;
@@ -267,8 +281,6 @@ public class SuccessMetricsReportDataServiceTest
     String appId = application.getId();
     Policy policy1 = tempEntity.newPolicy(appId, "policy1", 5);
     Policy policy2 = tempEntity.newPolicy(appId, "policy2", 10);
-    PolicyWaiver waiver1 = tempEntity.newWaiver(policy1.getId(), appId);
-    PolicyWaiver waiver2 = tempEntity.newWaiver(policy2.getId(), appId);
     StageType stageType = StageTypes.BUILD;
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan1",
         toDate(today.minusMonths(5)));
@@ -283,15 +295,15 @@ public class SuccessMetricsReportDataServiceTest
 
     // one violation is waived in evaluations 3 and 5 (but not 4). The other doesn't exist until evaluation 2 and then
     // is waived in evaluation 5
-    tempEntity.newPolicyViolation(eval1, policy1);
-    tempEntity.newPolicyViolation(eval2, policy1);
-    tempEntity.newPolicyViolation(eval2, policy2);
-    tempEntity.newWaivedPolicyViolation(eval3, policy1, waiver1);
-    tempEntity.newPolicyViolation(eval3, policy2);
-    tempEntity.newPolicyViolation(eval4, policy1);
-    tempEntity.newPolicyViolation(eval4, policy2);
-    tempEntity.newWaivedPolicyViolation(eval5, policy1, waiver1);
-    tempEntity.newWaivedPolicyViolation(eval5, policy2, waiver2);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy1);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy2);
+    violation1.setWaiveTime(eval3.getTime());
+    policyViolationDAO.update(violation1);
+    violation1 = tempEntity.newPolicyViolation(eval4, policy1);
+    violation1.setWaiveTime(eval5.getTime());
+    policyViolationDAO.update(violation1);
+    violation2.setWaiveTime(eval5.getTime());
+    policyViolationDAO.update(violation2);
 
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(appId));
     List<MttrDTO> results = service.getChartData(successMetricsReport.getId()).mttrs;
@@ -349,9 +361,10 @@ public class SuccessMetricsReportDataServiceTest
     // Generate a policy violation in the develop stage so we can check that it is filtered out
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(appId, StageTypes.DEVELOP.getId(), "scan3",
         toDate(today.minusMonths(4)));
-    tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), "scan4", toDate(today.minusMonths(3)));
-    tempEntity.newPolicyEvaluation(appId, StageTypes.OPERATE.getId(), "scan5", toDate(today.minusMonths(2)));
-
+    PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), "scan4",
+        toDate(today.minusMonths(3)));
+    tempEntity.newPolicyEvaluation(appId, StageTypes.OPERATE.getId(), "scan5",
+        toDate(today.minusMonths(2)));
     PolicyEvaluation eval6 = tempEntity.newPolicyEvaluation(appId, StageTypes.STAGE_RELEASE.getId(), "scan6",
         toDate(today.minusMonths(1)));
 
@@ -359,6 +372,8 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(eval1, policy1);
     tempEntity.newPolicyViolation(eval2, policy1);
     tempEntity.newPolicyViolation(eval3, policy1);
+    fixViolations(eval4, null);
+    fixViolations(eval6, null);
 
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(appId));
     List<MttrDTO> results = service.getChartData(successMetricsReport.getId()).mttrs;
@@ -443,13 +458,13 @@ public class SuccessMetricsReportDataServiceTest
 
     assertMttrDTOs(results1, expected1);
 
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan2",
+    tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan2",
         toDate(today.minusMonths(2)));
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan3",
         toDate(today.minusMonths(1)));
 
     // the violation that first appeared in eval1 continues to appear in eval2 but disappears in eval3
-    tempEntity.newPolicyViolation(eval2, policy1);
+    fixViolations(eval3, null);
 
     List<MttrDTO> results2 = service.getChartData(successMetricsReport.getId()).mttrs;
     List<MttrDTO> expected2 = new ArrayList<>(3);
@@ -491,14 +506,14 @@ public class SuccessMetricsReportDataServiceTest
     StageType stageType = StageTypes.BUILD;
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan1",
         toDate(today.withDayOfMonth(2).minusMonths(2)));
-    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan2",
+    tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan2",
         toDate(today.withDayOfMonth(3).minusMonths(2)));
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(appId, stageType.getId(), "scan3",
         toDate(today.withDayOfMonth(4).minusMonths(2)));
 
     // violation appears in eval1, and eval2
     tempEntity.newPolicyViolation(eval1, policy1);
-    tempEntity.newPolicyViolation(eval2, policy1);
+    fixViolations(eval3, null);
 
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, Collections.singleton(appId));
     List<MttrDTO> results = service.getChartData(successMetricsReport.getId()).mttrs;

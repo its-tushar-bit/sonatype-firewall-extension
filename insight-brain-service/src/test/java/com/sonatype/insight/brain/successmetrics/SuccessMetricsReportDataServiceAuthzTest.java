@@ -13,10 +13,12 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -321,7 +323,9 @@ public class SuccessMetricsReportDataServiceAuthzTest
     tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "eval2", eval2Date);
 
     // violation appears in eval1 but is resolved in eval2
-    tempEntity.newPolicyViolation(eval1, policy);
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval1, policy);
+    violation.setFixTime(eval2Date);
+    new PolicyViolationDAO().update(violation);
   }
 
   private void assertMttrResults(List<MttrDTO> mttrDTOs, LocalDate today) {

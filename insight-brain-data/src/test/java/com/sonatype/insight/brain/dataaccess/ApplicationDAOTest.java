@@ -954,8 +954,8 @@ public class ApplicationDAOTest
         new Date());
     Policy policy = tempEntity.newPolicy(application.getId(), "policy1", 5);
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    PolicyViolationResolutionState resolutionState = tempEntity.newPolicyViolationResolutionState(application.getId(),
-        policyViolation, BuildStageType.ID);
+    PolicyViolationResolutionState resolutionState = tempEntity.newPolicyViolationResolutionState(policyViolation,
+        BuildStageType.ID);
 
     applicationDAO.delete(application);
 

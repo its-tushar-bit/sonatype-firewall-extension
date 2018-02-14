@@ -12,10 +12,12 @@ import java.util.Locale;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -56,11 +58,15 @@ public class PolicyViolationAggregationResourceTest
     String appId2 = app2.getId();
     Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy1", 5);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(appId1, BuildStageType.ID, "scan1", date1);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy1);
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(appId2, BuildStageType.ID, "scan2", date1);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy1);
     tempEntity.newPolicyEvaluation(appId1, BuildStageType.ID, "scan3", date2);
+    violation1.setFixTime(date2);
+    new PolicyViolationDAO().update(violation1);
     tempEntity.newPolicyEvaluation(appId2, BuildStageType.ID, "scan4", date3);
-    tempEntity.newPolicyViolation(eval1, policy1);
-    tempEntity.newPolicyViolation(eval2, policy1);
+    violation2.setFixTime(date3);
+    new PolicyViolationDAO().update(violation2);
 
     SuccessMetricsReport report = createSuccessMetricsReport(null, Collections.singleton(appId1));
 

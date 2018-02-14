@@ -44,7 +44,7 @@ public class PolicyViolationResolutionStateDAOTest
     assertThat(violation.getPolicyName(), is(notNullValue()));
     assertThat(violation.getThreatLevel(), is(notNullValue()));
 
-    PolicyViolationResolutionState resolutionState = new PolicyViolationResolutionState(app.getId(), violation);
+    PolicyViolationResolutionState resolutionState = new PolicyViolationResolutionState(violation);
     resolutionState.setStageTypeById(BuildStageType.ID);
 
     // create
@@ -95,8 +95,8 @@ public class PolicyViolationResolutionStateDAOTest
     Policy policy = tempEntity.newPolicy(app.getId(), "policy1");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy);
 
-    PolicyViolationResolutionState resolutionState = tempEntity.newPolicyViolationResolutionState(app.getId(),
-        violation, BuildStageType.ID);
+    PolicyViolationResolutionState resolutionState = tempEntity.newPolicyViolationResolutionState(violation,
+        BuildStageType.ID);
 
     List<PolicyViolationResolutionState> results = dao.getByApplicationId(app.getId());
 

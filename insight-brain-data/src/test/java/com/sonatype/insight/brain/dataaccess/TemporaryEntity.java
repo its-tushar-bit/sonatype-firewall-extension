@@ -1568,11 +1568,10 @@ public class TemporaryEntity
     aggregation.setDiscoveredCount(threatCategory, CRITICAL, violationCounts.get(3));
   }
 
-  public PolicyViolationResolutionState newPolicyViolationResolutionState(String applicationId,
-                                                                          PolicyViolation policyViolation,
+  public PolicyViolationResolutionState newPolicyViolationResolutionState(PolicyViolation policyViolation,
                                                                           String stageTypeId)
   {
-    PolicyViolationResolutionState resolutionState = new PolicyViolationResolutionState(applicationId, policyViolation);
+    PolicyViolationResolutionState resolutionState = new PolicyViolationResolutionState(policyViolation);
 
     // at least one stage type must be set
     resolutionState.setStageTypeById(stageTypeId);

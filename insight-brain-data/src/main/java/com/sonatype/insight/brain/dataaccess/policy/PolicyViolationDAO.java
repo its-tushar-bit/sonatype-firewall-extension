@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -134,6 +135,25 @@ public class PolicyViolationDAO
     }
     parameters[0] = ids;
     return getList(sQuery, parameters);
+  }
+
+  public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(String appId,
+                                                                               Collection<String> stageTypeIds,
+                                                                               Date from,
+                                                                               Date to)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
+        " AND (" + //
+        "   (entity.openTime >= ?3 AND entity.openTime < ?4" + // opened during time range
+        "    AND (entity.waiveTime > entity.openTime OR entity.waiveTime IS NULL)) " + // not immediately waived
+        "   OR " + //
+        "   (entity.openTime < ?3 " + // opened before time range
+        "    AND CASE WHEN entity.fixTime <= ?3 THEN false" + // not fixed before time range
+        "             WHEN entity.waiveTime <= ?3 THEN false" + // not waived before time range
+        "             ELSE true " + //
+        "        END = true))";
+    return getList(sQuery, appId, stageTypeIds, from, to);
   }
 
   public int replacePolicyId(String fromPolicyId, String toPolicyId) {

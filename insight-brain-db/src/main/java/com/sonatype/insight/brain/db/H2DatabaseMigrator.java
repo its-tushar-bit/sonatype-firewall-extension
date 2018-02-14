@@ -105,9 +105,6 @@ public class H2DatabaseMigrator
     catch (IOException | SQLException e) {
       throw new RuntimeException(e);
     }
-    catch (RuntimeException e) {
-      throw enhanceException(e);
-    }
   }
 
   public void runScript(DataSource dataSource, String scriptName) throws SQLException {
@@ -117,23 +114,6 @@ public class H2DatabaseMigrator
     try (Connection conn = dataSource.getConnection()) {
       resourceDatabasePopulator.populate(conn);
     }
-  }
-
-  private RuntimeException enhanceException(RuntimeException exception) {
-    String reason = createCustomErrorMessage(exception.getMessage());
-    if (reason != null) {
-      return new RuntimeException(reason, exception);
-    }
-
-    return exception;
-  }
-
-  private String createCustomErrorMessage(String message) {
-    if (message != null && message.contains("db/insight_brain_ods/schema_incremental_0039.sql")) {
-      return "Failed to migrate database, exception likely caused by applications without parent organizations. Please contact support for further assistance.";
-    }
-
-    return null;
   }
 
   private void backup(File databaseDir, String databaseName, File backupDir) throws IOException {

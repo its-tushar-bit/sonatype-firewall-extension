@@ -44,12 +44,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.sonatype.sisu</groupId>
-      <artifactId>sisu-guice</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.sisu.inject</groupId>
-      <artifactId>guice-multibindings</artifactId>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.sisu</groupId>
@@ -472,6 +468,11 @@
           <groupId>javax.annotation</groupId>
           <artifactId>jsr250-api</artifactId>
         </exclusion>
+        <exclusion>
+          <!-- using official guice instead -->
+          <groupId>org.sonatype.sisu</groupId>
+          <artifactId>sisu-guice</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -490,30 +491,11 @@
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-guice</artifactId>
-      <exclusions>
-        <exclusion>
-          <!-- using sisu guice instead -->
-          <groupId>com.google.inject</groupId>
-          <artifactId>guice</artifactId>
-        </exclusion>
-        <exclusion>
-          <!-- using sisu multibindings instead -->
-          <groupId>com.google.inject.extensions</groupId>
-          <artifactId>guice-multibindings</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-license-model</artifactId>
-      <exclusions>
-        <exclusion>
-          <!-- exclude no-aop version -->
-          <groupId>org.sonatype.sisu</groupId>
-          <artifactId>sisu-guice</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>

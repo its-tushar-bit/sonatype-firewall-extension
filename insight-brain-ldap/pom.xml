@@ -90,8 +90,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.sisu</groupId>
-      <artifactId>sisu-guice</artifactId>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

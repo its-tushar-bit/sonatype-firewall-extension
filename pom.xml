@@ -39,7 +39,6 @@
     <openjpa.version>2.4.2</openjpa.version>
     <shiro.version>1.4.0</shiro.version>
     <sisu-inject.version>0.3.3</sisu-inject.version>
-    <sisu-guice.version>3.2.6</sisu-guice.version>
     <clm.dto.model.version>1.8.0-01</clm.dto.model.version>
     <dropwizard.version>1.2.3</dropwizard.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
@@ -283,20 +282,14 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>org.sonatype.sisu</groupId>
-        <artifactId>sisu-guice</artifactId>
-        <version>${sisu-guice.version}</version>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>4.1.0</version>
       </dependency>
       <dependency>
-        <groupId>org.sonatype.sisu</groupId>
-        <artifactId>sisu-guice</artifactId>
-        <version>${sisu-guice.version}</version>
-        <classifier>no_aop</classifier>
-      </dependency>
-      <dependency>
-        <groupId>org.sonatype.sisu.inject</groupId>
+        <groupId>com.google.inject.extensions</groupId>
         <artifactId>guice-multibindings</artifactId>
-        <version>${sisu-guice.version}</version>
+        <version>4.1.0</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.sisu</groupId>

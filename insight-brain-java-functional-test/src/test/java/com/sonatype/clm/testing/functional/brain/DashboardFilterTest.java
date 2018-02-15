@@ -183,7 +183,7 @@ public class DashboardFilterTest
     //most recent evaluation
     PolicyEvaluation secondPolicyEvaluation = staticTempEntity
         .newPolicyEvaluation(secondApp.getId(), ReleaseStageType.ID,
-            "DashboardTestSecondEvaluation", now.toDate());
+            "DashboardTestSecondEvaluation", now.minusDays(1).toDate());
     PolicyViolation secondViolation = staticTempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10,
         PolicyThreatCategory.QUALITY);
     staticTempEntity

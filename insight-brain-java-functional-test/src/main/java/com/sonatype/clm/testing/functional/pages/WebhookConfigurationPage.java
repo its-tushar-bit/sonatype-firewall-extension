@@ -27,6 +27,6 @@ public class WebhookConfigurationPage
   }
 
   public ActionList webhooksList() {
-    return new ActionList(".iq-action-list");
+    return new ActionList(".iq-list");
   }
 }

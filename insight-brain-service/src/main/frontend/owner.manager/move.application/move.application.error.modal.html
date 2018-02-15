@@ -9,9 +9,11 @@
       <h3>
         <i class="fa size-18px fa-warning"></i>Incompatible Destination
       </h3>
-      <ul>
-        <li ng-repeat="message in ::messages">{{::message}}</li>
-      </ul>
+      <div class="iq-list iq-list--bulleted">
+        <ul>
+          <li ng-repeat="message in ::messages" class="iq-list__item">{{::message}}</li>
+        </ul>
+      </div>
     </div>
   </div>
   <div class="iq-modal-footer">

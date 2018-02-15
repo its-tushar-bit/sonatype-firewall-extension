@@ -1,0 +1,40 @@
+/*
+ * Styles required to override Bootstraps default styles
+ * Please list the location in the app of any changes
+ */
+
+// These styles appear in the System Preferences pages and are required because of Bootstrap accordion styles
+.iq-list,
+.iq-list--clickable {
+  .iq-list__item {
+    .row {
+      margin: 0;
+    }
+  
+    &.accordion-group {
+      border: none;
+      border-top: 1px solid transparent;
+      border-bottom: 1px solid $iq-grey-1;
+      border-radius: 0;
+      margin: 0;
+    
+      &:first-of-type {
+        border-top: 1px solid $iq-grey-3;
+      }
+    
+      &:hover {
+        border: none;
+      }
+    }
+  
+    td {
+      line-height: 100%;
+    }
+  }
+}
+
+.iq-list__item--expanding {
+  .row {
+    cursor: default;
+  }
+}

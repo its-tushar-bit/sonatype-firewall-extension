@@ -10,6 +10,7 @@
 @import "mixins";
 @import "global";
 @import "widgets";
+@import "bootstrap-overrides";
 @import "chiclet";
 @import "buttons";
 @import "tiles";
@@ -21,6 +22,7 @@
 @import "mask";
 @import "icons";
 @import "../mainHeader/mainHeader";
+@import "pages";
 @import "policy-editor";
 @import "ldap";
 @import "roles";

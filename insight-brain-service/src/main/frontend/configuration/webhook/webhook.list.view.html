@@ -6,7 +6,7 @@
           <i class="icon icon-plus"></i> Add a Webhook
         </button>
       </div>
-      <div class="iq-tile-header iq-tile-header--sys-prefs">        
+      <div class="iq-tile-header">        
         <div class="iq-tile-header__title">
           <div class="iq-tile-header__icon">
             <img src="img/webhooks_20px.png" alt="Webhooks">
@@ -18,24 +18,26 @@
         </div>
       </div>
       <div class="iq-tile-content">
-        <ul class="iq-action-list">
-          <li class="iq-action-list__item iq-action-list__item--empty" ng-if="vm.webhooks.length <= 0">
-            No webhooks are defined
-          </li>
-          <li class="iq-action-list__item iq-action-list__item--tall"
-              ng-repeat="webhook in vm.webhooks"
-              ui-sref="webhooks.edit({webhookId: webhook.id})">
-            <i class="fa fa-chevron-right iq-pull-right"></i>
-            <p class="iq-action-list__text">
-              <img src="img/webhooks_16px.png" class="webhook-icon" alt="Webhooks">{{::webhook.url}}
-            </p>
-            <p class="iq-action-list__subtext">
-              <span ng-repeat="eventType in webhook.eventTypes">
-                <i class="fa fa-circle size-10px" title="{{::eventType}}"/>{{::eventType}}
+        <div class="iq-list iq-list--clickable">
+          <ul class="iq-list iq-list--clickable">
+            <li class="iq-list__item iq-list__item--empty" ng-if="vm.webhooks.length <= 0">
+              No webhooks are defined
+            </li>
+            <li class="iq-list__item"
+                ng-repeat="webhook in vm.webhooks"
+                ui-sref="webhooks.edit({webhookId: webhook.id})">
+              <i class="fa fa-chevron-right iq-pull-right"></i>
+              <span class="webhook-url">
+                <img src="img/webhooks_16px.png" class="webhook-icon" alt="Webhooks">{{::webhook.url}}
               </span>
-            </p>
-          </li>
-        </ul>
+              <p class="iq-list__subtext">
+                <span ng-repeat="eventType in webhook.eventTypes" class="webhook-event-types">
+                  <i class="fa fa-circle size-10px" title="{{::eventType}}"/>{{::eventType}}
+                </span>
+              </p>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>

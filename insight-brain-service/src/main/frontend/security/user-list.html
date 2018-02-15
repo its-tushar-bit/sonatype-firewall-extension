@@ -53,7 +53,7 @@
           <i class='icon icon-plus'></i> Create User
         </button>
       </div>
-      <div class="iq-tile-header iq-tile-header--sys-prefs">
+      <div class="iq-tile-header">
         <div class="iq-tile-header__title">
           <h2>Users</h2>
         </div>
@@ -62,9 +62,9 @@
         <h5 ng-hide='context.users'>
           <i class='icon-time'></i> Loading...
         </h5>
-        <ul class="iq-action-list">
-          <li class="iq-action-list__item iq-action-list__item--expanding" ng-repeat='user in context.users'>
-            <div class="accordion-heading">
+        <div class="iq-list iq-list--clickable accordion">
+          <ul>
+            <li class="iq-list__item iq-list__item--expanding accordion-heading" ng-repeat='user in context.users'>
               <div class='btn-group floatRight'>
                 <button type='button'
                         class="btn btn-mini user-button hover-buttons"
@@ -97,34 +97,35 @@
                   Current User
                 </span>
               </a>
-            </div>
-            <div id="collapse{{user.id}}" class="accordion-body collapse">
-              <div class="accordion-inner" style="padding:0px 15px;" ng-if="!context.userEditMap[user.id]">
-                <table style="margin-bottom:5px;">
-                  <tr>
-                    <td class="summary-label">First Name:</td>
-                    <td>{{user.firstName}}</td>
-                  </tr>
-                  <tr>
-                    <td class="summary-label">Last Name:</td>
-                    <td>{{user.lastName}}</td>
-                  </tr>
-                  <tr>
-                    <td class="summary-label">E-mail Address:</td>
-                    <td>{{user.email}}</td>
-                  </tr>
-                </table>
+            
+              <div id="collapse{{user.id}}" class="accordion-body collapse">
+                <div class="accordion-inner" style="padding:0px 15px;" ng-if="!context.userEditMap[user.id]">
+                  <table style="margin-bottom:5px;">
+                    <tr>
+                      <td class="summary-label">First Name:</td>
+                      <td>{{user.firstName}}</td>
+                    </tr>
+                    <tr>
+                      <td class="summary-label">Last Name:</td>
+                      <td>{{user.lastName}}</td>
+                    </tr>
+                    <tr>
+                      <td class="summary-label">E-mail Address:</td>
+                      <td>{{user.email}}</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="accordion-inner" style="padding:0px;" ng-if="context.userEditMap[user.id]">
+                  <user-form user="user"
+                             existing-users="context.users"
+                             on-cancel="closeUserEditForm(user)"
+                             on-save="closeUserEditForm(user)">
+                  </user-form>
+                </div>
               </div>
-              <div class="accordion-inner" style="padding:0px;" ng-if="context.userEditMap[user.id]">
-                <user-form user="user"
-                           existing-users="context.users"
-                           on-cancel="closeUserEditForm(user)"
-                           on-save="closeUserEditForm(user)">
-                </user-form>
-              </div>
-            </div>
-          </li>
-        </ul>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
     <div ui-view></div>

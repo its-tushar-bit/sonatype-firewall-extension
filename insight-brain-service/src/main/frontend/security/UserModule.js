@@ -20,7 +20,7 @@ angular.module('SecurityModule', ['ui.router', angularCommonModule.name, 'Applic
         template: '<div authorization-wrapper="isAuthorized">' +
                      '<div class="scrollable-root-container" maximize-container-height>' +
                        '<div class="iq-tile iq-tile--sys-prefs">' +
-                         '<div class="iq-tile-header iq-tile-header--sys-prefs">' +
+                         '<div class="iq-tile-header">' +
                            '<div class="iq-tile-header__title">' +
                              '<h2>Administrators</h2>' +
                            '</div>' +

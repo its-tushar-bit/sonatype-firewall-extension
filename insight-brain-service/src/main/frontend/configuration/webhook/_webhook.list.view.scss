@@ -1,0 +1,5 @@
+.iq-list__subtext {
+  > .webhook-event-types {
+    padding-right: 16px; // required for Webhooks List page
+  }
+}

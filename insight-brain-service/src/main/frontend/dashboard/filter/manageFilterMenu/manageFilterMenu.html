@@ -17,21 +17,21 @@
       <i class="fa fa-trash iq-dropdown__action-icon"></i>Delete...
     </a>
   </div>
-  <div class="iq-manage-filters-menu__filters iq-action-list">
-    <h4 class="iq-action-list__title">
+  <div class="iq-manage-filters-menu__filters iq-list iq-list--clickable">
+    <h4 class="iq-list__title">
       LOAD
     </h4>
-    <div class="iq-action-list__item iq-action-list__item--empty"
+    <div class="iq-list__item iq-list__item--empty"
          ng-hide="vm.hasSavedFilters() || vm.isLoadingSavedFilters() || vm.savedFilterListError">
       No saved filters.
     </div>
-    <div class="iq-action-list__item iq-error" ng-if="vm.savedFilterListError">
+    <div class="iq-list__item iq-error" ng-if="vm.savedFilterListError">
       <i class="fa fa-warning"></i>Failed to open the saved filter list.
     </div>
     <ul ng-hide="vm.savedFilterListError"
         id="manage-filter-list"
         class="iq-scrollable">
-      <li class="iq-action-list__item iq-clickable"
+      <li class="iq-list__item"
           ng-repeat="savedFilter in vm.savedFilters"
           ng-click="vm.applySavedFilter(savedFilter)">
         {{::savedFilter.name}}

@@ -116,7 +116,7 @@ public class DashboardFilters
     }
 
     public SelenideElement emptyListMessage() {
-      return child(".iq-action-list__item--empty");
+      return child(".iq-list__item--empty");
     }
 
     public SaveFilterDialog saveFilterDialog() {
@@ -132,11 +132,11 @@ public class DashboardFilters
     }
 
     public ElementsCollection filters() {
-      return children("#manage-filter-list", ".iq-action-list__item");
+      return children("#manage-filter-list", ".iq-list__item");
     }
 
     public SelenideElement filter(int i) {
-      return child("#manage-filter-list", ".iq-action-list__item", SelectorUtils.nthChild(i + 1));
+      return child("#manage-filter-list", ".iq-list__item", SelectorUtils.nthChild(i + 1));
     }
   }
 

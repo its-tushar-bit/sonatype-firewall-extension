@@ -27,7 +27,7 @@ public class SuccessMetricsReportListPage
   }
 
   public ActionList successMetricsChartActionItems() {
-    return new ActionList(ROOT_SELECTOR, ".iq-action-list");
+    return new ActionList(ROOT_SELECTOR, ".iq-list");
   }
 
   public ErrorBox errorBox() {
@@ -39,7 +39,7 @@ public class SuccessMetricsReportListPage
   }
 
   public SelenideElement emptyDescriptor() {
-    return child("li.iq-action-list__item--empty");
+    return child("li.iq-list__item--empty");
   }
 
   public SelenideElement subheaderDashboardLink() {

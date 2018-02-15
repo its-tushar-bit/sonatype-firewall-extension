@@ -2,7 +2,6 @@
   #Widgets
 */
 
-@import "iq-action-lists";
 @import "iq-alerts";
 @import "iq-dropdowns";
 @import "iq-loader";
@@ -10,6 +9,7 @@
 @import "iq-tables";
 @import "iq-tree-view";
 @import "iq-grid";
+@import "iq-list";
 
 /*
   #System notice
@@ -1317,11 +1317,6 @@ root-organization-migrate {
   a {
     color: black;
     text-decoration: none;
-  }
-
-  > .floatRight {
-    padding-top: 6px;
-    padding-right: 5px;
   }
 }
 

@@ -6,17 +6,24 @@
   </div>
   <div class="iq-modal-content">
     <div class="iq-alert iq-alert--info">
-      <i class="fa size-16px fa-info-circle"></i>Please check the following configurations to ensure they do what you expect:
-      <ul>
-        <li>Policy Notifications</li>
-        <li>User Access</li>
-      </ul>
+      <p>
+        <i class="fa size-16px fa-info-circle"></i>
+        Please check the following configurations to ensure they do what you expect:
+      </p>
+      <div class="iq-list iq-list--bulleted">
+        <ul>
+          <li class="iq-list__item">Policy Notifications</li>
+          <li class="iq-list__item">User Access</li>
+        </ul>
+      </div>
     </div>
     <div ng-show="messages" class="iq-alert iq-scrollable">
       <i class="fa size-16px fa-warning"></i>Policy configurations that differ between the old and new parent:
-      <ul>
-        <li ng-repeat="message in ::messages">{{::message}}</li>
-      </ul>
+      <div class="iq-list iq-list--bulleted">
+        <ul>
+          <li ng-repeat="message in ::messages" class="iq-list__item">{{::message}}</li>
+        </ul>
+      </div>
     </div>
   </div>
   <div class="iq-modal-footer">

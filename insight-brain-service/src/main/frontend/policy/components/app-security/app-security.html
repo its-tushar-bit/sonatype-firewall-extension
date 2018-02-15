@@ -19,21 +19,20 @@
       <i class="icon-time"></i> Loading...
     </h5>
   </div>
-  <div class="iq-action-list iq-action-list--header fade" ng-class="{in : context && !error}">
+  <div class="iq-list--header fade" ng-class="{in : context && !error}">
     <div clm-alerts="alerts"></div>
-    <h4 class="iq-action-list__title iq-action-list__title--admin-role">Role</h4>
-    <h4 class="iq-action-list__title iq-action-list__title--admin-member">Members</h4>
+    <h4 class="iq-list__title iq-list__title--admin-role">Role</h4>
+    <h4 class="iq-list__title iq-list__title--admin-member">Members</h4>
   </div>
-  <ul class="iq-action-list accordion">
-    <li class="iq-action-list__item iq-action-list__item--expanding accordion-group" 
-        ng-repeat="role in context.roles">
-      <div class="accordion-heading">
+  <div class="iq-list">
+    <ul class="accordion">
+      <li class="iq-list__item iq-list__item--expanding" ng-repeat="role in context.roles">
         <div ng-if="!editMode">
-          <div class="iq-action-list__row--admin-role">
+          <div class="iq-list__row--admin-role">
             {{role.roleName}}
           </div>
-          <div class="iq-action-list__row--admin-member expandable">
-            <div class="iq-action-list__actions">
+          <div class="iq-list__row--admin-member expandable">
+            <div class="iq-list__actions">
                <button type="button"
                        class="btn btn-icon-only"
                        title="Edit Role"
@@ -66,12 +65,12 @@
           </div>
         </div>
         <div class="row" ng-if="editMode">
-          <div class="iq-action-list__title--admin-role">
+          <div class="iq-list__title--admin-role">
             <div class="expandable">{{role.roleName}}</div>
           </div>
-          <div class="iq-action-list__row--admin-member">
-            <div class="iq-action-list__actions">
-              <button type='button' class="btn btn-mini btn-icon-only" title="Edit Role" ng-disabled='true'>
+          <div class="iq-list__row--admin-member">
+            <div class="iq-list__actions">
+              <button type="button" class="btn btn-mini btn-icon-only" title="Edit Role" ng-disabled="true">
                 <i class="fa fa-fw fa-pencil"></i>
               </button>
             </div>
@@ -81,8 +80,8 @@
             </app-security-editor>
           </div>
         </div>
-      </div>
-    </li>
-  </ul>
+      </li>
+    </ul>
+  </div>
   <div error-Modal></div>
 </div>

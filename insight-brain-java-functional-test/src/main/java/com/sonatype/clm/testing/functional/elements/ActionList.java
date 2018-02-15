@@ -19,7 +19,7 @@ public class ActionList extends BasicElement<ActionList>
   }
 
   public ElementsCollection elements() {
-    return children("li:not(.iq-action-list__item--empty)");
+    return children("li:not(.iq-list__item--empty)");
   }
 
   public ActionListElement element(int num) {
@@ -27,22 +27,22 @@ public class ActionList extends BasicElement<ActionList>
   }
 
   public SelenideElement emptyDescriptor() {
-    return child("li.iq-action-list__item--empty");
+    return child("li.iq-list__item--empty");
   }
 
   public class ActionListElement
       extends BasicElement<ActionListElement>
   {
     public ActionListElement(String rootSelector, int num) {
-      super(rootSelector, "li:not(.iq-action-list__item--empty)", nthChild(num + 1));
+      super(rootSelector, "li:not(.iq-list__item--empty)", nthChild(num + 1));
     }
 
     public SelenideElement text() {
-      return child(".iq-action-list__text");
+      return child(".webhook-url");
     }
 
     public SelenideElement subtext() {
-      return child(".iq-action-list__subtext");
+      return child(".iq-list__subtext");
     }
 
     public SelenideElement chevron() {

@@ -29,7 +29,7 @@ public class AdministratorsPage
   }
 
   public static AdministratorsRoleMappingList administratorsRoleMappingList() {
-    return new AdministratorsRoleMappingList(ROOT_SELECTOR, ".iq-action-list.accordion");
+    return new AdministratorsRoleMappingList(ROOT_SELECTOR, ".iq-list ul.accordion");
   }
 
   public static class AdministratorsRoleMappingList
@@ -40,11 +40,11 @@ public class AdministratorsPage
     }
 
     public ElementsCollection elements() {
-      return children(".accordion-group");
+      return children(".iq-list__item--expanding");
     }
 
     public RoleMappingElement element(int num) {
-      return new RoleMappingElement(selector, ".accordion-group", nthChild(num + 1));
+      return new RoleMappingElement(selector, ".iq-list__item--expanding", nthChild(num + 1));
     }
 
     public static class RoleMappingElement
@@ -55,7 +55,7 @@ public class AdministratorsPage
       }
 
       public Content content() {
-        return new Content(selector, ".iq-action-list__row--admin-member");
+        return new Content(selector, ".iq-list__row--admin-member");
       }
 
       public SelenideElement editButton() {

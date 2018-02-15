@@ -20,11 +20,11 @@ public class TileSimpleList
   }
 
   public ElementsCollection elements() {
-    return root.$$("li:not(.iq-action-list__item--empty)");
+    return root.$$("li:not(.iq-list__item--empty)");
   }
 
   public SelenideElement noElementsMessage() {
-    return root.$("li.iq-action-list__item--empty");
+    return root.$("li.iq-list__item--empty");
   }
  
   public TileSimpleListElement element(int num) {

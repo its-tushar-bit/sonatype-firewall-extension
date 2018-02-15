@@ -37,7 +37,6 @@ export default angular.module('config',
 
     .constant('stylesConfig', {
       'iq-tile-header': 'styles/iq-tile-header.html',
-      'iq-action-list': 'styles/iq-action-list.html',
       'iq-dropdown': 'styles/iq-dropdown.html',
       'iq-pull-right': 'styles/iq-pull-right.html',
       'iq-scrollable': 'styles/iq-scrollable.html',
@@ -49,5 +48,7 @@ export default angular.module('config',
       'iq-text-input': 'styles/iq-form-text-input.html',
       'iq-textarea': 'styles/iq-form-textarea.html',
       'iq-form-layout': 'styles/iq-form-layout/iq-form-layout.html',
-      'iq-grid': 'styles/iq-grid.html'
+      'iq-grid': 'styles/iq-grid.html',
+      'iq-list': 'styles/iq-list.html',
+      'iq-list--clickable': 'styles/iq-list--clickable.html'
     });

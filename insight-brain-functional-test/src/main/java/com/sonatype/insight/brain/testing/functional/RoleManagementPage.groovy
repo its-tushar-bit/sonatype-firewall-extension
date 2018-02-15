@@ -16,15 +16,15 @@ extends BasePage {
 
   static content = {
     pageTitle { $('.iq-tile-header__title h2') }
-    builtinRoles(wait: true) { $('#builtin-roles .iq-action-list__item').moduleList(RoleSummary) }
-    customRoles(required: false) { $('#custom-roles .iq-action-list__item').moduleList(RoleSummary) }
+    builtinRoles(wait: true) { $('#builtin-roles .iq-list__item').moduleList(RoleSummary) }
+    customRoles(required: false) { $('#custom-roles .role-name-list-item').moduleList(RoleSummary) }
     createRole(required:true) { $('#create-role').module(FormElement) }
   }
 }
 
 class RoleSummary extends Module {
   static content = {
-    name { $('.iq-action-list__text') }
-    description { $('.iq-action-list__subtext') }
+    name { $('.role-name') }
+    description { $('.iq-list__subtext') }
   }
 }

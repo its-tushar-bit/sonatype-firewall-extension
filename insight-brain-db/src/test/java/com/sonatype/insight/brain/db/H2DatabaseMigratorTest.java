@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 public class H2DatabaseMigratorTest
 {
@@ -187,6 +188,55 @@ public class H2DatabaseMigratorTest
     new H2DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource, 84, 87, 1);
   }
 
+  @Test
+  public void testMigrate_OperationalDataStore_RunsPostIncrementalMigrators() throws Exception {
+    File databaseDir = temporaryFolder.newFolder("db");
+    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
+        databaseDir);
+    File databaseVersionFile = new File(databaseDir, "ods.ver");
+    assertThat(databaseVersionFile.exists(), is(true));
+    assertThat(readDatabaseVersion(databaseVersionFile), is("85"));
+    int desiredVersion = 87;
+
+    OperationalDataStoreProvider.init(getODSDatabaseConfig(databaseDir), true, desiredVersion);
+
+    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredVersion)));
+    assertThat(PostIncrementalMigratorVersionMinus1.invoked, is(false));
+    assertThat(PostIncrementalMigratorVersion.invoked, is(false));
+    assertThat(PostIncrementalMigratorVersionPlus1.invoked, is(true));
+    assertThat(PostIncrementalMigratorVersionDesired.invoked, is(true));
+    assertThat(PostIncrementalMigratorVersionDesiredPlus1.invoked, is(false));
+  }
+
+  @Test
+  public void testMigrate_OperationalDataStore_ThrowsExceptionDuringExecute() {
+    try {
+      new H2DatabaseMigrator().runPostIncrementalMigrator("/H2DatabaseMigratorTest/" +
+              "testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/schema_incremental_0089.cls",
+          mock(DataSource.class));
+      fail("Expected exception");
+    }
+    catch (RuntimeException e) {
+      assertThat(e.getMessage(), is("Failed to execute the PostIncrementalMigrator referenced in " +
+          "/H2DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/" +
+          "schema_incremental_0089.cls."));
+    }
+  }
+
+  @Test
+  public void testMigrate_OperationalDataStore_ThrowsExceptionDuringLoad() {
+    try {
+      new H2DatabaseMigrator().runPostIncrementalMigrator("/H2DatabaseMigratorTest/" +
+          "testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/schema_incremental_0090.cls", null);
+      fail("Expected exception");
+    }
+    catch (RuntimeException e) {
+      assertThat(e.getMessage(), is("Failed to execute the PostIncrementalMigrator referenced in " +
+          "/H2DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/" +
+          "schema_incremental_0090.cls."));
+    }
+  }
+
   private DatabaseConfig getODSDatabaseConfig(File databaseDir) {
     DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
     odsDatabaseConfig.setDriverClassName("org.h2.Driver");
@@ -196,5 +246,69 @@ public class H2DatabaseMigratorTest
     odsDatabaseConfig.setPassword("");
     odsDatabaseConfig.setMaxConnections(50);
     return odsDatabaseConfig;
+  }
+
+  static class PostIncrementalMigratorVersionMinus1
+      implements PostIncrementalMigrator
+  {
+    static boolean invoked;
+
+    @Override
+    public void migrate(DataSource dataSource) {
+      invoked = true;
+    }
+  }
+
+  static class PostIncrementalMigratorVersion
+      implements PostIncrementalMigrator
+  {
+    static boolean invoked;
+
+    @Override
+    public void migrate(DataSource dataSource) {
+      invoked = true;
+    }
+  }
+
+  static class PostIncrementalMigratorVersionPlus1
+      implements PostIncrementalMigrator
+  {
+    static boolean invoked;
+
+    @Override
+    public void migrate(DataSource dataSource) {
+      invoked = true;
+    }
+  }
+
+  static class PostIncrementalMigratorVersionDesired
+      implements PostIncrementalMigrator
+  {
+    static boolean invoked;
+
+    @Override
+    public void migrate(DataSource dataSource) {
+      invoked = true;
+    }
+  }
+
+  static class PostIncrementalMigratorVersionDesiredPlus1
+      implements PostIncrementalMigrator
+  {
+    static boolean invoked;
+
+    @Override
+    public void migrate(DataSource dataSource) {
+      invoked = true;
+    }
+  }
+
+  static class PostIncrementalMigratorFail
+      implements PostIncrementalMigrator
+  {
+    @Override
+    public void migrate(DataSource dataSource) throws Exception {
+      throw new Exception();
+    }
   }
 }

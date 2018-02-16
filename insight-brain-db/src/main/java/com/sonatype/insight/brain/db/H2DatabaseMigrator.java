@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.db;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -96,6 +98,9 @@ public class H2DatabaseMigrator
       for (int i = currentVersion + 1; i <= desiredVersion; i++) {
         String scriptName = scriptsPath + "schema_incremental_" + String.format("%1$04d", i) + ".sql";
         runScript(dataSource, scriptName);
+        String postIncrementalMigratorFileName =
+            scriptsPath + "schema_incremental_" + String.format("%1$04d", i) + ".cls";
+        runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource);
         FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));
       }
 
@@ -104,6 +109,22 @@ public class H2DatabaseMigrator
     }
     catch (IOException | SQLException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  void runPostIncrementalMigrator(String postIncrementalMigratorFileName, DataSource dataSource)
+  {
+    try (InputStream is = getClass().getResourceAsStream(postIncrementalMigratorFileName)) {
+      if (is != null) {
+        Class<?> c = Class.forName(IOUtil.toString(is, "UTF-8").trim());
+        PostIncrementalMigrator migrator = c.asSubclass(PostIncrementalMigrator.class).newInstance();
+        migrator.migrate(dataSource);
+      }
+    }
+    catch (Exception e) {
+      throw new RuntimeException(
+          "Failed to execute the " + PostIncrementalMigrator.class.getSimpleName() + " referenced in " +
+              postIncrementalMigratorFileName + ".", e);
     }
   }
 

@@ -39,10 +39,14 @@ public class OperationalDataStoreProvider
   }
 
   public static void init(DatabaseConfig _databaseConfig) {
-    init(_databaseConfig, true /* migrateDatabase */);
+    init(_databaseConfig, true /* migrateDatabase */, DESIRED_DATABASE_VERSION);
   }
 
-  public static synchronized void init(DatabaseConfig _databaseConfig, boolean migrateDatabase) {
+  public static void init(DatabaseConfig _databaseConfig, boolean migrateDatabase) {
+    init(_databaseConfig, migrateDatabase, DESIRED_DATABASE_VERSION);
+  }
+
+  static synchronized void init(DatabaseConfig _databaseConfig, boolean migrateDatabase, int desiredDatabaseVersion) {
     if (isInitialized) {
       return;
     }
@@ -54,7 +58,7 @@ public class OperationalDataStoreProvider
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     if (migrateDatabase) {
       new H2DatabaseMigrator()
-          .migrate(databaseConfig, ID, dataSource, MINIMUM_DATABASE_VERSION, DESIRED_DATABASE_VERSION, 6 /* defaultCurrentVersion */);
+          .migrate(databaseConfig, ID, dataSource, MINIMUM_DATABASE_VERSION, desiredDatabaseVersion, 6 /* defaultCurrentVersion */);
     }
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);

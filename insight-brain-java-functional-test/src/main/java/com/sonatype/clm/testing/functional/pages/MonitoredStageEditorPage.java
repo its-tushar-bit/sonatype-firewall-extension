@@ -48,7 +48,7 @@ public class MonitoredStageEditorPage
   }
 
   public static IqRadio getStageByName(final String stageName) {
-    return new IqRadio($$(ROOT + " iq-radio .description").findBy(text(stageName)).parent().parent().parent());
+    return new IqRadio($$(ROOT + " iq-radio").findBy(text(stageName)));
   }
 
   public static SelenideElement updateButton() {

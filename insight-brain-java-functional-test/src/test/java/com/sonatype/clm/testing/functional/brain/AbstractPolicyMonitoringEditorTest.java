@@ -66,6 +66,8 @@ public abstract class AbstractPolicyMonitoringEditorTest
     MonitoredStageEditorPage.updateButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     assertEditMonitoredStageStateIsCorrect("Develop");
+
+    eyesWatcher.eyesCheck();
   }
 
   @Test

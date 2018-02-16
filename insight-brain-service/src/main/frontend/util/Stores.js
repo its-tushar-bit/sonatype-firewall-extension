@@ -21,6 +21,7 @@ storesModule.service('ApplicationStore', [
       id: 'publicId',
       url: clmLocations.getApplicationsUrl(),
       type: 'application',
+      transientProperties: ['organizationName', 'contact'],
       template: function() {
         var lastOrg = LastSelectedOrganization.get();
         return {
@@ -232,8 +233,7 @@ storesModule.service('PolicyHierarchyStore', [
           userNotifications: [],
           roleNotifications: [],
           jiraNotifications: []
-        },
-        monitorNotifyActions: []
+        }
       },
       type: 'policy',
       getUrl: CLMAppLocations.getApplicablePolicies,

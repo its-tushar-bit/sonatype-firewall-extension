@@ -79,7 +79,7 @@ describe('access.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('access.editor.controller', {$scope: scope, $stateParams: {roleId: '2cb71b3468d649789163ea2e212b5411'}, isAuthorized: true});
 
-      vm.getCurrentMembers = function() { return []; };
+      vm.getCurrentMembersToSave = function() { return []; };
       vm.isMembershipDirty = function() { return true; };
     });
     $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
@@ -131,6 +131,7 @@ describe('access.editor.controller.spec.js', function() {
     vm.rolePicker = mockRolePicker;
     vm.role = vm.availableRoles[0];
     vm.getCurrentMembers = function() { return [{internalName: 'testUser', picked: true}]; };
+    vm.getCurrentMembersToSave = function() { return [{internalName: 'testUser'}]; };
     vm.accessEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();

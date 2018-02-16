@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -43,11 +44,20 @@ public class PolicyResourceTest
     return restRequest().path(PolicyResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
 
+  private PolicyExportResult createImportBody() {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = Arrays.asList(new Policy());
+
+    return policyExportResult;
+  }
+
   @Test
   public void testAppImport_InsertFailure() throws Exception {
     String applicationPublicId = "PolicyResourceTest-testAppImport_Insert";
-    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId).body(new PolicyExportResult())
-        .put();
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId).path("import")
+        .part("file", "file", createImportBody()).post();
+
     // ensure that we cannot import to an App that does not exist
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(), is("Could not find an application with public ID " + applicationPublicId + "."));
@@ -56,7 +66,10 @@ public class PolicyResourceTest
   @Test
   public void testOrgImport_InsertFailure() throws Exception {
     String orgId = "PolicyResourceTest-testOrgImport_Insert";
-    HttpResponse response = restRequest(OwnerType.ORGANIZATION, orgId).body(new PolicyExportResult()).put();
+
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, orgId).path("import")
+        .part("file", "file", createImportBody()).post();
+
     // ensure that we cannot import to an Org that does not exist
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(), is("Cannot find organization with ID " + orgId + "."));

@@ -24,6 +24,7 @@ function UserFormController($scope, UserStore, Dialog) {
 
   // clone if existing user
   vm.user = (vm.user && vm.user.id) ? vm.user.$clone() : UserStore.create();
+  vm.passwordValidate = '';
 
   function isDirty() {
     return vm.user.isDirty();
@@ -38,7 +39,6 @@ function UserFormController($scope, UserStore, Dialog) {
 
       user.$save().then(function() {
         vm.saving = false;
-        cleanPasswordValidation();
 
         // signal save to parent controller
         vm.onSave();
@@ -61,8 +61,6 @@ function UserFormController($scope, UserStore, Dialog) {
 
     function doCancel() {
       user.$revert();
-      cleanPasswordValidation();
-
       vm.onCancel();
     }
 
@@ -84,11 +82,6 @@ function UserFormController($scope, UserStore, Dialog) {
     else {
       doCancel();
     }
-  }
-
-  // in order to avoid false positives from isDirty
-  function cleanPasswordValidation() {
-    delete vm.user.passwordValidate;
   }
 
   // make sure user is aware they are about to lose changes

@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, jQuery */
+import { omit } from 'ramda';
+
 import storeObserveTypesConstant from './resource/store.observe.types.constant';
 
 var module = angular.module('ResourceModule', []);
@@ -54,6 +56,7 @@ module.service('StoreFactory', [
      *  - dataProperty: <String>      - property of GET result to use as resource (if not provided - the actual result object is used)
      *  - id: <String>                - name of the property to use as ID (default is 'id')
      *  - relationalConfigs: <Array>  - used to create LinkedResources. (we only use this in licenseGroupStore)
+     *  - transientProperties: <Array>- list of property names to filter out of the JSON that is sent to the server
      *
      */
     function Store(config) {
@@ -66,6 +69,7 @@ module.service('StoreFactory', [
       config.id = config.id || 'id';
       config.template = angular.isFunction(config.template) ? config.template : createTemplateFn(config.template);
       config.relationalConfigs = config.relationalConfigs || [];
+      config.transientProperties = config.transientProperties || [];
 
       function checkDeferredResolve(deferredObject, result, countDown) {
         if (countDown <= 0) {
@@ -368,14 +372,20 @@ module.service('StoreFactory', [
       }
 
       Resource.prototype.$save = function() {
-        var deferred = $q.defer(),
-            me = this;
+        const deferred = $q.defer(),
+            me = this,
+            relationProperties = Object.keys(config.relationalConfigs),
+            propertiesToOmit = resourceStore.objectMethods.concat(relationProperties)
+                .concat(config.transientProperties),
 
-        var relationsToSave = Object.keys(config.relationalConfigs).length;
+            // using object spread to avoid prototype properties
+            payload = omit(propertiesToOmit, { ...this });
+
+        let relationsToSave = relationProperties.length;
 
         if (me.$new) {
           // Newly created object
-          $http.post(config.url, this, {params: config.params}).then(function(response) {
+          $http.post(config.url, payload, {params: config.params}).then(function(response) {
             var data = response.data,
                 saveRelationalResource = function() {
                   relationsToSave--;
@@ -405,7 +415,7 @@ module.service('StoreFactory', [
         }
         else {
           // Update to existing object
-          $http.put(config.url, this, {params: config.params}).then(function(response) {
+          $http.put(config.url, payload, {params: config.params}).then(function(response) {
             var properties = [],
                 promises = [],
                 resourcesToUpdate = [me],

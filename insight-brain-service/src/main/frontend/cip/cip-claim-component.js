@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { pick } from 'ramda';
 
 import legacyConfigurationModule from '../LegacyConfigurationModule';
 /* global angular, $, window, CLM, setTimeout, InsightDatatable, Insight, applicationId */
@@ -198,13 +199,20 @@ import legacyConfigurationModule from '../LegacyConfigurationModule';
       }
 
       /**
+       * filter out transient properties from the claimData to make it acceptable for a REST body
+       */
+      function getClaimDataForServer() {
+        return pick(['createTime', 'id', 'componentIdentifier', 'comment', 'hash'], $scope.claimData);
+      }
+
+      /**
        * Claim the presently selected component
        */
       $scope.claimSubmit = function() {
         updateStateForSubmit();
         if ($scope.claimForm.$valid) {
           prepareForSubmit();
-          $http.post(servicePath, $scope.claimData).then(function(response) {
+          $http.post(servicePath, getClaimDataForServer()).then(function(response) {
             updateView(response.data);
           }, errorHandler);
         }
@@ -217,7 +225,7 @@ import legacyConfigurationModule from '../LegacyConfigurationModule';
         updateStateForSubmit();
         if ($scope.claimForm.$valid) {
           prepareForSubmit();
-          $http.put(servicePath, $scope.claimData).then(function(response) {
+          $http.put(servicePath, getClaimDataForServer()).then(function(response) {
             updateView(response.data);
           }, errorHandler);
         }

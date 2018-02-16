@@ -139,9 +139,7 @@ describe('cip.label.editor tests', function() {
                 "label": "one",
                 "labelLowercase": "one",
                 "description": "one",
-                "color": "red",
-                "ownerType": "organization",
-                "ownerName": "orgName"
+                "color": "red"
               }).respond([]);
 
       scope.accept();

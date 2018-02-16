@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { prop } from 'ramda';
+
 function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, TagStore, DeleteModalService,
                                 SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant,
                                 $state) {
@@ -151,9 +153,7 @@ function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchy
       var isNew = vm.dirtyPolicy.$new;
       delete vm.submitError;
 
-      var appliedCategories = vm.categories.filter(function(category) {
-        return category.isApplied;
-      });
+      var appliedCategories = vm.categories.filter(prop('isApplied')).map(c => c.$getOriginal());
 
       vm.policyEditorMask.wrap(savePolicy).then(function() {
         if (isNew) {

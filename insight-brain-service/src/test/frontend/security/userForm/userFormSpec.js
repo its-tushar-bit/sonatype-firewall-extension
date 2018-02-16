@@ -184,22 +184,6 @@ describe('userForm', function() {
       saveDeferred.resolve();
       $rootScope.$digest();
     });
-
-    it('deletes the passwordValidate property from the user after saving and before calling onSave', function(done) {
-      controller.user.passwordValidate = 'test';
-
-      controller.onSave = function() {
-        expect(Object.keys(controller.user)).not.toContain('passwordValidate');
-
-        done();
-      };
-
-      controller.saveClick();
-      expect(controller.user.passwordValidate).toBe('test');
-
-      saveDeferred.resolve();
-      $rootScope.$digest();
-    });
   });
 
   describe('cancelClick', function() {

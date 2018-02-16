@@ -11,6 +11,7 @@ function RoleMembershipDirective() {
       groupSearchEnabled: '<',
       originalMembers: '<',
       getCurrentMembers: '=',
+      getCurrentMembersToSave: '=',
       isDirty: '='
     },
     restrict: 'E',

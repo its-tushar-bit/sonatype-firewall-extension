@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, CLM */
+import { pick } from 'ramda';
+
 (function() {
   'use strict';
 
@@ -14,11 +16,13 @@
 
     //they accept, update the server
     $scope.accept = function() {
+      const parts = $scope.label.selectedOwner.split('$$'),
+          payload = pick(['color', 'label', 'id', 'description', 'labelLowercase', 'ownerId'], label);
+
       $scope.labelSaving = true;
       $scope.labelAddError = null;
-      var parts = $scope.label.selectedOwner.split('$$');
       $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
-              component.hash, label).then(function() {
+              component.hash, payload).then(function() {
         $scope.$emit('reevaluate.component', {hash: component.hash});
         $scope.$close(label);
       }, function(error) {

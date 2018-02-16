@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { pick } from 'ramda';
+
 function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonitoringStore, Messages,
                                         MonitoredStageService, ProductFeatures) {
   var originalStage,
@@ -44,9 +46,11 @@ function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonito
   }
 
   function save() {
+    const payload = pick(['stageTypeId'], vm.monitoredStage);
+
     delete vm.submitError;
     vm.continuousMonitoringEditorMask.wrap(vm.monitoredStage.stageTypeId ?
-      PolicyMonitoringStore.save(vm.monitoredStage) : PolicyMonitoringStore.remove()).then(function() {
+      PolicyMonitoringStore.save(payload) : PolicyMonitoringStore.remove()).then(function() {
       originalStage = angular.copy(vm.monitoredStage);
     }, function(error) {
       vm.submitError = Messages.getHttpErrorMessage(error);

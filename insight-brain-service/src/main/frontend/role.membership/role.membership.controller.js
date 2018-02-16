@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { omit, map } from 'ramda';
+
 function RoleMembershipController($scope, $http, CLMAppLocations, Messages) {
 
   var vm = this;
@@ -39,6 +41,7 @@ function RoleMembershipController($scope, $http, CLMAppLocations, Messages) {
   vm.originalMembers = vm.originalMembers; //don't use undefined; it'll overwrite the passed-in value.
   vm.members = undefined;
   vm.getCurrentMembers = getCurrentMembers;
+  vm.getCurrentMembersToSave = getCurrentMembersToSave;
 
   //initialize members and currentMembers and set up listeners to
   //keep them in sync
@@ -53,6 +56,11 @@ function RoleMembershipController($scope, $http, CLMAppLocations, Messages) {
       vm.members.filter(function(user) {
         return user.picked;
       }) : [];
+  }
+
+  // Like getCurrentMembers, but filters out properties that the server isn't expecting
+  function getCurrentMembersToSave() {
+    return map(omit(['picked', 'checked']), getCurrentMembers());
   }
 
   function setMembers(originalMembers) {

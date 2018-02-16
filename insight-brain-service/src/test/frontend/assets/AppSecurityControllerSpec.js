@@ -183,7 +183,7 @@ describe('AppSecurityControllerSpec', function() {
     it('saves the roles if save is called when dirty, and then emits roleSaveComplete and hides',
         inject(function($rootScope, $httpBackend) {
           var currentMembers = MockData.getRoleTwoData().membersByOwner[0].members;
-          scope.getCurrentMembers = function() {
+          scope.getCurrentMembersToSave = function() {
             return currentMembers;
           };
           scope.isDirty = function() {

@@ -17,8 +17,13 @@
       </div>
     </form>
 
-    <role-membership form-mask="vm.accessEditorMask" mask-attach-to-body save="vm.save" role="vm.role"
-                     original-members="vm.originalMembers" get-current-members="vm.getCurrentMembers"
+    <role-membership form-mask="vm.accessEditorMask"
+                     mask-attach-to-body
+                     save="vm.save"
+                     role="vm.role"
+                     original-members="vm.originalMembers"
+                     get-current-members="vm.getCurrentMembers"
+                     get-current-members-to-save="vm.getCurrentMembersToSave"
                      group-search-enabled="vm.groupSearchEnabled"
                      is-dirty="vm.isMembershipDirty">
       <!-- Role Membership form submission buttons get transcluded in -->

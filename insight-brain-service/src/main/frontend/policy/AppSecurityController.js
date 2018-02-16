@@ -125,7 +125,7 @@ function AppSecurityEditorController($scope, $http, Dialog, clmAppLocations, Mes
         currentMembers;
 
     if ($scope.isDirty()) {
-      currentMembers = $scope.getCurrentMembers();
+      currentMembers = $scope.getCurrentMembersToSave();
 
       return $http.put(clmAppLocations.getRoleMappingUrl(roleId), currentMembers)
           .then(function() {

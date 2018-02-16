@@ -98,7 +98,7 @@ function AccessEditorController($rootScope, $scope, $stateParams, Messages, Loca
 
   function save() {
     var madePristine = false,
-        currentMembers = vm.getCurrentMembers();
+        currentMembers = vm.getCurrentMembersToSave();
 
     if (isValid()) {
       delete vm.submitError;

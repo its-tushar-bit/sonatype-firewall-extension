@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -299,10 +298,6 @@ public class InsightBrainService
     // More defaults
     objectMapper.setPropertyNamingStrategy(new AnnotationSensitivePropertyNamingStrategy());
     objectMapper.setSubtypeResolver(new DiscoverableSubtypeResolver());
-
-    // Ignore unknown properties during deserialization, matching Dropwizard 0.6.2
-    // once CLM-9426 is done we should be able to remove this
-    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     return objectMapper;
   }

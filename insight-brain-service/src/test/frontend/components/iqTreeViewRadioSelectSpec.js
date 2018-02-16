@@ -59,15 +59,15 @@ describe('iqTreeViewRadioSelect', function() {
     });
   });
 
-  describe('showSelected()', function() {
+  describe('shouldShowSelected()', function() {
     it('returns true if an option is selected', function() {
       var vm = getVm('foo');
-      expect(vm.showSelected()).toBe(true);
+      expect(vm.shouldShowSelected()).toBe(true);
     });
 
     it('returns false if no option is selected', function() {
       var vm = getVm();
-      expect(vm.showSelected()).toBe(false);
+      expect(vm.shouldShowSelected()).toBe(false);
     });
   });
 });

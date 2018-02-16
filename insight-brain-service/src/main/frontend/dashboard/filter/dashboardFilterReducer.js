@@ -7,6 +7,7 @@ import {compose, curry, merge, pick, equals, find, propEq, prop, indexBy} from '
 import {propSet, pathSet, lookup} from '../../util/jsUtil';
 import {
   ages,
+  defaultMaxDaysOld,
   policyTypes,
   policyViolationStates,
   policySliderRangeHighlights,
@@ -30,8 +31,6 @@ import {
 
 import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
 
-const defaultAge = ages[2];
-
 const initSelected = Object.freeze({
   organizations: new Set(),
   applications: new Set(),
@@ -39,7 +38,7 @@ const initSelected = Object.freeze({
   stages: new Set(),
   policyTypes: new Set(),
   policyViolationStates: new Set(['OPEN']),
-  age: defaultAge,
+  maxDaysOld: defaultMaxDaysOld,
   policyThreatLevels: [2, 10]
 });
 
@@ -155,7 +154,7 @@ function revertFilter(state) {
 }
 
 const selectAge = maxDaysOld => state => {
-  return pathSet(['selected', 'age'], getAge(state, maxDaysOld), state);
+  return pathSet(['selected', 'maxDaysOld'], getAge(state, maxDaysOld), state);
 };
 
 const toggleFilter = ({filterName, selectedIds}) => state => {
@@ -226,7 +225,7 @@ const applyFilter = ({filter}) => state => {
   const stages = new Set(filter.stageTypeFilters);
   const policyTypes = new Set(filter.policyThreatCategoryFilters);
   const policyViolationStates = new Set(filter.policyViolationStates);
-  const age = getAge(state, filter.maxDaysOld);
+  const maxDaysOld = getAge(state, filter.maxDaysOld);
   const policyThreatLevels = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel];
 
   const selected = Object.freeze({
@@ -236,19 +235,19 @@ const applyFilter = ({filter}) => state => {
     stages,
     policyTypes,
     policyViolationStates,
-    age,
+    maxDaysOld,
     policyThreatLevels
   });
   return setShowAgeFilter({...state, selected, appliedFilter: selected, filtersAreDirty: false});
 };
 
 function getAge(state, maxDaysOld) {
-  const selectedAge = find(propEq('maxDaysOld', maxDaysOld), state.ages);
-  return selectedAge || defaultAge;
+  const current = find(propEq('id', maxDaysOld), state.ages);
+  return current ? current.id : defaultMaxDaysOld;
 }
 
 function setShowAgeFilter(state) {
   const showAgeFilter = state.isViolationsTab &&
-      (state.isTimeFilterFeatureEnabled || (state.selected.age.maxDaysOld !== defaultAge.maxDaysOld));
+      (state.isTimeFilterFeatureEnabled || (state.selected.maxDaysOld !== defaultMaxDaysOld));
   return {...state, showAgeFilter};
 }

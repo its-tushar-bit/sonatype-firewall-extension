@@ -59,7 +59,7 @@ describe('dashboardFilterService', function() {
       categories: new Set(['tagId1', 'tagId2', null]),
       applications: new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']),
       policyViolationStates: new Set(['OPEN', 'WAIVED']),
-      age: {maxDaysOld: 90},
+      maxDaysOld: 90,
       policyThreatLevels: [3, 6]
     };
 

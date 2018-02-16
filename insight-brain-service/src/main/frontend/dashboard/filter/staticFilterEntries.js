@@ -5,13 +5,15 @@
  */
 
 export const ages = [
-  {name: 'past 24 hours', maxDaysOld: 1},
-  {name: 'past 7 days', maxDaysOld: 7},
-  {name: 'past 30 days', maxDaysOld: 30},
-  {name: 'past 90 days', maxDaysOld: 90},
-  {name: 'past 12 months', maxDaysOld: 365},
-  {name: 'all time', maxDaysOld: null}
+  {name: 'past 24 hours', id: 1},
+  {name: 'past 7 days', id: 7},
+  {name: 'past 30 days', id: 30},
+  {name: 'past 90 days', id: 90},
+  {name: 'past 12 months', id: 365},
+  {name: 'all time', id: null}
 ];
+
+export const defaultMaxDaysOld = ages[2].id;
 
 export const policyTypes = [
   {

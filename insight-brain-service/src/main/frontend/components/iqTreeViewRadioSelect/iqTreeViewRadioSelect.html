@@ -1,9 +1,9 @@
 <div class="iq-tree-view iq-tree-view--multi-select">
   <a class="iq-tree-view__trigger"
-     ng-click="isExpanded = available.length && !readOnly && !isExpanded"
-     ng-class="{disabled: readOnly}">
-    <div class="iq-counter">
-      {{selectedEntry[nameField]}}
+     ng-click="isExpanded = vm.available.length && !vm.readOnly && !isExpanded"
+     ng-class="{disabled: vm.readOnly}">
+    <div ng-if="vm.shouldShowSelected()" class="iq-counter">
+      {{vm.getSelectedName()}}
     </div>
     <div class="iq-tree-view__twisty">
       <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded, collapse: isExpanded }"></span>
@@ -13,11 +13,12 @@
     </div>
   </a>
   <div ng-if="isExpanded" class="iq-tree-view__children">
-    <iq-radio ng-repeat="entity in available"
+    <iq-radio ng-repeat="entity in vm.available"
               class="iq-tree-view__child"
-              model="vm.isChecked(entity)"
+              model="vm.isSelected(entity.id)"
               value="true"
-              on-click="vm.select(entity)">{{::entity[nameField]}}
+              on-click="vm.select(entity.id)">
+      {{::entity.name}}
     </iq-radio>
   </div>
 </div>

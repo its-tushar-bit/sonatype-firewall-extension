@@ -104,16 +104,14 @@ describe('dashboard.utils.module', function() {
 
     it('sets maxDaysOld to provided value', function() {
       var filter = {
-        age: {name: 'past 90 days', maxDaysOld: 90}
+        maxDaysOld: 90
       };
       var params = createDashboardDataRequestPayload(filter);
       expect(params.maxDaysOld).toBe(90);
     });
 
-    it('does not set maxDaysOld if age is undefined', function() {
-      var params = createDashboardDataRequestPayload({
-        age: undefined
-      });
+    it('does not set maxDaysOld if provided value is undefined', function() {
+      var params = createDashboardDataRequestPayload({});
       expect(params.maxDaysOld).toBeUndefined();
     });
 

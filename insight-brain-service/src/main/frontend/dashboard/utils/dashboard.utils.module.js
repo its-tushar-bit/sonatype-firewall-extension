@@ -42,7 +42,7 @@ function createDashboardDataRequestPayload(filter, maxResults, sortFields) {
     params.stageIds = setToArray(filter.stages);
     params.tagIds = setToArray(filter.categories);
     params.policyViolationStates = setToArray(filter.policyViolationStates);
-    params.maxDaysOld = filter.age && filter.age.maxDaysOld;
+    params.maxDaysOld = filter.maxDaysOld;
     params.policyThreatLevelRange = filter.policyThreatLevels && filter.policyThreatLevels.join(',');
 
     if (filter.policyTypes && filter.policyTypes.size > 0) {

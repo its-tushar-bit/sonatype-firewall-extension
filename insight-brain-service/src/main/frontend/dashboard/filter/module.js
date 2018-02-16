@@ -5,7 +5,6 @@
  */
 import CLMLocationModule from '../../util/CLMLocation';
 
-import iqTreeViewRadioSelect from './iqTreeViewRadioSelect/iqTreeViewRadioSelect';
 import dashboardFilter from './dashboardFilter/dashboardFilter';
 import dashboardFilterService from './dashboardFilterService';
 import manageFiltersActions from './manageFiltersActions';
@@ -23,13 +22,13 @@ import dashboardFilterActions from './dashboardFilterActions';
 import dashboardFilterReducer from './dashboardFilterReducer';
 import dashboardServicesModule from '../services/module';
 import dashboardResultsActionsModule from '../results/dashboardResultsActions';
+import componentsModule from '../../components/module';
 
 var module = angular.module('dashboardFilter',
     [
       CLMLocationModule.name, storesModule.name, utilityModule.name, dashboardUtilsModule.name,
-      dashboardServicesModule.name, dashboardResultsActionsModule.name
+      dashboardServicesModule.name, dashboardResultsActionsModule.name, componentsModule.name
     ])
-    .directive('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
     .service('dashboardFilterService', dashboardFilterService)
     .component('dashboardFilter', dashboardFilter)
 

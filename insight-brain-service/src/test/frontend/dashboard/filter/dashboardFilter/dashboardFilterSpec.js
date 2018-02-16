@@ -34,7 +34,7 @@ describe('dashboard.filter.controller', function() {
           stages: new Set(['release', 'stage-release', 'build']),
           categories: new Set(['tagId1', 'tagId2', null]),
           policyViolationStates: new Set(['OPEN', 'WAIVED']),
-          age: {name: 'past 90 days', maxDaysOld: 90},
+          maxDaysOld: 90,
           policyThreatLevels: [3, 6]
         };
 

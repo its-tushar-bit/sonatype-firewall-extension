@@ -186,7 +186,7 @@ describe('dashboardFilterReducer', function() {
         stages: {},
         policyTypes: {},
         policyViolationStates: {OPEN: true},
-        age: {name: 'past 30 days', maxDaysOld: 30},
+        maxDaysOld: 30,
         policyThreatLevels: [2, 10]
       });
       filterJson = {
@@ -217,12 +217,12 @@ describe('dashboardFilterReducer', function() {
           {id: 'applicationIdS', organizationId: 'noPermissionOrgId'}
         ],
         ages: [
-          {name: 'past 24 hours', maxDaysOld: 1},
-          {name: 'past 7 days', maxDaysOld: 7},
-          {name: 'past 30 days', maxDaysOld: 30},
-          {name: 'past 90 days', maxDaysOld: 90},
-          {name: 'past 12 months', maxDaysOld: 365},
-          {name: 'all time', maxDaysOld: null}
+          {name: 'past 24 hours', id: 1},
+          {name: 'past 7 days', id: 7},
+          {name: 'past 30 days', id: 30},
+          {name: 'past 90 days', id: 90},
+          {name: 'past 12 months', id: 365},
+          {name: 'all time', id: null}
         ],
         categories: [
           {id: 'tagId1', name: 'TagOne'},
@@ -349,7 +349,7 @@ describe('dashboardFilterReducer', function() {
 
         expect(newState.selected.policyViolationStates).toEqual(new Set(['OPEN', 'WAIVED']));
 
-        expect(newState.selected.age).toEqual({maxDaysOld: 90, name: 'past 90 days'});
+        expect(newState.selected.maxDaysOld).toBe(90);
         expect(newState.selected.policyThreatLevels).toEqual([3, 6]);
 
         // sets selected to appliedFilter
@@ -360,7 +360,7 @@ describe('dashboardFilterReducer', function() {
         filterJson.maxDaysOld = 666;
         var state = Object.freeze(initState);
         var newState = reduce(state, action);
-        expect(newState.selected.age).toEqual({maxDaysOld: 30, name: 'past 30 days'});
+        expect(newState.selected.maxDaysOld).toBe(30);
       });
 
       it('does not set selected and appliedFilter if filter is not provided', function() {
@@ -429,7 +429,7 @@ describe('dashboardFilterReducer', function() {
         isTimeFilterFeatureEnabled: false,
         showAgeFilter: false,
         selected: {
-          age: {name: 'past 30 days', maxDaysOld: 30}
+          maxDaysOld: 30
         },
         other: otherObject
       };
@@ -534,7 +534,7 @@ describe('dashboardFilterReducer', function() {
       });
 
       it('is set to true if isViolationsTab, time filter is disabled but selected age is not default', function() {
-        initState.selected.age = {name: 'all time', maxDaysOld: null};
+        initState.selected.maxDaysOld = null;
         var state = Object.freeze(initState);
         var action = {
           type: '@@reduxUiRouter/onFinish',
@@ -574,7 +574,7 @@ describe('dashboardFilterReducer', function() {
       it('is set to false if isViolationsTab is false but time filter is enabled and selected age is not default',
           function() {
             initState.showAgeFilter = true;
-            initState.selected.age = {name: 'all time', maxDaysOld: null};
+            initState.selected.maxDaysOld = null;
             var state = Object.freeze(initState);
             var action = {
               type: '@@reduxUiRouter/onFinish',
@@ -627,12 +627,12 @@ describe('dashboardFilterReducer', function() {
         other: otherObject,
         filtersAreDirty: false,
         ages: [
-          {name: 'past 24 hours', maxDaysOld: 1},
-          {name: 'past 12 months', maxDaysOld: 365},
-          {name: 'all time', maxDaysOld: null}
+          {name: 'past 24 hours', id: 1},
+          {name: 'past 12 months', id: 365},
+          {name: 'all time', id: null}
         ],
         selected: {
-          age: {name: 'past 12 months', maxDaysOld: 365}
+          maxDaysOld: 365
         }
       };
     });
@@ -643,7 +643,7 @@ describe('dashboardFilterReducer', function() {
         type: 'SELECT_AGE',
         payload: 1
       });
-      expect(newState.selected.age).toEqual({name: 'past 24 hours', maxDaysOld: 1});
+      expect(newState.selected.maxDaysOld).toBe(1);
       expect(newState.filtersAreDirty).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -654,7 +654,7 @@ describe('dashboardFilterReducer', function() {
         type: 'SELECT_AGE',
         payload: null
       });
-      expect(newState.selected.age).toEqual({name: 'all time', maxDaysOld: null});
+      expect(newState.selected.maxDaysOld).toBe(null);
       expect(newState.filtersAreDirty).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -764,7 +764,7 @@ describe('dashboardFilterReducer', function() {
       expect(newState.selected.stages).toEqual(new Set());
       expect(newState.selected.policyTypes).toEqual(new Set());
       expect(newState.selected.policyViolationStates).toEqual(new Set(['OPEN']));
-      expect(newState.selected.age).toEqual({name: 'past 30 days', maxDaysOld: 30});
+      expect(newState.selected.maxDaysOld).toBe(30);
       expect(newState.selected.policyThreatLevels).toEqual([2, 10]);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -791,7 +791,7 @@ describe('dashboardFilterReducer', function() {
           stages: new Set(),
           policyTypes: new Set(),
           policyViolationStates: new Set(['OPEN']),
-          age: {name: 'past 30 days', maxDaysOld: 30},
+          maxDaysOld: 30,
           policyThreatLevels: [2, 10]
         },
         selected: {},
@@ -815,7 +815,7 @@ describe('dashboardFilterReducer', function() {
           stages: new Set(['stage1', 'stage2']),
           policyTypes: new Set(['SECURITY', 'LICENSE']),
           policyViolationStates: new Set(['OPEN', 'WAIVED']),
-          age: {name: 'past 12 months', maxDaysOld: 365},
+          maxDaysOld: 365,
           policyThreatLevels: [3, 8]
         },
         selected: {},

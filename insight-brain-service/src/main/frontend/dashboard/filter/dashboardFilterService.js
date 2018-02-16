@@ -30,7 +30,7 @@ function dashboardFilterService($http, $q, CLMLocations, Messages) {
       stageTypeFilters: setToArray(filter.stages),
       tagFilters: setToArray(filter.categories),
       policyViolationStates: setToArray(filter.policyViolationStates),
-      maxDaysOld: filter.age.maxDaysOld,
+      maxDaysOld: filter.maxDaysOld,
       minPolicyThreatLevel: filter.policyThreatLevels[0],
       maxPolicyThreatLevel: filter.policyThreatLevels[1]
     };

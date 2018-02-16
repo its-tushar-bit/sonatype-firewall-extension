@@ -63,18 +63,6 @@
         }
       }
     }
-
-    .iq-tree-view__child {
-      .iq-radio {
-        @include semi-bold();
-
-        // fix radio labels vertical alignment
-        // overwrites (back to original): .iq-tree-view__child label { line-height: 32px; }
-        line-height: 20px;
-        margin-top: 4px;
-        vertical-align: top;
-      }
-    }
   }
   
   .dashboard-filter.iq-apply-error-present {

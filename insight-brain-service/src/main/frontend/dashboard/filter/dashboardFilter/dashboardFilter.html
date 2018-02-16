@@ -78,12 +78,10 @@
         Violation State
       </iq-tree-view-multi-select>
 
-      <iq-tree-view-radio-select available="vm.ages"
-                                 selected-entry="vm.selected.age"
-                                 id-field="maxDaysOld"
-                                 name="maxOldDays"
-                                 id="age-filter"
+      <iq-tree-view-radio-select id="age-filter"
                                  ng-if="vm.showAgeFilter"
+                                 available="vm.ages"
+                                 selected-id="vm.selected.maxDaysOld"
                                  read-only="!vm.isTimeFilterFeatureEnabled"
                                  on-change="vm.selectAge(selected)">
         Age

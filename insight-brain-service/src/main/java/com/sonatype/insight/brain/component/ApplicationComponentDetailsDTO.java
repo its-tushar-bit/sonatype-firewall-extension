@@ -32,15 +32,6 @@ public class ApplicationComponentDetailsDTO
 
     public long time;
 
-    public List<ReasonDTO> reasons;
-
     public List<StageDetailDTO> stageDetails = new ArrayList<>();
-
-    static class ReasonDTO
-    {
-      public String constraintName;
-
-      public List<String> reasons = new ArrayList<>();
-    }
   }
 }

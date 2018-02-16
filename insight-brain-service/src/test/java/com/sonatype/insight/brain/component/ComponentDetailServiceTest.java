@@ -15,7 +15,6 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
-import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -42,7 +41,6 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -111,10 +109,6 @@ public class ComponentDetailServiceTest
         policyEvaluation2.getScanId(), policyEvaluation2.getTime().getTime());
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
 
-    assertThat(policyViolationSummaryDTO.reasons, hasSize(1));
-    ReasonDTO reasonDTO = policyViolationSummaryDTO.reasons.get(0);
-    assertThat(reasonDTO.constraintName, is("Test Constraint"));
-    assertThat(reasonDTO.reasons, containsInAnyOrder("reason3"));
     policyViolationSummaryDTO = getPolicyViolationSummaryDTO(policy2.getId(), appComponentDetailsDTO.policyViolations);
     assertThat(policyViolationSummaryDTO, notNullValue());
     assertThat(policyViolationSummaryDTO.policyName, is(policy2.getName()));
@@ -125,10 +119,6 @@ public class ComponentDetailServiceTest
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
-    assertThat(policyViolationSummaryDTO.reasons, hasSize(1));
-    reasonDTO = policyViolationSummaryDTO.reasons.get(0);
-    assertThat(reasonDTO.constraintName, is("Test Constraint"));
-    assertThat(reasonDTO.reasons, containsInAnyOrder("reason2"));
   }
 
   @Test
@@ -163,10 +153,6 @@ public class ComponentDetailServiceTest
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
-    assertThat(policyViolationSummaryDTO.reasons, hasSize(1));
-    ReasonDTO reasonDTO = policyViolationSummaryDTO.reasons.get(0);
-    assertThat(reasonDTO.constraintName, is("Test Constraint"));
-    assertThat(reasonDTO.reasons, containsInAnyOrder("reason"));
   }
 
   @Test

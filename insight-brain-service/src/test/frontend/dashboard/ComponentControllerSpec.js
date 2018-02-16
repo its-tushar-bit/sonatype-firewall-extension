@@ -16,14 +16,6 @@ describe('ComponentController tests', function() {
           policyName: 'policy1Name',
           threatLevel: 7,
           time: 1,
-          reasons: [
-            {
-              constraintName: 'policy1ConstraintName',
-              reasons: [
-                'policy1Reason'
-              ]
-            }
-          ],
           stageTypeIds: [
             'build'
           ]
@@ -32,14 +24,6 @@ describe('ComponentController tests', function() {
           policyName: 'policy2Name',
           threatLevel: 9,
           time: 2,
-          reasons: [
-            {
-              constraintName: 'policy2ConstraintName',
-              reasons: [
-                'policy2ConstraintReason'
-              ]
-            }
-          ],
           stageTypeIds: [
             'build'
           ]

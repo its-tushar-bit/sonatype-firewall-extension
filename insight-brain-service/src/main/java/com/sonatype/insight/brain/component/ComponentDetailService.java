@@ -21,12 +21,9 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO;
 import com.sonatype.insight.brain.successmetrics.ComponentCountsDTO.ComponentCountDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
-import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
 import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -189,16 +186,7 @@ public class ComponentDetailService
           if (policyViolationSummaryDTO.time < policyViolation.getTime().getTime()) {
             policyViolationSummaryDTO.policyName = policyViolation.getPolicyName();
             policyViolationSummaryDTO.threatLevel = policyViolation.getThreatLevel();
-            policyViolationSummaryDTO.reasons = new ArrayList<>();
             policyViolationSummaryDTO.time = policyViolation.getTime().getTime();
-            for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
-              ReasonDTO reasonDTO = new ReasonDTO();
-              reasonDTO.constraintName = constraintFact.getConstraintName();
-              for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
-                reasonDTO.reasons.add(conditionFact.getReason());
-              }
-              policyViolationSummaryDTO.reasons.add(reasonDTO);
-            }
           }
         }
       }

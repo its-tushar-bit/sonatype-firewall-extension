@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionList;
 import com.sonatype.clm.testing.functional.elements.ActionList.ActionListElement;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.ldap.ReorderLdapModal;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -90,8 +91,10 @@ public class LdapServerListTest
     ReorderLdapModal modal = new LdapServerListPage().openModalWithAssert();
     modal.assertOrder("Fourth Server", "Third Server", "Second Server", "First Server");
     modal.assertUpDownButtonEnabled(false, false);
-    modal.saveButton().shouldBe(DISABLED);
+    modal.saveButton().shouldBe(DISABLED).hover();
+    Tooltip.get().shouldHave(text("There are no changes to update."));
 
+    eyesWatcher.eyesCheck();
     SelenideElement row = modal.row(0);
     row.click();
 

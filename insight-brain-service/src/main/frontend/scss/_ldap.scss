@@ -189,3 +189,107 @@
     box-shadow: none;
   }
 }
+
+#ldap-server-ordering-modal {
+  $border-width: 1px;
+  $toolbar-btn-width: 32px;
+  $toolbar-padding: 12px;
+  $modal-header: 39px;
+
+  .iq-modal-content {
+    padding: 0;
+  }
+
+  .simple-list {
+    border-right: $border-width solid $iq-grey-4;
+    min-height: #{($toolbar-btn-width + $toolbar-padding) * 4 + $toolbar-padding};
+    overflow-x: hidden;
+    width: calc(100% - #{$toolbar-btn-width + 2 * $toolbar-padding + $border-width});
+
+    ul {
+      list-style: none;
+      margin: 0;
+
+      li {
+        border-bottom: 1px solid transparent;
+        border-top: 1px solid transparent;
+        padding-left: 12px;
+        position: relative;
+
+        &:not(:first-child) {
+          border-top: 1px solid $iq-grey-1;
+        }
+
+        &:last-child {
+          border-bottom: 1px solid $iq-grey-1;
+        }
+
+        &.selected {
+          background-color: $iq-grey-1;
+
+          &:not(:first-child) {
+            border-top: 1px solid $iq-grey-4;
+          }
+
+          &:last-child {
+            border-bottom: 1px solid $iq-grey-4;
+          }
+        }
+
+        &:hover {
+          border-bottom: 1px solid $iq-grey-4;
+        }
+
+        &:hover:not(:first-child) {
+          border-top: 1px solid $iq-grey-4;
+        }
+
+        &.selected + * {
+          border-top-color: $iq-grey-4;
+        }
+
+        &.with-subtitle {
+          min-height: 52px;
+        }
+
+        &.simple {
+          min-height: 40px;
+        }
+      }
+
+      .title {
+        @extend .semi-bold;
+
+        font-size: 14px;
+        line-height: 14px;
+        margin-right: 42px;
+        padding-top: 10px;
+      }
+
+      .single-row-text {
+        line-height: 40px;
+        padding-top: 0;
+
+        span:first-child {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  .toolbar {
+    height: #{($toolbar-btn-width + $toolbar-padding) * 4 - $toolbar-padding};
+    padding: $toolbar-padding;
+    width: $toolbar-btn-width; // 32px is the button size
+
+    button {
+      position: absolute;
+
+      @for $i from 1 through 3 {
+        &:nth-child(#{$i + 1}) {
+          top: #{$modal-header + $toolbar-padding + ($toolbar-btn-width + $toolbar-padding) * $i}
+        }
+      }
+    }
+  }
+}

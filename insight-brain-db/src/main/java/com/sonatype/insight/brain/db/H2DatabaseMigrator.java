@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.function.IntConsumer;
 
 import javax.sql.DataSource;
 
@@ -34,15 +35,15 @@ public class H2DatabaseMigrator
                       int desiredVersion,
                       int defaultCurrentVersion)
   {
-    migrate(databaseConfig, databaseName, dataSource, Integer.MIN_VALUE, desiredVersion, defaultCurrentVersion);
+    migrate(databaseConfig, databaseName, dataSource, desiredVersion, defaultCurrentVersion, null);
   }
 
   public void migrate(DatabaseConfig databaseConfig,
                       String databaseName,
                       DataSource dataSource,
-                      int minimumVersion,
                       int desiredVersion,
-                      int defaultCurrentVersion)
+                      int defaultCurrentVersion,
+                      IntConsumer upgradeGuard)
   {
     if (databaseConfig == null) {
       // In memory database, nothing to migrate.
@@ -74,11 +75,8 @@ public class H2DatabaseMigrator
         return;
       }
 
-      if (currentVersion < minimumVersion) {
-        throw new UnsupportedOperationException(String.format(
-            "Cannot migrate %s database to version %s, this requires version %s at minimum, but you have version %s.\n" +
-                "Please upgrade to Nexus IQ Server version 1.16 before upgrading to this version.", databaseName,
-            desiredVersion, minimumVersion, currentVersion));
+      if (upgradeGuard != null) {
+        upgradeGuard.accept(currentVersion);
       }
 
       log.info("Migrating database {} to version: {}", databaseFilename, desiredVersion);

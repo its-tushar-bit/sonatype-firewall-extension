@@ -25,7 +25,8 @@ public abstract class AbstractDatabaseTest
     DataSourceFactory.clear_ForTestsOnly();
   }
 
-  protected DatabaseConfig getDatabaseConfig(File databasePath) {
+  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName) {
+    File databasePath = new File(databaseDir, databaseName);
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
     databaseConfig.setUrl(

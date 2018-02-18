@@ -56,7 +56,7 @@ public abstract class AbstractDatabaseProviderTest
   @Test
   public void testDatabaseCreation_OnDisk() throws Exception {
     File databaseDir = tempDir.newFolder();
-    DatabaseConfig databaseConfig = getDatabaseConfig(new File(databaseDir, "test"));
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
 
     // New database
     verifyDatabaseCreation(databaseConfig);

@@ -17,10 +17,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
-import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -29,36 +26,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class H2DatabaseBackupTest
+    extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @After
-  public void cleanup() {
-    DataSourceFactory.clear_ForTestsOnly();
-  }
-
   @Test
   public void testBackup() throws Exception {
-    File databaseDir = temporaryFolder.newFolder("db");
+    File databaseDir = tempDir.newFolder("db");
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseBackupTest/testBackupOperationalDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
     assertTrue(databaseVersionFile.exists());
     assertEquals("6", FileUtils.fileRead(databaseVersionFile, "UTF-8"));
 
-    String dbUrl = "jdbc:h2:" + databaseDir.getAbsolutePath()
-        + "/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
-    DatabaseConfig databaseConfig = new DatabaseConfig();
-    databaseConfig.setUrl(dbUrl);
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "ods");
 
     BasicDataSource dataSource = new BasicDataSource();
-    dataSource.setDriverClassName("org.h2.Driver");
-    dataSource.setUrl(dbUrl);
-    dataSource.setUsername("sa");
-    dataSource.setPassword("");
+    dataSource.setDriverClassName(databaseConfig.getDriverClassName());
+    dataSource.setUrl(databaseConfig.getUrl());
+    dataSource.setUsername(databaseConfig.getUsername());
+    dataSource.setPassword(databaseConfig.getPassword());
 
-    File dbBackupDir = temporaryFolder.newFolder("backup");
+    File dbBackupDir = tempDir.newFolder("backup");
     new H2DatabaseBackup().backup(databaseConfig, dataSource, dbBackupDir);
 
     File dbBackupFile = new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX);

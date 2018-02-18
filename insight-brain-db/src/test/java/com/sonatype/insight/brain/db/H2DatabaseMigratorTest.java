@@ -9,15 +9,10 @@ import java.io.File;
 
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.springframework.jdbc.datasource.init.CannotReadScriptException;
 
 import static org.hamcrest.Matchers.is;
@@ -28,87 +23,55 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 public class H2DatabaseMigratorTest
+    extends AbstractDatabaseTest
 {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @Before
-  @After
-  public void clearDataSources() {
-    DataSourceFactory.clear_ForTestsOnly();
-  }
-
   private String readDatabaseVersion(File versionFile) throws Exception {
     return FileUtils.fileRead(versionFile, "UTF-8");
   }
 
   @Test
   public void testMigrateOperationalDataStore() throws Exception {
-    File databaseDir = new File("target/H2DatabaseMigratorTest/testMigrateOperationalDataStore");
-    new FileCleaner().delete(databaseDir);
+    File databaseDir = tempDir.newFolder();
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
     assertTrue(databaseVersionFile.exists());
     assertEquals("85", readDatabaseVersion(databaseVersionFile));
 
-    DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
-    odsDatabaseConfig.setDriverClassName("org.h2.Driver");
-    odsDatabaseConfig
-        .setUrl("jdbc:h2:target/H2DatabaseMigratorTest/testMigrateOperationalDataStore/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
-    odsDatabaseConfig.setUsername("sa");
-    odsDatabaseConfig.setPassword("");
-    odsDatabaseConfig.setMaxConnections(50);
-    OperationalDataStoreProvider.init(odsDatabaseConfig);
+    OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"));
     assertEquals(String.valueOf(OperationalDataStoreProvider.DESIRED_DATABASE_VERSION),
         readDatabaseVersion(databaseVersionFile));
   }
 
   @Test
   public void testMigrateDatamart() throws Exception {
-    File databaseDir = new File("target/H2DatabaseMigratorTest/testMigrateDatamart");
-    new FileCleaner().delete(databaseDir);
+    File databaseDir = tempDir.newFolder();
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateDatamart"), databaseDir);
     File databaseVersionFile = new File(databaseDir, "dm.ver");
     assertTrue(databaseVersionFile.exists());
     assertEquals("1", readDatabaseVersion(databaseVersionFile));
 
-    DatabaseConfig dmDatabaseConfig = new DatabaseConfig();
-    dmDatabaseConfig.setDriverClassName("org.h2.Driver");
-    dmDatabaseConfig
-        .setUrl("jdbc:h2:target/H2DatabaseMigratorTest/testMigrateDatamart/dm;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
-    dmDatabaseConfig.setUsername("sa");
-    dmDatabaseConfig.setPassword("");
-    dmDatabaseConfig.setMaxConnections(50);
-    DatamartProvider.init(dmDatabaseConfig);
+    DatamartProvider.init(getDatabaseConfig(databaseDir, "dm"));
     assertEquals(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION), readDatabaseVersion(databaseVersionFile));
   }
 
   @Test
   public void testMigrateAggregationDataStore() throws Exception {
-    File databaseDir = new File("target/H2DatabaseMigratorTest/testMigrateAggregationDataStore");
-    new FileCleaner().delete(databaseDir);
+    File databaseDir = tempDir.newFolder();
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateAggregationDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "aggregation.ver");
     assertTrue(databaseVersionFile.exists());
     assertEquals("1", FileUtils.fileRead(databaseVersionFile));
 
-    DatabaseConfig aggDatabaseConfig = new DatabaseConfig();
-    aggDatabaseConfig.setDriverClassName("org.h2.Driver");
-    aggDatabaseConfig
-        .setUrl("jdbc:h2:target/H2DatabaseMigratorTest/testMigrateAggregationDataStore/aggregation;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
-    aggDatabaseConfig.setUsername("sa");
-    aggDatabaseConfig.setPassword("");
-    aggDatabaseConfig.setMaxConnections(50);
-    AggregationDataStoreProvider.init(aggDatabaseConfig);
+    AggregationDataStoreProvider.init(getDatabaseConfig(databaseDir, "aggregation"));
     assertEquals(String.valueOf(AggregationDataStoreProvider.DESIRED_DATABASE_VERSION),
         FileUtils.fileRead(databaseVersionFile));
   }
 
   @Test
   public void testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
-    File databaseDir = temporaryFolder.newFolder("db");
+    File databaseDir = tempDir.newFolder("db");
     FileUtils
         .copyDirectory(
             new File(
@@ -118,13 +81,7 @@ public class H2DatabaseMigratorTest
     assertThat(databaseVersionFile.isFile(), is(true));
     assertThat(readDatabaseVersion(databaseVersionFile), is("3"));
 
-    String dbUrl = "jdbc:h2:" + databaseDir.getAbsolutePath()
-        + "/dm;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
-    DatabaseConfig databaseConfig = new DatabaseConfig();
-    databaseConfig.setUrl(dbUrl);
-    databaseConfig.setUsername("sa");
-    databaseConfig.setPassword("");
-    databaseConfig.setMaxConnections(50);
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
 
     DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
 
@@ -143,7 +100,7 @@ public class H2DatabaseMigratorTest
 
   @Test
   public void testMigrate_CurrentVersionLessThanMinimumVersion() throws Exception {
-    File databaseDir = temporaryFolder.newFolder("db");
+    File databaseDir = tempDir.newFolder("db");
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
@@ -164,7 +121,7 @@ public class H2DatabaseMigratorTest
 
   @Test
   public void testMigrate_CurrentVersionEqualToMinimumVersion() throws Exception {
-    File databaseDir = temporaryFolder.newFolder("db");
+    File databaseDir = tempDir.newFolder("db");
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
@@ -177,7 +134,7 @@ public class H2DatabaseMigratorTest
 
   @Test
   public void testMigrate_CurrentVersionGreaterThanMinimumVersion() throws Exception {
-    File databaseDir = temporaryFolder.newFolder("db");
+    File databaseDir = tempDir.newFolder("db");
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
@@ -190,7 +147,7 @@ public class H2DatabaseMigratorTest
 
   @Test
   public void testMigrate_OperationalDataStore_RunsPostIncrementalMigrators() throws Exception {
-    File databaseDir = temporaryFolder.newFolder("db");
+    File databaseDir = tempDir.newFolder("db");
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
@@ -238,14 +195,7 @@ public class H2DatabaseMigratorTest
   }
 
   private DatabaseConfig getODSDatabaseConfig(File databaseDir) {
-    DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
-    odsDatabaseConfig.setDriverClassName("org.h2.Driver");
-    odsDatabaseConfig.setUrl("jdbc:h2:" + databaseDir.getAbsolutePath() +
-        "/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
-    odsDatabaseConfig.setUsername("sa");
-    odsDatabaseConfig.setPassword("");
-    odsDatabaseConfig.setMaxConnections(50);
-    return odsDatabaseConfig;
+    return getDatabaseConfig(databaseDir, "ods");
   }
 
   static class PostIncrementalMigratorVersionMinus1

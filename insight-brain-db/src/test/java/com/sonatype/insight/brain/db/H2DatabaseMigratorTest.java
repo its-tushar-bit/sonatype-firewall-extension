@@ -16,59 +16,13 @@ import org.junit.Test;
 import org.springframework.jdbc.datasource.init.CannotReadScriptException;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 public class H2DatabaseMigratorTest
     extends AbstractDatabaseTest
 {
-  private String readDatabaseVersion(File versionFile) throws Exception {
-    return FileUtils.fileRead(versionFile, "UTF-8");
-  }
-
-  @Test
-  public void testMigrateOperationalDataStore() throws Exception {
-    File databaseDir = tempDir.newFolder();
-    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
-        databaseDir);
-    File databaseVersionFile = new File(databaseDir, "ods.ver");
-    assertTrue(databaseVersionFile.exists());
-    assertEquals("85", readDatabaseVersion(databaseVersionFile));
-
-    OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"));
-    assertEquals(String.valueOf(OperationalDataStoreProvider.DESIRED_DATABASE_VERSION),
-        readDatabaseVersion(databaseVersionFile));
-  }
-
-  @Test
-  public void testMigrateDatamart() throws Exception {
-    File databaseDir = tempDir.newFolder();
-    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateDatamart"), databaseDir);
-    File databaseVersionFile = new File(databaseDir, "dm.ver");
-    assertTrue(databaseVersionFile.exists());
-    assertEquals("1", readDatabaseVersion(databaseVersionFile));
-
-    DatamartProvider.init(getDatabaseConfig(databaseDir, "dm"));
-    assertEquals(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION), readDatabaseVersion(databaseVersionFile));
-  }
-
-  @Test
-  public void testMigrateAggregationDataStore() throws Exception {
-    File databaseDir = tempDir.newFolder();
-    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateAggregationDataStore"),
-        databaseDir);
-    File databaseVersionFile = new File(databaseDir, "aggregation.ver");
-    assertTrue(databaseVersionFile.exists());
-    assertEquals("1", FileUtils.fileRead(databaseVersionFile));
-
-    AggregationDataStoreProvider.init(getDatabaseConfig(databaseDir, "aggregation"));
-    assertEquals(String.valueOf(AggregationDataStoreProvider.DESIRED_DATABASE_VERSION),
-        FileUtils.fileRead(databaseVersionFile));
-  }
-
   @Test
   public void testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     File databaseDir = tempDir.newFolder("db");
@@ -96,53 +50,6 @@ public class H2DatabaseMigratorTest
     catch (CannotReadScriptException expected) {
       assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION)));
     }
-  }
-
-  @Test
-  public void testMigrate_CurrentVersionLessThanMinimumVersion() throws Exception {
-    File databaseDir = tempDir.newFolder("db");
-    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
-        databaseDir);
-    File databaseVersionFile = new File(databaseDir, "ods.ver");
-    assertThat(databaseVersionFile.exists(), is(true));
-    assertThat(readDatabaseVersion(databaseVersionFile), is("85"));
-    DatabaseConfig databaseConfig = getODSDatabaseConfig(databaseDir);
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
-    try {
-      new H2DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource, 86, 87, 1);
-      fail("Expected exception");
-    }
-    catch (UnsupportedOperationException e) {
-      assertThat(e.getMessage(), is("Cannot migrate insight_brain_ods database to version 87, this requires " +
-          "version 86 at minimum, but you have version 85." +
-          "\nPlease upgrade to Nexus IQ Server version 1.16 before upgrading to this version."));
-    }
-  }
-
-  @Test
-  public void testMigrate_CurrentVersionEqualToMinimumVersion() throws Exception {
-    File databaseDir = tempDir.newFolder("db");
-    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
-        databaseDir);
-    File databaseVersionFile = new File(databaseDir, "ods.ver");
-    assertThat(databaseVersionFile.exists(), is(true));
-    assertThat(readDatabaseVersion(databaseVersionFile), is("85"));
-    DatabaseConfig databaseConfig = getODSDatabaseConfig(databaseDir);
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
-    new H2DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource, 85, 87, 1);
-  }
-
-  @Test
-  public void testMigrate_CurrentVersionGreaterThanMinimumVersion() throws Exception {
-    File databaseDir = tempDir.newFolder("db");
-    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
-        databaseDir);
-    File databaseVersionFile = new File(databaseDir, "ods.ver");
-    assertThat(databaseVersionFile.exists(), is(true));
-    assertThat(readDatabaseVersion(databaseVersionFile), is("85"));
-    DatabaseConfig databaseConfig = getODSDatabaseConfig(databaseDir);
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
-    new H2DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource, 84, 87, 1);
   }
 
   @Test

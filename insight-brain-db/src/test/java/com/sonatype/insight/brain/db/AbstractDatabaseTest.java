@@ -6,9 +6,14 @@
 package com.sonatype.insight.brain.db;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,5 +40,27 @@ public abstract class AbstractDatabaseTest
     databaseConfig.setPassword("");
     databaseConfig.setMaxConnections(50);
     return databaseConfig;
+  }
+
+  protected void copyDatabase(File databaseDir, String resourceDir) {
+    try {
+      FileUtils.copyDirectory(new File("target/test-classes", resourceDir), databaseDir);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  protected File getDatabaseVersionFile(File databaseDir, String databaseName) {
+    return new File(databaseDir, databaseName + ".ver");
+  }
+
+  protected String readDatabaseVersion(File versionFile) {
+    try {
+      return new String(Files.readAllBytes(versionFile.toPath()), StandardCharsets.UTF_8);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }

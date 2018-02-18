@@ -5,9 +5,16 @@
  */
 package com.sonatype.insight.brain.db;
 
+import java.io.File;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
+
+import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class DatamartProviderTest
     extends AbstractDatabaseProviderTest
@@ -25,5 +32,18 @@ public class DatamartProviderTest
   @Override
   protected DataSource getDataSource() {
     return DatamartProvider.getDataSource();
+  }
+
+  @Test
+  public void testInit_Migrate() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/Migrate");
+    File databaseVersionFile = getDatabaseVersionFile(databaseDir, "dm");
+    assertThat(databaseVersionFile.isFile(), is(true));
+    assertThat(readDatabaseVersion(databaseVersionFile), is("1"));
+
+    initDatabase(getDatabaseConfig(databaseDir, "dm"));
+
+    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION)));
   }
 }

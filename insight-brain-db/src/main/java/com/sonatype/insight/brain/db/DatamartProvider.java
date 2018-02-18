@@ -27,6 +27,8 @@ public class DatamartProvider
 
   private static DataSource dataSource;
 
+  private static DatabaseConfig databaseConfig;
+
   private static EntityManagerFactory entityManagerFactory;
 
   private static volatile boolean isInitialized = false;
@@ -42,6 +44,7 @@ public class DatamartProvider
     log.info("Initializing the {} data store.", ID);
     long start = System.currentTimeMillis();
 
+    DatamartProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     new H2DatabaseMigrator()
         .migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION, 1 /* defaultCurrentVersion */);
@@ -60,6 +63,10 @@ public class DatamartProvider
     return dataSource;
   }
 
+  public static DatabaseConfig getDatabaseConfig() {
+    return databaseConfig;
+  }
+
   public static EntityManagerFactory getJPAEntityManagerFactory() {
     if (!isInitialized) {
       init(null /* databaseConfig */);
@@ -68,6 +75,7 @@ public class DatamartProvider
   }
 
   static synchronized void clear_ForTestsOnly() {
+    databaseConfig = null;
     dataSource = null;
     entityManagerFactory = null;
     isInitialized = false;

@@ -7,42 +7,38 @@ package com.sonatype.insight.brain.db;
 
 import java.io.File;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 public abstract class AbstractDatabaseProviderTest
+    extends AbstractDatabaseTest
 {
-  @Before
-  public void setUp() throws Exception {
-    DataSourceFactory.clear_ForTestsOnly();
-  }
+  protected abstract DatabaseConfig getDatabaseConfig();
 
-  @After
-  public void tearDown() {
-    DataSourceFactory.clear_ForTestsOnly();
-  }
+  protected abstract void initDatabase(DatabaseConfig databaseConfig);
 
-  protected void verifyDatabaseCreation(DatabaseConfig databaseConfig) throws Exception {
-    assertThat(OperationalDataStoreProvider.getDatabaseConfig(), nullValue());
+  protected abstract DataSource getDataSource();
 
-    OperationalDataStoreProvider.init(databaseConfig);
-    DataSource dataSource = OperationalDataStoreProvider.getDataSource();
+  private void verifyDatabaseCreation(DatabaseConfig databaseConfig) throws Exception {
+    assertThat(getDatabaseConfig(), nullValue());
+
+    initDatabase(databaseConfig);
+    DataSource dataSource = getDataSource();
     Assert.assertNotNull(dataSource);
     try (Connection conn = dataSource.getConnection()) {
-      exec(conn, "SELECT * FROM test_table");
+      try (Statement stmt = conn.createStatement()) {
+        stmt.execute("SELECT * FROM test_table");
+      }
 
       String databaseURL = conn.getMetaData().getURL();
       Assert.assertNotNull(databaseURL);
@@ -54,12 +50,13 @@ public abstract class AbstractDatabaseProviderTest
       }
     }
 
-    assertThat(OperationalDataStoreProvider.getDatabaseConfig(), is(databaseConfig));
+    assertThat(getDatabaseConfig(), is(databaseConfig));
   }
 
-  protected void verifyDatabaseCreation_OnDisk(DatabaseConfig databaseConfig, File databaseDir) throws Exception {
-    new FileCleaner().delete(databaseDir);
-    Assert.assertFalse(databaseDir.exists());
+  @Test
+  public void testDatabaseCreation_OnDisk() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    DatabaseConfig databaseConfig = getDatabaseConfig(new File(databaseDir, "test"));
 
     // New database
     verifyDatabaseCreation(databaseConfig);
@@ -74,9 +71,8 @@ public abstract class AbstractDatabaseProviderTest
     Assert.assertTrue(new File(databaseDir, "test.h2.db").exists());
   }
 
-  private void exec(Connection conn, String sql) throws SQLException {
-    try (Statement stmt = conn.createStatement()) {
-      stmt.execute(sql);
-    }
+  @Test
+  public void testDatabaseCreation_InMemory() throws Exception {
+    verifyDatabaseCreation(null);
   }
 }

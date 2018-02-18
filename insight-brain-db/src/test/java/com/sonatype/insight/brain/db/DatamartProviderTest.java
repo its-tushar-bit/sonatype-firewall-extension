@@ -9,21 +9,21 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
-public class OperationalDataStoreProviderTest
+public class DatamartProviderTest
     extends AbstractDatabaseProviderTest
 {
   @Override
   protected DatabaseConfig getDatabaseConfig() {
-    return OperationalDataStoreProvider.getDatabaseConfig();
+    return DatamartProvider.getDatabaseConfig();
   }
 
   @Override
   protected void initDatabase(DatabaseConfig databaseConfig) {
-    OperationalDataStoreProvider.init(databaseConfig);
+    DatamartProvider.init(databaseConfig);
   }
 
   @Override
   protected DataSource getDataSource() {
-    return OperationalDataStoreProvider.getDataSource();
+    return DatamartProvider.getDataSource();
   }
 }

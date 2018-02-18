@@ -39,14 +39,10 @@ public class OperationalDataStoreProvider
   }
 
   public static void init(DatabaseConfig _databaseConfig) {
-    init(_databaseConfig, true /* migrateDatabase */, DESIRED_DATABASE_VERSION);
+    init(_databaseConfig, true /* migrateDatabase */);
   }
 
-  public static void init(DatabaseConfig _databaseConfig, boolean migrateDatabase) {
-    init(_databaseConfig, migrateDatabase, DESIRED_DATABASE_VERSION);
-  }
-
-  static synchronized void init(DatabaseConfig _databaseConfig, boolean migrateDatabase, int desiredDatabaseVersion) {
+  public static synchronized void init(DatabaseConfig _databaseConfig, boolean migrateDatabase) {
     if (isInitialized) {
       return;
     }
@@ -57,7 +53,7 @@ public class OperationalDataStoreProvider
     databaseConfig = _databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     if (migrateDatabase) {
-      new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, desiredDatabaseVersion,
+      new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION,
           6 /* defaultCurrentVersion */, currentVersion -> {
             if (currentVersion < MINIMUM_DATABASE_VERSION) {
               throw new UnsupportedOperationException(String.format(

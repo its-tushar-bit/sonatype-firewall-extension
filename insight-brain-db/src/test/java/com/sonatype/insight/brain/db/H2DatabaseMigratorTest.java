@@ -53,16 +53,16 @@ public class H2DatabaseMigratorTest
   }
 
   @Test
-  public void testMigrate_OperationalDataStore_RunsPostIncrementalMigrators() throws Exception {
-    File databaseDir = tempDir.newFolder("db");
-    FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
-        databaseDir);
-    File databaseVersionFile = new File(databaseDir, "ods.ver");
-    assertThat(databaseVersionFile.exists(), is(true));
-    assertThat(readDatabaseVersion(databaseVersionFile), is("85"));
-    int desiredVersion = 87;
+  public void testMigrate_RunsPostIncrementalMigrators() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir,  getClass().getSimpleName() + "/PostIncrementalMigrator");
+    File databaseVersionFile = getDatabaseVersionFile(databaseDir, "test");
+    int desiredVersion = 12;
+    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredVersion - 2)));
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, "PostIncrementalMigrator");
 
-    OperationalDataStoreProvider.init(getODSDatabaseConfig(databaseDir), true, desiredVersion);
+    new H2DatabaseMigrator().migrate(databaseConfig, "PostIncrementalMigrator", dataSource, desiredVersion, 1);
 
     assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredVersion)));
     assertThat(PostIncrementalMigratorVersionMinus1.invoked, is(false));
@@ -99,10 +99,6 @@ public class H2DatabaseMigratorTest
           "/H2DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/" +
           "schema_incremental_0090.cls."));
     }
-  }
-
-  private DatabaseConfig getODSDatabaseConfig(File databaseDir) {
-    return getDatabaseConfig(databaseDir, "ods");
   }
 
   static class PostIncrementalMigratorVersionMinus1

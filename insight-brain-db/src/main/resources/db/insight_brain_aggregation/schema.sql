@@ -1,3 +1,9 @@
+-- For tests only
+CREATE TABLE test_table (
+  test_table_id varchar(50) NOT NULL,
+  name varchar(50) NOT NULL
+);
+
 CREATE TABLE policy_violation_aggregation (
   policy_violation_aggregation_id VARCHAR(50) NOT NULL,
   application_id VARCHAR(50) NOT NULL,

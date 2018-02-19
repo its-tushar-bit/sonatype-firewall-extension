@@ -194,7 +194,7 @@ public class InsightBrainService
       @Override
       public void run() {
         try {
-          TelemetryData telemetryData = getInstance(TelemetryCollector.class).collectAppsAndOrgs();
+          TelemetryData telemetryData = getInstance(TelemetryCollector.class).collectData();
           getInstance(TelemetrySender.class).send(telemetryData);
         }
         catch (Exception e) {

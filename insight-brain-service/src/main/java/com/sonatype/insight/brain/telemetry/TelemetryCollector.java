@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,9 +20,13 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.db.H2DatabaseUtil;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 
 import org.apache.commons.math3.stat.descriptive.rank.Percentile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.43.0
@@ -28,6 +35,8 @@ import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 @Singleton
 public class TelemetryCollector
 {
+  private static final Logger log = LoggerFactory.getLogger(TelemetryCollector.class);
+  
   private final ApplicationDAO applicationDAO;
 
   private final OrganizationDAO organizationDAO;
@@ -41,6 +50,8 @@ public class TelemetryCollector
   public static final String MAX_APPS_PER_ORG = "max_apps_per_org";
 
   public static final String P90_APPS_PER_ORG = "p90_apps_per_org";
+  
+  public static final String ODS_SIZE_BYTES = "ods_size_bytes";
 
   @Inject
   public TelemetryCollector(ApplicationDAO applicationDAO, OrganizationDAO organizationDAO) {
@@ -48,7 +59,7 @@ public class TelemetryCollector
     this.organizationDAO = organizationDAO;
   }
 
-  public TelemetryData collectAppsAndOrgs() {
+  public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(System.currentTimeMillis());
     Map<String, String> attributes = telemetryData.getAttributes();
 
@@ -77,6 +88,7 @@ public class TelemetryCollector
       attributes.put(MAX_APPS_PER_ORG, "0");
       attributes.put(P90_APPS_PER_ORG, "0");
     }
+    attributes.put(ODS_SIZE_BYTES, getOdsSizeBytes());
     return telemetryData;
   }
 
@@ -90,5 +102,18 @@ public class TelemetryCollector
       appsPerOrg.add(0L);
     }
     return appsPerOrg;
+  }
+
+  private String getOdsSizeBytes() {
+    try {
+      if (!OperationalDataStoreProvider.isDatabaseInMemory()) {
+        return String.valueOf(Files.size(
+            Paths.get(H2DatabaseUtil.getDatabasePath(OperationalDataStoreProvider.getDatabaseConfig()) + ".h2.db")));
+      }
+    }
+    catch (IOException e) {
+      log.warn(e.getMessage(), e);
+    }
+    return null;
   }
 }

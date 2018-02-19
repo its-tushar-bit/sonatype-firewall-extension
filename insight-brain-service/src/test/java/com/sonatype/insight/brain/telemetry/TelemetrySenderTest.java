@@ -64,7 +64,7 @@ public class TelemetrySenderTest
     doAnswer(x -> invocation[0] = x).when(mockHdsClient)
         .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class));
 
-    TelemetryData telemetryDataSend = telemetryCollector.collectAppsAndOrgs();
+    TelemetryData telemetryDataSend = telemetryCollector.collectData();
 
     Date expectedMinCreateTime = new Date();
     telemetrySender.send(telemetryDataSend);

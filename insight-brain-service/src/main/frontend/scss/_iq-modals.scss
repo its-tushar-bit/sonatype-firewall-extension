@@ -28,7 +28,6 @@ $iq-modal-bottom-spacing: 8px;
   max-height: calc(100vh - #{$iq-modal-top-spacing} - #{$iq-modal-bottom-spacing});
   margin: 0; // override bootstrap .modal style
   outline: none;
-  overflow: hidden;
   position: fixed;
   top: $iq-modal-top-spacing;
   left: calc(50% - #{($iq-modal-width / 2)});

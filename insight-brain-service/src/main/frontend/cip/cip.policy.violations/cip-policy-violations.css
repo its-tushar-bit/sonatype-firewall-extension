@@ -99,6 +99,10 @@
   max-width: 330px
 }
 
+#add-proprietary-matchers-modal {
+  overflow: hidden;
+}
+
 /* XXX Remove in favour of new-ui styling */
 .modal-body.modal-error {
   background: #f2dede;

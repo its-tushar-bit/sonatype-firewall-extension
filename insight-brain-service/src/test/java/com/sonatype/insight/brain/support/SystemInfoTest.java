@@ -156,12 +156,17 @@ public class SystemInfoTest
     assertThat(obufscatedMap.get("sonatypeWork"), Is.<Object>is("./sonatype-work/clm-server"));
 
     final Map<String, Object> entryServer = (Map<String, Object>) obufscatedMap.get("server");
-    final Map<String, Object> entryApplicationConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
+    Map<String, Object> entryApplicationConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
         .get("applicationConnectors")).get(0);
     final Map<String, Object> entryAdminConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
         .get("adminConnectors")).get(0);
     assertThat(entryApplicationConnectors.get("port"), Is.<Object>is(8070));
     assertThat(entryAdminConnectors.get("port"), Is.<Object>is(8071));
+    entryApplicationConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
+        .get("applicationConnectors")).get(1);
+    assertThat(entryApplicationConnectors.get("keyStorePassword"), Is.<Object> is(SystemInfo.MASK));
+    assertThat(entryApplicationConnectors.get("trustStorePassword"), Is.<Object> is(SystemInfo.MASK));
+    assertThat(entryApplicationConnectors.get("keyManagerPassword"), Is.<Object> is(SystemInfo.MASK));
 
     final Map<String, Object> entryHttpRequest = (Map<String, Object>) entryServer.get("requestLog");
     final ArrayList<Object> entryHttpRequestAppenders = (ArrayList<Object>) entryHttpRequest.get("appenders");

@@ -113,28 +113,29 @@ class SystemInfo
   }
 
   String getObfuscatedYaml(final InputStream input) {
-
     final Yaml yaml = new Yaml();
-
-    @SuppressWarnings("unchecked") final Map<String, Object> map = (Map<String, Object>) yaml.load(input);
-
-    // Recurse nested entries
-    for (final Entry<String, Object> entry : map.entrySet()) {
-      obfuscateNestedMap(entry);
-    }
-
-    return yaml.dump(map);
+    Object yamlObject = yaml.load(input);
+    obfuscateYaml(yamlObject);
+    return yaml.dump(yamlObject);
   }
 
-  private void obfuscateNestedMap(final Entry<String, Object> entry) {
-    if (isSensitiveKey(entry.getKey())) {
-      entry.setValue(SystemInfo.MASK);
+  private void obfuscateYaml(Object yamlObject) {
+    if (yamlObject instanceof Map) {
+      @SuppressWarnings("unchecked")
+      Map<String, Object> map = (Map<String, Object>) yamlObject;
+      for (Map.Entry<String, Object> entry : map.entrySet()) {
+        if (isSensitiveKey(entry.getKey())) {
+          entry.setValue(SystemInfo.MASK);
+        }
+        else {
+          obfuscateYaml(entry.getValue());
+        }
+      }
     }
-
-    if (entry.getValue() instanceof Map) {
-      @SuppressWarnings("unchecked") final Map<String, Object> entryMap = (Map<String, Object>) entry.getValue();
-      for (final Entry<String, Object> entrySub : entryMap.entrySet()) {
-        obfuscateNestedMap(entrySub);
+    else if (yamlObject instanceof Iterable) {
+      Iterable<?> iterable = (Iterable<?>) yamlObject;
+      for (Object element : iterable) {
+        obfuscateYaml(element);
       }
     }
   }

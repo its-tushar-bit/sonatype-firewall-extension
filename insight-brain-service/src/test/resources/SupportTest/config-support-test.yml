@@ -39,6 +39,11 @@ server:
       # will be bound. If omitted, the socket will listen on all
       # interfaces.
       #bindHost: 127.0.0.1  # only bind to loopback
+
+    - type: https
+      keyStorePassword: key-store-password
+      trustStorePassword: trust-store-password
+      keyManagerPassword: key-manager-password
   
   adminConnectors:
   

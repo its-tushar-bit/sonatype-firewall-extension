@@ -78,7 +78,7 @@ public class SystemInfoTest
     defaultLoggingFactory.setAppenders(Collections.singletonList(serverFileAppenderFactory));
 
     DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
-    LogbackAccessRequestLogFactory logbackAccessRequestLogFactory = 
+    LogbackAccessRequestLogFactory logbackAccessRequestLogFactory =
         (LogbackAccessRequestLogFactory) defaultServerFactory.getRequestLogFactory();
     FileAppenderFactory<IAccessEvent> requestFileAppenderFactory = new FileAppenderFactory<>();
     requestFileAppenderFactory.setCurrentLogFilename(REQUEST_LOG_FILENAME);
@@ -95,10 +95,10 @@ public class SystemInfoTest
 
   @Test
   public void testObfuscateValue() {
-    assertThat(systemInfo.obfuscateValue("myPasswordLikePropertyName", "yadda"), Is.<Object>is(SystemInfo.MASK));
-    assertThat(systemInfo.obfuscateValue("myPassPhrasePropertyName", "yadda"), Is.<Object>is(SystemInfo.MASK));
-    assertThat(systemInfo.obfuscateValue("normalProp", "normalValue"), Is.<Object>is("normalValue"));
-    assertThat(systemInfo.obfuscateValue("", "normalValue"), Is.<Object>is("normalValue"));
+    assertThat(systemInfo.obfuscateValue("myPasswordLikePropertyName", "yadda"), is(SystemInfo.MASK));
+    assertThat(systemInfo.obfuscateValue("myPassPhrasePropertyName", "yadda"), is(SystemInfo.MASK));
+    assertThat(systemInfo.obfuscateValue("normalProp", "normalValue"), is("normalValue"));
+    assertThat(systemInfo.obfuscateValue("", "normalValue"), is("normalValue"));
   }
 
   @Test
@@ -112,7 +112,7 @@ public class SystemInfoTest
     try {
       final Entry<String, SortedMap<String, Object>> obfuscatedProps = systemInfo.getObfuscatedSystemProperties();
       assertThat(obfuscatedProps.getKey(), is("system-properties"));
-      assertThat(obfuscatedProps.getValue().get(keyName), Is.<Object>is(SystemInfo.MASK));
+      assertThat(obfuscatedProps.getValue().get(keyName), is(SystemInfo.MASK));
     }
     finally {
       System.getProperties().remove(keyName);
@@ -120,7 +120,7 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetObfuscatedSystemProperties() throws Exception {
+  public void testGetObfuscatedSystemProperties() {
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getObfuscatedSystemProperties();
     assertThat(entry.getKey(), is("system-properties"));
 
@@ -132,7 +132,7 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetObfuscatedEnvironment() throws Exception {
+  public void testGetObfuscatedEnvironment() {
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getObfuscatedEnvironment();
     assertThat(entry.getKey(), is("system-environment"));
 
@@ -153,46 +153,46 @@ public class SystemInfoTest
     }
     final Map<String, Object> obufscatedMap = (Map<String, Object>) new Yaml().load(obfuscatedYaml);
 
-    assertThat(obufscatedMap.get("sonatypeWork"), Is.<Object>is("./sonatype-work/clm-server"));
+    assertThat(obufscatedMap.get("sonatypeWork"), is("./sonatype-work/clm-server"));
 
     final Map<String, Object> entryServer = (Map<String, Object>) obufscatedMap.get("server");
     Map<String, Object> entryApplicationConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
         .get("applicationConnectors")).get(0);
     final Map<String, Object> entryAdminConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
         .get("adminConnectors")).get(0);
-    assertThat(entryApplicationConnectors.get("port"), Is.<Object>is(8070));
-    assertThat(entryAdminConnectors.get("port"), Is.<Object>is(8071));
+    assertThat(entryApplicationConnectors.get("port"), is(8070));
+    assertThat(entryAdminConnectors.get("port"), is(8071));
     entryApplicationConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
         .get("applicationConnectors")).get(1);
-    assertThat(entryApplicationConnectors.get("keyStorePassword"), Is.<Object> is(SystemInfo.MASK));
-    assertThat(entryApplicationConnectors.get("trustStorePassword"), Is.<Object> is(SystemInfo.MASK));
-    assertThat(entryApplicationConnectors.get("keyManagerPassword"), Is.<Object> is(SystemInfo.MASK));
+    assertThat(entryApplicationConnectors.get("keyStorePassword"), is(SystemInfo.MASK));
+    assertThat(entryApplicationConnectors.get("trustStorePassword"), is(SystemInfo.MASK));
+    assertThat(entryApplicationConnectors.get("keyManagerPassword"), is(SystemInfo.MASK));
 
     final Map<String, Object> entryHttpRequest = (Map<String, Object>) entryServer.get("requestLog");
     final ArrayList<Object> entryHttpRequestAppenders = (ArrayList<Object>) entryHttpRequest.get("appenders");
-    assertThat(entryHttpRequestAppenders.size(), Is.is(1));
+    assertThat(entryHttpRequestAppenders.size(), is(1));
     final Map<String, Object> entryFileHttpRequestAppender = (Map<String, Object>) entryHttpRequestAppenders.get(0);
 
-    assertThat(entryFileHttpRequestAppender.get("type"), Is.<Object>is("file"));
-    assertThat(entryFileHttpRequestAppender.get("currentLogFilename"), Is.<Object>is("./log/request.log"));
+    assertThat(entryFileHttpRequestAppender.get("type"), is("file"));
+    assertThat(entryFileHttpRequestAppender.get("currentLogFilename"), is("./log/request.log"));
     assertThat(entryFileHttpRequestAppender.get("archivedLogFilenamePattern"),
-        Is.<Object>is("./log/request-%d.log.gz"));
-    assertThat(entryFileHttpRequestAppender.get("archivedFileCount"), Is.<Object>is(50));
+        is("./log/request-%d.log.gz"));
+    assertThat(entryFileHttpRequestAppender.get("archivedFileCount"), is(50));
     assertThat(entryFileHttpRequestAppender.size(), Is.<Object>is(4));
 
     // validate obfuscation
-    assertThat(obufscatedMap.get("testPassword"), Is.<Object>is(SystemInfo.MASK));
+    assertThat(obufscatedMap.get("testPassword"), is(SystemInfo.MASK));
 
     final Map<String, Object> entryPassphraseMap = (Map<String, Object>) obufscatedMap.get("testphrase");
-    assertThat(entryPassphraseMap.get("mypassphrasearray"), Is.<Object>is(SystemInfo.MASK));
+    assertThat(entryPassphraseMap.get("mypassphrasearray"), is(SystemInfo.MASK));
 
     final Map<String, Object> entryTestMap = (Map<String, Object>) obufscatedMap.get("testmap");
-    assertThat(entryTestMap.get("json_map-passwords"), Is.<Object>is(SystemInfo.MASK));
-    assertThat(entryTestMap.get("json_seq-passwords"), Is.<Object>is(SystemInfo.MASK));
+    assertThat(entryTestMap.get("json_map-passwords"), is(SystemInfo.MASK));
+    assertThat(entryTestMap.get("json_seq-passwords"), is(SystemInfo.MASK));
   }
 
   @Test
-  public void testGetSystemRuntime() throws Exception {
+  public void testGetSystemRuntime() {
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getSystemRuntime();
     assertThat(entry.getKey(), is("system-runtime"));
 
@@ -206,7 +206,7 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetReportTime() throws Exception {
+  public void testGetReportTime() {
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getReportTime();
     assertThat(entry.getKey(), is("system-time"));
 
@@ -218,7 +218,7 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetInstallInfo() throws Exception {
+  public void testGetInstallInfo() {
     final File originalConfigFile = InsightBrainService.getConfigFile();
     final File expectedConfigFile = new File("myConfig.yml");
     final Entry<String, SortedMap<String, Object>> entry;
@@ -266,7 +266,7 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetFileStores() throws Exception {
+  public void testGetFileStores() {
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getFileStores();
     assertThat(entry.getKey(), is("system-filestores"));
 
@@ -292,7 +292,7 @@ public class SystemInfoTest
     assertThat(map.size(), is(5));
 
     assertThat(map.get("description"), notNullValue());
-    assertThat((String) map.get("type"), is("myType"));
+    assertThat(map.get("type"), is("myType"));
     assertThat(map.get("totalSpace"), notNullValue());
     assertThat(map.get("usableSpace"), notNullValue());
     assertThat(map.get("unallocatedSpace"), nullValue());
@@ -302,7 +302,7 @@ public class SystemInfoTest
     final TreeMap<String, Object> map2 = systemInfo.getFileStore(fileStore);
     assertThat(map2.size(), is(3));
     assertThat(map2.get("description"), notNullValue());
-    assertThat((String) map2.get("type"), is("myType"));
+    assertThat(map2.get("type"), is("myType"));
     assertThat(map2.get("totalSpace"), nullValue());
     assertThat(map2.get("usableSpace"), nullValue());
     assertThat(map2.get("unallocatedSpace"), nullValue());
@@ -311,7 +311,7 @@ public class SystemInfoTest
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testGetNetworkInterfaces() throws Exception {
+  public void testGetNetworkInterfaces() {
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getNetworkInterfaces();
     assertThat(entry.getKey(), is("system-network"));
 
@@ -377,7 +377,7 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetSystemInfo() throws Exception {
+  public void testGetSystemInfo() {
     final List<Entry<String, SortedMap<String, Object>>> list = systemInfo.getSystemInfo(null);
     int i = 0;
     assertThat(list.get(i++).getKey(), is("system-time"));
@@ -392,7 +392,7 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetPropertiesJson() throws Exception {
+  public void testGetPropertiesJson() {
     final Properties properties = new Properties();
     properties.put("c", "3");
     properties.put("a", "1");
@@ -409,9 +409,9 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetProduceLicense() throws Exception {
+  public void testGetProduceLicense() {
     final LicenseInfo licenseInfo = new LicenseInfo("fprint", -1, -2, -3, -4, "Contact Name",
-        "Contact Company", "contact@example.com", null, new String[] { "Pro+" }, "edition");
+        "Contact Company", "contact@example.com", null, new String[]{"Pro+"}, "edition");
 
     final String json = systemInfo.getProductLicense(licenseInfo);
     assertThat(json, is("{" + lineSeparator +
@@ -436,13 +436,13 @@ public class SystemInfoTest
   }
 
   @Test
-  public void testGetLdapConfigEmpty() throws Exception {
+  public void testGetLdapConfigEmpty() {
     final List<LdapConfig> ldapServers = new ArrayList<>();
     assertThat(systemInfo.getLdapConfig(ldapServers), is("[ ]"));
   }
 
   @Test
-  public void testGetClientInfo() throws Exception {
+  public void testGetClientInfo() {
     final String requestUrl = "myRequestUrl";
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getClientInfo(requestUrl);
     final SortedMap<String, Object> entries = entry.getValue();

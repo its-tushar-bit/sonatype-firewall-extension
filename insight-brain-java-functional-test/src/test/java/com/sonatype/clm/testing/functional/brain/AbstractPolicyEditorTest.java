@@ -608,6 +608,7 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.notificationsPill().click();
 
     AddNotificationItem addNotification = NotificationsSection.addNotification();
+    addNotification.errorBox().shouldBe(hidden);
 
     // add email notifications
     addNotification.addButton().shouldHave(DISABLED);
@@ -699,8 +700,6 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("Developer").deleteButton().click();
     NotificationsSection.notificationFor("Application Evaluator").deleteButton().click();
     NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
-
-    NotificationsSection.addNotification().errorBox().shouldNotBe(visible);
   }
 
   private void testEditPolicy_actionsSection(Policy policy) {

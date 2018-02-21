@@ -147,4 +147,15 @@ public class ApplicationSummaryResourceTest
     assertThat(applicationSummary.getPublicId(), is(expected.getPublicId()));
     assertThat(applicationSummary.getName(), is(expected.getName()));
   }
+
+  @Test
+  public void testIsApplicationAllowed_EvaluateApplication() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    HttpResponse response = restRequest().path(ApplicationSummaryResource.IS_APPLICATION_ALLOWED_PATH)
+        .parameter(app.getPublicId()).query(ApplicationSummaryResource.GOAL_PARAM, Goal.EVALUATE_APPLICATION).get();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBody(String.class), is("true"));
+  }
 }

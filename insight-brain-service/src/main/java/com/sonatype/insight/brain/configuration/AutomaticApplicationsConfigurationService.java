@@ -9,9 +9,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -27,14 +26,14 @@ public class AutomaticApplicationsConfigurationService
 {
   private final OrganizationDAO organizationDAO;
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
 
   @Inject
   public AutomaticApplicationsConfigurationService(OrganizationDAO organizationDAO,
-                                                   SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+                                                   AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO)
   {
     this.organizationDAO = organizationDAO;
-    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+    this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION)
@@ -47,17 +46,13 @@ public class AutomaticApplicationsConfigurationService
       throw new BadRequestException(
           "Parent organization ID is required when automatic application creation is enabled.");
     }
-    try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
+    try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
       if (StringUtils.isNotBlank(parentOrganizationId) && organizationDAO.getById(tx, parentOrganizationId) == null) {
         throw new BadRequestException("Parent organization ID " + parentOrganizationId + " not found.");
       }
-      systemConfigurationPropertyDAO.update(tx,
-          new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED,
-              Boolean.toString(configuration.isEnabled())));
-      systemConfigurationPropertyDAO.update(tx,
-          new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID,
-              parentOrganizationId));
+      automaticApplicationsConfigurationDAO.setEnabled(tx, configuration.isEnabled());
+      automaticApplicationsConfigurationDAO.setOrganizationId(tx, parentOrganizationId);
       tx.commit();
     }
     return configuration;
@@ -65,10 +60,7 @@ public class AutomaticApplicationsConfigurationService
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION)
   AutomaticApplicationsConfiguration get() {
-    SystemConfigurationProperty enabled = systemConfigurationPropertyDAO
-        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED);
-    SystemConfigurationProperty organizationId = systemConfigurationPropertyDAO
-        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
-    return new AutomaticApplicationsConfiguration(Boolean.parseBoolean(enabled.getValue()), organizationId.getValue());
+    return new AutomaticApplicationsConfiguration(automaticApplicationsConfigurationDAO.isEnabled(),
+        automaticApplicationsConfigurationDAO.getOrganizationId());
   }
 }

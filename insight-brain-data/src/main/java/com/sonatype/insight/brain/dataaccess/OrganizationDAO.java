@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -142,21 +141,16 @@ public class OrganizationDAO
       throw new BadRequestException("Cannot delete the root organization: " + organization.getName());
     }
 
-    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
-    SystemConfigurationProperty automaticApplicationOrganizationId = systemConfigurationPropertyDAO.getByNameNotNull(tx,
-        SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
-    if (organization.getId().equals(automaticApplicationOrganizationId.getValue())) {
-      SystemConfigurationProperty automaticApplicationEnabled = systemConfigurationPropertyDAO.getByNameNotNull(tx,
-          SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED);
-      if (Boolean.parseBoolean(automaticApplicationEnabled.getValue())) {
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    if (organization.getId().equals(automaticApplicationsConfigurationDAO.getOrganizationId(tx))) {
+      if (automaticApplicationsConfigurationDAO.isEnabled(tx)) {
         // Do not allow the deletion of the parent organization for automatic application creation if enabled
         throw new BadRequestException("Cannot delete the parent organization for automatic application creation: "
             + organization.getName() + ".");
       }
       else {
         // Remove the organization ID from the system configuration properties if not enabled
-        systemConfigurationPropertyDAO.update(tx, new SystemConfigurationProperty(
-            SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, ""));
+        automaticApplicationsConfigurationDAO.setOrganizationId(tx, "");
       }
     }
 

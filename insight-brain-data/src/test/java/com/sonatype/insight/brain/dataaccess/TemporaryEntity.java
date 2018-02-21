@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -19,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -225,7 +227,11 @@ public class TemporaryEntity
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
+  private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+
   private Collection<Application> apps;
+
+  private Collection<String> appPublicIds;
 
   private Collection<Organization> orgs;
 
@@ -276,6 +282,7 @@ public class TemporaryEntity
   @Override
   protected void before() {
     apps = new ArrayList<>();
+    appPublicIds = new ArrayList<>();
     orgs = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
@@ -303,15 +310,15 @@ public class TemporaryEntity
 
   @Override
   protected void after() {
-    systemConfigurationPropertyDAO.update(
-        new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED, "false"));
-    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
-        SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, ""));
+    automaticApplicationsConfigurationDAO.setEnabled(false);
+    automaticApplicationsConfigurationDAO.setOrganizationId("");
     delete(systemConfigurationProperties, entity -> systemConfigurationPropertyDAO.getByName(entity.getName()),
         systemConfigurationPropertyDAO::delete);
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
     delete(policyTags, policyTagDAO);
+    appPublicIds.stream().map(appPublicId -> appDAO.getByPublicId(appPublicId)).filter(Objects::nonNull)
+        .forEach(appDAO::delete);
     delete(apps, appDAO);
     delete(orgs, orgDAO);
     delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
@@ -426,6 +433,10 @@ public class TemporaryEntity
 
   public void register(Application... applications) {
     Collections.addAll(apps, applications);
+  }
+
+  public void registerAppPublicId(String appPublicId) {
+    appPublicIds.add(appPublicId);
   }
 
   public void register(Organization... organizations) {

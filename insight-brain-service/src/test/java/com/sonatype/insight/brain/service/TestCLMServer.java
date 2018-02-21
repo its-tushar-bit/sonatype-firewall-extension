@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.util.List;
 
+import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.PortAllocator;
 
@@ -34,15 +35,25 @@ public class TestCLMServer
 
   private static int totalStopTime;
 
-  public TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
+  public TestCLMServer(boolean isProxyRequiredToReachHds,
+                       List<Module> modules,
+                       Configurator configurator,
+                       HdsConfigurator hdsConfigurator)
+  {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
     int hdsMockServerPort = PortAllocator.findFreePort(8090);
 
-    hdsMockServer = new HdsMockServerRule(hdsMockServerPort, isProxyRequiredToReachHds);
+    hdsMockServer = new HdsMockServerRule(hdsMockServerPort, isProxyRequiredToReachHds)
+        .setConfigurator(hdsConfigurator);
+
     brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070), PortAllocator.findFreePort(8071),
         null /* baseUrl */, "http://localhost:" + hdsMockServerPort, isProxyRequiredToReachHds, modules)
         .setConfigurator(configurator);
+  }
+
+  public TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
+    this(isProxyRequiredToReachHds, modules, configurator, null);
   }
 
   public void start() throws Exception {
@@ -81,7 +92,12 @@ public class TestCLMServer
     return hdsMockServer;
   }
 
+  public boolean isReusable(boolean proxyRequired, Configurator configurator, HdsConfigurator hdsConfigurator) {
+    return proxyRequired == isProxyRequiredToReachHds && configurator == brain.getConfigurator()
+        && hdsConfigurator == hdsMockServer.getConfigurator();
+  }
+
   public boolean isReusable(boolean proxyRequired, Configurator configurator) {
-    return proxyRequired == isProxyRequiredToReachHds && configurator == brain.getConfigurator();
+    return isReusable(proxyRequired, configurator, null);
   }
 }

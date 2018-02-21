@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -20,18 +17,10 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
 {
-  public static final int DEFAULT_LICENSE_THREAT_GROUP_COUNT = 6;
-
-  private static final Logger log = LoggerFactory.getLogger(LicenseThreatGroupDAO.class);
-
   private static final OwnerDAO ownerDAO = new OwnerDAO();
 
   private static final OrganizationDAO orgDAO = new OrganizationDAO();
@@ -196,78 +185,6 @@ public class LicenseThreatGroupDAO
       licenseThreatGroupLicenseDAO.delete(tx, licenseThreatGroupLicense);
     }
     super.delete(tx, licenseThreatGroup);
-  }
-
-  public void createDefaultLicenseThreatGroups() {
-    List<Organization> organizations = orgDAO.getAll();
-    List<LicenseThreatGroup> ltgs = getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    // If the only org is root org and it has no LTGs then create default LTGs
-    if (organizations.size() == 1 && Organization.ROOT_ORGANIZATION_ID.equals(organizations.get(0).getId())
-        && ltgs.isEmpty()) {
-      // Add the LTGs
-      createDefaultGroups(Organization.ROOT_ORGANIZATION_ID);
-    }
-  }
-
-  public void deleteDefaultLicenseThreatGroups() {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      List<LicenseThreatGroup> licenseThreatGroups = getByOwnerId(tx, Organization.ROOT_ORGANIZATION_ID);
-      for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-        delete(tx, licenseThreatGroup);
-      }
-      tx.commit();
-    }
-  }
-
-  public void createDefaultGroups(final String ownerId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      createDefaultGroups(tx, ownerId);
-      tx.commit();
-    }
-  }
-
-  private void createDefaultGroups(TransactionContext tx, String ownerId) {
-    long start = System.currentTimeMillis();
-
-    LicenseThreatGroupDefaults defaults = LicenseThreatGroupDefaults.load();
-
-    Map<String, String> newLtgIdsByOldId = new HashMap<>();
-    for (LicenseThreatGroup licenseThreatGroup : defaults.licenseThreatGroups) {
-      LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, licenseThreatGroup.getName(),
-          licenseThreatGroup.getThreatLevel());
-      insert(tx, ltg);
-      newLtgIdsByOldId.put(licenseThreatGroup.getId(), ltg.getId());
-    }
-
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-    for (LicenseThreatGroupLicense licenseThreatGroupLicense : defaults.licenseThreatGroupLicenses) {
-      String licenseThreatGroupId = newLtgIdsByOldId.get(licenseThreatGroupLicense.getLicenseThreatGroupId());
-      LicenseThreatGroupLicense ltgl = new LicenseThreatGroupLicense(ownerId, licenseThreatGroupId,
-          licenseThreatGroupLicense.getLicenseId());
-      licenseThreatGroupLicenseDAO.insert(tx, ltgl);
-    }
-
-    log.debug("Created default license threat groups for owner id {} in {} ms.", ownerId, System.currentTimeMillis()
-        - start);
-  }
-
-  private static class LicenseThreatGroupDefaults
-  {
-    public List<LicenseThreatGroup> licenseThreatGroups;
-
-    public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
-
-    static LicenseThreatGroupDefaults load() {
-      Class<LicenseThreatGroupDefaults> type = LicenseThreatGroupDefaults.class;
-      try {
-        return JsonUtils.parse(type.getResourceAsStream("/LicenseThreatGroupDefaults.json"), type);
-      }
-      catch (IOException e) {
-        throw new IllegalStateException("Invalid LTG defaults", e);
-      }
-    }
   }
 
   /**

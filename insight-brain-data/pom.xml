@@ -147,6 +147,8 @@
               <includes>
                 <include>**/TemporaryEntity*</include>
                 <include>**/PolicyViolationAggregationDataHelper*</include>
+                <include>**/LicenseThreatGroupDataHelper*</include>
+                <include>**/TestLicenseThreatGroups.json</include>
               </includes>
             </configuration>
           </execution>

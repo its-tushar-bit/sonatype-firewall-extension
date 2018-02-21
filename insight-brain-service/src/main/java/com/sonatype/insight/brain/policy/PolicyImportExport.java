@@ -150,6 +150,16 @@ public class PolicyImportExport
   PolicyImportResult importOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization,
                                         PolicyExportResult exportDTO)
   {
+    return importOrganizationWithoutAuthorizationCheck(organization, exportDTO);
+  }
+
+  /**
+   * Same as importOrganization, but without checking authorization first. This method is suitable for use outside
+   * of a web request
+   */
+  public PolicyImportResult importOrganizationWithoutAuthorizationCheck(Organization organization,
+                                                                        PolicyExportResult exportDTO)
+  {
     checkOrgImportPreconditions(organization, exportDTO);
 
     String orgId = organization.getId();

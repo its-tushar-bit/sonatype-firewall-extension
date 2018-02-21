@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper
 
 import spock.lang.Stepwise
 
@@ -25,6 +26,8 @@ class EclipseViewDetailsSpec
   static Application app
 
   def setupSpec() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(temporaryEntity)
+
     Organization org = temporaryEntity.newOrganization(this.getClass().simpleName)
     app = temporaryEntity.newApplication(this.getClass().simpleName, org.id)
   }

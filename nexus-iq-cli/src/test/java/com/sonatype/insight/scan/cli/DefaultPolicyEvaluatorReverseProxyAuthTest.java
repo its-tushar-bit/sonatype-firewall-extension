@@ -157,6 +157,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
       public void configure(InsightConfig config) {
         config.getReverseProxyAuthentication().setEnabled(rutEnabled);
         config.setAnonymousClientAccessAllowed(anonymousAllowed);
+        config.setImportRefrencePoliciesFromHDS(false);
       }
     });
     testCLMServer.start();

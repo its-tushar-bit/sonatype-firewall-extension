@@ -49,6 +49,8 @@ public class HdsMockServer
     SslProperties.use();
   }
 
+  private HdsConfigurator configurator;
+
   private int httpPort = 0;
 
   private int httpsPort = -1;
@@ -69,8 +71,21 @@ public class HdsMockServer
 
   private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<>();
 
+  public interface HdsConfigurator
+  {
+    void configure(HdsMockServer hdsMockServer);
+  }
+
   public void reset() {
     responseProviders.clear();
+  }
+
+  public void setConfigurator(HdsConfigurator configurator) {
+    this.configurator = configurator;
+  }
+
+  public HdsConfigurator getConfigurator() {
+    return configurator;
   }
 
   public void setResponseForURI(String uri, Object body, int status) {
@@ -230,6 +245,10 @@ public class HdsMockServer
     handlers.addHandler(mainHandler);
     server.setHandler(handlers);
     server.start();
+
+    if (configurator != null) {
+      configurator.configure(this);
+    }
 
     return this;
   }

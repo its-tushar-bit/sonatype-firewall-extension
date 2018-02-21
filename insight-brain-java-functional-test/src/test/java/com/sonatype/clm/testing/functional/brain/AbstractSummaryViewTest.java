@@ -36,7 +36,7 @@ import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleLis
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -335,7 +335,7 @@ public abstract class AbstractSummaryViewTest
       else {
         list.ownerName().shouldBe(visible);
         list.emptyDescriptor().shouldBe(hidden);
-        list.elements().shouldHaveSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT);
+        list.elements().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
       }
     }
   }
@@ -598,9 +598,9 @@ public abstract class AbstractSummaryViewTest
         list.elements().shouldBe(empty);
       }
       else {
-        int expectedDefaultLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(i - 1).getId()) ? LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT
-            : 0;
-        int expectedLTGCount = inheritedLTGs.get(i - 1).size() + expectedDefaultLTGSize;
+        int expectedTestLTGSize = Organization.ROOT_ORGANIZATION_ID
+            .equals(parentOwners.get(i - 1).getId()) ? LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT : 0;
+        int expectedLTGCount = inheritedLTGs.get(i - 1).size() + expectedTestLTGSize;
         list.elements().shouldHaveSize(expectedLTGCount);
         list.ownerName().shouldBe(visible)
             .shouldHave(LicenseThreatGroupTile.inheritedText(parentOwners.get(i - 1).getName()));

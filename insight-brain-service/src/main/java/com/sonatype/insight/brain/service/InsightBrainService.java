@@ -20,7 +20,6 @@ import javax.servlet.Filter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatamartProvider;
@@ -29,7 +28,6 @@ import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.migration.DataMigrator;
-import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -173,7 +171,7 @@ public class InsightBrainService
 
     // This call must come after the DataMigrator. Specifically, the RootOrganizationConfigMigrator as the sample data
     // will interfere with its decision to determine a fresh install and mistakenly trigger the root org migration.
-    SampleDataCreator.createSampleData(configuration);
+    getInstance(NewInstancePopulator.class).populateIfNewInstance();
 
     new Thread("Startup license data updater")
     {
@@ -354,9 +352,6 @@ public class InsightBrainService
 
     DatabaseConfig aggregationDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.aggregation);
     AggregationDataStoreProvider.init(aggregationDatabaseConfig);
-
-    // Create the default LTGs on the root organization (must be called after the database is initialized)
-    new LicenseThreatGroupDAO().createDefaultLicenseThreatGroups();
   }
 
   @Override

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -98,7 +99,7 @@ public class PolicyImportExportTest
     MockitoAnnotations.initMocks(this);
     policyImportExport = new PolicyImportExport();
     fromOrg = tempEntity.newOrganization();
-    licenseThreatGroupDAO.createDefaultGroups(fromOrg.getId());
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(fromOrg.getId(), tempEntity);
     fromApp = tempEntity.newApplication(fromOrg.getId());
   }
 
@@ -614,7 +615,7 @@ public class PolicyImportExportTest
     // 127 at time of writing, should only break if we remove many
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromOrg.getId()).size(), is(greaterThan(100)));
     assertThat(licenseThreatGroupDAO.getByOwnerId(fromOrg.getId()),
-        hasSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT));
+        hasSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT));
     assertThat(policyDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
     assertThat(labelDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
     assertThat(componentLabelDAO.getByOwnerId(fromOrg.getId()), hasSize(1));

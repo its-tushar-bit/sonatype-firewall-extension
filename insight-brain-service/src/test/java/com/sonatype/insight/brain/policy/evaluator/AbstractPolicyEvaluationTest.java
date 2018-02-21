@@ -41,7 +41,7 @@ public abstract class AbstractPolicyEvaluationTest
   protected ComponentPolicyEvaluator componentPolicyEvaluator;
 
   @Override
-  public void setUpDefaultLicenseThreatGroups() {
+  public void setUpTestLicenseThreatGroups() {
     // blank slate please
   }
 

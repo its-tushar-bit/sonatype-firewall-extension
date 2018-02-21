@@ -6,6 +6,8 @@ sonatypeWork: ./target/sonatype-work/clm-server
 
 showRootOrganization: true
 
+importReferencePoliciesFromHDS: false
+
 logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
   level: DEBUG

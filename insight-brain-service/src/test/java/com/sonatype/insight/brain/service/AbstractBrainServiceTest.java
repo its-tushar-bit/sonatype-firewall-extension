@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.mock.hds.HdsMockServer.HdsConfigurator;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -29,7 +30,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.notifications.HdsProductNotificationService;
@@ -88,17 +89,19 @@ public abstract class AbstractBrainServiceTest
   // The mock service that would normally talk to HDS for product notifications
   protected static HdsProductNotificationService mockHdsProductNotificationService;
 
-  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-
   protected static JiraClient mockJiraClient;
+
+  public void setUpTestLicenseThreatGroups() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+  }
 
   @Before
   public void initTest() throws Exception {
     if (!isTestUsingManualServerInit()) {
       initServer(null);
     }
-    // Make sure the default LTGs are created
-    licenseThreatGroupDAO.createDefaultLicenseThreatGroups();
+
+    setUpTestLicenseThreatGroups();
   }
 
   protected boolean isTestUsingManualServerInit() throws Exception {
@@ -110,23 +113,25 @@ public abstract class AbstractBrainServiceTest
     return getClass().getMethod(testMethod).isAnnotationPresent(ManualServerInit.class);
   }
 
-  protected void initServer(Configurator configurator) throws Exception {
-    if (testCLMServer != null && !testCLMServer.isReusable(isProxyRequiredToReachHds(), configurator)) {
+  protected void initServer(Configurator configurator, HdsConfigurator hdsConfigurator) throws Exception {
+    if (testCLMServer != null
+        && !testCLMServer.isReusable(isProxyRequiredToReachHds(), configurator, hdsConfigurator)) {
       testCLMServer.stop();
       testCLMServer = null;
     }
 
     if (testCLMServer == null) {
-      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator);
+      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator, hdsConfigurator);
       testCLMServer.start();
     }
   }
 
+  protected void initServer(Configurator configurator) throws Exception {
+    initServer(configurator, null);
+  }
+
   @After
   public void cleanupTest() throws Exception {
-    // Delete the default LTGs when stopping
-    licenseThreatGroupDAO.deleteDefaultLicenseThreatGroups();
-
     boolean installLicense = false;
     if (savedLicenseFingerprint != null) {
       licenseFingerprinter.setDummyLicenseFingerprint(savedLicenseFingerprint);

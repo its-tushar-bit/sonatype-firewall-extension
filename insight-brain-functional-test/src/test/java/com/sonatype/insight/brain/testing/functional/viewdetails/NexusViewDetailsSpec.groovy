@@ -6,11 +6,12 @@
 package com.sonatype.insight.brain.testing.functional.viewdetails
 
 import com.sonatype.clm.dto.model.SecurityVulnerability
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper
 
 import spock.lang.Stepwise
 /**
@@ -23,6 +24,8 @@ class NexusViewDetailsSpec
   static Application app
 
   def setupSpec() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(temporaryEntity)
+
     Organization org = temporaryEntity.newOrganization(this.getClass().simpleName)
     app = temporaryEntity.newApplication(this.getClass().simpleName, org.id)
   }

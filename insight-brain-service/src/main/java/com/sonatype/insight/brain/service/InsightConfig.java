@@ -209,6 +209,13 @@ public class InsightConfig
   @JsonProperty
   private boolean createSampleData = false;
 
+  /**
+   * @since 1.44
+   */
+  @NotNull
+  @JsonProperty
+  private boolean importReferencePoliciesFromHDS = true;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -544,6 +551,22 @@ public class InsightConfig
    */
   public void setCreateSampleData(boolean createSampleData) {
     this.createSampleData = createSampleData;
+  }
+
+  /**
+   * If true, references policies are downloaded from HDS for new installs.
+   *
+   * @since 1.44
+   */
+  public boolean isImportReferencePoliciesFromHDS() {
+    return importReferencePoliciesFromHDS;
+  }
+
+  /**
+   * @since 1.44
+   */
+  public void setImportRefrencePoliciesFromHDS(boolean importReferencePoliciesFromHDS) {
+    this.importReferencePoliciesFromHDS = importReferencePoliciesFromHDS;
   }
 
   /**

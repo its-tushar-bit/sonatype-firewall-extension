@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
-import java.util.List;
 import java.util.Locale;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -63,19 +62,6 @@ public class LicenseThreatGroupDAOTest
 
     group = licenseThreatGroupDAO.getById(group.getId());
     Assert.assertNull(group);
-  }
-
-  @Test
-  public void testCreateDefaultLicenseThreatGroups() throws Exception {
-    try {
-      licenseThreatGroupDAO.createDefaultGroups(Organization.ROOT_ORGANIZATION_ID);
-      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO
-          .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-      assertEquals(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size());
-    }
-    finally {
-      licenseThreatGroupDAO.deleteDefaultLicenseThreatGroups();
-    }
   }
 
   @Test

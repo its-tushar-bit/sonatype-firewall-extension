@@ -25,6 +25,8 @@ public class OperationalDataStoreProvider
 
   static final int MINIMUM_DATABASE_VERSION = 85;
 
+  static final int OLD_VIOLATION_MODEL_DATABASE_VERSION = 114;
+
   private static DataSource dataSource;
 
   private static DatabaseConfig databaseConfig;
@@ -36,11 +38,18 @@ public class OperationalDataStoreProvider
   private OperationalDataStoreProvider() {
   }
 
-  public static void init(DatabaseConfig _databaseConfig) {
-    init(_databaseConfig, true /* migrateDatabase */);
+  public static void init(DatabaseConfig _databaseConfig, boolean migrateToNewViolationModel) {
+    init(_databaseConfig, true /* migrateDatabase */, migrateToNewViolationModel);
   }
 
-  public static synchronized void init(DatabaseConfig _databaseConfig, boolean migrateDatabase) {
+  public static void initWithoutMigration(DatabaseConfig _databaseConfig) {
+    init(_databaseConfig, false /* migrateDatabase */, false);
+  }
+
+  private static synchronized void init(DatabaseConfig _databaseConfig,
+                                        boolean migrateDatabase,
+                                        boolean migrateToNewViolationModel)
+  {
     if (isInitialized) {
       return;
     }
@@ -58,6 +67,16 @@ public class OperationalDataStoreProvider
                   + "Please upgrade to Nexus IQ Server version 1.16 before upgrading to this version.",
               ID, MINIMUM_DATABASE_VERSION, currentVersion));
         }
+        if (currentVersion <= OLD_VIOLATION_MODEL_DATABASE_VERSION && !migrateToNewViolationModel) {
+          log.error("|------------------------------------------");
+          log.error("|");
+          log.error("| Upgrade requires consent to proceed.");
+          log.error("| For detailed instructions, see");
+          log.error("| https://links.sonatype.com/products/clm/doc/upgrade/1.45");
+          log.error("|");
+          log.error("|------------------------------------------");
+          throw new UnsupportedOperationException("Consent to upgrade has not been given.");
+        }
       });
     }
     Map<String, Object> props = new LinkedHashMap<>();
@@ -70,7 +89,7 @@ public class OperationalDataStoreProvider
 
   public static DataSource getDataSource() {
     if (!isInitialized) {
-      init(null /* databaseConfig */);
+      init(null /* databaseConfig */, false);
     }
     return dataSource;
   }
@@ -85,7 +104,7 @@ public class OperationalDataStoreProvider
 
   public static EntityManagerFactory getJPAEntityManagerFactory() {
     if (!isInitialized) {
-      init(null /* databaseConfig */);
+      init(null /* databaseConfig */, false);
     }
     return entityManagerFactory;
   }

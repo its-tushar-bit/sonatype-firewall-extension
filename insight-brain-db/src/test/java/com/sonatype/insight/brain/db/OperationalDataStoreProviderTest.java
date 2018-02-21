@@ -12,16 +12,22 @@ import java.nio.file.Files;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.test.LogOutput;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
 
 public class OperationalDataStoreProviderTest
     extends AbstractDatabaseProviderTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput();
+
   @Override
   protected DatabaseConfig getDatabaseConfig() {
     return OperationalDataStoreProvider.getDatabaseConfig();
@@ -29,7 +35,7 @@ public class OperationalDataStoreProviderTest
 
   @Override
   protected void initDatabase(DatabaseConfig databaseConfig) {
-    OperationalDataStoreProvider.init(databaseConfig);
+    OperationalDataStoreProvider.init(databaseConfig, true);
   }
 
   @Override
@@ -70,5 +76,36 @@ public class OperationalDataStoreProviderTest
               + OperationalDataStoreProvider.MINIMUM_DATABASE_VERSION + " at minimum, but you have version "
               + oldVersion + ".\nPlease upgrade to Nexus IQ Server version 1.16 before upgrading to this version."));
     }
+  }
+
+  @Test
+  public void testInit_Migrate_NoConsentForNewViolationModel_NotYetMigratedToNewModel() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/MigrateNewViolationModel");
+    File databaseVersionFile = new File(databaseDir, "ods.ver");
+    String oldVersion = String.valueOf(OperationalDataStoreProvider.OLD_VIOLATION_MODEL_DATABASE_VERSION);
+    Files.write(databaseVersionFile.toPath(), oldVersion.getBytes(StandardCharsets.UTF_8));
+
+    try {
+      OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"), false);
+      fail("Expected exception");
+    }
+    catch (UnsupportedOperationException e) {
+      assertThat(e.getMessage(), is("Consent to upgrade has not been given."));
+      logOutput.assertError(containsString("Upgrade requires consent to proceed"));
+      logOutput.assertError(containsString("https://links.sonatype.com/products/clm/doc/upgrade/1.45"));
+    }
+  }
+
+  @Test
+  public void testInit_Migrate_NoConsentForNewViolationModel_AlreadyMigratedToNewModel() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/MigrateNewViolationModel");
+    File databaseVersionFile = new File(databaseDir, "ods.ver");
+
+    OperationalDataStoreProvider.init(getDatabaseConfig(databaseDir, "ods"), false);
+
+    int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
+    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredDbVersion)));
   }
 }

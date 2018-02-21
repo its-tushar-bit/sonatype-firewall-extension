@@ -118,7 +118,8 @@ public class TelemetryCollectorTest
     insightConfig.setSonatypeWork(tempDir.getRoot().getAbsolutePath());
     DataSourceFactory.clear_ForTestsOnly();
     try {
-      OperationalDataStoreProvider.init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods));
+      OperationalDataStoreProvider.init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods),
+          false);
       String odsSizeBytes = telemetryCollector.collectData().getAttributes().get(TelemetryCollector.ODS_SIZE_BYTES);
       assertThat(odsSizeBytes, is(notNullValue()));
       assertThat(Long.valueOf(odsSizeBytes), is(greaterThan(0L)));

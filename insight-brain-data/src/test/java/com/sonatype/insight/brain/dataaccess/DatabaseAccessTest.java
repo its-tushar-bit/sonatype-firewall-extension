@@ -61,7 +61,7 @@ public class DatabaseAccessTest
     odsDatabaseConfig.setUsername("sa");
     odsDatabaseConfig.setPassword("");
     odsDatabaseConfig.setMaxConnections(50);
-    OperationalDataStoreProvider.init(odsDatabaseConfig);
+    OperationalDataStoreProvider.init(odsDatabaseConfig, true);
     assertDataSource(OperationalDataStoreProvider.getDataSource(), odsDatabaseConfig);
     Assert.assertTrue(databaseDir.exists());
     Assert.assertTrue(new File(databaseDir, "ods.h2.db").exists());

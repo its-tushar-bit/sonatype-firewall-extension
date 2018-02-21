@@ -216,6 +216,15 @@ public class InsightConfig
   @JsonProperty
   private boolean importReferencePoliciesFromHDS = true;
 
+  /**
+   * Flag that signals consent by the user that the server can be upgraded to the new policy violation model.
+   *
+   * @since 1.45
+   */
+  @NotNull
+  @JsonProperty
+  private boolean consentToUpgradeToVersion_1_45;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -583,5 +592,13 @@ public class InsightConfig
    */
   public void setReportTimeoutInSeconds(final int reportTimeoutInSeconds) {
     this.reportTimeoutInSeconds = reportTimeoutInSeconds;
+  }
+
+  public boolean isConsentToUpgradeToVersion_1_45() {
+    return consentToUpgradeToVersion_1_45;
+  }
+
+  public void setConsentToUpgradeToVersion_1_45(boolean consentToUpgradeToVersion_1_45) {
+    this.consentToUpgradeToVersion_1_45 = consentToUpgradeToVersion_1_45;
   }
 }

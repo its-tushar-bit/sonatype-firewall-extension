@@ -46,7 +46,7 @@ public class DbDiagnosticsTest
         "/SupportTest/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
     databaseConfig.setUsername("sa");
     databaseConfig.setPassword("");
-    OperationalDataStoreProvider.init(databaseConfig);
+    OperationalDataStoreProvider.init(databaseConfig, false);
 
     final String dbDiagnostics = DbDiagnostics.getDBFileInfo();
     assertThat(dbDiagnostics, startsWith("-- Database Diagnostics --\n" +

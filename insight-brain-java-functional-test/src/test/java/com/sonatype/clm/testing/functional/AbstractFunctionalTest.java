@@ -138,17 +138,12 @@ public abstract class AbstractFunctionalTest
   public TestName testName = new TestName();
 
   @BeforeClass
-  public static void setup() throws Exception {
+  public static void setup() {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
     
     if (!(driver instanceof PageTweakingWebDriver)) {
       WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));
     }
-
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
-    Mockito.when(jiraService.isEnabled()).thenReturn(false);
-    Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
   }
 
   @AfterClass
@@ -157,8 +152,14 @@ public abstract class AbstractFunctionalTest
   }
 
   @Before
-  public final void beforeTest() {
+  public final void beforeTest() throws Exception {
     log.info("Before: {}", testName.getMethodName());
+
+    Mockito.reset(rootOrganizationConfigMigrationUtils, jiraService);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
+    Mockito.when(jiraService.isEnabled()).thenReturn(false);
+    Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
   }
 
   @After

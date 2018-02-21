@@ -19,11 +19,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 /**
@@ -55,8 +52,7 @@ public class CLIResource
   @PUT
   @Path(SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
-  public ScanReceipt putScan(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+  public ScanReceipt putScan(@PathParam("applicationPublicId") final String applicationPublicId,
                              @QueryParam("scanType") ClientScanType clientScanType,
                              @Context HttpServletRequest req) throws IOException
   {

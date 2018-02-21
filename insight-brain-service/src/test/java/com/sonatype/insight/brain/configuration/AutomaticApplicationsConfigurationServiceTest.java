@@ -7,9 +7,8 @@ package com.sonatype.insight.brain.configuration;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -26,7 +25,7 @@ public class AutomaticApplicationsConfigurationServiceTest
   private AutomaticApplicationsConfigurationService service;
 
   @Inject
-  private SystemConfigurationPropertyDAO dao;
+  private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
 
   @Test
   public void testUpdate() {
@@ -38,13 +37,8 @@ public class AutomaticApplicationsConfigurationServiceTest
     assertThat(updated.isEnabled(), is(true));
     assertThat(updated.getParentOrganizationId(), is(organization.getId()));
 
-    SystemConfigurationProperty enabled = dao
-        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED);
-    SystemConfigurationProperty organizationId = dao
-        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
-
-    assertThat(enabled.getValue(), is("true"));
-    assertThat(organizationId.getValue(), is(organization.getId()));
+    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(true));
+    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(organization.getId()));
   }
 
   @Test
@@ -107,13 +101,8 @@ public class AutomaticApplicationsConfigurationServiceTest
   public void testUpdate_EmptyParentOrganizationId_Disabled() {
     service.update(new AutomaticApplicationsConfiguration(false, ""));
 
-    SystemConfigurationProperty enabled = dao
-        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED);
-    SystemConfigurationProperty organizationId = dao
-        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
-
-    assertThat(enabled.getValue(), is("false"));
-    assertThat(organizationId.getValue(), is(""));
+    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(false));
+    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(""));
   }
 
   @Test
@@ -132,21 +121,14 @@ public class AutomaticApplicationsConfigurationServiceTest
   public void testUpdate_NullParentOrganizationId_Disabled() {
     service.update(new AutomaticApplicationsConfiguration(false, null));
 
-    SystemConfigurationProperty enabled = dao
-        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED);
-    SystemConfigurationProperty organizationId = dao
-        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
-
-    assertThat(enabled.getValue(), is("false"));
-    assertThat(organizationId.getValue(), is(""));
+    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(false));
+    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(""));
   }
 
   @Test
   public void testGet() {
-    dao.update(
-        new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED, "true"));
-    dao.update(new SystemConfigurationProperty(
-        SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, "testGetId"));
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    automaticApplicationsConfigurationDAO.setOrganizationId("testGetId");
 
     AutomaticApplicationsConfiguration configuration = service.get();
 

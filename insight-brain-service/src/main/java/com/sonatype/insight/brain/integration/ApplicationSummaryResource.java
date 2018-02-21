@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -30,6 +31,8 @@ public class ApplicationSummaryResource
   private static final Logger log = LoggerFactory.getLogger(ApplicationSummaryResource.class);
 
   public static final String RESOURCE_PATH = "rest/integration/applications";
+
+  public static final String IS_APPLICATION_ALLOWED_PATH = "allowed/{applicationPublicId}";
 
   static final String GOAL_PARAM = "goal";
 
@@ -53,5 +56,24 @@ public class ApplicationSummaryResource
   public ApplicationSummaryList getApplications(@QueryParam(GOAL_PARAM) Goal goal) {
     log.debug("Received request to get applications for goal {}", goal);
     return applicationSummaryService.getApplications(goal);
+  }
+  
+  /**
+   * Verifies if the user can access the application identified by applicationPublicId for the specified goal.
+   * If an application with the specified applicationPublicId already exists, then the method checks access for the
+   * current user and the specified goal to that application.
+   * If such an application does not exist and automatic application creation is enabled, then the method returns true
+   * (the application may be created automatically at a later time when a scan is uploaded for that application public
+   * ID).
+   * 
+   * @since 1.45
+   */
+  @GET
+  @Path(IS_APPLICATION_ALLOWED_PATH)
+  public boolean isApplicationAllowed(@PathParam("applicationPublicId") String applicationPublicId,
+                                      @QueryParam(GOAL_PARAM) Goal goal)
+  {
+    log.debug("Received request to check access for application public ID {} and goal {}.", applicationPublicId, goal);
+    return applicationSummaryService.isApplicationAllowed(applicationPublicId, goal);
   }
 }

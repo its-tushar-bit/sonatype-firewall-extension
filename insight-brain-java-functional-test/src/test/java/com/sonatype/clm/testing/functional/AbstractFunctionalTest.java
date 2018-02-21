@@ -138,7 +138,7 @@ public abstract class AbstractFunctionalTest
   public TestName testName = new TestName();
 
   @BeforeClass
-  public static void setup() {
+  public static void setup() throws Exception {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
     
     if (!(driver instanceof PageTweakingWebDriver)) {
@@ -148,6 +148,7 @@ public abstract class AbstractFunctionalTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
     Mockito.when(jiraService.isEnabled()).thenReturn(false);
+    Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
   }
 
   @AfterClass

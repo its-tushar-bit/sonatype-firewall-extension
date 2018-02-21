@@ -110,6 +110,10 @@ public class NotificationsSection
     public SelenideElement addButton() {
       return $(createSelector(rootSelector, "button"));
     }
+
+    public ErrorBox errorBox() {
+      return new ErrorBox(createSelector(rootSelector, ".iq-alert.iq-alert--error"));
+    }
   }
 
 }

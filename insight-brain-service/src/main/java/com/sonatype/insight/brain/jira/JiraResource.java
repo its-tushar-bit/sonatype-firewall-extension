@@ -39,6 +39,7 @@ public class JiraResource
 
   @GET
   @Path(JiraResource.ENABLED_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
   public boolean isEnabled() {
     return jiraService.isEnabled();
   }

@@ -98,6 +98,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public abstract class AbstractPolicyEditorTest
@@ -129,7 +130,7 @@ public abstract class AbstractPolicyEditorTest
     jiraProject.setIssueTypes(Collections.singletonList(jiraIssueType));
 
     when(jiraService.isEnabled()).thenReturn(true);
-    when(jiraService.getProjectsWithAcceptableIssueTypes()).thenReturn(Collections.singletonList(jiraProject));
+    doReturn(Collections.singletonList(jiraProject)).when(jiraService).getProjectsWithAcceptableIssueTypes();
   }
 
   protected void init(Owner currentOwner) {
@@ -699,6 +700,7 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("Application Evaluator").deleteButton().click();
     NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
 
+    NotificationsSection.addNotification().errorBox().shouldNotBe(visible);
   }
 
   private void testEditPolicy_actionsSection(Policy policy) {

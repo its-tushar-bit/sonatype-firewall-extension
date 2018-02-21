@@ -19,7 +19,7 @@ export default function detectScrollbar($window, $timeout, EventNameConstant, St
   function ScrollbarDetectorLink(scope, element) {
     var timerId;
     function update() {
-      // Natively detect if there is a scrollbar. Note that offsetWidth includes border and padding and will cause 
+      // Natively detect if there is a scrollbar. Note that offsetWidth includes border and padding and will cause
       // false positives in cases where such styling is used.
       if (element[0].offsetWidth > element[0].clientWidth) {
         element.addClass('scrollbar-present');

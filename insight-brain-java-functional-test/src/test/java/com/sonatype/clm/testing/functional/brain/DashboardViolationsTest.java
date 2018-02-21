@@ -461,6 +461,9 @@ public class DashboardViolationsTest
 
     table.lastViolation().age().shouldHave(text("1min"));
     table.lastViolation().threatNumber().shouldHave(text("2"));
+
+    // last but certainly not least
+    eyesWatcher.eyesCheck("Scrollbar-present styling");
   }
 
   @Test

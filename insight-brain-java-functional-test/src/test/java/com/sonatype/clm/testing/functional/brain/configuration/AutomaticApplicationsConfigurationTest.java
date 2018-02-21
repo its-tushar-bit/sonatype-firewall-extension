@@ -11,8 +11,9 @@ import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AutomaticApplicationsConfigurationPage;
-import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
 import org.junit.Test;
 
@@ -90,9 +91,12 @@ public class AutomaticApplicationsConfigurationTest
   }
 
   private void verifyConfiguration(boolean enabled, Organization organization) {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
-
-    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(enabled));
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(organization.getId()));
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+    SystemConfigurationProperty enabledProperty = systemConfigurationPropertyDAO
+        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED);
+    SystemConfigurationProperty organizationProperty = systemConfigurationPropertyDAO
+        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
+    assertThat(enabledProperty.getValue(), is(Boolean.toString(enabled)));
+    assertThat(organizationProperty.getValue(), is(organization.getId()));
   }
 }

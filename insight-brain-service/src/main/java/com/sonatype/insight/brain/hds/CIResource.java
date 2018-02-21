@@ -18,9 +18,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
-import com.sonatype.insight.scan.model.ClientScanType;
 
 @Path(CIResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint({ CLMEnforcementPoint.Build })
@@ -41,9 +43,10 @@ public class CIResource
   @PUT
   @Path(SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ScanReceipt putScan(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
+  public ScanReceipt putScan(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
                              @Context HttpServletRequest req) throws IOException
   {
-    return scanHandler.handle(req, applicationPublicId, ClientScanType.SONATYPE);
+    return scanHandler.handle(req, applicationPublicId);
   }
 }

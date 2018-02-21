@@ -7,8 +7,9 @@ package com.sonatype.insight.brain.configuration;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.http.HttpStatus;
@@ -47,9 +48,13 @@ public class AutomaticApplicationsConfigurationResourceTest
     assertThat(configuration.isEnabled(), is(true));
     assertThat(configuration.getParentOrganizationId(), is(organization.getId()));
 
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+    SystemConfigurationProperty enabled = dao
+        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED);
+    SystemConfigurationProperty organizationId = dao
+        .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID);
 
-    assertThat(automaticApplicationsConfigurationDAO.isEnabled(), is(true));
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(organization.getId()));
+    assertThat(enabled.getValue(), is("true"));
+    assertThat(organizationId.getValue(), is(organization.getId()));
   }
 }

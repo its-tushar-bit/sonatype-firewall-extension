@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -13,17 +16,14 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.archive.TFileUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.DirectoryScanItem;
@@ -48,7 +48,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -107,7 +106,7 @@ public class ScanHandlerTest
     when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
         eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
-    scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
+    scanReceipt = scanHandler.handle(servletRequest, app.getPublicId());
     assertThat(scanReceipt.getScanId(), is(scanId));
     File scanFile = work.getScanFile(app.getId(), scanId);
     assertThat(scanFile.exists(), is(true));
@@ -240,54 +239,44 @@ public class ScanHandlerTest
     when(hdsClient.get(eq(servletRequest), analyticsArg.capture(), eq(ScanReceipt.class), any(String.class),
         eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
 
-    scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
+    scanHandler.handle(servletRequest, app.getPublicId());
 
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics, is(equalTo(expectedAnalyticsData)));
   }
 
-  @Test
-  public void testHandle_ApplicationDoesNotExist_AutomaticApplicationCreationDisabled() throws Exception {
-    String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+  private static class ServletInputStreamImpl
+      extends ServletInputStream
+  {
+    // ByteArrayInputStream.close is a noop, so we don't need to close this stream
+    private ByteArrayInputStream wrappedInputStream;
 
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
-    automaticApplicationsConfigurationDAO.setEnabled(false);
-    try {
-      scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
-      fail("Expected exception");
+    public ServletInputStreamImpl(String data) throws UnsupportedEncodingException {
+      wrappedInputStream = new ByteArrayInputStream(data.getBytes("UTF-8"));
     }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is("Could not find an application with public ID NoSuchAppPublicID."));
+
+    public ServletInputStreamImpl(byte[] data) {
+      wrappedInputStream = new ByteArrayInputStream(data);
     }
-  }
 
-  @Test
-  public void testHandle_ApplicationDoesNotExist_AutomaticApplicationCreationEnabled() throws Exception {
-    String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+    @Override
+    public int read() throws IOException {
+      return wrappedInputStream.read();
+    }
 
-    Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
-    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
-    automaticApplicationsConfigurationDAO.setEnabled(true);
-    ScanReceipt scanReceipt = new ScanReceipt();
-    String scanId = "test-scan-id";
-    scanReceipt.setScanId(scanId);
+    @Override
+    public boolean isFinished() {
+      return false;
+    }
 
-    String scanFileContent = "test scan file content";
-    when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
-        eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
+    @Override
+    public boolean isReady() {
+      return false;
+    }
 
-    scanReceipt = scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
-    assertThat(scanReceipt.getScanId(), is(scanId));
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
-    assertThat(app.getOrganizationId(), is(automaticApplicationsConfigurationDAO.getOrganizationId()));
-    File scanFile = work.getScanFile(app.getId(), scanId);
-    assertThat(scanFile.exists(), is(true));
-    assertThat(FileUtils.readFileToString(scanFile, "UTF-8"), is(scanFileContent));
+    @Override
+    public void setReadListener(final ReadListener readListener) {
+      // No implementation necessary
+    }
   }
 }

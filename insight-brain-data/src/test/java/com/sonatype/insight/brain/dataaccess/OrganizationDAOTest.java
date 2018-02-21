@@ -16,8 +16,8 @@ import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -581,44 +582,56 @@ public class OrganizationDAOTest
 
   @Test
   public void testDelete_AutomaticApplicationsCreationDisabled_SameOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
 
     String organizationId = organization.getId();
 
-    automaticApplicationsConfigurationDAO.setEnabled(false);
-    automaticApplicationsConfigurationDAO.setOrganizationId(organizationId);
+    systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED, "false"));
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
+        SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, organizationId));
 
     dao.delete(organization);
 
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is(""));
+    assertThat(
+        systemConfigurationPropertyDAO
+            .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID).getValue(),
+        is(""));
   }
 
   @Test
   public void testDelete_AutomaticApplicationsCreationDisabled_DifferentOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
 
-    automaticApplicationsConfigurationDAO.setEnabled(false);
-    automaticApplicationsConfigurationDAO.setOrganizationId("otherOrganizationId");
+    systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED, "false"));
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
+        SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, "otherOrganizationId"));
 
     dao.delete(organization);
 
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is("otherOrganizationId"));
+    assertThat(
+        systemConfigurationPropertyDAO
+            .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID).getValue(),
+        is("otherOrganizationId"));
   }
 
   @Test
   public void testDelete_AutomaticApplicationsCreationEnabled_SameOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
 
     String organizationId = organization.getId();
 
-    automaticApplicationsConfigurationDAO.setEnabled(true);
-    automaticApplicationsConfigurationDAO.setOrganizationId(organizationId);
+    systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED, "true"));
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
+        SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, organizationId));
 
     try {
       dao.delete(organization);
@@ -629,21 +642,27 @@ public class OrganizationDAOTest
           "Cannot delete the parent organization for automatic application creation: " + organization.getName() + "."));
     }
 
-    automaticApplicationsConfigurationDAO.setOrganizationId("");
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
+        SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, ""));
     dao.delete(organization);
   }
 
   @Test
   public void testDelete_AutomaticApplicationsCreationEnabled_DifferentOrganizationId() {
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
 
-    automaticApplicationsConfigurationDAO.setEnabled(true);
-    automaticApplicationsConfigurationDAO.setOrganizationId("otherOrganizationId");
+    systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED, "true"));
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
+        SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID, "otherOrganizationId"));
 
     dao.delete(organization);
 
-    assertThat(automaticApplicationsConfigurationDAO.getOrganizationId(), is("otherOrganizationId"));
+    assertThat(
+        systemConfigurationPropertyDAO
+            .getByNameNotNull(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID).getValue(),
+        is("otherOrganizationId"));
   }
 }

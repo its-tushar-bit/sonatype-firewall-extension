@@ -15,11 +15,9 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.AuthzFilter;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 @Named
 public class ApplicationSummaryService
@@ -36,16 +34,12 @@ public class ApplicationSummaryService
 
   private final ApplicationDAO applicationDAO;
 
-  private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
-
   @Inject
   public ApplicationSummaryService(final ApplicationSummaryAdapter applicationAdapter,
-                                   final ApplicationDAO applicationDAO,
-                                   final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO)
+                                   final ApplicationDAO applicationDAO)
   {
     this.applicationAdapter = applicationAdapter;
     this.applicationDAO = applicationDAO;
-    this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
   }
 
   public ApplicationSummaryList getApplications(Goal goal) {
@@ -93,34 +87,5 @@ public class ApplicationSummaryService
     apps = new ArrayList<>(apps);
     Collections.sort(apps, APP_COMPARATOR);
     return applicationAdapter.convert(apps);
-  }
-
-  /**
-   * Verifies if the user can access the application identified by applicationPublicId for the specified goal.
-   * If an application with the specified applicationPublicId already exists, then the method checks access for the
-   * current user and the specified goal to that application.
-   * If such an application does not exist and automatic application creation is enabled, then the method returns true
-   * (the application may be created automatically at a later time when a scan is uploaded for that application public
-   * ID).
-   * 
-   * @since 1.45
-   */
-  boolean isApplicationAllowed(String applicationPublicId, Goal goal) {
-    if (goal == null) {
-      throw new BadRequestException("A goal must be specified");
-    }
-
-    if (applicationDAO.getByPublicId(applicationPublicId) != null) {
-      // An application with the specified public ID exists.
-      for (Application app : getApplicationsForGoal(goal)) {
-        if (app.getPublicId().equals(applicationPublicId)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    // An application with the specified public ID does not exist.
-    return automaticApplicationsConfigurationDAO.isEnabled();
   }
 }

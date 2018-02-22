@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,8 @@ class NewInstancePopulator
   }
 
   void populateIfNewInstance() {
+    long start = System.currentTimeMillis();
+
     OrganizationDAO organizationDAO = new OrganizationDAO();
     PolicyDAO policyDAO = new PolicyDAO();
     List<Organization> orgs = organizationDAO.getAll();
@@ -56,6 +59,8 @@ class NewInstancePopulator
         && orgs.get(0).getId().equalsIgnoreCase(Organization.ROOT_ORGANIZATION_ID)) {
       populate(orgs.get(0));
     }
+
+    log.debug("populateIfNewInstance finished in {} ms.", System.currentTimeMillis() - start);
   }
 
   private void populate(Organization rootOrganization) {

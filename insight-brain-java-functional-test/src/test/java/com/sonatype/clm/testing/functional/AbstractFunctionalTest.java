@@ -319,27 +319,45 @@ public abstract class AbstractFunctionalTest
    */
   private static void waitUntilUrlStable() {
     waitUntil(webDriver -> {
+      String url = webDriver.getCurrentUrl();
       try {
-        assertThat(webDriver.getCurrentUrl(),
-            not(anyOf(endsWith("/assets/index.html"), endsWith("/assets/index.html#/management/view"))));
+        assertThat(url, not(anyOf(endsWith("/assets/index.html"), endsWith("/assets/index.html#/management/view"))));
       }
       catch (AssertionError e) {
-        // interim URL, unless the login modal is shown ...
+        // interim URL, unless ...
+        // ... the login modal is shown
         try {
           assertThat(webDriver.findElement(By.id("login-modal")).isDisplayed(), is(true));
+          // ... and not currently performing a login
+          try {
+            assertThat(webDriver.findElement(By.cssSelector(".form-mask")).isDisplayed(), is(true));
+          }
+          catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
+            return;
+          }
         }
         catch (AssertionError | NoSuchElementException | StaleElementReferenceException suppressed) {
           e.addSuppressed(suppressed);
-          throw e;
         }
-        // ... and not currently performing a login
-        try {
-          assertThat(webDriver.findElement(By.cssSelector(".form-mask")).isDisplayed(), is(true));
-          throw e;
+        // ... or the management view
+        if (url.endsWith("#/management/view")) {
+          // ... has finished loading
+          try {
+            assertThat(webDriver.findElement(By.id("owner-tree-view-owner-rows")).isDisplayed(), is(true));
+            // ... and nothing to redirect to
+            try {
+              assertThat(webDriver.findElement(By.cssSelector(".owner-tree-view__row--organization")).isDisplayed(),
+                  is(true));
+            }
+            catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
+              return;
+            }
+          }
+          catch (AssertionError | NoSuchElementException | StaleElementReferenceException suppressed) {
+            e.addSuppressed(suppressed);
+          }
         }
-        catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
-          // no form mask, good
-        }
+        throw e;
       }
     });
   }

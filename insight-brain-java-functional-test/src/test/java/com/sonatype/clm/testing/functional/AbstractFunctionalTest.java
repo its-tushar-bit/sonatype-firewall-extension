@@ -102,6 +102,7 @@ public abstract class AbstractFunctionalTest
     clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter);
     rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
     jiraService = Mockito.mock(JiraService.class);
+    initMocks();
 
     testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), new Configurator()
     {
@@ -140,6 +141,19 @@ public abstract class AbstractFunctionalTest
   @Rule
   public TestName testName = new TestName();
 
+  private static void initMocks() {
+    try {
+      Mockito.reset(rootOrganizationConfigMigrationUtils, jiraService);
+      Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+      Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
+      Mockito.when(jiraService.isEnabled()).thenReturn(false);
+      Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   @BeforeClass
   public static void setup() {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
@@ -157,19 +171,14 @@ public abstract class AbstractFunctionalTest
   }
 
   @Before
-  public final void beforeTest() throws Exception {
+  public final void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
-
-    Mockito.reset(rootOrganizationConfigMigrationUtils, jiraService);
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
-    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
-    Mockito.when(jiraService.isEnabled()).thenReturn(false);
-    Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
   }
 
   @After
   public final void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
+    initMocks();
     testCLMServer.getHdsServer().reset();
     if (productLicenseManager.wasChanged()) {
       productLicenseManager.reset();

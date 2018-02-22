@@ -38,9 +38,9 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.test.SslProperties;
 
 import com.google.common.net.HttpHeaders;
-import org.apache.commons.io.FileUtils;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -68,6 +68,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.core.AnyOf.anyOf;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -606,6 +607,39 @@ public class HdsClientTest
   public void testGetErrorMessage_CatchesException() throws Exception {
     assertThat(client.getErrorMessage(createMockResponse(new IOException())), is(equalTo("reason")));
     assertThat(client.getErrorMessage(createMockResponse(new RuntimeException())), is(equalTo("reason")));
+  }
+
+  @Test
+  public void testGet_EncodeQueryParameters() throws Exception {
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        response.setStatus(HttpStatus.OK_200);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println(request.getQueryString());
+        baseRequest.setHandled(true);
+      }
+    };
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getMethod()).thenReturn("GET");
+    when(httpServletRequest.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+    Map<String, String> queryParams = new HashMap<>();
+
+    queryParams.put("name1", "{ }+&;/?:@=<>#%|\\^~[]`");
+
+    queryParams.put("name2", "{\"format\":\"a-name\",\"coordinates\":{\"name\":\"org.dojotoolkit dojo\",\"qualifier\"" +
+        ":\"\",\"version\":\"1.8.14\"}} ");
+
+    //making sure reserved characters are preserved where they should be and encoded in the query values
+    String requestUri = client.get(httpServletRequest, String.class, "rest/ci/componentDetails", queryParams);
+    assertThat(requestUri,
+        containsString("name2=%7B%22format%22%3A%22a-name%22%2C%22coordinates%22%3A%7B%22name%22%3A%22org.dojotoolkit" +
+            "+dojo%22%2C%22qualifier%22%3A%22%22%2C%22version%22%3A%221.8.14%22%7D%7D"));
+     assertThat(requestUri, containsString("name1=%7B+%7D%2B%26%3B%2F%3F%3A%40%3D%3C%3E%23%25%7C%5C%5E~%5B%5D%60"));
+     assertThat(requestUri, anyOf(containsString("&name1="), containsString("&name2=")));
   }
 
   private HttpResponse createMockResponse(Exception e) throws Exception {

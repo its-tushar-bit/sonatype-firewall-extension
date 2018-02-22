@@ -9,8 +9,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
@@ -505,14 +503,10 @@ public class HdsClient
 
     if (queryParams != null) {
       for (Entry<String, String> queryParam : queryParams.entrySet()) {
-        // Jersey 1.18+ sees a query parameter value in "{" and "}" (e.g. a JSON object) as a template parameter name
-        // and does not encode it, so we encode it (and UriBuilder won't double-encode already percent-encoded chars)
-        try {
-          uriBuilder.queryParam(queryParam.getKey(), URLEncoder.encode(queryParam.getValue(), "UTF-8"));
-        }
-        catch (UnsupportedEncodingException e) {
-          throw new RuntimeException(e);
-        }
+        // Jersey 1.18+ sees the "{" and "}" (e.g. a JSON object) as defining a template parameter, to avoid that we
+        // encode the curly braces
+
+        uriBuilder.queryParam(queryParam.getKey(), queryParam.getValue().replace("{", "%7B").replace("}", "%7D"));
       }
     }
 

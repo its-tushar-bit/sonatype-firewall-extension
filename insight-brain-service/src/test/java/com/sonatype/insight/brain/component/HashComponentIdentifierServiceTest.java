@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.anyMapOf;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -63,9 +63,8 @@ public class HashComponentIdentifierServiceTest
 
   @Test
   public void testSet_KnownToHDS() throws Exception {
-    when(
-        mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
-            anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(true));
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(true));
 
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     try {
@@ -109,9 +108,8 @@ public class HashComponentIdentifierServiceTest
     hashComponentIdentifier.setCreateTime(CREATED_TIME);
 
     // Component must be unknown or we cannot claim it
-    when(
-        mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
-            anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(false));
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(false));
 
     // Create the claimed component
     HashComponentIdentifierDTO serverResponse = hashComponentIdentifierService.set(hashComponentIdentifier);

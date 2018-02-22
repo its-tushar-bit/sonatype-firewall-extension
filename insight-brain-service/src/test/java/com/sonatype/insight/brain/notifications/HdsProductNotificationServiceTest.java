@@ -29,7 +29,7 @@ import org.mockito.Mock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.anyMapOf;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -71,16 +71,15 @@ public class HdsProductNotificationServiceTest
     ProductNotificationList expectedProductNotificationList = createNotifications();
     List<ProductNotification> expectedNotifications = expectedProductNotificationList.getProductNotifications();
     expectedProductNotificationList.setProductNotifications(expectedNotifications);
-    when(
-        mockHdsClient.get(eq(ProductNotificationList.class),
-            eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class)))
-        .thenReturn(expectedProductNotificationList);
+    when(mockHdsClient.get(eq(ProductNotificationList.class),
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
+            .thenReturn(expectedProductNotificationList);
 
     List<ProductNotification> retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
     verify(hdsProductNotificationServiceSpy, times(1)).isCacheExpired();
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
-        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class));
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
 
     reset(hdsProductNotificationServiceSpy);
     reset(mockHdsClient);
@@ -91,7 +90,7 @@ public class HdsProductNotificationServiceTest
     assertNotifications(retrievedNotifications, expectedNotifications);
     verify(hdsProductNotificationServiceSpy, times(1)).isCacheExpired();
     verify(mockHdsClient, times(0)).get(eq(ProductNotificationList.class),
-        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class));
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
   }
 
   @Test
@@ -101,10 +100,9 @@ public class HdsProductNotificationServiceTest
     ProductNotificationList expectedProductNotificationList = createNotifications();
     List<ProductNotification> expectedNotifications = expectedProductNotificationList.getProductNotifications();
     expectedProductNotificationList.setProductNotifications(expectedNotifications);
-    when(
-        mockHdsClient.get(eq(ProductNotificationList.class),
-            eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class)))
-        .thenReturn(expectedProductNotificationList);
+    when(mockHdsClient.get(eq(ProductNotificationList.class),
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
+            .thenReturn(expectedProductNotificationList);
 
     tempEntity.newUserViewedNotificationMapping(USERNAME, expectedNotifications.get(0).getId());
 
@@ -112,7 +110,7 @@ public class HdsProductNotificationServiceTest
     assertNotifications(retrievedNotifications, expectedNotifications);
     verify(hdsProductNotificationServiceSpy, times(1)).isCacheExpired();
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
-        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class));
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
 
     List<UserViewedProductNotification> userViewedProductNotifications = notificationViewedDAO.getByUsername(USERNAME);
     assertThat(userViewedProductNotifications.size(), is(1));
@@ -124,17 +122,16 @@ public class HdsProductNotificationServiceTest
     expectedProductNotificationList = createNotifications();
     expectedNotifications = expectedProductNotificationList.getProductNotifications();
     expectedProductNotificationList.setProductNotifications(expectedNotifications);
-    when(
-        mockHdsClient.get(eq(ProductNotificationList.class),
-            eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class)))
-        .thenReturn(expectedProductNotificationList);
+    when(mockHdsClient.get(eq(ProductNotificationList.class),
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
+            .thenReturn(expectedProductNotificationList);
     when(hdsProductNotificationServiceSpy.isCacheExpired()).thenReturn(true);
 
     retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
     verify(hdsProductNotificationServiceSpy, times(1)).isCacheExpired();
     verify(mockHdsClient, times(1)).get(eq(ProductNotificationList.class),
-        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class));
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap());
     // This should have been removed as part of the cache update
     userViewedProductNotifications = notificationViewedDAO.getByUsername(USERNAME);
     assertThat(userViewedProductNotifications.size(), is(0));
@@ -147,20 +144,17 @@ public class HdsProductNotificationServiceTest
     ProductNotificationList expectedProductNotificationList = createNotifications();
     List<ProductNotification> expectedNotifications = expectedProductNotificationList.getProductNotifications();
     expectedProductNotificationList.setProductNotifications(expectedNotifications);
-    when(
-        mockHdsClient.get(eq(ProductNotificationList.class),
-            eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class)))
-        .thenReturn(expectedProductNotificationList);
+    when(mockHdsClient.get(eq(ProductNotificationList.class),
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap()))
+            .thenReturn(expectedProductNotificationList);
 
     List<ProductNotification> retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
 
     // Now verify cached not cleared on hds client errors
     RuntimeException expectedException = new RuntimeException("Test Exception");
-    when(
-        mockHdsClient.get(eq(ProductNotificationList.class),
-            eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMapOf(String.class, String.class)))
-        .thenThrow(expectedException);
+    when(mockHdsClient.get(eq(ProductNotificationList.class),
+        eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH), anyMap())).thenThrow(expectedException);
     when(hdsProductNotificationServiceSpy.isCacheExpired()).thenReturn(true);
 
     retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();

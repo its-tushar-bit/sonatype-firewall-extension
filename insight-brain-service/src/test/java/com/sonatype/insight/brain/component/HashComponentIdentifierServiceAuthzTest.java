@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.mockito.ArgumentMatchers.anyMapOf;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -55,9 +55,8 @@ public class HashComponentIdentifierServiceAuthzTest
   @Before
   public void resetMockHdsClient() throws Exception {
     reset(mockHdsClient);
-    when(
-        mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
-            anyMapOf(String.class, String.class))).thenReturn(componentSummary);
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(componentSummary);
   }
 
   @After

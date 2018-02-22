@@ -1766,9 +1766,8 @@ public class RepositoryServiceTest
       hdsRequest.components.add(new RepositoryComponentEvaluationDataRequest(componentEvaluationDataRequest.format,
           pathname, hash));
     }
-    when((quarantine ? quarantineHdsClient : auditHdsClient)
-        .post(any(), eq(ComponentEvaluationDataList.class), eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
-            isNull(String.class), eq(hdsRequest))).thenReturn(hdsResult);
+    when((quarantine ? quarantineHdsClient : auditHdsClient).post(any(), eq(ComponentEvaluationDataList.class),
+        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
@@ -2095,7 +2094,7 @@ public class RepositoryServiceTest
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
     when(auditHdsClient.post(any(), eq(ComponentEvaluationDataList.class),
-        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
+        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(),
         any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
     Date beforeEvaluation = new Date();
@@ -2155,7 +2154,7 @@ public class RepositoryServiceTest
     component.matchState = MatchState.UNKNOWN.getId();
     response.components.add(component);
     when(auditHdsClient.post(any(), eq(ComponentEvaluationDataList.class),
-        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
+        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(),
         any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
 
     repositoryService.reevaluateComponent(repository.getId(), repositoryComponent.getHash(), null);

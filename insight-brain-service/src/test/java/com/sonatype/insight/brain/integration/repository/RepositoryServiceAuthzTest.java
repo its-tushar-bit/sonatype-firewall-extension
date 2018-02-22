@@ -376,7 +376,7 @@ public class RepositoryServiceAuthzTest
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     when(repositoryPolicyEvaluator.evaluate(eq(repo), isA(RepositoryComponentEvaluationDataRequestList.class),
-        eq(false), isNull(String.class))).thenReturn(null);
+        eq(false), isNull())).thenReturn(null);
 
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.reevaluateComponent(repo.getId(), component.getHash(), null);

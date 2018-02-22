@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
@@ -26,7 +25,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyListOf;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -66,8 +65,7 @@ public class PolicyAlertNotifierTest
     PolicyViolation violation = newPolicyViolationWantingAlerts(app, eval);
 
     notifier.sendNotifications(app, eval, Arrays.asList(violation));
-    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class),
-        anyListOf(PolicyNotification.class));
+    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
   }
 
   private PolicyViolation newPolicyViolationWantingAlerts(final Application app, final PolicyEvaluation eval) {

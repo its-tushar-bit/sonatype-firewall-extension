@@ -25,8 +25,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyListOf;
-import static org.mockito.ArgumentMatchers.anyMapOf;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -96,9 +96,7 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(invoc.proceed()).thenReturn("test");
-    when(
-        authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class),
-            anyMapOf(AuthzContext.Key.class, Object.class))).thenReturn(true);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyMap())).thenReturn(true);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThat(interceptor.invoke(invoc), is((Object) "test"));
   }
@@ -116,8 +114,7 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class)))
-        .thenReturn(false);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(false);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
     try {
       interceptor.invoke(invoc);
@@ -132,8 +129,7 @@ public class AuthorizeMethodInterceptorTest
   public void testInvoke_NoPrincipal() throws Throwable {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class)))
-        .thenReturn(true);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(true);
     try {
       interceptor.invoke(invoc);
       fail("Should have thrown UnauthenticatedException");

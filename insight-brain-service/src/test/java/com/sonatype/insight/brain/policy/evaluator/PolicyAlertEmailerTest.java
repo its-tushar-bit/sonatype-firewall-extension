@@ -79,7 +79,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyListOf;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.endsWith;
@@ -215,7 +214,7 @@ public class PolicyAlertEmailerTest
     config.setBaseUrl("http://localhost");
 
     Exception ex = new RuntimeException();
-    doThrow(ex).when(mailer).sendHtml(anyString(), anyListOf(Address.class), anyString(), anyString());
+    doThrow(ex).when(mailer).sendHtml(anyString(), anyList(), anyString(), anyString());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications);
 

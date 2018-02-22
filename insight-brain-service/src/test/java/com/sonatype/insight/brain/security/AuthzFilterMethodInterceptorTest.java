@@ -101,9 +101,8 @@ public class AuthzFilterMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubOrgs"));
     when(invoc.getArguments()).thenReturn(new Object[0]);
     when(invoc.proceed()).thenReturn(entities);
-    when(
-        authzChecker.filterByPermission(isNull(UserPrincipal.class), eq(Permission.READ), eq(entities),
-            eq(AuthzFilter.Context.ORGANIZATION))).thenReturn(Collections.EMPTY_LIST);
+    when(authzChecker.filterByPermission(isNull(), eq(Permission.READ), eq(entities),
+        eq(AuthzFilter.Context.ORGANIZATION))).thenReturn(Collections.EMPTY_LIST);
     assertThat((Collection<?>) interceptor.invoke(invoc), is(empty()));
   }
 

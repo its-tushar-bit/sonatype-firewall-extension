@@ -205,7 +205,7 @@ public class RepositoryReevaluationTaskTest
         MatchState.EXACT.getId(), 1));
 
     when(auditHdsClient.post(any(), eq(ComponentEvaluationDataList.class),
-        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(String.class),
+        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(),
         any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
   }
 

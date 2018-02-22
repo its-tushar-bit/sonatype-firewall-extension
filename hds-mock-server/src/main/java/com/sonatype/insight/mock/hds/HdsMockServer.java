@@ -324,6 +324,17 @@ public class HdsMockServer
           IO.copy(request.getInputStream(), IO.getNullStream());
           baseRequest.setHandled(true);
         }
+        else if (uri.equals("/rest/license") && "GET".equals(request.getMethod())) {
+          response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
+          try (PrintWriter writer = response.getWriter()) {
+            writer.print("{\"licenses\": [], \"multiLicenses\": []}");
+          }
+          baseRequest.setHandled(true);
+        }
+        else if (uri.equals("/rest/environment/stats") && "POST".equals(request.getMethod())) {
+          IO.copy(request.getInputStream(), IO.getNullStream());
+          baseRequest.setHandled(true);
+        }
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
           handleScanUpload(baseRequest, request, response);
         }

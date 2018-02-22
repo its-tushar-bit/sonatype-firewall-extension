@@ -78,15 +78,15 @@ public abstract class AbstractFunctionalTest
 {
   private static Logger log = LoggerFactory.getLogger(AbstractFunctionalTest.class);
 
-  public static TestProductLicenseManager productLicenseManager;
+  protected static final TestProductLicenseManager productLicenseManager;
 
-  public static TestLicenseFingerprinter licenseFingerprinter;
+  protected static final TestLicenseFingerprinter licenseFingerprinter;
 
-  public static CLMLicenseManager clmLicenseManager;
+  protected static final CLMLicenseManager clmLicenseManager;
 
-  protected static RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
+  protected static final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
-  protected static JiraService jiraService;
+  protected static final JiraService jiraService;
 
   protected static TestCLMServer testCLMServer;
 
@@ -100,6 +100,8 @@ public abstract class AbstractFunctionalTest
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
     clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter);
+    rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
+    jiraService = Mockito.mock(JiraService.class);
 
     testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), new Configurator()
     {
@@ -195,11 +197,7 @@ public abstract class AbstractFunctionalTest
         bind(ProductLicenseManager.class).toInstance(productLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         bind(CLMLicenseManager.class).toInstance(clmLicenseManager);
-
-        rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
         bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
-
-        jiraService = Mockito.mock(JiraService.class);
         bind(JiraService.class).toInstance(jiraService);
       }
     });

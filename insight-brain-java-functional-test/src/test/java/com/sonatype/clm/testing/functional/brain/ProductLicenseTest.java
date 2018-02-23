@@ -42,8 +42,8 @@ public class ProductLicenseTest
     ProductLicensePage.contactName().shouldBe(visible).shouldHave(text("Billy"));
     ProductLicensePage.contactCompany().shouldBe(visible).shouldHave(text("Acme"));
     ProductLicensePage.contactEmail().shouldBe(visible).shouldHave(text("billy@example.com"));
-    ProductLicensePage.licensedUsers().shouldBe(visible).shouldHave(text("50"));
-    ProductLicensePage.firewallLicensedUsers().shouldBe(visible).shouldHave(text("45"));
+    ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
+    ProductLicensePage.firewallLicensedDevelopers().shouldBe(visible).shouldHave(text("45"));
     ProductLicensePage.applicationLimit().shouldBe(hidden);
     ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle", "Nexus Firewall"));
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));

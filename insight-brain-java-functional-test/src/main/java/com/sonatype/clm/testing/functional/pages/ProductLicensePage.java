@@ -44,12 +44,12 @@ public class ProductLicensePage
     return $("#license-contact-email");
   }
 
-  public static SelenideElement licensedUsers() {
-    return $("#license-licensed-users");
+  public static SelenideElement licensedDevelopers() {
+    return $("#license-licensed-developers");
   }
 
-  public static SelenideElement firewallLicensedUsers() {
-    return $("#license-firewall-licensed-users");
+  public static SelenideElement firewallLicensedDevelopers() {
+    return $("#license-firewall-licensed-developers");
   }
 
   public static SelenideElement applicationLimit() {

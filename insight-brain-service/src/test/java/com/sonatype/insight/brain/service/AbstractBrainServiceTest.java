@@ -51,6 +51,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -65,6 +67,8 @@ public abstract class AbstractBrainServiceTest
   }
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -97,6 +101,7 @@ public abstract class AbstractBrainServiceTest
 
   @Before
   public void initTest() throws Exception {
+    log.info("Before: {}", testName.getMethodName());
     if (!isTestUsingManualServerInit()) {
       initServer(null);
     }
@@ -132,6 +137,7 @@ public abstract class AbstractBrainServiceTest
 
   @After
   public void cleanupTest() throws Exception {
+    log.info("After: {}", testName.getMethodName());
     boolean installLicense = false;
     if (savedLicenseFingerprint != null) {
       licenseFingerprinter.setDummyLicenseFingerprint(savedLicenseFingerprint);

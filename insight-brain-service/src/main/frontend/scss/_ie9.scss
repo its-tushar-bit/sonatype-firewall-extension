@@ -2,6 +2,21 @@
   DASHBOARD VIOLATIONS TABLE
 */
 .ie9 {
+  // Display HTML 5 block elements correctly in IE9
+  // Copied from bootstrap's reset so that we aren't dependent on it for this
+  article,
+  aside,
+  details,
+  figcaption,
+  figure,
+  footer,
+  header,
+  hgroup,
+  nav,
+  section {
+    display: block;
+  }
+
   .iq-table--dashboard-violations,
   .iq-table--dashboard-components,
   .iq-table--dashboard-applications {

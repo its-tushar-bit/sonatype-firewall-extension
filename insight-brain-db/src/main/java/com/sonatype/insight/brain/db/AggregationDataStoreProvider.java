@@ -24,8 +24,6 @@ public class AggregationDataStoreProvider
 {
   private static final Logger log = LoggerFactory.getLogger(AggregationDataStoreProvider.class);
 
-  public static final int DESIRED_DATABASE_VERSION = 6;
-
   public static final String ID = "insight_brain_aggregation";
 
   private static DataSource dataSource;
@@ -49,8 +47,7 @@ public class AggregationDataStoreProvider
 
     AggregationDataStoreProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
-    new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION,
-        1 /* defaultCurrentVersion */);
+    new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainAggregation", props);

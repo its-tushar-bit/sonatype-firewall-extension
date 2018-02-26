@@ -21,8 +21,6 @@ public class OperationalDataStoreProvider
 {
   private static final Logger log = LoggerFactory.getLogger(OperationalDataStoreProvider.class);
 
-  public static final int DESIRED_DATABASE_VERSION = 114;
-
   public static final String ID = "insight_brain_ods";
 
   static final int MINIMUM_DATABASE_VERSION = 85;
@@ -53,15 +51,14 @@ public class OperationalDataStoreProvider
     databaseConfig = _databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     if (migrateDatabase) {
-      new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION,
-          6 /* defaultCurrentVersion */, currentVersion -> {
-            if (currentVersion < MINIMUM_DATABASE_VERSION) {
-              throw new UnsupportedOperationException(String.format(
-                  "Cannot migrate %s database to version %s, this requires version %s at minimum, but you have version %s.\n"
-                      + "Please upgrade to Nexus IQ Server version 1.16 before upgrading to this version.",
-                  ID, DESIRED_DATABASE_VERSION, MINIMUM_DATABASE_VERSION, currentVersion));
-            }
-          });
+      new H2DatabaseMigrator().migrate(databaseConfig, ID, dataSource, currentVersion -> {
+        if (currentVersion < MINIMUM_DATABASE_VERSION) {
+          throw new UnsupportedOperationException(String.format(
+              "Cannot migrate %s database, this requires version %s at minimum, but you have version %s.\n"
+                  + "Please upgrade to Nexus IQ Server version 1.16 before upgrading to this version.",
+              ID, MINIMUM_DATABASE_VERSION, currentVersion));
+        }
+      });
     }
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);

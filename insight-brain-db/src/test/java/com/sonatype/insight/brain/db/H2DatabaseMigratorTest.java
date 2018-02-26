@@ -13,7 +13,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
-import org.springframework.jdbc.datasource.init.CannotReadScriptException;
+import org.springframework.jdbc.datasource.init.ScriptStatementFailedException;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -39,16 +39,16 @@ public class H2DatabaseMigratorTest
 
     DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
 
-    // The migration should fail because there is no incremental script for targetDatabaseVersion,
-    // but the version file must be updated to contain the number of the last incremental script applied successfully.
-    int targetDatabaseVersion = DatamartProvider.DESIRED_DATABASE_VERSION + 1;
+    // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
+    // removed this table.
+    // The version file must be updated to contain the number of the last incremental script applied successfully (in
+    // this case, schema_incremental_0006.sql).
     try {
-      new H2DatabaseMigrator()
-          .migrate(databaseConfig, DatamartProvider.ID, dataSource, targetDatabaseVersion, 1 /* defaultCurrentVersion */);
+      new H2DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
       fail("Expected exception");
     }
-    catch (CannotReadScriptException expected) {
-      assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION)));
+    catch (ScriptStatementFailedException expected) {
+      assertThat(readDatabaseVersion(databaseVersionFile), is("6"));
     }
   }
 
@@ -62,7 +62,7 @@ public class H2DatabaseMigratorTest
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
     DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, "PostIncrementalMigrator");
 
-    new H2DatabaseMigrator().migrate(databaseConfig, "PostIncrementalMigrator", dataSource, desiredVersion, 1);
+    new H2DatabaseMigrator().migrate(databaseConfig, "PostIncrementalMigrator", dataSource);
 
     assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredVersion)));
     assertThat(PostIncrementalMigratorVersionMinus1.invoked, is(false));
@@ -70,6 +70,24 @@ public class H2DatabaseMigratorTest
     assertThat(PostIncrementalMigratorVersionPlus1.invoked, is(true));
     assertThat(PostIncrementalMigratorVersionDesired.invoked, is(true));
     assertThat(PostIncrementalMigratorVersionDesiredPlus1.invoked, is(false));
+  }
+
+  @Test
+  public void testMigrate_MissingVersionFile() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/MissingVersionFile");
+    File databaseVersionFile = getDatabaseVersionFile(databaseDir, "test");
+    assertThat(databaseVersionFile.exists(), is(false));
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, "MissingVersionFile");
+
+    try {
+      new H2DatabaseMigrator().migrate(databaseConfig, "MissingVersionFile", dataSource);
+      fail("Expected exception");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(), is("Missing the database version file " + databaseVersionFile + "."));
+    }
   }
 
   @Test
@@ -99,6 +117,11 @@ public class H2DatabaseMigratorTest
           "/H2DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/" +
           "schema_incremental_0090.cls."));
     }
+  }
+
+  @Test
+  public void testDetermineDesiredVersion() {
+    assertThat(H2DatabaseMigrator.determineDesiredVersion("DetermineDesiredVersion"), is(12));
   }
 
   static class PostIncrementalMigratorVersionMinus1

@@ -22,27 +22,20 @@ import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 public class H2DatabaseMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(H2DatabaseMigrator.class);
 
-  public void migrate(DatabaseConfig databaseConfig,
-                      String databaseName,
-                      DataSource dataSource,
-                      int desiredVersion,
-                      int defaultCurrentVersion)
-  {
-    migrate(databaseConfig, databaseName, dataSource, desiredVersion, defaultCurrentVersion, null);
+  public void migrate(DatabaseConfig databaseConfig, String databaseName, DataSource dataSource) {
+    migrate(databaseConfig, databaseName, dataSource, null /* upgradeGuard */);
   }
 
   public void migrate(DatabaseConfig databaseConfig,
                       String databaseName,
                       DataSource dataSource,
-                      int desiredVersion,
-                      int defaultCurrentVersion,
                       IntConsumer upgradeGuard)
   {
     if (databaseConfig == null) {
@@ -56,18 +49,22 @@ public class H2DatabaseMigrator
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(databasePath);
 
     try {
+      int desiredVersion = determineDesiredVersion(databaseName);
+
       if (new DataSourceFactory().isNewDataSource(dataSource)) {
+        // This is a new database, nothing to migrate here.
         FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(desiredVersion));
         return;
       }
 
+      // The database exists and it may require migration.
       int currentVersion;
       if (databaseVersionFile.exists()) {
         String sCurrentVersion = FileUtils.fileRead(databaseVersionFile, "UTF-8").trim();
         currentVersion = Integer.parseInt(sCurrentVersion);
       }
       else {
-        currentVersion = defaultCurrentVersion;
+        throw new IllegalStateException("Missing the database version file " + databaseVersionFile + ".");
       }
 
       log.info("Current version of database {}: {}", databaseFilename, currentVersion);
@@ -92,12 +89,10 @@ public class H2DatabaseMigrator
       log.info("Creating backup of database {} in {}", databaseFilename, backupDir);
       backup(databaseDir, databaseFilename, backupDir);
 
-      String scriptsPath = "/db/" + databaseName + "/";
       for (int i = currentVersion + 1; i <= desiredVersion; i++) {
-        String scriptName = scriptsPath + "schema_incremental_" + String.format("%1$04d", i) + ".sql";
+        String scriptName = getIncrementalFileName(databaseName, "sql", i);
         runScript(dataSource, scriptName);
-        String postIncrementalMigratorFileName =
-            scriptsPath + "schema_incremental_" + String.format("%1$04d", i) + ".cls";
+        String postIncrementalMigratorFileName = getIncrementalFileName(databaseName, "cls", i);
         runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource);
         FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));
       }
@@ -108,6 +103,26 @@ public class H2DatabaseMigrator
     catch (IOException | SQLException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static String getIncrementalFileName(String databaseName, String extension, int scriptIndex) {
+    return "/db/" + databaseName + "/schema_incremental_" + String.format("%1$04d", scriptIndex) + "." + extension;
+  }
+
+  // Package visibility for tests only.
+  static int determineDesiredVersion(String databaseName) {
+    boolean foundScripts = false;
+    for (int version = 1; version < 10000; version++) {
+      Resource incrementalScript = loadIncrementalScriptResource(getIncrementalFileName(databaseName, "sql", version));
+      if (incrementalScript.exists()) {
+        foundScripts = true;
+      }
+      else if (foundScripts) {
+        return version - 1;
+      }
+    }
+    // There are no incremental scripts.
+    return 1;
   }
 
   void runPostIncrementalMigrator(String postIncrementalMigratorFileName, DataSource dataSource)
@@ -128,8 +143,7 @@ public class H2DatabaseMigrator
 
   public void runScript(DataSource dataSource, String scriptName) throws SQLException {
     ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-    ResourceLoader resourceLoader = new DefaultResourceLoader();
-    resourceDatabasePopulator.addScript(resourceLoader.getResource(scriptName));
+    resourceDatabasePopulator.addScript(loadIncrementalScriptResource(scriptName));
     try (Connection conn = dataSource.getConnection()) {
       resourceDatabasePopulator.populate(conn);
     }
@@ -142,5 +156,9 @@ public class H2DatabaseMigrator
       }
       FileUtils.copyFile(file, new File(backupDir, file.getName()));
     }
+  }
+
+  private static Resource loadIncrementalScriptResource(String scriptName) {
+    return new DefaultResourceLoader().getResource(scriptName);
   }
 }

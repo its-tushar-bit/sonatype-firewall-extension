@@ -48,8 +48,8 @@ public class OperationalDataStoreProviderTest
 
     initDatabase(getDatabaseConfig(databaseDir, "ods"));
 
-    assertThat(readDatabaseVersion(databaseVersionFile),
-        is(String.valueOf(OperationalDataStoreProvider.DESIRED_DATABASE_VERSION)));
+    int desiredDbVersion = H2DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID);
+    assertThat(readDatabaseVersion(databaseVersionFile), is(String.valueOf(desiredDbVersion)));
   }
 
   @Test
@@ -66,8 +66,7 @@ public class OperationalDataStoreProviderTest
     }
     catch (UnsupportedOperationException e) {
       assertThat(e.getMessage(),
-          is("Cannot migrate insight_brain_ods database to version "
-              + OperationalDataStoreProvider.DESIRED_DATABASE_VERSION + ", this requires version "
+          is("Cannot migrate insight_brain_ods database, this requires version "
               + OperationalDataStoreProvider.MINIMUM_DATABASE_VERSION + " at minimum, but you have version "
               + oldVersion + ".\nPlease upgrade to Nexus IQ Server version 1.16 before upgrading to this version."));
     }

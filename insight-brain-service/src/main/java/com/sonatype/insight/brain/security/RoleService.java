@@ -146,10 +146,6 @@ public class RoleService
   {
     ListMultimap<PermissionCategory, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
     for (Permission perm : EnumSet.allOf(Permission.class)) {
-      // Filter out permission temporarily for CLM-9479
-      if (Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION.equals(perm)) {
-        continue;
-      }
       if (customRole && !perm.isAllowedInCustomRoles()) {
         continue;
       }

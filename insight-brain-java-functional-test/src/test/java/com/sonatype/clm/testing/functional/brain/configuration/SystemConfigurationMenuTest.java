@@ -67,8 +67,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.webhooks().shouldBe(visible);
     systemConfigMenu.systemNotice().shouldBe(visible);
     systemConfigMenu.successMetrics().shouldBe(visible);
-    // Temporarily removed for CLM-9479
-    // systemConfigMenu.automaticApplications().shouldBe(visible);
+    systemConfigMenu.automaticApplications().shouldBe(visible);
   }
 
   @Test
@@ -89,8 +88,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.webhooks().shouldBe(visible);
     systemConfigMenu.systemNotice().shouldBe(visible);
     systemConfigMenu.successMetrics().shouldBe(visible);
-    // Temporarily removed for CLM-9479
-    // systemConfigMenu.automaticApplications().shouldBe(hidden);
+    systemConfigMenu.automaticApplications().shouldBe(hidden);
   }
 
   @Test
@@ -111,9 +109,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.webhooks().shouldBe(hidden);
     systemConfigMenu.systemNotice().shouldBe(hidden);
     systemConfigMenu.successMetrics().shouldBe(hidden);
-
-    // Temporarily removed for CLM-9479
-    // systemConfigMenu.automaticApplications().shouldBe(hidden);
+    systemConfigMenu.automaticApplications().shouldBe(hidden);
   }
 
   @Test
@@ -134,8 +130,6 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.webhooks().shouldBe(hidden);
     systemConfigMenu.systemNotice().shouldBe(hidden);
     systemConfigMenu.successMetrics().shouldBe(hidden);
-
-    // Temporarily removed for CLM-9479
-    // systemConfigMenu.automaticApplications().shouldBe(visible);
+    systemConfigMenu.automaticApplications().shouldBe(visible);
   }
 }

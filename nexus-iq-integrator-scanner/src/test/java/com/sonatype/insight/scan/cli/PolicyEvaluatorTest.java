@@ -12,8 +12,6 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.application.ApplicationSummary;
-import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -98,15 +96,6 @@ public class PolicyEvaluatorTest
     receipt.setPdfUrl("the-pdf-url");
     receipt.setTimeToReport(0L);
     return receipt;
-  }
-
-  private ApplicationSummaryList newApplicationSummaryList(String publicId, String name) {
-    ApplicationSummary appSummary = new ApplicationSummary();
-    appSummary.setPublicId(publicId);
-    appSummary.setName(name);
-    ApplicationSummaryList appSummaryList = new ApplicationSummaryList();
-    appSummaryList.getApplicationSummaries().add(appSummary);
-    return appSummaryList;
   }
 
   @Override

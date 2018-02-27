@@ -57,6 +57,15 @@ public class ConfigurationClient
   }
 
   /**
+   * @since 1.45.0
+   */
+  public boolean isApplicationAllowed(String applicationPublicId) throws IOException {
+    Result result = getRequest(path("rest/integration/applications/allowed", UrlUtils.encodeUrlComponent(applicationPublicId))
+        .query("goal", "EVALUATE_APPLICATION"));
+    return parseResult(result, Boolean.class);
+  }
+
+  /**
    * Gets the list of application summaries from the CLM server for which the user can retrieve a summary of a recent
    * policy evaluation (see {@link PolicyClient#getPolicyEvaluationSummary(Stage)}).
    * 

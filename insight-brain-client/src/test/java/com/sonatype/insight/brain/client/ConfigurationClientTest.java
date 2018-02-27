@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient.Context;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -483,5 +484,15 @@ public class ConfigurationClientTest
     ConfigurationClient client = new ConfigurationClient(config);
     FirewallIgnorePatterns firewallIgnorePatterns = client.getFirewallIgnorePatterns();
     assertThat(firewallIgnorePatterns.regexpsByRepositoryFormat, is(hdsResult.regexpsByRepositoryFormat));
+  }
+
+  @Test
+  public void testIsApplicationAllowed() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    ConfigurationClient client = new ConfigurationClient(config);
+    AutomaticApplicationsConfigurationHelper automaticApplicationsConfigurationHelper = new AutomaticApplicationsConfigurationHelper();
+    automaticApplicationsConfigurationHelper.setEnabled(true);
+    boolean isAllowed = client.isApplicationAllowed("non-existent-app-public-id");
+    assertThat(isAllowed, is(true));
   }
 }

@@ -73,6 +73,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -163,8 +164,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
         "src/test/data/artifact.jar");
     RestClient restClient = mock(RestClient.class);
     when(restClientFactory.newRestCLIClient(any(Configuration.class))).thenReturn(restClient);
-    when(restClient.getApplicationsForApplicationEvaluation()).thenReturn(
-        newApplicationSummaryList("the-app-id", "My App"));
+    when(restClient.isApplicationAllowed("the-app-id")).thenReturn(true);
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
     evaluator.run(params);
@@ -271,6 +271,39 @@ public class ExpandedCoveragePolicyEvaluatorTest
     assertThat(analyzers, not(hasItem(NexusAnalyzer.class)));
     assertThat(analyzers, not(hasItem(NspAnalyzer.class)));
     assertThat(analyzers, not(hasItem(RubyBundleAuditAnalyzer.class)));
+  }
+
+  @Test
+  public void testRun_AutoAppCreationEnabled() throws Exception {
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "non-existent-app-public-id", "-a",
+        "user:pass", "src/test/data/artifact.jar");
+    RestClient restClient = mock(RestClient.class);
+    when(restClientFactory.newRestCLIClient(any(Configuration.class))).thenReturn(restClient);
+    when(restClient.isApplicationAllowed("non-existent-app-public-id")).thenReturn(true);
+    when(restClient.uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
+        .thenReturn(newReceipt());
+    evaluator.run(params);
+    verify(restClient)
+        .uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE));
+    verify(restClient).prepareExpandedCoverageReport(eq("non-existent-app-public-id"), eq("the-scan-id"));
+  }
+
+  @Test
+  public void testRun_AutoAppCreationDisabled() throws Exception {
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "non-existent-app-public-id", "-a",
+        "user:pass", "src/test/data/artifact.jar");
+    RestClient restClient = mock(RestClient.class);
+    when(restClientFactory.newRestCLIClient(any(Configuration.class))).thenReturn(restClient);
+    when(restClient.isApplicationAllowed("non-existent-app-public-id")).thenReturn(false);
+    when(restClient.uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
+        .thenReturn(newReceipt());
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException e) {
+      logOutput.assertError("The application ID non-existent-app-public-id is invalid.");
+    }
   }
 
   private List<Class<?>> getEnabledAnalyzers() throws Exception {

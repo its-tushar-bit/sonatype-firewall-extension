@@ -52,9 +52,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
         {false, false},
-        {true, false},
-        {false, true},
-        {true, true}
+        {true, false}
     });
   }
 

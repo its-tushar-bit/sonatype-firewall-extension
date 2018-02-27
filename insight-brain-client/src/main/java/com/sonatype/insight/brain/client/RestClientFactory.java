@@ -12,7 +12,6 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -78,8 +77,11 @@ public class RestClientFactory
     public abstract ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType)
         throws IOException;
 
-    public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
-      return new ConfigurationClient(config).getApplicationsForApplicationEvaluation();
+    /**
+     * @since 1.45.0
+     */
+    public boolean isApplicationAllowed(String applicationPublicId) throws IOException {
+      return new ConfigurationClient(config).isApplicationAllowed(applicationPublicId);
     }
 
     /**

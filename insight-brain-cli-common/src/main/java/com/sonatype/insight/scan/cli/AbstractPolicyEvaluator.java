@@ -8,15 +8,11 @@ package com.sonatype.insight.scan.cli;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.application.ApplicationSummary;
-import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -74,14 +70,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   protected void validateServerAccess(P params, RestClient restClient) throws ExitException {
     log.info("Validating application ID {} with the IQ Server {}...", params.getApplicationId(), params.getServerUrl());
-    Collection<String> appIds = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    boolean isApplicationAllowed;
     try {
-      ApplicationSummaryList list = restClient.getApplicationsForApplicationEvaluation();
-      if (list != null) {
-        for (ApplicationSummary application : list.getApplicationSummaries()) {
-          appIds.add(application.getPublicId());
-        }
-      }
+      isApplicationAllowed = restClient.isApplicationAllowed(params.getApplicationId());
     }
     catch (Exception e) {
       if (e instanceof HttpResponseException) {
@@ -106,9 +97,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       }
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
-    if (!(appIds.contains(params.getApplicationId()))) {
+    if (!isApplicationAllowed) {
       log.error("The application ID {} is invalid.", params.getApplicationId());
-      log.error("The following application IDs are available on the IQ Server: {} ", appIds);
       throw new ExitException(1, String.format("The application ID %s is invalid.", params.getApplicationId()));
     }
   }

@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.CheckUserMappingModal;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.TestLoginModal;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -116,6 +117,30 @@ public class LdapConfigurationTest
     testConnection();
     testUserMapping();
     testLdapFormDataMatchesPersistedData();
+  }
+
+  @Test
+  public void testCancelCreate() {
+    refreshOrOpen(LdapServerListPage.URL);
+
+    LdapServerListPage serverListPage = new LdapServerListPage();
+    serverListPage.newServerButton().click();
+
+    LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
+    ldapNameEditor.cancelButton().shouldBe(visible, enabled).click();
+
+    serverListPage.shouldBe(visible);
+    serverListPage.newServerButton().click();
+
+    NameEditor nameEditor = ldapNameEditor.nameEditor();
+    nameEditor.shouldBe(visible).setValue("Another Ldap Server");
+
+    ldapNameEditor.cancelButton().shouldBe(visible, enabled).click();
+    UnsavedModal unsavedModal = new UnsavedModal();
+    unsavedModal.shouldBe(visible);
+    unsavedModal.continueButton().click();
+
+    serverListPage.shouldBe(visible);
   }
 
   @Test

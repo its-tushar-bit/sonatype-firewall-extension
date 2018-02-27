@@ -120,6 +120,10 @@ module.controller('LdapConfigurationController', [
       });
     };
 
+    $scope.cancel = function() {
+      $state.go('ldap-servers');
+    };
+
     $scope.confirmDeleteConfiguration = function() {
       Dialog.open({
         title: 'Delete Configuration',

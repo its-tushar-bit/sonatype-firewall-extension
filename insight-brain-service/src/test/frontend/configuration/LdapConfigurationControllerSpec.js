@@ -170,6 +170,16 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.ldap).toBeNull();
       expect($state.transitionTo).toHaveBeenCalledWith('ldap-servers');
     }));
+
+    describe('cancel', function() {
+      it('goes to the LDAP Servers List page', inject(function($state) {
+        initializeController([]);
+
+        scope.cancel();
+
+        expect($state.go).toHaveBeenCalledWith('ldap-servers');
+      }));
+    });
   });
 
   describe('LdapConnectionController', function() {

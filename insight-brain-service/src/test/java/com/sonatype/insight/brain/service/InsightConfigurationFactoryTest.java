@@ -50,6 +50,7 @@ public class InsightConfigurationFactoryTest
         Arrays.asList("consoleRequestLogFormat", "fileRequestLogFormat", "syslogRequestLogFormat"));
   }
 
+  @SuppressWarnings("rawtypes")
   @Test
   public void testBuild_ConfigWithServerAppendersWithoutLogFormats_UsesDropwizardLogFormats() throws Exception
   {

@@ -16,7 +16,8 @@
       <form name="vm.automaticApplicationsConfigurationForm"
             class="iq-form" 
             form-mask="vm.automaticApplicationsConfigurationFormMask" 
-            mask-attach-to-body>
+            mask-attach-to-body
+            ng-submit="vm.save()">
         <div id="automatic-applications-toggle-control-group" class="iq-form-group">
           <label class="iq-label" for="automatic-applications-toggle">Automatic Application Creation</label>
           <div id="automatic-applications-toggle-checkbox" class="toggle-checkbox">
@@ -48,8 +49,7 @@
                   class="btn btn-primary"
                   submit-validation
                   submit-dirty="vm.isChanged()"
-                  submit-type="'update'"
-                  ng-click="vm.save()">
+                  submit-type="'update'">
             Update
           </button>
           <button id="automatic-applications-cancel"

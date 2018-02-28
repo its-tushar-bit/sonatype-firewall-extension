@@ -16,7 +16,7 @@
         feature for company policy or legal compliance reasons. The 'Notice Display' toggle allows you to hide or show
         the notice.
       </p>
-      <form name="system-notice-editor" class="clm-form">
+      <form name="system-notice-editor" class="clm-form" ng-submit="vm.save()">
         <div id="system-notice-text-control-group" clm-control-group for="system-notice-text">
           <label for="system-notice-text">Notice Text</label>
           <textarea clm-input
@@ -44,8 +44,7 @@
                   class="btn btn-primary"
                   submit-validation
                   submit-dirty="vm.isChanged()"
-                  submit-type="'update'"
-                  ng-click="vm.save()">
+                  submit-type="'update'">
             Update
           </button>
           <button id="system-notice-cancel"

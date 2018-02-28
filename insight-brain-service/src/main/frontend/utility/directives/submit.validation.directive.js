@@ -44,6 +44,13 @@ export default function SubmitValidation() {
         }
       });
 
+      // prevent form submissions if not valid
+      element.on('click', function(e) {
+        if (!(isSubmissionValid && isSubmissionDirty)) {
+          e.preventDefault();
+        }
+      });
+
       function insertAndUpdateTooltip() {
         var title,
             submitType = scope.submitType() || attrs.submitType;

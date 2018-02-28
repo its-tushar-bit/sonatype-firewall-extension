@@ -4,7 +4,7 @@
       <i class="fa fa-flask"></i>Add Report
     </h2>
   </header>
-  <form name="vm.addSuccessMetricsReportForm" class="clm-form" novalidate>
+  <form name="vm.addSuccessMetricsReportForm" class="clm-form" novalidate ng-submit="vm.onSubmit()">
     <div class="iq-modal-content iq-scrollable" load-wrapper loading="!vm.loaded" reload="vm.$onInit">
         <div class="section">
           <div class="field">
@@ -54,7 +54,6 @@
       <button id="add-success-metrics-report-submit-btn"
               class="btn"
               ng-class="{ 'btn-error': vm.error, 'btn-primary': !vm.error }"
-              ng-click="vm.onSubmit()"
               submit-validation
               submit-type="create"
               submit-dirty="vm.isCreateEnabled()">

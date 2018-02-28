@@ -46,4 +46,62 @@ describe('submit.validation.directive.spec.js', function() {
     expect(element.hasClass('disabled')).toBeFalsy();
     expect($.fn.tooltip).toHaveBeenCalledWith('destroy');
   });
+
+  it('calls preventDefault on the click event when invalid and not dirty', function() {
+    var elementStr =
+          '<form name="form"><button submit-validation submit-dirty="dirty" submit-type="submit"></button></form>',
+        element = $compile(elementStr)(scope).children(0),
+        preventDefaultSpy = jasmine.createSpy('preventDefault'),
+        evt = { type: 'click', preventDefault: preventDefaultSpy };
+
+    scope.dirty = false;
+    scope.form.$setValidity(false);
+    scope.$digest();
+
+    element.trigger(evt);
+    expect(evt.preventDefault).toHaveBeenCalled();
+  });
+
+  it('calls preventDefault on the click event when valid and not dirty', function() {
+    var elementStr =
+          '<form name="form"><button submit-validation submit-dirty="dirty" submit-type="submit"></button></form>',
+        element = $compile(elementStr)(scope).children(0),
+        preventDefaultSpy = jasmine.createSpy('preventDefault'),
+        evt = { type: 'click', preventDefault: preventDefaultSpy };
+
+    scope.dirty = false;
+    scope.$digest();
+
+    element.trigger(evt);
+    expect(evt.preventDefault).toHaveBeenCalled();
+  });
+
+  it('calls preventDefault on the click event when invalid and dirty', function() {
+    var elementStr =
+          '<form name="form"><button submit-validation submit-dirty="dirty" submit-type="submit"></button></form>',
+        element = $compile(elementStr)(scope).children(0),
+        preventDefaultSpy = jasmine.createSpy('preventDefault'),
+        evt = { type: 'click', preventDefault: preventDefaultSpy };
+
+    scope.dirty = true;
+    scope.form.$setValidity(false);
+    scope.$digest();
+
+    element.trigger(evt);
+    expect(evt.preventDefault).toHaveBeenCalled();
+  });
+
+  it('does not call preventDefault on the click event when valid and dirty', function() {
+    var elementStr =
+          '<form name="form"><button submit-validation submit-dirty="dirty" submit-type="submit"></button></form>',
+        element = $compile(elementStr)(scope).children(0),
+        preventDefaultSpy = jasmine.createSpy('preventDefault'),
+        evt = { type: 'click', preventDefault: preventDefaultSpy };
+
+    scope.dirty = true;
+    scope.$digest();
+
+    element.trigger(evt);
+    expect(evt.preventDefault).not.toHaveBeenCalled();
+  });
 });

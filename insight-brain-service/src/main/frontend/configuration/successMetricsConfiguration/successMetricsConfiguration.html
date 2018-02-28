@@ -12,7 +12,7 @@
       <p id="success-metrics-explanation" class="iq-system-notice">
         Here you can enable or disable Success Metrics.
       </p>
-      <form name="success-metrics-editor" class="clm-form">
+      <form name="success-metrics-editor" class="clm-form" ng-submit="vm.save()">
         <div id="success-metrics-display-control-group" clm-control-group for="success-metrics-display">
           <div class="toggle-checkbox" id="success-metrics-toggle">
             <input type="checkbox"
@@ -27,8 +27,7 @@
                   class="btn btn-primary"
                   submit-validation
                   submit-dirty="vm.isChanged()"
-                  submit-type="'update'"
-                  ng-click="vm.save()">
+                  submit-type="'update'">
             Update
           </button>
           <button id="success-metrics-cancel"

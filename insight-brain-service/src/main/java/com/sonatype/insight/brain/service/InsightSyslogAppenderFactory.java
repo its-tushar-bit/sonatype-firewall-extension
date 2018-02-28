@@ -16,6 +16,8 @@ public class InsightSyslogAppenderFactory
   public static class Module
       extends SimpleModule
   {
+    private static final long serialVersionUID = -2731230613451928047L;
+
     public Module() {
       setMixInAnnotation(SyslogAppenderFactory.class, InsightSyslogAppenderFactory.class);
     }

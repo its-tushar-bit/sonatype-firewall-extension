@@ -1,0 +1,7 @@
+logging:
+  appenders:
+    - type: console
+    - type: file
+      currentLogFilename: ./log/request.log
+      archive: false
+    - type: syslog

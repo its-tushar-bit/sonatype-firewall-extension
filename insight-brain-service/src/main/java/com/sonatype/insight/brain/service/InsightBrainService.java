@@ -16,6 +16,7 @@ import java.util.UUID;
 import javax.inject.Named;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
+import javax.validation.Validator;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
@@ -53,6 +54,8 @@ import com.google.inject.Module;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ServerCommand;
+import io.dropwizard.configuration.ConfigurationFactory;
+import io.dropwizard.configuration.DefaultConfigurationFactoryFactory;
 import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.jackson.AnnotationSensitivePropertyNamingStrategy;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
@@ -274,6 +277,26 @@ public class InsightBrainService
     bootstrap.setObjectMapper(getObjectMapper());
 
     bootstrap.addCommand(new CompactCommand());
+
+    bootstrap.setConfigurationFactoryFactory(new DefaultConfigurationFactoryFactory<InsightConfig>()
+    {
+      @Override
+      public ConfigurationFactory<InsightConfig> create(Class<InsightConfig> klass,
+                                                        Validator validator,
+                                                        ObjectMapper objectMapper,
+                                                        String propertyPrefix)
+      {
+        return new InsightConfigurationFactory(klass, validator, configureObjectMapper(objectMapper.copy()),
+            propertyPrefix);
+      }
+      
+      @Override
+      protected ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
+        super.configureObjectMapper(objectMapper);
+        // Workaround to let us detect an unset syslog log format
+        return objectMapper.registerModule(new InsightSyslogAppenderFactory.Module());
+      }
+    });
   }
 
   private ObjectMapper getObjectMapper() {

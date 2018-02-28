@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -30,6 +31,12 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 
+import io.dropwizard.logging.AppenderFactory;
+import io.dropwizard.logging.ConsoleAppenderFactory;
+import io.dropwizard.logging.FileAppenderFactory;
+import io.dropwizard.logging.SyslogAppenderFactory;
+import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
+import io.dropwizard.server.AbstractServerFactory;
 import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -154,5 +161,32 @@ public class InsightBrainServiceTest
     catch (RuntimeException ex) {
       assertThat(ex.getMessage(), is(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
     }
+  }
+
+  @Test
+  @ManualServerInit
+  public void testConfigWithoutLogFormats_UsesOurDefaultRequestLogFormat() throws Exception {
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) { }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class.getResource("/InsightBrainServiceTest/config-without-request-log-formats.yml")
+            .getFile();
+      }
+    });
+    InsightConfig insightConfig = getCLMServer().getConfiguration();
+
+    LogbackAccessRequestLogFactory logbackAccessRequestLogFactory = (LogbackAccessRequestLogFactory) 
+        ((AbstractServerFactory) insightConfig.getServerFactory()).getRequestLogFactory();
+    List<? extends AppenderFactory<?>> accessAppenders = logbackAccessRequestLogFactory.getAppenders();
+    assertThat(((ConsoleAppenderFactory<?>) accessAppenders.get(0)).getLogFormat(),
+        is(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
+    assertThat(((FileAppenderFactory<?>) accessAppenders.get(1)).getLogFormat(),
+        is(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
+    assertThat(((SyslogAppenderFactory) accessAppenders.get(2)).getLogFormat(),
+        is(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
   }
 }

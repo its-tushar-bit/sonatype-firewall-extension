@@ -65,7 +65,7 @@ public class InsightConfigurationFactory
   }
 
   private void setAppenderFactoriesLogFormats(Collection<? extends AppenderFactory<?>> appenderFactories,
-                                              Class<? extends AbstractAppenderFactory> appenderFactoryType,
+                                              @SuppressWarnings("rawtypes") Class<? extends AbstractAppenderFactory> appenderFactoryType,
                                               String logFormat)
   {
     appenderFactories.stream().filter(appenderFactoryType::isInstance).map(appenderFactoryType::cast)

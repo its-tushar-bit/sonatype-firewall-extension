@@ -42,7 +42,7 @@ var module = angular.module('galleryApp',
     ]);
 
 module.config(function($stateProvider, $urlRouterProvider, markedProvider, hljsServiceProvider, componentsConfig,
-                       directivesConfig, stylesConfig)
+                       directivesConfig, layoutConfig, widgetsConfig, htmlConfig)
 {
   hljsServiceProvider.setOptions({
     languages: ['html', 'js']
@@ -73,7 +73,9 @@ module.config(function($stateProvider, $urlRouterProvider, markedProvider, hljsS
   // add configured states
   angular.forEach(componentsConfig, configureState);
   angular.forEach(directivesConfig, configureState);
-  angular.forEach(stylesConfig, configureState);
+  angular.forEach(layoutConfig, configureState);
+  angular.forEach(widgetsConfig, configureState);
+  angular.forEach(htmlConfig, configureState);
 
   function configureState(templateUrl, state) {
     $stateProvider.state(state, {

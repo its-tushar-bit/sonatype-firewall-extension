@@ -12,12 +12,14 @@ var navigationComponent = {
   controllerAs: 'vm'
 };
 
-function navigationController(componentsConfig, directivesConfig, stylesConfig) {
+function navigationController(componentsConfig, directivesConfig, layoutConfig, widgetsConfig, htmlConfig) {
   var vm = this;
 
   vm.components = Object.keys(componentsConfig);
   vm.directives = Object.keys(directivesConfig);
-  vm.styles = Object.keys(stylesConfig);
+  vm.layout = Object.keys(layoutConfig);
+  vm.widgets = Object.keys(widgetsConfig);
+  vm.forms = Object.keys(htmlConfig);
 }
 
 export default navigationComponent;

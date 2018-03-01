@@ -7,8 +7,16 @@
     <nav-item ng-repeat="state in vm.directives" state="{{state}}"></nav-item>
   </tree-view-group>
 
-  <tree-view-group name="Styles">
-    <nav-item ng-repeat="state in vm.styles" state="{{state}}"></nav-item>
+  <tree-view-group name="Styles - HTML Elements">
+    <nav-item ng-repeat="state in vm.forms" state="{{state}}"></nav-item>
+  </tree-view-group>
+
+  <tree-view-group name="Styles - Layout">
+    <nav-item ng-repeat="state in vm.layout" state="{{state}}"></nav-item>
+  </tree-view-group>
+
+  <tree-view-group name="Styles - Widgets">
+    <nav-item ng-repeat="state in vm.widgets" state="{{state}}"></nav-item>
   </tree-view-group>
 
   <tree-view-group name="Charts">

@@ -407,24 +407,6 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testNoGlobalProprietaryConfig() throws Exception {
-    ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
-    when(restClient.isApplicationAllowed("the-app-id")).thenReturn(true);
-    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id"))
-        .thenThrow(new HttpResponseException(404, "outdated"));
-    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture(), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
-        new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
-    evaluator.run(params);
-    logOutput.assertWarn("The IQ Server is outdated and does not provide configuration for proprietary components");
-    assertNotNull(scanFile.getValue());
-    Scan scan = scanReader.read(scanFile.getValue());
-    assertNotNull(scan);
-  }
-
-  @Test
   public void testGlobalProprietaryConfigFailure() throws Exception {
     when(restClient.isApplicationAllowed("the-app-id")).thenReturn(true);
     HttpResponseException expectedException = new HttpResponseException(500, "error");

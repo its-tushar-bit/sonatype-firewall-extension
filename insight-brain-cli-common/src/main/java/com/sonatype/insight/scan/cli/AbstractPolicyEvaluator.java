@@ -108,11 +108,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     try {
       return restClient.getProprietaryConfigForApplicationEvaluation(params.getApplicationId());
     }
-    catch (IOException e) {
-      if (e instanceof HttpResponseException && ((HttpResponseException) e).getStatusCode() == 404) {
-        log.warn("The IQ Server is outdated and does not provide configuration for proprietary components");
-        return new ProprietaryConfig();
-      }
+    catch (Exception e) {
       log.error("Could not retrieve configuration for proprietary components from the IQ Server", e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }

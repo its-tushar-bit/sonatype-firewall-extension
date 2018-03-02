@@ -342,9 +342,10 @@ public class ApplicationSummaryViewTest
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
     OwnerSummaryPage.summaryTile().publicId().shouldHave(text("newAppId"));
     // check that sidebar app link is updated
-    OwnerTreeView.organization(0).treeViewElement().click();
+    OrganizationNode organizationNode = OwnerTreeView.organization(0);
+    organizationNode.treeViewElement().click();
     waitUntilNotUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
-    OrganizationNode.application(0).click();
+    organizationNode.application(0).click();
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
 
     // log in as a user that doesn't have permission to change the id of this app

@@ -48,7 +48,11 @@
                disabled : organization.synthetic,
                'child-selected' : vm.selectedParentOrganization.id == organization.id }"
            ng-click="organization.isExpanded = true;
-               vm.goToOrganizationIfNotSynthetic(organization);">
+               vm.goToOrganizationIfNotSynthetic(organization);"
+           iq-tooltip
+           tooltip-text="{{organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
+           tooltip-attach-to-body="true"
+           tooltip-only-on-overflow="{{!organization.synthetic}}">
           <div class="iq-tree-view__twisty" ng-click="vm.handleOrganizationTwistyClick($event, organization)">
             <span class="iq-tree-view__twisty-icon"
                   ng-class="{ empty: organization.applications.length == 0,
@@ -56,12 +60,7 @@
                       collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
           </div><!--
        --><i class="fa fa-sitemap owner-tree-view__icon owner-tree-view__icon--12px inverse"></i><!--
-       --><span class="iq-tree-view__text"
-                data-tooltip="{{organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
-                data-tooltip-placement="top-left"
-                data-tooltip-append-to-body="true"
-                data-tooltip-popup-delay="500"
-                tooltip-class="entity-item-tooltip"><!--
+       --><span class="iq-tree-view__text"><!--
          -->{{organization.name}}<!--
        --></span>
           <div class="owner-tree-view__new-application"
@@ -77,14 +76,13 @@
              ng-repeat="application in organization.applications | orderBy:'name'"
              ng-if="organization.isExpanded && application.isVisible"
              ui-sref="management.view.application({applicationPublicId: application.publicId})"
-             ng-class="{ selected : vm.$state.includes('management.view.application', {applicationPublicId: application.publicId}) }">
+             ng-class="{ selected : vm.$state.includes('management.view.application', {applicationPublicId: application.publicId}) }"
+             iq-tooltip
+             tooltip-text="{{application.name}}"
+             tooltip-attach-to-body="true"
+             tooltip-only-on-overflow="true">
             <i class="fa fa-terminal owner-tree-view__icon owner-tree-view__icon--12px inverse"></i><!--
-         --><span class="iq-tree-view__text"
-                  data-tooltip="{{application.name}}"
-                  data-tooltip-placement="top-left"
-                  data-tooltip-append-to-body="true"
-                  data-tooltip-popup-delay="500"
-                  tooltip-class="entity-item-tooltip"><!--
+         --><span class="iq-tree-view__text"><!--
            -->{{application.name}}<!--
          --></span>
           </a>

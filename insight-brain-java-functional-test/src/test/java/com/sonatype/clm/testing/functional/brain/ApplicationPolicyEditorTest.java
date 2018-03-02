@@ -55,13 +55,14 @@ public class ApplicationPolicyEditorTest
         null);
     refreshOrOpen(OwnerSummaryPage.url(application));
     OwnerSummaryPage.policyTile().localPolicy("policyName").shouldBe(visible);
-    OwnerTreeView.organization(0).treeViewElement().shouldBe(visible).click();
+    OrganizationNode organizationNode = OwnerTreeView.organization(0);
+    organizationNode.treeViewElement().shouldBe(visible).click();
     OwnerSummaryPage.policyTile().localPolicy("policyName").shouldBe(visible).click();
     PolicyEditorPage.summarySection().policyName().clear();
     PolicyEditorPage.summarySection().policyName().sendKeys("policyName2");
     PolicyEditorPage.savePolicy();
     OwnerDetailTreeView.backLink().shouldBe(visible).click();
-    OrganizationNode.application(0).shouldBe(visible).click();
+    organizationNode.application(0).shouldBe(visible).click();
     OwnerSummaryPage.policyTile().localPolicy("policyName2").shouldBe(visible);
   }
 

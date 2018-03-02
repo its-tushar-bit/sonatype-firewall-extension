@@ -15,7 +15,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
-import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode.ApplicationNode;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -51,7 +51,7 @@ public class OwnerTreeViewTest
         // At least one name alphabetically before and after Root Organization to test Root Organization is extracted
         .put("Silver Squadron", Arrays.asList("Garven Dreis", "Biggs Darklighter", "Luke Skywalker"))
         .put("Green Squadron", Arrays.asList("Arvel Crynyd", "Jake Farrell"))
-        .put("Blue Squadron", Arrays.asList("Merrick Simms")).build();
+        .put("Blue Squadron And Some Other Text To Force Overflow", Arrays.asList("Merrick Simms And Some Other Text To Force Overflow")).build();
 
     for (Entry<String, List<String>> organizationMeta : organizations.entrySet()) {
       Organization organization = tempEntity.newOrganization(organizationMeta.getKey());
@@ -70,7 +70,7 @@ public class OwnerTreeViewTest
 
   @Test
   public void testInitialLoad() {
-    assertOrganizationLoaded(OwnerTreeView.organization(0), "Blue Squadron", "Merrick Simms");
+    assertOrganizationLoaded(OwnerTreeView.organization(0), "Blue Squadron And Some Other Text To Force Overflow", "Merrick Simms And Some Other Text To Force Overflow");
     assertOrganizationLoaded(OwnerTreeView.organization(1), "Green Squadron", "Arvel Crynyd", "Jake Farrell");
     assertOrganizationLoaded(OwnerTreeView.organization(2), "Silver Squadron", "Biggs Darklighter", "Garven Dreis",
         "Luke Skywalker");
@@ -87,14 +87,17 @@ public class OwnerTreeViewTest
     organizationElement.shouldNotBe(CLM.SELECTED, CLM.DISABLED);
     organizationElement.shouldNotHave(OrganizationNode.DISABLED_TOOLTIP_ATTRIBUTE);
     organizationElement.shouldBe(visible);
-    organizationNode.organizationName().shouldHave(text(organizationName));
+    organizationNode.organizationName().shouldHave(text(organizationName)).hover();
+    eyesWatcher.eyesCheck("Conditional tooltip rendering for organizations");
+    checkTooltipRenderedOnlyOnOverflow(organizationName);
 
     twisty.click();
     twisty.shouldBe(CLM.COLLAPSED);
     organizationNode.applicationElements().shouldHaveSize(applicationNames.length);
 
     for (int i = 0; i < applicationNames.length; i++) {
-      OrganizationNode.application(i).shouldNotBe(CLM.SELECTED).shouldHave(text(applicationNames[i]));
+      organizationNode.application(i).shouldNotBe(CLM.SELECTED).shouldHave(text(applicationNames[i])).hover();
+      checkTooltipRenderedOnlyOnOverflow(applicationNames[i]);
     }
 
     twisty.click();
@@ -125,7 +128,7 @@ public class OwnerTreeViewTest
     organizationTreeViewElement.click();
     organizationTreeViewElement.shouldBe(CLM.SELECTED);
 
-    ApplicationNode applicationNode = OrganizationNode.application(0);
+    SelenideElement applicationNode = organizationNode.application(0);
     applicationNode.click();
     applicationNode.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
@@ -192,10 +195,10 @@ public class OwnerTreeViewTest
     parentNode.twisty().click();
     parentNode.twisty().shouldBe(CLM.COLLAPSED);
     parentNode.organizationName().hover();
-    parentNode.popup().shouldBe(visible).shouldHave(text(OrganizationNode.DISABLED_TOOLTIP_CONTENT));
+    Tooltip.get().shouldBe(visible).shouldHave(text(OrganizationNode.DISABLED_TOOLTIP_CONTENT));
 
     parentNode.applicationElements().shouldHaveSize(1);
-    OrganizationNode.application(0).shouldHave(text("No Parent Permissions"));
+    parentNode.application(0).shouldHave(text("No Parent Permissions"));
 
     logout();
     loginAsAdmin();
@@ -211,7 +214,7 @@ public class OwnerTreeViewTest
     organizationTreeViewElement.shouldNotHave(OrganizationNode.CHILD_SELECTED);
     organizationNode.twisty().shouldBe(CLM.COLLAPSED);
 
-    ApplicationNode applicationNode = OrganizationNode.application(0);
+    SelenideElement applicationNode = organizationNode.application(0);
     applicationNode.click();
     applicationNode.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
@@ -228,7 +231,7 @@ public class OwnerTreeViewTest
     SelenideElement treeViewElement = organizationNode.treeViewElement();
 
     treeViewElement.shouldNotBe(CLM.SELECTED);
-    organizationNode.organizationName().shouldHave(attribute("data-tooltip", organizationName));
+    organizationNode.organizationName().shouldHave(attribute("tooltip-text", organizationName));
     organizationNode.organizationName().shouldHave(text(organizationName));
     organizationNode.applicationElements().shouldHaveSize(applicationCount);
   }
@@ -242,8 +245,20 @@ public class OwnerTreeViewTest
     treeViewElement.shouldHave(text(organizationName));
     organizationNode.applicationElements().shouldHaveSize(1);
 
-    ApplicationNode applicationNode = OrganizationNode.application(0);
-    applicationNode.applicationName().shouldHave(attribute("data-tooltip", applicationName));
-    applicationNode.applicationName().shouldHave(text(applicationName));
+    SelenideElement applicationNode = organizationNode.application(0);
+    applicationNode.shouldHave(attribute("tooltip-text", applicationName));
+    applicationNode.shouldHave(text(applicationName));
+  }
+
+  /**
+   * Check that tooltips only appear on overflow using arbitrarily chosen cut-over length.
+   */
+  private void checkTooltipRenderedOnlyOnOverflow(String ownerName) {
+    if (ownerName.length() > 40) {
+      Tooltip.get().shouldBe(visible).shouldHave(text(ownerName));
+    }
+    else {
+      Tooltip.get().shouldNotBe(visible);
+    }
   }
 }

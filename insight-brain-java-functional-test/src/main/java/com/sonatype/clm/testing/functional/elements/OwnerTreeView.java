@@ -55,7 +55,7 @@ public class OwnerTreeView
 
     public static final String DISABLED_TOOLTIP_CONTENT = "You do not have permission to view this organization.";
 
-    public static final Condition DISABLED_TOOLTIP_ATTRIBUTE = attribute("data-tooltip", DISABLED_TOOLTIP_CONTENT);
+    public static final Condition DISABLED_TOOLTIP_ATTRIBUTE = attribute("tooltip-text", DISABLED_TOOLTIP_CONTENT);
 
     public OrganizationNode(String... selectors) {
       super(selectors);
@@ -66,7 +66,7 @@ public class OwnerTreeView
     }
 
     public SelenideElement organizationName() {
-      return child(".iq-tree-view__trigger .iq-tree-view__text");
+      return child(".iq-tree-view__trigger");
     }
 
     public SelenideElement twisty() {
@@ -81,27 +81,9 @@ public class OwnerTreeView
       return children(".iq-tree-view__child");
     }
 
-    public SelenideElement popup() {
-      return $(".tooltip-inner");
-    }
-
-    public static ApplicationNode application(int num) {
+    public SelenideElement application(int num) {
       int cssNum = num + 1;
-      return new ApplicationNode("#owner-tree-view-owner-rows > .iq-tree-view .iq-tree-view__child", nthChild(cssNum));
+      return child(".iq-tree-view__child", nthChild(cssNum));
     }
-
-    public static class ApplicationNode
-        extends BasicElement<ApplicationNode>
-    {
-
-      public ApplicationNode(String... selectors) {
-        super(selectors);
-      }
-
-      public SelenideElement applicationName() {
-        return child("> .iq-tree-view__text");
-      }
-    }
-
   }
 }

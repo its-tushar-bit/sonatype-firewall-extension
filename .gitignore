@@ -10,3 +10,4 @@ dependency-reduced-pom.xml
 *.eml
 .DS_Store
 .*.swp
+.tags

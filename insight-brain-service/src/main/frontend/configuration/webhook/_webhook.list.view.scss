@@ -1,3 +1,15 @@
+#webhooks-list {
+  &.tile {
+    padding-top: 0;
+  }
+  
+  .iq-tile-header__icon {
+    img {
+      margin-top: 3px; // magic number for webhooks icon
+    }
+  }
+}
+
 .iq-list__subtext {
   > .webhook-event-types {
     padding-right: 16px; // required for Webhooks List page

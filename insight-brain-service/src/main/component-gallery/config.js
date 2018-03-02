@@ -39,6 +39,7 @@ export default angular.module('config',
     })
 
     .constant('layoutConfig', {
+      'iq-tile': 'styles/iq-tile.html',
       'iq-tile-header': 'styles/iq-tile-header.html',
       'iq-pull-right': 'styles/iq-pull-right.html',
       'iq-scrollable': 'styles/iq-scrollable.html',

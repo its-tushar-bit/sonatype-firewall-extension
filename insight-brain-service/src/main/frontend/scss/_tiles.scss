@@ -1,6 +1,6 @@
 $tile-scroll-container-z-index: 0;
 
-$iq-tile-header-height: 34px; // Minimum height
+$iq-tile-header-height: 24px; // Minimum height
 $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right actions
 
 /*
@@ -15,8 +15,42 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   margin: 8px;
   padding: 0 8px 8px 8px;
   
-  .iq-alert {
-    margin: 8px 0;
+  &.iq-alert {
+    background-color: $iq-warn-color-bg;
+    border: 1px solid $iq-warn-color;
+    color: $iq-warn-color;
+    
+    > :first-child {
+      margin-top: 0;
+      
+      h2 {
+        margin-top: 10px;
+      } 
+    }
+    
+    .iq-tile-header + .iq-tile-content {
+      padding-top: 0;
+    }
+  
+    > .iq-tile-content {
+      padding-top: 12px;
+    }
+  }
+
+  &.iq-alert--error {
+    background-color: $iq-fail-color-bg;
+    border-color: $iq-fail-color;
+    color: $iq-fail-color;
+  }
+
+  &.iq-alert--info {
+    background-color: $iq-off-white;
+    border-color: $iq-dark-blue;
+    color: $iq-off-black;
+    
+    .fa {
+      font-size: 23px;
+    }
   }
 }
 
@@ -44,25 +78,28 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .iq-tile-header {
   min-height: $iq-tile-header-height;
-  margin-bottom: 8px;
+  margin: 8px 0 15px 0;
   overflow: hidden;
+  
+  .iq-tile__actions {
+    margin-top: 1px;
+  }
 }
 
 .iq-tile-header__title {
   display: inline-block;
-  height: $iq-tile-header-height-actions;
 
   h1, h2 {
     display: inline-block;
+    margin: 0;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  
   h1 {
     font-size: 26px;
-    line-height: $iq-tile-header-height-actions;
-    margin: 0;
     margin-left: -1px; // Magic number b/c H1 has mysterious 1px to the left
-    padding: 1px 0 0 0;
+    padding: 0;
 
     .iq-tile-header__description {
       @include regular();
@@ -76,20 +113,20 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   display: block;
   float: left;
   font-size: 30px;
-  height: $iq-tile-header-height-actions;
-  line-height: $iq-tile-header-height-actions;
   margin-right: 8px;
   vertical-align: middle;
 
   img {
     display: block;
     max-height: 25px; // magic number for default globe graphic
-    margin-top: 9px; // magic number for default globe graphic
+    margin-top: 2px; // magic number for default globe graphic
     width: auto;
   }
 
   &.fa-university, &.fa-database {
     font-size: 22px;
+    margin-top: 4px;
+    margin-top: 4px;
   }
 }
 
@@ -99,24 +136,20 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .iq-tile-header__subtitle {
   line-height: 16px;
-  margin: -6px 0 6px 0;
-  max-width: 520px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  max-width: $iq-paragraph-width-maximum;
+  padding-bottom: 2px;
 }
 
 .iq-tile-header--hrule {
   border: 0 solid $iq-grey-4;
   border-bottom-width: 1px;
   margin-bottom: 20px;
+  padding-bottom: 5px;
 }
 
 .iq-tile__actions {
   float: right;
   margin-top: 8px;
-  margin-bottom: 8px;
 }
 
 .iq-tile-content {
@@ -166,6 +199,10 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   margin-left: auto;
   width: 100%;
   max-width: 1006px;
+  
+  .iq-tile__actions {
+    margin-top: 0;
+  }
 }
 
 .iq-tile--breadcrumb {

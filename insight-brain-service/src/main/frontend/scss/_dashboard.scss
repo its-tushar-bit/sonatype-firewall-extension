@@ -21,12 +21,13 @@ $iq-cell-affected-apps-width: 109px;
 }
 
 .iq-tile--dashboard-common-messages {
-  background: none;
+  background-color: transparent;
   border: none;
   color: $iq-slate;
   text-align: center;
 
   .iq-alert {
+    margin: 8px 0;
     text-align: left;
   }
 }
@@ -162,13 +163,6 @@ $iq-cell-affected-apps-width: 109px;
     top: 0;
     white-space: normal;
   }
-}
-
-.iq-tile--dashboard-common-messages {
-  background-color: transparent;
-  border: none;
-  color: $iq-slate;
-  text-align: center;
 }
 
 .iq-violations-results, .iq-components-results, .iq-applications-results {

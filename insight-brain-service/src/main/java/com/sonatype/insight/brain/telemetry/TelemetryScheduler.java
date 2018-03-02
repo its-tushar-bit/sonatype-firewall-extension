@@ -62,7 +62,7 @@ public class TelemetryScheduler
         telemetrySender.send(telemetryCollector.collectData());
       }
       catch (IOException e) {
-        log.warn("Failed to send telemetry.", e);
+        log.debug("Failed to send telemetry.", e);
       }
     });
   }

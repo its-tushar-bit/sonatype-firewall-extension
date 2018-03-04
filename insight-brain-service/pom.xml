@@ -48,6 +48,11 @@
       <artifactId>guice</artifactId>
     </dependency>
     <dependency>
+      <!-- declared as direct dependency to workaround downstream consumers not using our dependency management for our transitive dependencies -->
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-multibindings</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.sisu</groupId>
       <artifactId>org.eclipse.sisu.inject</artifactId>
     </dependency>

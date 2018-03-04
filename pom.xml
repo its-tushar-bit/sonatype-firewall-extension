@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>12</version>
+    <version>13</version>
     <relativePath />
   </parent>
 
@@ -823,7 +823,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>1.16</version>
         <configuration>
           <signature>
             <groupId>org.codehaus.mojo.signature</groupId>

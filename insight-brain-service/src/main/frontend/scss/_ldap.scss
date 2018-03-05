@@ -1,6 +1,17 @@
 /*
   #LDAP Styles
 */
+
+#ldap-name {
+  .iq-tile__actions {
+    margin-top: 8px;
+  }
+  
+  .iq-tile-content {
+    clear: none;
+  }
+}
+
 .content-header {
   margin: 0px 0 10px 0px;
  

@@ -206,9 +206,14 @@ public class DiagnosticsCli
       while (result.next()) {
         log.info("  constraints: {}", result.getLong(1));
       }
-      result = statement.executeQuery("SELECT AVG(LENGTH(pathnames)) FROM policy_violation");
+      try {
+        result = statement.executeQuery("SELECT AVG(LENGTH(pathnames)) FROM policy_violation");
+      }
+      catch (SQLException e) {
+        result = statement.executeQuery("SELECT AVG(LENGTH(filename)) FROM policy_violation");
+      }
       while (result.next()) {
-        log.info("  pathnames: {}", result.getLong(1));
+        log.info("  path-/filename: {}", result.getLong(1));
       }
       try {
         result = statement.executeQuery("SELECT AVG(LENGTH(component_id_coordinates_json)) FROM policy_violation");
@@ -219,10 +224,6 @@ public class DiagnosticsCli
       }
       while (result.next()) {
         log.info("  coordinates: {}", result.getLong(1));
-      }
-      result = statement.executeQuery("SELECT AVG(LENGTH(notifications)) FROM policy_violation");
-      while (result.next()) {
-        log.info("  notifications: {}", result.getLong(1));
       }
     }
   }

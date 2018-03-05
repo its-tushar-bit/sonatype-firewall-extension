@@ -17,8 +17,10 @@ import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
 import io.dropwizard.logging.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
+import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.instanceOf;
@@ -31,9 +33,10 @@ public class InsightConfigurationFactoryTest
       .asList(ConsoleAppenderFactory.class, FileAppenderFactory.class, SyslogAppenderFactory.class);
 
   @Test
-  public void testBuild_ConfigWithRequestAppendersWithoutLogFormats_UsesOurRequestLogFormat() throws Exception
+  public void testBuild_ConfigWithLogbackAccessRequestAppendersWithoutLogFormats_UsesOurRequestLogFormat()
+      throws Exception
   {
-    InsightConfig insightConfig = build("config-without-request-log-formats.yml");
+    InsightConfig insightConfig = build("config-without-logback-access-request-log-formats.yml");
 
     assertAppenderFactories(((LogbackAccessRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
         .getRequestLogFactory()).getAppenders(), Arrays.asList(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT,
@@ -42,10 +45,31 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_ConfigWithRequestAppendersWithLogFormats_SetsNothing() throws Exception {
-    InsightConfig insightConfig = build("config-with-request-log-formats.yml");
+  public void testBuild_ConfigWithLogbackAccessRequestAppendersWithLogFormats_SetsNothing() throws Exception {
+    InsightConfig insightConfig = build("config-with-logback-access-request-log-formats.yml");
 
     assertAppenderFactories(((LogbackAccessRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
+            .getRequestLogFactory()).getAppenders(),
+        Arrays.asList("consoleRequestLogFormat", "fileRequestLogFormat", "syslogRequestLogFormat"));
+  }
+
+  @Test
+  public void testBuild_ConfigWithLogbackClassicRequestAppendersWithoutLogFormats_UsesDropwizardRequestLogFormats()
+      throws Exception
+  {
+    InsightConfig insightConfig = build("config-without-logback-classic-request-log-formats.yml");
+
+    assertAppenderFactories(((LogbackClassicRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
+        .getRequestLogFactory()).getAppenders(), Arrays
+        .asList(new ConsoleAppenderFactory<>().getLogFormat(), new FileAppenderFactory<>().getLogFormat(),
+            new SyslogAppenderFactory().getLogFormat()));
+  }
+
+  @Test
+  public void testBuild_ConfigWithLogbackClassicRequestAppendersWithLogFormats_SetsNothing() throws Exception {
+    InsightConfig insightConfig = build("config-with-logback-classic-request-log-formats.yml");
+
+    assertAppenderFactories(((LogbackClassicRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
             .getRequestLogFactory()).getAppenders(),
         Arrays.asList("consoleRequestLogFormat", "fileRequestLogFormat", "syslogRequestLogFormat"));
   }
@@ -75,8 +99,14 @@ public class InsightConfigurationFactoryTest
     insightBrainService.initialize(bootstrap);
     ConfigurationFactory<InsightConfig> configurationFactory = bootstrap.getConfigurationFactoryFactory()
         .create(InsightConfig.class, bootstrap.getValidatorFactory().getValidator(), bootstrap.getObjectMapper(), "dw");
-    return configurationFactory
+    InsightConfig insightConfig = configurationFactory
         .build(new ResourceConfigurationSourceProvider(), "/InsightConfigurationFactoryTest/" + filename);
+    insightConfig.getServerFactory().build(
+        new Environment(bootstrap.getApplication().getName(), bootstrap.getObjectMapper(),
+            bootstrap.getValidatorFactory().getValidator(), bootstrap.getMetricRegistry(), bootstrap.getClassLoader(),
+            bootstrap.getHealthCheckRegistry()));
+    insightConfig.getLoggingFactory().configure(bootstrap.getMetricRegistry(), bootstrap.getApplication().getName());
+    return insightConfig;
   }
 
   private void assertAppenderFactories(List<? extends AppenderFactory<?>> appenderFactories, List<String> formats)

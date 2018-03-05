@@ -16,9 +16,6 @@ import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.configuration.YamlConfigurationFactory;
 import io.dropwizard.logging.AbstractAppenderFactory;
 import io.dropwizard.logging.AppenderFactory;
-import io.dropwizard.logging.DefaultLoggingFactory;
-import io.dropwizard.logging.LoggingFactory;
-import io.dropwizard.logging.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.RequestLogFactory;
 import io.dropwizard.server.AbstractServerFactory;
@@ -42,17 +39,8 @@ public class InsightConfigurationFactory
       throws IOException, ConfigurationException
   {
     InsightConfig insightConfig = super.build(provider, path);
-    setDefaultServerSyslogLogFormat(insightConfig);
     setDefaultRequestLogFormat(insightConfig);
     return insightConfig;
-  }
-
-  private void setDefaultServerSyslogLogFormat(InsightConfig insightConfig) {
-    LoggingFactory loggingFactory = insightConfig.getLoggingFactory();
-    if (loggingFactory instanceof DefaultLoggingFactory) {
-      setAppenderFactoriesLogFormats(((DefaultLoggingFactory) loggingFactory).getAppenders(),
-          InsightSyslogAppenderFactory.class, new SyslogAppenderFactory().getLogFormat());
-    }
   }
 
   private void setDefaultRequestLogFormat(InsightConfig insightConfig) {

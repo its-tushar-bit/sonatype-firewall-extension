@@ -544,36 +544,40 @@
   margin: 0;
   max-width: max-content;
 
-  li {
+  iq-radio, iq-checkbox {
     // tells browser not to split the height of a single li across columns
     break-inside: avoid-column;
     page-break-inside: avoid; // for Firefox
-    height: 29px;
-    list-style: none;
+  }
 
-    .iq-checkbox__label, .iq-radio {
-      @extend .truncate-ellipsis;
-      margin-bottom: 0;
-      margin-left: 24px;
-    }
+  .iq-checkbox__label, .iq-radio {
+    @extend .truncate-ellipsis;
 
-    .iq-checkbox__box::before {
-      margin-top: 0;
-    }
+    display: block;
 
-    .hexagon {
-      padding-top: 1px;
-      vertical-align: top;
-    }
+    margin-left: 24px;
+  }
 
-    .description {
-      margin-left: 8px;
-    }
+  .iq-radio {
+    margin-bottom: 0;
+  }
 
-    .fa {
-      padding-top: 2px;
-      vertical-align: top;
-    }
+  .iq-checkbox__box::before {
+    margin-top: 0;
+  }
+
+  .hexagon {
+    padding-top: 1px;
+    vertical-align: top;
+  }
+
+  .description {
+    margin-left: 8px;
+  }
+
+  .fa {
+    padding-top: 2px;
+    vertical-align: top;
   }
 }
 

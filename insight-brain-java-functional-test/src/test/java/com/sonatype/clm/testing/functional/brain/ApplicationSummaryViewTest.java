@@ -101,6 +101,9 @@ public class ApplicationSummaryViewTest
     SelectContactModal.searchBox().shouldBe(visible).val("*");
     SelectContactModal.searchButton().shouldBe(enabled).click();
     SelectContactModal.users().shouldHaveSize(2).shouldHave(texts("Admin Builtin", tempUser.calculateDisplayName()));
+
+    eyesWatcher.eyesCheck();
+
     // wildcard suffix search narrows search results
     SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
     SelectContactModal.searchButton().click();

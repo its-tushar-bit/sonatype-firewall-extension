@@ -24,7 +24,7 @@ public class AssociationEditor
   }
 
   public ElementsCollection rows() {
-    return children("li");
+    return children("> *");
   }
 
   public AssociationEditorElement item(int num) {
@@ -40,7 +40,7 @@ public class AssociationEditor
     }
 
     public IqCheckbox checkBox() {
-      return new IqCheckbox(root.$("iq-checkbox"));
+      return new IqCheckbox(root);
     }
 
     public SelenideElement icon() {

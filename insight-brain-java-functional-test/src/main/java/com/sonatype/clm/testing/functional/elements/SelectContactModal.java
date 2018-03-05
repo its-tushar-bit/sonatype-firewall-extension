@@ -42,7 +42,7 @@ public class SelectContactModal
   }
 
   public static ElementsCollection users() {
-    return $$(ROOT + " li");
+    return $$(ROOT + " iq-radio");
   }
 
   public static SelenideElement updateButton() {
@@ -58,9 +58,9 @@ public class SelectContactModal
   }
 
   public static IqRadio userRadio(final String usersName) {
-    SelenideElement item = $$(ROOT + " li").findBy(text(usersName));
+    SelenideElement item = $$(ROOT + " iq-radio").findBy(text(usersName));
     if (item != null) {
-      return new IqRadio(item.find("iq-radio"));
+      return new IqRadio(item);
     }
     return null;
   }

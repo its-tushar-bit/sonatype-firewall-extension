@@ -92,6 +92,8 @@ public class ApplicationPolicyEditorTest
       categoryEditor.rows().shouldHaveSize(2);
       assertCategory(categoryEditor.item(0), "Checked Tag", true);
       assertCategory(categoryEditor.item(1), "Unchecked Tag", false);
+
+      eyesWatcher.eyesCheck();
     }
     finally {
       logout();

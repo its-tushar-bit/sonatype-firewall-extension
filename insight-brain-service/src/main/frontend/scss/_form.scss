@@ -499,7 +499,7 @@ dropdown-selector {
     When we refactor this, please remove "!important" from "td .iq-checkbox__label--no-text" below
   */
   label {
-    &:not(.btn, .iq-radio, .iq-checkbox) {
+    &:not(.btn, .iq-radio, .iq-checkbox__label) {
       color: $iq-off-black;
       margin-bottom: 7px;
 
@@ -594,7 +594,6 @@ dropdown-selector {
 .field {
   .iq-checkbox__label {
     display: block;
-    margin-bottom: 0;
     margin-left: 24px;
   }
 }

@@ -78,6 +78,8 @@ public class ApplicationCategoryEditorTest
 
     categoryTile.newButton().click();
 
+    eyesWatcher.eyesCheck();
+
     ApplicationCategoryEditorPage.title().shouldHave(ApplicationCategoryEditorPage.titleText());
     ApplicationCategoryEditorPage.subtitle().shouldHave(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
@@ -125,6 +127,8 @@ public class ApplicationCategoryEditorTest
     refreshOrOpen(OwnerSummaryPage.url(application));
 
     categoryTile.newButton().click();
+
+    eyesWatcher.eyesCheck();
 
     // use the categories on the first row
     Tag category1 = categories.get(0);

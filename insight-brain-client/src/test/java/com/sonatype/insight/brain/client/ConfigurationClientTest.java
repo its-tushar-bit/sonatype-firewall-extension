@@ -487,12 +487,16 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testIsApplicationAllowed() throws Exception {
+  public void testVerifyOrCreateApplication() throws Exception {
+    String appPublicId = "non-existent-app-public-id";
+    tempEntity.registerAppPublicId(appPublicId);
+
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationHelper = new AutomaticApplicationsConfigurationDAO();
-    automaticApplicationsConfigurationHelper.setEnabled(true);
-    boolean isAllowed = client.isApplicationAllowed("non-existent-app-public-id");
-    assertThat(isAllowed, is(true));
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    boolean result = client.verifyOrCreateApplication(appPublicId);
+    assertThat(result, is(true));
   }
 }

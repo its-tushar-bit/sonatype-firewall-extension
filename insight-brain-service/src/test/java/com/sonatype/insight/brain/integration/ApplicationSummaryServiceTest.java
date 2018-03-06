@@ -8,7 +8,10 @@ package com.sonatype.insight.brain.integration;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
@@ -32,6 +35,48 @@ public class ApplicationSummaryServiceTest
   @Test
   public void testGetApplications_SortedByCaseInsensitiveName_EVALUATE_COMPONENT() throws Exception {
     testGetApplications_SortedByCaseInsensitiveName(Goal.EVALUATE_COMPONENT);
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_ApplicationDoesExist() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    boolean result = service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION);
+
+    assertThat(result, is(true));
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_ApplicationDoesNotExist_AutomaticApplicationCreationDisabled()
+      throws Exception
+  {
+    String appPublicId = "NoSuchAppPublicID";
+    tempEntity.registerAppPublicId(appPublicId);
+
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setEnabled(false);
+
+    boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION);
+    assertThat(result, is(false));
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_ApplicationDoesNotExist_AutomaticApplicationCreationEnabled()
+      throws Exception
+  {
+    String appPublicId = "NoSuchAppPublicID";
+    tempEntity.registerAppPublicId(appPublicId);
+
+    Organization org = tempEntity.newOrganization();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+
+    boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION);
+    assertThat(result, is(true));
+
+    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    assertThat(app.getOrganizationId(), is(automaticApplicationsConfigurationDAO.getOrganizationId()));
   }
 
   private void testGetApplications_SortedByCaseInsensitiveName(Goal goal) throws Exception {

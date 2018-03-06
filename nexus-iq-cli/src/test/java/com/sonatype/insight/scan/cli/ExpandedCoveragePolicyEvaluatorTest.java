@@ -164,7 +164,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
         "src/test/data/artifact.jar");
     RestClient restClient = mock(RestClient.class);
     when(restClientFactory.newRestCLIClient(any(Configuration.class))).thenReturn(restClient);
-    when(restClient.isApplicationAllowed("the-app-id")).thenReturn(true);
+    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
     evaluator.run(params);
@@ -279,7 +279,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
         "user:pass", "src/test/data/artifact.jar");
     RestClient restClient = mock(RestClient.class);
     when(restClientFactory.newRestCLIClient(any(Configuration.class))).thenReturn(restClient);
-    when(restClient.isApplicationAllowed("non-existent-app-public-id")).thenReturn(true);
+    when(restClient.verifyOrCreateApplication("non-existent-app-public-id")).thenReturn(true);
     when(restClient.uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
     evaluator.run(params);
@@ -294,7 +294,7 @@ public class ExpandedCoveragePolicyEvaluatorTest
         "user:pass", "src/test/data/artifact.jar");
     RestClient restClient = mock(RestClient.class);
     when(restClientFactory.newRestCLIClient(any(Configuration.class))).thenReturn(restClient);
-    when(restClient.isApplicationAllowed("non-existent-app-public-id")).thenReturn(false);
+    when(restClient.verifyOrCreateApplication("non-existent-app-public-id")).thenReturn(false);
     when(restClient.uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.EXPANDED_COVERAGE)))
         .thenReturn(newReceipt());
     try {

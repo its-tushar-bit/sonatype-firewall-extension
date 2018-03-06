@@ -12,8 +12,6 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -46,50 +44,18 @@ public class ScanHandlerAuthzTest
   }
 
   @Test
-  public void testHandle_Authorized_ApplicationExists() throws Exception {
+  public void testHandle_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
     testHandle(app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testHandle_Unauthorized_ApplicationExists() throws Exception {
+  public void testHandle_Unauthorized() throws Exception {
     login();
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
 
     scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
-  }
-
-  @Test
-  public void testHandle_Authorized_ApplicationDoesNotExist_AutomaticApplicationCreationEnabled() throws Exception {
-    String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
-
-    Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
-    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
-    automaticApplicationsConfigurationDAO.setEnabled(true);
-    // The application will be created when the scan is handled and it will be owned by the organization configured
-    // above for automatic app creation.
-    // We grant the required permission to this organization, which will be inherited by all its applications.
-    grantPermission(org.getId(), Permission.EVALUATE_APPLICATION);
-
-    testHandle(appPublicId);
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testHandle_Unauthorized_ApplicationDoesNotExist_AutomaticApplicationCreationEnabled() throws Exception {
-    String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
-
-    Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
-    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
-    automaticApplicationsConfigurationDAO.setEnabled(true);
-    login();
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
-
-    scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
   }
 
   private void testHandle(String appPublicId) throws IOException {

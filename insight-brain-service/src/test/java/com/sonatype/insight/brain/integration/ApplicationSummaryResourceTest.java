@@ -149,11 +149,11 @@ public class ApplicationSummaryResourceTest
   }
 
   @Test
-  public void testIsApplicationAllowed_EvaluateApplication() throws Exception {
+  public void testVerifyOrCreateApplication_EvaluateApplication() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
-    HttpResponse response = restRequest().path(ApplicationSummaryResource.IS_APPLICATION_ALLOWED_PATH)
-        .parameter(app.getPublicId()).query(ApplicationSummaryResource.GOAL_PARAM, Goal.EVALUATE_APPLICATION).get();
+    HttpResponse response = restRequest().path(ApplicationSummaryResource.VERIFY_OR_CREATE_APPLICATION_PATH)
+        .parameter(app.getPublicId()).query(ApplicationSummaryResource.GOAL_PARAM, Goal.EVALUATE_APPLICATION).post();
     assertResponseStatus(200, response);
 
     assertThat(response.getBody(String.class), is("true"));

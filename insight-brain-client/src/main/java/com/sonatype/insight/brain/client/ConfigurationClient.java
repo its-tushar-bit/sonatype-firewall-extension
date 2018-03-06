@@ -59,9 +59,11 @@ public class ConfigurationClient
   /**
    * @since 1.45.0
    */
-  public boolean isApplicationAllowed(String applicationPublicId) throws IOException {
-    Result result = getRequest(path("rest/integration/applications/allowed", UrlUtils.encodeUrlComponent(applicationPublicId))
-        .query("goal", "EVALUATE_APPLICATION"));
+  public boolean verifyOrCreateApplication(String applicationPublicId) throws IOException {
+    Result result = postRequest(
+        path("rest/integration/applications/verifyOrCreate", UrlUtils.encodeUrlComponent(applicationPublicId))
+            .query("goal", "EVALUATE_APPLICATION"),
+        null);
     return parseResult(result, Boolean.class);
   }
 

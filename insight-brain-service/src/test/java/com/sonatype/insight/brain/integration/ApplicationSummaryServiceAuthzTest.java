@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.integration;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -19,6 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 
 public class ApplicationSummaryServiceAuthzTest
@@ -95,22 +98,22 @@ public class ApplicationSummaryServiceAuthzTest
   }
 
   @Test
-  public void testIsApplicationAllowed_Authorized_EVALUATE_APPLICATION() {
+  public void testVerifyOrCreateApplication_Authorized_EVALUATE_APPLICATION() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    assertThat(service.isApplicationAllowed(app.getPublicId(), Goal.EVALUATE_APPLICATION), is(true));
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION), is(true));
   }
 
   @Test
-  public void testIsApplicationAllowed_Unauthorized_EVALUATE_APPLICATION() {
+  public void testVerifyOrCreateApplication_Unauthorized_EVALUATE_APPLICATION() {
     login();
-    assertThat(service.isApplicationAllowed(app.getPublicId(), Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION), is(false));
   }
 
   @Test
-  public void testIsApplicationAllowed_NullGoal() {
+  public void testVerifyOrCreateApplication_NullGoal() {
     login();
     try {
-      service.isApplicationAllowed(app.getPublicId(), null /* goal */);
+      service.verifyOrCreateApplication(app.getPublicId(), null /* goal */);
       fail("Expected exception");
     }
     catch (BadRequestException expected) {
@@ -119,16 +122,42 @@ public class ApplicationSummaryServiceAuthzTest
   }
 
   @Test
-  public void testIsApplicationAllowed_ApplicationDoesNotExist_EVALUATE_APPLICATION() {
+  public void testVerifyOrCreateApplication_ApplicationDoesNotExist_NoAppPermission_EVALUATE_APPLICATION() {
     login();
     String appPublicId = "NoSuchAppPublicId";
     tempEntity.registerAppPublicId(appPublicId);
 
-    // If the application does not exist, then "access" is allowed only if automatic app creation is enabled.
+    // If the application does not exist, it will be created if automatic app creation is enabled. However,
+    // we will still not have access because we do not have a sufficient permission assigned to us.
     automaticApplicationsConfigurationDAO.setEnabled(false);
-    assertThat(service.isApplicationAllowed(appPublicId, Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(nullValue()));
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
-    assertThat(service.isApplicationAllowed(appPublicId, Goal.EVALUATE_APPLICATION), is(true));
+    automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(notNullValue()));
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_ApplicationDoesNotExist_HasAppPermission_EVALUATE_APPLICATION() {
+    login();
+    String appPublicId = "NoSuchAppPublicId";
+    tempEntity.registerAppPublicId(appPublicId);
+
+    // We grant the required permission to this organization, which will be inherited by all its applications.
+    Organization org = tempEntity.newOrganization();
+    grantPermission(org.getId(), Permission.EVALUATE_APPLICATION);
+
+    // If the application does not exist, then "access" is allowed only if automatic app creation is enabled.
+    // We should then be able to access it in this scenario because we have permission via the organization.
+    automaticApplicationsConfigurationDAO.setEnabled(false);
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(nullValue()));
+
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION), is(true));
+    assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(notNullValue()));
   }
 }

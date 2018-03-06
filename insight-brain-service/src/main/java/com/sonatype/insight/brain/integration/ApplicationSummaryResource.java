@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -32,7 +33,7 @@ public class ApplicationSummaryResource
 
   public static final String RESOURCE_PATH = "rest/integration/applications";
 
-  public static final String IS_APPLICATION_ALLOWED_PATH = "allowed/{applicationPublicId}";
+  public static final String VERIFY_OR_CREATE_APPLICATION_PATH = "verifyOrCreate/{applicationPublicId}";
 
   static final String GOAL_PARAM = "goal";
 
@@ -62,18 +63,18 @@ public class ApplicationSummaryResource
    * Verifies if the user can access the application identified by applicationPublicId for the specified goal.
    * If an application with the specified applicationPublicId already exists, then the method checks access for the
    * current user and the specified goal to that application.
-   * If such an application does not exist and automatic application creation is enabled, then the method returns true
-   * (the application may be created automatically at a later time when a scan is uploaded for that application public
-   * ID).
+   * If such an application does not exist and automatic application creation is enabled, then the method creates the
+   * new application and returns true to indicate the application will now be available.
    * 
    * @since 1.45
    */
-  @GET
-  @Path(IS_APPLICATION_ALLOWED_PATH)
-  public boolean isApplicationAllowed(@PathParam("applicationPublicId") String applicationPublicId,
-                                      @QueryParam(GOAL_PARAM) Goal goal)
+  @POST
+  @Path(VERIFY_OR_CREATE_APPLICATION_PATH)
+  public boolean verifyOrCreateApplication(@PathParam("applicationPublicId") String applicationPublicId,
+                                           @QueryParam(GOAL_PARAM) Goal goal)
   {
-    log.debug("Received request to check access for application public ID {} and goal {}.", applicationPublicId, goal);
-    return applicationSummaryService.isApplicationAllowed(applicationPublicId, goal);
+    log.debug("Received request to verify access for or create application with public ID {} and goal {}.",
+        applicationPublicId, goal);
+    return applicationSummaryService.verifyOrCreateApplication(applicationPublicId, goal);
   }
 }

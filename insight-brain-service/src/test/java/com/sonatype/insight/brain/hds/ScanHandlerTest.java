@@ -17,10 +17,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -247,13 +244,11 @@ public class ScanHandlerTest
   }
 
   @Test
-  public void testHandle_ApplicationDoesNotExist_AutomaticApplicationCreationDisabled() throws Exception {
+  public void testHandle_ApplicationDoesNotExist() throws Exception {
     String appPublicId = "NoSuchAppPublicID";
     tempEntity.registerAppPublicId(appPublicId);
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
 
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
-    automaticApplicationsConfigurationDAO.setEnabled(false);
     try {
       scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
       fail("Expected exception");
@@ -261,33 +256,5 @@ public class ScanHandlerTest
     catch (NotFoundException expected) {
       assertThat(expected.getMessage(), is("Could not find an application with public ID NoSuchAppPublicID."));
     }
-  }
-
-  @Test
-  public void testHandle_ApplicationDoesNotExist_AutomaticApplicationCreationEnabled() throws Exception {
-    String appPublicId = "NoSuchAppPublicID";
-    tempEntity.registerAppPublicId(appPublicId);
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
-
-    Organization org = tempEntity.newOrganization();
-    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
-    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
-    automaticApplicationsConfigurationDAO.setEnabled(true);
-    ScanReceipt scanReceipt = new ScanReceipt();
-    String scanId = "test-scan-id";
-    scanReceipt.setScanId(scanId);
-
-    String scanFileContent = "test scan file content";
-    when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(hdsClient.get(eq(servletRequest), any(HdsClientAnalytics.class), eq(ScanReceipt.class), any(String.class),
-        eq((Map<String, String>) null), any(String[].class))).thenReturn(scanReceipt);
-
-    scanReceipt = scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
-    assertThat(scanReceipt.getScanId(), is(scanId));
-    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
-    assertThat(app.getOrganizationId(), is(automaticApplicationsConfigurationDAO.getOrganizationId()));
-    File scanFile = work.getScanFile(app.getId(), scanId);
-    assertThat(scanFile.exists(), is(true));
-    assertThat(FileUtils.readFileToString(scanFile, "UTF-8"), is(scanFileContent));
   }
 }

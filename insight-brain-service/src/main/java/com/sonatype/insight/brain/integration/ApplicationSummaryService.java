@@ -21,9 +21,14 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 public class ApplicationSummaryService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApplicationSummaryService.class);
+
   private static final Comparator<Application> APP_COMPARATOR = new Comparator<Application>()
   {
     @Override
@@ -99,28 +104,38 @@ public class ApplicationSummaryService
    * Verifies if the user can access the application identified by applicationPublicId for the specified goal.
    * If an application with the specified applicationPublicId already exists, then the method checks access for the
    * current user and the specified goal to that application.
-   * If such an application does not exist and automatic application creation is enabled, then the method returns true
-   * (the application may be created automatically at a later time when a scan is uploaded for that application public
-   * ID).
+   * If such an application does not exist and automatic application creation is enabled, then the method creates the
+   * new application and returns true to indicate the application will now be available.
    * 
    * @since 1.45
    */
-  boolean isApplicationAllowed(String applicationPublicId, Goal goal) {
+  boolean verifyOrCreateApplication(String applicationPublicId, Goal goal) {
     if (goal == null) {
       throw new BadRequestException("A goal must be specified");
     }
 
-    if (applicationDAO.getByPublicId(applicationPublicId) != null) {
-      // An application with the specified public ID exists.
+    Application application = applicationDAO.getByPublicId(applicationPublicId);
+
+    // If the application does not exist and automatic application creation is enabled, then create a new
+    // application with the given public ID.
+    if (application == null && automaticApplicationsConfigurationDAO.isEnabled()) {
+      log.info("Automatic application creation is enabled. Creating an application with name and public id: {}.",
+          applicationPublicId);
+      application = new Application(applicationPublicId, applicationPublicId,
+          automaticApplicationsConfigurationDAO.getOrganizationId());
+      applicationDAO.insert(application);
+    }
+
+    // Verify the application public ID after (possibly) automatically creating the application in the case
+    // the user does not actually have the permissions to access it
+    if (application != null) {
       for (Application app : getApplicationsForGoal(goal)) {
         if (app.getPublicId().equals(applicationPublicId)) {
           return true;
         }
       }
-      return false;
     }
 
-    // An application with the specified public ID does not exist.
-    return automaticApplicationsConfigurationDAO.isEnabled();
+    return false;
   }
 }

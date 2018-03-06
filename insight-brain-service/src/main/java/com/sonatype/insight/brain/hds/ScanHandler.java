@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -27,7 +26,6 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.archive.RegexSelector;
 import com.sonatype.insight.scan.archive.Selector.Selection;
@@ -72,16 +70,13 @@ public class ScanHandler
 
   private final ApplicationDAO appDAO;
 
-  private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
-
   @Inject
   public ScanHandler(InsightWork work,
                      ScanUploader scanUploader,
                      ScanReader scanReader,
                      ScanWriterFactory scanWriterFactory,
                      ProprietaryConfigService proprietaryConfigService,
-                     ApplicationDAO appDAO,
-                     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO)
+                     ApplicationDAO appDAO)
   {
     this.work = work;
     this.scanUploader = scanUploader;
@@ -89,47 +84,19 @@ public class ScanHandler
     this.scanWriterFactory = scanWriterFactory;
     this.proprietaryConfigService = proprietaryConfigService;
     this.appDAO = appDAO;
-    this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
   }
 
-  ScanReceipt handle(HttpServletRequest httpRequest, String applicationPublicId, ClientScanType clientScanType)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
+  ScanReceipt handle(HttpServletRequest httpRequest,
+                     @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+                     ClientScanType clientScanType)
       throws IOException
   {
     long start = System.currentTimeMillis();
     log.debug("Received {} scan for application public id {}.", clientScanType, applicationPublicId);
 
-    Application app = appDAO.getByPublicId(applicationPublicId);
-    if (app == null) {
-      // If automatic application creation is enabled, then create a new application with the given public ID.
-      if (automaticApplicationsConfigurationDAO.isEnabled()) {
-        log.info(
-            "Automatic application creation is enabled. Creating an application with name and public id: {}.",
-            applicationPublicId);
-        app = new Application(applicationPublicId, applicationPublicId,
-            automaticApplicationsConfigurationDAO.getOrganizationId());
-        appDAO.insert(app);
-      }
-      else {
-        throw new NotFoundException("Could not find an application with public ID " + applicationPublicId + ".");
-      }
-    }
+    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
 
-    ScanReceipt scanReceipt = handle(httpRequest, app, clientScanType);
-
-    log.debug("Handled {} scan id {} for application public id {} in {} ms.", clientScanType, scanReceipt.getScanId(),
-        applicationPublicId, System.currentTimeMillis() - start);
-
-    return scanReceipt;
-  }
-
-  // This method is package visible only to enable the authorization check. It should not be called outside of this
-  // class.
-  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
-  ScanReceipt handle(HttpServletRequest httpRequest,
-                     @AuthzContext(AuthzContext.Key.APPLICATION) Application app,
-                     ClientScanType clientScanType)
-      throws IOException
-  {
     File tempScanFile = saveScanFromHttpRequest(httpRequest, app, clientScanType);
 
     File tempTwistlockScanFile = null;
@@ -152,6 +119,9 @@ public class ScanHandler
         FileUtils.rename(tempTwistlockScanFile, toTwistlockScanFilename(scanFile));
       }
     }
+
+    log.debug("Handled {} scan id {} for application public id {} in {} ms.", clientScanType, scanReceipt.getScanId(),
+        applicationPublicId, System.currentTimeMillis() - start);
 
     return scanReceipt;
   }

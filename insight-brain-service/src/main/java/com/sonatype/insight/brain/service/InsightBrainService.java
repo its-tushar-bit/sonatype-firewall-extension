@@ -276,8 +276,16 @@ public class InsightBrainService
       @Override
       protected ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
         super.configureObjectMapper(objectMapper);
+
         // Workaround to let us detect an unset syslog log format
-        return objectMapper.registerModule(new InsightSyslogAppenderFactory.Module());
+        objectMapper.registerModule(new InsightSyslogAppenderFactory.Module());
+
+        // Workaround to let us set different defaults in the core HTTP configuration
+        objectMapper.registerModule(new InsightHttpConnectorFactory.Module());
+        objectMapper.registerModule(new InsightHttpsConnectorFactory.Module());
+        objectMapper.registerModule(new InsightDefaultServerFactory.Module());
+
+        return objectMapper;
       }
     });
   }
@@ -295,9 +303,6 @@ public class InsightBrainService
     objectMapper.registerModule(new ParameterNamesModule());
     objectMapper.registerModule(new Jdk8Module());
     objectMapper.registerModule(new JavaTimeModule());
-
-    // Workaround to let us set different defaults in the core HTTP configuration
-    objectMapper.registerModule(new HttpConfig.Module());
 
     // More defaults
     objectMapper.setPropertyNamingStrategy(new AnnotationSensitivePropertyNamingStrategy());

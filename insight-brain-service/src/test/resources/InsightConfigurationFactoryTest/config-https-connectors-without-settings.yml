@@ -1,0 +1,9 @@
+server:
+  applicationConnectors:
+    - type: https
+      keyStorePath: "keyStorePath"
+      keyStorePassword: "keyStorePassword"
+  adminConnectors:
+    - type: https
+      keyStorePath: "keyStorePath"
+      keyStorePassword: "keyStorePassword"

@@ -10,6 +10,9 @@ import java.util.List;
 
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
+import io.dropwizard.jetty.ConnectorFactory;
+import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.logging.AbstractAppenderFactory;
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.ConsoleAppenderFactory;
@@ -19,18 +22,24 @@ import io.dropwizard.logging.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
+import io.dropwizard.server.ServerFactory;
 import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.util.Duration;
 import io.dropwizard.setup.Environment;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class InsightConfigurationFactoryTest
 {
   private static final List<Class<?>> CONSOLE_FILE_SYSLOG_CLASSES = Arrays
       .asList(ConsoleAppenderFactory.class, FileAppenderFactory.class, SyslogAppenderFactory.class);
+  
+  private static final int DROPWIZARD_HTTPS_PORT = new HttpsConnectorFactory().getPort();
 
   @Test
   public void testBuild_ConfigWithLogbackAccessRequestAppendersWithoutLogFormats_UsesOurRequestLogFormat()
@@ -93,6 +102,76 @@ public class InsightConfigurationFactoryTest
         Arrays.asList("consoleServerLogFormat", "fileServerLogFormat", "syslogServerLogFormat"));
   }
 
+  @Test
+  public void testBuild_NoServer_UsesOurDefaultConnectors() throws Exception
+  {
+    InsightConfig insightConfig = build("config-no-server.yml");
+
+    DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
+    assertConnector(defaultServerFactory.getApplicationConnectors(), HttpConnectorFactory.class,
+        InsightConfigurationFactory.DEFAULT_APPLICATION_PORT, InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+    assertConnector(defaultServerFactory.getAdminConnectors(), HttpConnectorFactory.class,
+        InsightConfigurationFactory.DEFAULT_ADMIN_PORT, InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+  }
+
+  @Test
+  public void testBuild_EmptyServer_UsesOurDefaultConnectors() throws Exception
+  {
+    InsightConfig insightConfig = build("config-empty-server.yml");
+
+    DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
+    assertConnector(defaultServerFactory.getApplicationConnectors(), HttpConnectorFactory.class,
+        InsightConfigurationFactory.DEFAULT_APPLICATION_PORT, InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+    assertConnector(defaultServerFactory.getAdminConnectors(), HttpConnectorFactory.class,
+        InsightConfigurationFactory.DEFAULT_ADMIN_PORT, InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+  }
+
+  @Test
+  public void testBuild_HttpConnectorsWithoutSettings_UseOurDefaultSettings() throws Exception
+  {
+    InsightConfig insightConfig = build("config-http-connectors-without-settings.yml");
+
+    DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
+    assertConnector(defaultServerFactory.getApplicationConnectors(), HttpConnectorFactory.class,
+        InsightConfigurationFactory.DEFAULT_APPLICATION_PORT, InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+    assertConnector(defaultServerFactory.getAdminConnectors(), HttpConnectorFactory.class,
+        InsightConfigurationFactory.DEFAULT_APPLICATION_PORT, InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+  }
+
+  @Test
+  public void testBuild_HttpConnectorsWithSettings_UseGivenSettings() throws Exception
+  {
+    InsightConfig insightConfig = build("config-http-connectors-with-settings.yml");
+
+    DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
+    assertConnector(defaultServerFactory.getApplicationConnectors(), HttpConnectorFactory.class, 9070,
+        Duration.minutes(30));
+    assertConnector(defaultServerFactory.getAdminConnectors(), HttpConnectorFactory.class, 9071, Duration.minutes(30));
+  }
+
+  @Test
+  public void testBuild_HttpsConnectorsWithoutSettings_UseOurIdleTimeout() throws Exception
+  {
+    InsightConfig insightConfig = build("config-https-connectors-without-settings.yml");
+
+    DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
+    assertConnector(defaultServerFactory.getApplicationConnectors(), HttpsConnectorFactory.class, DROPWIZARD_HTTPS_PORT,
+        InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+    assertConnector(defaultServerFactory.getAdminConnectors(), HttpsConnectorFactory.class, DROPWIZARD_HTTPS_PORT,
+        InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+  }
+
+  @Test
+  public void testBuild_HttpsConnectorsWithSettings_UseGivenSettings() throws Exception
+  {
+    InsightConfig insightConfig = build("config-https-connectors-with-settings.yml");
+
+    DefaultServerFactory defaultServerFactory = assertDefaultServerFactory(insightConfig);
+    assertConnector(defaultServerFactory.getApplicationConnectors(), HttpsConnectorFactory.class, 9070,
+        Duration.minutes(30));
+    assertConnector(defaultServerFactory.getAdminConnectors(), HttpsConnectorFactory.class, 9071, Duration.minutes(30));
+  }
+
   private InsightConfig build(String filename) throws Exception {
     InsightBrainService insightBrainService = new InsightBrainService();
     Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(insightBrainService);
@@ -122,5 +201,24 @@ public class InsightConfigurationFactoryTest
       assertThat(appenderFactories.get(index), instanceOf(appenderFactoryClasses.get(index)));
       assertThat(((AbstractAppenderFactory<?>) appenderFactories.get(index)).getLogFormat(), is(formats.get(index)));
     }
+  }
+
+  private DefaultServerFactory assertDefaultServerFactory(InsightConfig insightConfig) {
+    ServerFactory serverFactory = insightConfig.getServerFactory();
+    assertThat(serverFactory, is(instanceOf(DefaultServerFactory.class)));
+    return (DefaultServerFactory) serverFactory;
+  }
+
+  private void assertConnector(List<ConnectorFactory> connectors,
+                               Class<? extends HttpConnectorFactory> cls,
+                               int port,
+                               Duration idleTimeout)
+  {
+    assertThat(connectors, is(notNullValue()));
+    assertThat(connectors, hasSize(1));
+    assertThat(connectors.get(0), is(instanceOf(cls)));
+    HttpConnectorFactory connector = (HttpConnectorFactory) connectors.get(0);
+    assertThat(connector.getPort(), is(port));
+    assertThat(connector.getIdleTimeout(), is(idleTimeout));
   }
 }

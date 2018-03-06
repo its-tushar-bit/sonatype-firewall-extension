@@ -5,20 +5,19 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.Collections;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
-import io.dropwizard.util.Duration;
-import org.eclipse.jetty.server.HttpConfiguration;
 
 /**
  * Custom {@link DefaultServerFactory} with updated defaults. We used to set them externally in InsightConfig, but if
  * someone chose to customize one of the properties then the newly deserialized class would not include our changes.
  * Setting them in the constructor means they always get applied first. Uses mixin to apply "JsonDeserialize.as".
  */
-@JsonDeserialize(as = HttpConfig.class)
-public class HttpConfig
+@JsonDeserialize(as = InsightDefaultServerFactory.class)
+public class InsightDefaultServerFactory
     extends DefaultServerFactory
 {
   public static class Module
@@ -28,17 +27,16 @@ public class HttpConfig
 
     public Module() {
       // makes it look like JsonDeserialize.as was on original class
-      setMixInAnnotation(HttpConfiguration.class, HttpConfig.class);
+      setMixInAnnotation(DefaultServerFactory.class, InsightDefaultServerFactory.class);
     }
   }
 
-  public HttpConfig() {
+  public InsightDefaultServerFactory() {
     setRegisterDefaultExceptionMappers(false);
     
-    HttpConnectorFactory applicationConnector = (HttpConnectorFactory) getApplicationConnectors().get(0);
-    applicationConnector.setPort(8070);
-    applicationConnector.setIdleTimeout(Duration.minutes(15));
-    HttpConnectorFactory adminConnector = (HttpConnectorFactory) getAdminConnectors().get(0);
-    adminConnector.setPort(8071);
+    setApplicationConnectors(Collections
+        .singletonList(new InsightHttpConnectorFactory(InsightConfigurationFactory.DEFAULT_APPLICATION_PORT)));
+    setAdminConnectors(
+        Collections.singletonList(new InsightHttpConnectorFactory(InsightConfigurationFactory.DEFAULT_ADMIN_PORT)));
   }
 }

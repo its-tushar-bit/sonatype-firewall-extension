@@ -37,7 +37,7 @@ public class InsightConfig
   public static final String DEFAULT_BACKUP_DIR = "db-backup";
 
   {
-    setServerFactory(new HttpConfig());
+    setServerFactory(new InsightDefaultServerFactory());
   }
 
   @Valid

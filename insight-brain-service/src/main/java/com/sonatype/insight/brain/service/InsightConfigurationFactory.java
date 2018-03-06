@@ -19,12 +19,19 @@ import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.RequestLogFactory;
 import io.dropwizard.server.AbstractServerFactory;
+import io.dropwizard.util.Duration;
 
 public class InsightConfigurationFactory
     extends YamlConfigurationFactory<InsightConfig>
 {
   static final String DEFAULT_REQUEST_LOG_FORMAT =
       "%clientHost %l %user [%date] \"%requestURL\" %statusCode %bytesSent %elapsedTime \"%header{User-Agent}\"";
+
+  static final int DEFAULT_APPLICATION_PORT = 8070;
+
+  static final int DEFAULT_ADMIN_PORT = 8071;
+
+  static final Duration DEFAULT_IDLE_TIMEOUT = Duration.minutes(15);
 
   public InsightConfigurationFactory(final Class<InsightConfig> klass,
                                      final Validator validator,

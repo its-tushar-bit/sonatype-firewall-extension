@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.db;
 
 import java.io.File;
+import java.util.zip.ZipFile;
 
 import javax.sql.DataSource;
 
@@ -16,6 +17,7 @@ import org.junit.Test;
 import org.springframework.jdbc.datasource.init.ScriptStatementFailedException;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -70,6 +72,26 @@ public class H2DatabaseMigratorTest
     assertThat(PostIncrementalMigratorVersionPlus1.invoked, is(true));
     assertThat(PostIncrementalMigratorVersionDesired.invoked, is(true));
     assertThat(PostIncrementalMigratorVersionDesiredPlus1.invoked, is(false));
+  }
+
+  @Test
+  public void testMigrate_ZipBackups() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir,  getClass().getSimpleName() + "/ZipBackupTest");
+
+    String dbName = "test";
+    File backupDir = tempDir.newFolder();
+
+    new H2DatabaseMigrator().backup(databaseDir, dbName, backupDir);
+
+    File backupZip = new File(backupDir, dbName + ".zip");
+    assertThat(backupZip.exists(), is(true));
+
+    try (ZipFile zipFile = new ZipFile(backupZip)) {
+      assertThat(zipFile.size(), is(2));
+      assertThat(zipFile.getEntry("test.h2.db"), is(notNullValue()));
+      assertThat(zipFile.getEntry("test.ver"), is(notNullValue()));
+    }
   }
 
   @Test

@@ -6,11 +6,16 @@
 package com.sonatype.insight.brain.db;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.IntConsumer;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.sql.DataSource;
 
@@ -149,12 +154,22 @@ public class H2DatabaseMigrator
     }
   }
 
-  private void backup(File databaseDir, String databaseName, File backupDir) throws IOException {
-    for (File file : databaseDir.listFiles()) {
-      if (!file.getName().startsWith(databaseName) || file.getName().equals(databaseName + ".lock.db")) {
-        continue;
+  // Package visibility for tests only.
+  void backup(File databaseDir, String databaseName, File backupDir) throws IOException {
+    File[] targets = databaseDir.listFiles((file) ->
+                                           (file.getName().startsWith(databaseName)
+                                            && !file.getName().equals(databaseName + ".lock.db")));
+
+    if (targets.length > 0) {
+      backupDir.mkdirs();
+      File dbBackupZip = new File(backupDir, databaseName + ".zip");
+      try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(dbBackupZip))) {
+        zipOut.setLevel(Deflater.BEST_SPEED);
+        for (File file : targets) {
+          zipOut.putNextEntry(new ZipEntry(file.getName()));
+          Files.copy(file.toPath(), zipOut);
+        }
       }
-      FileUtils.copyFile(file, new File(backupDir, file.getName()));
     }
   }
 

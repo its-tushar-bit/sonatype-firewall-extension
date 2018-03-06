@@ -10,7 +10,6 @@ import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -49,18 +48,6 @@ public class PolicyResourceTest
     policyExportResult.policies = Arrays.asList(new Policy());
 
     return policyExportResult;
-  }
-
-  @Test
-  public void testAppImport_InsertFailure() throws Exception {
-    String applicationPublicId = "PolicyResourceTest-testAppImport_Insert";
-
-    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId).path("import")
-        .part("file", "file", createImportBody()).post();
-
-    // ensure that we cannot import to an App that does not exist
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Could not find an application with public ID " + applicationPublicId + "."));
   }
 
   @Test
@@ -490,31 +477,12 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testExportImport_Application() throws Exception {
-    // Export
-    Application fromApp = tempEntity.newApplicationWithParent("FromAppPublicId");
-    tempEntity.newPolicy(fromApp.getId(), "Test Policy");
+  public void testAppImport_NotSupported() throws Exception {
+    HttpResponse response = restRequest(OwnerType.APPLICATION, "foo").path("import")
+        .part("file", "file", createImportBody()).post();
 
-    HttpResponse response = restRequest(OwnerType.APPLICATION, fromApp.getPublicId()).path("export").get();
-    assertResponseStatus(200, response);
-    PolicyExportResult policyExportResult = response.getBody(PolicyExportResult.class);
-    assertThat(policyExportResult, is(notNullValue()));
-    assertThat(policyExportResult.policies, hasSize(1));
-    assertThat(policyExportResult.policies.get(0).getName(), is("Test Policy"));
-
-    new ApplicationDAO().delete(fromApp);
-
-    // Import
-    Application toApp = tempEntity.newApplicationWithParent("ToAppPublicId");
-    response = restRequest(OwnerType.APPLICATION, toApp.getPublicId()).path("import")
-        .part("file", "policyExportResult.json", policyExportResult).post();
-    assertResponseStatus(200, response);
-    PolicyImportResult policyImportResult = response.getBody(PolicyImportResult.class);
-    assertThat(policyImportResult, is(notNullValue()));
-    assertThat(policyImportResult.ownerName, is(toApp.getName()));
-
-    List<Policy> policies = policyDAO.getByOwnerId(toApp.getId());
-    assertThat(policies, hasSize(1));
-    assertThat(policies.get(0).getName(), is("Test Policy"));
+    // policy import to applications is no longer supported
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), is("Importing policies into an application is no longer supported."));
   }
 }

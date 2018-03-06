@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,12 +16,10 @@ import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
-import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
-import com.sonatype.clm.testing.functional.elements.ImportPolicyModal;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
@@ -58,7 +55,6 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
@@ -738,60 +734,6 @@ public abstract class AbstractSummaryViewTest
       policy.build().find("i").shouldHave(PolicyTileListElement.FAIL_ICON).shouldHave(PolicyTileListElement.FAIL)
           .shouldNotHave(PolicyTileListElement.WARN_ICON).shouldNotHave(PolicyTileListElement.WARN);
     }
-  }
-
-  @Test
-  public void testImportPolicy() {
-    String filePath = new File(getClass().getResource("/policyExport/samplePolicy.json").getFile()).getAbsolutePath();
-
-    ActionDropDown.actionButton().click();
-    ActionDropDown.importPoliciesButton().shouldBe(visible).click();
-
-    ImportPolicyModal.root().shouldBe(visible);
-    ImportPolicyModal.importButton().shouldBe(visible, disabled);
-
-    ImportPolicyModal.fileInput().shouldBe(visible).sendKeys(filePath);
-
-    // Give a maximum of 2 seconds for the file to be loaded
-    ImportPolicyModal.importButton().waitUntil(enabled, 2000).click();
-    // verify mask and wait for it to go away
-    FormMask.seeAndWaitForDismissal();
-
-    // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
-    LabelTile labelTile = OwnerSummaryPage.labelTile();
-    labelTile.labelList(0);
-    TileSimpleList list = labelTile.labelList(0);
-    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
-    list.elements().shouldHaveSize(1);
-    TileSimpleListElement actualLabel = list.element(0);
-    actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
-
-    // scroll to the ltgs
-    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
-    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
-    ThreatGroupTileSimpleList threatGroupTileSimpleList = ltgTile.ltgList(0);
-    threatGroupTileSimpleList.emptyDescriptor().shouldNot(exist);
-    threatGroupTileSimpleList.elements().shouldHaveSize(1);
-    threatGroupTileSimpleList.element(0).name().shouldBe(visible).shouldHave(text("Test LTG"));
-
-    // scroll to the policy tile
-    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
-    PolicyTile policyTile = OwnerSummaryPage.policyTile();
-    PolicyTileList policyList = policyTile.policyList(0);
-    policyList.emptyDescriptor().shouldBe(hidden);
-    policyList.rows().shouldHaveSize(2); // 1 row plus header
-    policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
-    PolicyTileListElement policyElement = policyList.row(1);
-    policyElement.name().shouldBe(visible).shouldHave(text("Test"));
-    policyElement.proxy().shouldBe(visible).shouldHave(text("warn"));
-
-    // scroll to the application categories tile
-    OwnerSummaryPage.summaryTile().appCategoriesButton().shouldBe(visible).click();
-    CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
-    TileSimpleList categoryList = categoryTile.categoryList(0);
-    categoryList.elements().shouldBe(empty);
-    categoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
   }
 
   @Test

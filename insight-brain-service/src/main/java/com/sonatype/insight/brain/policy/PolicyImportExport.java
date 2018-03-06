@@ -15,7 +15,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -61,8 +60,6 @@ public class PolicyImportExport
 
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
-
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private LabelDAO labelDAO = new LabelDAO();
@@ -79,54 +76,6 @@ public class PolicyImportExport
 
   @Inject
   public PolicyImportExport() {
-  }
-
-  /**
-   * <p>
-   * Import policies into an Application. Existing polices are deleted from the application. Application Labels will be
-   * merged if they match (case-insensitive by name) existing data; this preserves any related ComponentLabels.
-   * </p>
-   * <p>
-   * License Threat Groups and associated Licenses on this application are all deleted as part of the import. If the
-   * imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy, then it will be
-   * discarded and the existing one higher up in the hierarchy will be used in it's place
-   * </p>
-   * 
-   * @param application application to import policy to
-   * @param exportDTO data to import
-   * @return result embedding the url of the application
-   */
-  @Authorize(permission = Permission.WRITE)
-  PolicyImportResult importApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application,
-                                       PolicyExportResult exportDTO)
-  {
-    checkAppImportPreconditions(application, exportDTO);
-
-    String appId = application.getId();
-    String orgId = application.getOrganizationId();
-
-    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
-      tx.begin();
-      deleteFromOwnerAndDescendants(tx, application);
-      importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, appId), appId, orgId);
-      importLicenseThreatGroups(tx, exportDTO, appId);
-      // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
-      // db tables for policy condition validations.
-      // If everything was done in one transaction here, then all policy related validation methods need to participate
-      // in the same transaction, so they would need to take a TransactionContext as param, which is not worth it in my
-      // opinion.
-      tx.commit();
-
-      tx.begin();
-      for (Policy policy : exportDTO.policies) {
-        policy.setId(null);
-        policy.setOwnerId(appId);
-        policyDAO.insert(tx, policy);
-      }
-      tx.commit();
-    }
-
-    return createResult(application.getName());
   }
 
   /**
@@ -167,7 +116,7 @@ public class PolicyImportExport
       tx.begin();
 
       deleteFromOwnerAndDescendants(tx, organization);
-      importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), null, orgId);
+      importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), orgId);
       importLicenseThreatGroups(tx, exportDTO, orgId);
       importAndMergeTags(tx, exportDTO, orgId);
 
@@ -284,19 +233,16 @@ public class PolicyImportExport
    * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param oldLabels already persisted labels
-   * @param applicationId the applicationId owning the labels(may be null if we're processing an organization)
-   * @param organizationId the organizationId owning the labels; if applicationId is not set this organization will be
-   *          updated
+   * @param organizationId the organizationId owning the labels
    */
   void importAndMergeLabels(final TransactionContext tx,
                             final PolicyExportResult exportDTO,
                             final List<Label> oldLabels,
-                            final String applicationId,
                             final String organizationId)
   {
     if (!exportDTO.labels.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
-      if (applicationId != null && organizationId != null) {
+      if (organizationId != null) {
         for (Label label : labelDAO.getByOwnerId(tx, organizationId)) {
           idMap.put(label.getId(), label.getId());
         }
@@ -315,7 +261,7 @@ public class PolicyImportExport
         else {
           // New label, create it.
           label.setId(null);
-          label.setOwnerId(applicationId != null ? applicationId : organizationId);
+          label.setOwnerId(organizationId);
           label.setColor(label.getColor().getUpdatedColor());
           labelDAO.insert(tx, label);
           idMap.put(labelId, label.getId());
@@ -426,15 +372,6 @@ public class PolicyImportExport
     PolicyImportResult result = new PolicyImportResult();
     result.ownerName = name;
     return result;
-  }
-
-  private void checkAppImportPreconditions(Application app, PolicyExportResult exportDTO) {
-    checkNotNull(app, "Import failed. The passed in application was null.");
-    checkPolicyExportResultPreconditions(exportDTO);
-    if (!exportDTO.tags.isEmpty() || !exportDTO.policyTags.isEmpty()) {
-      throw new BadRequestException(
-          "Importing policies with application categories to an application is not supported.");
-    }
   }
 
   private void checkOrgImportPreconditions(Organization org, PolicyExportResult exportDTO) {

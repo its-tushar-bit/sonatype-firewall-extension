@@ -251,12 +251,12 @@ public class PolicyResource
   private PolicyImportResult importPolicies(OwnerType ownerType, String ownerId, InputStream in) throws IOException {
     PolicyExportResult exportDTO = readPolicyExportResult(in);
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
     if (OwnerType.ORGANIZATION.equals(ownerType)) {
-      return policyImportExport.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
+      return policyImportExport.importOrganization(new OrganizationDAO().getByIdNotNull(ownerId), exportDTO);
     }
-    return policyImportExport.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
+    else {
+      throw new BadRequestException("Importing policies into an application is no longer supported.");
+    }
   }
 
   private PolicyExportResult readPolicyExportResult(InputStream stream) throws IOException {

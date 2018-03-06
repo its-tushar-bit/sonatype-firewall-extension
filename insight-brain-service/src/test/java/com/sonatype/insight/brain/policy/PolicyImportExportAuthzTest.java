@@ -66,18 +66,6 @@ public class PolicyImportExportAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testImportApplication_Unauthorized() throws Exception {
-    login();
-    policyImportExport.importApplication(app, new PolicyExportResult());
-  }
-
-  @Test
-  public void testImportApplication_Authorized() throws Exception {
-    grantWritePermission(app.getId());
-    policyImportExport.importApplication(app, new PolicyExportResult());
-  }
-
-  @Test(expected = UnauthorizedException.class)
   public void testImportOrganization_Unauthorized() throws Exception {
     login();
     policyImportExport.importOrganization(org, new PolicyExportResult());

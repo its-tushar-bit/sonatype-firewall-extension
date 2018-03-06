@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Lists;
@@ -57,7 +56,6 @@ import org.mockito.MockitoAnnotations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -65,7 +63,6 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @since 1.7
@@ -134,7 +131,7 @@ public class PolicyImportExportTest
 
     try (TransactionContext tx = labelDAO.createTransactionContext()) {
       tx.begin();
-      policyImportExport.importAndMergeLabels(tx, exportDTO, oldLabels, null, toOrg.getId());
+      policyImportExport.importAndMergeLabels(tx, exportDTO, oldLabels, toOrg.getId());
       tx.commit();
     }
 
@@ -157,72 +154,6 @@ public class PolicyImportExportTest
 
     assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(),
         is(oldLabelToUpdate.getId()));
-  }
-
-  @Test
-  public void testImportAndMergeLabelsForApp() throws Exception {
-    List<Label> appLabels = createLabels(fromApp.getId());
-    Label fromOrgLabel = tempEntity.newLabel(fromOrg.getId(), "orgLabel", Color.dark_purple);
-
-    createPolicy(fromApp.getId(), appLabels.get(0).getId(), "App Policy 1");
-    createPolicy(fromApp.getId(), fromOrgLabel.getId(), "App Policy 2");
-    PolicyExportResult exportDTO = policyImportExport.exportApplication(fromApp);
-    exportDTO = detachObjects(exportDTO);
-    deleteFromOrg();
-
-    Organization toOrg = tempEntity.newOrganization();
-    Application toApp = tempEntity.newApplication(toOrg.getId());
-
-    tempEntity.newLabel(toOrg.getId(), "orgLabel", Color.dark_purple);
-
-    Label oldLabelToUpdate = new Label(toApp.getId(), appLabels.get(0).getLabel().toLowerCase(), Color.light_green);
-    oldLabelToUpdate.setDescription("anything");
-    labelDAO.insert(oldLabelToUpdate);
-
-    Label oldLabelToKeep = tempEntity.newLabel(toApp.getId(), "keepMe", Color.dark_red);
-
-    List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
-
-    try (TransactionContext tx = labelDAO.createTransactionContext()) {
-      tx.begin();
-      policyImportExport.importAndMergeLabels(tx, exportDTO, oldLabels, toApp.getId(), toOrg.getId());
-      tx.commit();
-    }
-
-    List<Label> labels = labelDAO.getByOwnerId(toApp.getId());
-    assertThat(labels, hasSize(3));
-
-    Label keptLabel = labels.get(0);
-    assertThat(keptLabel.getColor(), is(Color.dark_red));
-    assertThat(keptLabel.getLabel(), is("keepMe"));
-
-    Label updatedLabel = labels.get(1);
-    assertThat(updatedLabel.getColor(), is(Color.dark_purple)); // updated
-    assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
-    assertThat(updatedLabel.getId(), is(oldLabelToUpdate.getId())); // id remains the same
-    assertThat(updatedLabel.getDescription(), nullValue()); // existing description is removed
-
-    Label importedLabel = labels.get(2);
-    assertThat(importedLabel.getColor(), is(Color.dark_blue));
-    assertThat(importedLabel.getLabel(), is("LABEL2"));
-
-    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(oldLabelToUpdate.getId()));
-    assertThat(exportDTO.policies.get(1).getConstraints().get(0).getConditions().get(0).getValue(), is(nullValue()));
-  }
-
-  @Test
-  public void testDeletionOfPolicyWaiversFromApp() {
-    Organization toOrg = tempEntity.newOrganization();
-    Application toApp = tempEntity.newApplication(toOrg.getId());
-
-    Policy appPolicy = tempEntity.newPolicy(toApp.getId(), "Policy Name");
-    tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
-
-    // only interested in the deletion so import an empty DTO
-    policyImportExport.importApplication(toApp, new PolicyExportResult());
-
-    assertThat(new PolicyWaiverDAO().getByOwnerId(toApp.getId()), is(empty()));
   }
 
   @Test
@@ -290,29 +221,6 @@ public class PolicyImportExportTest
     assertTag(tag, tags.get(0));
     assertThat(tags.get(0).getId(), is(not(tag.getId())));
     assertThat(exportDTO.policyTags.get(0).getTagId(), is(tags.get(0).getId()));
-  }
-
-  @Test
-  public void testImportPolicyTagsToApplication() throws IOException {
-    // Remove the license threat groups because we don't want errors about them.
-    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroupDAO.getByOwnerId(fromOrg.getId())) {
-      licenseThreatGroupDAO.delete(licenseThreatGroup);
-    }
-
-    Tag tag = tempEntity.newTag(fromOrg.getId(), "tagName");
-    Policy policy = tempEntity.newPolicy(fromOrg.getId(), "Policy Name");
-    tempEntity.newPolicyTag(policy.getId(), tag.getId());
-    PolicyExportResult policyExportResult = policyImportExport.exportOrganization(fromOrg);
-    policyExportResult = detachObjects(policyExportResult);
-
-    try {
-      policyImportExport.importApplication(fromApp, policyExportResult);
-      fail("Import should have thrown an exception due to tag data");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(),
-          is("Importing policies with application categories to an application is not supported."));
-    }
   }
 
   @Test
@@ -502,16 +410,18 @@ public class PolicyImportExportTest
 
   @Test
   public void testExportImport_Update() throws Exception {
-    String appId = fromApp.getId();
+    Organization org = tempEntity.newOrganization();
 
-    Label label1 = tempEntity.newLabel(appId, "label1", Color.dark_blue);
-    Label label2 = tempEntity.newLabel(appId, "label2", Color.dark_red);
-    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId);
-    LicenseThreatGroupLicense licenseThreatGroupLicense = tempEntity.newLicenseThreatGroupLicense(appId,
+    String orgId = org.getId();
+
+    Label label1 = tempEntity.newLabel(orgId, "label1", Color.dark_blue);
+    Label label2 = tempEntity.newLabel(orgId, "label2", Color.dark_red);
+    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(orgId);
+    LicenseThreatGroupLicense licenseThreatGroupLicense = tempEntity.newLicenseThreatGroupLicense(orgId,
         licenseThreatGroup.getId());
 
     Policy policy = new Policy();
-    policy.setOwnerId(appId);
+    policy.setOwnerId(orgId);
     policy.setName("Policy1");
     Constraint constraint1 = new Constraint();
     constraint1.setName("Constraint1");
@@ -525,7 +435,7 @@ public class PolicyImportExportTest
     policyDAO.insert(policy);
 
     // Export
-    PolicyExportResult policyExportResult = policyImportExport.exportApplication(fromApp);
+    PolicyExportResult policyExportResult = policyImportExport.exportOrganization(org);
     assertNotNull(policyExportResult);
     assertTrue(!policyExportResult.policies.isEmpty());
     assertTrue(!policyExportResult.labels.isEmpty());
@@ -534,20 +444,20 @@ public class PolicyImportExportTest
 
     // Delete and re-create one label - it should be reset by import (matched by label case insensitive)
     labelDAO.delete(label1);
-    label1 = tempEntity.newLabel(appId, label1.getLabel().toUpperCase(Locale.ENGLISH), Color.dark_purple);
+    label1 = tempEntity.newLabel(orgId, label1.getLabel().toUpperCase(Locale.ENGLISH), Color.dark_purple);
     // Delete one label - it should be re-created by the import.
     labelDAO.delete(label2);
     // Add a new label - it should be retained through the import.
-    tempEntity.newLabel(appId, "label3", Color.dark_red);
+    tempEntity.newLabel(orgId, "label3", Color.dark_red);
 
     // Import
     policyExportResult.tags = Collections.emptyList();
     policyExportResult.policyTags = Collections.emptyList();
     policyExportResult = detachObjects(policyExportResult);
-    PolicyImportResult policyImportResult = policyImportExport.importApplication(fromApp, policyExportResult);
+    PolicyImportResult policyImportResult = policyImportExport.importOrganization(org, policyExportResult);
     assertNotNull(policyImportResult);
-    Assert.assertEquals(fromApp.getName(), policyImportResult.ownerName);
-    List<Label> labels = labelDAO.getByOwnerId(appId);
+    Assert.assertEquals(org.getName(), policyImportResult.ownerName);
+    List<Label> labels = labelDAO.getByOwnerId(orgId);
     // All labels retained.
     Assert.assertEquals(3, labels.size());
     Assert.assertEquals(label1.getId(), labels.get(0).getId());
@@ -556,19 +466,19 @@ public class PolicyImportExportTest
     Assert.assertNotEquals(label2.getId(), labels.get(1).getId());
     Assert.assertEquals(label2.getLabel(), labels.get(1).getLabel());
     Assert.assertEquals(label2.getColor(), labels.get(1).getColor());
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(appId);
+    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(orgId);
     Assert.assertEquals(1, licenseThreatGroups.size());
     Assert.assertEquals(licenseThreatGroup.getName(), licenseThreatGroups.get(0).getName());
     Assert.assertNotEquals(licenseThreatGroup.getId(), licenseThreatGroups.get(0).getId());
-    List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(appId);
+    List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(orgId);
     Assert.assertEquals(1, licenseThreatGroupLicenses.size());
     Assert.assertEquals(licenseThreatGroupLicense.getLicenseId(), licenseThreatGroupLicenses.get(0).getLicenseId());
     Assert.assertNotEquals(licenseThreatGroupLicense.getId(), licenseThreatGroupLicenses.get(0).getId());
-    List<Policy> policies = policyDAO.getByOwnerId(appId);
+    List<Policy> policies = policyDAO.getByOwnerId(orgId);
     Assert.assertEquals(1, policies.size());
     Assert.assertEquals(policy.getName(), policies.get(0).getName());
     Assert.assertNotEquals(policy.getId(), policies.get(0).getId());
-    ValidationResult policyValidationResult = policies.get(0).validate(null, appId);
+    ValidationResult policyValidationResult = policies.get(0).validate(null, orgId);
     assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
   }
 
@@ -594,40 +504,6 @@ public class PolicyImportExportTest
     assertThat(policyExportResult.tags, hasSize(3));
     assertThat(policyExportResult.policyTags, notNullValue());
     assertThat(policyExportResult.policyTags, hasSize(4));
-  }
-
-  @Test
-  public void testImportDeletionOfExistingAppPolicy() throws Exception {
-    tempEntity.newPolicy(fromOrg.getId(), "Org Policy");
-    Label orgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.light_green);
-    tempEntity.newComponentLabel(fromOrg.getId(), orgLabel.getId());
-
-    tempEntity.newPolicy(fromApp.getId(), "App Policy");
-    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(fromApp.getId());
-    tempEntity.newLicenseThreatGroupLicense(fromApp.getId(), licenseThreatGroup.getId());
-    Label appLabel = tempEntity.newLabel(fromApp.getId(), Color.light_green);
-    tempEntity.newComponentLabel(fromApp.getId(), appLabel.getId());
-
-    // import an empty PolicyExportResult to the app
-    policyImportExport.importApplication(fromApp, new PolicyExportResult());
-
-    // verify that org data is untouched
-    // 127 at time of writing, should only break if we remove many
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromOrg.getId()).size(), is(greaterThan(100)));
-    assertThat(licenseThreatGroupDAO.getByOwnerId(fromOrg.getId()),
-        hasSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT));
-    assertThat(policyDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
-    assertThat(labelDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
-    assertThat(componentLabelDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
-
-    // verify that we delete all data from the app
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromApp.getId()), is(empty()));
-    assertThat(licenseThreatGroupDAO.getByOwnerId(fromApp.getId()), is(empty()));
-    assertThat(policyDAO.getByOwnerId(fromApp.getId()), is(empty()));
-
-    // Verify that app label data is retained.
-    assertThat(componentLabelDAO.getByOwnerId(fromApp.getId()), hasSize(1));
-    assertThat(labelDAO.getByOwnerId(fromApp.getId()), hasSize(1));
   }
 
   @Test

@@ -455,4 +455,10 @@ public class ApplicationSummaryViewTest
       loginAsAdmin();
     }
   }
+
+  @Test
+  public void testImportPolicy_NotAvailable() {
+    ActionDropDown.actionButton().click();
+    ActionDropDown.importPoliciesButton().shouldNotBe(visible);
+  }
 }

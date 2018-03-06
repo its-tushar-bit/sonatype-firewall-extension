@@ -157,7 +157,7 @@ public class H2DatabaseMigrator
   // Package visibility for tests only.
   void backup(File databaseDir, String databaseName, File backupDir) throws IOException {
     File[] targets = databaseDir.listFiles((file) ->
-                                           (file.getName().startsWith(databaseName)
+                                           (file.isFile() && file.getName().startsWith(databaseName)
                                             && !file.getName().equals(databaseName + ".lock.db")));
 
     if (targets.length > 0) {

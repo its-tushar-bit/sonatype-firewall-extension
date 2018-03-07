@@ -136,6 +136,12 @@ public class InsightBrainService
             InsightBrainService.configFile != null ? InsightBrainService.configFile.getAbsolutePath() : "(none)");
         super.run(environment, namespace, configuration);
       }
+
+      @Override
+      public void onError(Cli cli, Namespace namespace, Throwable t) {
+        // throw up to let our main() method do the desired error logging/handling
+        throw new IllegalStateException("Fatal error trying to start server", t);
+      }
     });
     initialize(bootstrap);
     new ConfigurationChecker().check(arguments, bootstrap);

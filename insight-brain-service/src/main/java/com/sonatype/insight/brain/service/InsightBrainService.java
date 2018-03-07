@@ -95,7 +95,7 @@ public class InsightBrainService
         System.exit(1);
       }
 
-      new InsightBrainService().runFromArguments(args.length > 0 ? args : new String[] { "server" });
+      new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
@@ -123,10 +123,8 @@ public class InsightBrainService
     });
   }
 
-  /**
-   * This is meant to override {@link #run(String[])} from the base class which is unfortunately {@code final} .
-   */
-  public void runFromArguments(String[] arguments) throws Exception {
+  @Override
+  public void run(String... arguments) throws Exception {
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {

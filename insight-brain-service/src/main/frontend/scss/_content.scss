@@ -29,7 +29,14 @@ body {
   white-space: nowrap;
 }
 
-.sidebar-container {
+.iq-root-container {
+  margin: 0 auto;
+  width: 100%;
+  min-width: $iq-page-width-max; 
+  max-width: $iq-page-width-min;
+}
+
+.sidebar-container, .iq-sidebar {
   background-color: $iq-grey-2;
   border-right: 1px solid $iq-grey-3;
   display: inline-block;
@@ -47,7 +54,12 @@ body {
   -webkit-transform: translate3d(0, 0, 0);
 }
 
-.body-container {
+.iq-sidebar {
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.body-container, .iq-body-container {
   background: url("../img/tile_bg.png");
   display: inline-block;
   height: 100%;
@@ -61,6 +73,16 @@ body {
     background-image: url("../img/tile_bg_@2X.jpg");
     background-size: 150px 150px;
   }
+}
+
+.iq-body-container {
+  box-sizing: border-box;
+  overflow-x: hidden;
+  width: $iq-content-width;
+}
+
+.iq-body-container--single-pane {
+  width: 100%;
 }
 
 // NOTE: This class should be refactored/removed in CLM-9460

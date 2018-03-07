@@ -2,62 +2,11 @@
 @import "markdown";
 @import "charts";
 
-// Content
+// Page Layout
 
-.iq-content-wrapper {
-  align-items: stretch;
-  display: flex;
-  height: 100%;
-  margin-right: auto;
-  margin-left: auto;
-  width: 100%;
-  max-width: 1366px;
-  min-width: 1024px;
-}
-
-.iq-body-container {
-  background-color: #fefefe;  
-  background-image: url("/img/tile_bg_@2X.jpg");
-  background-size: 150px 150px;
-  display: block;
-  flex: 1 0 auto;
-  white-space: normal;
-  max-width: 1066px;
-  min-width: 809px;
-  
-  .iq-scrollable {
-    max-height: calc(100vh - 40px); // 40px = height of header
-  }
-}
-
-.iq-sidebar {
-  background-color: #eaeaea;
-  border-right: 1px solid #dedede;
-  display: block;
-  flex: 0 1 auto;
-  padding: 8px;
-  white-space: normal;
-  width: 300px;
-  min-width: 215px;
-  
-  &.iq-scrollable {
-    max-height: calc(100vh - 40px - 16px);
-  }
-}
-
-.ie9 {
-  .iq-content-wrapper {
-    display: block;
-    overflow: hidden;
-  }
-
-  .iq-body-container {
-    display: block;
-    float: right;
-  }
-
+.iq-root-container--gallery {
   .iq-sidebar {
-    float: left;
+    padding-left: 8px;
   }
 }
 

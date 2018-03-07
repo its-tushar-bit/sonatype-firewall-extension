@@ -127,13 +127,21 @@ $iq-dashboard-headers-zindex: 2;
 $iq-dashboard-mask-zindex: 1;
 
 /*
-  #Responsive
+  #OLD Responsive
 */
 $iq-content-width-minimum: 1024px;
 $iq-content-width-maximum: 1366px;
-
-$iq-paragraph-width-maximum: 562px;
-
-$iq-sidebar-width: 22%;
 $iq-sidebar-max-width: 300px;
 $iq-sidebar-min-width: 215px;
+
+/*
+  #Page elements
+*/
+$iq-main-header-height: 40px;
+
+$iq-page-width-max: 1366px; 
+$iq-page-width-min: 1024px; 
+$iq-content-width: 75.9%;
+$iq-sidebar-width: 24.1%;
+
+$iq-paragraph-width-maximum: 562px; 

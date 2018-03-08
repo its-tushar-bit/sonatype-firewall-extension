@@ -32,27 +32,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-chromedriver</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <skip>${skip.functional.tests}</skip>
-              <includeGroupIds>org.chromium</includeGroupIds>
-              <includeArtifactIds>chromedriver</includeArtifactIds>
-              <outputDirectory>${project.build.directory}</outputDirectory>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <overWriteReleases>true</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
@@ -73,7 +52,6 @@
             <selenide.browserSize>1400x1050</selenide.browserSize>
             <selenide.driverManagerEnabled>${selenide.driverManagerEnabled}</selenide.driverManagerEnabled>
             <browser>chrome</browser>
-            <webdriver.chrome.driver>${webdriver.chrome.driver}</webdriver.chrome.driver>
           </systemPropertyVariables>
         </configuration>
         <executions>
@@ -180,14 +158,6 @@
       <artifactId>eyes-selenium-java3</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.chromium</groupId>
-      <artifactId>chromedriver</artifactId>
-      <version>2.33</version>
-      <classifier>${chromedriver.classifier}</classifier>
-      <type>zip</type>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <profiles>
@@ -259,6 +229,54 @@
                 </goals>
               </execution>
             </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>download-webdriver</id>
+      <activation>
+        <property>
+          <name>!webdriver.chrome.driver</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack-chromedriver</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <skip>${skip.functional.tests}</skip>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.chromium</groupId>
+                      <artifactId>chromedriver</artifactId>
+                      <version>2.33</version>
+                      <classifier>${chromedriver.classifier}</classifier>
+                      <type>zip</type>
+                    </artifactItem>
+                  </artifactItems>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                  <overWriteIfNewer>true</overWriteIfNewer>
+                  <overWriteReleases>true</overWriteReleases>
+                  <overWriteSnapshots>true</overWriteSnapshots>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <webdriver.chrome.driver>${webdriver.chrome.driver}</webdriver.chrome.driver>
+              </systemPropertyVariables>
+            </configuration>
           </plugin>
         </plugins>
       </build>

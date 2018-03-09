@@ -29,6 +29,8 @@ public class InsightHttpsConnectorFactory
   public static class Module
       extends SimpleModule
   {
+    private static final long serialVersionUID = -2910685634440587992L;
+
     public Module() {
       setMixInAnnotation(HttpsConnectorFactory.class, InsightHttpsConnectorFactory.class);
     }

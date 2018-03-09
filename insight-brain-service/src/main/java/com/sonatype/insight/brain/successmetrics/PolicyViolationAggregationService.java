@@ -382,6 +382,17 @@ class PolicyViolationAggregationService
     List<PolicyViolation> violations = policyViolationDAO.getActiveByApplicationIdAndStageIdsAndTimeRange(applicationId,
         stageTypeIds, from, upTo);
 
+    SortedMap<PolicyViolationComparable, List<PolicyViolation>> violationMap = new TreeMap<>(
+        PolicyViolationComparator.COMPARATOR);
+    for (PolicyViolation violation : violations) {
+      List<PolicyViolation> equalViolations = violationMap.get(violation);
+      if (equalViolations == null) {
+        equalViolations = new ArrayList<>(1);
+        violationMap.put(violation, equalViolations);
+      }
+      equalViolations.add(violation);
+    }
+
     List<EvaluationEvent> events = new ArrayList<>(evaluations.size() + violations.size() * 2);
     for (PolicyEvaluation evaluation : evaluations) {
       events.add(new EvaluationPerformedEvent(evaluation));
@@ -390,16 +401,45 @@ class PolicyViolationAggregationService
       if (from.compareTo(violation.getOpenTime()) <= 0) {
         events.add(new ViolationDiscoveredEvent(violation));
       }
-      Date resolveTime = violation.getWaiveTime();
-      if (resolveTime == null) {
-        resolveTime = violation.getFixTime();
-      }
-      if (resolveTime != null && resolveTime.compareTo(upTo) < 0) {
+      Date resolveTime = getResolveTime(violation);
+      if (resolveTime != null && resolveTime.compareTo(upTo) < 0
+          && !isViolationWithUnresolvedDuplicate(violation, resolveTime, violationMap.get(violation))) {
         events.add(new ViolationResolvedEvent(violation, resolveTime));
       }
     }
     events.sort(null);
     return events;
+  }
+
+  private Date getResolveTime(PolicyViolation violation) {
+    Date resolveTime = violation.getWaiveTime();
+    if (resolveTime == null) {
+      resolveTime = violation.getFixTime();
+    }
+    return resolveTime;
+  }
+
+  private boolean isViolationUnresolved(PolicyViolation violation, Date timestamp) {
+    if (violation.getOpenTime().compareTo(timestamp) <= 0) {
+      Date resolveTime = getResolveTime(violation);
+      if (resolveTime == null || resolveTime.compareTo(timestamp) > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isViolationWithUnresolvedDuplicate(PolicyViolation violation,
+                                                     Date resolveTime,
+                                                     List<PolicyViolation> equalViolations)
+  {
+    for (PolicyViolation equalViolation : equalViolations) {
+      if (violation != equalViolation && equalViolation.getStageTypeId().equals(violation.getStageTypeId())
+          && isViolationUnresolved(equalViolation, resolveTime)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private abstract class EvaluationEvent
@@ -483,6 +523,9 @@ class PolicyViolationAggregationService
                  SortedMap<PolicyViolationComparable, PolicyViolationResolutionState> resolutionStates)
     {
       PolicyViolationResolutionState resolutionState = resolutionStates.get(violation);
+      if (resolutionState == null) {
+        return;
+      }
       resolutionState.setStageTypeById(violation.getStageTypeId(), false);
       if (resolutionState.isClearedInAllStages()) {
         resolutionStates.remove(resolutionState);

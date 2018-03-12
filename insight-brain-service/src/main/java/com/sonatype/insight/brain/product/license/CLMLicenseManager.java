@@ -128,7 +128,7 @@ public class CLMLicenseManager
 
     public Integer applicationLimitToDisplay;
 
-    public Integer firewallLicensedUsers;
+    public Integer firewallUsersToDisplay;
 
     public String contactName;
 
@@ -146,7 +146,7 @@ public class CLMLicenseManager
     public LicenseInfo(String fingerprint,
                        long expiryTimestamp,
                        Integer licensedUsersToDisplay,
-                       Integer firewallLicensedUsers,
+                       Integer firewallUsersToDisplay,
                        Integer applicationLimitToDisplay,
                        String contactName,
                        String contactCompany,
@@ -160,7 +160,7 @@ public class CLMLicenseManager
       this.fingerprint = fingerprint;
       this.expiryTimestamp = expiryTimestamp;
       this.licensedUsersToDisplay = licensedUsersToDisplay;
-      this.firewallLicensedUsers = firewallLicensedUsers;
+      this.firewallUsersToDisplay = firewallUsersToDisplay;
       this.applicationLimitToDisplay = applicationLimitToDisplay;
       this.contactName = contactName;
       this.contactCompany = contactCompany;
@@ -368,17 +368,26 @@ public class CLMLicenseManager
     String productEdition = getProductEdition();
     Integer applicationLimitToDisplay = null;
     Integer licensedUsersToDisplay = null;
+    Integer firewallUsersToDisplay = null;
 
-    if (productEdition.equals(PRODUCT_AUDITOR)) {
-      applicationLimitToDisplay = licenseCache.getApplicationLimit();
-    }
-    else {
-      licensedUsersToDisplay = licenseCache.getMaxUsers();
+    switch (productEdition) {
+      case PRODUCT_AUDITOR:
+        applicationLimitToDisplay = licenseCache.getApplicationLimit();
+        break;
+      case PRODUCT_PRO_PLUS:
+        licensedUsersToDisplay = licenseCache.getMaxUsers();
+        break;
+      case PRODUCT_LIFECYCLE:
+        licensedUsersToDisplay = licenseCache.getMaxUsers();
+        // no break
+      case PRODUCT_FIREWALL:
+        firewallUsersToDisplay = licenseCache.getMaxFirewallUsers();
+        break;
     }
 
     return new LicenseInfo(licenseCache.getFingerprint(), licenseCache.expirationTimestamp, licensedUsersToDisplay,
-        licenseCache.getMaxFirewallUsers(), applicationLimitToDisplay, licenseCache.contactName,
-        licenseCache.contactCompany, licenseCache.contactEmail, licenseCache.getFeatures(), products, productEdition);
+        firewallUsersToDisplay, applicationLimitToDisplay, licenseCache.contactName, licenseCache.contactCompany,
+        licenseCache.contactEmail, licenseCache.getFeatures(), products, productEdition);
   }
 
   private String getProductEdition() {

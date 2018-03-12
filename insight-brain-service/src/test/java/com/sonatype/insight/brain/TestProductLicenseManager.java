@@ -100,6 +100,11 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setApplicationLimit(applicationLimit);
   }
 
+  public void setMaxFirewallUsers(Integer maxFirewallUsers) {
+    wasChanged = true;
+    mockProductLicenseManager.setMaxFirewallUsers(maxFirewallUsers);
+  }
+
   public void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) {
     wasChanged = true;
     mockProductLicenseManager.setEnforcementPoints(enforcementPoints);
@@ -145,6 +150,8 @@ public class TestProductLicenseManager
     private int version = 1;
 
     private Integer applicationLimit = 100;
+
+    private Integer maxFirewallUsers = 45;
 
     private Date expirationDate = new Date(System.currentTimeMillis() + 6000 * 1000);
 
@@ -197,13 +204,18 @@ public class TestProductLicenseManager
       Properties properties = new Properties();
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
       properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
-      properties.put(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, Integer.toString(45));
       properties.put(ProductLicenseDetails.PROPERTY_MAX_USERS, Integer.toString(50));
       properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS,
           enforcementPoints.stream().map(CLMEnforcementPoint::name).collect(Collectors.joining(",")));
+
       if (applicationLimit != null) {
         properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, applicationLimit.toString());
       }
+
+      if (maxFirewallUsers != null) {
+        properties.put(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, Integer.toString(maxFirewallUsers));
+      }
+
       properties.putAll(this.properties);
 
       DefaultLicenseKey key = new DefaultLicenseKey(new Features(featureMap));
@@ -278,6 +290,13 @@ public class TestProductLicenseManager
     public void setApplicationLimit(Integer applicationLimit) {
       if (valid) {
         this.applicationLimit = applicationLimit;
+        createKey();
+      }
+    }
+
+    public void setMaxFirewallUsers(Integer maxFirewallUsers) {
+      if (valid) {
+        this.maxFirewallUsers = maxFirewallUsers;
         createKey();
       }
     }

@@ -411,10 +411,48 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay, is(50));
 
+    // should be null when product is auditor
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay, is(nullValue()));
+
+    // should also be null when it is just Firewall
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay, is(nullValue()));
+
+    // should not be null when it is Pro+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay, is(50));
+  }
+
+  @Test
+  public void testGetLicenseInfo_FirewallUsersToDisplay() throws Exception {
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay, is(45));
+
+    // should be null when product is auditor
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay, is(nullValue()));
+
+    // should not be null when it is just Firewall
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay, is(45));
+
+    // should be null when Lifecycle but with null maxFirewallUsers
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    licenseManager.setMaxFirewallUsers(null);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay, is(nullValue()));
   }
 
   @Test
@@ -426,6 +464,12 @@ public class CLMLicenseManagerTest
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay, is(100));
+
+    // should also be null when it is just Firewall
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.applicationLimitToDisplay, is(nullValue()));
   }
 
   @Test

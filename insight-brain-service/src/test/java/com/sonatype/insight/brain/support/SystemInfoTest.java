@@ -420,7 +420,7 @@ public class SystemInfoTest
         "  \"expiryTimestamp\" : -1," + lineSeparator +
         "  \"licensedUsersToDisplay\" : -2," + lineSeparator +
         "  \"applicationLimitToDisplay\" : -4," + lineSeparator +
-        "  \"firewallLicensedUsers\" : -3," + lineSeparator +
+        "  \"firewallUsersToDisplay\" : -3," + lineSeparator +
         "  \"contactName\" : \"Contact Name\"," + lineSeparator +
         "  \"contactCompany\" : \"Contact Company\"," + lineSeparator +
         "  \"contactEmail\" : \"contact@example.com\"," + lineSeparator +

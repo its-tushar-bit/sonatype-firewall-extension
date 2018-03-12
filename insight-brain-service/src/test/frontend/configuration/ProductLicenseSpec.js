@@ -13,7 +13,7 @@ describe('ProductLicense', function() {
         contactCompany: 'Acme',
         contactEmail: 'billy@example.com',
         licensedUsersToDisplay: 50,
-        firewallLicensedUsers: 45,
+        firewallUsersToDisplay: 45,
         applicationLimitToDisplay: 30,
         products: ['Nexus Pro+', 'Nexus Auditor', 'Nexus Lifecycle', 'Nexus Firewall'],
         productEdition: 'Lifecycle'
@@ -97,7 +97,7 @@ describe('ProductLicense', function() {
       expect(vm.license.products).toEqual(mockLicenseSummary.products);
     });
 
-    it('sets displayUserLimits to true if licensedUsersToDisplay or firewallLicensedUsers are not null', function() {
+    it('sets displayUserLimits to true if licensedUsersToDisplay or firewallUsersToDisplay are not null', function() {
       var response = mockLicenseSummary,
           url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
 
@@ -115,7 +115,7 @@ describe('ProductLicense', function() {
 
       expect(vm.displayUserLimits).toBe(true);
 
-      response = Object.assign({}, mockLicenseSummary, { firewallLicensedUsers: null });
+      response = Object.assign({}, mockLicenseSummary, { firewallUsersToDisplay: null });
 
       $httpBackend.expectGET(url).respond(response);
       vm = getController($componentController, scope);
@@ -123,13 +123,48 @@ describe('ProductLicense', function() {
 
       expect(vm.displayUserLimits).toBe(true);
 
-      response = Object.assign({}, mockLicenseSummary, { firewallLicensedUsers: null, licensedUsersToDisplay: null });
+      response = Object.assign({}, mockLicenseSummary, { firewallUsersToDisplay: null, licensedUsersToDisplay: null });
 
       $httpBackend.expectGET(url).respond(response);
       vm = getController($componentController, scope);
       $httpBackend.flush();
 
       expect(vm.displayUserLimits).toBe(false);
+    });
+
+    it('sets userLimits to a list of objects containing the non-null user limits', function() {
+      var response = mockLicenseSummary,
+          url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
+
+      $httpBackend.expectGET(url).respond(response);
+      vm = getController($componentController, scope);
+      $httpBackend.flush();
+
+      expect(vm.userLimits).toEqual([{ name: 'Lifecycle', count: 50}, {name: 'Firewall', count: 45 }]);
+
+      response = Object.assign({}, mockLicenseSummary, { licensedUsersToDisplay: null });
+
+      $httpBackend.expectGET(url).respond(response);
+      vm = getController($componentController, scope);
+      $httpBackend.flush();
+
+      expect(vm.userLimits).toEqual([{name: 'Firewall', count: 45 }]);
+
+      response = Object.assign({}, mockLicenseSummary, { firewallUsersToDisplay: null });
+
+      $httpBackend.expectGET(url).respond(response);
+      vm = getController($componentController, scope);
+      $httpBackend.flush();
+
+      expect(vm.userLimits).toEqual([{ name: 'Lifecycle', count: 50}]);
+
+      response = Object.assign({}, mockLicenseSummary, { firewallUsersToDisplay: null, licensedUsersToDisplay: null });
+
+      $httpBackend.expectGET(url).respond(response);
+      vm = getController($componentController, scope);
+      $httpBackend.flush();
+
+      expect(vm.userLimits).toEqual([]);
     });
 
     it('sets displayApplicationLimit to true if applicationLimitToDisplay is not null', function() {
@@ -149,25 +184,6 @@ describe('ProductLicense', function() {
       $httpBackend.flush();
 
       expect(vm.displayApplicationLimit).toBe(false);
-    });
-
-    it('sets displayFirewallLimit to true if firewallLicensedUsers is not null', function() {
-      var response = mockLicenseSummary,
-          url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
-
-      $httpBackend.expectGET(url).respond(response);
-      vm = getController($componentController, scope);
-      $httpBackend.flush();
-
-      expect(vm.displayFirewallLimit).toBe(true);
-
-      response = Object.assign({}, mockLicenseSummary, { firewallLicensedUsers: null });
-
-      $httpBackend.expectGET(url).respond(response);
-      vm = getController($componentController, scope);
-      $httpBackend.flush();
-
-      expect(vm.displayFirewallLimit).toBe(false);
     });
 
     it('sets daysToExpiration to the number of days before the license expires', function() {

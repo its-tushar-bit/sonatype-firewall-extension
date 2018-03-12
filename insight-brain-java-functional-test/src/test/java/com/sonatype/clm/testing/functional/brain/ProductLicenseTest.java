@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.BeforeClass;
 import org.junit.Before;
@@ -42,13 +43,70 @@ public class ProductLicenseTest
     ProductLicensePage.contactName().shouldBe(visible).shouldHave(text("Billy"));
     ProductLicensePage.contactCompany().shouldBe(visible).shouldHave(text("Acme"));
     ProductLicensePage.contactEmail().shouldBe(visible).shouldHave(text("billy@example.com"));
-    ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
-    ProductLicensePage.firewallLicensedDevelopers().shouldBe(visible).shouldHave(text("45"));
+    ProductLicensePage.licensedDevelopers().shouldBe(visible);
+    ProductLicensePage.licensedApplications().shouldNotBe(visible);
+
+    // NOTE: the emdashes are added in CSS and apparently don't show up here
+    ProductLicensePage.licensedDevelopersRows().shouldHave(texts("Lifecycle50", "Firewall45"));
     ProductLicensePage.applicationLimit().shouldBe(hidden);
     ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle", "Nexus Firewall"));
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
 
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testLicenseInformation_Auditor() throws Exception {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK);
+    updateLicenseManager();
+
+    refreshOrOpen(ProductLicensePage.url());
+
+    ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
+    ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100"));
+    ProductLicensePage.products().shouldHave(texts("Nexus Auditor"));
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testLicenseInformation_FirewallOnly() throws Exception {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    updateLicenseManager();
+
+    refreshOrOpen(ProductLicensePage.url());
+
+    ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("45"));
+    ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.products().shouldHave(texts("Nexus Firewall"));
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testLicenseInformation_LifecycleOnly() throws Exception {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    productLicenseManager.setMaxFirewallUsers(null);
+    updateLicenseManager();
+
+    refreshOrOpen(ProductLicensePage.url());
+
+    ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
+    ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle"));
+  }
+
+  @Test
+  public void testLicenseInformation_NexusPlus() throws Exception {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    productLicenseManager.setMaxFirewallUsers(null);
+    updateLicenseManager();
+
+    refreshOrOpen(ProductLicensePage.url());
+
+    ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
+    ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.products().shouldHave(texts("Nexus Pro+"));
   }
 
   @Test
@@ -96,5 +154,9 @@ public class ProductLicenseTest
 
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
+  }
+
+  private void updateLicenseManager() throws Exception {
+    clmLicenseManager.installLicense(null);
   }
 }

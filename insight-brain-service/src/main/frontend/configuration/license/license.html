@@ -93,17 +93,15 @@
                 </dd>
                 <dt ng-if="vm.displayUserLimits">Licensed Developers</dt>
                 <dd ng-if="vm.displayUserLimits" class="iq-read-only-data">
-                  <span id="license-licensed-developers" ng-if="!vm.displayFirewallLimit">
-                    {{::vm.license.licensedUsersToDisplay}}
+                  <span id="license-licensed-developers" ng-if="vm.userLimits.length === 1">
+                    {{::vm.userLimits[0].count}}
                   </span>
-                  <dl class="iq-license-info__nested-definitions" ng-if="vm.displayFirewallLimit">
-                    <div>
-                      <dt>Lifecycle</dt><!--
-                   --><dd id="license-licensed-developers">{{::vm.license.licensedUsersToDisplay}}</dd>
-                    </div>
-                    <div>
-                      <dt>Firewall</dt><!--
-                   --><dd id="license-firewall-licensed-developers">{{::vm.license.firewallLicensedUsers}}</dd>
+                  <dl id="license-licensed-developers"
+                      class="iq-license-info__nested-definitions"
+                      ng-if="vm.userLimits.length !== 1">
+                    <div ng-repeat="limit in vm.userLimits">
+                      <dt>{{::limit.name}}</dt><!--
+                   --><dd>{{::limit.count}}</dd>
                     </div>
                   </dl>
                 </dd>

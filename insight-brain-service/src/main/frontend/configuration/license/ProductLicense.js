@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, $, clmBuildTimestamp */
+import { identity } from 'ramda';
+
 import template from './license.html';
 
 export default {
@@ -15,7 +17,8 @@ export default {
   template: template
 };
 
-const getDaysToExpiration = expiryTimestamp => Math.floor((expiryTimestamp - Date.now()) / (1000 * 60 * 60 * 24));
+const getDaysToExpiration = expiryTimestamp => Math.floor((expiryTimestamp - Date.now()) / (1000 * 60 * 60 * 24)),
+    mkLimit = (name, count) => ({ name, count });
 
 function ProductLicenseController($http, $scope, clmLocations, $timeout, $window, $cookies, Modal, Messages) {
   const vm = this;
@@ -27,7 +30,7 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
     csrfTokenValue: $cookies.get($http.defaults.xsrfCookieName),
     displayUserLimits: undefined,
     displayApplicationLimit: undefined,
-    displayFirewallLimit: undefined,
+    userLimits: undefined,
     formMask: undefined,
     loadError: undefined,
     submitError: undefined,
@@ -41,8 +44,12 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
             daysToExpiration: getDaysToExpiration(data.expiryTimestamp)
           });
 
-          vm.displayFirewallLimit = data.firewallLicensedUsers !== null;
-          vm.displayUserLimits = data.licensedUsersToDisplay !== null || vm.displayFirewallLimit;
+          vm.userLimits = [
+            data.licensedUsersToDisplay && mkLimit('Lifecycle', data.licensedUsersToDisplay),
+            data.firewallUsersToDisplay && mkLimit('Firewall', data.firewallUsersToDisplay)
+          ].filter(identity);
+
+          vm.displayUserLimits = vm.userLimits.length > 0;
           vm.displayApplicationLimit = data.applicationLimitToDisplay !== null;
         }, function(errorResponse) {
           if (errorResponse.status !== 402) {

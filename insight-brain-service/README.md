@@ -50,3 +50,6 @@ The grunt tooling provides a variety of other tasks to allow for testing and pro
 
     grunt --help
 
+## Mail Assets
+
+The mail assets employed by the policy alert mails (cf. `policythreats.ftl`) are maintained in https://github.com/sonatype/cdn.sonatype.com/tree/master/clm/policy/1.3

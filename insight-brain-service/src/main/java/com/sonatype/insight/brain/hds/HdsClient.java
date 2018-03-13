@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.net.ssl.SSLException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
@@ -429,6 +430,10 @@ public class HdsClient
     catch (UnknownHostException e) {
       throw new BadGatewayException("The hostname for the Sonatype HDS could not be resolved, "
           + "please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated", e);
+    }
+    catch (SSLException e) {
+      throw new BadGatewayException("The SSL/TLS connection to Sonatype HDS could not be established, "
+          + "contact your network or system administrator for help.", e);
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);

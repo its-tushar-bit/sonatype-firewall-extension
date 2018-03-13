@@ -580,6 +580,20 @@ public class HdsClientTest
   }
 
   @Test
+  public void testSSLExceptionFromHttpClientExecute() throws Exception {
+    config.setHdsUrl(config.getHdsUrl().replace("http:", "https:"));
+    initClient();
+    try {
+      client.get(String.class, "/any", null);
+      fail("Expected exception");
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), is("The SSL/TLS connection to Sonatype HDS could not be established, "
+          + "contact your network or system administrator for help."));
+    }
+  }
+
+  @Test
   public void testTransformInternalServerError_500() throws Exception {
     handler = new AbstractHandler()
     {

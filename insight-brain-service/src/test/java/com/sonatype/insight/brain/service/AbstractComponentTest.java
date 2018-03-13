@@ -30,6 +30,8 @@ import org.junit.rules.TestName;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -40,6 +42,8 @@ import static org.mockito.Mockito.when;
 public class AbstractComponentTest
     extends InjectedTest
 {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
@@ -61,21 +65,31 @@ public class AbstractComponentTest
   private SecurityManager securityManager;
 
   @Before
-  public void setUpTestLicenseThreatGroups() {
+  public final void beforeTest() {
+    log.info("Before: {}", testName.getMethodName());
+    setUpTestLicenseThreatGroups();
+    setUpSecurity();
+  }
+
+  @After
+  public final void afterTest() {
+    log.info("After: {}", testName.getMethodName());
+    tearDownSecurity();
+  }
+
+  protected void setUpTestLicenseThreatGroups() {
     // Make sure the test LTGs are created on the root organization
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
-  @Before
-  public void setUpSecurity() {
+  protected void setUpSecurity() {
     when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", true));
     when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);
   }
 
-  @After
-  public void tearDownSecurity() {
+  protected void tearDownSecurity() {
     ThreadContext.unbindSecurityManager();
     ThreadContext.unbindSubject();
   }

@@ -36,7 +36,6 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,12 +78,11 @@ public class ManagementEventServiceTest
 
   @Test
   public void testPostEvent_Tag_HandlesRuntimeException() {
-    Tag tag = mock(Tag.class);
-    when(tag.getOrganizationId()).thenThrow(new RuntimeException("CRASH"));
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    managementEventService.postEvent(EventAction.CREATED, tag);
+    managementEventService.postEvent(EventAction.CREATED, new Tag());
 
-    verify(tag, atLeastOnce()).getOrganizationId();
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 
   @Test
@@ -109,12 +107,11 @@ public class ManagementEventServiceTest
 
   @Test
   public void testPostEvent_Label_HandlesRuntimeException() {
-    Label label = mock(Label.class);
-    when(label.getOwnerId()).thenThrow(new RuntimeException("CRASH"));
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    managementEventService.postEvent(EventAction.CREATED, label);
+    managementEventService.postEvent(EventAction.CREATED, new Label());
 
-    verify(label, atLeastOnce()).getOwnerId();
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 
   @Test
@@ -139,12 +136,11 @@ public class ManagementEventServiceTest
 
   @Test
   public void testPostEvent_LicenseThreatGroup_HandlesRuntimeException() {
-    LicenseThreatGroup licenseThreatGroup = mock(LicenseThreatGroup.class);
-    when(licenseThreatGroup.getOwnerId()).thenThrow(new RuntimeException("CRASH"));
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    managementEventService.postEvent(EventAction.CREATED, licenseThreatGroup);
+    managementEventService.postEvent(EventAction.CREATED, new LicenseThreatGroup());
 
-    verify(licenseThreatGroup, atLeastOnce()).getOwnerId();
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 
   @Test
@@ -169,12 +165,11 @@ public class ManagementEventServiceTest
 
   @Test
   public void testPostEvent_Application_HandlesRuntimeException() {
-    Application application = mock(Application.class);
-    when(application.getId()).thenThrow(new RuntimeException("CRASH"));
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    managementEventService.postEvent(EventAction.CREATED, application);
+    managementEventService.postEvent(EventAction.CREATED, new Application());
 
-    verify(application, atLeastOnce()).getId();
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 
   @Test
@@ -196,12 +191,11 @@ public class ManagementEventServiceTest
 
   @Test
   public void testPostEvent_Organization_HandlesRuntimeException() {
-    Organization organization = mock(Organization.class);
-    when(organization.getId()).thenThrow(new RuntimeException("CRASH"));
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    managementEventService.postEvent(EventAction.CREATED, organization);
+    managementEventService.postEvent(EventAction.CREATED, new Organization());
 
-    verify(organization, atLeastOnce()).getId();
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 
   @Test
@@ -221,6 +215,15 @@ public class ManagementEventServiceTest
     assertThat(event.roleIdToMemberMap, is(roleIdToMemberMap));
 
     asyncEventBus.unregister(handler);
+  }
+
+  @Test
+  public void testPostEvent_Member_HandlesRuntimeException() throws InterruptedException {
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
+
+    managementEventService.postEvent(EventAction.CREATED, new HashMap<>(), organization.getId());
+
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 
   @Test
@@ -245,11 +248,10 @@ public class ManagementEventServiceTest
 
   @Test
   public void testPostEvent_Policy_HandlesRuntimeException() {
-    Policy policy = mock(Policy.class);
-    when(policy.getOwnerId()).thenThrow(new RuntimeException("CRASH"));
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    managementEventService.postEvent(EventAction.CREATED, policy);
+    managementEventService.postEvent(EventAction.CREATED, new Policy());
 
-    verify(policy, atLeastOnce()).getOwnerId();
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 }

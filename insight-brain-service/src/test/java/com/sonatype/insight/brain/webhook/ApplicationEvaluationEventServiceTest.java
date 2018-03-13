@@ -26,7 +26,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -133,12 +132,10 @@ public class ApplicationEvaluationEventServiceTest
 
   @Test
   public void testPostEvent_HandlesRuntimeException() {
-    final PolicyEvaluation policyEvaluation = mock(PolicyEvaluation.class);
-    when(policyEvaluation.getId()).thenThrow(new RuntimeException("CRASH"));
-    final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult);
+    applicationEvaluationEventService.postEvent(new PolicyEvaluation(), new PolicyEvaluationResult());
 
-    verify(policyEvaluation, atLeastOnce()).getId();
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 }

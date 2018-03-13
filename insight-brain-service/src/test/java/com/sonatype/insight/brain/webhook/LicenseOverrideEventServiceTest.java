@@ -19,7 +19,6 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,11 +50,10 @@ public class LicenseOverrideEventServiceTest
 
   @Test
   public void testPostEvent_HandlesRuntimeException() {
-    LicenseOverride override = mock(LicenseOverride.class);
-    when(override.getId()).thenThrow(new RuntimeException("CRASH"));
+    when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
-    licenseOverrideEventService.postEvent(EventAction.CREATED, override);
+    licenseOverrideEventService.postEvent(EventAction.CREATED, new LicenseOverride());
 
-    verify(override, atLeastOnce()).getId();
+    verify(subject, atLeastOnce()).getPrincipal();
   }
 }

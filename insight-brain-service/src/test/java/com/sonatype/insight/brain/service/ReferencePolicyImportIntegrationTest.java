@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.greaterThan;
@@ -56,6 +57,7 @@ public class ReferencePolicyImportIntegrationTest
 
   private final URL referencePolicyUrl = getClass().getResource("/reference-policies-v2.json");
 
+  @Before
   @After
   public void cleanup() {
     Collection<Policy> policies = policyDAO.getAll();

@@ -51,7 +51,7 @@ extends GebReportingSpec {
   @Shared
   @ClassRule
   TestInsightBrainServiceRule serviceRule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
-  PortAllocator.findFreePort(8071), null, "http://localhost:" + hdsPort, false, getBrainModules())
+  PortAllocator.findFreePort(8071), "http://localhost:" + hdsPort, false, getBrainModules())
 
   @Shared
   @ClassRule

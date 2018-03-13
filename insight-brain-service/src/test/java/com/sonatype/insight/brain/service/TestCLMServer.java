@@ -48,7 +48,7 @@ public class TestCLMServer
         .setConfigurator(hdsConfigurator);
 
     brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070), PortAllocator.findFreePort(8071),
-        null /* baseUrl */, "http://localhost:" + hdsMockServerPort, isProxyRequiredToReachHds, modules)
+        "http://localhost:" + hdsMockServerPort, isProxyRequiredToReachHds, modules)
         .setConfigurator(configurator);
   }
 

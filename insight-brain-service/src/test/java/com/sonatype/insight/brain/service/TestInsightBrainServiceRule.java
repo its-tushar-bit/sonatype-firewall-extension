@@ -28,8 +28,6 @@ public class TestInsightBrainServiceRule
 
   private final int adminPort;
 
-  private final String baseUrl;
-
   private final String hdsUrl;
 
   private final boolean isHdsProxyRequired;
@@ -42,14 +40,12 @@ public class TestInsightBrainServiceRule
 
   public TestInsightBrainServiceRule(int port,
                                      int adminPort,
-                                     String baseUrl,
                                      String hdsUrl,
                                      boolean isHdsProxyRequired,
                                      List<Module> modules)
   {
     this.port = port;
     this.adminPort = adminPort;
-    this.baseUrl = baseUrl;
     this.hdsUrl = hdsUrl;
     this.isHdsProxyRequired = isHdsProxyRequired;
     this.modules = modules;
@@ -72,9 +68,6 @@ public class TestInsightBrainServiceRule
     brain = new TestInsightBrainService();
     brain.setHttpPort(port);
     brain.setHttpAdminPort(adminPort);
-    if (baseUrl != null) {
-      brain.setBaseUrl(baseUrl);
-    }
     if (hdsUrl != null) {
       brain.setHdsUrl(hdsUrl);
     }

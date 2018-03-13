@@ -63,8 +63,6 @@ public class TestInsightBrainService
 
   private String testHdsUrl;
 
-  private String testBaseUrl;
-
   private ProxyConfig testProxyConfig;
 
   private Server testBrainServer;
@@ -88,10 +86,6 @@ public class TestInsightBrainService
 
   public void setHdsUrl(final String hdsUrl) {
     testHdsUrl = hdsUrl;
-  }
-
-  public void setBaseUrl(final String baseUrl) {
-    this.testBaseUrl = baseUrl;
   }
 
   public void setProxyConfig(final String host, final int port, final String user, final String pass) {
@@ -200,7 +194,6 @@ public class TestInsightBrainService
     if (testHdsUrl != null) {
       config.setHdsUrl(testHdsUrl);
     }
-    config.setBaseUrl(testBaseUrl);
 
     if (testProxyConfig != null) {
       config.setProxyConfig(testProxyConfig);

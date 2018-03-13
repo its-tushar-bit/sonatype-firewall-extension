@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
+import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -104,7 +105,7 @@ public class SessionTimeoutTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     TestReportEvaluator evaluator = new TestReportEvaluator(app, scanId,
-        getClass().getResource("/canned-reports/small-report.zip"), Configuration.baseUrl,
+        ReportHelper.zipReport("/canned-reports/small-report", tempDir), Configuration.baseUrl,
         new InsightWork(testCLMServer.getCLMServer().getConfiguration()));
 
     evaluator.evaluatePolicy();

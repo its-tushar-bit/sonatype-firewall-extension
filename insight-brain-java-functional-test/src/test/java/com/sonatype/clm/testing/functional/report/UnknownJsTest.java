@@ -5,15 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.report;
 
-import java.io.File;
 import java.util.UUID;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportPolicyPage;
+import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
-import com.sonatype.clm.testing.functional.utils.TestReportUtil;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -54,9 +53,8 @@ public class UnknownJsTest
 
   @Test
   public void testViewWaivedPolicyViolations() throws Exception {
-    File report = TestReportUtil.setupReport("/UnknownJsTest", tempDir.newFile());
-
-    evaluator = new TestReportEvaluator(app, scanId, report.toURI().toURL(), Configuration.baseUrl, work);
+    evaluator = new TestReportEvaluator(app, scanId, ReportHelper.zipReport("/UnknownJsTest", tempDir),
+        Configuration.baseUrl, work);
     evaluator.evaluatePolicy();
     refreshOrOpen(ReportPage.url(app, scanId));
 

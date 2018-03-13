@@ -28,6 +28,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -135,7 +136,7 @@ public class DashboardViolationsTest
 
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportZip = work.getReportFile(buildEvalNow.getApplicationId(), buildEvalNow.getScanId());
-    FileUtils.copyURLToFile(getClass().getResource("/canned-reports/small-report.zip"), reportZip);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/canned-reports/small-report", tempDir), reportZip);
     refreshOrOpen(DashboardPage.VIOLATIONS_URL);
   }
 

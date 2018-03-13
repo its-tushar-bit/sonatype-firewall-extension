@@ -1,0 +1,91 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "logback-access-0.6.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/ch.qos.logback:logback-access:jar:0.6" ],
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "logback-access",
+          "groupId" : "ch.qos.logback",
+          "version" : "0.6"
+       }
+    },
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-access",
+    "version" : "0.6",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "47b6857af4a1cc50875a",
+    "relativePopularity" : 0.0,
+    "createTime" : 1164926586000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null
+  }, {
+    "filenames" : [ "jetty-6.1.15.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/org.mortbay.jetty:jetty:jar:6.1.15" ],
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15"
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "494308fc2d433720c778",
+    "relativePopularity" : 0.01,
+    "createTime" : 1236267479000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null
+  }, {
+    "filenames" : [ "geronimo-security-2.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/org.apache.geronimo.framework:geronimo-security:jar:2.1" ],
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1"
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "848d7549ef7ec13ce546",
+    "relativePopularity" : 0.02,
+    "createTime" : 1203351124000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null
+  }, {
+    "filenames" : [ "javancss-29.50.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/javancss:javancss:jar:29.50" ],
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "javancss",
+          "groupId" : "javancss",
+          "version" : "29.50"
+       }
+    },
+    "groupId" : "javancss",
+    "artifactId" : "javancss",
+    "version" : "29.50",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9aba4af169a1a3baa67f",
+    "relativePopularity" : 0.12,
+    "createTime" : 1211417575000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null
+  } ]
+}

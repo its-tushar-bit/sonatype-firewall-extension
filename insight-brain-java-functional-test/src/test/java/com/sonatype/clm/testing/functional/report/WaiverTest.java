@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
+import com.sonatype.clm.testing.functional.utils.ReportHelper;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -50,8 +51,6 @@ public class WaiverTest
 
   private static final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
-  private static final String cannedTestReport = "/canned-reports/small-report.zip";
-
   public static final int numberOfComponents = 4;
 
   private Application app;
@@ -67,8 +66,8 @@ public class WaiverTest
   @Before
   public void start() {
     app = tempEntity.newApplicationWithParent(WaiverTest.class.getSimpleName(), "Waiver Test App", "Waiver Test Org");
-    evaluator = new TestReportEvaluator(app, scanId, getClass().getResource(cannedTestReport), Configuration.baseUrl,
-        work);
+    evaluator = new TestReportEvaluator(app, scanId, ReportHelper.zipReport("/canned-reports/small-report", tempDir),
+        Configuration.baseUrl, work);
   }
 
   @Test

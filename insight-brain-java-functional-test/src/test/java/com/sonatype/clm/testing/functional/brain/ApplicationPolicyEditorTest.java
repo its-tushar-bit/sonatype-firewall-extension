@@ -93,7 +93,13 @@ public class ApplicationPolicyEditorTest
       assertCategory(categoryEditor.item(0), "Checked Tag", true);
       assertCategory(categoryEditor.item(1), "Unchecked Tag", false);
 
-      eyesWatcher.eyesCheck();
+      eyesWatcher.eyesCheck("Summary, inheritance, and constraints states are correct");
+
+      // scroll to the actions section
+      PolicyEditorPage.actionsPill().click();
+      PolicyEditorPage.actionsSection().develop().noActionRadio().shouldBe(visible);
+
+      eyesWatcher.eyesCheck("Actions and notifications states are correct");
     }
     finally {
       logout();

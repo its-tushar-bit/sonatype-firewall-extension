@@ -116,8 +116,6 @@ public class OrganizationPolicyEditorTest
     category2Item.checkBox().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
     category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test

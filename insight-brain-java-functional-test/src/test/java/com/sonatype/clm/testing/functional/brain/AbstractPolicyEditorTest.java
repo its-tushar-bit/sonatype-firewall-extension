@@ -1067,8 +1067,10 @@ public abstract class AbstractPolicyEditorTest
 
     assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);
+    eyesWatcher.eyesCheck("Summary, inheritance, and constraints states are correct");
     assertEditPolicyStateIsCorrect_actionsSection(isReadOnly);
     assertEditPolicyStateIsCorrect_notificationsSection(isReadOnly);
+    eyesWatcher.eyesCheck("Actions and notifications states are correct");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     PolicyEditorPage.deleteButton().shouldBe(visible, isReadOnly ? disabled : enabled);
   }

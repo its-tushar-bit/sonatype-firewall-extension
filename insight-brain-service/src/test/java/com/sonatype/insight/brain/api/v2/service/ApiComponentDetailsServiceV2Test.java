@@ -104,8 +104,8 @@ public class ApiComponentDetailsServiceV2Test
       hdsResult.components = new ArrayList<>();
 
       for (int i = 0; i < CHUNK_SIZE; i++) {
-        ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g" + i,
-            "a" + i, "v" + i, "e" + i);
+        ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i,
+            "", "e" + i);
         ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h" + i);
         request.components.add(component);
 
@@ -147,8 +147,7 @@ public class ApiComponentDetailsServiceV2Test
   @Test
   public void testGetComponentDetails_invalidComponentIdentifier_noExtension() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
-        "v1", null);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
@@ -196,8 +195,7 @@ public class ApiComponentDetailsServiceV2Test
   public void testGetComponentDetails_validation_nullHash() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
-    ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
-        "v1", "e1");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     request.components.add(component);
 

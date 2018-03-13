@@ -105,8 +105,8 @@ public class ApiComponentEvaluationServiceV2Test
       ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
       componentEvaluationDataList.components = new ArrayList<>();
       for (int i = 0; i < CHUNK_SIZE; i++) {
-        ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g" + i,
-            "a" + i, "v" + i, "e" + i);
+        ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i,
+            "", "e" + i);
         ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h" + i);
         request.components.add(component);
         componentEvaluationDataList.components.add(componentEvaluationV2Helper.createComponentEvaluationData(

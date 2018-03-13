@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,33 +73,6 @@ public class ComponentEvaluationV2Helper
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     component.hash = hash;
     return component;
-  }
-
-  public ComponentIdentifier createMavenComponentIdentifier(final String groupId,
-                                                            final String artifactId,
-                                                            final String version,
-                                                            final String extension)
-  {
-    return createMavenComponentIdentifier(groupId, artifactId, version, extension, null);
-  }
-
-  public ComponentIdentifier createMavenComponentIdentifier(final String groupId,
-                                                            final String artifactId,
-                                                            final String version,
-                                                            final String extension,
-                                                            final String classifier)
-  {
-    Map<String, String> coordinates = new HashMap<>();
-    coordinates.put(ComponentIdentifier.MAVEN_GROUP_ID, groupId);
-    coordinates.put(ComponentIdentifier.MAVEN_ARTIFACT_ID, artifactId);
-    coordinates.put(ComponentIdentifier.VERSION, version);
-    if (extension != null) {
-      coordinates.put(ComponentIdentifier.MAVEN_EXTENSION, extension);
-    }
-    if (classifier != null) {
-      coordinates.put(ComponentIdentifier.MAVEN_CLASSIFIER, classifier);
-    }
-    return new ComponentIdentifier(ComponentIdentifier.FORMAT_MAVEN, coordinates);
   }
 
   public List<SecurityVulnerability> createSecurityVulnerabilities() {

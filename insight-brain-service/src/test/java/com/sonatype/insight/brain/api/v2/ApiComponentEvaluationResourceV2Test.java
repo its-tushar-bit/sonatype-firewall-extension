@@ -81,8 +81,7 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_invalidComponentIdentifier_noExtension() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
-        "v1", null);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
@@ -106,8 +105,8 @@ public class ApiComponentEvaluationResourceV2Test
   public void testEvaluateComponents_validation_nullHash() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
-    component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentEvaluationV2Helper
-        .createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
+    component.componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1"));
     request.components.add(component);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -148,8 +147,7 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_HdsError() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
-        "v1", "e1");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
@@ -179,13 +177,11 @@ public class ApiComponentEvaluationResourceV2Test
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier componentIdentifier1 = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
-        "v1", "e1");
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1");
     request.components.add(component1);
 
-    ComponentIdentifier componentIdentifier2 = componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2",
-        "v2", "e2");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2");
     request.components.add(component2);
 
@@ -233,13 +229,11 @@ public class ApiComponentEvaluationResourceV2Test
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier componentIdentifier1 = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
-        "v1", "e1");
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, null);
     request.components.add(component1);
 
-    ComponentIdentifier componentIdentifier2 = componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2",
-        "v2", "e2");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, null);
     request.components.add(component2);
 
@@ -296,10 +290,8 @@ public class ApiComponentEvaluationResourceV2Test
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
-    ComponentIdentifier componentIdentifier1 = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
-        "v1", "e1");
-    ComponentIdentifier componentIdentifier2 = componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2",
-        "v2", "e2");
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
@@ -342,13 +334,11 @@ public class ApiComponentEvaluationResourceV2Test
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier componentIdentifier1 = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
-        "v1", "e1");
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1");
     request.components.add(component1);
 
-    ComponentIdentifier componentIdentifier2 = componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2",
-        "v2", "e2");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2");
     request.components.add(component2);
 
@@ -397,13 +387,13 @@ public class ApiComponentEvaluationResourceV2Test
   public void testEvaluateComponents_withClaimedComponentEmptyVsNullClassifier() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier compIdentifierWithEmptyClassifier = componentEvaluationV2Helper.createMavenComponentIdentifier(
-        "g1", "a1", "v1", "e1", "");
+    ComponentIdentifier compIdentifierWithEmptyClassifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1",
+        "", "e1");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(compIdentifierWithEmptyClassifier, null);
     request.components.add(component1);
 
-    ComponentIdentifier compIdentifierWithNullClassifier = componentEvaluationV2Helper.createMavenComponentIdentifier(
-        "g2", "a2", "v2", "e2");
+    ComponentIdentifier compIdentifierWithNullClassifier = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2",
+        null, "e2");
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(compIdentifierWithNullClassifier, null);
     request.components.add(component2);
 
@@ -457,8 +447,7 @@ public class ApiComponentEvaluationResourceV2Test
   public void testEvaluateComponents_withClaimedComponentMissingExtension() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier compIdentifierWithNoExtension = componentEvaluationV2Helper.createMavenComponentIdentifier(
-        "g1", "a1", "v1", null);
+    ComponentIdentifier compIdentifierWithNoExtension = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(compIdentifierWithNoExtension, null);
     request.components.add(component1);
 

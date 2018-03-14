@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.utils.proxy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
@@ -32,7 +31,7 @@ public class ResponseCopyHandler
 
   public ResponseCopyHandler(String url, int brainPort) {
     this.url = url;
-    this.reverseProxy = new ReverseProxyHandler(brainPort, URI.create(Configuration.baseUrl).getPath());
+    this.reverseProxy = new ReverseProxyHandler(brainPort, System.getProperty("proxy.basePath", ""));
   }
 
   public byte[] consumeResponse() {

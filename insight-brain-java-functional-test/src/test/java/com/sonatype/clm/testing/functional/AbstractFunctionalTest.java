@@ -40,6 +40,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.UIAssertionError;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import io.dropwizard.server.DefaultServerFactory;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -96,6 +97,18 @@ public abstract class AbstractFunctionalTest
     return is(either(equalTo(url)).or(equalTo(Configuration.baseUrl + url)));
   }
 
+  private static String getBaseUrl(String contextPath) {
+    String url = reverseProxyServer.getUrl();
+    if (url.endsWith("/")) {
+      url = url.substring(0, url.length() - 1);
+    }
+    url += contextPath;
+    if (!url.endsWith("/")) {
+      url += '/';
+    }
+    return url;
+  }
+
   static {
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
@@ -104,11 +117,13 @@ public abstract class AbstractFunctionalTest
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
 
+    String contextPath = System.getProperty("iq.contextPath", "/iq-test");
     testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), new Configurator()
     {
       @Override
       public void configure(InsightConfig config) {
-        config.setBaseUrl(reverseProxyServer.getUrl());
+        config.setBaseUrl(getBaseUrl(contextPath));
+        ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
       }
     });
     reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
@@ -117,7 +132,7 @@ public abstract class AbstractFunctionalTest
       testCLMServer.start();
       reverseProxyServer.start();
 
-      Configuration.baseUrl = resolveBaseUrl(reverseProxyServer.getUrl());
+      Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
       Configuration.reportsFolder = "target/selenide-reports";
     }
     catch (Throwable e) {

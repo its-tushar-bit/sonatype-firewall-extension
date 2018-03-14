@@ -19,6 +19,7 @@ import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 
@@ -29,6 +30,19 @@ public class LandingResourceTest
   
   @Test
   public void testHome() throws Exception {
+    HttpResponse response = restRequest().anon().get();
+    assertResponseStatus(303, response);
+    assertThat(response.getHeader("Location"), startsWith(restRequest().getUrl()));
+  }
+
+  @Test
+  @ManualServerInit
+  public void testHome_NonEmptyContextPath() throws Exception {
+    initServer(config -> {
+      ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext");
+    });
+    assertThat(restRequest().getUrl(), containsString("/testContext/"));
+
     HttpResponse response = restRequest().anon().get();
     assertResponseStatus(303, response);
     assertThat(response.getHeader("Location"), startsWith(restRequest().getUrl()));

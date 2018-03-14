@@ -58,6 +58,8 @@ public class BaseUrlTest
     assertEquals("http://clm.sonatype.com:8080/", baseUrl.get());
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/")));
     assertEquals("http://clm.sonatype.com/", baseUrl.get());
+    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/contextRoot/")));
+    assertEquals("http://clm.sonatype.com/contextRoot/", baseUrl.get());
   }
 
   @Test
@@ -74,6 +76,8 @@ public class BaseUrlTest
     assertEquals("https://clm.sonatype.com:8080/", baseUrl.get());
     when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/")));
     assertEquals("https://clm.sonatype.com/", baseUrl.get());
+    when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri(URI.create("http://clm.sonatype.com/contextRoot/")));
+    assertEquals("https://clm.sonatype.com/contextRoot/", baseUrl.get());
   }
 
   @Test

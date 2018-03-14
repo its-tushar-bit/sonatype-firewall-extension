@@ -24,6 +24,8 @@ sonatypeWork: ./sonatype-work/clm-server
 
 # HTTP-specific options.
 server:
+  # The context path for the application. Note that this must have a leading slash.
+  applicationContextPath: /
 
   applicationConnectors:
   

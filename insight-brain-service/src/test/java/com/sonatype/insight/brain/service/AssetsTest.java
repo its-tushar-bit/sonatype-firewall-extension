@@ -12,8 +12,10 @@ import java.util.List;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 
+import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.is;
@@ -61,5 +63,17 @@ public class AssetsTest
     response = restRequest().path("fonts/glyphicons-regular.woff").get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is(equalToIgnoringCase("application/font-woff")));
+  }
+
+  @Test
+  @ManualServerInit
+  public void testNonEmptyContextPath() throws Exception {
+    initServer(config -> {
+      ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext");
+    });
+    assertThat(restRequest().getUrl(), containsString("/testContext/"));
+
+    HttpResponse response = restRequest().path("index.html").get();
+    assertResponseStatus(200, response);
   }
 }

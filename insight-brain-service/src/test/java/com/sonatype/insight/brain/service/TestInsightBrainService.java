@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -19,10 +20,15 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.test.SslProperties;
 
+import io.dropwizard.configuration.ConfigurationException;
+import io.dropwizard.configuration.ConfigurationFactory;
+import io.dropwizard.configuration.ConfigurationFactoryFactory;
+import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.lifecycle.ServerLifecycleListener;
 import io.dropwizard.server.DefaultServerFactory;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 import org.eclipse.jetty.server.Server;
@@ -112,11 +118,12 @@ public class TestInsightBrainService
         .get(0) instanceof HttpsConnectorFactory) {
       protocol = "https";
     }
+    String contextPath = ((DefaultServerFactory) insightConfig.getServerFactory()).getApplicationContextPath();
     String adminProtocol = "http";
     if (testAdminPort == testPort) {
       adminProtocol = protocol;
     }
-    configuration.setServerUrl(protocol + "://localhost:" + testPort);
+    configuration.setServerUrl(protocol + "://localhost:" + testPort + contextPath);
     configuration.setServerAdminUrl(adminProtocol + "://localhost:" + testAdminPort
         + (testAdminPort != testPort ? "" : "/admin"));
     return configuration;
@@ -175,6 +182,39 @@ public class TestInsightBrainService
   }
 
   @Override
+  public void initialize(Bootstrap<InsightConfig> bootstrap) {
+    super.initialize(bootstrap);
+
+    // wrap the configuration factory to allow customization of configuration before it gets applied
+    ConfigurationFactoryFactory<InsightConfig> configurationFactoryFactory = bootstrap.getConfigurationFactoryFactory();
+    bootstrap.setConfigurationFactoryFactory((type, validator, objectMapper, propertyPrefix) -> {
+      ConfigurationFactory<InsightConfig> configurationFactory = configurationFactoryFactory.create(type, validator,
+          objectMapper, propertyPrefix);
+      return new ConfigurationFactory<InsightConfig>()
+      {
+        @Override
+        public InsightConfig build(ConfigurationSourceProvider provider, String path)
+            throws IOException, ConfigurationException
+        {
+          return augment(configurationFactory.build(provider, path));
+        }
+
+        @Override
+        public InsightConfig build() throws IOException, ConfigurationException {
+          return augment(configurationFactory.build());
+        }
+
+        private InsightConfig augment(InsightConfig config) {
+          if (configurator != null) {
+            configurator.configure(config);
+          }
+          return config;
+        }
+      };
+    });
+  }
+
+  @Override
   public void run(final InsightConfig config, final Environment env) throws Exception {
     DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
     if (testKeystore != null) {
@@ -197,9 +237,6 @@ public class TestInsightBrainService
 
     if (testProxyConfig != null) {
       config.setProxyConfig(testProxyConfig);
-    }
-    if (configurator != null) {
-      configurator.configure(config);
     }
     insightConfig = config;
 

@@ -105,7 +105,6 @@ public class ReferencePolicyImportIntegrationTest
       @Override
       public void configure(HdsMockServer hdsServer) {
         hdsServer.setResponseForURI("rest/referencePolicies/v2", referencePolicyUrl, 200);
-        hdsServer.setResponseForURI("rest/license", "{}", 200);
       }
     };
 

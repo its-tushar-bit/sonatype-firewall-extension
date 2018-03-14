@@ -184,3 +184,15 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('IBM-JDBC-RTA', 'IBM-JDBC-RTA', 'IBM License Information JDBC - Right to Audit');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('edtFTPj', 'edtFTPj', 'edtFTPj Software License Agreement');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Sun-Doug-Lea-JDK-Classes', 'Sun-Doug-Lea-JDK-Classes', 'Sun Doug Lea JDK Classes License');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('NPM-UNLICENSED', 'NPM-UNLICENSED', 'UNLICENSED specified in npm package.json');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Nonsensical-Clause', 'Nonsensical-Clause', 'Nonsensical Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Obligation-Clause', 'Obligation-Clause', 'Obligation Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Proprietary-Clause', 'Proprietary-Clause', 'Proprietary Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Copyright-Clause', 'Copyright-Clause', 'Copyright Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Malicious-Content-Clause', 'Malicious-Content-Clause', 'Malicious Content Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Identity-Clause', 'Identity-Clause', 'Identity Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Generic-Open-Source-Clause', 'Generic-Open-Source-Clause', 'Generic Open Source Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Generic-Liberal-Clause', 'Generic-Liberal-Clause', 'Generic Liberal Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Generic-Copyleft-Clause', 'Generic-Copyleft-Clause', 'Generic Copyleft Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Generic-Weak-Copyleft-Clause', 'Generic-Weak-Copyleft-Clause', 'Generic Weak Copyleft Clause');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('See-License-Clause', 'See-License-Clause', 'See License Clause');

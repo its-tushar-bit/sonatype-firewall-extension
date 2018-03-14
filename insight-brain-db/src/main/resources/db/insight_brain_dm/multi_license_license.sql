@@ -466,3 +466,15 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('IBM-JD
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('IBM-JDBC-RTA', 'IBM-JDBC-RTA');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('edtFTPj', 'edtFTPj');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Sun-Doug-Lea-JDK-Classes', 'Sun-Doug-Lea-JDK-Classes');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('NPM-UNLICENSED', 'NPM-UNLICENSED');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Nonsensical-Clause', 'Nonsensical-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Obligation-Clause', 'Obligation-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Proprietary-Clause', 'Proprietary-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Copyright-Clause', 'Copyright-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Malicious-Content-Clause', 'Malicious-Content-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Identity-Clause', 'Identity-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Generic-Open-Source-Clause', 'Generic-Open-Source-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Generic-Liberal-Clause', 'Generic-Liberal-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Generic-Copyleft-Clause', 'Generic-Copyleft-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Generic-Weak-Copyleft-Clause', 'Generic-Weak-Copyleft-Clause');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('See-License-Clause', 'See-License-Clause');

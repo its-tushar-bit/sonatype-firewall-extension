@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
@@ -22,10 +23,9 @@ import static com.codeborne.selenide.Selenide.$$;
 
 public class RepositoryReportPage
 {
-  private static final String BASE_URL = "assets/audit-report/index.html";
-
   public static String url(String repositoryId) {
-    return BASE_URL + "?repositoryId=" + repositoryId;
+    return BaseUrl.rootUriBuilder().path("assets/audit-report/index.html").queryParam("repositoryId", repositoryId)
+        .build().toString();
   }
 
   public static void waitForComponentUpdater() {

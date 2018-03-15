@@ -53,6 +53,7 @@ body {
 }
 
 .sidebar-container {
+  width: $iq-sidebar-width-old;
   min-width: $iq-sidebar-min-width;
   max-width: $iq-sidebar-max-width;
 }

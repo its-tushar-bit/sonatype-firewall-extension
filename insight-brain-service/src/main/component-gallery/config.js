@@ -47,6 +47,7 @@ export default angular.module('config',
     })
 
     .constant('widgetsConfig', {
+      'iq-button': 'styles/iq-btn.html',
       'iq-dropdown': 'styles/iq-dropdown.html',
       'iq-alerts': 'styles/iq-alerts.html',
       'iq-modal': 'styles/iq-modal/iq-modal.html',

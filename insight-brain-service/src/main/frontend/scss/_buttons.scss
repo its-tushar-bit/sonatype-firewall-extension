@@ -1,19 +1,6 @@
 /*
   ##Buttons
 */
-
-.iq-btn-bar {
-  margin: 8px 0 0 0;
-
-  .iq-btn {
-    margin-right: 8px;
-    
-    &:last-child {
-      margin-right: 0;
-    }
-  }
-}
-
 .btn {
   @include semi-bold();
 
@@ -191,46 +178,5 @@
       border-color: $iq-grey-4;
       color: $iq-off-black;    
     }
-  }
-}
-
-/*
-  #Buttons for dropdowns
-*/
-.iq-btn--dropdown {
-  background-color: transparent;
-  border-color: transparent;
-  border-radius: 0;
-  display: block;
-  height: 32px;
-  line-height: 32px;
-  margin: 0 0 0 -12px;
-  overflow: hidden;
-  padding: 0 10px 0 12px;
-  text-align: left;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 170px;
-  max-width: 300px;
-  
-  &:hover:not(.disabled):not([disabled]),
-  &:focus:not(.disabled):not([disabled]) {
-    border-color: transparent;
-    color: $iq-off-black;
-    text-decoration: none;
-  }
-
-  &:active:not(.disabled):not([disabled]) {
-    background-color: $iq-grey-1;
-  }
-
-  &:last-child {
-    margin-bottom: 8px;
-  }
-
-  .fa {
-    height: 12px;
-    width: 12px;
   }
 }

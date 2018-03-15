@@ -41,7 +41,6 @@ import com.codeborne.selenide.ex.UIAssertionError;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import io.dropwizard.server.DefaultServerFactory;
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -69,9 +68,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -92,10 +89,6 @@ public abstract class AbstractFunctionalTest
   protected static TestCLMServer testCLMServer;
 
   protected static ReverseProxyServer reverseProxyServer;
-
-  private static Matcher<String> urlEquals(final String url) {
-    return is(either(equalTo(url)).or(equalTo(Configuration.baseUrl + url)));
-  }
 
   private static String getBaseUrl(String contextPath) {
     String url = reverseProxyServer.getUrl();
@@ -385,11 +378,11 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void waitUntilUrl(final String url) {
-    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), urlEquals(url)));
+    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), is(url)));
   }
 
   protected static void waitUntilNotUrl(final String url) {
-    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), not(urlEquals(url))));
+    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl(), is(not(url))));
   }
 
   private static void waitUntil(Consumer<WebDriver> assertion) {

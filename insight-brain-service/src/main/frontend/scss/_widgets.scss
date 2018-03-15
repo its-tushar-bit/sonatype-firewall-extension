@@ -304,6 +304,11 @@
 /*
   ##Tooltips
 */
+.tooltip {
+  // prevent tooltips from picking up nowrap styles from parent elements, which they are incompatible with
+  white-space: normal;
+}
+
 .tooltip.top-left { // missing in our version of bootstrap
   margin-top:  -3px;
   padding: 5px 0;

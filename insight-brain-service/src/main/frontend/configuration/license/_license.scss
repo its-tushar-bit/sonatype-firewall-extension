@@ -20,6 +20,8 @@
   > dd:last-child {
     margin-bottom: 10px;
   }
+
+  flex: 1 1 33%;
 }
 
 .iq-license-info__nested-definitions {
@@ -37,11 +39,6 @@
       content: " — ";
     }
   }
-}
-
-#license-fingerprint {
-  word-wrap: break-word; // non-standard IE name for overflow-wrap
-  overflow-wrap: break-word;
 }
 
 #uninstall-license {

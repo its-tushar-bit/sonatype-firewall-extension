@@ -16,6 +16,10 @@
   section {
     display: block;
   }
+  
+  aside.iq-sidebar {
+    display: inline-block;
+  }
 
   .iq-table--dashboard-violations,
   .iq-table--dashboard-components,

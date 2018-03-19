@@ -218,7 +218,7 @@ public class ManagementEventServiceTest
   }
 
   @Test
-  public void testPostEvent_Member_HandlesRuntimeException() throws InterruptedException {
+  public void testPostEvent_Member_HandlesRuntimeException() {
     when(subject.getPrincipal()).thenThrow(new RuntimeException("testing"));
 
     managementEventService.postEvent(EventAction.CREATED, new HashMap<>(), organization.getId());

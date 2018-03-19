@@ -15,8 +15,6 @@ public class TelemetryData
 {
   private long timestamp;
 
-  private Long duration;
-
   private Map<String, String> attributes = new HashMap<>();
 
   /**
@@ -32,14 +30,6 @@ public class TelemetryData
 
   public long getTimestamp() {
     return timestamp;
-  }
-
-  public Long getDuration() {
-    return duration;
-  }
-
-  public void setDuration(final Long duration) {
-    this.duration = duration;
   }
 
   public Map<String, String> getAttributes() {

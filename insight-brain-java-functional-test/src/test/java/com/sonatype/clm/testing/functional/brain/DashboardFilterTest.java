@@ -928,7 +928,7 @@ public class DashboardFilterTest
     appFilter.multiSelectList().shouldBe(empty);
     appFilter.twisty().shouldBe(visible).click();
     appFilter.multiSelectList().shouldHave(size(3));
-    appFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all applications"));
+    appFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
     appFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstApp.getName()));
     appFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text(secondApp.getName()));
     appFilter.twisty().click();
@@ -938,7 +938,7 @@ public class DashboardFilterTest
     categoryFilter.multiSelectList().shouldBe(empty);
     categoryFilter.twisty().shouldBe(visible).click();
     categoryFilter.multiSelectList().shouldHave(size(4));
-    categoryFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all application categories"));
+    categoryFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
     categoryFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstAppCategory1.getName()));
     categoryFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text(firstAppCategory2.getName()));
     categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("No Category"));
@@ -974,7 +974,7 @@ public class DashboardFilterTest
     policyTypeFilter.multiSelectList().shouldBe(empty);
     policyTypeFilter.twisty().shouldBe(visible).click();
     policyTypeFilter.multiSelectList().shouldHave(size(5));
-    policyTypeFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all policy types"));
+    policyTypeFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
     policyTypeFilter.license().shouldNotBe(selected).label().shouldHave(text("License"));
     policyTypeFilter.other().shouldNotBe(selected).label().shouldHave(text("Other"));
     policyTypeFilter.quality().shouldNotBe(selected).label().shouldHave(text("Quality"));
@@ -988,7 +988,7 @@ public class DashboardFilterTest
     stageFilter.multiSelectList().shouldBe(empty);
     stageFilter.twisty().shouldBe(visible).click();
     stageFilter.multiSelectList().shouldHave(size(5));
-    stageFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all stages"));
+    stageFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
     stageFilter.build().shouldNotBe(selected).label().shouldHave(text("Build"));
     stageFilter.stageRelase().shouldNotBe(selected).label().shouldHave(text("Stage Release"));
     stageFilter.release().shouldNotBe(selected).label().shouldHave(text("Release"));
@@ -1002,7 +1002,7 @@ public class DashboardFilterTest
     categoryFilter.multiSelectList().shouldBe(empty);
     categoryFilter.twisty().shouldBe(visible).click();
     categoryFilter.multiSelectList().shouldHave(size(2));
-    categoryFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all application categories"));
+    categoryFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
     categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("No Category"));
     categoryFilter.twisty().click();
   }
@@ -1013,7 +1013,7 @@ public class DashboardFilterTest
     policyViolationStateFilter.multiSelectList().shouldBe(empty);
     policyViolationStateFilter.twisty().shouldBe(visible).click();
     policyViolationStateFilter.multiSelectList().shouldHave(size(3));
-    policyViolationStateFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all violation states"));
+    policyViolationStateFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
     policyViolationStateFilter.open().shouldBe(selected).label().shouldHave(text("Open"));
     policyViolationStateFilter.waived().shouldNotBe(selected).label().shouldHave(text("Waived"));
     policyViolationStateFilter.twisty().click();

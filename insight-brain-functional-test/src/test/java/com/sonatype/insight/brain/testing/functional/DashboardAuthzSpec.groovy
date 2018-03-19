@@ -87,7 +87,7 @@ extends BaseSpec {
     then: '"No Category" option and the "All" option should be the only options'
     filters.applicationCategoryFilter.multiSelectList.size() == 2
     filters.applicationCategoryFilter.counter.text() == '1'
-    filters.applicationCategoryFilter.multiSelectList.get(0).text() == 'all application categories'
+    filters.applicationCategoryFilter.multiSelectList.get(0).text() == 'all/none'
     filters.applicationCategoryFilter.multiSelectList.get(1).text() == 'No Category'
   }
 }

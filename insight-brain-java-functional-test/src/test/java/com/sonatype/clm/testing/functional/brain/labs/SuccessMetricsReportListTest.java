@@ -151,14 +151,14 @@ public class SuccessMetricsReportListTest
     modal.orgPickerCounter().shouldHave(text("3"));
     modal.appPickerCounter().shouldHave(text("3"));
     modal.orgPickerTrigger().click();
-    modal.nthOrg(1).shouldHave(text("All Organizations"));
+    modal.nthOrg(1).shouldHave(text("all/none"));
     modal.nthOrg(2).shouldHave(text(emptyOrganization.getName()));
     modal.nthOrg(3).shouldHave(text(organization1.getName())).click();
     modal.nthOrg(4).shouldHave(text(organization2.getName()));
     modal.orgPickerCounter().shouldHave(text("1 of 3"));
     modal.appPickerCounter().shouldHave(text("2 of 3"));
     modal.appPickerTrigger().click();
-    modal.nthApp(1).shouldHave(text("All Applications")).shouldNotBe(selected);
+    modal.nthApp(1).shouldHave(text("all/none")).shouldNotBe(selected);
     modal.nthApp(2).shouldHave(text(application1.getName())).shouldBe(selected);
     modal.nthApp(3).shouldHave(text(application2.getName())).shouldBe(selected);
     modal.nthApp(4).shouldHave(text(application3.getName())).shouldNotBe(selected);
@@ -180,14 +180,14 @@ public class SuccessMetricsReportListTest
 
     modal.appPickerCounter().shouldHave(text("3"));
     modal.appPickerTrigger().click();
-    modal.nthApp(1).shouldHave(text("All Applications"));
+    modal.nthApp(1).shouldHave(text("all/none"));
     modal.nthApp(2).shouldHave(text(application1.getName()));
     modal.nthApp(3).shouldHave(text(application2.getName())).click();
     modal.nthApp(4).shouldHave(text(application3.getName()));
     modal.appPickerCounter().shouldHave(text("1 of 3"));
     modal.orgPickerCounter().shouldHave(text("3"));
     modal.orgPickerTrigger().click();
-    modal.nthOrg(1).shouldHave(text("All Organizations")).shouldNotBe(selected);
+    modal.nthOrg(1).shouldHave(text("all/none")).shouldNotBe(selected);
     modal.nthOrg(2).shouldHave(text(emptyOrganization.getName())).shouldNotBe(selected);
     modal.nthOrg(3).shouldHave(text(organization1.getName())).shouldNotBe(selected);
     modal.nthOrg(4).shouldHave(text(organization2.getName())).shouldNotBe(selected);

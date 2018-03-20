@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -20,7 +19,6 @@ import org.mockito.Mock;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -70,19 +68,6 @@ public class TelemetrySchedulerTest
   public void testGetTelemetryRunnableRun_SendSuccess() throws Exception {
     TelemetryData telemetryData = mock(TelemetryData.class);
     when(telemetryCollector.collectData()).thenReturn(telemetryData);
-
-    telemetryScheduler.getTelemetryRunnable().run();
-
-    verify(telemetryCollector).collectData();
-    verify(telemetrySender).send(telemetryData);
-  }
-
-  @Test
-  public void testGetTelemetryRunnableRun_SendException() throws Exception {
-    TelemetryData telemetryData = mock(TelemetryData.class);
-    when(telemetryCollector.collectData()).thenReturn(telemetryData);
-    IOException ioException = new IOException();
-    doThrow(ioException).when(telemetrySender).send(telemetryData);
 
     telemetryScheduler.getTelemetryRunnable().run();
 

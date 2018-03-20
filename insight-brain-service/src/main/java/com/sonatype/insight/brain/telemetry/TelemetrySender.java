@@ -24,6 +24,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.entity.mime.content.ContentBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.43.0
@@ -32,6 +34,8 @@ import org.apache.http.entity.mime.content.ContentBody;
 @Singleton
 public class TelemetrySender
 {
+  private static final Logger log = LoggerFactory.getLogger(TelemetrySender.class);
+
   private final HdsClient client;
 
   private final VersionService versionService;
@@ -59,12 +63,17 @@ public class TelemetrySender
     this.telemetryId = telemetryId;
   }
 
-  public void send(TelemetryData telemetryData) throws IOException {
-    TelemetryHeader telemetryHeader = createHeader();
-    byte[] zipData = createZip(telemetryHeader, telemetryData);
-    ContentBody fileBody = new ByteArrayBody(zipData, ZIP_FILENAME);
-    HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
-    client.post(RESOURCE_PATH, httpEntity);
+  public void send(TelemetryData telemetryData) {
+    try {
+      TelemetryHeader telemetryHeader = createHeader();
+      byte[] zipData = createZip(telemetryHeader, telemetryData);
+      ContentBody fileBody = new ByteArrayBody(zipData, ZIP_FILENAME);
+      HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
+      client.post(RESOURCE_PATH, httpEntity);
+    }
+    catch (Exception e) {
+      log.debug("Failed to send telemetry.", e);
+    }
   }
 
   private TelemetryHeader createHeader() {

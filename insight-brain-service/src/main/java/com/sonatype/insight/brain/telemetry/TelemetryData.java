@@ -13,6 +13,8 @@ import java.util.Map;
  */
 public class TelemetryData
 {
+  private TelemetryPurpose purpose;
+
   private long timestamp;
 
   private Map<String, String> attributes = new HashMap<>();
@@ -24,7 +26,8 @@ public class TelemetryData
   private TelemetryData() {
   }
 
-  public TelemetryData(final long timestamp) {
+  public TelemetryData(final TelemetryPurpose purpose, final long timestamp) {
+    this.purpose = purpose;
     this.timestamp = timestamp;
   }
 
@@ -38,5 +41,13 @@ public class TelemetryData
 
   public void setAttributes(final Map<String, String> attributes) {
     this.attributes = attributes;
+  }
+
+  public TelemetryPurpose getPurpose() {
+    return purpose;
+  }
+
+  public void setPurpose(TelemetryPurpose purpose) {
+    this.purpose = purpose;
   }
 }

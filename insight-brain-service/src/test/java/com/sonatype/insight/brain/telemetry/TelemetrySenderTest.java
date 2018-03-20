@@ -19,24 +19,31 @@ import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.apache.http.HttpEntity;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 public class TelemetrySenderTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(TelemetrySender.class);
+
   @Inject
   private TelemetrySender telemetrySender;
 
@@ -103,5 +110,15 @@ public class TelemetrySenderTest
       assertThat(telemetryDataReceived.getAttributes().get(TelemetryCollector.P90_APPS_PER_ORG), is("0"));
       assertThat(telemetryDataReceived.getTimestamp(), is(telemetryDataSend.getTimestamp()));
     }
+  }
+
+  @Test
+  public void testSend_ExceptionsAreHandled() throws Exception {
+    RuntimeException exception = new RuntimeException();
+    doThrow(exception).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class));
+
+    telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS, System.currentTimeMillis()));
+
+    logOutput.assertDebug(containsString("Failed to send telemetry."), exception);
   }
 }

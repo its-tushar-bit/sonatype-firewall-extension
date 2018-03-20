@@ -13,6 +13,9 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.telemetry.TelemetryData;
+import com.sonatype.insight.brain.telemetry.TelemetryPurpose;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -24,20 +27,25 @@ import org.apache.commons.lang.StringUtils;
 @Named
 public class AutomaticApplicationsConfigurationService
 {
+  static final String AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR = "automatic_application_creation_enabled";
+
   private final OrganizationDAO organizationDAO;
 
   private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public AutomaticApplicationsConfigurationService(OrganizationDAO organizationDAO,
-                                                   AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO)
+                                                   AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
+                                                   TelemetrySender telemetrySender)
   {
     this.organizationDAO = organizationDAO;
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
+    this.telemetrySender = telemetrySender;
   }
 
-  @Authorize(permission = Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION)
-  AutomaticApplicationsConfiguration update(AutomaticApplicationsConfiguration configuration) {
+  private void validateConfiguration(AutomaticApplicationsConfiguration configuration) {
     String parentOrganizationId = StringUtils.trimToEmpty(configuration.getParentOrganizationId());
     if (Organization.ROOT_ORGANIZATION_ID.equals(parentOrganizationId)) {
       throw new BadRequestException("Parent cannot be the root organization.");
@@ -46,16 +54,47 @@ public class AutomaticApplicationsConfigurationService
       throw new BadRequestException(
           "Parent organization ID is required when automatic application creation is enabled.");
     }
+    if (StringUtils.isNotBlank(parentOrganizationId) && organizationDAO.getById(parentOrganizationId) == null) {
+      throw new BadRequestException("Parent organization ID " + parentOrganizationId + " not found.");
+    }
+    configuration.setParentOrganizationId(parentOrganizationId);
+  }
+
+  private void persistConfiguration(AutomaticApplicationsConfiguration configuration) {
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       tx.begin();
-      if (StringUtils.isNotBlank(parentOrganizationId) && organizationDAO.getById(tx, parentOrganizationId) == null) {
-        throw new BadRequestException("Parent organization ID " + parentOrganizationId + " not found.");
-      }
       automaticApplicationsConfigurationDAO.setEnabled(tx, configuration.isEnabled());
-      automaticApplicationsConfigurationDAO.setOrganizationId(tx, parentOrganizationId);
+      automaticApplicationsConfigurationDAO.setOrganizationId(tx, configuration.getParentOrganizationId());
       tx.commit();
     }
+  }
+
+  @Authorize(permission = Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION)
+  AutomaticApplicationsConfiguration update(AutomaticApplicationsConfiguration configuration) {
+    validateConfiguration(configuration);
+
+    boolean wasEnabledBefore = automaticApplicationsConfigurationDAO.isEnabled();
+
+    persistConfiguration(configuration);
+
+    sendTelemetryEvent(wasEnabledBefore, configuration.isEnabled());
+
     return configuration;
+  }
+
+  /**
+   * Sends a telemetry event if the Automatic App Creation was enabled or disabled.
+   */
+  private void sendTelemetryEvent(boolean wasEnabledBefore, boolean isEnabledNow) {
+    if (wasEnabledBefore == isEnabledNow) {
+      return;
+    }
+
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION,
+        System.currentTimeMillis());
+    telemetryData.getAttributes().put(AUTO_APP_CREATION_ENABLED_TELEMETRY_ATTR, String.valueOf(isEnabledNow));
+
+    telemetrySender.send(telemetryData);
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION)

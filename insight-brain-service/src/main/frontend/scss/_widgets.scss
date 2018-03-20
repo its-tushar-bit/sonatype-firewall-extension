@@ -401,11 +401,10 @@
   border: 1px solid $iq-off-black;
   border-radius: 0;
   color: $iq-off-white;
-  word-wrap: break-word;
 }
 
-.tooltip.top-left.entity-item-tooltip .tooltip-arrow {
-  margin-left: 23px;
+.entity-item-tooltip .tooltip-inner {
+  word-wrap: break-word;
 }
 
 /*

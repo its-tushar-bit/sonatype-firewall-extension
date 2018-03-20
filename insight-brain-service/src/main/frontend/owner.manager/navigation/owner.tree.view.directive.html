@@ -52,6 +52,7 @@
            iq-tooltip
            tooltip-text="{{organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
            tooltip-attach-to-body="true"
+           tooltip-class="entity-item-tooltip"
            tooltip-only-on-overflow="{{!organization.synthetic}}">
           <div class="iq-tree-view__twisty" ng-click="vm.handleOrganizationTwistyClick($event, organization)">
             <span class="iq-tree-view__twisty-icon"
@@ -80,6 +81,7 @@
              iq-tooltip
              tooltip-text="{{application.name}}"
              tooltip-attach-to-body="true"
+             tooltip-class="entity-item-tooltip"
              tooltip-only-on-overflow="true">
             <i class="fa fa-terminal owner-tree-view__icon owner-tree-view__icon--12px inverse"></i><!--
          --><span class="iq-tree-view__text"><!--

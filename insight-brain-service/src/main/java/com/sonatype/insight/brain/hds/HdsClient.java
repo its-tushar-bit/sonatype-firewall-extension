@@ -351,19 +351,7 @@ public class HdsClient
    */
   public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) throws IOException
   {
-    return post(clazz, path, null, jsonSerializableObject, uriParams);
-  }
-
-  /**
-   * @since 1.23
-   */
-  public <T> T post(Class<T> clazz,
-                    String path,
-                    final String clientUserAgent,
-                    Object jsonSerializableObject,
-                    String... uriParams) throws IOException
-  {
-    return post(null, clazz, path, clientUserAgent, jsonSerializableObject, uriParams);
+    return post(null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject, uriParams);
   }
 
   /**

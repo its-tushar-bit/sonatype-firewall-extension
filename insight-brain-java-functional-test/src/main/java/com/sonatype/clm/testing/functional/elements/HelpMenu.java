@@ -29,4 +29,8 @@ public class HelpMenu
   public SelenideElement supportLink() {
     return $("#support-link");
   }
+
+  public SelenideElement gettingStartedLink() {
+    return $("#getting-started-link");
+  }
 }

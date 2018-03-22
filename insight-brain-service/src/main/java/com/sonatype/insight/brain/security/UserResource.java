@@ -47,6 +47,8 @@ public class UserResource
 
   private static final String MEMBERS_FOR_SINGLETON_OWNER_ROLES = SINGLETON_OWNER_TYPE_SEGMENT + "/query";
 
+  public static final String DEFAULT_PASSWORD_CHANGED_PATH = "/defaultPasswordChanged";
+
   private final UserService userService;
 
   @Inject
@@ -122,5 +124,12 @@ public class UserResource
   @Produces(MediaType.APPLICATION_JSON)
   public ChangePasswordDTO resetPassword(@PathParam("userId") String userId) {
     return userService.resetPassword(userId);
+  }
+
+  @GET
+  @Path(DEFAULT_PASSWORD_CHANGED_PATH)
+  @Produces(MediaType.TEXT_PLAIN)
+  public boolean isDefaultAdminPasswordChanged() {
+    return userService.isAdminDefaultPasswordChanged();
   }
 }

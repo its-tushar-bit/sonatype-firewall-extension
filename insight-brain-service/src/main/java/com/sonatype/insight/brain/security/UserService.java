@@ -42,6 +42,8 @@ public class UserService
 
   static final String FAKE_PASSWORD = "#~FAKE~PASSWORD~#";
 
+  private static final String ADMIN_DEFAULT_PASSWORD = "admin123";
+
   private final InternalRealm clmRealm;
 
   private final SessionDAO sessionDAO;
@@ -215,6 +217,17 @@ public class UserService
     dto.newPassword = password;
 
     return dto;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public boolean isAdminDefaultPasswordChanged() {
+    try {
+      clmRealm.getAuthenticationInfo(new UsernamePasswordToken(User.ADMIN_USERNAME, ADMIN_DEFAULT_PASSWORD));
+    }
+    catch (AuthenticationException e) {
+      return true;
+    }
+    return false;
   }
 
   private void clearUserPassword(User user) {

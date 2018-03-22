@@ -39,3 +39,5 @@ export const pathSet = curry((path, value, target) => set(lensPath(path), value,
  * const person = findPerson(key);
  */
 export const lookup = flip(prop);
+
+export const getDaysFromNow = timestamp => Math.floor((timestamp - Date.now()) / (1000 * 60 * 60 * 24));

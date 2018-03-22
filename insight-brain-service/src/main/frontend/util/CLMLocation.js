@@ -346,7 +346,9 @@ angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory(
       getSuccessMetricsReportUrl: (successMetricsId) =>
         `${baseUrl.get()}/rest/successMetricsReport/${successMetricsId}`,
 
-      getAutomaticApplicationsConfigurationUrl: () => `${baseUrl.get()}/rest/config/automaticApplications`
+      getAutomaticApplicationsConfigurationUrl: () => `${baseUrl.get()}/rest/config/automaticApplications`,
+
+      getIsAdminDefaultPasswordChanged: () => `${baseUrl.get()}/rest/user/defaultPasswordChanged`
     };
   }
 ]);

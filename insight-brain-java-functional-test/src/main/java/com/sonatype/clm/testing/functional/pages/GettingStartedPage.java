@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.pages;
+
+import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+
+public class GettingStartedPage
+    extends BasicElement<GettingStartedPage>
+{
+  public static final String URL = BaseUrl.resolvePageUrl("/gettingStarted");
+
+  private static final String ROOT = "#getting-started";
+
+  public GettingStartedPage() {
+    super(ROOT);
+  }
+
+  public SelenideElement changeDefaultPasswordWarning() {
+    return child("#change-password-warning");
+  }
+
+  public ProductLicenseSummaryTile productLicenseSummary() {
+    return new ProductLicenseSummaryTile();
+  }
+
+  public SelenideElement systemSetup() {
+    return child("system-setup");
+  }
+
+  public SelenideElement learningTopics() {
+    return child("learning-topics");
+  }
+
+  public static class ProductLicenseSummaryTile
+      extends BasicElement<ProductLicenseSummaryTile>
+  {
+
+    private static final String ROOT = "product-license-summary";
+
+    ProductLicenseSummaryTile() {
+      super(ROOT);
+    }
+
+    public SelenideElement expiryDate() {
+      return child("#license-expiry-date");
+    }
+
+    public SelenideElement daysToExpiration() {
+      return child("#license-days-to-expiration");
+    }
+
+    public SelenideElement fingerprint() {
+      return child("#license-fingerprint");
+    }
+
+    public ElementsCollection products() {
+      return children("#license-products .iq-read-only-data");
+    }
+
+    public ElementsCollection licensedDevelopersRows() {
+      return children("#license-licensed-developers > div");
+    }
+  }
+}

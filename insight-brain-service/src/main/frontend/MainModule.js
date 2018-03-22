@@ -98,7 +98,8 @@ angular.module('InitModule', [
             toState: toState,
             toParams: toParams
           };
-        });
+        }),
+        deregisterUnlicensedStateChangePreventer;
 
     function initSuccess(data) {
       $rootScope.licensed = true;
@@ -128,7 +129,7 @@ angular.module('InitModule', [
         }
         else {
           stateChangePrevention(); // Remove existing block
-          $rootScope.$on('$stateChangeStart', function(event, toState) {
+          deregisterUnlicensedStateChangePreventer = $rootScope.$on('$stateChangeStart', function(event, toState) {
             if (toState.name !== 'productlicense') {
               event.preventDefault();
             }
@@ -141,6 +142,19 @@ angular.module('InitModule', [
         $rootScope.error = 'Unable to initialize the application';
       }
     }
+
+    $rootScope.$on('licenseInstalled', function() {
+      // Stop preventing state changes.  Otherwise, the navigation to the Getting Started page cannot be performed
+      if (deregisterUnlicensedStateChangePreventer) {
+        deregisterUnlicensedStateChangePreventer();
+      }
+
+      $state.go('gettingStarted');
+
+      $timeout(function() {
+        $window.location.reload();
+      });
+    });
 
     function doStart() {
       currentUser.then(function(authenticationStatus) {

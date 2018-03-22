@@ -6,9 +6,9 @@ import 'bootstrap-toggle/css/bootstrap2-toggle.css';
 import './lib/glyphicon/halflings.css';
 import 'angular-xeditable/dist/css/xeditable.css';
 import 'plottable/plottable.css';
-import './scss/scss.scss';
 import './glyphicons-sonatype.css';
 import './sonatype-icons.css';
+import './scss/scss.scss';
 
 import './lib/jquery-loader';
 import 'angular';

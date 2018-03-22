@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -41,6 +42,9 @@ public class UserServiceTest
 {
   @Inject
   private UserService userService;
+
+  @Inject
+  private UserDAO userDAO;
 
   @Mock
   private SessionDAO sessionDAOMock;
@@ -270,6 +274,25 @@ public class UserServiceTest
         .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
     assertMember(findMembersDTO, "LDAP error, displaying partial results.", MemberType.USER, User.ADMIN_USERNAME,
         "Admin BuiltIn", "admin@localhost", "IQ Server");
+  }
+
+  @Test
+  public void testIsAdminDefaultPasswordChanged() {
+    assertThat(userService.isAdminDefaultPasswordChanged(), is(false));
+
+    User admin = userDAO.getByUsername(User.ADMIN_USERNAME);
+    String originalAdminPassword = admin.getPassword();
+    try {
+      admin.setPassword("foo");
+      userDAO.update(admin);
+      assertThat(userService.isAdminDefaultPasswordChanged(), is(true));
+    }
+    finally {
+      admin.setPassword(originalAdminPassword);
+      userDAO.update(admin);
+    }
+
+    assertThat(userService.isAdminDefaultPasswordChanged(), is(false));
   }
 
   private void assertMember(FindMembersDTO findMembersDTO,

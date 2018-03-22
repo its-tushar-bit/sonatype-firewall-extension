@@ -6,6 +6,7 @@
 /* global angular, $, clmBuildTimestamp */
 import { identity } from 'ramda';
 
+import {getDaysFromNow} from './../../util/jsUtil';
 import template from './license.html';
 
 export default {
@@ -17,8 +18,7 @@ export default {
   template: template
 };
 
-const getDaysToExpiration = expiryTimestamp => Math.floor((expiryTimestamp - Date.now()) / (1000 * 60 * 60 * 24)),
-    mkLimit = (name, count) => ({ name, count });
+const mkLimit = (name, count) => ({ name, count });
 
 function ProductLicenseController($http, $scope, clmLocations, $timeout, $window, $cookies, Modal, Messages) {
   const vm = this;
@@ -41,7 +41,7 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
 
         $http.get(vm.summaryUrl).then(function({data}) {
           vm.license = Object.assign({}, data, {
-            daysToExpiration: getDaysToExpiration(data.expiryTimestamp)
+            daysToExpiration: getDaysFromNow(data.expiryTimestamp)
           });
 
           vm.userLimits = [
@@ -62,6 +62,16 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
             vm.license = false;
           }
         });
+      }
+    },
+
+    postInstall() {
+      // vm.license is still set as it was before the installation
+      if (vm.license) {
+        vm.reload();
+      }
+      else {
+        $scope.$emit('licenseInstalled');
       }
     },
 
@@ -90,11 +100,7 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
           var form = new FormData();
           form.append('file', $('#license-input')[0].files[0]);
 
-          vm.formMask.wrap($http.post(vm.uploadUrl, form)).then(function() {
-            vm.license = undefined;
-            vm.submitError = undefined;
-            vm.reload();
-          }, function(error) {
+          vm.formMask.wrap($http.post(vm.uploadUrl, form)).then(vm.postInstall, function(error) {
             vm.submitError = Messages.getHttpErrorMessage(error);
           });
         }
@@ -118,7 +124,7 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
         }, 0);
       }
       else {
-        vm.formMask.showSuccessMaskBriefly().then(() => vm.reload());
+        vm.formMask.showSuccessMaskBriefly().then(vm.postInstall);
       }
     },
 

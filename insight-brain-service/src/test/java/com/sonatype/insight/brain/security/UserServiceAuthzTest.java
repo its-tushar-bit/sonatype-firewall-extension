@@ -219,4 +219,21 @@ public class UserServiceAuthzTest
     User user = tempEntity.newUser("testUpdateUser");
     userService.resetPassword(user.getId());
   }
+
+  @Test
+  public void testIsAdminDefaultPasswordChanged_Authorized() {
+    grantConfigureSystemPermission();
+    userService.isAdminDefaultPasswordChanged();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testIsAdminDefaultPasswordChanged_Unauthenticated() {
+    userService.isAdminDefaultPasswordChanged();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testIsAdminDefaultPasswordChanged_Unauthorized() {
+    login();
+    userService.isAdminDefaultPasswordChanged();
+  }
 }

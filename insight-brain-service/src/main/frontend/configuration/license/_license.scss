@@ -11,17 +11,10 @@
 }
 
 .iq-license-info {
-  margin: 8px 0;
-
-  > dt:first-child {
-    margin-top: 12px;
-  }
-
-  > dd:last-child {
-    margin-bottom: 10px;
-  }
-
   flex: 1 1 33%;
+  margin: 8px 0;
+  padding-top: 12px;
+  padding-bottom: 10px;
 }
 
 .iq-license-info__nested-definitions {

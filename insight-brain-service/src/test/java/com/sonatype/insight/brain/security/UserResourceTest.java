@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.version.VersionResource;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -319,6 +320,14 @@ public class UserResourceTest
     Organization org = tempEntity.newOrganization();
     HttpResponse response = findRequest(OwnerType.ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "IQ Server");
+  }
+
+  @Test
+  public void testIsAdminDefaultPasswordChanged() throws Exception {
+    HttpRequest request = restRequest();
+    HttpResponse response = request.path(UserResource.DEFAULT_PASSWORD_CHANGED_PATH).get();
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    assertThat(response.getBodyText(), is("false"));
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

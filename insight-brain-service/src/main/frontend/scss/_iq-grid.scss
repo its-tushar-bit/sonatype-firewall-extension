@@ -68,6 +68,12 @@
   border-left-color: $iq-off-white;
 }
 
+.iq-grid-col {
+  .iq-grid-h-keyline {
+    margin: 12px 0 4px 0;
+  }
+}
+
 // Grid headers
 .iq-grid-header {
   margin: 0 0 18px 0;
@@ -75,7 +81,7 @@
 
 .iq-grid-header__title {
   @extend .truncate-ellipsis;
-  
+
   line-height: 100%;
   margin: 0; // zeros out any <h#> margin
   max-width: $iq-paragraph-width-maximum;

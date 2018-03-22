@@ -1,0 +1,44 @@
+<!-- NOTE: remove "body-container body-container--getting-started" classes
+after single column layout refactoring is merged -->
+<section id="getting-started" class="body-container body-container--getting-started" maximize-container-height>
+  <header class="iq-tile">
+    <div class="iq-tile-header">
+      <div class="iq-tile-header__title">
+        <h1>Welcome to IQ Server</h1>
+      </div>
+      <div class="iq-tile-header__subtitle" load-wrapper="vm.error" loading="vm.isLoading()" reload="vm.$onInit()">
+        You can access this page at any time from the help menu.
+        <i class="glyphicons-sonatype medium help iq-icon--getting-started-reference"></i>
+      </div>
+    </div>
+  </header>
+
+  <div ng-if="vm.isDataLoaded()">
+
+    <section class="iq-tile iq-alert" id="change-password-warning" ng-if="vm.shouldDisplayChangePassword">
+      <div class="iq-tile-header">
+        <div class="iq-tile-header__title">
+          <h2><i class="fa fa-warning"></i>Change Administrator Password</h2>
+        </div>
+        <div class="iq-tile-header__subtitle" ng-if="vm.isDefaultUser">
+          For security reasons, you'll want to do this right away. Click your username
+          <i class="glyphicons-sonatype iq-icon--getting-started-reference medium user"></i>
+          in the header to access this option.
+        </div>
+        <div class="iq-tile-header__subtitle" ng-if="!vm.isDefaultUser">
+          For security reasons, you'll want to change the password of the default user.
+          Log in as 'admin' and click on the username
+          <i class="glyphicons-sonatype iq-icon--getting-started-reference medium user"></i>
+          in the header to access this option.
+        </div>
+      </div>
+    </section>
+
+    <product-license-summary ng-if="vm.license" license="vm.license"></product-license-summary>
+
+    <system-setup ng-if="vm.isAuthorizedToViewSystemSetup()"></system-setup>
+
+    <learning-topics></learning-topics>
+
+  </div>
+</section>

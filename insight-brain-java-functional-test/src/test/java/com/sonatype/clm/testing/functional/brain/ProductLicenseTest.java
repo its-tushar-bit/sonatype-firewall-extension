@@ -9,6 +9,8 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
+
 
 import org.junit.BeforeClass;
 import org.junit.Before;
@@ -113,7 +115,10 @@ public class ProductLicenseTest
   public void testUpdateLicense() {
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
 
-    installAndCheckLicense();
+    installLicense();
+
+    ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
+    ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
   }
 
   @Test
@@ -135,10 +140,17 @@ public class ProductLicenseTest
 
     eyesWatcher.eyesCheck();
 
-    installAndCheckLicense();
+    installLicense();
+
+    // should redirect to Getting Started page after fresh license install
+    new GettingStartedPage().shouldBe(visible);
+
+    refreshOrOpen(ProductLicensePage.url());
+    ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
+    ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
   }
 
-  private void installAndCheckLicense() {
+  private void installLicense() {
     // NOTE: the contents of the license file don't matter for this test because the MockProductLicenseManager ignores
     // it anyway
     ProductLicensePage.installLicenseFileUpload()
@@ -151,9 +163,6 @@ public class ProductLicenseTest
     eulaModal.acceptBtn().shouldBe(visible).click();
 
     FormMask.seeAndWaitForDismissal();
-
-    ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
-    ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
   }
 
   private void updateLicenseManager() throws Exception {

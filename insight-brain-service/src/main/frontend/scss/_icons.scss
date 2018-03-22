@@ -138,6 +138,22 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
     color: $iq-off-white;
   }
 
+  &.size-26px {
+    font-size: 26px;
+
+    &.inverse {
+      font-size: 20px;
+      line-height: 26px;
+      height: 26px;
+      text-align: center;
+      width: 26px;
+
+      &::before {
+        vertical-align: 2px;
+      }
+    }
+  }
+
   &.size-22px {
     font-size: 22px;
     line-height: 22px;

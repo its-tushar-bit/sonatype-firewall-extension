@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import successMetricsConfigurationModule from './configuration/successMetricsConfiguration/successMetricsConfigurationModule';
-import automaticApplicationsConfigurationModule from './configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationModule';
+import configurationModule from './configuration/module';
 import legacyConfigurationModule from './LegacyConfigurationModule';
 import directivesModule from './directives/module';
 import dashboardModule from './dashboard/dashboard.module';
@@ -15,7 +14,6 @@ export default angular.module('managementApp',
     [
       'MainModule', 'UserModule', 'RoleModule', 'ldap.module', 'owner.manager.module',
       'root.organization.migrate', 'ProductLicense', 'webhook.module', 'systemNoticeConfigurationModule',
-      'systemNoticeModule', 'components', directivesModule.name, 'labsModule', successMetricsConfigurationModule.name,
-      legacyConfigurationModule.name, dashboardModule.name, reduxConfigModule.name,
-      automaticApplicationsConfigurationModule.name
+      'systemNoticeModule', 'components', directivesModule.name, 'labsModule', configurationModule.name,
+      legacyConfigurationModule.name, dashboardModule.name, reduxConfigModule.name
     ]);

@@ -329,13 +329,13 @@ public class HdsClient
   }
 
   /**
-   * @since 1.43.0
+   * @since 1.46
    */
-  public void post(String path, HttpEntity httpEntity)
-  {
+  public void post(String path, HttpEntity httpEntity, String clientUserAgent) {
     long start = System.currentTimeMillis();
     try {
       HttpPost cloudReq = new HttpPost(buildUri(path));
+      setClientUserAgentHeader(cloudReq, clientUserAgent);
       cloudReq.setEntity(httpEntity);
       populateRequest(null /* base request */, cloudReq, null);
       HttpResponse response = execute(cloudReq);
@@ -371,9 +371,7 @@ public class HdsClient
       StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
       cloudReq.setEntity(entity);
       populateRequest(null /* base request */, cloudReq, analytics);
-      if (clientUserAgent != null) { // will be null when called from Repository View Re-evaluate
-        cloudReq.setHeader(CLM_CLIENT_USER_AGENT_HEADER, clientUserAgent);
-      }
+      setClientUserAgentHeader(cloudReq, clientUserAgent);
       cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
       cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -457,7 +455,7 @@ public class HdsClient
         }
       }
 
-      req.setHeader(CLM_CLIENT_USER_AGENT_HEADER, getClientUserAgent(orig));
+      setClientUserAgentHeader(req, getClientUserAgent(orig));
     }
     if (analytics != null) {
       req.setHeader(OWNER_TYPE_HEADER, analytics.getOwnerType().toString());
@@ -481,6 +479,12 @@ public class HdsClient
       clientUserAgent = request.getHeader(HttpHeaders.USER_AGENT);
     }
     return clientUserAgent;
+  }
+
+  private void setClientUserAgentHeader(HttpUriRequest request, String clientUserAgent) {
+    if (clientUserAgent != null) {
+      request.setHeader(CLM_CLIENT_USER_AGENT_HEADER, clientUserAgent);
+    }
   }
 
   private String buildUri(String path, String... uriParams) {

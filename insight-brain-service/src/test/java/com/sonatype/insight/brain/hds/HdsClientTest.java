@@ -68,6 +68,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.AnyOf.anyOf;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertNull;
@@ -183,6 +184,12 @@ public class HdsClientTest
     when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn("ua-we-cannot-control");
     when(request.getHeader(eq(HdsClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testClmClientUserAgent);
     client.get(request, InputStream.class, testPath, new String[] {});
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+
+    HttpEntity httpEntity = MultipartEntityBuilder.create().build();
+    client.post(testPath, httpEntity, null /* testClmClientUserAgent */);
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(nullValue()));
+    client.post(testPath, httpEntity, testClmClientUserAgent);
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
   }
 
@@ -726,6 +733,9 @@ public class HdsClientTest
     client.post(String.class, testPath, "foo", new String[] {});
     assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
 
+    client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
+    assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
+
     client.put(null, String.class, testPath, tempDir.newFile(), new String[] {});
     assertThat(headers, hasEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId()));
   }
@@ -765,7 +775,7 @@ public class HdsClientTest
     FileUtils.write(fileSent, "Test", "UTF-8");
     FileBody fileBodySent = new FileBody(fileSent);
     HttpEntity httpEntity = MultipartEntityBuilder.create().addPart("file", fileBodySent).build();
-    client.post(testPath, httpEntity);
+    client.post(testPath, httpEntity, "test_client_user_agent");
     assertThat(statusCode[0], is(HttpStatus.NO_CONTENT_204));
     assertThat(fileBodyReceived[0].getFileName(), is(fileBodySent.getFilename()));
     assertThat(IOUtils.toString(fileBodyReceived[0].getInputStream(), "UTF-8"), is("Test"));

@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -69,7 +70,7 @@ public class TelemetrySenderTest
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
 
     doAnswer(x -> invocation[0] = x).when(mockHdsClient)
-        .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class));
+        .post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
 
     TelemetryData telemetryDataSend = telemetryCollector.collectData();
 
@@ -115,10 +116,24 @@ public class TelemetrySenderTest
   @Test
   public void testSend_ExceptionsAreHandled() throws Exception {
     RuntimeException exception = new RuntimeException();
-    doThrow(exception).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class));
+    doThrow(exception).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
 
     telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS, System.currentTimeMillis()));
 
     logOutput.assertDebug(containsString("Failed to send telemetry."), exception);
+  }
+
+  @Test
+  public void testSend_ClientUserAgent() throws Exception {
+    String clientUserAgent = "test_client_user_agent";
+    final InvocationOnMock[] invocation = new InvocationOnMock[1];
+    doAnswer(x -> invocation[0] = x).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
+        eq(clientUserAgent));
+
+    telemetrySender.send(new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION, System.currentTimeMillis()),
+        clientUserAgent);
+
+    // If invocation[0] is not null, then the mock was called with the right client user agent value.
+    assertThat(invocation[0], is(notNullValue()));
   }
 }

@@ -76,7 +76,8 @@ public class AutomaticApplicationsConfigurationServiceTest
   @Test
   public void testUpdate_TelemetryEventsAreSent() throws Exception {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class));
+    doAnswer(x -> invocation[0] = x).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
+        eq(null));
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();
 

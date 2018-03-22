@@ -16,9 +16,13 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.telemetry.TelemetryData;
+import com.sonatype.insight.brain.telemetry.TelemetryPurpose;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -28,6 +32,8 @@ import org.slf4j.LoggerFactory;
 public class ApplicationSummaryService
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationSummaryService.class);
+
+  static final String APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR = "application_created_automatically";
 
   private static final Comparator<Application> APP_COMPARATOR = new Comparator<Application>()
   {
@@ -41,16 +47,24 @@ public class ApplicationSummaryService
 
   private final ApplicationDAO applicationDAO;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   private final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  private final TelemetrySender telemetrySender;
 
   @Inject
   public ApplicationSummaryService(final ApplicationSummaryAdapter applicationAdapter,
                                    final ApplicationDAO applicationDAO,
-                                   final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO)
+                                   PolicyEvaluationDAO policyEvaluationDAO,
+                                   final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
+                                   TelemetrySender telemetrySender)
   {
     this.applicationAdapter = applicationAdapter;
     this.applicationDAO = applicationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
+    this.telemetrySender = telemetrySender;
   }
 
   public ApplicationSummaryList getApplications(Goal goal) {
@@ -109,7 +123,7 @@ public class ApplicationSummaryService
    * 
    * @since 1.45
    */
-  boolean verifyOrCreateApplication(String applicationPublicId, Goal goal) {
+  boolean verifyOrCreateApplication(String applicationPublicId, Goal goal, String clientUserAgent) {
     if (goal == null) {
       throw new BadRequestException("A goal must be specified");
     }
@@ -118,12 +132,21 @@ public class ApplicationSummaryService
 
     // If the application does not exist and automatic application creation is enabled, then create a new
     // application with the given public ID.
-    if (application == null && automaticApplicationsConfigurationDAO.isEnabled()) {
-      log.info("Automatic application creation is enabled. Creating an application with name and public id: {}.",
-          applicationPublicId);
-      application = new Application(applicationPublicId, applicationPublicId,
-          automaticApplicationsConfigurationDAO.getOrganizationId());
-      applicationDAO.insert(application);
+    if (automaticApplicationsConfigurationDAO.isEnabled()) {
+      if (application == null) {
+        log.info("Automatic application creation is enabled. Creating an application with name and public id: {}.",
+            applicationPublicId);
+        application = new Application(applicationPublicId, applicationPublicId,
+            automaticApplicationsConfigurationDAO.getOrganizationId());
+        applicationDAO.insert(application);
+
+        sendApplicationCreatedTelemetryData(true, clientUserAgent);
+      }
+      else {
+        if (policyEvaluationDAO.getCountByApplicationId(application.getId()) == 0) {
+          sendApplicationCreatedTelemetryData(false, clientUserAgent);
+        }
+      }
     }
 
     // Verify the application public ID after (possibly) automatically creating the application in the case
@@ -137,5 +160,14 @@ public class ApplicationSummaryService
     }
 
     return false;
+  }
+
+  private void sendApplicationCreatedTelemetryData(boolean appCreatedAutomatically, String clientUserAgent) {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION,
+        System.currentTimeMillis());
+    telemetryData.getAttributes().put(APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR,
+        String.valueOf(appCreatedAutomatically));
+
+    telemetrySender.send(telemetryData, clientUserAgent);
   }
 }

@@ -10,11 +10,13 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,6 +25,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 public class ApplicationSummaryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -32,6 +35,13 @@ public class ApplicationSummaryServiceAuthzTest
 
   @Inject
   private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
+    binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
+  }
 
   @Test
   public void testGetApplications_Authorized_NullGoal() {
@@ -100,20 +110,24 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testVerifyOrCreateApplication_Authorized_EVALUATE_APPLICATION() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION), is(true));
+    assertThat(
+        service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
+        is(true));
   }
 
   @Test
   public void testVerifyOrCreateApplication_Unauthorized_EVALUATE_APPLICATION() {
     login();
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(
+        service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
+        is(false));
   }
 
   @Test
   public void testVerifyOrCreateApplication_NullGoal() {
     login();
     try {
-      service.verifyOrCreateApplication(app.getPublicId(), null /* goal */);
+      service.verifyOrCreateApplication(app.getPublicId(), null /* goal */, "test_client_user_agent");
       fail("Expected exception");
     }
     catch (BadRequestException expected) {
@@ -130,12 +144,14 @@ public class ApplicationSummaryServiceAuthzTest
     // If the application does not exist, it will be created if automatic app creation is enabled. However,
     // we will still not have access because we do not have a sufficient permission assigned to us.
     automaticApplicationsConfigurationDAO.setEnabled(false);
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
+        is(false));
     assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(nullValue()));
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
+        is(false));
     assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(notNullValue()));
   }
 
@@ -152,12 +168,14 @@ public class ApplicationSummaryServiceAuthzTest
     // If the application does not exist, then "access" is allowed only if automatic app creation is enabled.
     // We should then be able to access it in this scenario because we have permission via the organization.
     automaticApplicationsConfigurationDAO.setEnabled(false);
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION), is(false));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
+        is(false));
     assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(nullValue()));
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION), is(true));
+    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"),
+        is(true));
     assertThat(new ApplicationDAO().getByPublicId(appPublicId), is(notNullValue()));
   }
 }

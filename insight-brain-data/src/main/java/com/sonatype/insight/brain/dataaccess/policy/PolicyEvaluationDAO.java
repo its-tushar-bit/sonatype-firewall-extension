@@ -253,4 +253,11 @@ public class PolicyEvaluationDAO
       throw new IllegalStateException("Primary evaluations cannot be for obsolete scans");
     }
   }
+
+  public int getCountByApplicationId(String appId) {
+    String sQuery = "SELECT COUNT(entity.id) FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId=?1";
+
+    return getSingle(Number.class, sQuery, appId).intValue();
+  }
 }

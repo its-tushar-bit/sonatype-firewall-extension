@@ -7,15 +7,18 @@ package com.sonatype.insight.brain.integration;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,10 +74,12 @@ public class ApplicationSummaryResource
   @POST
   @Path(VERIFY_OR_CREATE_APPLICATION_PATH)
   public boolean verifyOrCreateApplication(@PathParam("applicationPublicId") String applicationPublicId,
-                                           @QueryParam(GOAL_PARAM) Goal goal)
+                                           @QueryParam(GOAL_PARAM) Goal goal,
+                                           @Context HttpServletRequest request)
   {
     log.debug("Received request to verify access for or create application with public ID {} and goal {}.",
         applicationPublicId, goal);
-    return applicationSummaryService.verifyOrCreateApplication(applicationPublicId, goal);
+    return applicationSummaryService.verifyOrCreateApplication(applicationPublicId, goal,
+        HdsClient.getClientUserAgent(request));
   }
 }

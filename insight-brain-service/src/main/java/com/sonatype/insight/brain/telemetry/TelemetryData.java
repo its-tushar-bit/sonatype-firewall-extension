@@ -13,6 +13,9 @@ import java.util.Map;
  */
 public class TelemetryData
 {
+  /**
+   * @since 1.46
+   */
   private TelemetryPurpose purpose;
 
   private long timestamp;

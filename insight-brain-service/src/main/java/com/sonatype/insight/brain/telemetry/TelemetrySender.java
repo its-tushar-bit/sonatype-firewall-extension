@@ -64,12 +64,16 @@ public class TelemetrySender
   }
 
   public void send(TelemetryData telemetryData) {
+    send(telemetryData, null /* clientUserAgent */);
+  }
+
+  public void send(TelemetryData telemetryData, String clientUserAgent) {
     try {
       TelemetryHeader telemetryHeader = createHeader();
       byte[] zipData = createZip(telemetryHeader, telemetryData);
       ContentBody fileBody = new ByteArrayBody(zipData, ZIP_FILENAME);
       HttpEntity httpEntity = MultipartEntityBuilder.create().addPart(MULTIPART_FILE_NAME, fileBody).build();
-      client.post(RESOURCE_PATH, httpEntity);
+      client.post(RESOURCE_PATH, httpEntity, clientUserAgent);
     }
     catch (Exception e) {
       log.debug("Failed to send telemetry.", e);

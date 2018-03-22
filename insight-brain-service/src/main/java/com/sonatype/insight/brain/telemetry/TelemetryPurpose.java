@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+/**
+ * @since 1.46
+ */
 public enum TelemetryPurpose
 {
   AUTOMATIC_APPLICATION_CREATION, //

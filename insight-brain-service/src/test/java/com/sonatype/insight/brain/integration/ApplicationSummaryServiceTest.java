@@ -5,27 +5,60 @@
  */
 package com.sonatype.insight.brain.integration;
 
+import java.util.Date;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
 import javax.inject.Inject;
+import javax.mail.BodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetryData;
+import com.sonatype.insight.brain.telemetry.TelemetryHeader;
+import com.sonatype.insight.brain.telemetry.TelemetryPurpose;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.inject.Binder;
+import org.apache.http.HttpEntity;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class ApplicationSummaryServiceTest
     extends AbstractComponentTest
 {
   @Inject
   private ApplicationSummaryService service;
+
+  private HdsClient mockHdsClient = mock(HdsClient.class);
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
+  }
 
   @Test
   public void testGetApplications_SortedByCaseInsensitiveName_EVALUATE_APPLICATION() throws Exception {
@@ -41,7 +74,8 @@ public class ApplicationSummaryServiceTest
   public void testVerifyOrCreateApplication_ApplicationDoesExist() {
     Application app = tempEntity.newApplicationWithParent();
 
-    boolean result = service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION);
+    boolean result = service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent");
 
     assertThat(result, is(true));
   }
@@ -56,7 +90,8 @@ public class ApplicationSummaryServiceTest
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setEnabled(false);
 
-    boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION);
+    boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent");
     assertThat(result, is(false));
   }
 
@@ -72,7 +107,8 @@ public class ApplicationSummaryServiceTest
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
 
-    boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION);
+    boolean result = service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent");
     assertThat(result, is(true));
 
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
@@ -90,5 +126,93 @@ public class ApplicationSummaryServiceTest
     assertThat(applicationListDTO.getApplicationSummaries().get(0).getId(), is(app0.getId()));
     assertThat(applicationListDTO.getApplicationSummaries().get(1).getId(), is(app1.getId()));
     assertThat(applicationListDTO.getApplicationSummaries().get(2).getId(), is(app2.getId()));
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationDisabled() throws Exception {
+    // If auto app creation is disabled, then no telemetry data should be sent.
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setEnabled(false);
+
+    String appPublicId = "NoSuchAppPublicID";
+    tempEntity.registerAppPublicId(appPublicId);
+
+    service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    verifyZeroInteractions(mockHdsClient);
+
+    Application app = tempEntity.newApplicationWithParent();
+    service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    verifyZeroInteractions(mockHdsClient);
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationEnabled() throws Exception {
+    final InvocationOnMock[] invocation = new InvocationOnMock[1];
+    doAnswer(x -> invocation[0] = x).when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
+        eq("test_client_user_agent"));
+
+    Organization org = tempEntity.newOrganization();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+
+    String appPublicId = "NoSuchAppPublicID";
+    tempEntity.registerAppPublicId(appPublicId);
+
+    // The app does not exist, so it will be created. We expect telemetry data that says the app was created
+    // automatically.
+    Date before = new Date();
+    service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    Date after = new Date();
+    assertTelemetryData(invocation[0], before, after, true);
+    clearInvocations(mockHdsClient);
+
+    // The app exists, but it doesn't have any evaluations. We expect telemetry data that says the app was not created
+    // automatically.
+    before = new Date();
+    service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    after = new Date();
+    assertTelemetryData(invocation[0], before, after, false);
+    clearInvocations(mockHdsClient);
+
+    // The app exists and it has evaluations. We don't expect any telemetry data.
+    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId");
+    service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    verifyZeroInteractions(mockHdsClient);
+  }
+
+  private void assertTelemetryData(InvocationOnMock invocation, Date before, Date after, boolean expected)
+      throws Exception
+  {
+    assertThat(TelemetrySender.RESOURCE_PATH, is(invocation.getArguments()[0]));
+    HttpEntity httpEntity = (HttpEntity) invocation.getArguments()[1];
+    ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(httpEntity.getContent(), "multipart/form-data");
+    MimeMultipart multipart = new MimeMultipart(multipartDataSource);
+    BodyPart bodyPart = multipart.getBodyPart(0);
+    String filename = bodyPart.getFileName();
+    assertThat(TelemetrySender.ZIP_FILENAME, is(filename));
+
+    try (ZipInputStream zipInputStream = new ZipInputStream(bodyPart.getInputStream())) {
+      byte[] buffer = new byte[1024];
+
+      ZipEntry zipEntryHeader = zipInputStream.getNextEntry();
+      assertThat(zipEntryHeader.getName(), is(TelemetrySender.HEADER_ENTRY_NAME));
+      zipInputStream.read(buffer);
+      TelemetryHeader telemetryHeader = JsonUtils.parse(buffer, TelemetryHeader.class);
+      assertThat(telemetryHeader.getCreateTime(), greaterThanOrEqualTo(before));
+      assertThat(telemetryHeader.getCreateTime(), lessThanOrEqualTo(after));
+
+      ZipEntry zipEntryData = zipInputStream.getNextEntry();
+      assertThat(zipEntryData.getName(), is(TelemetrySender.DATA_ENTRY_NAME));
+      zipInputStream.read(buffer);
+      TelemetryData telemetryData = JsonUtils.parse(buffer, TelemetryData.class);
+      assertThat(telemetryData.getPurpose(), is(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION));
+      assertThat(telemetryData.getAttributes().get(ApplicationSummaryService.APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR),
+          is(String.valueOf(expected)));
+      assertThat(telemetryData.getAttributes().size(), is(1));
+      assertThat(telemetryData.getTimestamp(), greaterThanOrEqualTo(before.getTime()));
+      assertThat(telemetryData.getTimestamp(), lessThanOrEqualTo(after.getTime()));
+    }
   }
 }

@@ -3,6 +3,6 @@ server:
     appenders:
       - type: console
       - type: file
-        currentLogFilename: ./log/request.log
+        currentLogFilename: ./target/log/request.log
         archive: false
       - type: syslog

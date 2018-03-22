@@ -4,7 +4,7 @@ server:
       - type: console
         logFormat: "consoleRequestLogFormat"
       - type: file
-        currentLogFilename: ./log/request.log
+        currentLogFilename: ./target/log/request.log
         logFormat: "fileRequestLogFormat"
         archive: false
       - type: syslog

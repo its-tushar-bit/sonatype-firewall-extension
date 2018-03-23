@@ -47,5 +47,9 @@
       <filtered>true</filtered>
       <fileMode>744</fileMode>
     </file>
+    <file>
+      <source>${project.build.directory}/nexus-iq-cli-${project.version}.jar</source>
+      <outputDirectory>.</outputDirectory>
+    </file>
   </files>
 </assembly>

@@ -55,7 +55,7 @@ public class GettingStartedTest
     checkLicenseSummaryContent();
     gettingStartedPage.systemSetup().shouldBe(visible);
     eyesWatcher.eyesCheck();
-    scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
+    scrollIntoView(gettingStartedPage.learningTopics(), false).shouldBe(visible);
     eyesWatcher.eyesCheck();
 
     logout();

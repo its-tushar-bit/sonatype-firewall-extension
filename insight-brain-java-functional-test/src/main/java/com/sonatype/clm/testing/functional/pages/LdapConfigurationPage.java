@@ -5,11 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
 import com.sonatype.clm.testing.functional.elements.LdapNameEditor;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
-import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -31,8 +31,8 @@ public class LdapConfigurationPage
     return $(ROOT_SELECTOR);
   }
 
-  public static SelenideElement breadCrumb() {
-    return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".iq-tile--breadcrumb"));
+  public static IqBackButton backButton() {
+    return new IqBackButton(ROOT_SELECTOR);
   }
 
   public static SelenideElement connectionTab() {

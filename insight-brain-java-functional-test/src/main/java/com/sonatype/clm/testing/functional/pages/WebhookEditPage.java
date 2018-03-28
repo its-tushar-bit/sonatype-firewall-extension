@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.elements.IqCheckbox;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -18,6 +19,10 @@ public class WebhookEditPage
 
   public WebhookEditPage() {
     super(ROOT_SELECTOR);
+  }
+
+  public IqBackButton backButton() {
+    return new IqBackButton(ROOT_SELECTOR);
   }
 
   public SelenideElement title() {

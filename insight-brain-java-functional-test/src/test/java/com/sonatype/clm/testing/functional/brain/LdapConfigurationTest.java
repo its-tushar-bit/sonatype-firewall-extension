@@ -93,7 +93,11 @@ public class LdapConfigurationTest
     serverListPage.newServerButton().click();
 
     waitUntilUrl(LdapConfigurationPage.createLdapUrl());
-    LdapConfigurationPage.breadCrumb().shouldHave(text("LDAP Servers / Create Configuration"));
+    LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers")).click();
+    serverListPage.ldapServerList().elements().shouldHaveSize(1);
+    serverListPage.newServerButton().click();
+
+    waitUntilUrl(LdapConfigurationPage.createLdapUrl());
     LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
     NameEditor nameEditor = ldapNameEditor.nameEditor();
 
@@ -105,7 +109,7 @@ public class LdapConfigurationTest
     ldapNameEditor.saveButton().shouldBe(hidden);
     ldapNameEditor.cancelButton().shouldBe(hidden);
 
-    LdapConfigurationPage.breadCrumb().shouldHave(text("LDAP Servers / Edit Configuration"));
+    LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers"));
 
     server = ldapServerDAO.getByName("Another Ldap Server");
     assertThat(server, is(notNullValue()));

@@ -83,6 +83,12 @@ public class WebhookConfigurationTest
     webhookEditPage.should(appear);
     webhookEditPage.title().shouldHave(text("Create Webhook"));
 
+    webhookEditPage.backButton().shouldHave(text("Back to Webhook Configuration")).click();
+    webhookConfigurationPage.should(appear);
+
+    newWebhook.shouldBe(visible).click();
+    webhookEditPage.should(appear);
+
     webhookEditPage.url().val("http://foo.bar");
 
     webhookEditPage.secretKey().val("sooper sekrit");
@@ -105,6 +111,13 @@ public class WebhookConfigurationTest
     firstWebhook.click();
 
     webhookEditPage.should(appear);
+
+    webhookEditPage.backButton().shouldHave(text("Back to Webhook Configuration")).click();
+    webhookConfigurationPage.should(appear);
+
+    firstWebhook.shouldBe(visible).click();
+    webhookEditPage.should(appear);
+
     webhookEditPage.url().shouldHave(value("http://localhost0"));
     webhookEditPage.title().shouldHave(text("Edit Webhook"));
     webhookEditPage.secretKey().shouldHave(value("#~FAKE~SECRET~KEY~#"));

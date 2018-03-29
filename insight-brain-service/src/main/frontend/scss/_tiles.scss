@@ -150,6 +150,14 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 .iq-tile__actions {
   float: right;
   margin-top: 8px;
+  
+  .btn {
+    margin-right: 8px;
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
 }
 
 .iq-tile-content {

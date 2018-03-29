@@ -112,7 +112,7 @@ public class HdsClient
                       int poolSize)
   {
     this.licenseManager = licenseManager;
-    config = proxy.contextualize(new Configuration());
+    config = proxy.contextualize(createConfiguration());
     HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
     HttpClientConnectionManager connectionManager = buildHttpClientConnectionManager(poolSize);
     idleConnectionReaper.register(connectionManager);
@@ -124,6 +124,11 @@ public class HdsClient
     // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
     this.telemetryId = telemetryId;
+  }
+
+  protected Configuration createConfiguration() {
+    Configuration configuration = new Configuration();
+    return configuration;
   }
 
   HttpResponse getResponse(HttpServletRequest request,

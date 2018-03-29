@@ -54,6 +54,7 @@ describe('gettingStarted component', function() {
 
       $httpBackend.whenGET(CLMLocations.getLicenseSummaryUrl()).respond('license value');
       $httpBackend.whenGET(CLMLocations.getIsAdminDefaultPasswordChanged()).respond('true');
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('true');
       currentUserDeferred.resolve({username: 'admin'});
 
       vm.$onInit();
@@ -65,26 +66,31 @@ describe('gettingStarted component', function() {
       expect(vm.error).toBeUndefined();
       expect(vm.validPermissions).toEqual(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']);
       expect(vm.shouldDisplayChangePassword).toBe(false);
+      expect(vm.shouldDisplayHdsUnreachable).toBe(false);
       expect(vm.isDefaultUser).toBe(true);
       expect(vm.license).toBe('license value');
     });
 
-    it('sets validPermissions but does not retrieve any data if has no admin permission', function() {
-      $rootScope.licensed = true;
+    it('sets validPermissions and shouldDisplayHdsUnreachable but does not retrieve any data if has no admin permission',
+        function() {
+          $rootScope.licensed = true;
 
-      var permissionsDeferred = $q.defer();
-      permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
+          var permissionsDeferred = $q.defer();
+          permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
+          $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('false');
 
-      vm.$onInit();
+          vm.$onInit();
 
-      permissionsDeferred.resolve(['ADD_APPLICATION']);
-      $scope.$digest();
+          permissionsDeferred.resolve(['ADD_APPLICATION']);
+          $scope.$digest();
+          $httpBackend.flush();
 
-      expect(vm.validPermissions).toEqual(['ADD_APPLICATION']);
-      expect(vm.shouldDisplayChangePassword).toBeUndefined();
-      expect(vm.isDefaultUser).toBeUndefined();
-      expect(vm.license).toBeUndefined();
-    });
+          expect(vm.validPermissions).toEqual(['ADD_APPLICATION']);
+          expect(vm.shouldDisplayHdsUnreachable).toBe(true);
+          expect(vm.shouldDisplayChangePassword).toBeUndefined();
+          expect(vm.isDefaultUser).toBeUndefined();
+          expect(vm.license).toBeUndefined();
+        });
 
     it('resets error', function() {
       $rootScope.licensed = true;
@@ -92,11 +98,13 @@ describe('gettingStarted component', function() {
 
       var permissionsDeferred = $q.defer();
       permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('true');
 
       vm.$onInit();
 
       permissionsDeferred.resolve([]);
       $scope.$digest();
+      $httpBackend.flush();
 
       expect(vm.error).toBeUndefined();
     });
@@ -120,6 +128,7 @@ describe('gettingStarted component', function() {
       var permissionsDeferred = $q.defer();
       permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
 
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('true');
       $httpBackend.whenGET(CLMLocations.getLicenseSummaryUrl()).respond({});
       $httpBackend.whenGET(CLMLocations.getIsAdminDefaultPasswordChanged()).respond(500);
 

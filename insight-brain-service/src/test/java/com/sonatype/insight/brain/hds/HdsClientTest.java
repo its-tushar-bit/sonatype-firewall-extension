@@ -30,16 +30,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.test.SslProperties;
 
 import com.google.common.net.HttpHeaders;
-import io.dropwizard.jetty.HttpConnectorFactory;
-import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -51,15 +47,9 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -80,64 +70,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HdsClientTest
+    extends AbstractHdsClientTest
 {
-
-  static {
-    SslProperties.use();
-  }
 
   private static final String USER_AGENT_SUFFIX = "test suffix";
 
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
-  private Server server;
-
-  private HdsClient client;
-
-  private AbstractHandler handler;
-
-  private InsightConfig config;
-
-  private TelemetryId telemetryId;
-
-  @Before
-  public void init() throws Exception {
-    server = new Server(0);
-    server.setHandler(new AbstractHandler()
-    {
-      @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
-        if (handler != null) {
-          handler.handle(target, baseRequest, request, response);
-        }
-      }
-    });
-    server.start();
-
-    config = new InsightConfig();
-    config.setHdsUrl("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
-    config.setUserAgentSuffix(USER_AGENT_SUFFIX);
-    ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
-        .setPort(1234);
-    telemetryId = new TelemetryId(config);
-    initClient();
-  }
-
-  private void initClient() {
+  @Override
+  protected void initClient() {
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
     client = new HdsClient(new InsightProxy(config), licenseManager, config, new VersionService(),
         mock(IdleConnectionReaper.class), telemetryId);
-  }
-
-  @After
-  public void exit() throws Exception {
-    if (server != null) {
-      server.stop();
-    }
   }
 
   @Test

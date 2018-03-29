@@ -44,26 +44,31 @@ public class GettingStartedTest
   }
 
   @Test
-  public void testGettingStartedPage() {
+  public void testGettingStartedPage() throws Exception {
+    testCLMServer.getHdsServer().setResponseForURI("ping", "alive", 200);
     refreshOrOpen(GettingStartedPage.URL);
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
 
     // default admin user sees all tiles and is warned to change his password
+    gettingStartedPage.hdsConnectivityWarning().shouldNotBe(visible);
     gettingStartedPage.changeDefaultPasswordWarning().shouldBe(visible).shouldHave(text("Click your username"));
     gettingStartedPage.productLicenseSummary().shouldBe(visible);
     checkLicenseSummaryContent();
     gettingStartedPage.systemSetup().shouldBe(visible);
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck("Default user - top of the page");
     scrollIntoView(gettingStartedPage.learningTopics(), false).shouldBe(visible);
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck("Default user - bottom of the page");
 
     logout();
     createUser();
     login();
+    testCLMServer.getHdsServer().setResponseForURI("ping", "", 503);
     refreshOrOpen(GettingStartedPage.URL);
 
-    // non-admin user only sees the learning topics tile
+    // non-admin user only sees the HDS connectivity warning and learning topics tile
+    eyesWatcher.eyesCheck("Non-admin user");
+    gettingStartedPage.hdsConnectivityWarning().shouldBe(visible).shouldHave(text("See IQ Server log for details."));
     gettingStartedPage.changeDefaultPasswordWarning().shouldNotBe(visible);
     gettingStartedPage.productLicenseSummary().shouldNotBe(visible);
     gettingStartedPage.systemSetup().shouldNotBe(visible);
@@ -72,7 +77,8 @@ public class GettingStartedTest
     grantPermissions(getUsername(), GLOBAL_CONTEXT_ID, Permission.ADD_APPLICATION);
     refresh();
 
-    // non-admin user that can add applications sees the system setup and learning topics tiles
+    // non-admin user that can add applications sees the HDS connectivity, system setup and learning topics tiles
+    gettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     gettingStartedPage.changeDefaultPasswordWarning().shouldNotBe(visible);
     gettingStartedPage.productLicenseSummary().shouldNotBe(visible);
     gettingStartedPage.systemSetup().shouldBe(visible);
@@ -82,11 +88,19 @@ public class GettingStartedTest
     refresh();
 
     // non-default admin user sees all tiles and is warned to change default user's password
+    eyesWatcher.eyesCheck("Non-default admin user");
+    gettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     gettingStartedPage.changeDefaultPasswordWarning().shouldBe(visible).shouldHave(text("Log in as 'admin'"));
     gettingStartedPage.productLicenseSummary().shouldBe(visible);
     checkLicenseSummaryContent();
     gettingStartedPage.systemSetup().shouldBe(visible);
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
+
+    testCLMServer.getHdsServer().setResponseForURI("ping", "alive", 200);
+    refresh();
+
+    // just check that the HDS connectivity warning is gone
+    gettingStartedPage.hdsConnectivityWarning().shouldNotBe(visible);
   }
 
   private void checkLicenseSummaryContent() {

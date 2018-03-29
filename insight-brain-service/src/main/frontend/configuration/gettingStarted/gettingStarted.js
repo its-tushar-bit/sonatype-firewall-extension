@@ -19,6 +19,7 @@ function GettingStartedController($q, $rootScope, PermissionService, $http, CLML
     license: undefined,
     error: undefined,
     shouldDisplayChangePassword: undefined,
+    shouldDisplayHdsUnreachable: undefined,
     isDefaultUser: undefined,
 
     $onInit() {
@@ -29,21 +30,19 @@ function GettingStartedController($q, $rootScope, PermissionService, $http, CLML
 
       vm.error = undefined;
 
-      PermissionService.getValidPermissions(['CONFIGURE_SYSTEM', 'ADD_APPLICATION'])
-          .then(validPermissions => {
-            vm.validPermissions = validPermissions;
-            return isAdmin() ? loadData() : null;
-          })
-          .then(results => {
-            if (results) {
-              vm.license = results[0].data;
-              vm.shouldDisplayChangePassword = results[1].data !== 'true';
-              vm.isDefaultUser = results[2].username === 'admin';
-            }
-          })
-          .catch(error => {
-            vm.error = error;
-          });
+      loadDataForAllUsers().then(results => {
+        vm.validPermissions = results[0];
+        vm.shouldDisplayHdsUnreachable = results[1].data === 'false';
+        return isAdmin() ? loadDataForAdminUsers() : null;
+      }).then(results => {
+        if (results) {
+          vm.license = results[0].data;
+          vm.shouldDisplayChangePassword = results[1].data !== 'true';
+          vm.isDefaultUser = results[2].username === 'admin';
+        }
+      }).catch(error => {
+        vm.error = error;
+      });
     },
 
     isLoading() {
@@ -63,7 +62,15 @@ function GettingStartedController($q, $rootScope, PermissionService, $http, CLML
     return vm.validPermissions.indexOf('CONFIGURE_SYSTEM') >= 0;
   }
 
-  function loadData() {
+  function loadDataForAllUsers() {
+    const promises = [
+      PermissionService.getValidPermissions(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']),
+      $http.get(CLMLocations.getIsHdsReachable())
+    ];
+    return $q.all(promises);
+  }
+
+  function loadDataForAdminUsers() {
     const promises = [
       $http.get(CLMLocations.getLicenseSummaryUrl()),
       $http.get(CLMLocations.getIsAdminDefaultPasswordChanged()),

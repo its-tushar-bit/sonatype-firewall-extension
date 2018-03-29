@@ -26,6 +26,10 @@ public class GettingStartedPage
     return child("#change-password-warning");
   }
 
+  public SelenideElement hdsConnectivityWarning() {
+    return child("#hds-unreachable-warning");
+  }
+
   public ProductLicenseSummaryTile productLicenseSummary() {
     return new ProductLicenseSummaryTile();
   }

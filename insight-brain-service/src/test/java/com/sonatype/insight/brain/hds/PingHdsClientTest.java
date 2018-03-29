@@ -1,0 +1,90 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.hds;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.test.LogOutput;
+
+import com.google.common.net.HttpHeaders;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class PingHdsClientTest
+    extends AbstractHdsClientTest
+{
+  @Rule
+  public LogOutput logOutput = new LogOutput(HdsClient.class);
+
+  @Override
+  protected void initClient() {
+    CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
+    client = new PingHdsClient(new InsightProxy(config), licenseManager, config, new VersionService(),
+        mock(IdleConnectionReaper.class), telemetryId);
+  }
+
+  @Test
+  public void testSocketTimeout() throws Exception {
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        try {
+          Thread.sleep(PingHdsClient.SOCKET_TIMEOUT + 1000);
+        }
+        catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        response.setStatus(HttpStatus.OK_200);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("alive");
+        baseRequest.setHandled(true);
+      }
+    };
+    long start = System.currentTimeMillis();
+
+    try {
+      HttpServletRequest request = mock(HttpServletRequest.class);
+
+      when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+      when(request.getMethod()).thenReturn("GET");
+      client.get(request, String.class, "/rest/test");
+      fail("Expected exception");
+    }
+    // SocketTimeoutException gets converted by HdsClient to BadGatewayException 
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), is("The request to Sonatype HDS failed, please retry in a bit."));
+      // make sure that the log recorded a Read timed out error (SocketTimeoutException)
+      List<String> logErrors = logOutput.getErrorMessages(null);
+      assertThat(logErrors.size(), is(1));
+      assertThat(logErrors.get(0), is("Read timed out"));
+      assertThat((System.currentTimeMillis() - start), is(greaterThan(Long.valueOf(PingHdsClient.SOCKET_TIMEOUT))));
+    }
+  }
+}

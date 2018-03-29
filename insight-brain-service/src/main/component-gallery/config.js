@@ -43,7 +43,8 @@ export default angular.module('config',
       'iq-tile': 'styles/iq-tile.html',
       'iq-pull-right': 'styles/iq-pull-right.html',
       'iq-scrollable': 'styles/iq-scrollable.html',
-      'iq-grid': 'styles/iq-grid.html'
+      'iq-grid': 'styles/iq-grid.html',
+      'iq-theme-dark': 'styles/iq-theme-dark.html'
     })
 
     .constant('widgetsConfig', {

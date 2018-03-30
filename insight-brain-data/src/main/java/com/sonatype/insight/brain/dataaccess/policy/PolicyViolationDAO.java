@@ -20,8 +20,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class PolicyViolationDAO
     extends AbstractOperationalSqlDAO<PolicyViolation>
 {
-  static final int IN_OPERATOR_THRESHOLD = 2000;
-
   @Override
   protected PolicyViolation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
@@ -80,10 +78,10 @@ public class PolicyViolationDAO
                                                            boolean onlyActiveViolations)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId IN (?1)" + //
+        " WHERE entity.applicationId=?1" + //
         " AND entity.fixTime IS NULL" + //
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "");
-    return getListChunked(sQuery, applicationIds);
+    return getUnfixed(sQuery, applicationIds);
   }
 
   public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(Collection<String> applicationIds,
@@ -103,38 +101,27 @@ public class PolicyViolationDAO
                                                                       boolean onlyActiveViolations)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
         " AND entity.fixTime IS NULL" + //
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "");
-    return getListChunked(sQuery, applicationIds, stageTypeIds);
+    return getUnfixed(sQuery, applicationIds, stageTypeIds);
   }
 
-  private List<PolicyViolation> getListChunked(String sQuery, Collection<String> ids, Object... otherParameters) {
+  private List<PolicyViolation> getUnfixed(String sQuery,
+                                           Collection<String> applicationIds,
+                                           Object... otherParameters)
+  {
     Object[] parameters = new Object[otherParameters.length + 1];
     System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
-    if (ids.size() >= IN_OPERATOR_THRESHOLD) {
-      // As measurements have shown (cf. CLM-6085), H2 doesn't handle an {@code IN} operator with a huge list of values
-      // well and query time increases superlinear. Making multiple queries with smaller chunks of the input set keeps
-      // the performance more linear. The chunk size below has been found to be a good compromise between DB query
-      // overhead and individual query time.
-      List<PolicyViolation> violations = new ArrayList<>();
-      int chunkSize = 200;
-      List<String> chunk = new ArrayList<>(chunkSize);
-      parameters[0] = chunk;
-      for (String id : ids) {
-        chunk.add(id);
-        if (chunk.size() >= chunkSize) {
-          violations.addAll(getList(sQuery, parameters));
-          chunk.clear();
-        }
-      }
-      if (!chunk.isEmpty()) {
-        violations.addAll(getList(sQuery, parameters));
-      }
-      return violations;
+    // H2 won't utilize the index for the application id when the query uses an IN operator with multiple values (and
+    // has additional filter criteria like the fix_time), doing an expensive table scan instead.
+    // So we make one query per app to ensure the index is used (and all the fixed violations aren't scanned).
+    List<PolicyViolation> violations = new ArrayList<>();
+    for (String applicationId : applicationIds) {
+      parameters[0] = applicationId;
+      violations.addAll(getList(sQuery, parameters));
     }
-    parameters[0] = ids;
-    return getList(sQuery, parameters);
+    return violations;
   }
 
   public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(String appId,

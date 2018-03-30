@@ -61,6 +61,8 @@ public class RootOrgMigrateTest
 
     RootOrgMigrateModal.root().shouldBe(visible);
 
+    eyesWatcher.eyesCheck();
+
     RootOrgMigrateModal.selectOrgRadioButton().shouldBe(Condition.selected);
     RootOrgMigrateModal.continueButton().shouldBe(Condition.disabled);
 

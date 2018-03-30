@@ -103,6 +103,7 @@ public class SystemNoticeTest
   private void enabledSystemNotice_ShownOnPages() {
     checkSystemNoticeVisibilityAfterLogin(EMPTY_ENABLED, visible);
     checkSystemNoticeVisibilityAfterLogin(FILLED_ENABLED, visible);
+    eyesWatcher.eyesCheck();
   }
 
   private void login(final String url) {

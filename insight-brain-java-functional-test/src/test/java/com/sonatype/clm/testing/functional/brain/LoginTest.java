@@ -59,6 +59,7 @@ public class LoginTest
     loginModal.loginButton().shouldBe(enabled).click();
     loginModal.shouldBe(visible);
     loginModal.errorMessage().shouldBe(visible).shouldHave(text("Invalid credentials"));
+    eyesWatcher.eyesCheck();
   }
 
   @Test

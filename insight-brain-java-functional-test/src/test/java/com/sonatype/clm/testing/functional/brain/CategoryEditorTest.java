@@ -64,7 +64,7 @@ public class CategoryEditorTest
 
   @Before
   public void init() {
-    org = tempEntity.newOrganization();
+    org = tempEntity.newOrganization("CategoryEditorTest Organization");
     category = tempEntity.newTag(org.getId(), "original name", "original description", light_green);
     refreshOrOpen(OwnerSummaryPage.url(org));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(org.getName()));
@@ -85,6 +85,7 @@ public class CategoryEditorTest
 
     CategoryEditorPage.description().val(StringUtils.repeat("a", 256)); // too long
     PopoverViolations.on(CategoryEditorPage.description()).shouldShowMaxLengthError();
+    eyesWatcher.eyesCheck();
     CategoryEditorPage.saveButton().shouldHave(DISABLED);
 
     CategoryEditorPage.description().val("Description");

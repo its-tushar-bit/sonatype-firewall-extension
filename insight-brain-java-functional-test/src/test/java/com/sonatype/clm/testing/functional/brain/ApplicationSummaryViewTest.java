@@ -150,6 +150,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
     SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
+    eyesWatcher.eyesCheck();
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));

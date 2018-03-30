@@ -142,7 +142,7 @@ public abstract class AbstractPolicyEditorTest
   @Test
   public void testCreatePolicy() {
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-      tempEntity.newTag(currentOwner.getId());
+      tempEntity.newTag(currentOwner.getId(), "PolicyEditorTest category");
     }
     Label sampleLabel = tempEntity.newLabel(currentOwner.getId(), "Sample Label");
 

@@ -104,6 +104,7 @@ public class SuccessMetricsReportListTest
 
     reportList.emptyDescriptor().shouldBe(hidden);
     reportList.elements().shouldHaveSize(1);
+    eyesWatcher.eyesCheck();
 
     ActionListElement row = reportList.element(0);
     row.chevron().shouldBe(visible);
@@ -162,6 +163,7 @@ public class SuccessMetricsReportListTest
     modal.nthApp(2).shouldHave(text(application1.getName())).shouldBe(selected);
     modal.nthApp(3).shouldHave(text(application2.getName())).shouldBe(selected);
     modal.nthApp(4).shouldHave(text(application3.getName())).shouldNotBe(selected);
+    eyesWatcher.eyesCheck();
 
     modal.createBtn().click();
 

@@ -45,6 +45,7 @@ public class HelpTest
     help.supportLink().shouldBe(visible).shouldHave(attribute("target", "_blank"),
         attribute("href", "http://links.sonatype.com/products/clm/support"));
     help.gettingStartedLink().shouldBe(visible).shouldNotHave(attribute("target", "_blank"));
+    eyesWatcher.eyesCheck();
 
     help.dropdownToggle().shouldBe(visible).click();
     help.documentationLink().shouldBe(hidden);

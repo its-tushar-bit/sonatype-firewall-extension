@@ -89,6 +89,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.systemNotice().shouldBe(visible);
     systemConfigMenu.successMetrics().shouldBe(visible);
     systemConfigMenu.automaticApplications().shouldBe(hidden);
+    eyesWatcher.eyesCheck();
   }
 
   @Test

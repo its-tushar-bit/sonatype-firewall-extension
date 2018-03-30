@@ -84,6 +84,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     ProprietaryConfigEditorPage.matcherValue().shouldBe(empty);
     ProprietaryConfigEditorPage.addButtton().shouldHave(DISABLED);
     ProprietaryConfigEditorPage.updateButton().shouldHave(DISABLED);
+    eyesWatcher.eyesCheck();
 
     assertInheritanceSection();
 

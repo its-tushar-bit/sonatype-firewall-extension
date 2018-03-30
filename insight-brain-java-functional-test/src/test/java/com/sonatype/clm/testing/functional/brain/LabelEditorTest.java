@@ -57,7 +57,7 @@ public class LabelEditorTest
 
   @Before
   public void init() {
-    app = tempEntity.newApplicationWithParent("test_app");
+    app = tempEntity.newApplicationWithParent("test_app", "LabelEditorTest app");
     refreshOrOpen(OwnerSummaryPage.url(app));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(app.getName()));
   }
@@ -107,6 +107,7 @@ public class LabelEditorTest
     LabelEditorPage.labelName().val("updated name");
     LabelEditorPage.description().val("updated description");
     LabelEditorPage.colorPicker().color(dark_red).click();
+    eyesWatcher.eyesCheck();
     LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
     // then
     LabelEditorPage.title().shouldHave(text("Edit"));

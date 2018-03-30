@@ -54,6 +54,7 @@ public class RoutingErrorTest
     refreshOrOpen(INVALID_URL);
     RoutingErrorBox.errorBox().shouldBe(Condition.visible);
     RoutingErrorBox.errorMessage().shouldHave(RoutingErrorBox.errorText("Unknown Address"));
+    eyesWatcher.eyesCheck();
 
     refreshOrOpen(ReportListPage.URL);
     RoutingErrorBox.errorBox().shouldNotBe(Condition.visible);

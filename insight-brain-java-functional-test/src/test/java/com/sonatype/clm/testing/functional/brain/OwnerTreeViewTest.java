@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
@@ -58,7 +57,7 @@ public class OwnerTreeViewTest
       this.organizations.add(organization);
 
       for (String applicationName : organizationMeta.getValue()) {
-        Application application = tempEntity.newApplication(applicationName, UUID.randomUUID().toString(),
+        Application application = tempEntity.newApplication(applicationName, applicationName.replaceAll("\\s", ""),
             organization.getId());
         this.applications.add(application);
       }
@@ -132,6 +131,7 @@ public class OwnerTreeViewTest
     applicationNode.click();
     applicationNode.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
+    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -165,6 +165,7 @@ public class OwnerTreeViewTest
   public void testApplicationFuzzyFilter() {
     OwnerTreeView.filter().setValue("Skiwalkr");
     assertSingleApplicationVisible("Silver Squadron", "Luke Skywalker");
+    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -196,6 +197,7 @@ public class OwnerTreeViewTest
     parentNode.twisty().shouldBe(CLM.COLLAPSED);
     parentNode.organizationName().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text(OrganizationNode.DISABLED_TOOLTIP_CONTENT));
+    eyesWatcher.eyesCheck();
 
     parentNode.applicationElements().shouldHaveSize(1);
     parentNode.application(0).shouldHave(text("No Parent Permissions"));

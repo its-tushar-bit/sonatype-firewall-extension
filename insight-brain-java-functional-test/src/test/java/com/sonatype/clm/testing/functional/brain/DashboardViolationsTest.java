@@ -205,6 +205,7 @@ public class DashboardViolationsTest
     DashboardPage.tooltip().shouldBe(visible).shouldHave(text(app2.getName()));
     secondViolation.component().hover();
     DashboardPage.tooltip().shouldBe(visible).shouldHave(text("g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890"));
+    eyesWatcher.eyesCheck();
 
     // check the report link - opens new window
     firstViolation.latestReport().shouldNotBe(DISABLED).shouldHave(text("Build")).click();

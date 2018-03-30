@@ -105,6 +105,7 @@ public class DashboardComponentsTest
     showLowRiskViolations();
 
     DashboardPage.dashboardContainer().shouldBe(visible);
+    eyesWatcher.eyesCheck();
     ComponentsResults table = DashboardPage.componentsView().results();
     table.maxResultsMessage().shouldBe(hidden);
 
@@ -289,6 +290,7 @@ public class DashboardComponentsTest
     table.firstComponent().name().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text(
         "A superficially artificial, perfunctorily slapdash : protracted and interminable name : to ensure overflow in cell"));
+    eyesWatcher.eyesCheck();
     table.lastComponent().name().hover();
     Tooltip.get().shouldBe(hidden);
   }

@@ -77,6 +77,7 @@ public class SuccessMetricsConfigurationTest
     metricsConfigPage.explanation().shouldHave(text("Here you can enable or disable Success Metrics."));
     metricsConfigPage.toggle().shouldBe(enabled, checked).shouldHave(text("Enabled"));
     MainHeader.labsNavigationButton().shouldBe(visible);
+    eyesWatcher.eyesCheck();
 
     // check the tooltip on the update button
     metricsConfigPage.update().shouldBe(CLM.DISABLED).hover();

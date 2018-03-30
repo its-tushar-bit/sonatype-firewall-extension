@@ -244,6 +244,7 @@ public abstract class AbstractSummaryViewTest
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     testLabelTile_Local(localLabels);
+    eyesWatcher.eyesCheck();
     testLTGTile_Local(locaLTGs);
     testAccessTile_Local(testUser);
     testPolicyTile_Local(localPolicies);

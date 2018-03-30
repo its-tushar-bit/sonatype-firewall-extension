@@ -87,6 +87,7 @@ public class AdministratorsTest
 
     roleRow.editButton().click();
     content.editor().shouldBe(visible);
+    eyesWatcher.eyesCheck();
   }
 
   @Test

@@ -10,6 +10,7 @@ import java.util.Date;
 import com.applitools.eyes.BatchInfo;
 import com.applitools.eyes.RectangleSize;
 import com.applitools.eyes.selenium.Eyes;
+import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
 import com.applitools.eyes.selenium.fluent.Target;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.rules.TestWatcher;
@@ -94,6 +95,12 @@ public class EyesWatcher
 
       eyes.open(remoteDriver, "IQ Server", testName, new RectangleSize(1366, 1024));
     }
-    eyes.check(tag, Target.window().ignore(By.cssSelector(".iq-title__version")).ignoreCaret());
+    By iqVersion = By.cssSelector(".iq-title__version");
+    SeleniumCheckSettings settings = Target.window();
+    if (!WebDriverRunner.getWebDriver().findElements(iqVersion).isEmpty()) {
+      settings = settings.ignore(iqVersion);
+    }
+    
+    eyes.check(tag, settings.ignoreCaret());
   }
 }

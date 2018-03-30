@@ -16,7 +16,7 @@ public class OrganizationAccessEditorTest
 
   @Before
   public void init() {
-    super.init(tempEntity.newOrganization());
+    super.init(tempEntity.newOrganization("OrganizationAccessEditorTest org"));
   }
 
   @Override

@@ -1338,9 +1338,18 @@ public class TemporaryEntity
                                                     ComponentIdentifier identifier,
                                                     boolean quarantined)
   {
-    String pathname = uuid();
+    return newRepositoryComponent(repositoryId, matchState, uuid(), identifier, quarantined);
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId,
+                                                    MatchState matchState,
+                                                    String pathname,
+                                                    ComponentIdentifier identifier,
+                                                    boolean quarantined)
+  {
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(),
-        pathname.substring(0, 20), identifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), new Date());
+        pathname.substring(0, Math.min(pathname.length(), 20)), identifier, matchState.getId(),
+        IdentificationSource.SONATYPE.getId(), new Date());
 
     if (quarantined) {
       repositoryComponent.setQuarantineTime(new Date());

@@ -91,6 +91,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     assertThat(OwnerDetailTreeView.headerHref(), containsString(OwnerSummaryPage.url(currentOwner)));
 
     if (!OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
+      eyesWatcher.eyesCheck("Non-repository owner detail tree view");
       OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
       testRouting_ApplicationCategories(OwnerDetailTreeView.applicationCategoryGroup());
       testRouting_Policies(OwnerDetailTreeView.policyGroup());
@@ -99,6 +100,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       testRouting_Access(OwnerDetailTreeView.accessGroup());
     }
     else {
+      eyesWatcher.eyesCheck("Repository owner detail tree view");
       OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text("Repositories"));
       OwnerDetailTreeView.applicationCategoryGroup().shouldBe(hidden);
       OwnerDetailTreeView.policyGroup().shouldBe(hidden);

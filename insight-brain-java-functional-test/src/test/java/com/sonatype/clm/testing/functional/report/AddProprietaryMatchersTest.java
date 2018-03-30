@@ -65,7 +65,7 @@ public class AddProprietaryMatchersTest
 
   @Before
   public void start() throws Exception {
-    app = tempEntity.newApplicationWithParent(AddProprietaryMatchersTest.class.getSimpleName());
+    app = tempEntity.newApplicationWithParent("AddProprietaryMatchersTest", "AddProprietaryMatchersTest");
     URL zippedReport = ReportHelper.zipReport(CANNED_TEST_REPORT, tempDir);
     TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, WORK);
     createGavViolatingPolicy(app.getOrganizationId());
@@ -90,6 +90,7 @@ public class AddProprietaryMatchersTest
 
     // test Cancel button
     ReportPolicyPage.row(0).openCip();
+    eyesWatcher.eyesCheck("Add proprietary matchers button");
     VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
     modal.regexInput().shouldBe(visible); // ensure form is fully loaded and stable
     modal.cancelButton().shouldBe(visible).click();
@@ -138,6 +139,7 @@ public class AddProprietaryMatchersTest
     modal.regexInput().val("(foo");
     modal.addButton().shouldNotBe(DISABLED).click();
     modal.shouldBe(visible);
+    eyesWatcher.eyesCheck("Invalid matcher regex");
     modal.footer().shouldBe(visible).shouldHave(ERROR);
     modal.retryButton().shouldBe(visible);
 

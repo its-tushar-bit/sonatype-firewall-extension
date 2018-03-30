@@ -109,6 +109,7 @@ public class LdapConfigurationTest
     ldapNameEditor.saveButton().shouldBe(hidden);
     ldapNameEditor.cancelButton().shouldBe(hidden);
 
+    eyesWatcher.eyesCheck();
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers"));
 
     server = ldapServerDAO.getByName("Another Ldap Server");
@@ -340,6 +341,7 @@ public class LdapConfigurationTest
     testLoginModal.password().shouldBe(empty).setValue("test");
     testLoginModal.testLoginButton().shouldBe(enabled).click();
     testLoginModal.successAlertBox().shouldBe(visible).shouldHave(text("Success!"));
+    eyesWatcher.eyesCheck("Test login modal");
     testLoginModal.cancelButton().shouldBe(enabled).click();
     testLoginModal.shouldBe(hidden);
 
@@ -355,6 +357,7 @@ public class LdapConfigurationTest
     // since this user has no email data, it has less fields filled and should be ordered last
     userMappingModal
         .shouldHaveUserEntry(3, "test*user", "Test*User", "", "ab, bc, bx");
+    eyesWatcher.eyesCheck("Check user mapping modal");
     userMappingModal.cancelButton().shouldBe(enabled).click();
 
     // Fill all remaining fields only to ensure persisted on save

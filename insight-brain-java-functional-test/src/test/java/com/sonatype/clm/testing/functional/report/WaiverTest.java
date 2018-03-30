@@ -104,6 +104,7 @@ public class WaiverTest
     ViewWaiversDialog.rows().shouldHaveSize(1);
 
     assertWaiver(ViewWaiversDialog.row(0), "TEST COMMENT");
+    eyesWatcher.eyesCheck("Waivers list");
 
     ViewWaiversDialog.row(0).removeButton().click();
     ConfirmRemoveWaiverDialog.removeButton().should(visible).click();
@@ -117,6 +118,7 @@ public class WaiverTest
 
     WaiverCip.row(0).waiveButton().click();
     AddWaiverDialog.comment().setValue(longComment);
+    eyesWatcher.eyesCheck("Add waiver");
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
     AddWaiverDialog.root().should(disappear);
 

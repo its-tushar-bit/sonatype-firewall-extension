@@ -191,9 +191,10 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testPage() throws Exception {
+  public void testPage() {
     // one no violation, unknown
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
+    RepositoryComponent component = tempEntity
+        .newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, "thePathname", null, false);
     UNKNOWN = new ExpectedRow(Table.NO_THREAT, "No violations", component.getPathname(), false, false);
 
     // one of each threat level
@@ -237,6 +238,7 @@ public class RepositoryReportTest
     refreshOrOpen(RepositoryReportPage.url(repo.getId()));
 
     testReportSummary();
+    eyesWatcher.eyesCheck("Repository report summary");
 
     // Default filter settings
     RepositoryReportPage.filter().allMatchState().shouldBe(Filter.ACTIVE);
@@ -334,6 +336,7 @@ public class RepositoryReportTest
     // choose a license
     LicenseCIP.licenseSelector().button().shouldBe(visible).click();
     LicenseCIP.licenseSelector().entries().shouldHave(texts("Apache-2.0", "GPL-2.0"));
+    eyesWatcher.eyesCheck("Repository report CIP");
     LicenseCIP.licenseSelector().entry(0).click();
     LicenseCIP.licenseSelector().button().click();
     LicenseCIP.comment().setValue("not bad");
@@ -388,6 +391,7 @@ public class RepositoryReportTest
     VersionsCIP.securityCount().shouldHave(text("3"));
     VersionsCIP.matchState().shouldHave(text("exact"));
     VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
+    eyesWatcher.eyesCheck("Repository report version graph");
 
     // close CIP
     RepositoryReportPage.table().row(0).component().click();

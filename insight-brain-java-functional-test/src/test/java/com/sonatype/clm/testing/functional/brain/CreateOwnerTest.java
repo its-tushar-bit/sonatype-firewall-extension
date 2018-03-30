@@ -133,6 +133,7 @@ public class CreateOwnerTest
     // should not be able to proceed w/ name error
     OwnerEditorDialog.publicId().val(APP_PUBLIC_ID);
     OwnerEditorDialog.saveButton().shouldBe(disabled);
+    eyesWatcher.eyesCheck("Create owner with validation error");
 
     // Error should get removed
     OwnerEditorDialog.name().val(NAME);

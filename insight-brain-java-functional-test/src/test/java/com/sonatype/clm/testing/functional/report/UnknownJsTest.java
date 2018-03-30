@@ -64,6 +64,7 @@ public class UnknownJsTest
     refreshOrOpen(ReportPage.url(app, scanId).replaceAll("index.html", "index.html?unknownjs=true"));
 
     ReportPage.policyTabButton().click();
+    eyesWatcher.eyesCheck();
     ReportPolicyPage.rows().shouldHave(texts("frontend.zip", "ComponentDisplayModule.js"));
   }
 

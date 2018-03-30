@@ -78,6 +78,7 @@ public class LdapServerListTest
     ActionListElement row2 = serverList.element(1);
     row2.chevron().shouldBe(visible);
     row2.shouldBe(visible).shouldHave(text("Another Ldap Server"));
+    eyesWatcher.eyesCheck();
   }
 
   @Test

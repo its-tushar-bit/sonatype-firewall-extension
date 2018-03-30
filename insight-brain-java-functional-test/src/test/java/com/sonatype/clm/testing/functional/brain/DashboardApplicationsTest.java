@@ -125,6 +125,7 @@ public class DashboardApplicationsTest
 
     refresh();
     showLowRiskViolations();
+    eyesWatcher.eyesCheck();
     DashboardPage.dashboardContainer().shouldBe(visible);
     ApplicationsResults table = DashboardPage.applicationsView().results();
 
@@ -339,6 +340,7 @@ public class DashboardApplicationsTest
     Tooltip.get().shouldBe(hidden);
     table.firstApplication().name().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("A long name to ensure overflow in cell"));
+    eyesWatcher.eyesCheck();
     table.lastApplication().name().hover();
     Tooltip.get().shouldBe(hidden);
   }

@@ -96,6 +96,7 @@ public abstract class AbstractAccessEditorTest
 
     Dropdown roleDropdown = AccessEditorPage.roleDropdown();
     roleDropdown.selectedItem().shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
+    eyesWatcher.eyesCheck();
     String roleName = roleDropdown.listItem(1).text();
     assertThat(getMembershipMappings(currentOwner.getId(), roleName), is(empty()));
     roleDropdown.listItem(1).click();
@@ -235,6 +236,7 @@ public abstract class AbstractAccessEditorTest
 
     AccessEditorPage.searchBox().shouldBe(visible);
     AccessEditorPage.disabledGroupSearchWarning().shouldBe(visible).shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
+    eyesWatcher.eyesCheck();
 
     // enable group search for one
     userMapping1.setDynamicGroupSearchEnabled(true);

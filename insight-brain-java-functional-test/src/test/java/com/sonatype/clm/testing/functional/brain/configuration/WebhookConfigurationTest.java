@@ -72,6 +72,7 @@ public class WebhookConfigurationTest
 
     webhooks.shouldHaveSize(3);
     webhooks.shouldHave(texts("http://localhost0", "http://localhost1", "http://localhost2"));
+    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -95,6 +96,7 @@ public class WebhookConfigurationTest
     webhookEditPage.applicationEvaluation().click();
 
     webhookEditPage.save().shouldHave(text("Create"));
+    eyesWatcher.eyesCheck();
     webhookEditPage.save().shouldBe(enabled).click();
 
     webhookConfigurationPage.should(appear);

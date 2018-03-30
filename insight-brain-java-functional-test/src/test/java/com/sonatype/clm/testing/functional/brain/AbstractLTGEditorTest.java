@@ -88,6 +88,7 @@ public abstract class AbstractLTGEditorTest
     changeThreatLevel(6);
     filterLicenses(picker);
     pickFirstThreeLicenses(picker);
+    eyesWatcher.eyesCheck();
     LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
 
     LTGEditorPage.title().shouldHave(text("Edit"));

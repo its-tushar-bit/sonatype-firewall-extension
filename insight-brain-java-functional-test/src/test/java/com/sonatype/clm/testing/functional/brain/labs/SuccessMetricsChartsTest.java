@@ -193,6 +193,7 @@ public class SuccessMetricsChartsTest
 
     successMetricsChartsPage.should(appear);
     ViolationAveragesTile.root().shouldBe(visible);
+    eyesWatcher.eyesCheck();
     ViolationAveragesTile.title()
         .shouldHave(text("Average Number of Violations Discovered Per Month, Per Application"));
     ViolationAveragesTile.averages().shouldHave(text("Lifecycle performed an average of 1 evaluation per month on 2 " +
@@ -257,7 +258,7 @@ public class SuccessMetricsChartsTest
   public void testComponentCountsTile() throws Exception {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
-    ScrollUtil.scrollIntoView(ComponentCountsTile.root());
+    ScrollUtil.scrollIntoView(ComponentCountsTile.root(), false);
 
     successMetricsChartsPage.should(appear);
     ComponentCountsTile.root().shouldBe(visible);
@@ -280,6 +281,7 @@ public class SuccessMetricsChartsTest
     componentsInMostApplications.get(0)
         .shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4"));
+    eyesWatcher.eyesCheck();
 
     componentsInMostApplications.get(1)
         .shouldHave(text("short : name : 0.6")).hover();

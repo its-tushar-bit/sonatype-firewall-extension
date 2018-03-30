@@ -58,6 +58,7 @@ public class AutomaticApplicationsConfigurationTest
     refresh();
     automaticApplicationsConfigurationPage.organization().shouldNotBe(empty);
     automaticApplicationsConfigurationPage.toggle().click();
+    eyesWatcher.eyesCheck();
     automaticApplicationsConfigurationPage.organization().chooseOption(new Option(0, org1.getName()));
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();

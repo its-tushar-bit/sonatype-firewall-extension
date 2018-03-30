@@ -95,6 +95,7 @@ public class MoveApplicationTest
     successDialog.shouldBe(visible);
     successDialog.infoSection().shouldBe(visible);
     successDialog.warningSection().shouldBe(hidden);
+    eyesWatcher.eyesCheck();
     successDialog.okButton().click();
     successDialog.shouldBe(hidden);
     modal.shouldBe(hidden);
@@ -138,7 +139,7 @@ public class MoveApplicationTest
     otherOrg = tempEntity.newOrganization(SOME_OTHER_ORGANIZATION);
 
     // set up current parent to have a tag
-    Tag tag = tempEntity.newTag(application.getParentOwnerId());
+    Tag tag = tempEntity.newTag(application.getParentOwnerId(), "MoveApplicationTest category");
     tempEntity.newApplicationTag(application.getId(), tag.getId());
 
     // move
@@ -156,6 +157,7 @@ public class MoveApplicationTest
     MoveApplicationErrorModal errorModal = new MoveApplicationErrorModal();
     errorModal.shouldBe(visible);
     errorModal.body().shouldHave(text("Incompatible Destination"));
+    eyesWatcher.eyesCheck();
     errorModal.okButton().click();
     errorModal.shouldBe(hidden);
 

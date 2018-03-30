@@ -27,7 +27,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -84,7 +84,8 @@ public class PingHdsClientTest
       List<String> logErrors = logOutput.getErrorMessages(null);
       assertThat(logErrors.size(), is(1));
       assertThat(logErrors.get(0), is("Read timed out"));
-      assertThat((System.currentTimeMillis() - start), is(greaterThan(Long.valueOf(PingHdsClient.SOCKET_TIMEOUT))));
+      assertThat((System.currentTimeMillis() - start),
+          is(greaterThanOrEqualTo(Long.valueOf(PingHdsClient.SOCKET_TIMEOUT))));
     }
   }
 }

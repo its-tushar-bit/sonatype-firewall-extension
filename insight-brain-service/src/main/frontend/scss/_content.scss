@@ -14,33 +14,23 @@ body {
   left: 0;
 }
 
-.main-view {
-  @include main-content();
-
+.iq-main-view {
   background-color: $iq-off-white;
   border-right: solid 1px $iq-grey-4;
   border-left: solid 1px $iq-grey-4;
-  width: calc(100% - 2px);
-}
-
-.root-container {
-  @include main-content(35px);
-
-  white-space: nowrap;
-}
-
-.iq-root-container {
+  box-sizing: border-box;
   margin: 0 auto;
-  width: 100%;
-  max-width: $iq-page-width-max; 
+  max-width: $iq-page-width-max;
   min-width: $iq-page-width-min;
 }
 
-.sidebar-container, .iq-sidebar {
+.iq-sidebar {
   background-color: $iq-grey-2;
   border-right: 1px solid $iq-grey-3;
+  box-sizing: border-box;
   display: inline-block;
   height: 100%;
+  overflow-x: hidden;
   position: relative;
   vertical-align: top;
   white-space: normal;
@@ -52,24 +42,16 @@ body {
   -webkit-transform: translate3d(0, 0, 0);
 }
 
-.sidebar-container {
-  width: $iq-sidebar-width-old;
-  min-width: $iq-sidebar-min-width;
-  max-width: $iq-sidebar-max-width;
-}
-
-.iq-sidebar {
-  box-sizing: border-box;
-  overflow-x: hidden;
-}
-
-.body-container, .iq-body-container {
+.iq-body-container {
   background: url("../img/tile_bg.png");
+  box-sizing: border-box;
   display: inline-block;
   height: 100%;
+  overflow-x: hidden;
+  vertical-align: top;
   white-space: normal;
-  width: calc(78% - 1px);
-  
+  width: $iq-content-width;
+
   @media only screen and (-moz-min-device-pixel-ratio: 2), 
   only screen and (-webkit-min-device-pixel-ratio: 2), 
   only screen and (min-devicepixel-ratio: 2), 
@@ -79,19 +61,7 @@ body {
   }
 }
 
-.iq-body-container {
-  box-sizing: border-box;
-  overflow-x: hidden;
-  width: $iq-content-width;
-}
-
 .iq-body-container--single-pane {
-  width: 100%;
-}
-
-// NOTE: This class should be refactored/removed in CLM-9460
-.body-container--login {
-  display: block;
   width: 100%;
 }
 
@@ -194,15 +164,6 @@ body {
 
 #clm-welcome-message a.link {
   @extend %link;
-}
-
-/*
-  ##Single pane scrollable layout container
-*/
-.scrollable-root-container {
-  @include main-content(35px);
-
-  overflow: auto;
 }
 
 /*

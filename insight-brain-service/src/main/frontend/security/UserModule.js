@@ -18,7 +18,7 @@ angular.module('SecurityModule', ['ui.router', angularCommonModule.name, 'Applic
       $stateProvider.state('administrators', {
         url: '/administrators',
         template: '<div authorization-wrapper="isAuthorized">' +
-                     '<div class="scrollable-root-container" maximize-container-height>' +
+                     '<div class="iq-body-container iq-body-container--single-pane" maximize-container-height>' +
                        '<div class="iq-tile iq-tile--sys-prefs">' +
                          '<div class="iq-tile-header">' +
                            '<div class="iq-tile-header__title">' +

@@ -1,6 +1,5 @@
 .dashboard-filter-container {
-  $tree-view-margin-bottom: 8px;
-  $filter-header-height: #{52px + 8px + 1px};
+  $filter-header-height: #{55px + 16px + 1px};
   $filter-footer-height: #{32px + 12px + 12px + 1px};
   $filter-footer-error-height: 100px;
   
@@ -10,7 +9,7 @@
 
   .dashboard-filter {
     box-sizing: border-box;
-    height: calc(100% - #{$filter-header-height} - #{$filter-footer-height} - #{$tree-view-margin-bottom});
+    height: calc(100% - #{$filter-header-height} - #{$filter-footer-height});
     overflow-x: visible;
     overflow-y: auto;
     padding: 7px 0 0 8px;
@@ -66,7 +65,7 @@
   }
   
   .dashboard-filter.iq-apply-error-present {
-    height: calc(100% - #{$filter-header-height} - #{$filter-footer-error-height + 12px + 12px + 1px} - #{$tree-view-margin-bottom});
+    height: calc(100% - #{$filter-header-height} - #{$filter-footer-error-height + 12px + 12px + 1px});
   }
 
   .dashboard-filter-footer {

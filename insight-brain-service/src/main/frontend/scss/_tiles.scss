@@ -201,13 +201,13 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 }
 
 // System Preference Tiles
-// Because there's no sidebar tiles are centred and limited to 1024px in width
+// Because there's no sidebar tiles are centered and limited to 1024px in width (minus some space for the scrollbar)
 .iq-tile--sys-prefs {
+  box-sizing: border-box;
   margin-right: auto;
   margin-left: auto;
-  width: 100%;
-  max-width: 1006px;
-  
+  width: 1024px - 17px;
+
   .iq-tile__actions {
     margin-top: 0;
   }
@@ -227,13 +227,14 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   float: left;
   height: 100%;
   width: 100%;
-  min-width: 810px;
 }
 
 .summary-tile-container {
   $shadow-spread: 6px;
   $container-padding: 8px;
 
+  // to prevent parent/child margin collapsing, which confuses the calc-tile-scroll-height directive
+  overflow-y: hidden;
   position: relative;
   z-index: $tile-scroll-container-z-index + 1;
 
@@ -254,7 +255,7 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   height: calc(100% - 132px);
   margin: 0 8px;
   overflow-y: auto;
-  overflow-x: visible;
+  overflow-x: hidden;
   padding-top: 8px;
   position: relative; //required for scrollspy
   width: calc(100% - 16px);

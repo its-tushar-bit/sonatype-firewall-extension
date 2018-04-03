@@ -1,15 +1,3 @@
-.body-container--license {
-  width: 100%;
-
-  p {
-    max-width: $iq-paragraph-width-maximum;
-  }
-
-  label.btn {
-    margin-bottom: 0;
-  }
-}
-
 .iq-license-info {
   flex: 1 1 33%;
   margin: 8px 0;
@@ -41,4 +29,10 @@
 #license-form {
   display: inline-block;
   margin: 0;
+}
+
+#license {
+  p {
+    width: $iq-paragraph-width-maximum;
+  }
 }

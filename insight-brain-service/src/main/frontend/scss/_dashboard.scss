@@ -6,17 +6,21 @@ $iq-cell-scroll-bar-width: 14px;
 $iq-cell-chevron-width: 21px;
 $iq-cell-affected-apps-width: 109px;
 
+.iq-sidebar--dashboard {
+  // for the Manage Filter dropdown
+  overflow-x: visible;
+}
+
 .iq-tile--dashboard-table-container {
   background-color: transparent;
   border: 0;
   margin-top: 0;
-  padding-right: 0;
-  padding-left: 0;
+  padding: 0;
   position: relative;
-  
+
   .iq-scrollable {
-    // window height - main header - tile header - padding for bottom
-    max-height: calc(100vh - 40px - 85px - 16px);
+    // window height - main header - margin between main header and tile - tile header - margin for bottom
+    max-height: calc(100vh - 40px - 8px - 85px - 8px);
   }
 }
 

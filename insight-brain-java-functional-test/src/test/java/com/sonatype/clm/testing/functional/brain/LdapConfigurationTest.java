@@ -273,7 +273,7 @@ public class LdapConfigurationTest
     connectionForm.connectionTimeout().shouldBe(value("30")).setValue("31");
     connectionForm.retryDelay().shouldBe(value("30")).setValue("31");
 
-    connectionForm.saveButton().shouldBe(enabled).click();
+    connectionForm.saveButton().shouldBe(enabled).scrollIntoView(false).click();
 
     // Connection saved
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
@@ -323,8 +323,8 @@ public class LdapConfigurationTest
 
     userAndGroupSettingsForm.groupSearchWarning().shouldBe(hidden);
     userAndGroupSettingsForm.groupMappingType().shouldBe(text("NONE")).selectOption("DYNAMIC");
-    userAndGroupSettingsForm.groupSearchWarning().shouldBe(visible).
-        shouldHave(text(LdapUserAndGroupSettingsForm.GROUP_SEARCH_WARNING));
+    userAndGroupSettingsForm.groupSearchWarning().scrollIntoView(true).shouldBe(visible)
+        .shouldHave(text(LdapUserAndGroupSettingsForm.GROUP_SEARCH_WARNING));
     userAndGroupSettingsForm.userMemberOfGroupAttribute().shouldBe(empty).setValue("departmentNumber");
 
     // buttons now enabled

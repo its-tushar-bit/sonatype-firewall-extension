@@ -32,10 +32,10 @@
 </head>
 <body>
   <main-header product-edition="{{productEdition}}"></main-header>
-  <div ng-show='!error' class="main-view">
+  <div ng-show='!error' class="iq-main-view">
     <system-notice></system-notice>
     <div ui-view>
-      <div class="body-container body-container--login" maximize-container-height>
+      <div id="login-body-container" class="iq-body-container iq-body-container--single-pane" maximize-container-height>
         <!--
           This element just makes an empty single-pane page behind the login modal. It gets deleted by 
           angular-ui-router after login completes

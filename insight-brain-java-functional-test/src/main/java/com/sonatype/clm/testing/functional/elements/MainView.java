@@ -13,7 +13,7 @@ public class MainView
 {
 
   public static SelenideElement mainView() {
-    return $(".main-view");
+    return $(".iq-main-view");
   }
 
   /**
@@ -21,10 +21,10 @@ public class MainView
    * modals and the MainHeader is within this element
    */
   public static SelenideElement uiView() {
-    return $(".main-view > [ui-view]");
+    return $(".iq-main-view > [ui-view]");
   }
 
   public static SelenideElement loginBackground() {
-    return $(".main-view > [ui-view] > .body-container--login");
+    return $("#login-body-container");
   }
 }

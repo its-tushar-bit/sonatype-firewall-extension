@@ -8,6 +8,10 @@ package com.sonatype.insight.brain.telemetry;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 /**
  * @since 1.43.0
  */
@@ -20,7 +24,7 @@ public class TelemetryData
 
   private long timestamp;
 
-  private Map<String, String> attributes = new HashMap<>();
+  private Map<String, Object> attributes = new HashMap<>();
 
   /**
    * Unused constructor required for JSON deserialization support.
@@ -38,11 +42,11 @@ public class TelemetryData
     return timestamp;
   }
 
-  public Map<String, String> getAttributes() {
+  public Map<String, Object> getAttributes() {
     return attributes;
   }
 
-  public void setAttributes(final Map<String, String> attributes) {
+  public void setAttributes(final Map<String, Object> attributes) {
     this.attributes = attributes;
   }
 
@@ -52,5 +56,28 @@ public class TelemetryData
 
   public void setPurpose(TelemetryPurpose purpose) {
     this.purpose = purpose;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == null || other.getClass() != getClass()) {
+      return false;
+    }
+
+    TelemetryData otherData = (TelemetryData) other;
+
+    return new EqualsBuilder().append(purpose, otherData.purpose).append(timestamp, otherData.timestamp)
+        .append(attributes, otherData.attributes).isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder().append(purpose).append(timestamp).append(attributes).toHashCode();
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this).append("purpose", purpose).append("timestamp", timestamp)
+        .append("attributes", attributes).toString();
   }
 }

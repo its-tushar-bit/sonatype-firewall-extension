@@ -2,14 +2,23 @@
 window.angularDebug = true;
 
 describe('mainModuleSpec', function() {
-  var scope;
+  var scope, telemetryServiceMock;
 
-  beforeEach(module('InitModule', function($provide) {
+  beforeEach(module('InitModule', function($provide, $stateProvider) {
     $provide.value('$window', {
       location: {
         href: 'http://blah',
         replace: jasmine.createSpy()
       }
+    });
+
+    telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
+    $provide.service('gettingStartedUsageTelemetryService', function() {
+      return telemetryServiceMock;
+    });
+
+    $stateProvider.state('someOtherState', {
+      url: '/someOtherState'
     });
   }));
 
@@ -90,6 +99,36 @@ describe('mainModuleSpec', function() {
       $httpBackend.flush();
       expect($rootScope.error).toBeDefined();
       expect($rootScope.initialized).toBeFalsy();
+    }));
+  });
+
+  describe('on licenseInstalled event', function() {
+    it('fires "REDIRECTED" telemetry event', inject(function(initService, $state) {
+      initService.start();
+      $state.go('someOtherState');
+      scope.$digest();
+      scope.$emit('licenseInstalled');
+      expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('REDIRECTED', {
+        pageNavigatedFrom: 'someOtherState'
+      });
+    }));
+  });
+
+  describe('on beforeunload event', function() {
+    it('fires synchronous "DEPARTED" telemetry event if current page is gettingStarted',
+        inject(function(initService, $state) {
+          initService.start();
+          $state.go('gettingStarted');
+          scope.$digest();
+          window.dispatchEvent(new Event('beforeunload'));
+          expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('DEPARTED', null, true);
+        })
+    );
+
+    it('does not fire "DEPARTED" telemetry event if current page is not gettingStarted', inject(function(initService) {
+      initService.start();
+      window.dispatchEvent(new Event('beforeunload'));
+      expect(telemetryServiceMock.submitData).not.toHaveBeenCalled();
     }));
   });
 });

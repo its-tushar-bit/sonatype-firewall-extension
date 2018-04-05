@@ -15,6 +15,7 @@ import fillVertical from './fill.vertical.directive';
 import formMask from './form.mask.directive';
 import hasWhitespaceValidator from './has.whitespace.validator.directive';
 import loadWrapper from './load.wrapper.directive';
+import middleClick from './middle.click.directive';
 import padToTop from './pad.to.top.directive';
 import SortController from './sort.controller';
 import sort from './sort.directive';
@@ -30,6 +31,7 @@ export default angular.module('utility.directives', [AngularCommonModule.name])
     .directive('formMask', formMask)
     .directive('hasWhitespaceValidator', hasWhitespaceValidator)
     .directive('loadWrapper', loadWrapper)
+    .directive('middleClick', middleClick)
     .directive('padToTop', padToTop)
     .controller('sort.controller', SortController)
     .directive('sort', sort)

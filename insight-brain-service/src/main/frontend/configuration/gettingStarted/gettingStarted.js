@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './gettingStarted.html';
+import {VISITED_ACTION} from './gettingStartedUsageTelemetryService';
 
 export default {
   controller: GettingStartedController,
@@ -11,7 +12,8 @@ export default {
   template: template
 };
 
-function GettingStartedController($q, $rootScope, PermissionService, $http, CLMLocations, CurrentUser) {
+function GettingStartedController($q, $rootScope, $http, PermissionService, CLMLocations, CurrentUser,
+                                  gettingStartedUsageTelemetryService) {
   const vm = this;
 
   Object.assign(vm, {
@@ -28,6 +30,7 @@ function GettingStartedController($q, $rootScope, PermissionService, $http, CLML
         return;
       }
 
+      firePageVisitedEvent();
       vm.error = undefined;
 
       loadDataForAllUsers().then(results => {
@@ -78,6 +81,12 @@ function GettingStartedController($q, $rootScope, PermissionService, $http, CLML
     ];
     return $q.all(promises);
   }
+
+  function firePageVisitedEvent() {
+    gettingStartedUsageTelemetryService.submitData(VISITED_ACTION);
+  }
 }
 
-GettingStartedController.$inject = ['$q', '$rootScope', 'PermissionService', '$http', 'CLMLocations', 'CurrentUser'];
+GettingStartedController.$inject = [
+  '$q', '$rootScope', '$http', 'PermissionService', 'CLMLocations', 'CurrentUser', 'gettingStartedUsageTelemetryService'
+];

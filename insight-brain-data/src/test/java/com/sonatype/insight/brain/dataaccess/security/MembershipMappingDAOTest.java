@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -186,6 +187,28 @@ public class MembershipMappingDAOTest
     List<MembershipMapping> memberships = membershipDAO.getByRoleIds(Collections.singleton(role1.getId()));
     assertThat(memberships, hasSize(1));
     assertThat(memberships.get(0).getId(), is(membership.getId()));
+  }
+
+  @Test
+  public void testGetByUserAndGroups() {
+    String username = "username";
+    String groupName = "group";
+
+    Role userRole = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+    Role groupRole = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+
+    // another role that does not get associated with a mapping and which shouldn't appear in the results
+    tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+
+    MembershipMapping membership1 = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
+        userRole.getId(), username);
+    MembershipMapping membership2 = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
+        groupRole.getId(), groupName, MemberType.GROUP);
+
+    List<MembershipMapping> memberships = membershipDAO.getByUserAndGroups(username, Collections.singleton(groupName));
+    List<String> membershipIds = memberships.stream().map(MembershipMapping::getId).collect(Collectors.toList());
+
+    assertThat(membershipIds, containsInAnyOrder(membership1.getId(), membership2.getId()));
   }
 
   @Test

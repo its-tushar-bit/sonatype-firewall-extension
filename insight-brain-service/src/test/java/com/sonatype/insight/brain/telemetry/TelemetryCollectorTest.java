@@ -120,7 +120,8 @@ public class TelemetryCollectorTest
     try {
       OperationalDataStoreProvider.init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods),
           false);
-      String odsSizeBytes = telemetryCollector.collectData().getAttributes().get(TelemetryCollector.ODS_SIZE_BYTES);
+      String odsSizeBytes = (String) telemetryCollector.collectData().getAttributes()
+          .get(TelemetryCollector.ODS_SIZE_BYTES);
       assertThat(odsSizeBytes, is(notNullValue()));
       assertThat(Long.valueOf(odsSizeBytes), is(greaterThan(0L)));
     }

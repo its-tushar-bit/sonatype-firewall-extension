@@ -40,6 +40,21 @@ public class Role
    */
   public static final String OWNER_ROLE_ID = "1cddabf7fdaa47d6833454af10e0a3ef";
 
+  /**
+   * The id of the "Developer" role in the role database table.
+   */
+  public static final String DEVELOPER_ROLE_ID = "1da70fae1fd54d6cb7999871ebdb9a36";
+
+  /**
+   * The id of the "Application Evaluator" role in the role database table.
+   */
+  public static final String APPLICATION_EVALUATOR_ROLE_ID = "2cb71b3468d649789163ea2e212b541e";
+
+  /**
+   * The id of the "Component Evaluator" role in the role database table.
+   */
+  public static final String COMPONENT_EVALUATOR_ROLE_ID = "90c7c98683b4471cb77a916744540bcc";
+
   @Id
   @Column(name = "role_id")
   private String id;

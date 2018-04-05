@@ -10,6 +10,9 @@ import CLMLocationModule from './util/CLMLocation';
 import {httpInterceptors, unauthenticatedResponseHttpInterceptor} from './util/HttpInterceptors';
 import IqHttpInterceptorsModule from './util/IqHttpInterceptors';
 import productFeaturesModule from './util/ProductFeatures';
+import gettingStartedModule from './configuration/gettingStarted/module';
+import {GETTING_STARTED_STATE} from './configuration/gettingStarted/module';
+import {REDIRECTED_ACTION, DEPARTED_ACTION} from './configuration/gettingStarted/gettingStartedUsageTelemetryService';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -27,7 +30,7 @@ angular.module('InitModule', [
   'ui.router', 'ui.bootstrap', CLMLocationModule.name, commonServicesModule.name, 'ngAria',
   'ReportModule', 'Report', 'mainHeader', 'ngRoute', unauthenticatedResponseHttpInterceptor.name, 'xeditable',
   productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, 'dashboard.module', formsModule.name,
-  'SessionSecurityModule'
+  'SessionSecurityModule', gettingStartedModule.name
 ], [
   '$stateProvider', '$routeProvider', '$urlRouterProvider',
   function($stateProvider, $routeProvider, $urlRouterProvider) {
@@ -83,8 +86,10 @@ angular.module('InitModule', [
 ]).service('initService', [
   'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser',
   '$q', '$urlRouter', 'Modal', '$timeout', 'state.history.service', 'SessionSecurityService',
+  'gettingStartedUsageTelemetryService',
   function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q,
-           $urlRouter, Modal, $timeout, StateHistoryService, SessionSecurityService) {
+           $urlRouter, Modal, $timeout, StateHistoryService, SessionSecurityService,
+           gettingStartedUsageTelemetryService) {
     var savedState = null,
         stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
           //as we init the system, we mix the preventing of $stateChangeStart events and $locationChangeStart events
@@ -150,6 +155,9 @@ angular.module('InitModule', [
       }
 
       $state.go('gettingStarted');
+      gettingStartedUsageTelemetryService.submitData(REDIRECTED_ACTION, {
+        pageNavigatedFrom: $state.current.name
+      });
 
       $timeout(function() {
         $window.location.reload();
@@ -229,6 +237,10 @@ angular.module('InitModule', [
       });
 
       var fn = function() {
+        if ($state.current.name === GETTING_STARTED_STATE) {
+          gettingStartedUsageTelemetryService.submitData(DEPARTED_ACTION, null, true);
+        }
+
         if (!isShowingModal) {
           var e = $rootScope.$broadcast('pageChangeStarted');
 

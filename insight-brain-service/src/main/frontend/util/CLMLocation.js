@@ -350,7 +350,9 @@ angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory(
 
       getIsAdminDefaultPasswordChanged: () => `${baseUrl.get()}/rest/user/defaultPasswordChanged`,
 
-      getIsHdsReachable: () => `${baseUrl.get()}/rest/hdsPing`
+      getIsHdsReachable: () => `${baseUrl.get()}/rest/hdsPing`,
+
+      getTelemetryUrl: () => `${baseUrl.get()}/rest/environment/stats`
     };
   }
 ]);

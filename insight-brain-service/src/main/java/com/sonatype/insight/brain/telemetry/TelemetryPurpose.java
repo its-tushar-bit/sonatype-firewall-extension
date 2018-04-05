@@ -11,5 +11,6 @@ package com.sonatype.insight.brain.telemetry;
 public enum TelemetryPurpose
 {
   AUTOMATIC_APPLICATION_CREATION, //
-  HIERARCHY_METRICS
+  HIERARCHY_METRICS, //
+  GETTING_STARTED_USAGE
 }

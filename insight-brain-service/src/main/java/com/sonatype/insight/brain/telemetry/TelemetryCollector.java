@@ -61,7 +61,7 @@ public class TelemetryCollector
 
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS, System.currentTimeMillis());
-    Map<String, String> attributes = telemetryData.getAttributes();
+    Map<String, Object> attributes = telemetryData.getAttributes();
 
     int numberOfOrgsMinusRoot = organizationDAO.getAll().size() - 1;
     attributes.put(NUMBER_OF_ORGS, String.valueOf(numberOfOrgsMinusRoot));

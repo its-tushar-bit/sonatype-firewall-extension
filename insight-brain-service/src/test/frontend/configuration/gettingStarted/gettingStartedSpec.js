@@ -1,5 +1,4 @@
 describe('gettingStarted component', function() {
-  beforeEach(module('gettingStartedModule'));
 
   var vm,
       $q,
@@ -8,7 +7,17 @@ describe('gettingStarted component', function() {
       currentUserDeferred,
       $httpBackend,
       $rootScope,
-      permissionServiceMock;
+      permissionServiceMock,
+      telemetryServiceMock;
+
+  beforeEach(module('gettingStartedModule', function($provide) {
+    telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
+
+    $provide.service('gettingStartedUsageTelemetryService', function() {
+      return telemetryServiceMock;
+    });
+
+  }));
 
   beforeEach(inject(function(_$q_, _$httpBackend_, _$rootScope_, $componentController, _CLMLocations_) {
     $q = _$q_;
@@ -140,6 +149,22 @@ describe('gettingStarted component', function() {
 
       expect(vm.error).not.toBeNull();
       expect(vm.error.status).toBe(500);
+    });
+
+    describe('"VISITED" telemetry event', function() {
+      it('is not fired if application is not licensed', function() {
+        $rootScope.licensed = false;
+        vm.$onInit();
+        expect(telemetryServiceMock.submitData).not.toHaveBeenCalled();
+      });
+
+      it('is fired before data is loaded if application is licensed', function() {
+        $rootScope.licensed = true;
+        permissionServiceMock.getValidPermissions.and.returnValue($q.defer().promise);
+        vm.$onInit();
+        // fired before getValidPermissions result is resolved
+        expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('VISITED');
+      });
     });
   });
 

@@ -1,7 +1,9 @@
 describe('reportApp', function() {
   var scope, state, $httpBackend, CLMLocations, $controller;
 
-  beforeEach(module('ReportModule', 'MainModule'));
+  beforeEach(module('ReportModule', 'MainModule', function($provide) {
+    SpecUtil.mockNgRedux($provide);
+  }));
 
   beforeEach(inject(function($rootScope, $state, _$controller_, _$httpBackend_, _CLMLocations_) {
     $rootScope.licensed = true;

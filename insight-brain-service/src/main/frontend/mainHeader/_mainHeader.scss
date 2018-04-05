@@ -64,8 +64,7 @@ i.iq-navigation-menu__icon {
   line-height: 24px;
   white-space: nowrap;
   width: $iq-sidebar-width;
-  min-width: $iq-sidebar-min-width;
-  max-width: $iq-sidebar-max-width;
+  min-width: 280px;
 
   img {
     display: inline-block;

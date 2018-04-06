@@ -1,0 +1,84 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+
+import com.google.inject.Binder;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
+
+public class ApiComponentVersionsServiceV2Test
+    extends AbstractComponentTest
+{
+  @Inject
+  private ApiComponentVersionsServiceV2 apiComponentVersionsServiceV2;
+
+  @Mock
+  private HdsClient client;
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(HdsClient.class).toInstance(client);
+  }
+
+  @Test
+  public void testGetComponentVersions() throws Exception {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+
+    when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+    
+    List<String> versions = apiComponentVersionsServiceV2
+        .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+
+    assertThat(versions, contains("v1", "v2", "v3", "v4"));
+  }
+
+  @Test
+  public void testGetComponentVersions_EmptyVersion() throws Exception {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "");
+
+    when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+
+    List<String> versions = apiComponentVersionsServiceV2
+        .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+
+    assertThat(versions, contains("v1", "v2", "v3", "v4"));
+  }
+
+  @Test
+  public void testGetComponentVersions_NullVersion() throws Exception {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", null);
+
+    when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+
+    List<String> versions = apiComponentVersionsServiceV2
+        .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+
+    assertThat(versions, contains("v1", "v2", "v3", "v4"));
+  }
+}

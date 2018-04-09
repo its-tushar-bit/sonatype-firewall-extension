@@ -648,6 +648,34 @@ public class ReportResourceTest
   }
 
   @Test
+  public void testPrintReport_BirtRenderingErrorsLeaveNoInvalidPdfBehind() throws Exception {
+    final String scanId = "ReportResourceTest_ScanId";
+    File reportFile = createReportFile(app.getId(), scanId, "/ReportResourceTest/report-pdf");
+    File pdfFile = Pdf.getPdfFile(reportFile);
+    File cacheDir = Report.getCacheDir(reportFile);
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    HttpResponse response;
+    try {
+      response = restRequest(app.getPublicId(), scanId).path("printReport").get();
+      assertResponseStatus(500, response);
+      assertThat(pdfFile.exists(), is(false));
+
+      // until the missing JSON file gets fixed, the PDF should remain unprintable
+      response = restRequest(app.getPublicId(), scanId).path("printReport").get();
+      assertResponseStatus(500, response);
+      assertThat(pdfFile.exists(), is(false));
+
+      FileUtils.fileWrite(new File(cacheDir, "policyalerts.json"), "UTF-8", "{\"aaData\":[]}");
+      response = restRequest(app.getPublicId(), scanId).path("printReport").get();
+      assertResponseStatus(200, response);
+      assertThat(pdfFile.exists(), is(true));
+    }
+    finally {
+      Pdf.destroy();
+    }
+  }
+
+  @Test
   public void testReevaluateReport() throws Exception {
     String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");
@@ -1346,13 +1374,15 @@ public class ReportResourceTest
     return countNotZero;
   }
 
-  private void createReportFile(String appId, String scanId) throws IOException {
-    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"),
-        new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId));
+  private File createReportFile(String appId, String scanId) throws IOException {
+    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
+    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/sample-report.zip"), reportFile);
+    return reportFile;
   }
 
-  private void createReportFile(String appId, String scanId, String sourceReportDir) throws IOException {
-    FileUtils.copyFile(zipResourceDir(sourceReportDir),
-        new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId));
+  private File createReportFile(String appId, String scanId, String sourceReportDir) throws IOException {
+    File reportFile = new InsightWork(getCLMServer().getConfiguration()).getReportFile(appId, scanId);
+    FileUtils.copyFile(zipResourceDir(sourceReportDir), reportFile);
+    return reportFile;
   }
 }

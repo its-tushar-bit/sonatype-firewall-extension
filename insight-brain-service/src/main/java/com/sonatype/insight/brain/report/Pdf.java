@@ -55,7 +55,7 @@ final class Pdf
 
   private static IReportEngine reportEngine;
 
-  private static File getPdfFile(final File reportFile) {
+  static File getPdfFile(final File reportFile) {
     return new File(reportFile.getParentFile(), "report.pdf");
   }
 
@@ -83,6 +83,12 @@ final class Pdf
       final File templateDir = setupTemplateDir(reportFile, cacheDir, applicationName, stageName, contact);
       try {
         generate(pdfFile, templateDir, sample);
+      }
+      catch (Exception e) {
+        if (!pdfFile.delete() && pdfFile.exists()) {
+          log.error("Could not delete broken PDF {}", pdfFile);
+        }
+        throw e;
       }
       finally {
         new FileCleaner().delete(templateDir);

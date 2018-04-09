@@ -40,6 +40,7 @@ public class PingHdsClient
     super(proxy, licenseManager, insightConfig, versionService, idleConnectionReaper, telemetryId);
   }
 
+  @Override
   protected Configuration createConfiguration() {
     Configuration configuration = new Configuration();
     configuration.setSocketTimeout(SOCKET_TIMEOUT);

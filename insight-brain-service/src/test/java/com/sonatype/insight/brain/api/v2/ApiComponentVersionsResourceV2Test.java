@@ -34,7 +34,7 @@ public class ApiComponentVersionsResourceV2Test
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_VERSIONS_PATH_V2).body(request).post();
     assertResponseStatus(200, response);
 
-    List<String> result = (List<String>) response.getBody(List.class);
+    List<String> result = response.getBodyList();
     assertThat(result, contains("v1", "v2", "v3", "v4"));
   }
 }

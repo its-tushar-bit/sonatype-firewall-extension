@@ -47,7 +47,7 @@ public class ApiComponentVersionsServiceV2
     ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentIdentifierDTO.getFormat(),
         componentIdentifierDTO.getCoordinates());
 
-    List<String> versions = (List<String>) hdsClient.get(List.class, HDS_COMPONENT_VERSIONS_LIST_PATH,
+    List<String> versions = hdsClient.get(List.class, HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier)));
 
     log.debug("Got {} versions of component {} from HDS in {} ms.", versions.size(), componentIdentifier,

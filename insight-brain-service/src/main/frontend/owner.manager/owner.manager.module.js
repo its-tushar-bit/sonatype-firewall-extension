@@ -55,7 +55,8 @@ angular.module('owner.manager.module',
             }
           }
         }).state('management.edit', {
-          abstract: true
+          abstract: true,
+          template: '<div ui-view maximize-container-height></div>'
         }).state('management.view.repositories', {
           url: '/repositories',
           data: {
@@ -79,7 +80,7 @@ angular.module('owner.manager.module',
         }).state('management.edit.repositories.add-access', {
           url: '/access',
           views: {
-            '@management': {
+            '@management.edit': {
               controller: 'access.editor.controller',
               controllerAs: 'vm',
               templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
@@ -88,7 +89,7 @@ angular.module('owner.manager.module',
         }).state('management.edit.repositories.edit-access', {
           url: '/access/{roleId}',
           views: {
-            '@management': {
+            '@management.edit': {
               controller: 'access.editor.controller',
               controllerAs: 'vm',
               templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
@@ -123,7 +124,7 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Labels'
             },
             views: {
-              '@management': {
+              '@management.edit': {
                 controller: 'label.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp
@@ -135,7 +136,7 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Labels'
             },
             views: {
-              '@management': {
+              '@management.edit': {
                 controller: 'label.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp
@@ -147,6 +148,8 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Policy'
             },
             views: {
+              // do not attach to @management.edit because policy.editor.view has its own maximize-container-height
+              // directive
               '@management': {
                 controller: 'policy.editor.controller',
                 controllerAs: 'vm',
@@ -159,6 +162,8 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Policy'
             },
             views: {
+              // do not attach to @management.edit because policy.editor.view has its own maximize-container-height
+              // directive
               '@management': {
                 controller: 'policy.editor.controller',
                 controllerAs: 'vm',
@@ -171,7 +176,7 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Access'
             },
             views: {
-              '@management': {
+              '@management.edit': {
                 controller: 'access.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
@@ -183,7 +188,7 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Access'
             },
             views: {
-              '@management': {
+              '@management.edit': {
                 controller: 'access.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
@@ -195,7 +200,7 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Continuous Monitoring'
             },
             views: {
-              '@management': {
+              '@management.edit': {
                 controller: 'monitored.stage.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/policy/monitored.stage.editor.view.html?' + clmBuildTimestamp
@@ -207,7 +212,7 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' Proprietary Components'
             },
             views: {
-              '@management': {
+              '@management.edit': {
                 controller: 'proprietary.config.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/policy/proprietary.config.editor.view.html?' + clmBuildTimestamp
@@ -219,7 +224,7 @@ angular.module('owner.manager.module',
               title: ownerType.name + ' License Threat Groups'
             },
             views: {
-              '@management': {
+              '@management.edit': {
                 controller: 'license.threat.group.editor.controller',
                 controllerAs: 'vm',
                 templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' +
@@ -235,7 +240,7 @@ angular.module('owner.manager.module',
             title: 'Organization Category'
           },
           views: {
-            '@management': {
+            '@management.edit': {
               templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
               controller: 'category.editor.controller',
               controllerAs: 'vm'
@@ -247,7 +252,7 @@ angular.module('owner.manager.module',
             title: 'Organization Category'
           },
           views: {
-            '@management': {
+            '@management.edit': {
               templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
               controller: 'category.editor.controller',
               controllerAs: 'vm'
@@ -259,7 +264,7 @@ angular.module('owner.manager.module',
           },
           url: '/category',
           views: {
-            '@management': {
+            '@management.edit': {
               controller: 'application.category.editor.controller',
               controllerAs: 'vm',
               templateUrl: 'owner.manager/category/application.category.editor.view.html?' + clmBuildTimestamp
@@ -271,7 +276,7 @@ angular.module('owner.manager.module',
           },
           url: '/licenseThreatGroup',
           views: {
-            '@management': {
+            '@management.edit': {
               controller: 'license.threat.group.editor.controller',
               controllerAs: 'vm',
               templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' +

@@ -171,6 +171,7 @@ $iq-cell-affected-apps-width: 109px;
 
 .iq-violations-results, .iq-components-results, .iq-applications-results {
   border-top: 6px solid transparent;
+  box-sizing: border-box;
   display: block;
   position: relative;
 

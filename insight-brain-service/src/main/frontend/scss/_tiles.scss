@@ -225,7 +225,6 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .tile-container {
   float: left;
-  height: 100%;
   width: 100%;
 }
 
@@ -233,8 +232,6 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   $shadow-spread: 6px;
   $container-padding: 8px;
 
-  // to prevent parent/child margin collapsing, which confuses the calc-tile-scroll-height directive
-  overflow-y: hidden;
   position: relative;
   z-index: $tile-scroll-container-z-index + 1;
 

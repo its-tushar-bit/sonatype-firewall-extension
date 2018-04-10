@@ -14,7 +14,7 @@ function configureRoutes($stateProvider) {
       .state('labs', {
         abstract: true,
         url: '/labs',
-        template: `<div id="labs" class="iq-body-container iq-body-container--single-pane" fill-vertical>
+        template: `<div id="labs" class="iq-body-container iq-body-container--single-pane" maximize-container-height>
           <ui-view/>
         </div>`
       })

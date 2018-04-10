@@ -1,4 +1,4 @@
-<div class="tile-container" fill-vertical>
+<div class="tile-container">
   <div class="iq-tile iq-tile--top-tile" id='owner-summary' ng-controller="OwnerSummaryController as vm">
     <div load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()">
       <div class="iq-tile__actions">
@@ -98,7 +98,7 @@
       </ul>
     </div>
   </div>
-  <div class="tile-scroll-container" calc-tile-scroll-height="#owner-summary" scrollspy="#owner-summary">
+  <div class="tile-scroll-container" maximize-container-height scrollspy="#owner-summary">
     <div class="tile" id="owner-pill-app-categories">
       <div ng-controller="ApplicationCategoryTileControllerApp as vm">
         <div ng-if="vm.isApp" load-wrapper="vm.error" loading="!(vm.ownerName && vm.appliedCategories)"

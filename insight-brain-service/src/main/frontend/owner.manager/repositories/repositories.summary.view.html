@@ -1,4 +1,4 @@
-<div class="tile-container" fill-vertical>
+<div class="tile-container">
   <div class="summary-tile-container">
     <div class="iq-tile iq-tile--top-tile" id="repositories-summary">
       <div class="iq-tile-header iq-tile-header--no-actions">
@@ -19,7 +19,7 @@
       </ul>
     </div>
   </div>
-  <div class="tile-scroll-container" calc-tile-scroll-height="#repositories-summary" scrollspy="#repositories-summary">
+  <div class="tile-scroll-container" maximize-container-height scrollspy="#repositories-summary">
     <div id="repositories-pill-configuration" class="tile"
          ng-controller="repositories.configuration.tile.controller as vm">
       <div load-wrapper="vm.error" loading="!vm.repositories" reload="vm.doLoad()"

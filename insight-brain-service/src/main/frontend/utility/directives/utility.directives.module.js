@@ -6,12 +6,10 @@
 /* global angular*/
 
 import AngularCommonModule from '../../util/AngularCommon';
-import calcTileScrollHeight from './calc.tile.scroll.height.directive';
 import copiedTooltip from './copied.tooltip.directive';
 import copyToClipboard from './copy.to.clipboard.directive';
 import detectScrollbar from './detect.scrollbar.directive';
 import enterKeyCall from './enter.key.call.directive';
-import fillVertical from './fill.vertical.directive';
 import formMask from './form.mask.directive';
 import hasWhitespaceValidator from './has.whitespace.validator.directive';
 import loadWrapper from './load.wrapper.directive';
@@ -22,12 +20,10 @@ import sort from './sort.directive';
 import submitValidation from './submit.validation.directive';
 
 export default angular.module('utility.directives', [AngularCommonModule.name])
-    .directive('calcTileScrollHeight', calcTileScrollHeight)
     .directive('copiedTooltip', copiedTooltip)
     .directive('copyToClipboard', copyToClipboard)
     .directive('detectScrollbar', detectScrollbar)
     .directive('enterKeyCall', enterKeyCall)
-    .directive('fillVertical', fillVertical)
     .directive('formMask', formMask)
     .directive('hasWhitespaceValidator', hasWhitespaceValidator)
     .directive('loadWrapper', loadWrapper)

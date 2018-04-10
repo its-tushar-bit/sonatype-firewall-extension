@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
@@ -45,6 +46,9 @@ public class UserServiceTest
 
   @Inject
   private UserDAO userDAO;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   @Mock
   private SessionDAO sessionDAOMock;
@@ -277,22 +281,31 @@ public class UserServiceTest
   }
 
   @Test
-  public void testIsAdminDefaultPasswordChanged() {
-    assertThat(userService.isAdminDefaultPasswordChanged(), is(false));
+  public void testShouldDisplayDefaultPasswordWarning() {
+    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(true));
 
     User admin = userDAO.getByUsername(User.ADMIN_USERNAME);
     String originalAdminPassword = admin.getPassword();
     try {
       admin.setPassword("foo");
       userDAO.update(admin);
-      assertThat(userService.isAdminDefaultPasswordChanged(), is(true));
+      assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(false));
     }
     finally {
       admin.setPassword(originalAdminPassword);
       userDAO.update(admin);
     }
 
-    assertThat(userService.isAdminDefaultPasswordChanged(), is(false));
+    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(true));
+  }
+
+  @Test
+  public void testShouldDisplayDefaultPasswordWarning_DisabledByConfig() {
+    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(true));
+
+    insightConfig.setEnableDefaultPasswordWarning(false);
+
+    assertThat(userService.shouldDisplayDefaultPasswordWarning(), is(false));
   }
 
   private void assertMember(FindMembersDTO findMembersDTO,

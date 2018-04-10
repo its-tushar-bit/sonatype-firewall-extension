@@ -46,15 +46,17 @@ extends BaseSpec {
     RoleManagementPage roleManagementPage = at RoleManagementPage
     roleManagementPage.builtinRoles[3].click()
 
-    then: 'the read only role editor is shown'
     RoleEditorPage roleEditorPage = at RoleEditorPage
+    DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.IQ.displayName) as DisplayedPermissionCategory
+    interact { moveToElement(policyCategory.permission(7)) }
+
+    then: 'the read only role editor is shown'
     waitFor {
       roleEditorPage.permissionCategories.size() == 2
     }
 
     roleEditorPage.pageTitle.text() == 'Developer'
 
-    DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.IQ.displayName) as DisplayedPermissionCategory
     policyCategory.permissions.size() == 8
     assertPermission(policyCategory.permission(0), !ON, !ENABLED, Permission.MANAGE_PROPRIETARY)
     assertPermission(policyCategory.permission(1), !ON, !ENABLED, Permission.CLAIM_COMPONENT)

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -50,11 +51,18 @@ public class UserService
 
   private final UserDirectory userDirectory;
 
+  private final InsightConfig insightConfig;
+
   @Inject
-  public UserService(InternalRealm clmRealm, SessionDAO sessionDAO, UserDirectory userDirectory) {
+  public UserService(InternalRealm clmRealm,
+                     SessionDAO sessionDAO,
+                     UserDirectory userDirectory,
+                     InsightConfig insightConfig)
+  {
     this.clmRealm = clmRealm;
     this.sessionDAO = sessionDAO;
     this.userDirectory = userDirectory;
+    this.insightConfig = insightConfig;
   }
 
   // Authorization is checked in findMembersForNonGlobalRoles and findMembersForGlobalRoles
@@ -220,14 +228,18 @@ public class UserService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public boolean isAdminDefaultPasswordChanged() {
+  public boolean shouldDisplayDefaultPasswordWarning() {
+    if (!insightConfig.isEnableDefaultPasswordWarning()) {
+      return false;
+    }
+
     try {
       clmRealm.getAuthenticationInfo(new UsernamePasswordToken(User.ADMIN_USERNAME, ADMIN_DEFAULT_PASSWORD));
     }
     catch (AuthenticationException e) {
-      return true;
+      return false;
     }
-    return false;
+    return true;
   }
 
   private void clearUserPassword(User user) {

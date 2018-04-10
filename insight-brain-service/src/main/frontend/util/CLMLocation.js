@@ -348,7 +348,7 @@ angular.module('CLMLocation', [commonServicesModule.name, 'ui.router']).factory(
 
       getAutomaticApplicationsConfigurationUrl: () => `${baseUrl.get()}/rest/config/automaticApplications`,
 
-      getIsAdminDefaultPasswordChanged: () => `${baseUrl.get()}/rest/user/defaultPasswordChanged`,
+      getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
 
       getIsHdsReachable: () => `${baseUrl.get()}/rest/hdsPing`,
 

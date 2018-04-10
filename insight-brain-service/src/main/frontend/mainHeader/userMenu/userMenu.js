@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function UserMenuController($scope, $http, CLMLocations, Modal, messages, CurrentUser) {
+function UserMenuController($scope, $http, CLMLocations, Modal, messages, CurrentUser, telemetryService,
+                            defaultAdminPasswordChangedService) {
   var vm = this;
 
   vm.$onInit = getCurrentUser;
@@ -40,13 +41,20 @@ function UserMenuController($scope, $http, CLMLocations, Modal, messages, Curren
           scope.result = {};
           scope.save = function() {
             if (this.passwordForm.$valid) {
+              const { newPassword, originalPassword } = scope.result,
+                  actuallyChanged = newPassword !== originalPassword;
+
               scope.error = null;
               scope.submitActive = true;
 
               $http.put(CLMLocations.getChangeMyPasswordUrl(), {
-                oldPassword: scope.result.originalPassword,
-                newPassword: scope.result.newPassword
+                oldPassword: originalPassword,
+                newPassword
               }).then(function() {
+                if (actuallyChanged) {
+                  fireDefaultPasswordChangedTelemetry();
+                }
+
                 scope.$close();
               }, function(error) {
                 scope.submitActive = false;
@@ -58,9 +66,24 @@ function UserMenuController($scope, $http, CLMLocations, Modal, messages, Curren
       ]
     });
   }
+
+  // Fire the telemetry event indicating that the default password was changed. Only do so if the password warning
+  // is actually displayed - ie, if the current password (before the change) was actually the default
+  function fireDefaultPasswordChangedTelemetry() {
+    defaultAdminPasswordChangedService.shouldDisplayDefaultPasswordWarning().then(function(passwordIsDefault) {
+      if (passwordIsDefault) {
+        telemetryService.submitData('ADMIN_PASSWORD_CHANGE', {
+          action: 'PASSWORD_CHANGED_FROM_DEFAULT'
+        });
+      }
+    });
+  }
 }
 
-UserMenuController.$inject = ['$scope', '$http', 'CLMLocations', 'Modal', 'Messages', 'CurrentUser'];
+UserMenuController.$inject = [
+  '$scope', '$http', 'CLMLocations', 'Modal', 'Messages', 'CurrentUser', 'telemetryService',
+  'defaultAdminPasswordChangedService'
+];
 
 angular.module('mainHeader').component('userMenu', {
   templateUrl: 'mainHeader/userMenu/userMenu.html?' + clmBuildTimestamp,

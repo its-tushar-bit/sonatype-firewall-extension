@@ -12,7 +12,7 @@ export default {
   template: template
 };
 
-function GettingStartedController($q, $rootScope, $http, PermissionService, CLMLocations, CurrentUser,
+function GettingStartedController($q, $rootScope, $http, PermissionService, CLMLocations,
                                   gettingStartedUsageTelemetryService) {
   const vm = this;
 
@@ -20,9 +20,7 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
     validPermissions: undefined,
     license: undefined,
     error: undefined,
-    shouldDisplayChangePassword: undefined,
     shouldDisplayHdsUnreachable: undefined,
-    isDefaultUser: undefined,
 
     $onInit() {
       // if license was just installed, page will be reloaded. Until it is - show loading indicator.
@@ -36,12 +34,10 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
       loadDataForAllUsers().then(results => {
         vm.validPermissions = results[0];
         vm.shouldDisplayHdsUnreachable = results[1].data === 'false';
-        return isAdmin() ? loadDataForAdminUsers() : null;
-      }).then(results => {
-        if (results) {
-          vm.license = results[0].data;
-          vm.shouldDisplayChangePassword = results[1].data !== 'true';
-          vm.isDefaultUser = results[2].username === 'admin';
+        return isAdmin() ? $http.get(CLMLocations.getLicenseSummaryUrl()) : null;
+      }).then(result => {
+        if (result) {
+          vm.license = result.data;
         }
       }).catch(error => {
         vm.error = error;
@@ -73,20 +69,11 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
     return $q.all(promises);
   }
 
-  function loadDataForAdminUsers() {
-    const promises = [
-      $http.get(CLMLocations.getLicenseSummaryUrl()),
-      $http.get(CLMLocations.getIsAdminDefaultPasswordChanged()),
-      CurrentUser
-    ];
-    return $q.all(promises);
-  }
-
   function firePageVisitedEvent() {
     gettingStartedUsageTelemetryService.submitData(VISITED_ACTION);
   }
 }
 
 GettingStartedController.$inject = [
-  '$q', '$rootScope', '$http', 'PermissionService', 'CLMLocations', 'CurrentUser', 'gettingStartedUsageTelemetryService'
+  '$q', '$rootScope', '$http', 'PermissionService', 'CLMLocations', 'gettingStartedUsageTelemetryService'
 ];

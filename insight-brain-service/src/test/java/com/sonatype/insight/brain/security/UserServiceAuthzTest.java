@@ -221,19 +221,19 @@ public class UserServiceAuthzTest
   }
 
   @Test
-  public void testIsAdminDefaultPasswordChanged_Authorized() {
+  public void testShouldDisplayDefaultPasswordWarning_Authorized() {
     grantConfigureSystemPermission();
-    userService.isAdminDefaultPasswordChanged();
+    userService.shouldDisplayDefaultPasswordWarning();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testIsAdminDefaultPasswordChanged_Unauthenticated() {
-    userService.isAdminDefaultPasswordChanged();
+  public void testShouldDisplayDefaultPasswordWarning_Unauthenticated() {
+    userService.shouldDisplayDefaultPasswordWarning();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testIsAdminDefaultPasswordChanged_Unauthorized() {
+  public void testShouldDisplayDefaultPasswordWarning_Unauthorized() {
     login();
-    userService.isAdminDefaultPasswordChanged();
+    userService.shouldDisplayDefaultPasswordWarning();
   }
 }

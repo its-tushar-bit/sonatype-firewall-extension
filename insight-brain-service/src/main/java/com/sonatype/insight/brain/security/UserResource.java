@@ -47,7 +47,7 @@ public class UserResource
 
   private static final String MEMBERS_FOR_SINGLETON_OWNER_ROLES = SINGLETON_OWNER_TYPE_SEGMENT + "/query";
 
-  public static final String DEFAULT_PASSWORD_CHANGED_PATH = "/defaultPasswordChanged";
+  public static final String SHOULD_DISPLAY_DEFAULT_PASSWORD_WARNING = "shouldDisplayDefaultPasswordWarning";
 
   private final UserService userService;
 
@@ -127,9 +127,9 @@ public class UserResource
   }
 
   @GET
-  @Path(DEFAULT_PASSWORD_CHANGED_PATH)
+  @Path(SHOULD_DISPLAY_DEFAULT_PASSWORD_WARNING)
   @Produces(MediaType.TEXT_PLAIN)
-  public boolean isDefaultAdminPasswordChanged() {
-    return userService.isAdminDefaultPasswordChanged();
+  public boolean shouldDisplayDefaultPasswordWarning() {
+    return userService.shouldDisplayDefaultPasswordWarning();
   }
 }

@@ -109,7 +109,26 @@ describe('userMenu', function() {
   });
 
   describe('Change Password Dialog', function () {
-    beforeEach(inject(function () {
+    var shouldDisplayDefaultPasswordWarningDeferred,
+        $httpBackend,
+        CLMLocations,
+        telemetryService;
+
+    beforeEach(inject(
+        function($q, _$httpBackend_, _CLMLocations_, _telemetryService_, defaultAdminPasswordChangedService) {
+          $httpBackend = _$httpBackend_;
+          CLMLocations = _CLMLocations_;
+          telemetryService = _telemetryService_;
+
+          shouldDisplayDefaultPasswordWarningDeferred = $q.defer();
+
+          spyOn(telemetryService, 'submitData');
+          spyOn(defaultAdminPasswordChangedService, 'shouldDisplayDefaultPasswordWarning')
+              .and.returnValue(shouldDisplayDefaultPasswordWarningDeferred.promise);
+        }
+    ));
+
+    function doPasswordChange(originalPassword, newPassword) {
       currentUserSuccess({
         username: 'foo',
         authenticated: true,
@@ -118,25 +137,29 @@ describe('userMenu', function() {
       vm.changePassword();
 
       dialogScope.result = {
-        originalPassword: 'bar',
-        newPassword: 'xxx',
-        confirmPassword: 'xxx'
+        originalPassword: originalPassword,
+        newPassword: newPassword,
+        confirmPassword: newPassword
       };
       dialogScope.passwordForm = {
         $valid: true // form validation
       };
-    }));
+    }
 
-    it('With Valid Auth', inject(function ($httpBackend, CLMLocations) {
+    it('calls $close when the password change succeeds', function() {
+      doPasswordChange('bar', 'xxx');
+
       $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
       dialogScope.save();
       expect(dialogScope.submitActive).toBeTruthy();
       $httpBackend.flush();
 
       expect(dialogScope.$close).toHaveBeenCalled();
-    }));
+    });
 
-    it('With Invalid Auth', inject(function ($httpBackend, CLMLocations) {
+    it('sets error and does not call $close when password change fails', function() {
+      doPasswordChange('bar', 'xxx');
+
       $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400, 'Super Fail');
 
       dialogScope.save();
@@ -147,6 +170,61 @@ describe('userMenu', function() {
       expect(dialogScope.submitActive).toBeFalsy();
       expect(dialogScope.$close).not.toHaveBeenCalled();
       expect(dialogScope.error).toEqual('Super Fail');
-    }));
+    });
+
+    it('submits telemetryData when the password change succeeds, the new and old password values differ, ' +
+        'and the default password service reports true', function() {
+      doPasswordChange('bar', 'xxx');
+
+      shouldDisplayDefaultPasswordWarningDeferred.resolve(true);
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
+
+      dialogScope.save();
+      $httpBackend.flush();
+      dialogScope.$digest();
+
+      expect(telemetryService.submitData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
+        action: 'PASSWORD_CHANGED_FROM_DEFAULT'
+      });
+    });
+
+    it('does not submit telemetryData when the default password service reports false', function() {
+      doPasswordChange('bar', 'xxx');
+
+      shouldDisplayDefaultPasswordWarningDeferred.resolve(false);
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
+
+      dialogScope.save();
+      $httpBackend.flush();
+      dialogScope.$digest();
+
+      expect(telemetryService.submitData).not.toHaveBeenCalled();
+    });
+
+    it('does not submit telemetryData when the password change fails', function() {
+      doPasswordChange('bar', 'xxx');
+
+      shouldDisplayDefaultPasswordWarningDeferred.resolve(true);
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400, 'Super Fail');
+
+      dialogScope.save();
+      $httpBackend.flush();
+      dialogScope.$digest();
+
+      expect(telemetryService.submitData).not.toHaveBeenCalled();
+    });
+
+    it('does not submit telemetryData when the new password is the same as the old one', function() {
+      doPasswordChange('bar', 'bar');
+
+      shouldDisplayDefaultPasswordWarningDeferred.resolve(true);
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
+
+      dialogScope.save();
+      $httpBackend.flush();
+      dialogScope.$digest();
+
+      expect(telemetryService.submitData).not.toHaveBeenCalled();
+    });
   });
 });

@@ -4,7 +4,6 @@ describe('gettingStarted component', function() {
       $q,
       $scope,
       CLMLocations,
-      currentUserDeferred,
       $httpBackend,
       $rootScope,
       permissionServiceMock,
@@ -25,11 +24,9 @@ describe('gettingStarted component', function() {
     CLMLocations = _CLMLocations_;
     $rootScope = _$rootScope_;
     $scope = _$rootScope_.$new();
-    currentUserDeferred = $q.defer();
     permissionServiceMock = jasmine.createSpyObj('permissionServiceMock', ['getValidPermissions']);
 
     vm = $componentController('gettingStarted', {
-      'CurrentUser': currentUserDeferred.promise,
       $rootScope: $rootScope,
       PermissionService: permissionServiceMock
     });
@@ -50,8 +47,6 @@ describe('gettingStarted component', function() {
 
       expect(vm.error).toBeUndefined();
       expect(vm.validPermissions).toBeUndefined();
-      expect(vm.shouldDisplayChangePassword).toBeUndefined();
-      expect(vm.isDefaultUser).toBeUndefined();
       expect(vm.license).toBeUndefined();
     });
 
@@ -62,9 +57,8 @@ describe('gettingStarted component', function() {
       permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
 
       $httpBackend.whenGET(CLMLocations.getLicenseSummaryUrl()).respond('license value');
-      $httpBackend.whenGET(CLMLocations.getIsAdminDefaultPasswordChanged()).respond('true');
+      $httpBackend.whenGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('false');
       $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('true');
-      currentUserDeferred.resolve({username: 'admin'});
 
       vm.$onInit();
 
@@ -74,9 +68,7 @@ describe('gettingStarted component', function() {
 
       expect(vm.error).toBeUndefined();
       expect(vm.validPermissions).toEqual(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']);
-      expect(vm.shouldDisplayChangePassword).toBe(false);
       expect(vm.shouldDisplayHdsUnreachable).toBe(false);
-      expect(vm.isDefaultUser).toBe(true);
       expect(vm.license).toBe('license value');
     });
 
@@ -96,8 +88,6 @@ describe('gettingStarted component', function() {
 
           expect(vm.validPermissions).toEqual(['ADD_APPLICATION']);
           expect(vm.shouldDisplayHdsUnreachable).toBe(true);
-          expect(vm.shouldDisplayChangePassword).toBeUndefined();
-          expect(vm.isDefaultUser).toBeUndefined();
           expect(vm.license).toBeUndefined();
         });
 
@@ -129,26 +119,6 @@ describe('gettingStarted component', function() {
       $scope.$digest();
 
       expect(vm.error).toBe('get Permissions Error');
-    });
-
-    it('sets error if isAdminDefaultPasswordChanged request fails', function() {
-      $rootScope.licensed = true;
-
-      var permissionsDeferred = $q.defer();
-      permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
-
-      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('true');
-      $httpBackend.whenGET(CLMLocations.getLicenseSummaryUrl()).respond({});
-      $httpBackend.whenGET(CLMLocations.getIsAdminDefaultPasswordChanged()).respond(500);
-
-      vm.$onInit();
-
-      permissionsDeferred.resolve(['CONFIGURE_SYSTEM']);
-      $scope.$digest();
-      $httpBackend.flush();
-
-      expect(vm.error).not.toBeNull();
-      expect(vm.error.status).toBe(500);
     });
 
     describe('"VISITED" telemetry event', function() {

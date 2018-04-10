@@ -40,6 +40,7 @@ import Plottable from 'plottable';
 import './utility/Polyfills';
 import './components/module';
 import './directives/module';
+import './changeDefaultAdminPasswordNotice/module';
 import './components/iqRenderPlottable/iqRenderPlottable';
 import './components/iqBackButton/iqBackButton';
 import './labs/module';

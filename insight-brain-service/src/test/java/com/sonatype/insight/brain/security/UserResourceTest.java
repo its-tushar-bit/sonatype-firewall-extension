@@ -323,11 +323,11 @@ public class UserResourceTest
   }
 
   @Test
-  public void testIsAdminDefaultPasswordChanged() throws Exception {
+  public void testShouldDisplayDefaultPasswordWarning() throws Exception {
     HttpRequest request = restRequest();
-    HttpResponse response = request.path(UserResource.DEFAULT_PASSWORD_CHANGED_PATH).get();
+    HttpResponse response = request.path(UserResource.SHOULD_DISPLAY_DEFAULT_PASSWORD_WARNING).get();
     assertResponseStatus(HttpStatus.SC_OK, response);
-    assertThat(response.getBodyText(), is("false"));
+    assertThat(response.getBodyText(), is("true"));
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

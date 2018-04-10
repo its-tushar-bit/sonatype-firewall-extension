@@ -9,11 +9,13 @@ import legacyConfigurationModule from './LegacyConfigurationModule';
 import directivesModule from './directives/module';
 import dashboardModule from './dashboard/dashboard.module';
 import reduxConfigModule from './reduxConfig/module';
+import changeDefaultAdminPasswordModule from './changeDefaultAdminPasswordNotice/module';
 
 export default angular.module('managementApp',
     [
       'MainModule', 'UserModule', 'RoleModule', 'ldap.module', 'owner.manager.module',
       'root.organization.migrate', 'ProductLicense', 'webhook.module', 'systemNoticeConfigurationModule',
       'systemNoticeModule', 'components', directivesModule.name, 'labsModule', configurationModule.name,
-      legacyConfigurationModule.name, dashboardModule.name, reduxConfigModule.name
+      legacyConfigurationModule.name, dashboardModule.name, reduxConfigModule.name,
+      changeDefaultAdminPasswordModule.name
     ]);

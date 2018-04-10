@@ -225,6 +225,12 @@ public class InsightConfig
   @JsonProperty
   private boolean consentToUpgradeToVersion_1_45;
 
+  /**
+   * @since 1.47
+   */
+  @JsonProperty
+  private boolean enableDefaultPasswordWarning = true;
+
   @NotNull
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -600,5 +606,13 @@ public class InsightConfig
 
   public void setConsentToUpgradeToVersion_1_45(boolean consentToUpgradeToVersion_1_45) {
     this.consentToUpgradeToVersion_1_45 = consentToUpgradeToVersion_1_45;
+  }
+
+  public boolean isEnableDefaultPasswordWarning() {
+    return enableDefaultPasswordWarning;
+  }
+
+  public void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
+    this.enableDefaultPasswordWarning = enableDefaultPasswordWarning;
   }
 }

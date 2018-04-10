@@ -22,10 +22,6 @@ public class GettingStartedPage
     super(ROOT);
   }
 
-  public SelenideElement changeDefaultPasswordWarning() {
-    return child("#change-password-warning");
-  }
-
   public SelenideElement hdsConnectivityWarning() {
     return child("#hds-unreachable-warning");
   }

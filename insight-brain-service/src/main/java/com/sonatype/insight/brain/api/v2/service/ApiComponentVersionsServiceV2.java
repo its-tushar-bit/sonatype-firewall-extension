@@ -14,9 +14,11 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +46,14 @@ public class ApiComponentVersionsServiceV2
   {
     long start = System.currentTimeMillis();
 
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentIdentifierDTO.getFormat(),
-        componentIdentifierDTO.getCoordinates());
+    ComponentIdentifier componentIdentifier;
+    try {
+      componentIdentifier = new ComponentIdentifier(componentIdentifierDTO.getFormat(),
+          componentIdentifierDTO.getCoordinates());
+    }
+    catch (InvalidComponentIdentifierException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
 
     List<String> versions = hdsClient.get(List.class, HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier)));

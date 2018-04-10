@@ -16,13 +16,16 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 public class ApiComponentVersionsServiceV2Test
@@ -80,5 +83,21 @@ public class ApiComponentVersionsServiceV2Test
         .getComponentVersions(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
 
     assertThat(versions, contains("v1", "v2", "v3", "v4"));
+  }
+
+  @Test
+  public void testGetComponentVersions_InvalidComponentIdentifier() throws Exception {
+    ApiComponentIdentifierDTOV2 apiComponentIdentifierDTOV2 = new ApiComponentIdentifierDTOV2();
+    apiComponentIdentifierDTOV2.setFormat(ComponentIdentifier.FORMAT_MAVEN);
+    apiComponentIdentifierDTOV2.setCoordinates(Collections.singletonMap("no-such-coordinate", "x"));
+
+    try {
+      apiComponentVersionsServiceV2.getComponentVersions(apiComponentIdentifierDTOV2);
+      fail("Expected exception");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(),
+          is("Coordinates contain the following incorrect entries for the given format: [no-such-coordinate]"));
+    }
   }
 }

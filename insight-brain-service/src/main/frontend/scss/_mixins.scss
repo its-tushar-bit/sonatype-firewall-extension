@@ -1,15 +1,4 @@
 // NOTE: Typography mixins are located in _typography.scss
-@mixin main-content($top: '') {
-  margin: 0 auto;
-  width: 100%;
-  max-width: $iq-content-width-maximum;
-  min-width: $iq-content-width-minimum;
-
-  @if $top != '' {
-    height: calc(100vh - #{$top});
-  }
-}
-
 @mixin iq-arrow-up() {
   border-color: transparent transparent #fff transparent;
   border-style: solid;

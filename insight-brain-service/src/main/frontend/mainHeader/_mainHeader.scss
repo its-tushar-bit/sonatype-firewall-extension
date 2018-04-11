@@ -13,7 +13,7 @@ $notification-item-border: 1px solid $iq-grey-1;
 */
 .iq-header {
   background-color: $iq-off-black;
-  min-height: 40px;
+  height: $iq-main-header-height;
   margin: 0;
   overflow: visible;
   width: 100%;
@@ -24,8 +24,8 @@ $notification-item-border: 1px solid $iq-grey-1;
   min-height: inherit;
   margin: 0 auto;
   width: 100%;
-  max-width: $iq-content-width-maximum;
-  min-width: $iq-content-width-minimum;
+  max-width: $iq-page-width-max;
+  min-width: $iq-page-width-min;
 
   &::before {
     display: table;

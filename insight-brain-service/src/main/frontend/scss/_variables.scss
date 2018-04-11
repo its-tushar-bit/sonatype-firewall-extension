@@ -127,22 +127,13 @@ $iq-dashboard-headers-zindex: 2;
 $iq-dashboard-mask-zindex: 1;
 
 /*
-  #OLD Responsive
-*/
-$iq-content-width-minimum: 1024px;
-$iq-content-width-maximum: 1366px;
-$iq-sidebar-max-width: 300px;
-$iq-sidebar-min-width: 215px;
-$iq-sidebar-width-old: 22%;
-
-/*
   #Page elements
 */
 $iq-main-header-height: 40px;
 
-$iq-page-width-max: 1366px; 
-$iq-page-width-min: 1024px; 
+$iq-page-width-max: 1366px;
+$iq-page-width-min: 1024px;
 $iq-content-width: 75.9%;
-$iq-sidebar-width: 24.1%;
+$iq-sidebar-width: 100% - $iq-content-width;
 
-$iq-paragraph-width-maximum: 562px; 
+$iq-paragraph-width-maximum: 562px;

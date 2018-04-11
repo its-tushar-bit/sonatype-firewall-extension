@@ -23,4 +23,11 @@ public class ParametersTest
 
     assertThat(new Parameters("--expanded-coverage").isExpandedCoverageMode(), is(true));
   }
+
+  @Test
+  public void testInvalidStage() throws Exception {
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar",
+        "-t", "invalid-stage-id");
+    assertThat(params.getError().getMessage(), is("An invalid stage was specified: -t invalid-stage-id"));
+  }
 }

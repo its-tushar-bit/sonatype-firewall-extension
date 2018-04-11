@@ -35,11 +35,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -445,13 +443,6 @@ public class DefaultPolicyEvaluatorTest
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
     verify(restClient).evaluatePolicy("the-app-id", "the-scan-id", Stage.ID_BUILD);
-  }
-
-  @Test
-  public void testInvalidStage() throws Exception {
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
-        "src/test/data/artifact.jar", "-t", "invalid-stage-id");
-    assertThat(params.getError().getMessage(), is("An invalid stage was specified: -t invalid-stage-id"));
   }
 
   @Test

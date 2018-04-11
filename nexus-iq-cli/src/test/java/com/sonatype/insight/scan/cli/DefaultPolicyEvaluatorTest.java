@@ -68,7 +68,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testServerDown() throws Exception {
+  public void testRun_ServerDown() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(503, "Maintenance"));
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-p", "localhost:8888", "-U",
         "proxyuser:proxypass", "-i", "the-app-id", "-a", "user:pass", "src/test/data/artifact.jar");
@@ -89,7 +89,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testInvalidAppId() throws Exception {
+  public void testRun_InvalidAppId() throws Exception {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
@@ -101,7 +101,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testInvalidAuthc() throws Exception {
+  public void testRun_InvalidAuthc() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(401, "Bad Authc"));
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
         "src/test/data/artifact.jar");
@@ -115,7 +115,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testInvalidAuthz() throws Exception {
+  public void testRun_InvalidAuthz() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(403, "Bad Authz"));
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
         "src/test/data/artifact.jar");
@@ -129,7 +129,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testMultiAuthenticationModesEnabled() throws Exception {
+  public void testRun_MultiAuthenticationModesEnabled() throws Exception {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "--pki-authentication", "-a", "user:pass",
         "src/test/data/artifact.jar");
     try {
@@ -143,7 +143,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testPkiAuthenticationMode() throws Exception {
+  public void testRun_PkiAuthenticationMode() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(401, "Bad Authc"));
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "--pki-authentication",
         "src/test/data/artifact.jar");
@@ -159,7 +159,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testNoViolations() throws Exception {
+  public void testRun_NoViolations() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(newReceipt());
@@ -171,7 +171,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testSomeViolations() throws Exception {
+  public void testRun_SomeViolations() throws Exception {
     PolicyAlert alert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), Arrays.asList(new Action(
         Action.ID_WARN)));
     PolicyEvaluationResult eval = new PolicyEvaluationResult();
@@ -192,7 +192,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testEffectiveActionIsMostSevere() throws Exception {
+  public void testRun_EffectiveActionIsMostSevere() throws Exception {
     PolicyAlert alert1 = new PolicyAlert(new PolicyFact("policy1", "Policy 1", 10), Arrays.asList(new Action(
         Action.ID_WARN)));
     PolicyAlert alert2 = new PolicyAlert(new PolicyFact("policy2", "Policy 2", 10), Arrays.asList(new Action(
@@ -226,7 +226,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testFailOnWarn() throws Exception {
+  public void testRun_FailOnWarn() throws Exception {
     PolicyAlert alert = new PolicyAlert(new PolicyFact("policy1", "Policy 1", 10), Arrays.asList(new Action(
         Action.ID_WARN)));
 
@@ -261,7 +261,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testPassWhenIgnoreSystemExceptions() throws Exception {
+  public void testRun_PassWhenIgnoreSystemExceptions() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(503, ""));
 
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
@@ -293,7 +293,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testReportUrl() throws Exception {
+  public void testRun_ReportUrl() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(newReceipt());
@@ -305,7 +305,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testScan() throws Exception {
+  public void testRun_Scan() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setPackages(Arrays.asList("com.sonatype"));
     ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
@@ -343,7 +343,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testGlobalProprietaryConfigOverriddenByClient() throws Exception {
+  public void testRun_GlobalProprietaryConfigOverriddenByClient() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setPackages(Arrays.asList("com.overridden"));
     ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
@@ -375,7 +375,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testGlobalProprietaryConfigRegexOverriddenByClient() throws Exception {
+  public void testRun_GlobalProprietaryConfigRegexOverriddenByClient() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setRegexes(Arrays.asList("com.overridden.*"));
     ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
@@ -407,7 +407,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testGlobalProprietaryConfigFailure() throws Exception {
+  public void testRun_GlobalProprietaryConfigFailure() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     HttpResponseException expectedException = new HttpResponseException(500, "error");
     when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenThrow(expectedException);
@@ -423,7 +423,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testSetScanStage() throws Exception {
+  public void testRun_SetScanStage() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(newReceipt());
@@ -436,7 +436,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testDefaultScanStage() throws Exception {
+  public void testRun_DefaultScanStage() throws Exception {
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
         .thenReturn(newReceipt());
@@ -455,7 +455,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testJsonExport() throws Exception {
+  public void testRun_JsonExport() throws Exception {
     ScanReceipt receipt = newReceipt();
     when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
     when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE))).thenReturn(receipt);
@@ -469,7 +469,7 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testParametersFromFile() throws Exception {
+  public void testRun_ParametersFromFile() throws Exception {
     // Verifies that (from the CLM-7494 user story):
     // - The argument file must use the JVM's default character encoding.
     // - The argument file can be mixed with explicit input file specifications on the CLI.

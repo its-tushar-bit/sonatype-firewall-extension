@@ -1,6 +1,8 @@
 <item-description>
   <marked>
     `.iq-sidebar--theme-dark` is a purely stylistic modification to the color scheme of the default sidebar.
+
+    **Note:** The examples on this page are shown for styling purposes only. For information about any of the widgets used here you should check their respective pages in the gallery. This is especially true for `iq-tree-view-multi-select` and `iq-tree-view-radio-select` which pull in controllers from their gallery pages.
   </marked>
 </item-description>
 
@@ -9,8 +11,8 @@
 <!-- force sidebar height/width for the sake of this example -->
 <style>
   .iq-sidebar--theme-dark {
-    height: 600px;
-    width: 300px;
+    height: 1200px;
+    width: 320px;
   }
 </style>
 
@@ -36,6 +38,27 @@
       <legend class="iq-label">Radio buttons</legend>
       <iq-radio model="color.name" value="'red'">Red</iq-radio>
       <iq-radio model="color.name" value="'blue'" is-disabled="true">Blue</iq-radio>
+    </fieldset>
+    <fieldset class="iq-checkbox-group iq-form-group" ng-controller="iqTreeViewMultiSelectExampleController as vm">
+      <legend class="iq-label">IQ Tree View Multi-select</legend>
+      <iq-tree-view-multi-select available="vm.available"
+                                 selected="vm.selected"
+                                 on-change="vm.onChange(selected, toggledId)"
+                                 tooltip-generator="'in ' + entity.organizationName"
+                                 filter-placeholder="Application Name"
+                                 filter-threshold="5"
+                                 name="applications"
+                                 sort-entities="vm.sort">
+        Test Applications
+      </iq-tree-view-multi-select>
+    </fieldset>
+    <fieldset class="iq-radio-group iq-form-group" ng-controller="iqTreeViewRadioSelectExampleController as vm">
+      <legend class="iq-label">IQ Tree View Radio-select</legend>
+      <iq-tree-view-radio-select available="vm.ages"
+                                 selected-id="vm.selectedId"
+                                 on-change="vm.selectAge(selected)">
+        Age
+      </iq-tree-view-radio-select>
     </fieldset>
   </form>
   <h3>Primary and default buttons are used unmodified</h3>

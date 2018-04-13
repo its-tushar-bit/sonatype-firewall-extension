@@ -135,4 +135,26 @@ $iq-theme-dark-box-shadow: $iq-off-black;
       color: $iq-grey-4;
     }
   }
+  
+  .iq-tree-view, .iq-tree-view__text {
+    color: $iq-off-white;
+  }
+  
+  .iq-tree-view__twisty-icon {
+    border-left: 5px solid $iq-off-white;
+    
+    &.expand {
+      border-left-color: $iq-off-white;
+    }
+
+    &.collapse {
+      border-left-color: $iq-off-white;
+    }
+  }
+  
+  .iq-tree-view__filter {
+    .fa-filter {
+      color: $iq-slate;
+    }
+  }
 }

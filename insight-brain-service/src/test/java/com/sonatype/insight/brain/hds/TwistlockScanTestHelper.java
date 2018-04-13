@@ -28,7 +28,9 @@ class TwistlockScanTestHelper
     try (TarArchiveOutputStream twistlockScanFileStream = new TarArchiveOutputStream(
         new FileOutputStream(twistlockScanFile));) {
       File twistlockFilesJsonFile = new File(sourceFilesDir, "files.json");
-      TarArchiveEntry tarEntry = new TarArchiveEntry(twistlockFilesJsonFile, "/files.json");
+      TarArchiveEntry tarEntry = new TarArchiveEntry("/files.json", true);
+      tarEntry.setModTime(twistlockFilesJsonFile.lastModified());
+      tarEntry.setSize(twistlockFilesJsonFile.length());
       twistlockScanFileStream.putArchiveEntry(tarEntry);
       twistlockScanFileStream.write(FileUtils.readFileToByteArray(twistlockFilesJsonFile));
       twistlockScanFileStream.closeArchiveEntry();

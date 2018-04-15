@@ -192,8 +192,12 @@ public abstract class AbstractFunctionalTest
       productLicenseManager.reset();
       clmLicenseManager.installLicense(null);
     }
-    refreshOrOpen("about"); // so we aren't on app between page loads
-    clearAlerts();
+    // so we aren't on app between page loads
+    navigate(() -> {
+      Selenide.open("about");
+      clearAlerts();
+      return true;
+    });
   }
 
   protected void setLicensedProducts(String... products) {

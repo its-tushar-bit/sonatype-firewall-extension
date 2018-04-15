@@ -228,7 +228,7 @@ public class LdapConfigurationTest
       field.shouldNotHave(cssClass("ng-invalid-required"));
     }
 
-    ldapForm.saveButton().shouldBe(visible, enabled);
+    ldapForm.saveButton().scrollIntoView(false).shouldBe(visible, enabled);
 
     resetForm(ldapForm);
 
@@ -237,7 +237,7 @@ public class LdapConfigurationTest
   }
 
   private void resetForm(ILdapForm ldapForm) {
-    ldapForm.cancelButton().shouldBe(visible, enabled).click();
+    ldapForm.cancelButton().scrollIntoView(false).shouldBe(visible, enabled).click();
 
     // Continue and discard changes (reset)
     LdapConfigurationPage.discardChangesModalButton().shouldBe(visible, enabled).click();
@@ -270,10 +270,11 @@ public class LdapConfigurationTest
     connectionForm.saslRealm().shouldBe(visible, empty).setValue("just checking if persisted");
     connectionForm.systemUsername().shouldBe(visible, empty).setValue("just checking if persisted");
     connectionForm.systemPassword().shouldBe(visible, empty).setValue("just checking if persisted");
+    connectionForm.saveButton().scrollIntoView(false);
     connectionForm.connectionTimeout().shouldBe(value("30")).setValue("31");
     connectionForm.retryDelay().shouldBe(value("30")).setValue("31");
 
-    connectionForm.saveButton().shouldBe(enabled).scrollIntoView(false).click();
+    connectionForm.saveButton().shouldBe(enabled).click();
 
     // Connection saved
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
@@ -309,7 +310,7 @@ public class LdapConfigurationTest
     LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
     userAndGroupSettingsForm.shouldBe(visible);
 
-    userAndGroupSettingsForm.checkUserLoginButton().shouldBe(visible, disabled);
+    userAndGroupSettingsForm.checkUserLoginButton().scrollIntoView(false).shouldBe(visible, disabled);
     userAndGroupSettingsForm.checkUserMappingButton().shouldBe(visible, disabled);
     userAndGroupSettingsForm.saveButton().shouldBe(visible, disabled);
     userAndGroupSettingsForm.cancelButton().shouldBe(visible, disabled);

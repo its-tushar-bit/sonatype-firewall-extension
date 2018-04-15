@@ -408,7 +408,7 @@ public abstract class AbstractFunctionalTest
     WebDriver driver = WebDriverRunner.getWebDriver();
     try {
       Alert alert = driver.switchTo().alert();
-      log.debug("Clearing alert: " + alert.getText());
+      log.debug("Clearing alert: {}", alert.getText());
       alert.accept();
     }
     catch (NoAlertPresentException e) {

@@ -16,7 +16,7 @@ public class MatchFact
 
   private final String constraintId;
 
-  private final int conditionNumber;
+  private final int conditionIndex;
 
   /**
    * The policy waiver that waives this fact.
@@ -32,12 +32,12 @@ public class MatchFact
   public MatchFact(final Component component,
                    final String policyId,
                    final String constraintId,
-                   final int conditionNumber)
+                   final int conditionIndex)
   {
     this.component = component;
     this.policyId = policyId;
     this.constraintId = constraintId;
-    this.conditionNumber = conditionNumber;
+    this.conditionIndex = conditionIndex;
   }
 
   public Component getComponent() {
@@ -52,13 +52,13 @@ public class MatchFact
     return constraintId;
   }
 
-  public int getConditionNumber() {
-    return conditionNumber;
+  public int getConditionIndex() {
+    return conditionIndex;
   }
 
   @Override
   public String toString() {
-    return "(Policy id:" + policyId + ", Constraint id:" + constraintId + ", Condition number:" + conditionNumber
+    return "(Policy id:" + policyId + ", Constraint id:" + constraintId + ", Condition index:" + conditionIndex
         + ") @ " + component;
   }
 

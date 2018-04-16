@@ -67,7 +67,7 @@ public class ComponentPolicyEvaluator
     private String index(final MatchFact fact) {
       // doesn't have to be lexically correct, just need to impose consistent ordering
       return fact != null ? fact.getPolicyId() + '|' + fact.getComponent().getDisplayName() + '|'
-          + fact.getComponent().getHash() + '|' + fact.getConstraintId() + '|' + fact.getConditionNumber() : "";
+          + fact.getComponent().getHash() + '|' + fact.getConstraintId() + '|' + fact.getConditionIndex() : "";
     }
   };
 
@@ -142,9 +142,9 @@ public class ComponentPolicyEvaluator
               .getOperator().name());
           for (final MatchFact fact : byConstraints.getValue()) {
             final List<Condition> conditions = constraint.getConditions();
-            final int num = fact.getConditionNumber();
-            if (num >= 0) {
-              constraintFact.addConditionFact(createConditionFact(conditions.get(num), component));
+            final int conditionIndex = fact.getConditionIndex();
+            if (conditionIndex >= 0) {
+              constraintFact.addConditionFact(createConditionFact(conditions.get(conditionIndex), component));
             }
             else {
               for (final Condition condition : conditions) {

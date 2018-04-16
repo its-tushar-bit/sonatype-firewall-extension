@@ -326,7 +326,7 @@ public class DashboardFilterTest
     violation.policy().shouldHave(text("DashboardTestPolicy"));
     violation.application().shouldHave(text("DashboardTestAppOne"));
 
-    // enable app 2, but don't enable apps with "No Categories".  Results should not change
+    // enable app 2, but don't enable apps with no categories.  Results should not change
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.applicationFilter().twisty().click();
@@ -339,7 +339,7 @@ public class DashboardFilterTest
     violation.policy().shouldHave(text("DashboardTestPolicy"));
     violation.application().shouldHave(text("DashboardTestAppOne"));
 
-    // enable "No Categories" so that secondApp results show
+    // enable "uncategorized applications" so that secondApp results show
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().noCategory().click();
     DashboardFilters.applicationCategoryFilter().twisty().click();
@@ -441,8 +441,8 @@ public class DashboardFilterTest
     categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("3"));
     categoryFilter.twisty().shouldBe(visible).click();
     categoryFilter.multiSelectList().shouldHave(size(4));
-    categoryFilter.checkboxItem(2).shouldNotBe(selected).click();
     categoryFilter.checkboxItem(3).shouldNotBe(selected).click();
+    categoryFilter.checkboxItem(4).shouldNotBe(selected).click();
     categoryFilter.counter().shouldBe(ACTIVE).shouldHave(text("2 of 3"));
 
     DashboardFilters.apply();
@@ -907,7 +907,7 @@ public class DashboardFilterTest
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().twisty().click();
-    DashboardFilters.applicationCategoryFilter().checkboxItem(2).click();
+    DashboardFilters.applicationCategoryFilter().checkboxItem(3).click();
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().waived().click();
@@ -939,9 +939,9 @@ public class DashboardFilterTest
     categoryFilter.twisty().shouldBe(visible).click();
     categoryFilter.multiSelectList().shouldHave(size(4));
     categoryFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
-    categoryFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstAppCategory1.getName()));
-    categoryFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text(firstAppCategory2.getName()));
-    categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("No Category"));
+    categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("uncategorized applications"));
+    categoryFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text(firstAppCategory1.getName()));
+    categoryFilter.checkboxItem(4).shouldNotBe(selected).label().shouldHave(text(firstAppCategory2.getName()));
     categoryFilter.twisty().click();
 
     if (savedFilterName.isEmpty()) {
@@ -1003,7 +1003,7 @@ public class DashboardFilterTest
     categoryFilter.twisty().shouldBe(visible).click();
     categoryFilter.multiSelectList().shouldHave(size(2));
     categoryFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
-    categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("No Category"));
+    categoryFilter.noCategory().shouldNotBe(selected).label().shouldHave(text("uncategorized applications"));
     categoryFilter.twisty().click();
   }
 

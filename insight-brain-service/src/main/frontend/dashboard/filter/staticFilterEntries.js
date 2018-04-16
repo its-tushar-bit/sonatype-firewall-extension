@@ -50,8 +50,7 @@ export const policySliderRangeHighlights = [
 ];
 
 export const uncategorizedCategory = {
-  description: 'uncategorized applications',
   id: null, // NOTE that in this case null specifically means include uncategorized apps
-  name: 'No Category',
-  nameLowercaseNoWhitespace: 'nocategory'
+  name: 'uncategorized applications',
+  nameLowercaseNoWhitespace: 'uncategorizedapplications'
 };

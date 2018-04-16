@@ -76,7 +76,7 @@ extends BaseSpec {
     filters.applicationFilter.tooltip.getTooltipContent() == "There are no applications to filter."
   }
 
-  def 'Should have only the "No Categories" application category to choose from'() {
+  def 'Should have only the "uncategorized applications" application category to choose from'() {
     setup: 'Logging in as a user without permission to any applications'
     loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
 
@@ -84,10 +84,10 @@ extends BaseSpec {
     waitFor { filters.applicationCategoryFilter.displayed }
     filters.applicationCategoryFilter.twisty.click()
 
-    then: '"No Category" option and the "All" option should be the only options'
+    then: '"uncategorized applications" option and the "All" option should be the only options'
     filters.applicationCategoryFilter.multiSelectList.size() == 2
     filters.applicationCategoryFilter.counter.text() == '1'
     filters.applicationCategoryFilter.multiSelectList.get(0).text() == 'all/none'
-    filters.applicationCategoryFilter.multiSelectList.get(1).text() == 'No Category'
+    filters.applicationCategoryFilter.multiSelectList.get(1).text() == 'uncategorized applications'
   }
 }

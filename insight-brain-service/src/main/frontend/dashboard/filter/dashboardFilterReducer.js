@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {compose, curry, merge, pick, equals, find, propEq, prop, indexBy} from 'ramda';
+import {compose, curry, merge, pick, equals, find, propEq, prop, indexBy, sortBy} from 'ramda';
 import {propSet, pathSet, lookup} from '../../util/jsUtil';
 import {
   ages,
@@ -191,8 +191,11 @@ function setAvailable(state, payload) {
     return relatedOrg ? {...category, owner: relatedOrg.name} : category;
   });
 
-  // add "No Category" Category
-  const categories = [...categoriesWithOwner, uncategorizedCategory];
+  // the "uncategorized applications" category should always be first, so we need to sort the rest of them here
+  const sortedCategories = sortBy(prop('nameLowercaseNoWhitespace'), categoriesWithOwner);
+
+  // add "uncategorized applications" Category
+  const categories = [uncategorizedCategory, ...sortedCategories];
 
   // normalize stages
   const stages = payload.stages.map(({stageTypeId, stageName}) => ({id: stageTypeId, name: stageName}));

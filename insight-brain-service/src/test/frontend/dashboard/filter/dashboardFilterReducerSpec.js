@@ -165,13 +165,14 @@ describe('dashboardFilterReducer', function() {
       expect(newState.stages[1].id).toBe(MockData.getDashboardStageData()[1].stageTypeId);
       expect(newState.stages[1].name).toBe(MockData.getDashboardStageData()[1].stageName);
 
-      // one extra for No Category
+      // one extra for uncategorized applications
       expect(newState.categories.length).toBe(action.payload.categories.length + 1);
-      expect(newState.categories[0].id).toBe(action.payload.categories[0].id);
+      expect(newState.categories[0].id).toBe(null);
+      expect(newState.categories[0].name).toBe('uncategorized applications');
+
+      expect(newState.categories[1].id).toBe(action.payload.categories[0].id);
       // populates owner
-      expect(newState.categories[0].owner).toBe(action.payload.organizations[0].name);
-      expect(newState.categories[2].id).toBe(null);
-      expect(newState.categories[2].name).toBe('No Category');
+      expect(newState.categories[1].owner).toBe(action.payload.organizations[0].name);
     });
   });
 
@@ -225,8 +226,8 @@ describe('dashboardFilterReducer', function() {
           {name: 'all time', id: null}
         ],
         categories: [
-          {id: 'tagId1', name: 'TagOne'},
-          {id: null, name: 'No Category'}
+          {id: null, name: 'uncategorized applications'},
+          {id: 'tagId1', name: 'TagOne'}
         ],
         appliedFilter: initSelected,
         selected: initSelected,

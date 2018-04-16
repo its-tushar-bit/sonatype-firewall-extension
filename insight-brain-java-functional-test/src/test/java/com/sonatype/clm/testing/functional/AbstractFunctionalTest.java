@@ -52,6 +52,8 @@ import org.junit.rules.TestName;
 import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -89,6 +91,10 @@ public abstract class AbstractFunctionalTest
   protected static TestCLMServer testCLMServer;
 
   protected static ReverseProxyServer reverseProxyServer;
+  
+  private static final int VIEWPORT_WIDTH = 1366;
+  
+  private static final int VIEWPORT_HEIGHT = 1024;
 
   private static String getBaseUrl(String contextPath) {
     String url = reverseProxyServer.getUrl();
@@ -165,7 +171,10 @@ public abstract class AbstractFunctionalTest
   @BeforeClass
   public static void setup() {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
-    
+
+    // Enforcing specific view port size for stable applitools validations.
+    setViewPortSize(driver);
+
     if (!(driver instanceof PageTweakingWebDriver)) {
       WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));
     }
@@ -208,6 +217,17 @@ public abstract class AbstractFunctionalTest
     catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static void setViewPortSize(WebDriver driver) {
+    JavascriptExecutor executor = (JavascriptExecutor) WebDriverRunner.getWebDriver();
+    // get the windows size for the specified view port
+    List<Long> sizes = (List) executor.executeScript(
+        "return [window.outerWidth - window.innerWidth + arguments[0], " + 
+            "window.outerHeight - window.innerHeight + arguments[1]];",
+        VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+    driver.manage().window().setSize(new Dimension(sizes.get(0).intValue(), sizes.get(1).intValue()));
   }
 
   private static List<Module> getBrainModules() {

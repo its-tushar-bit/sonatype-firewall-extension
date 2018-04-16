@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional;
 import java.util.Date;
 
 import com.applitools.eyes.BatchInfo;
-import com.applitools.eyes.RectangleSize;
 import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
 import com.applitools.eyes.selenium.fluent.Target;
@@ -93,7 +92,7 @@ public class EyesWatcher
         remoteDriver = ((WrapsDriver) remoteDriver).getWrappedDriver();
       }
 
-      eyes.open(remoteDriver, "IQ Server", testName, new RectangleSize(1366, 1024));
+      eyes.open(remoteDriver, "IQ Server", testName);
     }
     By iqVersion = By.cssSelector(".iq-title__version");
     SeleniumCheckSettings settings = Target.window();

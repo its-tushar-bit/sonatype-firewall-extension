@@ -153,7 +153,11 @@ $iq-theme-dark-box-shadow: $iq-off-black;
   }
   
   .iq-tree-view__filter {
-    .fa-filter {
+    input[type="text"] {
+      color: $iq-off-white;
+    }
+    
+    .fa-filter, .fa-times {
       color: $iq-slate;
     }
   }

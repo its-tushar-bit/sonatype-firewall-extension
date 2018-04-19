@@ -61,7 +61,7 @@ public class ReverseProxyAuthcTest
     this.localUser = localUser;
   }
 
-  @Parameterized.Parameters
+  @Parameterized.Parameters(name="ldap={0}, local={1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
         // only authenticate local users

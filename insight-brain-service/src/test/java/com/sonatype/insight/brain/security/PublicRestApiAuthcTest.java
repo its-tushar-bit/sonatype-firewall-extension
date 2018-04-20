@@ -164,15 +164,6 @@ public class PublicRestApiAuthcTest
     assertResponses(request, 404);
   }
 
-  @Test
-  public void testReverseProxyFailureDoesNotTryBasicAuthentication() throws Exception {
-    initServer(REVERSE_PROXY_ENABLED);
-    HttpRequest request = restRequest().header("REMOTE_USER", "invalid");
-
-    request.path(PublicApiPaths.BASE_PATH, "any/thing");
-    assertResponses(request, 401);
-  }
-
   private void assertResponse401(HttpResponse response, String expectedMessage) {
     assertResponseStatus(401, response);
     assertThat(response.getBodyText(), is(expectedMessage));

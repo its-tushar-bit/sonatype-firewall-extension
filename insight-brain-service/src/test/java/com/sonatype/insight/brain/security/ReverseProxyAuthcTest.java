@@ -46,6 +46,8 @@ public class ReverseProxyAuthcTest
 
   private boolean setupLdap;
 
+  private boolean ldapUser;
+
   private boolean localUser;
 
   private final Configurator ENABLED = new Configurator()
@@ -56,20 +58,21 @@ public class ReverseProxyAuthcTest
     }
   };
 
-  public ReverseProxyAuthcTest(boolean setupLdap, boolean localUser) {
+  public ReverseProxyAuthcTest(boolean setupLdap, boolean ldapUser, boolean localUser) {
     this.setupLdap = setupLdap;
+    this.ldapUser = ldapUser;
     this.localUser = localUser;
   }
 
-  @Parameterized.Parameters(name="ldap={0}, local={1}")
+  @Parameterized.Parameters(name="ldapConfigured={0}, ldapUser={1}, localUser={2}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        // only authenticate local users
-        {false, true},
-        // only authenticate ldap users
-        {true, false},
-        // authenticated local users go before ldap users
-        {true, true}
+        {false, false, false}, // totally unknown username, no LDAP configured 
+        {true, false, false},  // totally unknown username, LDAP configured  
+        {false, false, true},  // username only present in local db, no LDAP configured
+        {true, false, true},   // username only present in local db, LDAP configured
+        {true, true, false},   // username only present in LDAP
+        {true, true, true}     // username present in local db and LDAP
     });
   }
 
@@ -77,7 +80,9 @@ public class ReverseProxyAuthcTest
   public void initTest() throws Exception {
     if (setupLdap) {
       ldapServer.start();
-      ldapServer.loadData("/ReverseProxyAuthcTest/ldap_users.ldif");
+      if (ldapUser) {
+        ldapServer.loadData("/ReverseProxyAuthcTest/ldap_users.ldif");
+      }
       LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
       tempEntity.newLdapConnection(ldapServer.getId(), this.ldapServer.getPort());
       tempEntity.newLdapUserMapping(ldapServer.getId());
@@ -88,6 +93,10 @@ public class ReverseProxyAuthcTest
     }
 
     // defer brain server initialization to actual test method
+  }
+
+  private String displayName() {
+    return localUser || ldapUser ? "John Doe" : "testuser";
   }
 
   @Test
@@ -113,7 +122,7 @@ public class ReverseProxyAuthcTest
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated(), is(true));
     assertThat(authStatus.isClmUser(), is(localUser));
-    assertThat(authStatus.getDisplayName(), is("John Doe"));
+    assertThat(authStatus.getDisplayName(), is(displayName()));
 
     response = request.subpath(PublicApiPaths.ORG_RESOURCE_PATH).get();
     assertResponseStatus(200, response);
@@ -140,7 +149,7 @@ public class ReverseProxyAuthcTest
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated(), is(true));
     assertThat(authStatus.isClmUser(), is(localUser));
-    assertThat(authStatus.getDisplayName(), is("John Doe"));
+    assertThat(authStatus.getDisplayName(), is(displayName()));
 
     response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
         .delete();
@@ -167,7 +176,7 @@ public class ReverseProxyAuthcTest
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated(), is(true));
     assertThat(authStatus.isClmUser(), is(localUser));
-    assertThat(authStatus.getDisplayName(), is("John Doe"));
+    assertThat(authStatus.getDisplayName(), is(displayName()));
 
     response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
         .delete();
@@ -193,7 +202,7 @@ public class ReverseProxyAuthcTest
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
     assertThat(authStatus.isAuthenticated(), is(true));
     assertThat(authStatus.isClmUser(), is(localUser));
-    assertThat(authStatus.getDisplayName(), is("John Doe"));
+    assertThat(authStatus.getDisplayName(), is(displayName()));
   }
 
   @Test
@@ -204,16 +213,6 @@ public class ReverseProxyAuthcTest
     HttpResponse response = request.subpath("rest/anything").get();
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie(), is(notNullValue()));
-  }
-
-  @Test
-  public void testEnabled_UserMustExist() throws Exception {
-    initServer(ENABLED);
-
-    HttpRequest request = restRequest().header("REMOTE_USER", "unknown-user").anon();
-    HttpResponse response = request.subpath("rest/anything").get();
-    assertResponseStatus(401, response);
-    assertThat(response.getBodyText(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
   }
 
   @Test

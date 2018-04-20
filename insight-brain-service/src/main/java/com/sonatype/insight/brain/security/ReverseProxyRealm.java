@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
@@ -22,17 +23,22 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.credential.AllowAllCredentialsMatcher;
 import org.apache.shiro.realm.AuthenticatingRealm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Degenerated realm that verifies a user exists locally or in LDAP but that doesn't verify credentials which supposedly
- * was already done by some 3rd-party SSO frontend. Supports {@link ReverseProxyAuthenticationFilter} and handles login
- * of remote users such that the calling subject becomes "authenticated".
+ * Degenerated realm that doesn't verify credentials which supposedly was already done by some 3rd-party SSO frontend.
+ * If found, additional information about the specified username (e.g. group memberships) is loaded from the internal
+ * user database or LDAP. Supports {@link ReverseProxyAuthenticationFilter} and handles login of remote users such that
+ * the calling subject becomes "authenticated".
  */
 @Named
 @Singleton
 public class ReverseProxyRealm
     extends AuthenticatingRealm
 {
+  private static final Logger log = LoggerFactory.getLogger(ReverseProxyRealm.class);
+
   private final LdapService ldapService;
 
   @Inject
@@ -48,6 +54,16 @@ public class ReverseProxyRealm
     AuthenticationInfo info = doGetInternalRealmAuthenticationInfo(username);
     if (info == null) {
       info = doGetLdapRealmAuthenticationInfo(username);
+      if (info == null) {
+        info = new SimpleAuthenticationInfo(new UserPrincipal(username, username, false), null, getName());
+        log.debug("Found no user information for '{}'", username);
+      }
+      else {
+        log.debug("Found user information for '{}' in LDAP", username);
+      }
+    }
+    else {
+      log.debug("Found user information for '{}' in local database", username);
     }
     return info;
   }
@@ -68,6 +84,10 @@ public class ReverseProxyRealm
         return new SimpleAuthenticationInfo(new UserPrincipal(username, ldapUser.getRealName(), false,
             ldapUser.getMembership()), null, getName());
       }
+      return null;
+    }
+    catch (NameNotFoundException e) {
+      // LDAP servers could be successfully queried for user but none have a matching record
       return null;
     }
     catch (NamingException e) {

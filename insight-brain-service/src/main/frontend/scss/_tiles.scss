@@ -74,6 +74,13 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
   }
 }
 
+// used when a <form> is the first element in an iq-tile
+.iq-tile--form-tile {
+  .iq-tile-header {
+    margin-bottom: 6px;
+  }
+}
+
 // Tile headers
 
 .iq-tile-header {
@@ -127,6 +134,10 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
     font-size: 22px;
     margin-top: 4px;
     margin-top: 4px;
+  }
+  
+  &.hexagon {
+    margin-top: 2px;
   }
 }
 

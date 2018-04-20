@@ -100,7 +100,10 @@ class LdapServerExceptionWrapper
   {
     for (final LdapServerExceptionWrapper exception : ldapServerExceptionWrappers) {
       exceptionToThrow.addSuppressed(exception.namingException);
-      log.info(exception.createServerWrappedExplanationMessage(), exception.namingException);
+      // especially when using RUT auth, unknown usernames are to be expected, so let's keep the noise from
+      // NameNotFoundException down to a minimum and omit its stack trace
+      log.info(exception.createServerWrappedExplanationMessage(),
+          exception.namingException instanceof NameNotFoundException ? null : exception.namingException);
     }
     return exceptionToThrow;
   }

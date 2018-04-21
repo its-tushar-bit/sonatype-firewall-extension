@@ -7,12 +7,12 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.Toggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exactValue;
 import static com.codeborne.selenide.Condition.exist;
@@ -24,8 +24,6 @@ public class SystemNoticeConfigurationPage
   public static final String URL = BaseUrl.resolvePageUrl("/systemNotice");
 
   private static final String ROOT_SELECTOR = "#system-notice-configuration";
-
-  private static final Condition OFF = cssClass("off");
 
   public SystemNoticeConfigurationPage() {
     super(ROOT_SELECTOR);
@@ -43,12 +41,8 @@ public class SystemNoticeConfigurationPage
     return child("#system-notice-text");
   }
 
-  public SelenideElement display() {
-    return child("#system-notice-display");
-  }
-
-  public SelenideElement displayToggle() {
-    return display().parent();
+  public Toggle displayToggle() {
+    return new Toggle(childSelector("#system-notice-display-toggle-checkbox"));
   }
 
   public SelenideElement update() {
@@ -86,7 +80,7 @@ public class SystemNoticeConfigurationPage
   }
 
   public boolean isDisplayed() {
-    return !displayToggle().getAttribute("class").contains("off");
+    return displayToggle().isChecked();
   }
 
   public void setDisplay(final boolean display) {
@@ -102,10 +96,10 @@ public class SystemNoticeConfigurationPage
 
   public void displayMatches(final boolean display) {
     if (display) {
-      displayToggle().shouldNotHave(OFF);
+      displayToggle().shouldBe(checked);
     }
     else {
-      displayToggle().shouldHave(OFF);
+      displayToggle().shouldNotBe(checked);
     }
   }
 

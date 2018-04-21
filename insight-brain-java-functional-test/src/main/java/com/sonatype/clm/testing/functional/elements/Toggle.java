@@ -25,15 +25,14 @@ public class Toggle
     return child(".toggle");
   }
 
+  private SelenideElement conditionTarget(Condition condition) {
+    return Condition.checked.equals(condition) ? input() : toggleButton();
+  }
+
   @Override
   public Toggle shouldBe(Condition... conditions) {
     for (Condition condition : conditions) {
-      if (Condition.checked.equals(condition)) {
-        input().shouldBe(condition);
-      }
-      else {
-        toggleButton().shouldBe(condition);
-      }
+      conditionTarget(condition).shouldBe(condition);
     }
     return this;
   }
@@ -41,14 +40,13 @@ public class Toggle
   @Override
   public Toggle shouldNotBe(Condition... conditions) {
     for (Condition condition : conditions) {
-      if (Condition.checked.equals(condition)) {
-        input().shouldNotBe(condition);
-      }
-      else {
-        toggleButton().shouldNotBe(condition);
-      }
+      conditionTarget(condition).shouldNotBe(condition);
     }
     return this;
+  }
+
+  public boolean isChecked() {
+    return input().isSelected();
   }
 
   @Override

@@ -135,9 +135,18 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
     margin-top: 4px;
     margin-top: 4px;
   }
-  
+
+  &.fa.outline {
+    color: $iq-main-background-color;
+  }
+
   &.hexagon {
     margin-top: 2px;
+  }
+  
+  &.fa-tag {
+    margin-top: 3px;
+    padding-left: 2px;
   }
 }
 

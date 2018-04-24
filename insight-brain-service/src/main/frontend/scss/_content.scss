@@ -12,6 +12,10 @@ body {
   right: 0;
   bottom: 0;
   left: 0;
+
+  &.iq-body { // for styles that shouldn't leak out of IQ to e.g. audit reports
+    min-width: 1024px;
+  }
 }
 
 .iq-main-view {

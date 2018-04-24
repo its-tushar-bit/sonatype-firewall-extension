@@ -30,8 +30,8 @@ public class HdsPingResource
   }
 
   @GET
-  @Produces(MediaType.TEXT_PLAIN)
-  public boolean pingHds() {
+  @Produces(MediaType.APPLICATION_JSON)
+  public PingResponseDTO pingHds() {
     return hdsPingService.pingHds();
   }
 }

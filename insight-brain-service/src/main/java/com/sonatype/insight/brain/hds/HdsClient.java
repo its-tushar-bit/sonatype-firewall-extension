@@ -60,7 +60,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * HTTP client for accessing Sonatype hosted data services (HDS).
+ * HTTP client for accessing Sonatype Data Services.
  */
 @Named
 @Singleton
@@ -195,7 +195,7 @@ public class HdsClient
       return fromHttpResponse(response, clazz);
     }
     finally {
-      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -211,7 +211,7 @@ public class HdsClient
       return fromHttpResponse(response, clazz);
     }
     finally {
-      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -236,7 +236,8 @@ public class HdsClient
     }
     catch (IOException e) {
       log.error("Failed to read response entity: {}", e.getMessage(), e);
-      throw new BadGatewayException("Failed to read response entity received from Sonatype HDS, please retry in a bit.");
+      throw new BadGatewayException("Failed to read response entity received from Sonatype Data Services, please " + 
+          "retry in a bit.");
     }
     finally {
       if (!usingStream) {
@@ -266,8 +267,8 @@ public class HdsClient
         case 407:
           // The HDS don't require auth, so these errors indicate bad proxy or URL config
           throw new BadGatewayException(
-              "Could not contact Sonatype HDS, please verify the network configuration of your Nexus IQ Server. HDS error "
-                  + status + ": " + getErrorMessage(response));
+              "Could not contact Sonatype Data Services, please verify the network configuration of your Nexus IQ " +
+                  "Server. Sonatype Data Services error " + status + ": " + getErrorMessage(response));
         case 402:
           throw new PaymentRequiredException(getErrorMessage(response));
         case 404:
@@ -278,12 +279,14 @@ public class HdsClient
           // coming from Apache when webapp is down
         case 503:
           throw new BadGatewayException(
-              "The Sonatype HDS is currently out of service, please retry in a bit. If the outage persists, please contact Sonatype Support.");
+              "The Sonatype Data Services are currently out of service, please retry in a bit. If the outage" + 
+                  " persists, please contact Sonatype Support.");
         default:
           // Since this is for any other errors, the error message may contain anything, so log it, but don't send it
           // back to the client.
-          log.error("HDS error " + status + ": " + getErrorMessage(response));
-          throw new BadGatewayException("The Sonatype HDS returned error " + status + ", please retry in a bit.");
+          log.error("Sonatype Data Services error " + status + ": " + getErrorMessage(response));
+          throw new BadGatewayException("The Sonatype Data Services returned error " + status + 
+              ", please retry in a bit.");
       }
     }
     catch (RuntimeException e) {
@@ -347,7 +350,7 @@ public class HdsClient
       throwErrorIfNeeded(response);
     }
     finally {
-      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -384,7 +387,7 @@ public class HdsClient
       return fromHttpResponse(response, clazz);
     }
     finally {
-      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -407,7 +410,7 @@ public class HdsClient
       return fromHttpResponse(response, clazz);
     }
     finally {
-      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Completed Sonatype Data Services request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -419,16 +422,16 @@ public class HdsClient
       throw new GatewayTimeoutException(e.getMessage(), e);
     }
     catch (UnknownHostException e) {
-      throw new BadGatewayException("The hostname for the Sonatype HDS could not be resolved, "
+      throw new BadGatewayException("The hostname for the Sonatype Data Services could not be resolved, "
           + "please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated", e);
     }
     catch (SSLException e) {
-      throw new BadGatewayException("The SSL/TLS connection to Sonatype HDS could not be established, "
+      throw new BadGatewayException("The SSL/TLS connection to Sonatype Data Services could not be established, "
           + "contact your network or system administrator for help.", e);
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);
-      throw new BadGatewayException("The request to Sonatype HDS failed, please retry in a bit.");
+      throw new BadGatewayException("The request to Sonatype Data Services failed, please retry in a bit.");
     }
   }
 
@@ -513,7 +516,7 @@ public class HdsClient
     }
 
     String result = uriBuilder.build((Object[]) uriParams).toString();
-    log.debug("Constructed HDS URI: {}", result);
+    log.debug("Constructed Sonatype Data Services URI: {}", result);
     return result;
   }
 

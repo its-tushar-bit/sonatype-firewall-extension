@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -29,15 +31,21 @@ public class HdsPingService
   /**
    * Perform a GET request of the HDS ping endpoint.
    */
-  public boolean pingHds() {
+  public PingResponseDTO pingHds() {
+    boolean alive = false;
+    String errorMessage = null;
+
     try {
       pingHdsClient.get(String.class, "ping");
 
-      return true;
+      alive = true;
     }
     catch (Exception e) {
-      log.error("HDS ping failed", e);
-      return false;
+      String incidentId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+      errorMessage = (e.getMessage() + " (ID " + incidentId + ").");
+      log.error("{} (ID {})", e.getMessage(), incidentId, e);
     }
+
+    return new PingResponseDTO(errorMessage, alive);
   }
 }

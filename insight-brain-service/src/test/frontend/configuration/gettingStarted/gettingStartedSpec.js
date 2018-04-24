@@ -58,7 +58,7 @@ describe('gettingStarted component', function() {
 
       $httpBackend.whenGET(CLMLocations.getLicenseSummaryUrl()).respond('license value');
       $httpBackend.whenGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('false');
-      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('true');
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: true });
 
       vm.$onInit();
 
@@ -69,6 +69,7 @@ describe('gettingStarted component', function() {
       expect(vm.error).toBeUndefined();
       expect(vm.validPermissions).toEqual(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']);
       expect(vm.shouldDisplayHdsUnreachable).toBe(false);
+      expect(vm.hdsUnreachableErrorMessage).toBeUndefined();
       expect(vm.license).toBe('license value');
     });
 
@@ -78,7 +79,7 @@ describe('gettingStarted component', function() {
 
           var permissionsDeferred = $q.defer();
           permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
-          $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('false');
+          $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: false, errorMessage: 'foo' });
 
           vm.$onInit();
 
@@ -88,6 +89,7 @@ describe('gettingStarted component', function() {
 
           expect(vm.validPermissions).toEqual(['ADD_APPLICATION']);
           expect(vm.shouldDisplayHdsUnreachable).toBe(true);
+          expect(vm.hdsUnreachableErrorMessage).toEqual('foo');
           expect(vm.license).toBeUndefined();
         });
 
@@ -97,7 +99,7 @@ describe('gettingStarted component', function() {
 
       var permissionsDeferred = $q.defer();
       permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
-      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond('true');
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: true });
 
       vm.$onInit();
 

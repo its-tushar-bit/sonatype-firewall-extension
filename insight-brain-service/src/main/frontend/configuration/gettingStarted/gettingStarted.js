@@ -21,6 +21,7 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
     license: undefined,
     error: undefined,
     shouldDisplayHdsUnreachable: undefined,
+    hdsUnreachableErrorMessage: undefined,
 
     $onInit() {
       // if license was just installed, page will be reloaded. Until it is - show loading indicator.
@@ -33,7 +34,8 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
 
       loadDataForAllUsers().then(results => {
         vm.validPermissions = results[0];
-        vm.shouldDisplayHdsUnreachable = results[1].data === 'false';
+        vm.shouldDisplayHdsUnreachable = !results[1].data.alive;
+        vm.hdsUnreachableErrorMessage = results[1].data.errorMessage;
         return isAdmin() ? $http.get(CLMLocations.getLicenseSummaryUrl()) : null;
       }).then(result => {
         if (result) {

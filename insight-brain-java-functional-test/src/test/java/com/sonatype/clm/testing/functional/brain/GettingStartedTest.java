@@ -67,7 +67,7 @@ public class GettingStartedTest
 
     // non-admin user only sees the HDS connectivity warning and learning topics tile
     eyesWatcher.eyesCheck("Non-admin user");
-    gettingStartedPage.hdsConnectivityWarning().shouldBe(visible).shouldHave(text("See IQ Server log for details."));
+    gettingStartedPage.hdsConnectivityWarning().shouldBe(visible).shouldHave(text("retry in a bit"));
     gettingStartedPage.productLicenseSummary().shouldNotBe(visible);
     gettingStartedPage.systemSetup().shouldNotBe(visible);
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);

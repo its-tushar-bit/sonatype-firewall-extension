@@ -42,3 +42,7 @@
     margin-bottom: 4px;
   }
 }
+
+#hds-unreachable-warning getting-started-doc-link .fa {
+  margin-right: 0; // remove the 8px margin from external doc link
+}

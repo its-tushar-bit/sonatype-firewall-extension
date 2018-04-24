@@ -415,7 +415,7 @@ public class HdsClientTest
       fail("Expected exception");
     }
     catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The hostname for the Sonatype HDS could not be resolved,"
+      assertThat(e.getMessage(), is("The hostname for the Sonatype Data Services could not be resolved,"
           + " please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated"));
     }
   }
@@ -479,7 +479,8 @@ public class HdsClientTest
       fail("Expected exception");
     }
     catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The Sonatype HDS returned error " + statusCode + ", please retry in a bit."));
+      assertThat(e.getMessage(), is("The Sonatype Data Services returned error " + statusCode + 
+          ", please retry in a bit."));
     }
   }
 
@@ -505,7 +506,7 @@ public class HdsClientTest
     catch (BadGatewayException e) {
       assertThat(
           e.getMessage(),
-          is("Failed to read response entity received from Sonatype HDS, please retry in a bit."));
+          is("Failed to read response entity received from Sonatype Data Services, please retry in a bit."));
     }
   }
 
@@ -525,7 +526,7 @@ public class HdsClientTest
       fail("Expected exception");
     }
     catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The request to Sonatype HDS failed, please retry in a bit."));
+      assertThat(e.getMessage(), is("The request to Sonatype Data Services failed, please retry in a bit."));
     }
   }
 
@@ -538,7 +539,7 @@ public class HdsClientTest
       fail("Expected exception");
     }
     catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The SSL/TLS connection to Sonatype HDS could not be established, "
+      assertThat(e.getMessage(), is("The SSL/TLS connection to Sonatype Data Services could not be established, "
           + "contact your network or system administrator for help."));
     }
   }
@@ -563,7 +564,7 @@ public class HdsClientTest
       fail("Expected exception");
     }
     catch (BadGatewayException e) {
-      assertThat(e.getMessage(), is("The Sonatype HDS returned error 500, please retry in a bit."));
+      assertThat(e.getMessage(), is("The Sonatype Data Services returned error 500, please retry in a bit."));
     }
   }
 

@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -38,17 +39,19 @@ public class HdsPingServiceTest
   public void testPingHds_alive() throws Exception {
     when(pingHdsClientMock.get(String.class, "ping")).thenReturn("alive");
 
-    boolean status = hdsPingService.pingHds();
+    PingResponseDTO status = hdsPingService.pingHds();
 
-    assertThat(status, is(true));
+    assertThat(status.alive, is(true));
+    assertThat(status.errorMessage, is(nullValue()));
   }
 
   @Test
   public void testPingHds_Unreachable() throws Exception {
-    when(pingHdsClientMock.get(String.class, "ping")).thenThrow(new IOException());
+    when(pingHdsClientMock.get(String.class, "ping")).thenThrow(new IOException("Unreachable"));
 
-    boolean status = hdsPingService.pingHds();
+    PingResponseDTO status = hdsPingService.pingHds();
 
-    assertThat(status, is(false));
+    assertThat(status.alive, is(false));
+    assertThat(status.errorMessage.matches("Unreachable \\(ID [0-9a-fA-F]{16}\\)\\."), is(true));
   }
 }

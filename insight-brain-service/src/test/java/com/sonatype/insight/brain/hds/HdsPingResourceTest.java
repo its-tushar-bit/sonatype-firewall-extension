@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class HdsPingResourceTest
@@ -23,6 +24,9 @@ public class HdsPingResourceTest
     HttpResponse response = restRequest().path(HdsPingResource.RESOURCE_PATH).get();
 
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("true"));
+    
+    PingResponseDTO result = response.getBody(PingResponseDTO.class);
+    assertThat(result.alive, is(true));
+    assertThat(result.errorMessage, is(nullValue()));
   }
 }

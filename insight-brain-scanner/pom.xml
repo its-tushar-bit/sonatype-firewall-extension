@@ -172,11 +172,10 @@
                   <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="META-INF/services/**" />
                   <firstmatchmapper>
                     <regexpmapper from="META-INF/services/((?:java)\..+)" to="META-INF/services/\1" handledirsep="true" />
-                    <regexpmapper from="META-INF/services/(.+)" to="META-INF/services/zz.\1" handledirsep="true" />
                   </firstmatchmapper>
                   <filterchain>
                     <tokenfilter>
-                      <replaceregex pattern="(?:com|de|org)\.[^,]+" replace="zz.\0" flags="gim" />
+                      <replaceregex pattern="(?:com|org)\.[^,]+" replace="zz.\0" flags="gim" />
                     </tokenfilter>
                   </filterchain>
                 </copy>

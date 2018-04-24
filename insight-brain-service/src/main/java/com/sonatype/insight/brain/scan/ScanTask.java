@@ -12,15 +12,18 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -80,6 +83,8 @@ class ScanTask
 
   private FileCleaner fileCleaner;
 
+  private final ProprietaryConfigService proprietaryConfigService;
+
   private final String id;
 
   private Application app;
@@ -108,7 +113,8 @@ class ScanTask
                   ScanPolicyEvaluator scanPolicyEvaluator,
                   PolicyAlertNotifier policyAlertNotifier,
                   InsightWork work,
-                  FileCleaner fileCleaner)
+                  FileCleaner fileCleaner,
+                  ProprietaryConfigService proprietaryConfigService)
   {
     this.scanner = scanner;
     this.uploader = uploader;
@@ -116,6 +122,7 @@ class ScanTask
     this.policyAlertNotifier = policyAlertNotifier;
     this.work = work;
     this.fileCleaner = fileCleaner;
+    this.proprietaryConfigService = proprietaryConfigService;
     id = UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -181,7 +188,9 @@ class ScanTask
 
       // create the scan data
       state = State.SCANNING_COMPONENTS;
-      File scanFile = scanner.scan(binFile, filename, work.getScanDir(app.getId()), app.getPublicId());
+      ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
+          app.getPublicId());
+      File scanFile = scanner.scan(binFile, filename, work.getScanDir(app.getId()), proprietaryConfig);
 
       // upload the scan
       state = State.UPLOADING_SCAN;

@@ -15,8 +15,6 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
 import com.sonatype.insight.scan.config.ScanPropertiesLoader;
@@ -41,7 +39,7 @@ import static com.sonatype.clm.dto.model.ProprietaryConfig.REGEX_DELIM;
  * @since 1.8
  */
 @Named
-class Scanner
+public class Scanner
 {
   private static final Logger log = LoggerFactory.getLogger(Scanner.class);
 
@@ -53,8 +51,6 @@ class Scanner
 
   private final ScanWriterFactory writerFactory;
 
-  private final ProprietaryConfigService proprietaryConfigService;
-
   private final FileCleaner fileCleaner;
 
   @Inject
@@ -62,28 +58,26 @@ class Scanner
                  ClientScanner clientScanner,
                  FileScanner fileScanner,
                  ScanWriterFactory writerFactory,
-                 FileCleaner fileCleaner,
-                 ProprietaryConfigService proprietaryConfigService)
+                 FileCleaner fileCleaner)
   {
     this.configLoader = configLoader;
     this.clientScanner = clientScanner;
     this.fileScanner = fileScanner;
     this.writerFactory = writerFactory;
-    this.proprietaryConfigService = proprietaryConfigService;
     this.fileCleaner = fileCleaner;
   }
 
   /**
    * Scans the specified target file and returns the resulting scan file, using the given directory as parent.
    */
-  public File scan(File target, String filename, File scanDir, String applicationPublicId) throws IOException {
+  public File scan(File target, String filename, File scanDir, ProprietaryConfig proprietaryConfig) throws IOException {
     scanDir.mkdirs();
     File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
     log.debug("Saving scan of {} to {}", target, scanFile);
 
     try {
       Scan scan = new Scan();
-      scan.setConfiguration(new ScanConfiguration(getScanConfigProps(applicationPublicId)));
+      scan.setConfiguration(new ScanConfiguration(getScanConfigProps(proprietaryConfig)));
       try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
         writer.openScan(scan);
         writer.writeConfiguration(scan.getConfiguration());
@@ -109,15 +103,13 @@ class Scanner
     return scanFile;
   }
 
-  private Properties getScanConfigProps(String applicationPublicId) throws IOException {
+  private Properties getScanConfigProps(ProprietaryConfig proprietaryConfig) throws IOException {
     Properties props = new Properties();
     props.setProperty("fileIncludes", "");
     props.setProperty("fileExcludes", "");
     props.setProperty("ipAddresses", "false");
     props.setProperty("hashJavaTypes", "true");
 
-    ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
-        applicationPublicId);
     if (proprietaryConfig != null) {
       props.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), PACKAGE_DELIM));
       props.put("proprietaryRegexes", StringUtils.join(proprietaryConfig.getRegexes().iterator(), REGEX_DELIM));

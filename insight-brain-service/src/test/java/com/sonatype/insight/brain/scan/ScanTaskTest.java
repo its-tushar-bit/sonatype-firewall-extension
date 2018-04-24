@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -53,7 +54,11 @@ public class ScanTaskTest
   private PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
   private InsightWork work = mock(InsightWork.class);
   FileCleaner fileCleaner = mock(FileCleaner.class);
-  private ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner);
+
+  private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
+
+  private ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
+      proprietaryConfigService);
   private Application app = newApp("public-app-id");
   private Stage stage = new Stage(Stage.ID_BUILD);
   private ScanReceipt scanReceipt = new ScanReceipt();
@@ -78,7 +83,7 @@ public class ScanTaskTest
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
     when(uploader.upload(eq(tmpScanFile), eq(app))).thenReturn(scanReceipt);
-    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq("public-app-id"))).thenReturn(tmpScanFile);
+    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(tmpScanFile);
   }
 
   private static class StageMatcher
@@ -127,7 +132,7 @@ public class ScanTaskTest
     assertThat(scanFile.isFile(), is(false));
     task.run();
 
-    verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq("public-app-id"));
+    verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null));
     assertThat(tmpScanFile.isFile(), is(false));
     assertThat(scanFile.isFile(), is(true));
   }
@@ -159,7 +164,7 @@ public class ScanTaskTest
   public void erorredTaskHasTicketWithErrorMessage() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false);
 
-    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq("public-app-id")))
+    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenThrow(RuntimeException.class);
 
     task.init(app, bundleFile, bundleFilename, stage, false);
@@ -186,7 +191,7 @@ public class ScanTaskTest
 
   @Test
   public void erorredTaskDeletesTemporaryApplicationBinary() throws IOException {
-    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq("public-app-id")))
+    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenThrow(RuntimeException.class);
 
     File appBinary = new File("any");

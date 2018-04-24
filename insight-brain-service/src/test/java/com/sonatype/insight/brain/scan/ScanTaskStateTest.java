@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.io.IOException;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -15,6 +16,7 @@ import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -46,7 +48,11 @@ public class ScanTaskStateTest
   PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
   InsightWork work = mock(InsightWork.class);
   FileCleaner fileCleaner = mock(FileCleaner.class);
-  ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner);
+  
+  private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
+  
+  ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
+      proprietaryConfigService);
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 
@@ -63,7 +69,8 @@ public class ScanTaskStateTest
 
   @Test
   public void scanning() throws IOException {
-    when(scanner.scan((File) any(), (String) any(), (File) any(), (String) any())).then(captureState);
+    when(scanner.scan((File) any(), (String) any(), (File) any(), (ProprietaryConfig) any()))
+        .then(captureState);
 
     task.run();
 
@@ -112,7 +119,8 @@ public class ScanTaskStateTest
 
   @Test
   public void error() throws IOException {
-    when(scanner.scan((File) any(), (String) any(), (File) any(), (String) any())).thenThrow(RuntimeException.class);
+    when(scanner.scan((File) any(), (String) any(), (File) any(), (ProprietaryConfig) any()))
+        .thenThrow(RuntimeException.class);
 
     task.run();
 

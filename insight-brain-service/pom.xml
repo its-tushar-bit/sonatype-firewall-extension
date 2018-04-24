@@ -23,6 +23,7 @@
     <licensing.version>1.4</licensing.version>
     <jasmine.version>2.2</jasmine.version>
     <saga.version>1.5.2</saga.version>
+    <truezipVersion>7.6.6</truezipVersion>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
     <jasmine.audit.id>test-audit-assets</jasmine.audit.id>
@@ -85,6 +86,10 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-archive-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-scanner-model</artifactId>
     </dependency>
     <dependency>
@@ -97,11 +102,11 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
-      <artifactId>insight-scanner-archive</artifactId>
+      <artifactId>insight-client-utils</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.scan</groupId>
-      <artifactId>insight-client-utils</artifactId>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-scanner</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
@@ -114,6 +119,16 @@
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-jaxrs-utils</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>de.schlichtherle.truezip</groupId>
+      <artifactId>truezip-file</artifactId>
+      <version>${truezipVersion}</version>
     </dependency>
 
     <dependency>
@@ -825,6 +840,11 @@
             <configuration>
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <shadedClassifierName>server</shadedClassifierName>
+              <artifactSet>
+                <excludes>
+                  <exclude>com.sonatype.insight.scan:insight-scanner-hashing</exclude>
+                </excludes>
+              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -1063,41 +1083,6 @@
       </activation>
       <build>
         <plugins>
-          <plugin>
-            <groupId>com.github.wvengen</groupId>
-            <artifactId>proguard-maven-plugin</artifactId>
-            <configuration>
-              <injar>${project.build.finalName}-server.jar</injar>
-              <includeDependency>false</includeDependency>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>seed-map</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>attach-artifact</goal>
-                </goals>
-                <configuration>
-                  <artifacts>
-                    <artifact>
-                      <file>${project.build.directory}/proguard_seeds.txt</file>
-                      <classifier>seeds</classifier>
-                      <type>txt</type>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/proguard_map.txt</file>
-                      <classifier>map</classifier>
-                      <type>txt</type>
-                    </artifact>
-                  </artifacts>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
           <plugin>
             <groupId>com.github.eirslett</groupId>
             <artifactId>frontend-maven-plugin</artifactId>

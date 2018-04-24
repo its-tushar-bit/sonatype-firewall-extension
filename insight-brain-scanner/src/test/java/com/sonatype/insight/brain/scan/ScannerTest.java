@@ -10,13 +10,15 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.io.ScanReader;
 
+import org.eclipse.sisu.launch.InjectedTest;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -24,9 +26,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-public class ScannerTest
-    extends AbstractComponentTest
+public class ScannerTest extends InjectedTest
 {
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
   @Inject
   private Scanner scanner;
 
@@ -35,12 +39,12 @@ public class ScannerTest
 
   @Test
   public void testScan() throws Exception {
-    tempEntity.newApplicationWithParent("testScan");
-    tempEntity.newProprietaryConfig(Organization.ROOT_ORGANIZATION_ID, Collections.singletonList("com.sonatype"),
-        Collections.<String> emptyList());
+    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+    proprietaryConfig.setPackages(Collections.singletonList("com.sonatype"));
 
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
-    File scanFile = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"), "testScan");
+    File scanFile = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
+        proprietaryConfig);
     assertThat(scanFile, is(notNullValue()));
     assertThat(scanFile.isFile(), is(true));
 
@@ -66,13 +70,12 @@ public class ScannerTest
 
   @Test
   public void testScanWithProprietaryRegex() throws Exception {
-    tempEntity.newApplicationWithParent("testScanWithProprietaryRegex");
-    tempEntity.newProprietaryConfig(Organization.ROOT_ORGANIZATION_ID, Collections.<String> emptyList(),
-        Collections.singletonList(".*prop.*\\.jar"));
+    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+    proprietaryConfig.setRegexes(Collections.singletonList(".*prop.*\\.jar"));
 
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
     File scanFile = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"),
-        "testScanWithProprietaryRegex");
+        proprietaryConfig);
     assertThat(scanFile, is(notNullValue()));
     assertThat(scanFile.isFile(), is(true));
 

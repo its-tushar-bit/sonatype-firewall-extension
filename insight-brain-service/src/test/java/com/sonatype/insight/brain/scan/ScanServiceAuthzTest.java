@@ -28,7 +28,7 @@ public class ScanServiceAuthzTest
   private ScanService scanService;
 
   private InputStream getBundle(String name) {
-    return getClass().getResourceAsStream("/ScannerTest/" + name);
+    return getClass().getResourceAsStream("/ScanServiceAuthzTest/" + name);
   }
 
   @Override

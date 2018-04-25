@@ -36,14 +36,8 @@ public class Parameters
   }
 
   public void printUsage() {
-    JCommander jc;
-    try {
-      // NOTE: Be sure to use a fresh params instance to not have current state spoil default values
-      jc = new JCommander(getClass().newInstance());
-    }
-    catch (Exception e) {
-      throw new IllegalStateException(e);
-    }
+    // NOTE: Be sure to use a fresh params instance to not have current state spoil default values
+    JCommander jc = new JCommander(new Parameters());
     jc.setProgramName(getProgramName());
     jc.usage();
   }

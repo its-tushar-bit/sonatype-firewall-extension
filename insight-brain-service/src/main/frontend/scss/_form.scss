@@ -168,6 +168,13 @@ textarea {
     &.ng-invalid.ng-dirty {
       @include iq-invalid-dirty();
     }
+    
+    &.ng-invalid:not(.ng-dirty):focus {
+      // override bootstrap
+      border-color: $iq-grey-4;
+      border-left-color: $iq-valid-color;
+      box-shadow: initial;
+    }
   }
   
   &.iq-text-input--long, &.iq-textarea--long {

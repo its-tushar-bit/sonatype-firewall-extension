@@ -39,6 +39,7 @@ $iq-form-element-wide: 395px;
 
 .iq-form {
   border-top: 1px solid $iq-grey-4;
+  margin: 0;
   padding-top: 20px;
   position: relative; // to make a containing block for validation popovers
 }
@@ -99,6 +100,10 @@ $iq-form-element-wide: 395px;
   color: $iq-off-black;
   display: block;
   font-size: 14px;
+  
+  .fa {
+    margin-right: 6px;
+  }
 }
 
 // Defining labels for groups of radio buttons or checkboxes is tricky - each individual radio has a <label>

@@ -1,47 +1,64 @@
-<div id="access-editor" class="tile-editor-container">
-  <div class="tile" load-wrapper="vm.loadError" loading="!vm.availableRoles" reload="vm.retry()"
-       ng-if="!vm.availableRoles || vm.availableRoles.length > 0 || !vm.isNew">
-    <h2>
-      <i class="fa fa-puzzle-piece size-20px"></i>{{vm.isNew ? 'Add a Role' : vm.role.roleName}}
-    </h2>
-
-    <form class="clm-form" novalidate name="vm.rolePicker" ng-if="vm.isNew">
-      <div class="section">
-        <div class="field" id="access-editor-role"
-             ng-class="{'space-for-error': vm.searchError, 'no-group-search': !vm.groupSearchEnabled}">
-          <label for="access-role-name" ng-if="true">Role</label><!-- bogus ng-if to fix IE9 combobox rendering -->
-          <dropdown-selector id="access-role-name" ng-model="vm.role" options="vm.availableRoles" name="role-name"
-                             option-name-param="roleName" clm-input required
-                             empty-option-string="-- Select Role --"></dropdown-selector>
-        </div>
-      </div>
-    </form>
-
-    <role-membership form-mask="vm.accessEditorMask"
-                     mask-attach-to-body
-                     save="vm.save"
-                     role="vm.role"
-                     original-members="vm.originalMembers"
-                     get-current-members="vm.getCurrentMembers"
-                     get-current-members-to-save="vm.getCurrentMembersToSave"
-                     group-search-enabled="vm.groupSearchEnabled"
-                     is-dirty="vm.isMembershipDirty">
+<div id="access-editor"
+     class="iq-tile iq-tile--form-tile"
+     load-wrapper="vm.loadError"
+     loading="!vm.availableRoles"
+     reload="vm.retry()"
+     ng-if="!vm.availableRoles || vm.availableRoles.length > 0 || !vm.isNew">
+  <header class="iq-tile-header">
+    <div class="iq-tile-header__title">
+      <h2>
+        <i class="fa fa-puzzle-piece size-20px iq-tile-header__icon"></i>{{vm.isNew ? 'Add a Role' : vm.role.roleName}}
+      </h2>
+    </div>
+  </header>
+  <form class="iq-form" novalidate name="vm.rolePicker" ng-if="vm.isNew">
+    <div class="iq-form-group" id="access-editor-role">
+      <label class="iq-label" for="access-role-name">Role</label>
+      <dropdown-selector id="access-role-name"
+                         ng-model="vm.role"
+                         options="vm.availableRoles"
+                         name="role-name"
+                         option-name-param="roleName"
+                         clm-input
+                         required
+                         empty-option-string="-- Select Role --">
+      </dropdown-selector>
+    </div>
+  </form>
+  <role-membership form-mask="vm.accessEditorMask"
+                   mask-attach-to-body
+                   save="vm.save"
+                   role="vm.role"
+                   original-members="vm.originalMembers"
+                   get-current-members="vm.getCurrentMembers"
+                   get-current-members-to-save="vm.getCurrentMembersToSave"
+                   group-search-enabled="vm.groupSearchEnabled"
+                   is-dirty="vm.isMembershipDirty">
       <!-- Role Membership form submission buttons get transcluded in -->
-      <div class="editor-footer" submit-wrapper="vm.submitError">
-        <button type="submit" id="save-access-role-button" class="btn btn-primary" submit-validation
-                submit-dirty="vm.isValid()" submit-type="vm.isNew ? 'add' : 'update'">
+      <div class="iq-tile-footer" submit-wrapper="vm.submitError">
+        <button type="submit"
+                id="save-access-role-button"
+                class="iq-btn iq-btn--primary"
+                submit-validation
+                submit-dirty="vm.isValid()"
+                submit-type="vm.isNew ? 'add' : 'update'">
           {{vm.isNew ? 'Add' : 'Update'}}
         </button><!--
-     --><button id="remove-role-button" class='btn btn-tertiary' type="button"
-                   ng-click="vm.removeRole()" ng-if="!vm.isNew">
+     --><button id="remove-role-button"
+                class="iq-btn iq-btn--tertiary"
+                type="button"
+                ng-click="vm.removeRole()"
+                ng-if="!vm.isNew">
           <i class="fa fa-fw fa-trash"></i>Remove Role
         </button>
       </div>
     </role-membership>
   </div>
   <div ng-if="vm.availableRoles && vm.availableRoles.length === 0 && vm.isNew">
-    <div class="iq-alert iq-alert--error">
-      <i class="fa fa-warning"></i>No roles available.
+    <div class="iq-tile iq-alert iq-alert--error">
+      <div class="iq-tile-content">
+        <i class="fa fa-warning"></i>No roles available.
+      </div>
     </div>
   </div>
 </div>

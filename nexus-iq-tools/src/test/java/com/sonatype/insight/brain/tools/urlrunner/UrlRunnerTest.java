@@ -3,15 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.tools;
+package com.sonatype.insight.brain.tools.urlrunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
-import com.sonatype.insight.brain.tools.PerfTestConfig.RepeatConfig;
-import com.sonatype.insight.brain.tools.PerfTestConfig.TestUrl;
+import com.sonatype.insight.brain.tools.common.PerfTestConfig;
+import com.sonatype.insight.brain.tools.common.PerfTestConfig.RepeatConfig;
+import com.sonatype.insight.brain.tools.common.PerfTestConfig.TestUrl;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Test;

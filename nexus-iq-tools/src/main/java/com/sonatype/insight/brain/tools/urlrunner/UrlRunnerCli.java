@@ -3,13 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.tools;
+package com.sonatype.insight.brain.tools.urlrunner;
 
 import java.io.File;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
+
+import com.sonatype.insight.brain.tools.common.PerfTestConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;

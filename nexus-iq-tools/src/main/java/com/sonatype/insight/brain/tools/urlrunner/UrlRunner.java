@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.tools;
+package com.sonatype.insight.brain.tools.urlrunner;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
-import com.sonatype.insight.brain.tools.PerfTestConfig.TestUrl;
+import com.sonatype.insight.brain.tools.common.PerfTestConfig;
+import com.sonatype.insight.brain.tools.common.PerfTestConfig.TestUrl;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;

@@ -1,0 +1,102 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.tools;
+
+import java.io.File;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Arrays;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class UrlRunnerCli
+{
+
+  private static final Logger log = LoggerFactory.getLogger(UrlRunnerCli.class);
+
+  public static void main(String[] args) throws Exception {
+    new UrlRunnerCli().run(args);
+  }
+
+  //default visibility for testing
+  void run(String args[]) throws Exception {
+    Parameters params = new Parameters(args);
+    if (params.getError() != null) {
+      params.printUsage();
+      log.error("Actual arguments were: {}", Arrays.asList(params.getArgs()));
+      System.exit(1);
+    }
+    if (params.isHelp()) {
+      params.printUsage();
+      return;
+    }
+    run(params);
+  }
+
+  private void run(Parameters params) throws Exception {
+    UrlRunner urlRunner = new UrlRunner();
+    urlRunner.run(getInputObject(params.getInputFile()), params.getServer(), params.getUsername(), params.getPassword(),
+        (it) -> printStats(it), params.getProxy());
+  }
+
+  private static PerfTestConfig getInputObject(File file) throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper();
+    return objectMapper.readValue(file, PerfTestConfig.class);
+  }
+
+  // default for testing
+  void printStats(Stats stats) {
+    try {
+      log.info("-------------");
+      log.info("URL : {}", stats.getUrl());
+      if (stats.getRequestPayload() != null) {
+        log.info("Request Payload: {}", stats.getRequestPayload());
+      }
+      log.info("Response Status: {} {}", stats.getResponse().getStatusLine().getStatusCode(),
+          stats.getResponse().getStatusLine().getReasonPhrase());
+      log.info("Response Time: {}", stats.getResponseTime());
+
+      String responseBody = null;
+      if (stats.getResponse() != null) {
+        HttpEntity entity = stats.getResponse().getEntity();
+        if (entity != null) {
+          responseBody = EntityUtils.toString(entity, StandardCharsets.UTF_8);
+        }
+      }
+
+      if (responseBody != null && responseBody.length() > 0) {
+        log.info("Size: {}", responseBody.getBytes().length);
+        log.debug("Response body: {}", responseBody);
+        log.info("MD5 of response: {}", getMD5(responseBody));
+      }
+      logResponseHeaders(stats.getResponse().getAllHeaders());
+    }
+    catch (Exception e) {
+      log.info("Error printing stats for: {} see debug log for details", stats.getUrl());
+      log.debug("Error in printing stats", e);
+    }
+  }
+
+  private static String getMD5(String input) throws Exception {
+    MessageDigest digest = MessageDigest.getInstance("MD5");
+    digest.update(input.getBytes(StandardCharsets.UTF_8));
+    byte[] keySum = digest.digest();
+    BigInteger bigInt = new BigInteger(1, keySum);
+    return bigInt.toString(16);
+  }
+
+  private static void logResponseHeaders(Header[] headers) {
+    log.debug("Response Headers:");
+    Arrays.asList(headers).forEach(h -> log.debug("  {}:{}", h.getName(), h.getValue()));
+  }
+
+}

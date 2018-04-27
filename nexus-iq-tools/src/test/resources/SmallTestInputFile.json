@@ -1,0 +1,11 @@
+{
+  "urls" : [
+    {
+    "url" : "rest/tag/application",
+    "type": "GET",
+    "repeat" : { "ifLongerThan" : 10000,
+               "minRuns" : 1,
+               "maxRuns" : 1 }
+    }
+  ]
+}

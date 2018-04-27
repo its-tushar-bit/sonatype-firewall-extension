@@ -81,6 +81,7 @@
     <module>insight-brain-java-functional-test</module>
     <module>insight-brain-functional-test</module>
     <module>insight-brain-functional-performance-test</module>
+    <module>nexus-iq-tools</module>
   </modules>
 
   <dependencyManagement>

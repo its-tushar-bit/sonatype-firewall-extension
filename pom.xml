@@ -46,7 +46,6 @@
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>6.1.0.Final</drools.version>
-    <guava.version>23.0</guava.version>
     <geb.version>2.1</geb.version>
     <selenium.version>3.8.1</selenium.version>
     <failsafe.version>2.19</failsafe.version>
@@ -212,7 +211,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>${guava.version}</version>
+        <version>24.0-jre</version>
         <exclusions>
           <exclusion>
             <groupId>com.google.code.findbugs</groupId>
@@ -225,6 +224,10 @@
           <exclusion>
             <groupId>com.google.j2objc</groupId>
             <artifactId>j2objc-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-compat-qual</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.codehaus.mojo</groupId>

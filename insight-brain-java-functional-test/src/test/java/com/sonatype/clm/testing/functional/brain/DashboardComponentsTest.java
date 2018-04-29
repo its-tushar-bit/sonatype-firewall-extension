@@ -140,19 +140,19 @@ public class DashboardComponentsTest
 
     // open component details and back
     DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
-    table.firstComponent().click();
+    table.firstComponent().name().click();
     DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group4 : Artifact4 : Version4"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
-    table.component(1).click();
+    table.component(1).name().click();
     DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group3 : Artifact3 : Version3"));
     Selenide.back();
     DashboardPage.dashboardContainer().shouldBe(visible);
 
-    table.lastComponent().click();
+    table.lastComponent().name().click();
     DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group1 : Artifact1 : Version1"));
     Selenide.back();
@@ -303,7 +303,7 @@ public class DashboardComponentsTest
     DashboardPage.dashboardContainer().shouldBe(visible);
     ComponentsResults table = DashboardPage.componentsView().results();
 
-    table.firstComponent().click();
+    table.firstComponent().name().click();
 
     DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
 

@@ -47,7 +47,7 @@ public class PolicyTile
   }
 
   public SelenideElement localPolicy(String policyName) {
-    return children("table tr").findBy(text(policyName));
+    return children("table tr > .policy-list__name-column").findBy(text(policyName));
   }
 
   public SelenideElement monitoredStage() {

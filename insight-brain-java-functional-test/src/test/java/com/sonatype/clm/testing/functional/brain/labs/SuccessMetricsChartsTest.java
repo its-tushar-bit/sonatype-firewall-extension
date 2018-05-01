@@ -52,7 +52,6 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICEN
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
-import static org.joda.time.DateTime.now;
 
 public class SuccessMetricsChartsTest
     extends AbstractFunctionalTest
@@ -65,13 +64,15 @@ public class SuccessMetricsChartsTest
 
   private static final String CRITICAL_COLOR = "rgb(253, 55, 62)";
 
-  private static final DateTime fourMonthsAgo = now().minusMonths(4);
+  private static final DateTime thisMonth = DateTime.now().withDayOfMonth(15);
 
-  private static final DateTime threeMonthsAgo = now().minusMonths(3);
+  private static final DateTime fourMonthsAgo = thisMonth.minusMonths(4);
 
-  private static final DateTime twoMonthsAgo = now().minusMonths(2);
+  private static final DateTime threeMonthsAgo = fourMonthsAgo.plusDays(30);
 
-  private static final DateTime oneMonthAgo = now().minusMonths(1);
+  private static final DateTime twoMonthsAgo = threeMonthsAgo.plusDays(30);
+
+  private static final DateTime oneMonthAgo = twoMonthsAgo.plusDays(30);
 
   private static String successMetricsChartsPageUrl;
 
@@ -150,6 +151,7 @@ public class SuccessMetricsChartsTest
 
     staticTempEntity.newPolicyViolation(app3Eval1, app3Policy, 10,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
+
     fixViolations(app3Eval2, null);
 
     SuccessMetricsReportScopeDTO successMetricsScope = new SuccessMetricsReportScopeDTO();
@@ -247,7 +249,7 @@ public class SuccessMetricsChartsTest
     ElementsCollection months = MttrTile.mttrXAxisLabels();
     months.shouldHaveSize(12);
 
-    DateTime mttrMonth = now().minusMonths(12);
+    DateTime mttrMonth = DateTime.now().minusMonths(12);
     for (int i = 0; i < 12; i++) {
       months.get(0).shouldBe(visible).shouldHave(text(mttrMonth.toString("MMM", Locale.ENGLISH)));
       mttrMonth.plusMonths(1);

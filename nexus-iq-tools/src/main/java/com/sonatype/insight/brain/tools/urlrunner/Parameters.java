@@ -19,7 +19,7 @@ class Parameters
   @Parameter(names = { "-f", "--input-file" }, description = "path of the input file", required = true)
   private File inputFile = new File("");
 
-  @Parameter(names = { "-s", "--server" }, description = "IQ Server URL in the form of [http|https://]server:port", required = true)
+  @Parameter(names = { "-s", "--server" }, description = "IQ Server URL in the form of http://server:port", required = true)
   private String server;
 
   @Parameter(names = {"-u", "--username" }, description = "IQ Server username")

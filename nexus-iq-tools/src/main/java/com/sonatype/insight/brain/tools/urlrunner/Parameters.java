@@ -28,7 +28,7 @@ class Parameters
   @Parameter(names = {"-p", "--password" }, description = "IQ Server password")
   private String password = "admin123";
 
-  @Parameter(names = { "-pr", "--proxy" }, description = "Poxy Server URL in the form of [http|https://]server:port")
+  @Parameter(names = { "-pr", "--proxy" }, description = "Proxy Server URL in the form of [http|https://]server:port")
   private String proxy;
 
   @Parameter(names = { "-h", "--help" }, description = "Show this help screen")

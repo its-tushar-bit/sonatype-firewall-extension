@@ -13,10 +13,13 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.18.0
  */
 @Named
+@Timed
 @Path(RootOrganizationConfigMigrationResource.RESOURCE_PATH)
 public class RootOrganizationConfigMigrationResource
 {

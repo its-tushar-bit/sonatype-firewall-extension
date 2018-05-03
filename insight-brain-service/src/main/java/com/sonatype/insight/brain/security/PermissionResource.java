@@ -22,11 +22,13 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.codahale.metrics.annotation.Timed;
 import org.apache.shiro.SecurityUtils;
 
 @Path(PermissionResource.RESOURCE_PATH)
 @UnlicensedPath
 @Named
+@Timed
 public class PermissionResource
 {
   public static final String RESOURCE_PATH = "rest/user/permissions";

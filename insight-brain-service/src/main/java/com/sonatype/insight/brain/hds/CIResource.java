@@ -22,9 +22,12 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Path(CIResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint({ CLMEnforcementPoint.Build })
 @Named
+@Timed
 public class CIResource
 {
   public static final String RESOURCE_PATH = "rest/ci";

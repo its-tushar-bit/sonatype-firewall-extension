@@ -50,6 +50,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codahale.metrics.annotation.Timed;
 import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -61,6 +62,7 @@ import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 
 @Named
+@Timed
 @Path(PolicyResource.RESOURCE_PATH)
 public class PolicyResource
 {

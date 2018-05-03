@@ -22,7 +22,10 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(ProprietaryConfigResource.RESOURCE_PATH)
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)

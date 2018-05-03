@@ -24,7 +24,10 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(LicenseThreatGroupResource.RESOURCE_PATH)
 public class LicenseThreatGroupResource
 {

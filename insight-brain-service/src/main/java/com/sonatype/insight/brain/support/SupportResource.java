@@ -21,12 +21,15 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.sonatype.insight.client.utils.UrlUtils;
 
+import com.codahale.metrics.annotation.Timed;
+
 import static com.sonatype.insight.brain.support.SupportResource.RESOURCE_PATH;
 
 /**
  * @since 1.27
  */
 @Named
+@Timed
 @Path(RESOURCE_PATH)
 public class SupportResource
 {

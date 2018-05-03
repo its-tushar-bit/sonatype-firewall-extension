@@ -18,12 +18,15 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Provides data from an application's composition report in a format suitable for consumption by 3rd-party clients.
  * 
  * @since 1.13.0
  */
 @Named
+@Timed
 @Path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
 public class ApiReportDataResourceV2
 {

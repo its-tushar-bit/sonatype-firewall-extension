@@ -20,12 +20,15 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Associates component hash to a component identifier.
  *
  * @since 1.4.1
  */
 @Named
+@Timed
 @Path(HashComponentIdentifierResource.RESOURCE_PATH)
 public class HashComponentIdentifierResource
 {

@@ -19,10 +19,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.37
  */
 @Named
+@Timed
 @Path(SuccessMetricsReportResource.RESOURCE_PATH)
 public class SuccessMetricsReportResource
 {

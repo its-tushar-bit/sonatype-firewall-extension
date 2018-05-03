@@ -26,10 +26,13 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.6
  */
 @Named
+@Timed
 @Path(LicenseOverrideResource.RESOURCE_PATH)
 public class LicenseOverrideResource
 {

@@ -23,10 +23,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.13.0
  */
 @Named
+@Timed
 @Path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2)
 public class ApiComponentEvaluationResourceV2
 {

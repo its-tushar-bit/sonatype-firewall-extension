@@ -22,6 +22,7 @@ import com.codahale.metrics.annotation.Timed;
  * @since 1.18.0
  */
 @Named
+@Timed
 @Path(SidebarResource.RESOURCE_PATH)
 public class SidebarResource
 {
@@ -45,7 +46,6 @@ public class SidebarResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public OwnerListDTO getOwnerList() {
     return sidebarService.getOwnerList();
   }

@@ -21,6 +21,7 @@ import com.codahale.metrics.annotation.Timed;
  * @since 1.33
  */
 @Named
+@Timed
 @Path(PolicyViolationAggregationResource.RESOURCE_PATH)
 public class PolicyViolationAggregationResource
 {
@@ -37,7 +38,6 @@ public class PolicyViolationAggregationResource
   @Path("{successMetricsReportId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "getSuccessMetricsChartDataExceptionMeter")
   /**
    * @since 1.39

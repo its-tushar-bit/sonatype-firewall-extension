@@ -46,7 +46,10 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(IdeResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint(CLMEnforcementPoint.Develop)
 public class IdeResource

@@ -22,6 +22,8 @@ import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Provides data supporting the component information panel (CIP) used by repository managers.
  * 
@@ -29,6 +31,7 @@ import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
  */
 @Path(RepoManComponentInfoResource.RESOURCE_PATH)
 @Named
+@Timed
 public class RepoManComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/rm/componentDetails";

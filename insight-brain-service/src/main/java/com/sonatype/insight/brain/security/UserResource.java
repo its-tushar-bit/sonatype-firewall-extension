@@ -26,10 +26,13 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.7
  */
 @Named
+@Timed
 @Path(UserResource.RESOURCE_PATH)
 public class UserResource
 {

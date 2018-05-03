@@ -27,10 +27,12 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSumma
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
+import com.codahale.metrics.annotation.Timed;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Path(ProductLicenseResource.RESOURCE_PATH)
 @Named
+@Timed
 public class ProductLicenseResource
 {
   public static final String RESOURCE_PATH = "rest/product/license";

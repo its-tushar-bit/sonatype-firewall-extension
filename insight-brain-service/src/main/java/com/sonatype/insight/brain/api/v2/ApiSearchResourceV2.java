@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiSearchServiceV2;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Enables end users to search for components within their applications. This REST API is exposed directly to users.
  *
@@ -25,6 +27,7 @@ import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
  */
 @Path(PublicApiPaths.SEARCH_RESOURCE_PATH_V2)
 @Named
+@Timed
 public class ApiSearchResourceV2
 {
   private final ApiSearchServiceV2 searchService;

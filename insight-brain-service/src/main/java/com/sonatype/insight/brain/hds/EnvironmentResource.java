@@ -12,7 +12,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(EnvironmentResource.RESOURCE_PATH)
 public class EnvironmentResource
 {

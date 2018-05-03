@@ -18,10 +18,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.16.0
  */
 @Named
+@Timed
 @Path(PublicApiPaths.COMPONENT_DETAILS_PATH_V2)
 public class ApiComponentDetailsResourceV2
 {

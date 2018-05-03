@@ -20,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.StageType;
 
+import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.13
  */
 @Named
+@Timed
 @Path(LicensedStagesResource.RESOURCE_PATH)
 public class LicensedStagesResource
 {

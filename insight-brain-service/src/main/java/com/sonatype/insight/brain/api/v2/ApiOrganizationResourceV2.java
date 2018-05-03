@@ -29,11 +29,14 @@ import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  *
  * @since 1.11.0
  */
 @Named
+@Timed
 @Path(PublicApiPaths.ORG_RESOURCE_PATH)
 public class ApiOrganizationResourceV2
 {

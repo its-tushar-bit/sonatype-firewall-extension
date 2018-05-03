@@ -23,8 +23,11 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Path(IDEComponentInfoResource.RESOURCE_PATH)
 @Named
+@Timed
 public class IDEComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ide/componentDetails";

@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Provides URLs to parts of the UI for usage by enforcement points that wish to link to the CLM server's web interface.
  * Clients are expected to present hyperlinks to the REST resources here which when visited by the end user's browser
@@ -31,6 +33,7 @@ import com.sonatype.insight.brain.service.InsightBrainService;
  * @since 1.7
  */
 @Named
+@Timed
 @Path(UserInterfaceLinksResource.RESOURCE_PATH)
 @UnlicensedPath
 public class UserInterfaceLinksResource

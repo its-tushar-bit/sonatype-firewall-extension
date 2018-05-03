@@ -32,10 +32,13 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.7
  */
 @Named
+@Timed
 @Path(LdapResource.RESOURCE_PATH)
 public class LdapResource
 {

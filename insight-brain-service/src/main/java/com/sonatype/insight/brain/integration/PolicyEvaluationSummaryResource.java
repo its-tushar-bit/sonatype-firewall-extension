@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.11.0
  */
 @Named
+@Timed
 @Path(PolicyEvaluationSummaryResource.RESOURCE_PATH)
 public class PolicyEvaluationSummaryResource
 {

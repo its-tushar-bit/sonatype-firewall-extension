@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.service.InsightConfig;
 
+import com.codahale.metrics.annotation.Timed;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 
@@ -31,6 +32,7 @@ import org.apache.shiro.subject.Subject;
 @Path(UserSessionResource.RESOURCE_PATH)
 @UnlicensedPath
 @Named
+@Timed
 public class UserSessionResource
 {
   public static final String RESOURCE_PATH = "rest/user/session";

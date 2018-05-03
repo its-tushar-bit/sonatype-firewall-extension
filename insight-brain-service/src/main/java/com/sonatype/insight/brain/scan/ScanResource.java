@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codahale.metrics.annotation.Timed;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -36,6 +37,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
  * @since 1.8
  */
 @Named
+@Timed
 @Path(ScanResource.RESOURCE_PATH)
 public class ScanResource
 {

@@ -22,9 +22,12 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Path(RepoManResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint({ CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release })
 @Named
+@Timed
 public class RepoManResource
 {
   public static final String RESOURCE_PATH = "rest/rm";

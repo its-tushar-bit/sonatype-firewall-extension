@@ -19,11 +19,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.15.0
  */
 @Path(RoleResource.RESOURCE_PATH)
 @Named
+@Timed
 public class RoleResource
 {
   public static final String RESOURCE_PATH = "rest/security/roles";

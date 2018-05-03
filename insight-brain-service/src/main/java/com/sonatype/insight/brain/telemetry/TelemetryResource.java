@@ -14,10 +14,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.46
  */
 @Named
+@Timed
 @Path(TelemetryResource.RESOURCE_PATH)
 public class TelemetryResource
 {

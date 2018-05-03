@@ -20,10 +20,13 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.13.0
  */
 @Named
+@Timed
 @Path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
 public class ApiPolicyViolationResourceV2
 {

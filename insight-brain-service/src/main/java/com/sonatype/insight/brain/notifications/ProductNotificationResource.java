@@ -20,10 +20,13 @@ import com.sonatype.insight.brain.notifications.dto.ProductNotificationDTO;
 import com.sonatype.insight.brain.notifications.dto.ProductNotificationListDTO;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.14.0
  */
 @Named
+@Timed
 @Path(ProductNotificationResource.RESOURCE_PATH)
 @UnlicensedPath
 public class ProductNotificationResource

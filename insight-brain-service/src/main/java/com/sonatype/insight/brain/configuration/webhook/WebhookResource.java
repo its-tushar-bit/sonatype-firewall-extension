@@ -22,10 +22,13 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.25
  */
 @Named
+@Timed
 @Path(value = WebhookResource.RESOURCE_PATH)
 public class WebhookResource
 {

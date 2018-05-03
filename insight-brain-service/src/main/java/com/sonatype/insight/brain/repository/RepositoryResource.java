@@ -22,10 +22,13 @@ import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.18.0
  */
 @Named
+@Timed
 @Path(RepositoryResource.RESOURCE_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class RepositoryResource

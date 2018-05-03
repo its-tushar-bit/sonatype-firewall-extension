@@ -20,7 +20,10 @@ import com.sonatype.insight.brain.label.ComponentLabelService.AppliedLabels;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(ComponentLabelResource.RESOURCE_PATH)
 public class ComponentLabelResource
 {

@@ -22,12 +22,15 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Resource for managing tags associated with policies
  * 
  * @since 1.9
  */
 @Named
+@Timed
 @Path(PolicyTagResource.RESOURCE_PATH)
 public class PolicyTagResource
 {

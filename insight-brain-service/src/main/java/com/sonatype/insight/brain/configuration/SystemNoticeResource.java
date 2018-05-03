@@ -17,10 +17,13 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.29.0
  */
 @Named
+@Timed
 @Path(SystemNoticeResource.RESOURCE_PATH)
 public class SystemNoticeResource
 {

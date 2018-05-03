@@ -16,10 +16,12 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.policy.ActionType;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
+import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@Timed
 @Path(ActionTypeResource.RESOURCE_PATH)
 public class ActionTypeResource
 {

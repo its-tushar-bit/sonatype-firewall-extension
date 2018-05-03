@@ -22,12 +22,15 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.utils.IdUtils;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Manages role membership mappings for authorization.
  *
  * @since 1.7
  */
 @Named
+@Timed
 @Path(MembershipMappingResource.RESOURCE_PATH)
 public class MembershipMappingResource
 {

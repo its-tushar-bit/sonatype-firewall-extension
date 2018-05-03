@@ -19,7 +19,10 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(ReleaseGraphResource.RESOURCE_PATH)
 public class ReleaseGraphResource
 {

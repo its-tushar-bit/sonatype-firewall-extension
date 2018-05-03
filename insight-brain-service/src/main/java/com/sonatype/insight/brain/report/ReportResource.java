@@ -76,6 +76,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
@@ -83,6 +84,7 @@ import org.slf4j.LoggerFactory;
 
 @Path(ReportResource.RESOURCE_PATH)
 @Named
+@Timed
 public class ReportResource
 {
   public static final String RESOURCE_PATH = "rest/report/{applicationPublicId}/{scanId}";

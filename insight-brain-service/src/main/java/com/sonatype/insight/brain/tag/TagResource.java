@@ -25,7 +25,10 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(TagResource.RESOURCE_PATH)
 /**
  * @since 1.9

@@ -16,11 +16,14 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyService;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  *
  * @since 1.12.0
  */
 @Named
+@Timed
 @Path(PublicApiPaths.POLICY_RESOURCE_PATH)
 public class ApiPolicyResourceV2
 {

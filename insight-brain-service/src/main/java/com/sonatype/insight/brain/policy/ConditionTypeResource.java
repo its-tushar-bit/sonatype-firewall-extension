@@ -17,10 +17,12 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
+import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@Timed
 @Path(ConditionTypeResource.RESOURCE_PATH)
 public class ConditionTypeResource
 {

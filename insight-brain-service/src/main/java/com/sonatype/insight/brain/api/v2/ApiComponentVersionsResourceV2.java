@@ -20,10 +20,13 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentVersionsServiceV2;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.47
  */
 @Named
+@Timed
 @Path(PublicApiPaths.COMPONENT_VERSIONS_PATH_V2)
 public class ApiComponentVersionsResourceV2
 {

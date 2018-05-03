@@ -50,6 +50,7 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
+@Timed
 @Path(ApplicationResource.RESOURCE_PATH)
 public class ApplicationResource
     extends AbstractResourceWithIcon
@@ -105,7 +106,6 @@ public class ApplicationResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public List<ApplicationDTO> getApplications() {
     final List<ApplicationDTO> applications = applicationAdapter.convert(applicationService.getApplications());
     return applications;
@@ -119,7 +119,6 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
     final List<Application> applications = applicationService.getApplications();
 

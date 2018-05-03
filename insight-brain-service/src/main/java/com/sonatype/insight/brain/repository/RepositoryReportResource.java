@@ -24,6 +24,7 @@ import com.codahale.metrics.annotation.Timed;
  * @since 1.17.0
  */
 @Named
+@Timed
 @Path(RepositoryReportResource.RESOURCE_PATH)
 public class RepositoryReportResource
 {
@@ -45,7 +46,6 @@ public class RepositoryReportResource
   @GET
   @Path(SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public RepositoryReportSummary getSummary(@PathParam("repositoryId") String repositoryId) {
     return repositoryService.getReportSummary(repositoryId);
   }
@@ -70,7 +70,6 @@ public class RepositoryReportResource
   @GET
   @Path(DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId,
                                                        @QueryParam("hash") String hash,
                                                        @QueryParam("pathname") String pathname)
@@ -84,7 +83,6 @@ public class RepositoryReportResource
   @GET
   @Path(POLICY_THREAT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public RepositoryPolicyThreatDTO getPolicyThreats(@PathParam("repositoryId") final String repositoryId,
                                                     @PathParam("pathname") final String pathname)
   {

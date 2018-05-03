@@ -23,11 +23,14 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.19.0
  */
 @Path(CLIResource.RESOURCE_PATH)
 @Named
+@Timed
 public class CLIResource
 {
   public static final String RESOURCE_PATH = "rest/cli";

@@ -17,10 +17,13 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.33
  */
 @Named
+@Timed
 @Path(SystemConfigurationPropertyResource.RESOURCE_PATH)
 public class SystemConfigurationPropertyResource
 {

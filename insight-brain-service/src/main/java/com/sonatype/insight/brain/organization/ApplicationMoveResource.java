@@ -18,12 +18,15 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.Organization;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Supports moving an application to another parent organization.
  * 
  * @since 1.20
  */
 @Named
+@Timed
 @Path(ApplicationMoveResource.RESOURCE_PATH)
 public class ApplicationMoveResource
 {

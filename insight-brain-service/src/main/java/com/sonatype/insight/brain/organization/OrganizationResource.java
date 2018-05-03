@@ -35,10 +35,12 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
+import com.codahale.metrics.annotation.Timed;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
+@Timed
 @Path(OrganizationResource.RESOURCE_PATH)
 public class OrganizationResource
     extends AbstractResourceWithIcon

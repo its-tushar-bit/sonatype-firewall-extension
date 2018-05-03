@@ -21,12 +21,15 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Resource for managing applications applied tags
  *
  * @since 1.9
  */
 @Named
+@Timed
 @Path(ApplicationTagResource.RESOURCE_PATH)
 public class ApplicationTagResource
 {

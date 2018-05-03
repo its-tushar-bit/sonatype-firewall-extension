@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 
+import com.codahale.metrics.annotation.Timed;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -42,6 +43,7 @@ import org.codehaus.plexus.util.StringUtils;
  * @since 1.11.0
  */
 @Named
+@Timed
 @Path(PublicApiPaths.APP_RESOURCE_PATH)
 public class ApiApplicationResourceV2
 {

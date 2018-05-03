@@ -23,6 +23,7 @@ import com.codahale.metrics.annotation.Timed;
  * @since 1.33
  */
 @Named
+@Timed
 @Path(FirewallMigrationResource.RESOURCE_PATH)
 public class FirewallMigrationResource
 {
@@ -41,7 +42,6 @@ public class FirewallMigrationResource
 
   @POST
   @Path(SUPPORTED_PATH)
-  @Timed
   public void verifyMigrationSupport(@PathParam("protocolVersion") final String protocolVersion)
   {
     firewallMigrationService.verifyMigrationSupport(protocolVersion);
@@ -49,7 +49,6 @@ public class FirewallMigrationResource
 
   @POST
   @Path(HISTORY_PATH)
-  @Timed
   public void migrateRepositoryHistory(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
                                        @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId,
                                        @QueryParam("sourceRepositoryManagerInstanceId")
@@ -63,7 +62,6 @@ public class FirewallMigrationResource
   @GET
   @Path(HISTORY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public MigrationDetails getRepositoryMigrationState(@PathParam("targetRepositoryManagerInstanceId") String targetRepositoryManagerInstanceId,
                                                       @PathParam("targetRepositoryPublicId") String targetRepositoryPublicId)
   {

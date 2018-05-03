@@ -34,10 +34,13 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * @since 1.6
  */
 @Named
+@Timed
 @Path(PolicyWaiverResource.RESOURCE_PATH)
 public class PolicyWaiverResource
 {

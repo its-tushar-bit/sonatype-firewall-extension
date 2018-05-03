@@ -19,10 +19,12 @@ import com.sonatype.insight.brain.model.policy.ConditionValueType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.utils.IdUtils;
 
+import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@Timed
 @Path(ConditionValueTypeResource.RESOURCE_PATH)
 public class ConditionValueTypeResource
 {

@@ -13,7 +13,10 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(LandingResource.RESOURCE_PATH)
 @UnlicensedPath
 public class LandingResource

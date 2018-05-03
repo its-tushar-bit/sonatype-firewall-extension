@@ -19,8 +19,11 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportServiceV2;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiReportResourceV2.PATH)
 @Named
+@Timed
 public class ApiReportResourceV2
 {
   public static final String PATH = "/applications";

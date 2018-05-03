@@ -19,7 +19,10 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.license.License;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(LicenseResource.RESOURCE_PATH)
 public class LicenseResource
 {

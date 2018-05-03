@@ -32,6 +32,7 @@ import com.codahale.metrics.annotation.Timed;
  * @since 1.17.0
  */
 @Named
+@Timed
 @Path(RepositoryResource.RESOURCE_PATH)
 public class RepositoryResource
 {
@@ -70,7 +71,6 @@ public class RepositoryResource
   @POST
   @Path(ENABLE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
   public void setEnabled(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                          @PathParam("repositoryPublicId") String repositoryPublicId,
                          @PathParam("enabled") boolean enabled)
@@ -81,7 +81,6 @@ public class RepositoryResource
   @GET
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
                                                                       @PathParam("repositoryPublicId") final String repositoryPublicId)
   {
@@ -91,7 +90,6 @@ public class RepositoryResource
   @POST
   @Path(EVALUATE_COMPONENTS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
   public void evaluateComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                                  @PathParam("repositoryPublicId") String repositoryPublicId,
                                  RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -105,7 +103,6 @@ public class RepositoryResource
   @Path(EVALUATE_COMPONENT_WITH_QUARANTINE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
                                                                                @PathParam("repositoryPublicId") final String repositoryPublicId,
                                                                                final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -118,7 +115,6 @@ public class RepositoryResource
   @Path(QUARANTINE_PATH)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
   public void setQuarantine(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                             @PathParam("repositoryPublicId") String repositoryPublicId,
                             @PathParam("enabled") boolean enabled)
@@ -128,7 +124,6 @@ public class RepositoryResource
 
   @DELETE
   @Path(COMPONENTS_PATH)
-  @Timed
   public void removeComponent(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                               @PathParam("repositoryPublicId") String repositoryPublicId,
                               @PathParam("pathname") String pathname)
@@ -142,7 +137,6 @@ public class RepositoryResource
   @GET
   @Path(UNQUARANTINED_COMPONENTS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public UnquarantinedComponentList getUnquarantinedComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                                                                @PathParam("repositoryPublicId") String repositoryPublicId,
                                                                @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp)

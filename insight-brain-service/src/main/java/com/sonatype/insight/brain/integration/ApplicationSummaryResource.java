@@ -20,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.hds.HdsClient;
 
+import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.11.0
  */
 @Named
+@Timed
 @Path(ApplicationSummaryResource.RESOURCE_PATH)
 public class ApplicationSummaryResource
 {

@@ -15,12 +15,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.codahale.metrics.annotation.Timed;
+
 /**
  * Returns Jira Project and Issues types for use in policy notifications
  *
  * @since 1.21.0
  */
 @Named
+@Timed
 @Path(JiraResource.RESOURCE_PATH)
 public class JiraResource
 {

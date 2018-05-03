@@ -28,6 +28,7 @@ import com.codahale.metrics.annotation.Timed;
  * @since 1.11
  */
 @Named
+@Timed
 @Path(ComponentDetailResource.RESOURCE_PATH)
 public class ComponentDetailResource
 {
@@ -45,7 +46,6 @@ public class ComponentDetailResource
   @GET
   @Path("applications")
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getApplicationDetailsByHash(hash);
   }
@@ -53,7 +53,6 @@ public class ComponentDetailResource
   @GET
   @Path("name")
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   public ComponentDisplayName getComponentNameByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getComponentNameByHash(hash);
   }
@@ -65,7 +64,6 @@ public class ComponentDetailResource
   @Path(GET_COMPONENT_COUNTS)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "getComponentCountsExceptionMeter")
   public ComponentCountsDTO getComponentCounts(OwnerFilterDTO ownerFilterDTO) {
     return componentDetailService.getComponentCounts(ownerFilterDTO.organizationIds, ownerFilterDTO.applicationIds);

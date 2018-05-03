@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 @Named
+@Timed
 @Path(DashboardResource.RESOURCE_PATH)
 public class DashboardResource
 {
@@ -75,7 +76,6 @@ public class DashboardResource
   @Path(GET_NEWEST_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "getNewestRisksExceptionMeter")
   public DashboardResultsDTO<NewestRiskDTO> getNewestRisks(RisksFilterDTO risksFilterDTO) {
     return newestRiskService.getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
@@ -88,7 +88,6 @@ public class DashboardResource
   @Path(GET_APPLICATION_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "getApplicationRisksExceptionMeter")
   public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(RisksFilterDTO risksFilterDTO) {
     return applicationRiskService.getApplicationRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
@@ -101,7 +100,6 @@ public class DashboardResource
   @Path(GET_COMPONENT_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "getComponentRisksExceptionMeter")
   public DashboardResultsDTO<ComponentRiskDTO> getComponentRisks(RisksFilterDTO risksFilterDTO) {
     return componentRiskService.getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
@@ -116,7 +114,6 @@ public class DashboardResource
   @GET
   @Path(FILTERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "getActiveDashboardFilterForCurrentUserExceptionMeter")
   public NamedDashboardFilterDTO getActiveDashboardFilterForCurrentUser() throws IOException {
     return dashboardFilterService.getActiveDashboardFilterForCurrentUser();
@@ -128,7 +125,6 @@ public class DashboardResource
   @GET
   @Path(NAMED_FILTERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "getNamedDashboardFiltersForCurrentUserExceptionMeter")
   public List<NamedDashboardFilterDTO> getNamedDashboardFiltersForCurrentUser() throws IOException {
     return dashboardFilterService.getNamedDashboardFiltersForCurrentUser();
@@ -141,7 +137,6 @@ public class DashboardResource
   @Path(FILTERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "updateDashboardFilterForCurrentUserExceptionMeter")
   public DashboardFilterDTO updateDashboardFilterForCurrentUser(NamedDashboardFilterDTO namedDashboardFilterDTO) {
     namedDashboardFilterDTO.name = "";
@@ -155,7 +150,6 @@ public class DashboardResource
   @Path(NAMED_FILTERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "createOrUpdateDashboardFilterForCurrentUserExceptionMeter")
   public NamedDashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(NamedDashboardFilterDTO dashboardFilterDTO) {
     return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
@@ -168,7 +162,6 @@ public class DashboardResource
   @Path(DELETE_NAMED_FILTERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Timed
   @ExceptionMetered(name = "deleteDashboardFiltersForCurrentUserByFilterNameExceptionMeter")
   public Response deleteDashboardFiltersForCurrentUserByFilterName(final List<String> names) {
     List<DashboardFilterErrorResponseDTO> errorResponseDTOs = dashboardFilterService
@@ -205,7 +198,6 @@ public class DashboardResource
   @Path(GET_NEWEST_RISKS_EXPORT_PATH)
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces("text/csv")
-  @Timed
   @ExceptionMetered(name = "getNewestRisksExportExceptionMeter")
   public Response getNewestRisksExport(FormDataMultiPart multiPart) throws IOException
   {
@@ -231,7 +223,6 @@ public class DashboardResource
   @Path(GET_COMPONENT_RISKS_EXPORT_PATH)
   @Produces("text/csv")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Timed
   @ExceptionMetered(name = "getComponentRisksExportExceptionMeter")
   public Response getComponentRisksExport(FormDataMultiPart multiPart) throws IOException
   {
@@ -256,7 +247,6 @@ public class DashboardResource
   @Path(GET_APPLICATION_RISKS_EXPORT_PATH)
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces("text/csv")
-  @Timed
   @ExceptionMetered(name = "getApplicationRisksExportExceptionMeter")
   public Response getApplicationRisksExport(FormDataMultiPart multiPart) throws IOException
   {

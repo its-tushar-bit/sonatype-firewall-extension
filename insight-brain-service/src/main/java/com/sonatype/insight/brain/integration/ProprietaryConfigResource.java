@@ -16,7 +16,10 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Named
+@Timed
 @Path(ProprietaryConfigResource.RESOURCE_PATH)
 public class ProprietaryConfigResource
 {

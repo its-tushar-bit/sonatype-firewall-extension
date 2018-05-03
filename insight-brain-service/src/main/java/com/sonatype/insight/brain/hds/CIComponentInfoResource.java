@@ -25,8 +25,11 @@ import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVuln
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
+import com.codahale.metrics.annotation.Timed;
+
 @Path(CIComponentInfoResource.RESOURCE_PATH)
 @Named
+@Timed
 public class CIComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ci/componentDetails";

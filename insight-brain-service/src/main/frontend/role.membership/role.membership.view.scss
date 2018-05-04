@@ -1,7 +1,18 @@
-.role-membership {
+.iq-role-membership-container {
+  border-top: 1px solid $iq-grey-4;
+  display: block;
+  padding-top: 20px;
+
   .iq-form {
     border-top: 0;
     padding-top: 0;
     position: static; // This fixes an obscure tooltip problem where they get cut off on the left hand side
+  }
+}
+
+.iq-form {
+  + .iq-role-membership-container {
+    border-top: none;
+    padding-top: 0;
   }
 }

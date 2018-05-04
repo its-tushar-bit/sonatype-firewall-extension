@@ -189,6 +189,40 @@
           </execution>
         </executions>
       </plugin>
+      <!-- We run the tests using maven-failsafe-plugin because we want to run them
+           after the obfuscation was done and to use the artifact jar, not the classes. 
+           (The obfuscation may break things in unexpected ways.)  -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/*Test.*</include>
+          </includes>
+          <trimStackTrace>false</trimStackTrace>
+          <reuseForks>true</reuseForks>
+          <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+          <!-- Exclude the dependencies we obfuscate in order to ensure the un-obfuscated code is not available. -->
+          <classpathDependencyExcludes>
+            <classpathDependencyExcludes>com.sonatype.insight.scan:insight-scanner-hashing</classpathDependencyExcludes>
+            <classpathDependencyExcludes>org.ow2.asm:asm*</classpathDependencyExcludes>
+          </classpathDependencyExcludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.mail.BodyPart;
@@ -54,11 +55,11 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.AnyOf.anyOf;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertNull;
@@ -136,10 +137,20 @@ public class HdsClientTest
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
   }
 
+  private String getBrainVersion() throws IOException {
+    Properties props = new Properties();
+    try (InputStream is = this.getClass()
+        .getResourceAsStream("/HdsClientTest/testBrainUserAgentOnRequests.properties")) {
+      props.load(is);
+      return props.getProperty("version");
+    }
+  }
+
   @Test
-  public void testClmUserAgentOnRequests() throws Exception {
+  public void testBrainUserAgentOnRequests() throws Exception {
     String userAgent = UserAgentUtils.getDefaultUserAgent() + " " + USER_AGENT_SUFFIX;
-    final Set<String> headers = new HashSet<>();
+    assertThat(userAgent, startsWith("Sonatype_CLM_Server/" + getBrainVersion()));
+    final Map<String, String> headers = new HashMap<>();
     String testPath = "/rest/test";
     handler = new AbstractHandler()
     {
@@ -150,7 +161,8 @@ public class HdsClientTest
       {
         headers.clear();
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
-          headers.add(request.getHeader(en.nextElement()));
+          String headerName = en.nextElement();
+          headers.put(headerName, request.getHeader(headerName));
         }
         baseRequest.setHandled(true);
       }
@@ -162,16 +174,16 @@ public class HdsClientTest
     when(request.getMethod()).thenReturn("GET");
 
     client.get(InputStream.class, testPath, null, new String[] {});
-    assertThat(headers, hasItem(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
     client.get(request, InputStream.class, testPath, new String[] {});
-    assertThat(headers, hasItem(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
     client.get(request, InputStream.class, testPath, null, new String[] {});
-    assertThat(headers, hasItem(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
     client.getResponse(request, testPath, null, new String[] {});
-    assertThat(headers, hasItem(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
     client.put(null, InputStream.class, testPath,
         new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), new String[] {});
-    assertThat(headers, hasItem(userAgent));
+    assertThat(headers.get(HttpHeaders.USER_AGENT), is(userAgent));
   }
 
   @Test

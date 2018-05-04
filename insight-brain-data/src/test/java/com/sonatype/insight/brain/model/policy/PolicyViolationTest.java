@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
@@ -184,19 +186,34 @@ public class PolicyViolationTest
   private List<ConstraintFact> createConstraintFacts(int count) {
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     for (int i = 0; i < count; i++) {
-      constraintFacts.add(new ConstraintFact(UUID.randomUUID().toString(), "constraintName " + i, "and"));
+      ConstraintFact constraintFact = new ConstraintFact(UUID.randomUUID().toString(), "constraintName " + i, "and");
+      ConditionFact conditionFact = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+          0 /* conditionIndex */, "some summary", "some reason");
+      conditionFact.setTriggerJson("some trigger");
+      constraintFact.addConditionFact(conditionFact);
+      constraintFacts.add(constraintFact);
     }
     return constraintFacts;
   }
 
   private void assertConstraintFacts(List<ConstraintFact> actual, List<ConstraintFact> expected) {
     assertThat(actual, hasSize(expected.size()));
-    for (int i = 0; i < expected.size(); i++) {
-      ConstraintFact expectedConstraintFact = expected.get(i);
-      ConstraintFact actualConstraintFact = actual.get(i);
+    for (int constraintFactIndex = 0; constraintFactIndex < expected.size(); constraintFactIndex++) {
+      ConstraintFact expectedConstraintFact = expected.get(constraintFactIndex);
+      ConstraintFact actualConstraintFact = actual.get(constraintFactIndex);
       assertThat(actualConstraintFact.getConstraintId(), is(expectedConstraintFact.getConstraintId()));
       assertThat(actualConstraintFact.getConstraintName(), is(expectedConstraintFact.getConstraintName()));
       assertThat(actualConstraintFact.getOperatorName(), is(expectedConstraintFact.getOperatorName()));
+      for (int conditionFactIndex = 0; conditionFactIndex < expectedConstraintFact.getConditionFacts()
+          .size(); conditionFactIndex++) {
+        ConditionFact expectedConditionFact = expectedConstraintFact.getConditionFacts().get(conditionFactIndex);
+        ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(conditionFactIndex);
+        assertThat(actualConditionFact.getConditionTypeId(), is(expectedConditionFact.getConditionTypeId()));
+        assertThat(actualConditionFact.getConditionIndex(), is(expectedConditionFact.getConditionIndex()));
+        assertThat(actualConditionFact.getSummary(), is(expectedConditionFact.getSummary()));
+        assertThat(actualConditionFact.getReason(), is(expectedConditionFact.getReason()));
+        assertThat(actualConditionFact.getTriggerJson(), is(expectedConditionFact.getTriggerJson()));
+      }
     }
   }
 

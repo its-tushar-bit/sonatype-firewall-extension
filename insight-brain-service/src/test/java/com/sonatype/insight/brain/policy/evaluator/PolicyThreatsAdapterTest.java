@@ -188,7 +188,7 @@ public class PolicyThreatsAdapterTest
 
   private List<ConstraintFact> buildConstraintFact(String policyId) {
     ConstraintFact fact = new ConstraintFact("constraint-" + policyId, "constraint-" + policyId, "test-operator");
-    ConditionFact condition = new ConditionFact(ConditionTypes.MatchStateConditionType.getId(),
+    ConditionFact condition = new ConditionFact(ConditionTypes.MatchStateConditionType.getId(), 0 /* conditionIndex */,
         "Match state condition.", "Unknown match state.");
     fact.addConditionFact(condition);
 

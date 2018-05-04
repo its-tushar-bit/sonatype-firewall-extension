@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -53,11 +54,19 @@ public class PolicyAlertUtil
           policyViolation.getHash());
       ComponentFactUtil.injectDisplayName(componentFact);
       for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
+        removeDataUnnecessaryForPolicyAlert(constraintFact);
         componentFact.addConstraintFact(constraintFact);
       }
       policyFact.addComponentFact(componentFact);
     }
 
     return result;
+  }
+
+  private static void removeDataUnnecessaryForPolicyAlert(ConstraintFact constraintFact) {
+    for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
+      conditionFact.setConditionIndex(0);
+      conditionFact.setTriggerJson(null);
+    }
   }
 }

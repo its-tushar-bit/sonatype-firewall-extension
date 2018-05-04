@@ -144,11 +144,12 @@ public class ComponentPolicyEvaluator
             final List<Condition> conditions = constraint.getConditions();
             final int conditionIndex = fact.getConditionIndex();
             if (conditionIndex >= 0) {
-              constraintFact.addConditionFact(createConditionFact(conditions.get(conditionIndex), component));
+              constraintFact
+                  .addConditionFact(createConditionFact(conditions.get(conditionIndex), conditionIndex, component));
             }
             else {
               for (final Condition condition : conditions) {
-                constraintFact.addConditionFact(createConditionFact(condition, component));
+                constraintFact.addConditionFact(createConditionFact(condition, conditionIndex, component));
               }
             }
             if (policyWaiverForComponentFact == null) {
@@ -183,13 +184,13 @@ public class ComponentPolicyEvaluator
     }
   }
 
-  public static ConditionFact createConditionFact(Condition condition, Component component) {
+  public static ConditionFact createConditionFact(Condition condition, int conditionIndex, Component component) {
     final ConditionType conditionType = ConditionTypes.getById(condition.getConditionTypeId());
 
     String summary = conditionType.explainCondition(condition);
     String reason = conditionType.explainMatch(condition, component);
 
-    return new ConditionFact(condition.getConditionTypeId(), summary, reason);
+    return new ConditionFact(condition.getConditionTypeId(), conditionIndex, summary, reason);
   }
 
   private static Map<Policy, List<MatchFact>> byPolicy(final List<Policy> policies, final List<MatchFact> facts) {

@@ -759,8 +759,9 @@ public class RepositoryReportTest
 
     Component c = new Component(component.getComponentIdentifier());
     c.setMatchState(MatchState.EXACT);
-    constraintFact.addConditionFact(
-        ComponentPolicyEvaluator.createConditionFact(policy.getConstraints().get(0).getConditions().get(0), c));
+    int conditionIndex = 0;
+    constraintFact.addConditionFact(ComponentPolicyEvaluator
+        .createConditionFact(policy.getConstraints().get(0).getConditions().get(conditionIndex), conditionIndex, c));
 
     RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(),
         policy.getThreatLevel(), component.getPathname(), false, true, policy.getId(), policy.getName(),

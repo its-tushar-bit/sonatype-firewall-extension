@@ -943,7 +943,8 @@ public class TemporaryEntity
     Condition condition = constraint.getConditions().get(0);
     ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
         .getOperator().name());
-    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), "summary", reason);
+    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary",
+        reason);
     constraintFact.addConditionFact(conditionFact);
 
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, componentIdentifier,

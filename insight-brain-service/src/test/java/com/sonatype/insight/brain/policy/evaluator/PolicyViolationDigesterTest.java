@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 
 import org.junit.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -278,7 +279,7 @@ public class PolicyViolationDigesterTest
 
   private static ConditionFact conditionFact(final String conditionTypeId, final String operator, final String value) {
     final Condition condition = new Condition(conditionTypeId, operator, value);
-    return ComponentPolicyEvaluator.createConditionFact(condition,
+    return ComponentPolicyEvaluator.createConditionFact(condition, 0 /* conditionIndex */,
         ComponentFactory.forGav("G", "A", "V", MatchState.EXACT));
   }
 

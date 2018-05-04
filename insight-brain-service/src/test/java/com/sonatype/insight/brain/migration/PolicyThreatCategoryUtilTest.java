@@ -35,12 +35,16 @@ public class PolicyThreatCategoryUtilTest
   @Test
   public void testDeterminePolicyThreatCategory_ConstraintFacts() {
     ConstraintFact constraintFact1 = new ConstraintFact("constraintId1", "constraintName1", "operatorName1");
-    constraintFact1.addConditionFact(new ConditionFact(MatchStateConditionType.ID, "summary", "reason"));
-    constraintFact1.addConditionFact(new ConditionFact(AgeInDaysConditionType.ID, "summary", "reason"));
+    constraintFact1
+        .addConditionFact(new ConditionFact(MatchStateConditionType.ID, 0 /* conditionIndex */, "summary", "reason"));
+    constraintFact1
+        .addConditionFact(new ConditionFact(AgeInDaysConditionType.ID, 1 /* conditionIndex */, "summary", "reason"));
     ConstraintFact constraintFact2 = new ConstraintFact("constraintId2", "constraintName2", "operatorName2");
-    constraintFact2.addConditionFact(new ConditionFact(LabelConditionType.ID, "summary", "reason"));
     constraintFact2
-        .addConditionFact(new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, "summary", "reason"));
+        .addConditionFact(new ConditionFact(LabelConditionType.ID, 0 /* conditionIndex */, "summary", "reason"));
+    constraintFact2
+        .addConditionFact(new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 1 /* conditionIndex */,
+            "summary", "reason"));
     List<ConstraintFact> constraintFacts = Arrays.asList(constraintFact1, constraintFact2);
     PolicyThreatCategory category = PolicyThreatCategoryUtil.determinePolicyThreatCategory(constraintFacts);
     assertThat(category, is(PolicyThreatCategory.SECURITY));
@@ -49,7 +53,8 @@ public class PolicyThreatCategoryUtilTest
   @Test
   public void testDeterminePolicyThreatCategory_UnknownConditionType() {
     ConstraintFact constraintFact = new ConstraintFact("constraintId1", "constraintName1", "operatorName1");
-    constraintFact.addConditionFact(new ConditionFact("Invalid condition type id", "summary", "reason"));
+    constraintFact
+        .addConditionFact(new ConditionFact("Invalid condition type id", 0 /* conditionIndex */, "summary", "reason"));
     List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact);
     PolicyThreatCategory category = PolicyThreatCategoryUtil.determinePolicyThreatCategory(constraintFacts);
     assertThat(category, is(PolicyThreatCategory.OTHER));

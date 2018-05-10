@@ -73,4 +73,11 @@ public class SupportResourceTest
       }
     }
   }
+
+  @Test
+  public void testCreateSupportZip_Unlicensed() throws Exception {
+    uninstallLicense();
+    final HttpResponse response = restRequest().get();
+    assertResponseStatus(200, response);
+  }
 }

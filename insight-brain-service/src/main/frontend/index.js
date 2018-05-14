@@ -69,7 +69,7 @@ import './configuration/webhook/webhook.list.controller';
 import './configuration/webhook/webhook.edit.controller';
 import './configuration/license/ProductLicenseModule';
 import './configuration/systemNoticeConfiguration/systemNoticeConfigurationModule';
-import './configuration/systemNoticeConfiguration/systemNoticeConfigurationController';
+import './configuration/systemNoticeConfiguration/systemNoticeConfiguration';
 import './dashboard/ComponentController';
 import './policy/AppSecurityController';
 import './policy/LabelController';

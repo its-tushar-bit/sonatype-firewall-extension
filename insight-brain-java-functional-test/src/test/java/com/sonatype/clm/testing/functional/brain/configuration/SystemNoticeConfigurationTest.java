@@ -233,6 +233,7 @@ public class SystemNoticeConfigurationTest
   }
 
   private void systemNoticeMatchesConfiguration() {
+    systemNoticeConfigurationPage.should(appear);
     if (systemNoticeConfigurationPage.isDisplayed()) {
       systemNotice.shouldBe(visible).shouldHave(exactText(systemNoticeConfigurationPage.getText()));
     }

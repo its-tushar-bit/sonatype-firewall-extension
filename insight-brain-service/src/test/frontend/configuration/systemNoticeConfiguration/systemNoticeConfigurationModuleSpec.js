@@ -15,14 +15,10 @@ describe('systemNoticeConfigurationModuleSpec.js', function() {
   }));
 
   it('sets up the ui router state', function() {
-    expect($state.get('systemNotice').url).toEqual('/systemNotice');
-    expect($state.get('systemNotice').controller).toEqual('systemNoticeConfigurationController');
-    expect($state.get('systemNotice').controllerAs).toEqual('vm');
-    expect($state.get('systemNotice').templateUrl).toEqual(
-        'configuration/systemNoticeConfiguration/systemNoticeConfiguration.html');
-    expect($state.get('systemNotice').data.title).toEqual('System Notice');
-    expect($state.get('systemNotice').resolve.isAuthorized[0]).toEqual('PermissionService');
-    var permissionServiceFunction = $state.get('systemNotice').resolve.isAuthorized[1];
+    expect($state.get('systemNoticeConfiguration').url).toEqual('/systemNoticeConfiguration');
+    expect($state.get('systemNoticeConfiguration').data.title).toEqual('System Notice');
+    expect($state.get('systemNoticeConfiguration').resolve.isAuthorized[0]).toEqual('PermissionService');
+    var permissionServiceFunction = $state.get('systemNoticeConfiguration').resolve.isAuthorized[1];
     var permissionServiceMock = {
       isAuthorized: function() {
       }

@@ -1,9 +1,8 @@
 describe('systemNoticeConfigurationControllerSpec.js', function() {
   beforeEach(function() {
-    module('ui.router');
-    module('CLMLocation');
     module('systemNoticeModule');
     module('systemNoticeConfigurationModule', function($provide) {
+      SpecUtil.mockPermissionService($provide);
       $provide.value('$cookies', {
         get: angular.noop
       });
@@ -15,22 +14,17 @@ describe('systemNoticeConfigurationControllerSpec.js', function() {
       systemNoticeService,
       getSystemNoticeDeferred,
       saveSystemNoticeDeferred,
-      $controller,
       vm;
 
-  beforeEach(inject(function(_$rootScope_, _systemNoticeService_, $q, _$controller_) {
+  beforeEach(inject(function(_$rootScope_, _systemNoticeService_, $q, $componentController) {
     $rootScope = _$rootScope_;
     $scope = $rootScope.$new();
     systemNoticeService = _systemNoticeService_;
     getSystemNoticeDeferred = $q.defer();
     saveSystemNoticeDeferred = $q.defer();
-    $controller = _$controller_;
     spyOn(systemNoticeService, 'getSystemNotice').and.returnValue(getSystemNoticeDeferred.promise);
     spyOn(systemNoticeService, 'saveSystemNotice').and.returnValue(saveSystemNoticeDeferred.promise);
-    vm = $controller('systemNoticeConfigurationController', {
-      $scope: $scope,
-      isAuthorized: true
-    });
+    vm = $componentController('systemNoticeConfiguration');
   }));
 
   afterEach(function() {

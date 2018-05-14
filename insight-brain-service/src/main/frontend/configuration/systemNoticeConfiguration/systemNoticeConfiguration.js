@@ -3,9 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function systemNoticeConfigurationController(isAuthorized, systemNoticeService, $rootScope) {
+import template from './systemNoticeConfiguration.html';
+
+var systemNoticeConfiguration = {
+  controller: SystemNoticeConfigurationController,
+  bindings: {
+    isAuthorized: '<'
+  },
+  controllerAs: 'vm',
+  template: template
+};
+
+function SystemNoticeConfigurationController($rootScope, systemNoticeService) {
   var vm = this;
-  vm.isAuthorized = isAuthorized;
   vm.load = load;
   vm.save = save;
   vm.cancel = cancel;
@@ -48,7 +58,6 @@ function systemNoticeConfigurationController(isAuthorized, systemNoticeService, 
   }
 }
 
-systemNoticeConfigurationController.$inject = ['isAuthorized', 'systemNoticeService', '$rootScope'];
+SystemNoticeConfigurationController.$inject = ['$rootScope', 'systemNoticeService'];
 
-angular.module('systemNoticeConfigurationModule').controller('systemNoticeConfigurationController',
-    systemNoticeConfigurationController);
+export default systemNoticeConfiguration;

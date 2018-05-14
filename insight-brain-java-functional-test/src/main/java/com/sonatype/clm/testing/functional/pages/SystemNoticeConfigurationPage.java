@@ -21,9 +21,13 @@ import static com.codeborne.selenide.Selenide.$;
 public class SystemNoticeConfigurationPage
     extends BasicElement<SystemNoticeConfigurationPage>
 {
-  public static final String URL = BaseUrl.resolvePageUrl("/systemNotice");
+  public static final String URL = BaseUrl.resolvePageUrl("/systemNoticeConfiguration");
 
   private static final String ROOT_SELECTOR = "#system-notice-configuration";
+
+  private static final int DOUBLE_CLICK_TIME = 500;
+
+  private long lastClicked;
 
   public SystemNoticeConfigurationPage() {
     super(ROOT_SELECTOR);
@@ -104,7 +108,19 @@ public class SystemNoticeConfigurationPage
   }
 
   public void toggleDisplay() {
+    // Prevent subsequent clicks from happening too fast, otherwise the browser may interpret it as a double-click.
+    long timeBetweenClicks = System.currentTimeMillis() - lastClicked;
+    if (timeBetweenClicks < DOUBLE_CLICK_TIME) {
+      try {
+        Thread.sleep(DOUBLE_CLICK_TIME - timeBetweenClicks);
+      }
+      catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
     displayToggle().click();
+
+    lastClicked = System.currentTimeMillis();
   }
 
   public void toggleDisplayAndUpdate() {

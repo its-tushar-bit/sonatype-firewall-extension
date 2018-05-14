@@ -5,8 +5,9 @@
  */
 import gettingStartedModule from './gettingStarted/module';
 import successMetricsConfigurationModule from './successMetricsConfiguration/successMetricsConfigurationModule';
+import systemNoticeConfigurationModule from './systemNoticeConfiguration/systemNoticeConfigurationModule';
 import automaticApplicationsConfigurationModule from './automaticApplicationsConfiguration/automaticApplicationsConfigurationModule';
 
 export default angular.module('configurationModule', [
-  gettingStartedModule.name, successMetricsConfigurationModule.name, automaticApplicationsConfigurationModule.name
+  gettingStartedModule.name, successMetricsConfigurationModule.name, systemNoticeConfigurationModule.name, automaticApplicationsConfigurationModule.name
 ]);

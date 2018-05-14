@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.tools.common;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 
 public class PerfTestConfig
 {
@@ -41,7 +42,6 @@ public class PerfTestConfig
       return minRuns;
     }
 
-
     public void setMinRuns(int val) {
       minRuns = val;
     }
@@ -56,8 +56,8 @@ public class PerfTestConfig
   }
 
   public static class TestUrl
+      implements Cloneable
   {
-
     private String url;
 
     private String type;
@@ -82,6 +82,7 @@ public class PerfTestConfig
       type = val;
     }
 
+    @JsonRawValue
     public String getPayload() {
       return payload;
     }
@@ -97,6 +98,16 @@ public class PerfTestConfig
 
     public void setRepeat(RepeatConfig val) {
       repeat = val;
+    }
+
+    @Override
+    public Object clone() {
+      try {
+        return super.clone();
+      }
+      catch (CloneNotSupportedException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }

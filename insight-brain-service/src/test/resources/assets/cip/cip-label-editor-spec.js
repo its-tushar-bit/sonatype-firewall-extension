@@ -61,7 +61,7 @@ describe('cip.label.editor tests', function() {
 
     it('Test Add Application scoped Label', inject(function($httpBackend) {
       $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'),
-              {"id": "two", "ownerId": "appId", "label": "two", "labelLowercase": "two", "description": "two", "color": "blue", "ownerType": "application", "ownerName": "test"}).respond(
+              {"id": "two", "ownerId": "appId", "label": "two", "labelLowercase": "two", "description": "two", "color": "blue"}).respond(
                       []);
       $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00')).
           respond({"labelsByOwner": [

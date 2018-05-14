@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, CLM */
+import {omit} from 'ramda';
+
 (function() {
   'use strict';
 
@@ -59,8 +61,9 @@
     //for labels owned by the app, we simply do the add here, as there is no need to view the dialog to select the owner, app is the only option
     $scope.addLabel = function(label) {
       if (label.ownerType === 'application') {
+        const payload = omit(['ownerType', 'ownerName'], label);
         $http.post(CLM.path + 'rest/label/component/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/' +
-                SelectedComponent.get().hash, label).then(function() {
+                SelectedComponent.get().hash, payload).then(function() {
           $scope.doLoad();
         }, errorFn);
       }

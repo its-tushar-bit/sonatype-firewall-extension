@@ -10,6 +10,7 @@ import directivesModule from './directives/module';
 import dashboardModule from './dashboard/dashboard.module';
 import reduxConfigModule from './reduxConfig/module';
 import changeDefaultAdminPasswordModule from './changeDefaultAdminPasswordNotice/module';
+import applicationReportModule from './applicationReport/module';
 
 export default angular.module('managementApp',
     [
@@ -17,5 +18,5 @@ export default angular.module('managementApp',
       'root.organization.migrate', 'ProductLicense', 'webhook.module', 'systemNoticeConfigurationModule',
       'systemNoticeModule', 'components', directivesModule.name, 'labsModule', configurationModule.name,
       legacyConfigurationModule.name, dashboardModule.name, reduxConfigModule.name,
-      changeDefaultAdminPasswordModule.name
+      changeDefaultAdminPasswordModule.name, applicationReportModule.name
     ]);

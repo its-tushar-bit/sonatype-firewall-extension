@@ -1,0 +1,31 @@
+<div class="iq-tile" load-wrapper="vm.loadError" reload="vm.doLoad()" loading="vm.loading">
+  <div class="iq-tile__actions">
+    <div class="iq-dropdown dropdown" id="options-dropdown">
+      <button class="btn dropdown-toggle btn-tertiary" type="button" id="options-menu" data-toggle="dropdown">
+        Options <span class="caret"></span>
+      </button>
+      <div class="dropdown-menu iq-dropdown-menu">
+        <div class="iq-dropdown-menu__actions">
+          <a id="re-evaluate-link" class="btn iq-btn--dropdown" ng-click="">
+            <i class="fa fa-refresh fa-fw"/>Re-Evaluate Report
+          </a>
+          <a id="generate-pdf-link" class="btn iq-btn--dropdown" ng-click="">
+            <i class="fa fa-file-pdf-o fa-fw"/>Generate PDF
+          </a>
+          <div class="divider"></div>
+          <a id="raw-data-link" class="link iq-dropdown-menu__link" ng-click="">
+            <i class="fa fa-external-link fa-fw"/>View raw data
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="iq-tile-header">
+    <div class="iq-tile-header__title">
+      <h1>{{vm.selectedReport.application.name}} {{vm.selectedReport.reportTitle}}</h1>
+    </div>
+    <div class="iq-tile-header__subtitle">
+      {{vm.selectedReport.reportTime | date: 'yyyy-MM-dd'}}
+    </div>
+  </div>
+</div>

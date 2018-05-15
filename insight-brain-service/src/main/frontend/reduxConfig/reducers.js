@@ -8,10 +8,12 @@ import routerStateReducer from '../reduxUiRouter/routerStateReducer';
 import dashboardReducer from '../dashboard/dashboardReducer';
 import manageFiltersReducer from '../dashboard/filter/manageFiltersReducer';
 import dashboardFilterReducer from '../dashboard/filter/dashboardFilterReducer';
+import applicationReportReducer from '../applicationReport/applicationReportReducer';
 
 export default combineReducers({
   router: routerStateReducer,
   dashboard: dashboardReducer,
   manageFilters: manageFiltersReducer,
-  dashboardFilter: dashboardFilterReducer
+  dashboardFilter: dashboardFilterReducer,
+  applicationReport: applicationReportReducer
 });

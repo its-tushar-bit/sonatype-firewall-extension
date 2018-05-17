@@ -108,6 +108,7 @@ public class LdapConfigurationTest
     ldapNameEditor.saveButton().shouldBe(visible, enabled).click();
     ldapNameEditor.saveButton().shouldBe(hidden);
     ldapNameEditor.cancelButton().shouldBe(hidden);
+    LdapConfigurationPage.ldapConnectionForm().shouldBe(visible);
 
     eyesWatcher.eyesCheck();
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers"));

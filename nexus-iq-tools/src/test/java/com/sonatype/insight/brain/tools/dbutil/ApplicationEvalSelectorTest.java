@@ -47,6 +47,8 @@ public class ApplicationEvalSelectorTest
         Boolean.FALSE, Boolean.FALSE, "2004-04-04 00:00:00" });
     insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval5", "app1", "build", "scan5", Boolean.FALSE,
         Boolean.FALSE, Boolean.FALSE, "2005-05-05 00:00:00" });
+    insert("policy_evaluation", POLICY_EVAL_COLS, new Object[] { "peval6", "app1", "build", "scan6", Boolean.FALSE,
+        Boolean.FALSE, Boolean.FALSE, "2006-06-06 00:00:00" });
     // violations
     // open
     insert("policy_violation", POLICY_VIOLATION_COLS, new Object[] { "v1", "a1", "build", "p1", "pn1", 0, "test", "",
@@ -110,9 +112,41 @@ public class ApplicationEvalSelectorTest
       Map<String, List<String>> selections = new ApplicationEvalSelector().loadSelections(conn, params);
 
       assertThat(selections.values().size(), is(4));
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY).size(), is(5));
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY),
+          containsInAnyOrder("app1", "app1", "app2", "app2", "app3"));
+    }
+  }
+
+  @Test
+  public void testLoadSelections_MaxApps() throws Exception {
+
+    defaults();
+
+    try (Connection conn = getConnection()) {
+      DbUtilParameters params = new DbUtilParameters("-max-app", "2");
+      Map<String, List<String>> selections = new ApplicationEvalSelector().loadSelections(conn, params);
+
+      assertThat(selections.values().size(), is(4));
       assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY).size(), is(2));
       assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY),
           containsInAnyOrder("app1", "app2"));
+    }
+  }
+
+  @Test
+  public void testLoadSelections_MaxAppsMaxEvals() throws Exception {
+
+    defaults();
+
+    try (Connection conn = getConnection()) {
+      DbUtilParameters params = new DbUtilParameters("-max-app", "2", "-max-eval", "2");
+      Map<String, List<String>> selections = new ApplicationEvalSelector().loadSelections(conn, params);
+
+      assertThat(selections.values().size(), is(4));
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY).size(), is(4));
+      assertThat(selections.get(ApplicationEvalSelector.APPLICATION_REPLACEMENT_KEY),
+                 containsInAnyOrder("app1", "app1", "app2", "app2"));
     }
   }
 }

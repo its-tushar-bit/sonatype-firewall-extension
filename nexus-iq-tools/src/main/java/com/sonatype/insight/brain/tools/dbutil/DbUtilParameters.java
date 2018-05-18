@@ -33,10 +33,11 @@ public class DbUtilParameters
   private Integer maxOrganizations = 20;
 
   @Parameter(names = { "-max-app", "--max-applications" }, description = "Maximum number of application values.")
-  private Integer maxApplications = 25;
+  private Integer maxApplications = 10;
 
-  @Parameter(names = { "-max-eval", "--max-evaluations" }, description = "Maximum number of evaluations values.")
-  private Integer maxEvaluations = 10;
+  @Parameter(names = { "-max-eval", "--max-evaluations" }, //
+      description = "Maximum number of evaluations values per application.")
+  private Integer maxEvaluations = 1;
 
   @Parameter(names = { "-max-pol", "--max-policies" }, description = "Maximum number of policy values.")
   private Integer maxPolicies = 15;

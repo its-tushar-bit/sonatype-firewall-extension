@@ -36,7 +36,7 @@ public class ApplicationEvalSelector
         + " ) AS total_violations" //
         + " FROM insight_brain_ods.application app" //
         + " ORDER BY total_violations DESC, application_id ASC" //
-        + " LIMIT " + params.getMaxEvaluations();
+        + " LIMIT " + params.getMaxApplications();
 
     // eval details:
     String appEvalDetails = "" //
@@ -46,7 +46,7 @@ public class ApplicationEvalSelector
         + " AND " + getStageClause("eval.stage_type_id", params) //
         + " AND app.application_id = '" + APPLICATION_REPLACEMENT_KEY + "'" //
         + " ORDER BY eval.time DESC" //
-        + " LIMIT 1";
+        + " LIMIT " + params.getMaxEvaluations();
 
     List<String> topApplicationIds = new ArrayList<>();
 

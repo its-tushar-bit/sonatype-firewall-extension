@@ -5,15 +5,22 @@
  */
 package com.sonatype.insight.scan.cli;
 
+import java.io.File;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestCLMServer;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.scan.model.io.ScanReader;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.LogOutput;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -22,7 +29,12 @@ public abstract class AbstractPolicyEvaluatorTest
     extends InjectedTest
 {
   @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
+
+  protected static TestCLMServer testInsightServer;
 
   @Rule
   public LogOutput logOutput = new LogOutput();
@@ -32,6 +44,8 @@ public abstract class AbstractPolicyEvaluatorTest
 
   @Inject
   protected ScanReader scanReader;
+
+  protected String insightServerUrl;
 
   @Override
   @Before
@@ -47,6 +61,46 @@ public abstract class AbstractPolicyEvaluatorTest
       throw new IllegalStateException(e);
     }
     super.setUp();
+
+    startInsightServer();
+
+    // return a valid report zip file when asked
+    testInsightServer.getHdsServer().setResponseForURI("rest/application/analysis/SCAN-ID",
+        new File("src/test/resources/small-report.zip"), 200);
+
+    // Setup the log capture after dropwizard's logging setup
+    logOutput.before();
+
+    insightServerUrl = testInsightServer.getCLMServer().getClientConfiguration().getServerUrl();
+  }
+
+  @AfterClass
+  public static void afterClass() throws Exception {
+    stopInsightServer();
+  }
+
+  protected void startInsightServer() throws Exception {
+    if (testInsightServer != null) {
+      return;
+    }
+
+    testInsightServer = new TestCLMServer(false, null, new Configurator()
+    {
+      @Override
+      public void configure(InsightConfig config) {
+        config.setImportRefrencePoliciesFromHDS(false);
+      }
+    });
+    testInsightServer.start();
+  }
+
+  protected static void stopInsightServer() throws Exception {
+    if (testInsightServer == null) {
+      return;
+    }
+
+    testInsightServer.stop();
+    testInsightServer = null;
   }
 
   protected ScanReceipt newReceipt() {

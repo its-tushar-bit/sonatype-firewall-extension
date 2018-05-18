@@ -6,89 +6,70 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
-import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.client.RestClientFactory;
-import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
-import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.brain.client.ResultData;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 
-import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
-import org.apache.http.client.HttpResponseException;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class DefaultPolicyEvaluatorTest
     extends AbstractPolicyEvaluatorTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
-  private RestClient restClient;
-
-  private ArgumentCaptor<Configuration> httpConfig;
-
-  @Override
-  public void configure(Binder binder) {
-    RestClientFactory restClientFactory = mock(RestClientFactory.class);
-    binder.bind(RestClientFactory.class).toInstance(restClientFactory);
-    httpConfig = ArgumentCaptor.forClass(Configuration.class);
-    restClient = mock(RestClient.class);
-    when(restClientFactory.newRestCLIClient(httpConfig.capture())).thenReturn(restClient);
-  }
-
   @Test
   public void testRun_ServerDown() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(503, "Maintenance"));
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-p", "localhost:8888", "-U",
-        "proxyuser:proxypass", "-i", "the-app-id", "-a", "user:pass", "src/test/data/artifact.jar");
+    stopInsightServer();
+
+    tempEntity.newApplicationWithParent("the-app-id");
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
       fail("Expected error");
     }
     catch (ExitException e) {
-      logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
-      assertEquals("http://localhost:8070/", httpConfig.getValue().getServerUrl());
-      assertEquals("localhost", httpConfig.getValue().getProxyHost());
-      assertEquals(8888, httpConfig.getValue().getProxyPort());
-      assertEquals("proxyuser", httpConfig.getValue().getProxyAuth().getUsername());
-      assertEquals("proxypass", new String(httpConfig.getValue().getProxyAuth().getPassword()));
-      assertEquals("user", httpConfig.getValue().getServerAuth().getUsername());
-      assertEquals("pass", new String(httpConfig.getValue().getServerAuth().getPassword()));
+      logOutput.assertError(startsWith("The IQ Server " + insightServerUrl + " could not be contacted"));
     }
   }
 
   @Test
   public void testRun_InvalidAppId() throws Exception {
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
       fail("Expected error");
@@ -99,36 +80,39 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testRun_InvalidAuthc() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(401, "Bad Authc"));
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
+  public void testRun_InvalidAuthentication() throws Exception {
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
       fail("Expected error");
     }
     catch (ExitException e) {
-      logOutput.assertError("The IQ Server http://localhost:8070/ rejected the supplied credentials.");
+      logOutput.assertError("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
     }
   }
 
   @Test
-  public void testRun_InvalidAuthz() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(403, "Bad Authz"));
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
+  public void testRun_InvalidAuthorization() throws Exception {
+    tempEntity.newUser("user");
+    Parameters params = new Parameters("-s", insightServerUrl, //
+        "-a", "user:" + TemporaryEntity.USER_PASSWORD_CLEAR, //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
       fail("Expected error");
     }
     catch (ExitException e) {
-      logOutput.assertError("The IQ Server http://localhost:8070/ rejected the supplied credentials.");
+      logOutput.assertError("The application ID the-app-id is invalid.");
     }
   }
 
   @Test
   public void testRun_MultiAuthenticationModesEnabled() throws Exception {
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "--pki-authentication", "-a", "user:pass",
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "user:pass", "--pki-authentication", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
@@ -142,72 +126,55 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_PkiAuthenticationMode() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(401, "Bad Authc"));
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "--pki-authentication",
+    Parameters params = new Parameters("-s", insightServerUrl, "--pki-authentication", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
+
     try {
       evaluator.run(params);
       fail("Expected error");
     }
     catch (ExitException e) {
-      logOutput.assertError("The IQ Server http://localhost:8070/ rejected the supplied credentials.");
-      // verify that basic auth credentials are not set
-      assertNull(httpConfig.getValue().getServerAuth());
+      logOutput.assertError("The IQ Server " + insightServerUrl + " rejected the supplied credentials.");
     }
   }
 
   @Test
   public void testRun_NoViolations() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
-        new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    tempEntity.newApplicationWithParent("the-app-id");
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
     logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
   }
 
   @Test
   public void testRun_SomeViolations() throws Exception {
-    PolicyAlert alert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), Arrays.asList(new Action(
-        Action.ID_WARN)));
-    PolicyEvaluationResult eval = new PolicyEvaluationResult();
-    eval.setAffectedComponentCount(6);
-    eval.setCriticalComponentCount(1);
-    eval.setSevereComponentCount(2);
-    eval.setModerateComponentCount(3);
-    eval.setAlerts(Arrays.asList(alert));
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    createPolicy(app.getId(), "Policy Name", Action.ID_WARN, 10);
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
+
     logOutput.assertInfo("Policy Action: Warning");
-    logOutput.assertInfo("Summary of policy violations: 1 critical, 2 severe, 3 moderate");
-    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy Name) null");
+    logOutput.assertInfo("Summary of policy violations: 4 critical, 0 severe, 0 moderate");
+    logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(Policy Name)"));
   }
 
   @Test
   public void testRun_EffectiveActionIsMostSevere() throws Exception {
-    PolicyAlert alert1 = new PolicyAlert(new PolicyFact("policy1", "Policy 1", 10), Arrays.asList(new Action(
-        Action.ID_WARN)));
-    PolicyAlert alert2 = new PolicyAlert(new PolicyFact("policy2", "Policy 2", 10), Arrays.asList(new Action(
-        Action.ID_FAIL)));
-    PolicyAlert alert3 = new PolicyAlert(new PolicyFact("policy3", "Policy 3", 10), Arrays.asList(new Action(
-        Action.ID_WARN)));
-    PolicyEvaluationResult eval = new PolicyEvaluationResult();
-    eval.setAffectedComponentCount(6);
-    eval.setCriticalComponentCount(1);
-    eval.setSevereComponentCount(2);
-    eval.setModerateComponentCount(3);
-    eval.setAlerts(Arrays.asList(alert1, alert2, alert3));
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    createPolicy(app.getId(), "Policy 1", Action.ID_WARN, 9);
+    createPolicy(app.getId(), "Policy 2", Action.ID_FAIL, 5);
+    createPolicy(app.getId(), "Policy 3", Action.ID_WARN, 2);
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
 
     try {
       evaluator.run(params);
@@ -217,35 +184,31 @@ public class DefaultPolicyEvaluatorTest
       assertEquals(1, ex.getExitCode());
     }
     logOutput.assertInfo("Policy Action: Failure");
-    logOutput.assertInfo("Summary of policy violations: 1 critical, 2 severe, 3 moderate");
-    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 1) null");
-    logOutput.assertError("The IQ Server reports policy failing due to \nPolicy(Policy 2) null");
-    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 3) null");
+    logOutput.assertInfo("Summary of policy violations: 4 critical, 0 severe, 0 moderate");
+    logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(Policy 1)"));
+    logOutput.assertError(startsWith("The IQ Server reports policy failing due to \nPolicy(Policy 2)"));
+    logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(Policy 3)"));
   }
 
   @Test
   public void testRun_FailOnWarn() throws Exception {
-    PolicyAlert alert = new PolicyAlert(new PolicyFact("policy1", "Policy 1", 10), Arrays.asList(new Action(
-        Action.ID_WARN)));
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    createPolicy(app.getId(), "TestPolicy", Action.ID_WARN, 9);
 
-    PolicyEvaluationResult eval = new PolicyEvaluationResult();
-    eval.setAffectedComponentCount(6);
-    eval.setCriticalComponentCount(1);
-    eval.setAlerts(Arrays.asList(alert));
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
-
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
     logOutput.assertInfo("Policy Action: Warning");
-    logOutput.assertInfo("Summary of policy violations: 1 critical, 0 severe, 0 moderate");
-    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 1) null");
+    logOutput.assertInfo("Summary of policy violations: 4 critical, 0 severe, 0 moderate");
+    logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(TestPolicy)"));
 
-    params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar", "-w",
-        "true");
+    logOutput.clear();
 
+    params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-w", //
+        "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
       fail("Expected error");
@@ -254,16 +217,19 @@ public class DefaultPolicyEvaluatorTest
       assertEquals(1, ex.getExitCode());
     }
     logOutput.assertInfo("Policy Action: Warning");
-    logOutput.assertInfo("Summary of policy violations: 1 critical, 0 severe, 0 moderate");
-    logOutput.assertWarn("The IQ Server reports policy warning due to \nPolicy(Policy 1) null");
+    logOutput.assertInfo("Summary of policy violations: 4 critical, 0 severe, 0 moderate");
+    logOutput.assertWarn(startsWith("The IQ Server reports policy warning due to \nPolicy(TestPolicy)"));
   }
 
   @Test
   public void testRun_PassWhenIgnoreSystemExceptions() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenThrow(new HttpResponseException(503, ""));
+    stopInsightServer();
 
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    tempEntity.newApplicationWithParent("the-app-id");
 
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
       fail("Expected error");
@@ -272,12 +238,15 @@ public class DefaultPolicyEvaluatorTest
       assertEquals(1, ex.getExitCode());
     }
 
-    logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
+    logOutput.assertError(startsWith("The IQ Server " + insightServerUrl + " could not be contacted"));
 
-    params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar", "-e",
-        "true");
+    logOutput.clear();
 
-    // The evaluator will still throw an exit exception in the case where the -g flag is passed in as true
+    params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-e", //
+        "src/test/data/artifact.jar");
+    // The evaluator will still throw an exit exception in the case where the -e flag is passed in as true
     // The exception will have exit status code 0 such that it will "pass" in a CI
     try {
       evaluator.run(params);
@@ -287,36 +256,33 @@ public class DefaultPolicyEvaluatorTest
       assertEquals(0, ex.getExitCode());
     }
 
-    logOutput.assertError("The IQ Server is down for maintenance, please try again later.");
+    logOutput.assertError(startsWith("The IQ Server " + insightServerUrl + " could not be contacted"));
   }
 
   @Test
   public void testRun_ReportUrl() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
-        new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    tempEntity.newApplicationWithParent("the-app-id");
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
-    logOutput.assertInfo("The detailed report can be viewed online at http://localhost:8070/the-report-url");
+    logOutput.assertInfo("The detailed report can be viewed online at " + insightServerUrl
+        + "ui/links/application/the-app-id/report/SCAN-ID");
   }
 
   @Test
   public void testRun_Scan() throws Exception {
-    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
-    proprietaryConfig.setPackages(Arrays.asList("com.sonatype"));
-    ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
-    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture(), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
-        new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertNotNull(scanFile.getValue());
-    Scan scan = scanReader.read(scanFile.getValue());
+
+    File scanFile = findScanFile(params);
+    Scan scan = scanReader.read(scanFile);
     assertNotNull(scan);
     ScanSummary summary = scan.getSummary();
     assertNotNull(summary);
@@ -342,20 +308,17 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_GlobalProprietaryConfigOverriddenByClient() throws Exception {
-    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
-    proprietaryConfig.setPackages(Arrays.asList("com.overridden"));
-    ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
-    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture(), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
-        new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
-        "src/test/data/artifact.jar", "-D", "proprietaryPackages=com.sonatype");
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.overridden"), Collections.emptyList());
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-D", "proprietaryPackages=com.sonatype", //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertNotNull(scanFile.getValue());
-    Scan scan = scanReader.read(scanFile.getValue());
+
+    File scanFile = findScanFile(params);
+    Scan scan = scanReader.read(scanFile);
     assertNotNull(scan);
     ScanConfiguration config = scan.getConfiguration();
     assertNotNull(config);
@@ -374,20 +337,18 @@ public class DefaultPolicyEvaluatorTest
 
   @Test
   public void testRun_GlobalProprietaryConfigRegexOverriddenByClient() throws Exception {
-    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
-    proprietaryConfig.setRegexes(Arrays.asList("com.overridden.*"));
-    ArgumentCaptor<File> scanFile = ArgumentCaptor.forClass(File.class);
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenReturn(proprietaryConfig);
-    when(restClient.uploadScan(eq("the-app-id"), scanFile.capture(), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
-        new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
-        "src/test/data/artifact.jar", "-D", "proprietaryRegexes=com.sonatype.*");
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    tempEntity.newProprietaryConfig(app.getId(), Collections.emptyList(),
+        Collections.singletonList("com.overridden.*"));
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-D", "proprietaryRegexes=com.sonatype.*", //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertNotNull(scanFile.getValue());
-    Scan scan = scanReader.read(scanFile.getValue());
+
+    File scanFile = findScanFile(params);
+    Scan scan = scanReader.read(scanFile);
     assertNotNull(scan);
     ScanConfiguration config = scan.getConfiguration();
     assertNotNull(config);
@@ -405,58 +366,49 @@ public class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testRun_GlobalProprietaryConfigFailure() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    HttpResponseException expectedException = new HttpResponseException(500, "error");
-    when(restClient.getProprietaryConfigForApplicationEvaluation("the-app-id")).thenThrow(expectedException);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
-    try {
-      evaluator.run(params);
-      fail("Expected error");
-    }
-    catch (ExitException e) {
-      logOutput.assertError("Could not retrieve configuration for proprietary components from the IQ Server",
-          expectedException);
-    }
-  }
-
-  @Test
   public void testRun_SetScanStage() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString())).thenReturn(
-        new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
-        "src/test/data/artifact.jar", "-t", Stage.ID_RELEASE);
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-t", Stage.ID_RELEASE, //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
-    verify(restClient).evaluatePolicy("the-app-id", "the-scan-id", Stage.ID_RELEASE);
+
+    assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_RELEASE),
+        is(notNullValue()));
   }
 
   @Test
   public void testRun_DefaultScanStage() throws Exception {
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString())).thenReturn(
-        new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
-    verify(restClient).evaluatePolicy("the-app-id", "the-scan-id", Stage.ID_BUILD);
+
+    assertThat(new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD),
+        is(notNullValue()));
   }
 
   @Test
   public void testRun_JsonExport() throws Exception {
-    ScanReceipt receipt = newReceipt();
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE))).thenReturn(receipt);
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
-        new PolicyEvaluationResult());
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+
     File jsonFile = new File(tmpDir.getRoot(), "not-yet-existent/results.json");
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
-        "src/test/data/artifact.jar", "-r", jsonFile.getAbsolutePath());
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "-r", jsonFile.getAbsolutePath(), //
+        "src/test/data/artifact.jar");
     evaluator.run(params);
-    verify(restClient).saveResults(eq("the-app-id"), eq(jsonFile), eq(receipt));
+    
+    ResultData resultData = JsonUtils.parse(Files.readAllBytes(jsonFile.toPath()), ResultData.class);
+    assertThat(resultData.scanId, is("SCAN-ID"));
+    assertThat(resultData.applicationId, is(app.getPublicId()));
+    assertThat(resultData.reportDataUrl, is(notNullValue()));
+    assertThat(resultData.reportHtmlUrl, is(notNullValue()));
+    assertThat(resultData.reportPdfUrl, is(notNullValue()));
   }
 
   @Test
@@ -469,48 +421,53 @@ public class DefaultPolicyEvaluatorTest
     // - Both short and long argument names are supported.
     // - File paths within the argument file are relative to the process' current directory, not the argument file.
 
-    when(restClient.verifyOrCreateApplication("the-app-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("the-app-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_RELEASE)))
-        .thenReturn(new PolicyEvaluationResult());
+    tempEntity.newApplicationWithParent("the-app-id");
 
     List<String> paramFileLines1 = new ArrayList<>();
     paramFileLines1.add("-i");
     paramFileLines1.add("the-app-id");
-    File paramFile1 = tempDir.newFile();
+    File paramFile1 = tmpDir.newFile();
     List<String> paramFileLines2 = new ArrayList<>();
     paramFileLines2.add("--stage");
     paramFileLines2.add(Stage.ID_RELEASE);
     paramFileLines2.add("src/test/data/artifact.jar");
-    File paramFile2 = tempDir.newFile();
+    File paramFile2 = tmpDir.newFile();
     // We use the default character encoding to write the parameter files because JCommander uses the default character
     // encoding to read the file.
     FileUtils.writeLines(paramFile1, paramFileLines1, "\n");
     FileUtils.writeLines(paramFile2, paramFileLines2, "\n");
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "@" + paramFile1.getAbsolutePath(),
-        "@" + paramFile2.getAbsolutePath());
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
+        "@" + paramFile1.getAbsolutePath(), "@" + paramFile2.getAbsolutePath());
     evaluator.run(params);
     logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
   }
 
   @Test
   public void testRun_AutoAppCreationEnabled() throws Exception {
-    when(restClient.verifyOrCreateApplication("non-existent-app-public-id")).thenReturn(true);
-    when(restClient.uploadScan(eq("non-existent-app-public-id"), any(File.class), eq(ClientScanType.SONATYPE)))
-        .thenReturn(newReceipt());
-    when(restClient.evaluatePolicy(eq("non-existent-app-public-id"), eq("the-scan-id"), eq(Stage.ID_BUILD)))
-        .thenReturn(new PolicyEvaluationResult());
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "non-existent-app-public-id",
+    Organization org = tempEntity.newOrganization();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "non-existent-app-public-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     evaluator.run(params);
+
+    ApplicationDAO appDAO = new ApplicationDAO();
+    Application app = appDAO.getByPublicId("non-existent-app-public-id");
+    assertThat(app, is(notNullValue()));
+    appDAO.delete(app);
+
     logOutput.assertInfo("Summary of policy violations: 0 critical, 0 severe, 0 moderate");
   }
 
   @Test
   public void testRun_AutoAppCreationDisabled() throws Exception {
-    when(restClient.verifyOrCreateApplication("non-existent-app-public-id")).thenReturn(false);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "non-existent-app-public-id",
+    Parameters params = new Parameters("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "non-existent-app-public-id", "--output-directory", tmpDir.getRoot().getAbsolutePath(), //
         "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
@@ -519,5 +476,29 @@ public class DefaultPolicyEvaluatorTest
     catch (ExitException e) {
       logOutput.assertError("The application ID non-existent-app-public-id is invalid.");
     }
+  }
+
+  private File findScanFile(Parameters params) {
+    File scanOutputDir = params.getOutputDirectory();
+
+    File[] scanFiles = scanOutputDir.listFiles(file -> file.getName().startsWith("scan-"));
+    assertThat(scanFiles.length, is(1));
+
+    return scanFiles[0];
+  }
+
+  private void createPolicy(String ownerId, String policyName, String actionId, int threatLevel) {
+    Policy policy = new Policy();
+    policy.setName(policyName);
+    policy.setOwnerId(ownerId);
+    Condition condition = new Condition(MatchStateConditionType.ID, "is");
+    condition.setValue(MatchState.EXACT.getId());
+    Constraint constraint = new Constraint();
+    constraint.setName("test constraint");
+    constraint.addCondition(condition);
+    policy.addConstraint(constraint);
+    policy.setAction(Stage.ID_BUILD, actionId);
+    policy.setThreatLevel(threatLevel);
+    tempEntity.newPolicy(policy);
   }
 }

@@ -5,11 +5,9 @@
  */
 package com.sonatype.insight.scan.cli;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -23,7 +21,6 @@ import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.apache.http.client.HttpResponseException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -37,11 +34,6 @@ import static org.junit.Assert.fail;
 public class DefaultPolicyEvaluatorReverseProxyAuthTest
     extends AbstractPolicyEvaluatorTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
-  private TestCLMServer testCLMServer;
-
   private ReverseProxyServer reverseProxy;
 
   private boolean rutEnabled;
@@ -61,16 +53,10 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     this.anonymousAllowed = anonymousAllowed;
   }
 
+  @Override
   @Before
-  public void before() throws Exception {
-    startProxiedIQServer();
-
-    // return a valid report zip file when asked
-    testCLMServer.getHdsServer().setResponseForURI("rest/application/analysis/SCAN-ID",
-        new File("src/test/resources/PolicyEvaluatorReverseProxyAuthTest/small-report.zip"), 200);
-
-    // Setup the log capture after dropwizard's logging setup
-    logOutput.before();
+  public void setUp() throws Exception {
+    super.setUp();
 
     createAppAndAuthorizedUser("the-app-id", "mmurdock", "pa55word");
   }
@@ -78,7 +64,7 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
   @After
   public void after() throws Exception {
     reverseProxy.stop();
-    testCLMServer.stop();
+    stopInsightServer();
   }
 
   @Test
@@ -147,9 +133,10 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
     }
   }
 
-  private void startProxiedIQServer() throws Exception {
-    // start IQ server
-    testCLMServer = new TestCLMServer(false, null, new Configurator()
+  @Override
+  protected void startInsightServer() throws Exception {
+    // start Insight server
+    testInsightServer = new TestCLMServer(false, null, new Configurator()
     {
       @Override
       public void configure(InsightConfig config) {
@@ -158,10 +145,10 @@ public class DefaultPolicyEvaluatorReverseProxyAuthTest
         config.setImportRefrencePoliciesFromHDS(false);
       }
     });
-    testCLMServer.start();
+    testInsightServer.start();
 
     // start proxy server
-    reverseProxy = new ReverseProxyServer(testCLMServer.getCLMServer().getPort(), true);
+    reverseProxy = new ReverseProxyServer(testInsightServer.getCLMServer().getPort(), true);
     reverseProxy.start();
   }
 

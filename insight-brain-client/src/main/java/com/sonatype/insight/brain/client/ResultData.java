@@ -10,7 +10,7 @@ package com.sonatype.insight.brain.client;
  * 
  * @since 1.9.1
  */
-class ResultData
+public class ResultData
 {
   public String applicationId;
 

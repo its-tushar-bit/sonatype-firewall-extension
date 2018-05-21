@@ -73,10 +73,12 @@ class PolicyViolationAggregationService
 
   private final PolicyViolationResolutionStateDAO policyViolationResolutionStateDAO;
 
+  private final StageTypeService stageTypeService;
+
+  private final DashboardUtils dashboardUtils;
+
   private final ConcurrentMap<String, Lock> applicationIdLocks = CacheBuilder.newBuilder().weakValues()
       .<String, Lock> build().asMap();
-
-  private final Set<String> stageTypeIds;
 
   @Inject
   public PolicyViolationAggregationService(StageTypeService stageTypeService,
@@ -90,7 +92,11 @@ class PolicyViolationAggregationService
     this.policyViolationDAO = policyViolationDAO;
     this.violationAggregationDAO = violationAggregationDAO;
     this.policyViolationResolutionStateDAO = policyViolationResolutionStateDAO;
+    this.stageTypeService = stageTypeService;
+    this.dashboardUtils = dashboardUtils;
+  }
 
+  private Set<String> getStageTypeIds() {
     List<StageType> stageTypes = new ArrayList<>();
 
     for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
@@ -98,7 +104,8 @@ class PolicyViolationAggregationService
         stageTypes.add(stageType);
       }
     }
-    stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
+
+    return dashboardUtils.getStageTypeIds(stageTypes);
   }
 
   /**
@@ -113,12 +120,13 @@ class PolicyViolationAggregationService
     log.debug("Starting update of Policy Violation Aggregations for {} applications", applicationIds.size());
 
     long start = System.currentTimeMillis();
+    Set<String> stageTypeIds = getStageTypeIds();
 
     for (String applicationId : applicationIds) {
       Lock lock = acquireLockForApplication(applicationId);
 
       try {
-        generatePolicyViolationAggregations(applicationId, currentDateTime, includeLatestData);
+        generatePolicyViolationAggregations(applicationId, currentDateTime, stageTypeIds, includeLatestData);
       }
       finally {
         lock.unlock();
@@ -222,6 +230,7 @@ class PolicyViolationAggregationService
    */
   private void generatePolicyViolationAggregations(String applicationId,
                                                    DateTime currentDateTime,
+                                                   Set<String> stageTypeIds,
                                                    boolean includeLatestData)
   {
     log.trace("Generating Violation Aggregations for {}", applicationId);
@@ -231,7 +240,7 @@ class PolicyViolationAggregationService
 
     if (isPartial(mostRecentPriorAggregation)) {
       mostRecentPriorAggregation = updatePartialAggregation(mostRecentPriorAggregation, currentDateTime, applicationId,
-          includeLatestData);
+          stageTypeIds, includeLatestData);
     }
 
     LocalDate currentDate = currentDateTime.toLocalDate();
@@ -303,6 +312,7 @@ class PolicyViolationAggregationService
   private PolicyViolationAggregation updatePartialAggregation(PolicyViolationAggregation partialAggregation,
                                                               DateTime currentTime,
                                                               String applicationId,
+                                                              Set<String> stageTypeIds,
                                                               boolean includeLatestData)
   {
     LocalDate startOfNextAggregation = new LocalDate(partialAggregation.getTimePeriodStart()).plusMonths(1)

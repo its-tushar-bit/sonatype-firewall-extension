@@ -87,7 +87,10 @@ function config({ entryPath, outputPath, cssOutputPath, production, externals })
         use: extractSass.extract({
           use: [
             { loader: 'css-loader' },
-            { loader: 'resolve-url-loader' },
+            {
+              loader: 'resolve-url-loader',
+              options: { attempts: 1 }
+            },
             {
               loader: 'sass-loader',
               options: {

@@ -1,5 +1,5 @@
 /* This file exists because we compile into two locations, this is used by Nexus & Eclipse */
 
 #detailsparent {
-  background-image:url("../../assets/version-graph/artifactInfoIcon.png");
+  background-image:url("./artifactInfoIcon.png");
 }

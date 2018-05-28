@@ -52,6 +52,7 @@ CREATE TABLE policy_violation_resolution_state (
   hash varchar(20),
   component_id_format varchar(10),
   component_id_coordinates_json varchar(1000),
+  constraint_facts_json CLOB NOT NULL,
 
   -- whether the violation is unresolved in each of the specified stages
   develop_stage_type BOOLEAN NOT NULL,

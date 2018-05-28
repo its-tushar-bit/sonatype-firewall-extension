@@ -187,23 +187,6 @@ public class PolicyViolationDigesterTest
   }
 
   @Test
-  public void testDigest_DifferentConstraintFactsAreIgnored() {
-    final List<PolicyViolation> oldViolations = defaultPolicyViolations();
-    final List<PolicyViolation> newViolations = defaultPolicyViolations();
-
-    final ConstraintFact newFact = constraintFact("constraint_1", "Constraint 1", "AND");
-    newViolations.get(0).setConstraintFacts(Collections.singletonList(newFact));
-
-    final PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
-        newViolations);
-
-    assertThat(results.getAppeared(), empty());
-    assertThat(results.getCleared(), empty());
-    assertThat(results.getSame().size(), is(1));
-    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
-  }
-
-  @Test
   public void testDigest_PolicyNameChange() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();

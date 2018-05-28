@@ -157,6 +157,7 @@ abstract class AbstractPolicyViolation
     constraintFactsJson = JsonUtils.format(constraintFacts);
   }
 
+  @Override
   public List<ConstraintFact> getConstraintFacts() {
     if (constraintFacts == null && !StringUtils.isEmpty(constraintFactsJson)) {
       try {

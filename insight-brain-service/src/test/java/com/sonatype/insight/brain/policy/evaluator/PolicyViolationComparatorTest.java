@@ -10,8 +10,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
@@ -27,7 +32,7 @@ public class PolicyViolationComparatorTest
   private ComponentIdentifier componentB = ComponentIdentifier.createMavenCoordinates("B", "B", "B");
 
   @Test
-  public void testCompare_SortOrder() {
+  public void testCompare_PolicyViolation_SortOrder() {
     PolicyViolation v1 = buildPolicyViolation("2", "Policy1", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy2", 1, "hash", componentA);
     PolicyViolation v3 = buildPolicyViolation("1", "Policy1", 2, "hash", componentA);
@@ -39,6 +44,41 @@ public class PolicyViolationComparatorTest
 
     // should sort in order of policy id, policy name, threat level, hash, component
     List<PolicyViolation> expected = Lists.newArrayList(v5, v4, v3, v2, v1);
+
+    assertThat(sorted, is(expected));
+  }
+
+  @Test
+  public void testCompare_ConstraintFacts_SortOrder() {
+    ConstraintFact constraintFact11 = buildConstraintFact("testConstraintId2", "Test Constraint Name2",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    ConstraintFact constraintFact12 = buildConstraintFact("testConstraintId3", "Test Constraint Name2",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy1", 1, "hash1", componentB,
+        Lists.newArrayList(constraintFact11, constraintFact12));
+
+    // Less constraints
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId2", "Test Constraint Name2",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy1", 1, "hash1", componentB,
+        Lists.newArrayList(constraintFact2));
+
+    // Different constraint id
+    ConstraintFact constraintFact3 = buildConstraintFact("testConstraintId1", "Test Constraint Name2",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v3 = buildPolicyViolation("1", "Policy1", 1, "hash1", componentB,
+        Lists.newArrayList(constraintFact3));
+
+    // Different constraint name
+    ConstraintFact constraintFact4 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v4 = buildPolicyViolation("1", "Policy1", 1, "hash1", componentB,
+        Lists.newArrayList(constraintFact4));
+
+    List<PolicyViolation> sorted = Lists.newArrayList(v1, v2, v3, v4);
+    Collections.sort(sorted, comparator);
+
+    List<PolicyViolation> expected = Lists.newArrayList(v4, v3, v2, v1);
 
     assertThat(sorted, is(expected));
   }
@@ -123,11 +163,184 @@ public class PolicyViolationComparatorTest
     compareAndAssert(v1, v2, 0);
   }
 
+  @Test
+  public void testCompare_ConstraintFactsSizes_LessThanGreaterThan() {
+    ConstraintFact constraintFact11 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact11));
+
+    ConstraintFact constraintFact21 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    ConstraintFact constraintFact22 = buildConstraintFact("testConstraintId2", "Test Constraint Name2",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact21, constraintFact22));
+
+    compareAndAssert(v1, v2, -1);
+  }
+
+  @Test
+  public void testCompare_ConstraintFactsAreSortedById() {
+    ConstraintFact constraintFact11 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    ConstraintFact constraintFact12 = buildConstraintFact("testConstraintId2", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact11, constraintFact12));
+
+    ConstraintFact constraintFact21 = buildConstraintFact("testConstraintId2", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    ConstraintFact constraintFact22 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact21, constraintFact22));
+
+    compareAndAssert(v1, v2, 0);
+  }
+
+  @Test
+  public void testCompare_ConstraintFactsIds_LessThanGreaterThan() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId2", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    compareAndAssert(v1, v2, -1);
+  }
+
+  @Test
+  public void testCompare_ConstraintFactsNames_LessThanGreaterThan() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name2",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    compareAndAssert(v1, v2, -1);
+  }
+
+  @Test
+  public void testCompare_ConstraintFactsNames_EqualsIgnoreCase() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId", "Test Constraint Name",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId", "test constraint name",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    compareAndAssert(v1, v2, 0);
+  }
+
+  @Test
+  public void testCompare_ConstraintFactsNames_EqualsIgnoreWhiteSpace() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId", "Test Constraint Name",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId", "T e s t ConstraintName",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    compareAndAssert(v1, v2, 0);
+  }
+
+  @Test
+  public void testCompare_ConditionFactsSizes_LessThanGreaterThan() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"),
+        new ConditionFact(AgeInDaysConditionType.ID, 1 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    compareAndAssert(v1, v2, -1);
+  }
+
+  @Test
+  public void testCompare_ConditionFactsIndexes_LessThanGreaterThan() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 1 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    compareAndAssert(v1, v2, -1);
+  }
+
+  @Test
+  public void testCompare_ConditionFactsConditionTypes_LessThanGreaterThan() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(LicenseConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    compareAndAssert(v1, v2, -1);
+  }
+
+  @Test
+  public void testCompare_ConditionFactsAreSortedByIndex() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"),
+        new ConditionFact(AgeInDaysConditionType.ID, 1 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 1 /* conditionIndex */, "test summary", "test reason"),
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact2));
+
+    compareAndAssert(v1, v2, 0);
+  }
+
   private PolicyViolation buildPolicyViolation(String policyId,
                                                String policyName,
                                                int threatLevel,
                                                String hash,
                                                ComponentIdentifier componentIdentifier)
+  {
+    ConstraintFact constraintFact = buildConstraintFact("testConstraintId", "Test Constraint Name",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact);
+
+    return buildPolicyViolation(policyId, policyName, threatLevel, hash, componentIdentifier, constraintFacts);
+  }
+
+  private PolicyViolation buildPolicyViolation(String policyId,
+                                               String policyName,
+                                               int threatLevel,
+                                               String hash,
+                                               ComponentIdentifier componentIdentifier,
+                                               List<ConstraintFact> constraintFacts)
   {
     PolicyViolation violation = new PolicyViolation();
     violation.setPolicyName(policyName);
@@ -135,14 +348,29 @@ public class PolicyViolationComparatorTest
     violation.setThreatLevel(threatLevel);
     violation.setHash(hash);
     violation.setComponentIdentifier(componentIdentifier);
+    violation.setConstraintFacts(constraintFacts);
     return violation;
+  }
+
+  private ConstraintFact buildConstraintFact(String constraintId,
+                                             String constraintName,
+                                             ConditionFact... conditionFacts)
+  {
+    ConstraintFact constraintFact = new ConstraintFact(constraintId, constraintName, LogicalOperator.AND.toString());
+    for (ConditionFact conditionFact : conditionFacts) {
+      constraintFact.addConditionFact(conditionFact);
+    }
+
+    return constraintFact;
   }
 
   private void compareAndAssert(PolicyViolation v1, PolicyViolation v2, int expectedResult) {
     int result = comparator.compare(v1, v2);
+    result = (int) Math.signum(result);
     assertThat(result, is(expectedResult));
 
     result = comparator.compare(v2, v1);
+    result = (int) Math.signum(result);
     assertThat(result, is(-expectedResult));
   }
 

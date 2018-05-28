@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.util.List;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 
 /**
  * @since 1.33
@@ -21,4 +24,6 @@ public interface PolicyViolationComparable
   String getHash();
 
   ComponentIdentifier getComponentIdentifier();
+
+  List<ConstraintFact> getConstraintFacts();
 }

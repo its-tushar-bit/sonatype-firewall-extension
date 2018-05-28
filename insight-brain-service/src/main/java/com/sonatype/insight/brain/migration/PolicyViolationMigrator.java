@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.sql.DataSource;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.db.PostIncrementalMigrator;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -69,6 +72,85 @@ public class PolicyViolationMigrator
         }
       }
       return applications;
+    }
+  }
+
+  /**
+   * This is the comparator used to compare policy violations at the time this migrator was implemented.
+   * It is important to keep it unchanged in order to not change the semantics of "same policy violation" when we
+   * migrate from the old model to the new model.
+   */
+  private static class PolicyViolationComparator implements Comparator<PolicyViolationComparable>
+  {
+    public static final Comparator<PolicyViolationComparable> COMPARATOR = new PolicyViolationComparator();
+
+    @Override
+    public int compare(PolicyViolationComparable v1, PolicyViolationComparable v2) {
+      // Policy id
+      int result = v1.getPolicyId().compareTo(v2.getPolicyId());
+      if (result != 0) {
+        return result;
+      }
+
+      // Policy name
+      String v1PolicyName = NameHelper.normalize(v1.getPolicyName());
+      String v2PolicyName = NameHelper.normalize(v2.getPolicyName());
+      result = v1PolicyName.compareTo(v2PolicyName);
+      if (result != 0) {
+        return result;
+      }
+
+      // Threat level
+      result = v1.getThreatLevel() - v2.getThreatLevel();
+      if (result != 0) {
+        return result;
+      }
+
+      // Hash
+      result = compareNullableStrings(v1.getHash(), v2.getHash());
+      if (result != 0) {
+        return result;
+      }
+
+      // Component identifier
+      result = nullCheck(v1.getComponentIdentifier(), v2.getComponentIdentifier());
+      if (result != 0) {
+        return result;
+      }
+      if (v1.getComponentIdentifier() != null) {
+        return v1.getComponentIdentifier().compareTo(v2.getComponentIdentifier());
+      }
+
+      return 0;
+    }
+
+    // null is greater than not null
+    private int compareNullableStrings(String s1, String s2) {
+      int result = nullCheck(s1, s2);
+      if (result != 0) {
+        return result;
+      }
+      if (s1 == null) {
+        return 0;
+      }
+      return s1.compareTo(s2);
+    }
+
+    /**
+     * Null objects are treated as infinitely large.
+     * 
+     * @return 1 if o1 is not null while o2 is, or -1 if o2 is not null and o1 is. 0 if both objects are either null or
+     *         not null.
+     */
+    private int nullCheck(Object o1, Object o2) {
+      if (o1 == null && o2 != null) {
+        return 1;
+      }
+      else if (o1 != null && o2 == null) {
+        return -1;
+      }
+
+      return 0;
     }
   }
 
@@ -216,6 +298,12 @@ public class PolicyViolationMigrator
       return componentIdentifier;
     }
 
+    // Not used. It is needed only because of the {@link PolicyViolationComparable} interface.
+    @Override
+    public List<ConstraintFact> getConstraintFacts() {
+      throw new UnsupportedOperationException();
+    }
+
     boolean isWaived() {
       return waiveTime != null;
     }
@@ -342,6 +430,12 @@ public class PolicyViolationMigrator
       }
       return componentIdentifier;
     }
+
+    // Not used. It is needed only because of the {@link PolicyViolationComparable} interface.
+    @Override
+    public List<ConstraintFact> getConstraintFacts() {
+      throw new UnsupportedOperationException();
+    }
   }
 
   private static class WaivedViolation
@@ -465,7 +559,7 @@ public class PolicyViolationMigrator
                   evaluation.id);
               oldViolationCount += latestViolations.size();
               PolicyViolationDiff<? extends PolicyViolationComparable> diff = PolicyViolationDigester
-                  .digestPolicyViolations(unfixedViolations, latestViolations);
+                  .digestPolicyViolations(unfixedViolations, latestViolations, PolicyViolationComparator.COMPARATOR);
               for (PolicyViolationComparable appeared : diff.getAppeared()) {
                 NewPolicyViolation newViolation = new NewPolicyViolation(application.id, stageTypeId, evaluation,
                     (OldPolicyViolation) appeared, selectWaivedViolation);

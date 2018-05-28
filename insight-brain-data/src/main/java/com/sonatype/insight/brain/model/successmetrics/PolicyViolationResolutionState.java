@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.model.successmetrics;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,13 +16,18 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
-import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.model.HasStringId;
-import com.sonatype.insight.brain.model.HasComponentId;
-import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.HasComponentId;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.model.HasStringId;
+
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * @since 1.33
@@ -56,6 +64,12 @@ public class PolicyViolationResolutionState
   @Column(name = "hash")
   private String hash;
 
+  @Column(name = "constraint_facts_json")
+  private String constraintFactsJson;
+
+  @Transient
+  private List<ConstraintFact> constraintFacts;
+
   @Column(name = "develop_stage_type")
   private boolean developStageType = false;
 
@@ -88,6 +102,8 @@ public class PolicyViolationResolutionState
 
     // use the string-based setter to avoid JSON parsing overhead.
     copyComponentIdentifierFrom(policyViolation);
+
+    setConstraintFactsJson(policyViolation.getConstraintFactsJson());
   }
 
   @Override
@@ -240,5 +256,39 @@ public class PolicyViolationResolutionState
 
   public void setHash(String hash) {
     this.hash = hash;
+  }
+
+  public String getConstraintFactsJson() {
+    return constraintFactsJson;
+  }
+
+  public void setConstraintFactsJson(String constraintFactsJson) {
+    if (StringUtils.isEmpty(constraintFactsJson)) {
+      throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty.");
+    }
+    this.constraintFactsJson = constraintFactsJson;
+    constraintFacts = null;
+  }
+
+  public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
+    if (constraintFacts == null || constraintFacts.isEmpty()) {
+      throw new IllegalArgumentException("ConstraintFacts cannot be null or empty.");
+    }
+
+    this.constraintFacts = constraintFacts;
+    constraintFactsJson = JsonUtils.format(constraintFacts);
+  }
+
+  @Override
+  public List<ConstraintFact> getConstraintFacts() {
+    if (constraintFacts == null && !StringUtils.isEmpty(constraintFactsJson)) {
+      try {
+        constraintFacts = Arrays.asList(JsonUtils.parse(constraintFactsJson, ConstraintFact[].class));
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return constraintFacts;
   }
 }

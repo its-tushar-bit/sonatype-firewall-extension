@@ -160,8 +160,9 @@ $iq-tile-header-height-actions: 43px; // Height with sub-title and/or right acti
 
 .iq-tile-header__subtitle {
   line-height: 16px;
+  margin: 0;
+  padding: 0 0 2px 0;
   max-width: $iq-paragraph-width-maximum;
-  padding-bottom: 2px;
 }
 
 .iq-tile-header--hrule {

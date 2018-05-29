@@ -102,7 +102,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.searchButton().shouldBe(enabled).click();
     SelectContactModal.users().shouldHaveSize(2).shouldHave(texts("Admin Builtin", tempUser.calculateDisplayName()));
 
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck("Search results");
 
     // wildcard suffix search narrows search results
     SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
@@ -114,6 +114,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
+    eyesWatcher.eyesCheck("Contact selected");
     // attempt removal but cancel out of confirmation dialog
     ActionDropDown.actionButton().click();
     ActionDropDown.selectContact().shouldBe(visible).click();

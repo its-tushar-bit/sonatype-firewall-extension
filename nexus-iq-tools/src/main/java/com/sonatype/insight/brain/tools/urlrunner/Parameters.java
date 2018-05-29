@@ -48,7 +48,7 @@ class Parameters
   }
 
   private String getProgramName() {
-    return "java -jar nexus-iq-tools.jar";
+    return "java -jar nexus-iq-tools.jar urlrunner";
   }
 
   private void parse(String... args) {

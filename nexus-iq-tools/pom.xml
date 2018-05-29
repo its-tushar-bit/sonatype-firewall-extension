@@ -33,6 +33,7 @@
     <dependency>
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
+      <version>1.72</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -122,8 +123,7 @@
               <createDependencyReducedPom>false</createDependencyReducedPom>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <!-- <mainClass>com.sonatype.insight.brain.tools.urlrunner.UrlRunnerCli</mainClass> -->
-                  <mainClass>com.sonatype.insight.brain.tools.dbutil.DbUtil</mainClass>
+                  <mainClass>com.sonatype.insight.brain.tools.Launcher</mainClass>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/NOTICE</resource>

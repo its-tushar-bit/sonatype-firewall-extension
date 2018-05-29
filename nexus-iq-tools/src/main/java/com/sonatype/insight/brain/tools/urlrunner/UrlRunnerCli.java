@@ -25,8 +25,14 @@ public class UrlRunnerCli
 
   private static final Logger log = LoggerFactory.getLogger(UrlRunnerCli.class);
 
-  public static void main(String[] args) throws Exception {
-    new UrlRunnerCli().run(args);
+  public static void main(String[] args) {
+    try {
+      new UrlRunnerCli().run(args);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+      System.exit(1);
+    }
   }
 
   //default visibility for testing

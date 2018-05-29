@@ -98,7 +98,7 @@ public class DbUtilParameters
   }
 
   private String getProgramName() {
-    return "java -jar nexus-iq-tools.jar";
+    return "java -jar nexus-iq-tools.jar dbutil";
   }
 
   private void parse(String... args) {

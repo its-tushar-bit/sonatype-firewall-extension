@@ -20,8 +20,6 @@ body {
 
 .iq-main-view {
   background-color: $iq-off-white;
-  border-right: solid 1px $iq-grey-4;
-  border-left: solid 1px $iq-grey-4;
   box-sizing: border-box;
   margin: 0 auto;
   max-width: $iq-page-width-max;
@@ -31,6 +29,7 @@ body {
 .iq-sidebar {
   background-color: $iq-grey-2;
   border-right: 1px solid $iq-grey-3;
+  border-left: solid 1px $iq-grey-4;
   box-sizing: border-box;
   display: inline-block;
   height: 100%;
@@ -48,6 +47,7 @@ body {
 
 .iq-body-container {
   background: url("../img/tile_bg.png");
+  border-right: solid 1px $iq-grey-4;
   box-sizing: border-box;
   display: inline-block;
   height: 100%;
@@ -66,6 +66,7 @@ body {
 }
 
 .iq-body-container--single-pane {
+  border-left: solid 1px $iq-grey-4;
   width: 100%;
 }
 

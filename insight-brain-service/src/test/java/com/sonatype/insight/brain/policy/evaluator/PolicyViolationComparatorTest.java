@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
@@ -316,6 +317,60 @@ public class PolicyViolationComparatorTest
     ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
         new ConditionFact(AgeInDaysConditionType.ID, 1 /* conditionIndex */, "test summary", "test reason"),
         new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact2));
+
+    compareAndAssert(v1, v2, 0);
+  }
+
+  @Test
+  public void testCompare_ConditionFactsTriggers_ConditionTypeDoesNotStoreTriggerData() {
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact1));
+
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
+        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact2));
+
+    compareAndAssert(v1, v2, 0);
+  }
+
+  @Test
+  public void testCompare_ConditionFactsTriggers_ConditionTypeStoresTriggerData() {
+    ConditionFact conditionFact1 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact1.setTriggerJson("trigger1");
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact1);
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact1));
+
+    ConditionFact conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact2.setTriggerJson("trigger2");
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact2));
+
+    compareAndAssert(v1, v2, -1);
+  }
+
+  @Test
+  public void testCompare_ConditionFactsTriggers_ConditionTypeStoresTriggerData_LegacyPolicyViolationWithoutTriggerData() {
+    // Legacy policy violation without trigger data
+    ConditionFact conditionFact1 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    ConstraintFact constraintFact1 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact1);
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Lists.newArrayList(constraintFact1));
+
+    // New policy violation with trigger data
+    ConditionFact conditionFact2 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "test summary", "test reason");
+    conditionFact2.setTriggerJson("trigger");
+    ConstraintFact constraintFact2 = buildConstraintFact("testConstraintId1", "Test Constraint Name1", conditionFact2);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
         Lists.newArrayList(constraintFact2));
 

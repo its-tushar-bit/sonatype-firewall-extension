@@ -424,7 +424,7 @@ public class PolicyResourceTest
   public void testImportOfJsonFileIncorrectFormat() throws Exception {
     Organization org = tempEntity.newOrganization();
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
-        .part("file", "notPolicy.json", "{\"notPolicy\":\"anything\"}").post();
+        .part("file", "badPolicy.json", "{\"badJson\":\"noClosingBraces\"").post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("The file you selected failed to upload correctly, are you certain "
         + "it is a properly formatted policy import json file?"));
@@ -484,5 +484,18 @@ public class PolicyResourceTest
     // policy import to applications is no longer supported
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("Importing policies into an application is no longer supported."));
+  }
+
+  @Test
+  public void testOrgImport_NoPolicies() throws Exception {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, tempEntity.newOrganization().getId()).path("import")
+        .part("file", "file", policyExportResult).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(),
+        is("The file you selected failed to upload correctly, the policy file needs to have at least one " +
+            "policy defined."));
   }
 }

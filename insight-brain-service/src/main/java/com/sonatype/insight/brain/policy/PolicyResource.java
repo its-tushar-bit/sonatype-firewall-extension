@@ -70,9 +70,6 @@ public class PolicyResource
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
-  private static final String BAD_FORMAT_FILE_UPLOAD = "The file you selected failed to upload correctly, are you certain"
-      + " it is a properly formatted policy import json file?";
-
   private final PolicyImportExport policyImportExport;
 
   private final NgUploadResponseGenerator ngUploadResponseGenerator;
@@ -275,12 +272,14 @@ public class PolicyResource
     }
     catch (IOException e) {
       log.error("Policy file import failure, unable to marshal from json", e);
-      throw new BadRequestException(BAD_FORMAT_FILE_UPLOAD);
+      throw new BadRequestException("The file you selected failed to upload correctly, are you certain it is a properly"
+        + " formatted policy import json file?");
     }
     // Any random json file can be uploaded and result in an empty PolicyImportResult. It does not make sense to import
     // policies from a file without policies.
     if (CollectionUtils.isEmpty(policyExportResult.policies)) {
-      throw new BadRequestException(BAD_FORMAT_FILE_UPLOAD);
+      throw new BadRequestException("The file you selected failed to upload correctly, the policy file needs to have at"
+        + " least one policy defined.");
     }
 
     // Ensure that tags are not null. The importer expects non-null fields

@@ -87,6 +87,12 @@ $iq-modal-bottom-spacing: 8px;
       min-width: 100px;
     }
   }
+  
+  .iq-alert {
+    // in case a <span> has been used as the container
+    display: block;
+    margin: 0 0 8px 0;
+  }
 }
 
 // Duplicates for Bootstrap styles we might want/need to remove someday

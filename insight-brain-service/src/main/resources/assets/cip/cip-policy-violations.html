@@ -35,7 +35,7 @@
       </div>
     </div>
     <div class="iq-modal-footer">
-      <span class="alert alert-error" ng-show="waiveAssignError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{waiveAssignError}}</span>
+      <div class="iq-alert iq-alert--error" ng-show="waiveAssignError">{{waiveAssignError}}</div>
       <button type="button" class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving">Waive</button>
       <button type="button" class="btn" ng-click="$dismiss()" ng-disabled="waiverSaving">Cancel</button>
     </div>
@@ -73,7 +73,7 @@
           </table>
         </div>
         <div class="iq-modal-footer">
-          <span class="alert alert-error" ng-show="appError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{appError}}</span>
+          <div class="iq-alert iq-alert--error" ng-show="appError">{{appError}}</div>
           <button id="close-component-existing-waivers" type="button" class="btn" ng-click="$close()">Close</button>
         </div>
       </div>

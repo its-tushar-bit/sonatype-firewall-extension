@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil;
 
 import org.junit.Test;
 

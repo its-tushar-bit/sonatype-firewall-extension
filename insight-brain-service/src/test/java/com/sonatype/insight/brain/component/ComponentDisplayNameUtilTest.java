@@ -13,7 +13,6 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.dashboard.ComponentRiskDTO;
 import com.sonatype.insight.brain.dashboard.NewestRiskDTO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -28,7 +27,7 @@ import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.from
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPathnames;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.injectDisplayName;
-import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
+import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -125,15 +124,6 @@ public class ComponentDisplayNameUtilTest
   public void testCreateComponentNameFromPolicyViolationMissingComponentIdentifier() {
     ComponentDisplayName componentNameDTO = fromPolicyViolation(new PolicyViolation());
     assertThat(componentNameDTO, nullValue());
-  }
-
-  @Test
-  public void testInjectDisplayName() {
-    ComponentFact componentFact = new ComponentFact(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "h");
-    injectDisplayName(componentFact);
-    ComponentDisplayName componentDisplayName = componentFact.getDisplayName();
-
-    assertDisplayFieldValuesForGAV(componentDisplayName.parts, "g", "a", "v");
   }
 
   @Test

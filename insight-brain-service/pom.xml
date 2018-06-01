@@ -74,6 +74,15 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-policy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-policy</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-json-store</artifactId>
     </dependency>
     <dependency>

@@ -66,6 +66,7 @@
     <module>insight-brain-common</module>
     <module>insight-brain-db</module>
     <module>insight-brain-data</module>
+    <module>insight-brain-policy</module>
     <module>insight-brain-ldap</module>
     <module>insight-brain-event</module>
     <module>insight-brain-scanner</module>
@@ -104,6 +105,18 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-data</artifactId>
+        <version>1.48.0-SNAPSHOT</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-policy</artifactId>
+        <version>1.48.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-policy</artifactId>
         <version>1.48.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>

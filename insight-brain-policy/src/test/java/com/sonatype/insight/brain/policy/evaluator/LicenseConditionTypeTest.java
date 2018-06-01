@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.insight.brain.DummyLicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -34,7 +33,12 @@ public class LicenseConditionTypeTest
   @BeforeClass
   public static void beforeClass() {
     savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
-    LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
+    LicenseDataUpdater.setUpdater(new LicenseDataUpdater()
+    {
+      @Override
+      public void doUpdate() {
+      }
+    });
   }
 
   @AfterClass

@@ -39,8 +39,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
-import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
+import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
+import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;

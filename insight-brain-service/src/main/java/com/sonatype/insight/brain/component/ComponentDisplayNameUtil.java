@@ -15,7 +15,6 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.dashboard.ComponentRiskDTO;
 import com.sonatype.insight.brain.dashboard.NewestRiskDTO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -46,10 +45,6 @@ public class ComponentDisplayNameUtil
     ComponentDisplayName displayFieldValues = fromJsonNode(objectNode);
     JsonNode displayNameNode = JsonUtils.asTree(displayFieldValues);
     objectNode.set("displayName", displayNameNode);
-  }
-
-  public static void injectDisplayName(ComponentFact componentFact) {
-    componentFact.setDisplayName(fromIdentifier(componentFact.getComponentIdentifier()));
   }
 
   public static ComponentDisplayName fromJsonNode(ObjectNode objectNode) {

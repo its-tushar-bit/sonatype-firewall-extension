@@ -13,12 +13,12 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.utils.ComponentFactUtil;
 
 /**
  * @since 1.21.0
@@ -48,7 +48,7 @@ public class PolicyNotificationUtil
 
       ComponentFact componentFact = new ComponentFact(policyViolation.getComponentIdentifier(),
           policyViolation.getHash());
-      ComponentDisplayNameUtil.injectDisplayName(componentFact);
+      ComponentFactUtil.injectDisplayName(componentFact);
       for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
         componentFact.addConstraintFact(constraintFact);
       }

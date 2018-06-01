@@ -34,7 +34,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
+import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;

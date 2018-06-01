@@ -26,7 +26,6 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -39,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.brain.utils.ComponentFactUtil;
 
 import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseFactory;
@@ -133,7 +133,7 @@ public class ComponentPolicyEvaluator
         final Component component = byComponent.getKey();
         final ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
         componentFact.addPathnames(component.getPathnames());
-        ComponentDisplayNameUtil.injectDisplayName(componentFact);
+        ComponentFactUtil.injectDisplayName(componentFact);
         PolicyWaiver policyWaiverForComponentFact = null;
         for (final Entry<Constraint, List<MatchFact>> byConstraints : byConstraint(policy.getConstraints(),
             byComponent.getValue()).entrySet()) {

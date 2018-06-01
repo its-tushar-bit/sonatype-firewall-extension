@@ -16,10 +16,10 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.utils.ComponentFactUtil;
 
 public class PolicyAlertUtil
 {
@@ -51,7 +51,7 @@ public class PolicyAlertUtil
 
       ComponentFact componentFact = new ComponentFact(policyViolation.getComponentIdentifier(),
           policyViolation.getHash());
-      ComponentDisplayNameUtil.injectDisplayName(componentFact);
+      ComponentFactUtil.injectDisplayName(componentFact);
       for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
         componentFact.addConstraintFact(constraintFact);
       }

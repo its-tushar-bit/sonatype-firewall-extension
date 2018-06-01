@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -27,23 +28,22 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Assert;
+import org.junit.Rule;
 
 import static org.junit.Assert.fail;
 
 public abstract class AbstractPolicyEvaluationTest
-    extends AbstractComponentTest
+    extends InjectedTest
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   @Inject
   protected ComponentPolicyEvaluator componentPolicyEvaluator;
-
-  @Override
-  public void setUpTestLicenseThreatGroups() {
-    // blank slate please
-  }
 
   protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {
     return evaluate(new Stage(BuildStageType.ID), policy, components);

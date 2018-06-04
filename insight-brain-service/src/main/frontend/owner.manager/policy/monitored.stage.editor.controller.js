@@ -5,8 +5,8 @@
  */
 import { pick } from 'ramda';
 
-function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonitoringStore, Messages,
-                                        MonitoredStageService, ProductFeatures) {
+export default function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonitoringStore, Messages,
+                                                       MonitoredStageService, ProductFeatures) {
   var originalStage,
       vm = this;
 
@@ -65,7 +65,3 @@ function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonito
 MonitoredStageEditorController.$inject = [
   '$scope', '$q', 'StageTypeStore', 'PolicyMonitoringStore', 'Messages', 'monitored.stage.service', 'ProductFeatures'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('monitored.stage.editor.controller', MonitoredStageEditorController);

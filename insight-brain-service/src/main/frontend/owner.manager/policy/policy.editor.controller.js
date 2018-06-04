@@ -5,6 +5,7 @@
  */
 import { prop } from 'ramda';
 
+export default
 function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, TagStore, DeleteModalService,
                                 SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant,
                                 $state) {
@@ -184,7 +185,3 @@ PolicyEditorController.$inject = [
   '$scope', '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'TagStore', 'DeleteModalService',
   'SameOwnerStateNavigationService', 'CLMAppLocations', '$rootScope', 'event.name.constant', '$state'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('policy.editor.controller', PolicyEditorController);

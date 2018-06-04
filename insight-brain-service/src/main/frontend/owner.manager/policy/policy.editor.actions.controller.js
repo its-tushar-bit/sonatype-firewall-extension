@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function PolicyEditorActionsController(StageTypeStore) {
+export default function PolicyEditorActionsController(StageTypeStore) {
   var vm = this;
 
   vm.doLoad = doLoad;
@@ -24,7 +24,3 @@ function PolicyEditorActionsController(StageTypeStore) {
 }
 
 PolicyEditorActionsController.$inject = ['StageTypeStore'];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('policy.editor.actions.controller', PolicyEditorActionsController);

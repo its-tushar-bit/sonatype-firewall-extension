@@ -27,3 +27,5 @@ policyModule.service('PolicyMonitoringStore', [
     };
   }
 ]);
+
+export default policyModule;

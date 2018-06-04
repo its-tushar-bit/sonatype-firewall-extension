@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations,
                                               SameOwnerStateNavigationService, EventNameConstant) {
   var vm = this;
@@ -62,7 +63,3 @@ function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStor
 ApplicationCategoryTileControllerApp.$inject = [
   '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('ApplicationCategoryTileControllerApp', ApplicationCategoryTileControllerApp);

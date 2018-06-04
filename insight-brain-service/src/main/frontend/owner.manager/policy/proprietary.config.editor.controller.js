@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHierarchyStore) {
   var vm = this,
       PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
@@ -132,7 +133,3 @@ function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHi
 ProprietaryConfigEditorController.$inject = [
   '$scope', 'Messages', 'ProprietaryConfigHierarchyStore'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('proprietary.config.editor.controller', ProprietaryConfigEditorController);

@@ -21,3 +21,5 @@ labelModule.service('LabelStore', [
     return CachedStore.get(labelStoreTemplate);
   }
 ]);
+
+export default labelModule;

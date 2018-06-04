@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function ChangeApplicationIdController($scope, $rootScope, $state, owner, siblings, Messages, ApplicationStore,
                                        OwnerConstant, EventNameConstant) {
   var vm = this;
@@ -56,7 +57,3 @@ ChangeApplicationIdController.$inject = [
   '$scope', '$rootScope', '$state', 'owner', 'siblings', 'Messages',
   'ApplicationStore', 'owner.constant', 'event.name.constant'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('change.application.id.controller', ChangeApplicationIdController);

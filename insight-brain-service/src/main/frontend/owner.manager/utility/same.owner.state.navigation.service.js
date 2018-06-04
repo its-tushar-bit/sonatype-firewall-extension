@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function SameOwnerStateNavigationService($state) {
+export default function SameOwnerStateNavigationService($state) {
   return {
     goEdit: goEdit,
     refactorStateParams: {edit: refactorStateParams('edit'), view: refactorStateParams('view')}
@@ -34,5 +34,3 @@ function SameOwnerStateNavigationService($state) {
 }
 
 SameOwnerStateNavigationService.$inject = ['$state'];
-
-angular.module('owner.manager.module').service('SameOwnerStateNavigationService', SameOwnerStateNavigationService);

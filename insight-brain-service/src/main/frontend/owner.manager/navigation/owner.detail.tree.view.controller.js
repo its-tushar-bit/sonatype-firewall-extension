@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, CLMAppLocations, ApplicationStore,
                                        OrganizationStore, LocalRoleService, ProductFeatures) {
   var vm = this;
@@ -71,7 +72,3 @@ OwnerDetailTreeViewController.$inject = [
   '$scope', '$q', '$http', '$state', 'CLMLocations', 'CLMAppLocations', 'ApplicationStore', 'OrganizationStore',
   'local.role.service', 'ProductFeatures'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController);

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $state, CLMLocations, licenseGroupStore, CLMAppLocations,
                                             DeleteModalService, SameOwnerStateNavigationService) {
   var originalPickedLicenseIds = [],
@@ -156,6 +157,3 @@ LicenseThreatGroupEditorController.$inject = [
   '$scope', '$q', '$http', '$stateParams', '$state', 'CLMLocations', 'licenseGroupStore', 'CLMAppLocations',
   'DeleteModalService', 'SameOwnerStateNavigationService'
 ];
-
-angular.module('owner.manager.module').controller('license.threat.group.editor.controller',
-    LicenseThreatGroupEditorController);

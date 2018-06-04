@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function SameOwnerEditSref($compile, SameOwnerStateNavigationService) {
   return {
     restrict: 'A',
@@ -33,5 +34,3 @@ function SameOwnerEditSref($compile, SameOwnerStateNavigationService) {
 }
 
 SameOwnerEditSref.$inject = ['$compile', 'SameOwnerStateNavigationService'];
-
-angular.module('owner.manager.module').directive('sameOwnerEditSref', SameOwnerEditSref);

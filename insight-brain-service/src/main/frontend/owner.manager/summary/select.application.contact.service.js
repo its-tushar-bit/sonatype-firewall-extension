@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function SelectApplicationContactService(Modal) {
   var service = {
     open: SelectContact
@@ -27,7 +28,3 @@ function SelectApplicationContactService(Modal) {
 }
 
 SelectApplicationContactService.$inject = ['Modal'];
-
-angular //
-    .module('owner.manager.module') //
-    .service('SelectApplicationContactService', SelectApplicationContactService);

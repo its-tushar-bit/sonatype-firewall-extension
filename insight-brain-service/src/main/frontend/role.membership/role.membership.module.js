@@ -6,4 +6,4 @@
 import commonServicesModule from '../util/CommonServices';
 import CLMAppLocationModule from '../util/CLMAppLocation';
 
-angular.module('role.membership.module', [CLMAppLocationModule.name, commonServicesModule.name]);
+export default angular.module('role.membership.module', [CLMAppLocationModule.name, commonServicesModule.name]);

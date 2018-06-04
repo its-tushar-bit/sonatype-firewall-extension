@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMAppLocations, DeleteModalService,
                                SameOwnerStateNavigationService) {
   var vm = this;
@@ -79,5 +80,3 @@ LabelEditorController.$inject = [
   '$scope', '$q', '$http', '$stateParams', 'LabelStore', 'CLMAppLocations', 'DeleteModalService',
   'SameOwnerStateNavigationService'
 ];
-
-angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);

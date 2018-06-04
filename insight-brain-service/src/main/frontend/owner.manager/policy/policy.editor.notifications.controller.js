@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function PolicyEditorNotificationsController($scope, $q, RoleMappingService, StageTypeStore, JiraService,
                                              ProductFeatures) {
   var vm = this,
@@ -303,7 +304,3 @@ function PolicyEditorNotificationsController($scope, $q, RoleMappingService, Sta
 PolicyEditorNotificationsController.$inject = [
   '$scope', '$q', 'role.mapping.service', 'StageTypeStore', 'jira.service', 'ProductFeatures'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('policy.editor.notifications.controller', PolicyEditorNotificationsController);

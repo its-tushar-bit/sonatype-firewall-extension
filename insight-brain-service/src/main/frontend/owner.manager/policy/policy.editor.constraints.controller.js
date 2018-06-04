@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function PolicyEditorConstraintsController(ConstraintStore) {
+export default function PolicyEditorConstraintsController(ConstraintStore) {
   var vm = this;
 
   vm.conditionString = conditionString;
@@ -167,7 +167,3 @@ function PolicyEditorConstraintsController(ConstraintStore) {
 }
 
 PolicyEditorConstraintsController.$inject = ['ConstraintStore'];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('policy.editor.constraints.controller', PolicyEditorConstraintsController);

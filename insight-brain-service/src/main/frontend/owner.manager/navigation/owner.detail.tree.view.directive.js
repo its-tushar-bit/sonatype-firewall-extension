@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function OwnerDetailTreeViewDirective() {
+export default function OwnerDetailTreeViewDirective() {
   return {
     controller: 'OwnerDetailTreeViewController',
     controllerAs: 'vm',
@@ -11,7 +11,3 @@ function OwnerDetailTreeViewDirective() {
   };
 }
 OwnerDetailTreeViewDirective.$inject = [];
-
-angular //
-    .module('owner.manager.module') //
-    .directive('ownerDetailTreeView', OwnerDetailTreeViewDirective);

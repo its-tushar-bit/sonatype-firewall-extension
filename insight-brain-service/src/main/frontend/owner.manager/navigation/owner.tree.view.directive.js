@@ -273,11 +273,7 @@ OwnerTreeViewController.$inject = [
   'OwnerEditorService', 'PermissionService', 'owner.constant', 'event.name.constant', 'LastSelectedOrganization'
 ];
 
-angular
-    .module('owner.manager.module')
-    .directive('ownerTreeView', ownerTreeView);
-
-function ownerTreeView() {
+export default function ownerTreeView() {
   return {
     templateUrl: 'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp,
     controller: OwnerTreeViewController,

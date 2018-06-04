@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
                               PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
                               ProprietaryConfigHierarchyStore, CLMAppLocations, ProductFeatures) {
@@ -92,7 +93,3 @@ PolicyTileController.$inject = [
   'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore',
   'ProprietaryConfigHierarchyStore', 'CLMAppLocations', 'ProductFeatures'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('policy.tile.controller', PolicyTileController);

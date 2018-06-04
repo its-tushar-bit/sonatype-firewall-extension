@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $cookies, Messages, CLMAppLocations,
                                      PolicyHierarchyStore) {
   var vm = this,
@@ -80,7 +81,3 @@ function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $co
 ImportPolicyModalController.$inject = [
   '$rootScope', '$scope', '$q', '$http', '$window', '$cookies', 'Messages', 'CLMAppLocations', 'PolicyHierarchyStore'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('import.policy.modal.controller', ImportPolicyModalController);

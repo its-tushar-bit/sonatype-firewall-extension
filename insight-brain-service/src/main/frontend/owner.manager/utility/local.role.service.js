@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function LocalRoleService() {
+export default function LocalRoleService() {
   return {
     getRolesWithLocalMembers: getRolesWithLocalMembers,
     getRolesWithoutLocalMembers: getRolesWithoutLocalMembers
@@ -31,7 +31,3 @@ function LocalRoleService() {
     }
   }
 }
-
-angular //
-    .module('owner.manager.module') //
-    .service('local.role.service', LocalRoleService);

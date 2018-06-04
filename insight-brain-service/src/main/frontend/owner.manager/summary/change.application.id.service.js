@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function ChangeApplicationIdService(Modal) {
   return {
     open: function openChangeAppIdDialog(owner, siblings) {
@@ -26,7 +27,3 @@ function ChangeApplicationIdService(Modal) {
 }
 
 ChangeApplicationIdService.$inject = ['Modal'];
-
-angular //
-    .module('owner.manager.module') //
-    .service('change.application.id.service', ChangeApplicationIdService);

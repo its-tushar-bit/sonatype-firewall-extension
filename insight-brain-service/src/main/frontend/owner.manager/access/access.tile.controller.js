@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function AccessTileController($scope, RoleMappingService, SameOwnerStateNavigationService, LocalRoleService,
                               EventNameConstant) {
   var vm = this;
@@ -69,7 +70,3 @@ function AccessTileController($scope, RoleMappingService, SameOwnerStateNavigati
 AccessTileController.$inject = [
   '$scope', 'role.mapping.service', 'SameOwnerStateNavigationService', 'local.role.service', 'event.name.constant'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('AccessTileController', AccessTileController);

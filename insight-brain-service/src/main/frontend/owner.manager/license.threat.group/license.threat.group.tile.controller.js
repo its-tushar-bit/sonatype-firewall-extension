@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function LicenseThreatGroupTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService,
                                           EventNameConstant) {
   var vm = this;
@@ -47,5 +48,3 @@ function LicenseThreatGroupTileController($scope, $http, CLMAppLocations, SameOw
 LicenseThreatGroupTileController.$inject = [
   '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
 ];
-
-angular.module('owner.manager.module').controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController);

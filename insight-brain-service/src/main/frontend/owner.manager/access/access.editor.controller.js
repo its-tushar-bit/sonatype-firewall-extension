@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function AccessEditorController($rootScope, $scope, $stateParams, Messages, LocalRoleService,
                                 SameOwnerStateNavigationService, DeleteModalService, RoleMappingService) {
   var ownerType,
@@ -158,7 +159,3 @@ AccessEditorController.$inject = [
   '$rootScope', '$scope', '$stateParams', 'Messages', 'local.role.service',
   'SameOwnerStateNavigationService', 'DeleteModalService', 'role.mapping.service'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('access.editor.controller', AccessEditorController);

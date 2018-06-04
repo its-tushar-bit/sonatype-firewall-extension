@@ -15,16 +15,113 @@ import permissionServiceModule from '../util/PermissionService';
 import validatorsModule from '../util/Validators';
 import storesModule from '../util/Stores';
 import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
+import ProductFeaturesModule from '../util/ProductFeatures';
+
+import labelsModule from '../policy/LabelController';
+import tagsModule from '../policy/TagController';
+import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';
+import policyModule from '../policy/PolicyMonitoringStore';
+import roleMembershipModule from '../role.membership/role.membership.module';
+import AccessEditorController from './access/access.editor.controller';
+import AccessTileController from './access/access.tile.controller';
+import AccessTile from './access/access.tile.directive';
+import LocalRoleService from './utility/local.role.service';
+import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
+import RoleMappingService from './access/role.mapping.service';
+import ApplicationCategoryEditorController from './category/application.category.editor.controller';
+import ApplicationCategoryTileControllerApp from './category/application.category.tile.controller.app';
+import ApplicationCategoryTileControllerOrg from './category/application.category.tile.controller.org';
+import CategoryEditorController from './category/category.editor.controller';
+import LabelEditorController from './label/label.editor.controller';
+import LabelTileController from './label/label.tile.controller';
+import LicenseThreatGroupEditorController from './license.threat.group/license.threat.group.editor.controller';
+import LicenseThreatGroupTileController from './license.threat.group/license.threat.group.tile.controller';
+import OwnerDetailTreeViewController from './navigation/owner.detail.tree.view.controller';
+import OwnerDetailTreeViewDirective from './navigation/owner.detail.tree.view.directive';
+import ownerTreeView from './navigation/owner.tree.view.directive';
+import CoordinatesInput from './policy/coordinates.input.directive';
+import MonitoredStageEditorController from './policy/monitored.stage.editor.controller';
+import PolicyEditorActionsController from './policy/policy.editor.actions.controller';
+import PolicyEditorConstraintsController from './policy/policy.editor.constraints.controller';
+import PolicyEditorController from './policy/policy.editor.controller';
+import PolicyTileController from './policy/policy.tile.controller';
+import PolicyEditorActionsDirective from './policy/policy.editor.actions.directive';
+import PolicyEditorNotificationsDirective from './policy/policy.editor.notifications.directive';
+import PolicyEditorConstraintsDirective from './policy/policy.editor.constraints.directive';
+import MonitoredStageService from './utility/monitored.stage.service';
+import ProprietaryConfigEditorController from './policy/proprietary.config.editor.controller';
+import PolicyEditorNotificationsController from './policy/policy.editor.notifications.controller';
+import ConfigurationTileController from './repositories/repositories.configuration.tile.controller';
+import ChangeApplicationIdController from './summary/change.application.id.controller';
+import OwnerEditorController from './summary/owner.editor.controller';
+import OwnerEditorService from './summary/owner.editor.service';
+import OwnerImageDirective from './summary/owner.image.directive';
+import SelectApplicationContactService from './summary/select.application.contact.service';
+import OwnerSummaryController from './summary/owner.summary.controller';
+import EvaluateApplicationModalService from './utility/services/evaluate.application.modal.service';
+import ImportPolicyModalService from './utility/services/import.policy.modal.service';
+import SelectApplicationContactController from './summary/select.application.contact.controller';
+import ChangeApplicationIdService from './summary/change.application.id.service';
+import EvaluateApplicationModalController from './utility/services/evaluate.application.modal.controller';
+import ImportPolicyModalController from './utility/services/import.policy.modal.controller';
+import NumberInputWithStringValue from './utility/number.input.with.string.value';
+import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
+import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
 
 export default
 angular.module('owner.manager.module',
     [
-      storesModule.name, 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', angularCommonModule.name,
-      formsModule.name, utilityModule.name, utilityDirectivesModule.name, permissionServiceModule.name, 'Policy',
-      CLMLocationModule.name, utilityServicesModule.name, validatorsModule.name, 'role.membership.module',
-      moveApplicationModule.name
+      storesModule.name, labelsModule.name, tagsModule.name, licenseThreatGroupModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name,
+      formsModule.name, utilityModule.name, utilityDirectivesModule.name, permissionServiceModule.name, policyModule.name,
+      CLMLocationModule.name, utilityServicesModule.name, validatorsModule.name, roleMembershipModule.name,
+      moveApplicationModule.name, ProductFeaturesModule.name
     ])
     .component('ownerPolicyList', ownerPolicyList)
+    .controller('access.editor.controller', AccessEditorController)
+    .controller('AccessTileController', AccessTileController)
+    .directive('accessTile', AccessTile)
+    .controller('application.category.editor.controller', ApplicationCategoryEditorController)
+    .controller('ApplicationCategoryTileControllerApp', ApplicationCategoryTileControllerApp)
+    .controller('ApplicationCategoryTileControllerOrg', ApplicationCategoryTileControllerOrg)
+    .controller('category.editor.controller', CategoryEditorController)
+    .controller('label.editor.controller', LabelEditorController)
+    .controller('LabelTileController', LabelTileController)
+    .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
+    .controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController)
+    .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController)
+    .directive('ownerDetailTreeView', OwnerDetailTreeViewDirective)
+    .directive('ownerTreeView', ownerTreeView)
+    .service('local.role.service', LocalRoleService)
+    .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
+    .service('role.mapping.service', RoleMappingService)
+    .directive('coordinatesInput', CoordinatesInput)
+    .controller('monitored.stage.editor.controller', MonitoredStageEditorController)
+    .controller('policy.editor.actions.controller', PolicyEditorActionsController)
+    .controller('policy.editor.constraints.controller', PolicyEditorConstraintsController)
+    .controller('policy.editor.controller', PolicyEditorController)
+    .controller('policy.tile.controller', PolicyTileController)
+    .directive('policyEditorActions', PolicyEditorActionsDirective)
+    .directive('policyEditorNotifications', PolicyEditorNotificationsDirective)
+    .directive('policyEditorConstraints', PolicyEditorConstraintsDirective)
+    .service('monitored.stage.service', MonitoredStageService)
+    .controller('proprietary.config.editor.controller', ProprietaryConfigEditorController)
+    .controller('policy.editor.notifications.controller', PolicyEditorNotificationsController)
+    .controller('repositories.configuration.tile.controller', ConfigurationTileController)
+    .controller('change.application.id.controller', ChangeApplicationIdController)
+    .controller('owner.editor.controller', OwnerEditorController)
+    .service('OwnerEditorService', OwnerEditorService)
+    .directive('ownerImage', OwnerImageDirective)
+    .service('SelectApplicationContactService', SelectApplicationContactService)
+    .controller('OwnerSummaryController', OwnerSummaryController)
+    .service('evaluate.application.modal.service', EvaluateApplicationModalService)
+    .service('import.policy.modal.service', ImportPolicyModalService)
+    .controller('select.application.contact.controller', SelectApplicationContactController)
+    .service('change.application.id.service', ChangeApplicationIdService)
+    .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
+    .controller('import.policy.modal.controller', ImportPolicyModalController)
+    .directive('numberInputWithStringValue', NumberInputWithStringValue)
+    .directive('sameOwnerEditSref', SameOwnerEditSref)
+    .directive('sameOwnerViewSref', SameOwnerViewSref)
     .config([
       '$stateProvider', function($stateProvider) {
         var ownerTypes = [

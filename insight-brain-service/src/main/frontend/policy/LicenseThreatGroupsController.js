@@ -38,3 +38,5 @@ licenseGroupModule.service('licenseStore', [
     return licenseStore;
   }
 ]);
+
+export default licenseGroupModule;

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings,
                                messages, CLMAppLocations, EventNameConstant) {
   var vm = this,
@@ -187,7 +188,3 @@ OwnerEditorController.$inject = [
   '$scope', '$rootScope', '$state', '$window', '$cookies', '$http', '$q', 'owner', 'ownerType', 'siblings',
   'Messages', 'CLMAppLocations', 'event.name.constant'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('owner.editor.controller', OwnerEditorController);

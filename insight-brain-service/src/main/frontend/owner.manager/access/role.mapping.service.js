@@ -8,7 +8,7 @@
  * Provides a globally cached version of role mappings for the current context. Note that get() callers should not
  * modify the returned object as it is shared.
  */
-function RoleMappingService(CachedServiceFactory, $http, CLMAppLocations) {
+export default function RoleMappingService(CachedServiceFactory, $http, CLMAppLocations) {
   var serviceCache = CachedServiceFactory.create(CLMAppLocations.getRoleMappingUrl);
 
   serviceCache.put = function(roleId, contents) {
@@ -27,5 +27,3 @@ function RoleMappingService(CachedServiceFactory, $http, CLMAppLocations) {
   return serviceCache;
 }
 RoleMappingService.$inject = ['cached.service.factory', '$http', 'CLMAppLocations'];
-
-angular.module('owner.manager.module').service('role.mapping.service', RoleMappingService);

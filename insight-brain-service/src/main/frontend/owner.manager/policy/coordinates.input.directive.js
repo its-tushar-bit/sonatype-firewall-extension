@@ -65,7 +65,7 @@ function CoordinatesInputController($scope) {
 
 CoordinatesInputController.$inject = ['$scope'];
 
-function CoordinatesInput() {
+export default function CoordinatesInput() {
   return {
     transclude: true,
     restrict: 'E',
@@ -82,7 +82,3 @@ function CoordinatesInput() {
     }
   };
 }
-
-angular //
-    .module('owner.manager.module') //
-    .directive('coordinatesInput', CoordinatesInput);

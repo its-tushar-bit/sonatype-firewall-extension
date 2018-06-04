@@ -5,6 +5,7 @@
  */
 import { omit, prop } from 'ramda';
 
+export default
 function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations,
                                              PolicyHierarchyStore) {
   var originalCategoryArray,
@@ -96,7 +97,3 @@ function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore
 ApplicationCategoryEditorController.$inject = [
   '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations', 'PolicyHierarchyStore'
 ];
-
-angular//
-    .module('owner.manager.module')//
-    .controller('application.category.editor.controller', ApplicationCategoryEditorController);

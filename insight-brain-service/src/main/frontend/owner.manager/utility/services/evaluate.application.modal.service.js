@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function EvaluateApplicationModalService(Modal) {
   return {open: openModal};
 
@@ -22,7 +23,3 @@ function EvaluateApplicationModalService(Modal) {
 }
 
 EvaluateApplicationModalService.$inject = ['Modal'];
-
-angular //
-    .module('owner.manager.module') //
-    .service('evaluate.application.modal.service', EvaluateApplicationModalService);

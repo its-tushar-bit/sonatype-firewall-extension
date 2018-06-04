@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function CategoryEditorController($scope, $stateParams, Modal, TagStore, DeleteModalService,
                                   SameOwnerStateNavigationService, $q, PolicyTagStore, PolicyHierarchyStore,
                                   ApplicationStore) {
@@ -130,5 +131,3 @@ CategoryEditorController.$inject = [
   '$scope', '$stateParams', 'Modal', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService', '$q',
   'PolicyTagStore', 'PolicyHierarchyStore', 'ApplicationStore'
 ];
-
-angular.module('owner.manager.module').controller('category.editor.controller', CategoryEditorController);

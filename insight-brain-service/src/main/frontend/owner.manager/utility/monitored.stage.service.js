@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function MonitoredStageService() {
   return {
     createInheritOrNoMonitorOption: createInheritOrNoMonitorOption,
@@ -41,7 +42,3 @@ function getMonitoredStage(policyMonitoring, stages) {
     return policyMonitoring ? stage.stageTypeId === policyMonitoring.stageTypeId : !stage.stageTypeId;
   })[0];
 }
-
-angular //
-    .module('owner.manager.module') //
-    .service('monitored.stage.service', MonitoredStageService);

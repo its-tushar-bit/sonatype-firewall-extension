@@ -50,3 +50,5 @@ tagModule.service('PolicyTagStore', ['$http', 'CachedStore', 'CLMAppLocations', 
     };
   }
 ]);
+
+export default tagModule;

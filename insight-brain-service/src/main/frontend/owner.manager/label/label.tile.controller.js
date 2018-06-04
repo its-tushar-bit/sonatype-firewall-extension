@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function LabelTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService, EventNameConstant) {
   var vm = this;
   vm.ownerName = undefined;
@@ -46,7 +47,3 @@ function LabelTileController($scope, $http, CLMAppLocations, SameOwnerStateNavig
 LabelTileController.$inject = [
   '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
 ];
-
-angular
-    .module('owner.manager.module')
-    .controller('LabelTileController', LabelTileController);

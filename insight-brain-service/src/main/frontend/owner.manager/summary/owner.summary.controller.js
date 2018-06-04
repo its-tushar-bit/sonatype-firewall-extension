@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, OwnerEditor, ApplicationStore,
                                 OrganizationStore, CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
                                 SelectApplicationContactService, EvaluateApplicationModalService,
@@ -156,7 +157,3 @@ OwnerSummaryController.$inject = [
   'owner.constant', 'move.application.modal.service', 'event.name.constant', 'change.application.id.service',
   'PermissionService'
 ];
-
-angular//
-    .module('owner.manager.module')//
-    .controller('OwnerSummaryController', OwnerSummaryController);

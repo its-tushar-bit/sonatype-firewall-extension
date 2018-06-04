@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+export default
 function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $timeout, $window, $cookies, Messages,
                                             CLMLocations, selectedApplication, StageTypeStore) {
   var validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'],
@@ -175,7 +176,3 @@ EvaluateApplicationModalController.$inject = [
   '$rootScope', '$scope', '$http', '$state', '$timeout', '$window', '$cookies', 'Messages', 'CLMLocations',
   'selectedApplication', 'StageTypeStore'
 ];
-
-angular //
-    .module('owner.manager.module') //
-    .controller('evaluate.application.modal.controller', EvaluateApplicationModalController);

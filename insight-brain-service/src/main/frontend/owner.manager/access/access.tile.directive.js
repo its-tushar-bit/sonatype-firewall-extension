@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function AccessTile() {
+export default function AccessTile() {
   return {
     restrict: 'E',
     replace: true,
@@ -13,5 +13,3 @@ function AccessTile() {
     bindToController: true
   };
 }
-
-angular.module('owner.manager.module').directive('accessTile', AccessTile);

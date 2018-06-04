@@ -750,16 +750,17 @@ class LdapQuery
    * Remove context DN from given DN so lookups can be performed directly against the current context.
    */
   private static String removeContextDn(String contextDn, String dn) {
-    if (StringUtils.isBlank(dn)) {
-      return "";
+    try {
+      LdapName dnName = new LdapName(dn);
+      LdapName contextDnName = new LdapName(contextDn);
+      // remove contextDn part if Dn's hierarchy starts with it.
+      if (dnName.startsWith(contextDnName)) {
+        return new LdapName(dnName.getRdns().subList(contextDnName.size(), dnName.size())).toString();
+      }
     }
-    else if (dn.startsWith(contextDn + ",")) {
-      return dn.replace(contextDn + ",", "");
+    catch (InvalidNameException e) {
+      log.debug("Invalid DN found when matching context-DN against search DN. contextDN={}, DN={}", contextDn, dn, e);
     }
-    else if (dn.contains("," + contextDn)) {
-      return dn.replace("," + contextDn, "");
-    }
-
     return dn;
   }
 

@@ -94,13 +94,6 @@ objectClass: groupOfNames
 member: uid=test_user1_2
 member: uid=test_user2_2
 
-dn: cn=Epsilon,ou=groups,dc=company,dc=com
-cn: Epsilon
-objectClass: top
-objectClass: groupOfNames
-member: uid=test_user1_2,ou=users,dc=company,dc=com
-member: uid=test_user2_2,ou=users,dc=company,dc=com
-
 dn: cn=Delta,ou=groups,dc=company,dc=com
 cn: Delta
 objectClass: top

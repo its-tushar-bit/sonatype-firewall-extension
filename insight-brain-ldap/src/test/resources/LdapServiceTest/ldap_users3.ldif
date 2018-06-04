@@ -1,0 +1,45 @@
+dn: ou=users,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: users
+description: Container for user entries
+
+dn: OU=groups,dc=company,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+description: Container for group entries
+
+dn: uid=test_user1,ou=users,DC=company,dc=com
+uid: test_user1
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User 1
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: test.user1@company.com
+
+dn: uid = test_user2, OU = users, dc = company, DC = com
+uid: test_user2
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User 2
+userPassword: test
+mail: test.user2@company.com
+
+dn: cn=Epsilon,ou=groups,dc=company,dc=com
+cn: Epsilon
+objectClass: top
+objectClass: groupOfNames
+#mixed cased dn
+member: uid=test_user1,ou=users,DC=company,dc=com
+#mixed case with spacing in dn
+member: uid = test_user2, OU = users, dc = company, DC = com
+

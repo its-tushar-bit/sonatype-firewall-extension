@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -63,9 +64,11 @@ public class LdapServiceTest
 
   public TestLdapServer testLdapServer3 = new TestLdapServer();
 
+  public TestLdapServer testLdapServer4 = new TestLdapServer();
+
   @Rule
   public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
-      .around(testLdapServer1).around(testLdapServer2).around(testLdapServer3);
+      .around(testLdapServer1).around(testLdapServer2).around(testLdapServer3).around(testLdapServer4);
 
   @Before
   public void before() {
@@ -73,6 +76,7 @@ public class LdapServiceTest
     testLdapServer1.setWorkingDirectory(tempDir).setLdifResourceName("/" + testClassName + "/ldap_users1.ldif");
     testLdapServer2.setWorkingDirectory(tempDir).setLdifResourceName("/" + testClassName + "/ldap_users2.ldif");
     testLdapServer3.setWorkingDirectory(tempDir).setLdifResourceName("/" + testClassName + "/ldap_users2.ldif");
+    testLdapServer4.setWorkingDirectory(tempDir).setLdifResourceName("/" + testClassName + "/ldap_users3.ldif");
   }
 
   @Inject
@@ -1157,10 +1161,10 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testFindUsersByGroup_Static_OnlyDnExpression() throws Exception {
+  public void testGetUsersByGroup_Static_DnExpressionCaseInsensitive() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     LdapConnection ldapConnection = createLdapConnection(ldapServer);
-    startLdapServer(testLdapServer1, ldapConnection);
+    startLdapServer(testLdapServer4, ldapConnection);
 
     LdapUserMapping umap = createUserMapping(ldapServer);
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -1172,6 +1176,8 @@ public class LdapServiceTest
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
     assertThat(users, hasSize(2));
+    List<String> foundUserNames = users.stream().map(LdapUser::getUsername).collect(toList());
+    assertThat(foundUserNames, containsInAnyOrder("test_user1", "test_user2"));
   }
 
   @Test

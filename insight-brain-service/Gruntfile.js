@@ -123,7 +123,16 @@
       },
       exec: {
         'webpack': webpackCmd,
-        'webpack-prod': webpackCmd + ' -p --env.production', // -p for production - adds uglify and NODE_ENV
+        'webpack-prod': {
+          // -p for production - adds uglify and sets NODE_ENV in application sources (not in webpack config itself)
+          cmd: webpackCmd + ' -p --env.production',
+          options: {
+            env: Object.assign({
+              // set NODE_ENV in the webpack and eslint configs
+              NODE_ENV: 'production'
+            }, process.env)
+          }
+        },
         'webpack-watch': webpackCmd + ' -w',
         'webpack-watch-brain': webpackCmd + ' -w --env.brainOnly',
         'webpack-watch-gallery': webpackDevServerCmd + ' --config webpack.config.gallery.js'

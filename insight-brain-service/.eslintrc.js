@@ -1,4 +1,5 @@
-{
+var isProd = process.env.NODE_ENV;
+module.exports = {
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",
@@ -139,7 +140,8 @@
       "error",
       "never"
     ],
-    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "no-console": isProd ? ["error", { "allow": ["warn", "error"] }] : 'off',
+    "no-debugger": isProd ? 'error' : 'off',
     "array-bracket-spacing": ["error", "never"],
     "object-property-newline": ["error", { "allowMultiplePropertiesPerLine": true }],
     "brace-style": ["error", "stroustrup", { "allowSingleLine": true }]

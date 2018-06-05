@@ -37,6 +37,8 @@ import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Assert;
 import org.junit.Rule;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public abstract class AbstractPolicyEvaluationTest
@@ -162,6 +164,24 @@ public abstract class AbstractPolicyEvaluationTest
     }
     fail("Cannot find expected policy alert with condition trigger in:" + toString(actual));
     return null; // unreachable, only needed to avoid warnings
+  }
+
+  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
+                                                        Policy expectedPolicy,
+                                                        Constraint expectedConstraint,
+                                                        String expectedActionTypeId,
+                                                        String expectedConditionTypeId,
+                                                        ConditionTrigger expectedConditionTrigger,
+                                                        List<PolicyAlert> actual)
+  {
+    ConditionFact conditionFact = findConditionFactInPolicyAlerts(expectedComponent, expectedPolicy, expectedConstraint,
+        expectedActionTypeId, expectedConditionTypeId, actual);
+    if (conditionFact == null) {
+      fail("Cannot find expected policy alert in:" + toString(actual));
+    }
+    
+    assertThat(conditionFact.getTriggerJson(), is(JsonUtils.format(expectedConditionTrigger)));
+    return conditionFact;
   }
 
   public static void assertNotContainsPolicyAlert(Component expectedComponent,

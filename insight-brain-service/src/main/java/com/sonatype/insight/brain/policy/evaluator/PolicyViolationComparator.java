@@ -212,6 +212,23 @@ public class PolicyViolationComparator
         }
       }
 
+      // Condition type
+      result = conditionFact1.getConditionTypeId().compareTo(conditionFact2.getConditionTypeId());
+      if (result != 0) {
+        return result;
+      }
+
+      // Condition trigger
+      // If the condition type is supposed to store trigger data, but the trigger data is missing, then this policy
+      // violation was created before we added trigger data to policy violations.
+      // In this case we ignore the trigger data in the newer policy violation.
+      if (conditionFact1.getTriggerJson() != null && conditionFact2.getTriggerJson() != null) {
+        result = conditionFact1.getTriggerJson().compareTo(conditionFact2.getTriggerJson());
+      }
+      if (result != 0) {
+        return result;
+      }
+
       return 0;
     }
   }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -36,8 +37,6 @@ import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Assert;
 import org.junit.Rule;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public abstract class AbstractPolicyEvaluationTest
@@ -91,13 +90,15 @@ public abstract class AbstractPolicyEvaluationTest
     Assert.assertEquals("Incorrect number of constraint facts", expectedConstraintFactCount, actualConstraintFactCount);
   }
 
-  private static ConditionFact findConditionFactInPolicyAlerts(Component expectedComponent,
-                                                               Policy expectedPolicy,
-                                                               Constraint expectedConstraint,
-                                                               String expectedActionTypeId,
-                                                               String expectedConditionTypeId,
-                                                               List<PolicyAlert> actual)
+  private static List<ConditionFact> findConditionFactsInPolicyAlerts(Component expectedComponent,
+                                                                      Policy expectedPolicy,
+                                                                      Constraint expectedConstraint,
+                                                                      String expectedActionTypeId,
+                                                                      String expectedConditionTypeId,
+                                                                      List<PolicyAlert> actual)
   {
+    List<ConditionFact> result = new ArrayList<>();
+
     for (PolicyAlert actualPolicyAlert : actual) {
       PolicyFact policyFact = actualPolicyAlert.getTrigger();
       if (expectedPolicy.getId().equals(policyFact.getPolicyId())
@@ -111,7 +112,7 @@ public abstract class AbstractPolicyEvaluationTest
                   && expectedConstraint.getName().equals(constraintFact.getConstraintName())) {
                 for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
                   if (expectedConditionTypeId.equals(conditionFact.getConditionTypeId())) {
-                    return conditionFact;
+                    result.add(conditionFact);
                   }
                 }
               }
@@ -121,40 +122,45 @@ public abstract class AbstractPolicyEvaluationTest
       }
     }
 
-    return null;
+    return result;
   }
 
-  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
-                                                        Policy expectedPolicy,
-                                                        Constraint expectedConstraint,
-                                                        String expectedActionTypeId,
-                                                        String expectedConditionTypeId,
-                                                        List<PolicyAlert> actual)
+  public static List<ConditionFact> assertContainsPolicyAlert(Component expectedComponent,
+                                                              Policy expectedPolicy,
+                                                              Constraint expectedConstraint,
+                                                              String expectedActionTypeId,
+                                                              String expectedConditionTypeId,
+                                                              List<PolicyAlert> actual)
   {
-    ConditionFact conditionFact = findConditionFactInPolicyAlerts(expectedComponent, expectedPolicy, expectedConstraint,
-        expectedActionTypeId, expectedConditionTypeId, actual);
-    if (conditionFact == null) {
+    List<ConditionFact> conditionFacts = findConditionFactsInPolicyAlerts(expectedComponent, expectedPolicy,
+        expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actual);
+    if (conditionFacts.isEmpty()) {
       fail("Cannot find expected policy alert in:" + toString(actual));
     }
-    return conditionFact;
+
+    return conditionFacts;
   }
 
-  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
-                                                        Policy expectedPolicy,
-                                                        Constraint expectedConstraint,
-                                                        String expectedActionTypeId,
-                                                        String expectedConditionTypeId,
-                                                        ConditionTrigger expectedConditionTrigger,
-                                                        List<PolicyAlert> actual)
+  public static void assertContainsPolicyAlert(Component expectedComponent,
+                                               Policy expectedPolicy,
+                                               Constraint expectedConstraint,
+                                               String expectedActionTypeId,
+                                               String expectedConditionTypeId,
+                                               ConditionTrigger expectedConditionTrigger,
+                                               List<PolicyAlert> actual)
   {
-    ConditionFact conditionFact = findConditionFactInPolicyAlerts(expectedComponent, expectedPolicy, expectedConstraint,
-        expectedActionTypeId, expectedConditionTypeId, actual);
-    if (conditionFact == null) {
+    List<ConditionFact> conditionFacts = findConditionFactsInPolicyAlerts(expectedComponent, expectedPolicy,
+        expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actual);
+    if (conditionFacts.isEmpty()) {
       fail("Cannot find expected policy alert in:" + toString(actual));
     }
     
-    assertThat(conditionFact.getTriggerJson(), is(JsonUtils.format(expectedConditionTrigger)));
-    return conditionFact;
+    for (ConditionFact conditionFact : conditionFacts) {
+      if (conditionFact.getTriggerJson().equals(JsonUtils.format(expectedConditionTrigger))) {
+        return;
+      }
+    }
+    fail("Cannot find expected policy alert with condition trigger in:" + toString(actual));
   }
 
   public static void assertNotContainsPolicyAlert(Component expectedComponent,
@@ -164,9 +170,9 @@ public abstract class AbstractPolicyEvaluationTest
                                                   String expectedConditionTypeId,
                                                   List<PolicyAlert> actual)
   {
-    ConditionFact conditionFact = findConditionFactInPolicyAlerts(expectedComponent, expectedPolicy, expectedConstraint,
-        expectedActionTypeId, expectedConditionTypeId, actual);
-    if (conditionFact != null) {
+    List<ConditionFact> conditionFacts = findConditionFactsInPolicyAlerts(expectedComponent, expectedPolicy,
+        expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actual);
+    if (!conditionFacts.isEmpty()) {
       fail("Found unexpected policy alert in:" + toString(actual));
     }
   }

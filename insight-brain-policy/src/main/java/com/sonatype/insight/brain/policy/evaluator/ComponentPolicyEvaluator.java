@@ -8,13 +8,11 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -70,7 +68,14 @@ public class ComponentPolicyEvaluator
     private String index(final MatchFact fact) {
       // doesn't have to be lexically correct, just need to impose consistent ordering
       return fact != null ? fact.getPolicyId() + '|' + fact.getComponent().getDisplayName() + '|'
-          + fact.getComponent().getHash() + '|' + fact.getConstraintId() + '|' + fact.getConditionIndex() : "";
+          + fact.getComponent().getHash() + '|' + fact.getConstraintId() + '|' + fact.getConditionIndex() + '|'
+          + asString(fact.getConditionTriggers()) : "";
+    }
+
+    private String asString(List<ConditionTrigger> conditionTriggers) {
+      return conditionTriggers.stream()
+          .map(trigger -> trigger.getConditionIndex() + "|" + JsonUtils.format(trigger.getTrigger()))
+          .collect(Collectors.joining("|"));
     }
   };
 
@@ -120,69 +125,58 @@ public class ComponentPolicyEvaluator
   }
 
   static void toPolicyResults(final List<Policy> policies,
-                              final List<MatchFact> facts,
+                              final List<MatchFact> matchFacts,
                               final Stage stage,
                               boolean forMonitoring,
                               PolicyResults policyResults)
   {
-    // Ordering of facts + slicing with LinkedHashMap should = consistent alerts
-    Collections.sort(facts, MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
+    // Ordering of matchFacts should result in consistent alerts.
+    matchFacts.sort(MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
 
-    for (final Entry<Policy, List<MatchFact>> byPolicy : byPolicy(policies, facts).entrySet()) {
-      final Policy policy = byPolicy.getKey();
-      final PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
-      boolean isWaived = false;
-      for (final Entry<Component, List<MatchFact>> byComponent : byComponent(byPolicy.getValue()).entrySet()) {
-        final Component component = byComponent.getKey();
-        final ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
-        componentFact.addPathnames(component.getPathnames());
-        ComponentFactUtil.injectDisplayName(componentFact);
-        PolicyWaiver policyWaiverForComponentFact = null;
-        for (final Entry<Constraint, List<MatchFact>> byConstraints : byConstraint(policy.getConstraints(),
-            byComponent.getValue()).entrySet()) {
-          final Constraint constraint = byConstraints.getKey();
-          final ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
-              .getOperator().name());
-          for (final MatchFact fact : byConstraints.getValue()) {
-            final List<Condition> conditions = constraint.getConditions();
-            final int conditionIndex = fact.getConditionIndex();
-            if (conditionIndex >= 0) {
-              constraintFact.addConditionFact(
-                  createConditionFact(conditions.get(conditionIndex), conditionIndex, component, fact));
-            }
-            else {
-              for (final Condition condition : conditions) {
-                constraintFact.addConditionFact(createConditionFact(condition, conditionIndex, component, fact));
-              }
-            }
-            if (policyWaiverForComponentFact == null) {
-              policyWaiverForComponentFact = fact.getPolicyWaiver();
-            }
-          }
-          if (!constraintFact.getConditionFacts().isEmpty()) {
-            componentFact.addConstraintFact(constraintFact);
-          }
-        }
-        if (!componentFact.getConstraintFacts().isEmpty()) {
-          policyFact.addComponentFact(componentFact);
-        }
-        if (policyWaiverForComponentFact != null) {
-          policyResults.addPolicyWaiver(componentFact, policyWaiverForComponentFact);
-          isWaived = true;
+    Map<String, Policy> policiesById = policies.stream().collect(Collectors.toMap(Policy::getId, Function.identity()));
+    for (MatchFact matchFact : matchFacts) {
+      Policy policy = policiesById.get(matchFact.getPolicyId());
+      PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
+
+      Component component = matchFact.getComponent();
+      ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
+      componentFact.addPathnames(component.getPathnames());
+      ComponentFactUtil.injectDisplayName(componentFact);
+
+      Constraint constraint = policy.getConstraintById(matchFact.getConstraintId());
+      ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(),
+          constraint.getOperator().name());
+
+      List<Condition> conditions = constraint.getConditions();
+      int conditionIndex = matchFact.getConditionIndex();
+      if (conditionIndex >= 0) {
+        ConditionFact conditionFact = createConditionFact(conditions.get(conditionIndex), conditionIndex, component,
+            matchFact);
+        constraintFact.addConditionFact(conditionFact);
+      }
+      else {
+        for (Condition condition : conditions) {
+          ConditionFact conditionFact = createConditionFact(condition, conditionIndex, component, matchFact);
+          constraintFact.addConditionFact(conditionFact);
         }
       }
-      if (!policyFact.getComponentFacts().isEmpty()) {
-        Notifications notifications = policy.getNotifications().getApplicable(stage.getStageTypeId(), forMonitoring);
-        PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
-        List<? extends Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring);
-        PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
-        if (isWaived) {
-          policyResults.addWaivedAlert(policyAlert);
-        }
-        else {
-          policyResults.addActiveAlert(policyAlert);
-          policyResults.addActiveNotification(policyNotification);
-        }
+
+      componentFact.addConstraintFact(constraintFact);
+      policyFact.addComponentFact(componentFact);
+
+      Notifications notifications = policy.getNotifications().getApplicable(stage.getStageTypeId(), forMonitoring);
+      PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
+      List<? extends Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring);
+      PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
+
+      PolicyWaiver policyWaiverForComponentFact = matchFact.getPolicyWaiver();
+      if (policyWaiverForComponentFact != null) {
+        policyResults.addWaivedAlert(policyAlert);
+        policyResults.addPolicyWaiver(componentFact, policyWaiverForComponentFact);
+      }
+      else {
+        policyResults.addActiveAlert(policyAlert);
+        policyResults.addActiveNotification(policyNotification);
       }
     }
   }
@@ -215,54 +209,6 @@ public class ComponentPolicyEvaluator
   private static ConditionTrigger findConditionTriggerByConditionIndex(MatchFact matchFact, int conditionIndex) {
     return matchFact.getConditionTriggers().stream().filter(x -> x.getConditionIndex() == conditionIndex).findFirst()
         .orElse(null);
-  }
-
-  private static Map<Policy, List<MatchFact>> byPolicy(final List<Policy> policies, final List<MatchFact> facts) {
-    final Map<String, Policy> policiesById = new HashMap<>();
-    for (final Policy policy : policies) {
-      policiesById.put(policy.getId(), policy);
-    }
-    final Map<Policy, List<MatchFact>> byPolicy = new LinkedHashMap<>();
-    for (final MatchFact fact : facts) {
-      final Policy policy = policiesById.get(fact.getPolicyId());
-      List<MatchFact> partition = byPolicy.get(policy);
-      if (partition == null) {
-        byPolicy.put(policy, partition = new ArrayList<>());
-      }
-      partition.add(fact);
-    }
-    return byPolicy;
-  }
-
-  private static Map<Constraint, List<MatchFact>> byConstraint(final List<Constraint> constraints,
-                                                               final List<MatchFact> facts)
-  {
-    final Map<String, Constraint> constraintsById = new HashMap<>();
-    for (final Constraint constraint : constraints) {
-      constraintsById.put(constraint.getId(), constraint);
-    }
-    final Map<Constraint, List<MatchFact>> byConstraint = new LinkedHashMap<>();
-    for (final MatchFact fact : facts) {
-      final Constraint constraint = constraintsById.get(fact.getConstraintId());
-      List<MatchFact> partition = byConstraint.get(constraint);
-      if (partition == null) {
-        byConstraint.put(constraint, partition = new ArrayList<>());
-      }
-      partition.add(fact);
-    }
-    return byConstraint;
-  }
-
-  private static Map<Component, List<MatchFact>> byComponent(final List<MatchFact> facts) {
-    final Map<Component, List<MatchFact>> byComponent = new LinkedHashMap<>();
-    for (final MatchFact fact : facts) {
-      List<MatchFact> partition = byComponent.get(fact.getComponent());
-      if (partition == null) {
-        byComponent.put(fact.getComponent(), partition = new ArrayList<>());
-      }
-      partition.add(fact);
-    }
-    return byComponent;
   }
 
   static List<MatchFact> evaluateFacts(final List<Policy> policies, final List<Component> components) {

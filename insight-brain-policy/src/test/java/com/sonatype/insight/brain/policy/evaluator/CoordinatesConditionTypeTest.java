@@ -126,8 +126,10 @@ public class CoordinatesConditionTypeTest
 
     List<PolicyAlert> policyAlerts = evaluate(policy,
         Arrays.asList(componentGav3, componentGav5, componentGave, componentGavc, componentGavec));
-    assertThat(policyAlerts, hasSize(1));
-    assertFactCounts(1, 5, policyAlerts.get(0));
+    assertThat(policyAlerts, hasSize(5));
+    for (PolicyAlert policyAlert : policyAlerts) {
+      assertFactCounts(1, 1, policyAlert);
+    }
     assertContainsPolicyAlert(componentGav3, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGav5, policy, policy.getConstraints().get(0), FailActionType.ID,
@@ -161,8 +163,10 @@ public class CoordinatesConditionTypeTest
         .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGav, componentGave, componentGavec));
-    assertThat(policyAlerts, hasSize(1));
-    assertFactCounts(1, 3, policyAlerts.get(0));
+    assertThat(policyAlerts, hasSize(3));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertFactCounts(1, 1, policyAlerts.get(1));
+    assertFactCounts(1, 1, policyAlerts.get(2));
     assertContainsPolicyAlert(componentGav, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
@@ -219,8 +223,9 @@ public class CoordinatesConditionTypeTest
         .forCoordinates(MatchState.EXACT, ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
-    assertThat(policyAlerts, hasSize(1));
-    assertFactCounts(1, 2, policyAlerts.get(0));
+    assertThat(policyAlerts, hasSize(2));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,

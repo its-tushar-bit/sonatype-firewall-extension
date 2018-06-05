@@ -58,8 +58,9 @@ public class ProprietaryConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    assertFactCounts(1, 2, policyAlerts.get(0));
+    Assert.assertEquals(2, policyAlerts.size());
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
   }
@@ -95,8 +96,9 @@ public class ProprietaryConditionTypeTest
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    assertFactCounts(1, 2, policyAlerts.get(0));
+    Assert.assertEquals(2, policyAlerts.size());
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(component4, policy, constraint, FailActionType.ID, ProprietaryConditionType.ID, policyAlerts);
   }

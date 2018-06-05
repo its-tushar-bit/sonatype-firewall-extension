@@ -29,6 +29,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -86,16 +87,7 @@ import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -954,9 +946,11 @@ public class ReportResourceTest
         assertThat(details.getMatchState(), is("exact"));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
         assertThat(details.getIdentificationSourceComment(), is(nullValue()));
-        assertThat(details.getPolicyAlerts(), hasSize(1));
-        assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId(), is(policy.getId()));
-        assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts(), hasSize(1));
+        assertThat(details.getPolicyAlerts(), hasSize(4));
+        for (PolicyAlert policyAlert : details.getPolicyAlerts()) {
+          assertThat(policyAlert.getTrigger().getPolicyId(), is(policy.getId()));
+          assertThat(policyAlert.getTrigger().getComponentFacts(), hasSize(1));
+        }
 
         list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/tomcat/tomcat-util/5.5.23.json")),
             ComponentDetailsList.class);
@@ -1053,9 +1047,11 @@ public class ReportResourceTest
         assertThat(details.getMatchState(), is("exact"));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
         assertThat(details.getIdentificationSourceComment(), is(nullValue()));
-        assertThat(details.getPolicyAlerts(), hasSize(1));
-        assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId(), is(policy.getId()));
-        assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts(), hasSize(1));
+        assertThat(details.getPolicyAlerts(), hasSize(4));
+        for (PolicyAlert policyAlert : details.getPolicyAlerts()) {
+          assertThat(policyAlert.getTrigger().getPolicyId(), is(policy.getId()));
+          assertThat(policyAlert.getTrigger().getComponentFacts(), hasSize(1));
+        }
 
         list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
             + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/list.json")),

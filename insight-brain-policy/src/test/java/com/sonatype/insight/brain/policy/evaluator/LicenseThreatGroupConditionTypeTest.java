@@ -411,10 +411,12 @@ public class LicenseThreatGroupConditionTypeTest
     assertThat(policyAlerts, hasSize(1));
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    ConditionFact conditionFact = assertContainsPolicyAlert(component2, policy, constraint,
-        FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
-    assertThat(conditionFact.getReason(), is("Found a License that is not assigned to any License Threat Group"));
-    assertThat(conditionFact.getSummary(), is("License Threat Group is '[unassigned]'"));
+    List<ConditionFact> conditionFacts = assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
+        LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertThat(conditionFacts, hasSize(1));
+    assertThat(conditionFacts.get(0).getReason(),
+        is("Found a License that is not assigned to any License Threat Group"));
+    assertThat(conditionFacts.get(0).getSummary(), is("License Threat Group is '[unassigned]'"));
   }
 
   @Test
@@ -444,10 +446,12 @@ public class LicenseThreatGroupConditionTypeTest
     assertThat(policyAlerts, hasSize(1));
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    ConditionFact conditionFact = assertContainsPolicyAlert(component1, policy, constraint,
-        FailActionType.ID, LicenseThreatGroupConditionType.ID, policyAlerts);
-    assertThat(conditionFact.getReason(), is("Did not find a License that is not assigned to any License Threat Group"));
-    assertThat(conditionFact.getSummary(), is("License Threat Group is not '[unassigned]'"));
+    List<ConditionFact> conditionFacts = assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
+        LicenseThreatGroupConditionType.ID, policyAlerts);
+    assertThat(conditionFacts, hasSize(1));
+    assertThat(conditionFacts.get(0).getReason(),
+        is("Did not find a License that is not assigned to any License Threat Group"));
+    assertThat(conditionFacts.get(0).getSummary(), is("License Threat Group is not '[unassigned]'"));
   }
 
   @Test

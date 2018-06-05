@@ -130,11 +130,11 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
-    assertThat(results.allViolations, hasSize(7));
+    assertThat(results.allViolations, hasSize(36));
     assertThat(results.allViolations.stream().filter(PolicyViolation::isFixed).collect(toList()), hasSize(0));
     List<PolicyViolation> waivedViolations = new ArrayList<>(results.allViolations);
     waivedViolations.removeAll(results.activeViolations);
-    assertThat(waivedViolations, hasSize(1));
+    assertThat(waivedViolations, hasSize(3));
     assertThat(waivedViolations.get(0).getHash(), is(waiver.getHash()));
     assertThat(waivedViolations.get(0).getWaiveTime(), is(not(nullValue())));
     assertThat(waivedViolations.get(0).getPolicyWaiverId(), is(waiver.getId()));
@@ -151,7 +151,7 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
-    assertThat(results.activeViolations, hasSize(6));
+    assertThat(results.activeViolations, hasSize(33));
     for (PolicyViolation violation : results.activeViolations) {
       assertThat(violation.getHash(), is(not(waiver.getHash())));
       assertThat(violation.getWaiveTime(), is(nullValue()));
@@ -301,18 +301,18 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
-    assertThat(results.allViolations, hasSize(7));
+    assertThat(results.allViolations, hasSize(36));
 
     new PolicyDAO().delete(policy);
 
     results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
     assertThat(results.allViolations, hasSize(0));
-    List<PolicyViolation> violations = new PolicyViolationDAO().getByApplicationId(application.getId());
-    assertThat(violations, hasSize(7));
-    violations = violations.stream().filter(PolicyViolation::isFixed).collect(toList());
-    assertThat(violations, hasSize(7));
-    for (PolicyViolation violation : violations) {
+    List<PolicyViolation> allViolations = new PolicyViolationDAO().getByApplicationId(application.getId());
+    assertThat(allViolations, hasSize(36));
+    List<PolicyViolation> fixedViolations = allViolations.stream().filter(PolicyViolation::isFixed).collect(toList());
+    assertThat(fixedViolations, hasSize(36));
+    for (PolicyViolation violation : fixedViolations) {
       assertThat(violation.toString(), violation.getFixTime(), is(results.evaluation.getTime()));
     }
   }
@@ -327,45 +327,47 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
     Date openTime = results.evaluation.getTime();
 
-    assertThat(results.activeViolations, hasSize(7));
+    assertThat(results.activeViolations, hasSize(36));
 
     PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId());
 
     results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
-    assertThat(results.activeViolations, hasSize(6));
-    List<PolicyViolation> violations = new PolicyViolationDAO()
+    assertThat(results.activeViolations, hasSize(33));
+    List<PolicyViolation> waivedViolations = new PolicyViolationDAO()
         .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId()).stream()
         .filter(PolicyViolation::isWaived).collect(toList());
-    assertThat(violations, hasSize(1));
-    PolicyViolation waivedViolation = violations.get(0);
-    assertThat(waivedViolation.getHash(), is(waiver.getHash()));
-    assertThat(waivedViolation.getOpenTime(), is(openTime));
-    assertThat(waivedViolation.getFixTime(), is(nullValue()));
-    assertThat(waivedViolation.getWaiveTime(), is(results.evaluation.getTime()));
-    assertThat(waivedViolation.getPolicyWaiverId(), is(waiver.getId()));
-    assertThat(waivedViolation.getPolicyWaiverComment(), is(waiver.getComment()));
+    assertThat(waivedViolations, hasSize(3));
+    for (PolicyViolation waivedViolation : waivedViolations) {
+      assertThat(waivedViolation.getHash(), is(waiver.getHash()));
+      assertThat(waivedViolation.getOpenTime(), is(openTime));
+      assertThat(waivedViolation.getFixTime(), is(nullValue()));
+      assertThat(waivedViolation.getWaiveTime(), is(results.evaluation.getTime()));
+      assertThat(waivedViolation.getPolicyWaiverId(), is(waiver.getId()));
+      assertThat(waivedViolation.getPolicyWaiverComment(), is(waiver.getComment()));
+    }
 
     new PolicyWaiverDAO().delete(waiver);
 
     results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
 
-    assertThat(results.activeViolations, hasSize(7));
-    violations = new PolicyViolationDAO().getUnfixedByApplicationIdAndStageId(application.getId(),
-        stage.getStageTypeId());
-    assertThat(violations.stream().filter(PolicyViolation::isWaived).collect(toList()), hasSize(0));
-    violations = violations.stream().filter(violation -> violation.getHash().equals(waiver.getHash()))
-        .collect(toList());
-    assertThat(violations, hasSize(1));
-    waivedViolation = violations.get(0);
-    assertThat(waivedViolation.getHash(), is(waiver.getHash()));
-    assertThat(waivedViolation.getOpenTime(), is(results.evaluation.getTime()));
-    assertThat(waivedViolation.getFixTime(), is(nullValue()));
-    assertThat(waivedViolation.getWaiveTime(), is(nullValue()));
-    assertThat(waivedViolation.getPolicyWaiverId(), is(nullValue()));
-    assertThat(waivedViolation.getPolicyWaiverComment(), is(nullValue()));
+    assertThat(results.activeViolations, hasSize(36));
+    List<PolicyViolation> unfixedViolations = new PolicyViolationDAO()
+        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId());
+    assertThat(unfixedViolations.stream().filter(PolicyViolation::isWaived).collect(toList()), hasSize(0));
+    List<PolicyViolation> unwaivedViolations = unfixedViolations.stream()
+        .filter(violation -> violation.getHash().equals(waiver.getHash())).collect(toList());
+    assertThat(unwaivedViolations, hasSize(3));
+    for (PolicyViolation unwaivedViolation : unwaivedViolations) {
+      assertThat(unwaivedViolation.getHash(), is(waiver.getHash()));
+      assertThat(unwaivedViolation.getOpenTime(), is(results.evaluation.getTime()));
+      assertThat(unwaivedViolation.getFixTime(), is(nullValue()));
+      assertThat(unwaivedViolation.getWaiveTime(), is(nullValue()));
+      assertThat(unwaivedViolation.getPolicyWaiverId(), is(nullValue()));
+      assertThat(unwaivedViolation.getPolicyWaiverComment(), is(nullValue()));
+    }
 
-    assertThat(new PolicyViolationDAO().getByApplicationId(application.getId()), hasSize(8));
+    assertThat(new PolicyViolationDAO().getByApplicationId(application.getId()), hasSize(39));
   }
 
   @Test

@@ -34,7 +34,9 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerability;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -108,8 +110,9 @@ public class ComponentPolicyEvaluatorTest
     final List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    Assert.assertEquals(2, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(2, policyAlerts.size());
+    Assert.assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(1, policyAlerts.get(1).getTrigger().getComponentFacts().size());
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -280,8 +283,9 @@ public class ComponentPolicyEvaluatorTest
     policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    Assert.assertEquals(2, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(2, policyAlerts.size());
+    Assert.assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(1, policyAlerts.get(1).getTrigger().getComponentFacts().size());
 
     assertContainsPolicyAlert(component3, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -331,8 +335,9 @@ public class ComponentPolicyEvaluatorTest
     policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    Assert.assertEquals(2, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(2, policyAlerts.size());
+    Assert.assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(1, policyAlerts.get(1).getTrigger().getComponentFacts().size());
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -348,8 +353,10 @@ public class ComponentPolicyEvaluatorTest
     policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    Assert.assertEquals(3, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(4, policyAlerts.size());
+    for (PolicyAlert policyAlert : policyAlerts) {
+      Assert.assertEquals(1, policyAlert.getTrigger().getComponentFacts().size());
+    }
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -368,8 +375,10 @@ public class ComponentPolicyEvaluatorTest
     policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-    Assert.assertEquals(4, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(6, policyAlerts.size());
+    for (PolicyAlert policyAlert : policyAlerts) {
+      Assert.assertEquals(1, policyAlert.getTrigger().getComponentFacts().size());
+    }
 
     assertContainsPolicyAlert(component1, policy, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
@@ -386,12 +395,9 @@ public class ComponentPolicyEvaluatorTest
   public void testEvaluate_ContextBasedActions() {
     // Create policy constraints
     final List<Constraint> constraints = new ArrayList<>();
-    final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    constraints.add(constraint1);
-    final Constraint constraint2 = new Constraint("ConstraintId2", "Constraint Name 2", LogicalOperator.AND);
-    constraint2.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
-    constraints.add(constraint2);
+    final Constraint constraint = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    constraints.add(constraint);
 
     final Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
@@ -405,10 +411,6 @@ public class ComponentPolicyEvaluatorTest
     final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     components.add(component1);
-    // A component with Apache-2.0 license
-    final Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
-    component2.addDeclaredLicenseId("Apache-2.0");
-    components.add(component2);
 
     List<PolicyAlert> policyAlerts;
     List<? extends Action> actions;
@@ -666,9 +668,7 @@ public class ComponentPolicyEvaluatorTest
         Arrays.asList(policy1, policy2), components);
     List<PolicyAlert> activePolicyAlerts = policyResults.getActiveAlerts();
     Assert.assertNotNull(activePolicyAlerts);
-    Assert.assertEquals(2, activePolicyAlerts.size());
-    Assert.assertEquals(2, activePolicyAlerts.get(0).getTrigger().getComponentFacts().size());
-    Assert.assertEquals(2, activePolicyAlerts.get(1).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(4, activePolicyAlerts.size());
     assertContainsPolicyAlert(component1, policy1, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component2, policy1, constraint1, FailActionType.ID,
@@ -684,9 +684,7 @@ public class ComponentPolicyEvaluatorTest
     policyResults = componentPolicyEvaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
     activePolicyAlerts = policyResults.getActiveAlerts();
     Assert.assertNotNull(activePolicyAlerts);
-    Assert.assertEquals(2, activePolicyAlerts.size());
-    Assert.assertEquals(1, activePolicyAlerts.get(0).getTrigger().getComponentFacts().size());
-    Assert.assertEquals(2, activePolicyAlerts.get(1).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(3, activePolicyAlerts.size());
     assertContainsPolicyAlert(component2, policy1, constraint1, FailActionType.ID,
         SecurityVulnerabilitySeverityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component1, policy2, constraint2, FailActionType.ID,
@@ -747,20 +745,40 @@ public class ComponentPolicyEvaluatorTest
 
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setHash("12345678901234567890");
-    component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f,
-        SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE));
-    component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 4.0f));
+    SecurityVulnerability sv1 = new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f,
+        SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE);
+    SecurityVulnerability sv2 = new SecurityVulnerability("cve", "CVE-1234-1234", 4.0f);
+    component1.addSecurityVulnerability(sv1);
+    component1.addSecurityVulnerability(sv2);
 
     Component component2 = ComponentFactory.forGav("g1", "a1", "v2", MatchState.EXACT);
     component2.setHash("12345678901234567891");
-    component2.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f));
+    SecurityVulnerability sv3 = new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f);
+    component2.addSecurityVulnerability(sv3);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(component1, component2));
-    assertThat(policyAlerts, hasSize(1));
-    assertFactCounts(1, 2, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, SecurityVulnerabilityStatusConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, SecurityVulnerabilityStatusConditionType.ID, policyAlerts);
+    assertThat(policyAlerts, hasSize(7));
+    for (PolicyAlert policyAlert : policyAlerts) {
+      assertFactCounts(1, 1, policyAlert);
+    }
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(0, sv1), policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(1, sv1), policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(1, sv2), policyAlerts);
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
+        SecurityVulnerabilityStatusConditionType.ID, newConditiontrigger(2, sv2), policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(0, sv3), policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(1, sv3), policyAlerts);
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
+        SecurityVulnerabilityStatusConditionType.ID, newConditiontrigger(2, sv3), policyAlerts);
+  }
+
+  private ConditionTrigger newConditiontrigger(int conditionIndex, SecurityVulnerability securityVulnerability) {
+    return new ConditionTrigger(conditionIndex, new TriggerSecurityVulnerability(securityVulnerability));
+
   }
 }

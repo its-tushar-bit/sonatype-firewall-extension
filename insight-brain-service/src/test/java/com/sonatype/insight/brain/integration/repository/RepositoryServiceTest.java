@@ -1202,18 +1202,18 @@ public class RepositoryServiceTest
 
     List<PolicyNotification> policyNotifications = pendingRepositoryPolicyNotifications.remove()
         .get(repository.getId());
-    assertThat(policyNotifications, hasSize(1));
+    assertThat(policyNotifications, hasSize(2));
+    for (PolicyNotification policyNotification : policyNotifications) {
+      assertThat(policyNotification.getPolicyFact().getPolicyName(), is("Test Policy"));
 
-    PolicyNotification policyNotification = policyNotifications.get(0);
-    assertThat(policyNotification.getPolicyFact().getPolicyName(), is("Test Policy"));
+      Notifications notifications = policyNotification.getNotifications();
+      assertThat(notifications.getUserNotifications(), hasSize(1));
+      assertThat(notifications.getRoleNotifications(), hasSize(0));
+      assertThat(notifications.getJiraNotifications(), hasSize(0));
 
-    Notifications notifications = policyNotification.getNotifications();
-    assertThat(notifications.getUserNotifications(), hasSize(1));
-    assertThat(notifications.getRoleNotifications(), hasSize(0));
-    assertThat(notifications.getJiraNotifications(), hasSize(0));
-
-    UserNotification userNotification = notifications.getUserNotifications().get(0);
-    assertThat(userNotification.getEmailAddress(), is("test@sonatype.com"));
+      UserNotification userNotification = notifications.getUserNotifications().get(0);
+      assertThat(userNotification.getEmailAddress(), is("test@sonatype.com"));
+    }
   }
 
   @Test

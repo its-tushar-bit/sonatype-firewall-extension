@@ -77,7 +77,7 @@ extends BaseSpec {
 
     then: "all policy violations are visible"
     waitFor { selectedViolationFilter == 'All' }
-    waitFor { results.size() == 5 }
+    waitFor { results.size() == 24 }
     hasRow(results, 'javancss : javancss : 29.50')
     hasRow(results, 'ch.qos.logback : logback-access : 0.6')
     hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15')
@@ -91,7 +91,7 @@ extends BaseSpec {
 
     then: "only waived violations are visible"
     waitFor { selectedViolationFilter == 'Waived' }
-    waitFor { results.size() == 2 }
+    waitFor { results.size() == 21 }
     hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1', true)
     hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15', true)
   }

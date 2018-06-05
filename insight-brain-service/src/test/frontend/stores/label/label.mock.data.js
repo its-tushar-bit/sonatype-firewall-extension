@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var LabelMockData = {
+window.LabelMockData = {
   getApplicableLabels: function() {
     return {
       'labelsByOwner': [

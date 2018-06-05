@@ -135,7 +135,9 @@
         },
         'webpack-watch': webpackCmd + ' -w',
         'webpack-watch-brain': webpackCmd + ' -w --env.brainOnly',
-        'webpack-watch-gallery': webpackDevServerCmd + ' --config webpack.config.gallery.js'
+        'webpack-watch-gallery': webpackDevServerCmd + ' --config webpack.config.gallery.js',
+        'webpack-brain-test': webpackCmd + ' --config webpack.config.brain-test.js',
+        'webpack-watch-brain-test': webpackDevServerCmd + ' --config webpack.config.brain-test.js'
       },
       concurrent: {
         options: {
@@ -149,6 +151,16 @@
         },
         watchGallery: {
           tasks: ['focus:dev', 'exec:webpack-watch-gallery']
+        }
+      },
+      jasmine: {
+        brain: {
+          options: {
+            specs: '<%= config.generated %>/test-bundle.js',
+            junit: {
+              path: 'target/jasmine-reports'
+            }
+          }
         }
       }
     });
@@ -221,5 +233,8 @@
     ]);
 
     grunt.registerTask('default', ['develop-brain']);
+
+    grunt.registerTask('test', ['exec:webpack-brain-test', 'jasmine']);
+    grunt.registerTask('bdd', ['exec:webpack-watch-brain-test']);
   };
 }());

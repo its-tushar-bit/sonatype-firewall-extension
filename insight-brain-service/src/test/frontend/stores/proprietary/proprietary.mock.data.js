@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var ProprietaryMockData = {
+window.ProprietaryMockData = {
   getProprietaryConfigurationStoreMockData: function() {
     return {
       'proprietaryConfigByOwners': [

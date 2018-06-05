@@ -3,7 +3,7 @@ window.CLM = {
 };
 window.clmBuildTimestamp = '';
 window.angularDebug = true;
-var SpecUtil = {
+window.SpecUtil = {
   setupProviders: function(applicationId, organizationId) {
     angular.module('ApplicationIdProvider', []).service('ApplicationId', function() {
       // TODO Are ui-router parameters encoded or decoded?

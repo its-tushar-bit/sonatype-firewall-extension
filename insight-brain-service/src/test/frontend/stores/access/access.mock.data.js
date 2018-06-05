@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var AccessMockData = {
+window.AccessMockData = {
   getRoleMappings: function() {
     return {
       membersByRole: [

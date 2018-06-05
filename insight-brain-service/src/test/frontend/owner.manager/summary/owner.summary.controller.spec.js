@@ -1,5 +1,9 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import OwnerUtils from '../owner.utils';
+import ApplicationResourceMockData from '../mock.data/application.resource.mock.data';
+
 describe('owner.summary.controller.js', function() {
-  beforeEach(module('owner.manager.module', 'legacyConfiguration', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, 'legacyConfiguration', function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

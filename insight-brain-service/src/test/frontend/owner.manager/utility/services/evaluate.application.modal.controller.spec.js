@@ -1,3 +1,5 @@
+import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('evaluate.application.modal.controller.spec.js', function() {
   var scope,
       vm,
@@ -6,7 +8,7 @@ describe('evaluate.application.modal.controller.spec.js', function() {
       CLMLocations,
       mockSelectedApplication;
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

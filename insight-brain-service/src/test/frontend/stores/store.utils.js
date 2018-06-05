@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var StoreUtils = function() {
+window.StoreUtils = function() {
   var me = {
     createMockStore: createMockStore,
     createMockHierarchyStoreData: createMockHierarchyStoreData

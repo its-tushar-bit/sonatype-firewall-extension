@@ -1,8 +1,10 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('same.owner.state.navigation.service.spec.js', function() {
   var SameOwnerStateNavigationService,
       mockState;
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });
@@ -15,7 +17,7 @@ describe('same.owner.state.navigation.service.spec.js', function() {
       params: {organizationId: '123'}
     };
 
-    module(function($provide) {
+    angular.mock.module(function($provide) {
       $provide.value('$state', mockState);
     });
 

@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var MockData = {
+window.MockData = {
   getActionStageData: function() {
     return [{
       'stageName': 'Proxy',

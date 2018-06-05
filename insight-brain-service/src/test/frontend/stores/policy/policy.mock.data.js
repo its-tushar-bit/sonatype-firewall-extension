@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var PolicyTileMockData = {
+window.PolicyTileMockData = {
   getApplicablePolicies: function() {
     return {
       'policiesByOwner': [

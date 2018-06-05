@@ -1,7 +1,9 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('number.input.with.string.value.spec.js', function() {
   var scope, inputElement;
 
-  beforeEach(module('owner.manager.module'));
+  beforeEach(angular.mock.module(ownerManagerModule.name));
 
   beforeEach(inject(function($compile, $rootScope) {
     scope = $rootScope.$new();

@@ -1,16 +1,26 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import OwnerUtils from '../owner.utils';
+
 describe('owner.editor.controller.spec.js', function() {
   var controllerScope,
-      vm;
+      vm,
+      originalFormData;
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });
   }));
 
-  afterEach(function() {
+  beforeEach(inject(function($window) {
+    originalFormData = $window.FormData;
+    $window.FormData = angular.noop;
+  }));
+
+  afterEach(inject(function($window) {
     controllerScope.$destroy();
-  });
+    $window.FormData = originalFormData;
+  }));
 
   function createTests(type) {
     describe('New Owner: ' + type, function() {

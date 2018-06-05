@@ -1,3 +1,5 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('access.tile.controller.spec.js', function() {
   var vm,
       $rootScope,
@@ -5,7 +7,7 @@ describe('access.tile.controller.spec.js', function() {
       CLMAppLocations,
       EventNameConstant;
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

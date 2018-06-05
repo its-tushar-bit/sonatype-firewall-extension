@@ -1,12 +1,14 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import LicenseResourceMockData from '../mock.data/license.resource.mock.data';
+import LicenseThreatGroupResourceMockData from '../mock.data/licenseThreatGroup.resource.mock.data';
+
 describe('license.threat.group.editor.controller.spec.js', function() {
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });
   }));
-
-  beforeEach(module('ResourceModule'));
 
   var vm,
       $q,

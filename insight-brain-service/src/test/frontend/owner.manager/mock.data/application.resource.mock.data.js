@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var ApplicationResourceMockData = {
+export default {
   getApplicationSummaryUrl: function() {
     return {
       id: 'fakeId',

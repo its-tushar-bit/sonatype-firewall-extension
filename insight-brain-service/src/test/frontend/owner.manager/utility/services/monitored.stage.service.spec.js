@@ -1,9 +1,11 @@
+import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('monitored.stage.service.spec.js', function() {
 
   var monitoredStageService,
       stages = [{stageTypeId: 'Develop', stageName: 'Develop'}, {stageTypeId: 'Deploy', stageName: 'Deploy'}];
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {});
   }));
 

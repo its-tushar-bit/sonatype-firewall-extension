@@ -1,7 +1,13 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
+import OwnerUtils from '../owner.utils';
+import PolicyResourceMockData from '../mock.data/policy.resource.mock.data';
+import TagResourceMockData from '../mock.data/tag.resource.mock.data';
+
 describe('policy.editor.controller.spec.js', function() {
   var $state;
 
-  beforeEach(module('ResourceModule', 'owner.manager.module', 'legacyConfiguration', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

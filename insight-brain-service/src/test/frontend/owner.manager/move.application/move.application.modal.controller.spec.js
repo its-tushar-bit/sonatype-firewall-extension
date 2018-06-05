@@ -1,3 +1,6 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
+
 describe('move.application.modal.controller.js', function() {
 
   var mockDestinations = [
@@ -33,7 +36,7 @@ describe('move.application.modal.controller.js', function() {
     }
   };
 
-  beforeEach(module('owner.manager.module', 'legacyConfiguration'));
+  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name));
 
   beforeEach(inject(function(_$rootScope_, $controller, _$q_) {
     $rootScope = _$rootScope_;

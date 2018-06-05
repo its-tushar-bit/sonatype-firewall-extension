@@ -1,8 +1,10 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('role.mapping.service.spec', function() {
 
   var roleMappingService, loadedData, roleId;
 
-  beforeEach(module('owner.manager.module'));
+  beforeEach(angular.mock.module(ownerManagerModule.name));
 
   beforeEach(inject([
     'role.mapping.service', 'CLMAppLocations', '$httpBackend',

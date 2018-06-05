@@ -1,12 +1,12 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('select.application.contact.controller.spec.js', function() {
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });
   }));
-
-  beforeEach(module('ResourceModule'));
 
   var vm,
       $q,

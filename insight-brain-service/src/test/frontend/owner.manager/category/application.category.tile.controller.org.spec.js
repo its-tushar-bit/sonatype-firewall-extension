@@ -1,7 +1,11 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import OwnerUtils from '../owner.utils';
+import TagResourceMockData from '../mock.data/tag.resource.mock.data';
+
 describe('application.category.tile.controller.org.spec.js', function() {
   var $state;
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

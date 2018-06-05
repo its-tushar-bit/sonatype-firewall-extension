@@ -1,3 +1,5 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('license.threat.group.tile.controller.js', function() {
   var vm,
       $httpBackend,
@@ -11,7 +13,7 @@ describe('license.threat.group.tile.controller.js', function() {
     ]
   };
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

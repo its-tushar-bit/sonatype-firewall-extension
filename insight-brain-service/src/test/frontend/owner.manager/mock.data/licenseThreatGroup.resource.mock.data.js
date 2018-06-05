@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var LicenseThreatGroupResourceMockData = {
+export default {
   getApplicableLicenseGroupsUrl: function() {
     return {
       licenseThreatGroupsByOwner: [

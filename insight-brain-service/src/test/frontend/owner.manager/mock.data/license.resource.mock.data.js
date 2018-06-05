@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var LicenseResourceMockData = {
+export default {
   getLicensesUrl: function() {
     return [
       {

@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var OwnerUtils = {
+export default {
   runTestsForOwnerTypes: function(createTestFunction) {
     describe('Organization', function () {
       createTestFunction('organization', 'OrganizationStore', { id: 'abcd', name: 'My Org' });

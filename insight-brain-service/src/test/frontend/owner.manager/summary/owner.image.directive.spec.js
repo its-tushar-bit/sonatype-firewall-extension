@@ -1,9 +1,11 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('owner.image.directive.spec.js', function() {
   var scope,
       ownerImageScope,
       CLMAppLocations;
 
-  beforeEach(module('owner.manager.module'));
+  beforeEach(angular.mock.module(ownerManagerModule.name));
 
   beforeEach(inject(function($compile, $rootScope, _CLMAppLocations_) {
     CLMAppLocations = _CLMAppLocations_;

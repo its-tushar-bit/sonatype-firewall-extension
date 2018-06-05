@@ -1,8 +1,10 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('coordinates.input.directive.spec', function() {
   var scope,
       directiveScope;
 
-  beforeEach(module('owner.manager.module'));
+  beforeEach(angular.mock.module(ownerManagerModule.name));
 
   function initialize(value) {
     inject(function($compile, $rootScope) {

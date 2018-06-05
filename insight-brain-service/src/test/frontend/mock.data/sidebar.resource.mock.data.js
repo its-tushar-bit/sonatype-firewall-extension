@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var SidebarResourceMockData = {
+window.SidebarResourceMockData = {
   getOwnerListUrl: function() {
     return {
       'organizations': [

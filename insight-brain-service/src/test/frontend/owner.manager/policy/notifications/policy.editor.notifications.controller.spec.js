@@ -1,6 +1,8 @@
+import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('policy.editor.notifications.controller.spec.js', function() {
 
-  beforeEach(module('ProductFeaturesModule'));
+  beforeEach(angular.mock.module(ownerManagerModule.name));
 
   var membershipMapping = {
     membersByRole: [
@@ -24,8 +26,6 @@ describe('policy.editor.notifications.controller.spec.js', function() {
         getProjectsDefer,
         jiraService,
         $q;
-
-    beforeEach(module('utility.services'));
 
     beforeEach(inject([
       '$q', 'jira.service', function(_$q_, _jiraService_) {
@@ -63,8 +63,6 @@ describe('policy.editor.notifications.controller.spec.js', function() {
       scope,
       CLMLocations,
       jiraProjects = JiraServiceMockData.getJiraProjectsUrl();
-
-  beforeEach(module('owner.manager.module'));
 
   var jiraServiceResolver = createJiraServiceResolver();
 

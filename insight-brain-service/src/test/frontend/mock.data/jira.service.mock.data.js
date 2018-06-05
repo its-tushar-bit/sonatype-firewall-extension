@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var JiraServiceMockData = {
+window.JiraServiceMockData = {
   getJiraProjectsUrl: function() {
     return [
       {

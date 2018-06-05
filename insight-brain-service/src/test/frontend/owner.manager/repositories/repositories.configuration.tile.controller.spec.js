@@ -1,3 +1,6 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import RepositoriesResourceMockData from '../mock.data/repositories.resource.mock.data';
+
 describe('repositories.configuration.tile.controller.spec.js', function() {
   var vm,
       $httpBackend,
@@ -5,7 +8,7 @@ describe('repositories.configuration.tile.controller.spec.js', function() {
       deleteServiceResourceDefer,
       mockDeleteService;
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

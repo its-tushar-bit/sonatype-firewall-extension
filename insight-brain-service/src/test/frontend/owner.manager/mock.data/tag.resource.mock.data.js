@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var TagResourceMockData = {
+export default {
   getApplicationTagUrl: function(orgId) {
     return [
       {

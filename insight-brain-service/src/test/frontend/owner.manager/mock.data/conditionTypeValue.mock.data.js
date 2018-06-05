@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var ConditionTypeValueResourceMockData = {
+export default {
   getConditionValueTypeUrl: function() {
     return [
       {'id': 'AgeInDaysValueType', 'dataType': 'Integer', 'availableValues': null, 'allowMultiple': false},

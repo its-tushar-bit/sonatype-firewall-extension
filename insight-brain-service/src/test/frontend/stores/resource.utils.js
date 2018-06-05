@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var ResourceUtils = function() {
+window.ResourceUtils = function() {
   var me = {
     createMockResource: createMockResource
   };

@@ -760,6 +760,7 @@
                 <exclude>frontend/**/CIP*.js</exclude>
                 <exclude>frontend/brain-client/**/*.js</exclude>
                 <exclude>frontend/version-graph/**/*.js</exclude>
+                <exclude>frontend/owner.manager/**/*.js</exclude>
               </specExcludes>
               <fileSystemReporters>
                 <reporter>
@@ -973,6 +974,17 @@
             <configuration>
               <srcdir>${basedir}/src/main/frontend</srcdir>
               <arguments>${grunt.task}</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>grunt-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>grunt</goal>
+            </goals>
+            <configuration>
+              <srcdir>${basedir}/src/main/frontend</srcdir>
+              <arguments>test</arguments>
             </configuration>
           </execution>
         </executions>

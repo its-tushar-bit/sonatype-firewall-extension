@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-var RepositoriesResourceMockData = {
+export default {
   getRepositoriesUrl: function() {
     return {
       repositories: [

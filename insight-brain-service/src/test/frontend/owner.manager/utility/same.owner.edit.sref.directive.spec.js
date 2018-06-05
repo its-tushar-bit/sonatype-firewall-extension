@@ -1,9 +1,11 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('same.owner.edit.sref.directive.spec.js', function() {
   var $compile,
       $rootScope,
       SameOwnerStateNavigationService;
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });

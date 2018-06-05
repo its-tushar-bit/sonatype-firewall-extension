@@ -1,12 +1,14 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import ConditionTypeValueResourceMockData from '../mock.data/conditionTypeValue.mock.data';
+import PolicyResourceMockData from '../mock.data/policy.resource.mock.data';
+
 describe('policy.editor.constraints.controller.spec.js', function() {
 
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {
       get: angular.noop
     });
   }));
-
-  beforeEach(module('ResourceModule'));
 
   var vm,
       $timeout,

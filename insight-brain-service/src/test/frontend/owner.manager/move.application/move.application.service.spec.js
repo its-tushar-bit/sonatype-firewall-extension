@@ -1,3 +1,5 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('move.application.service.js', function() {
 
   var $q,
@@ -7,9 +9,9 @@ describe('move.application.service.js', function() {
       moveAppMessages,
       applicationStore;
 
-  beforeEach(module('owner.manager.module'));
+  beforeEach(angular.mock.module(ownerManagerModule.name));
 
-  beforeEach(module(function($provide) {
+  beforeEach(angular.mock.module(function($provide) {
     applicationStore = jasmine.createSpyObj('applicationStore', ['refresh']);
     $provide.value('ApplicationStore', applicationStore);
   }));

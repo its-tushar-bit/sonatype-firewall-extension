@@ -1,14 +1,10 @@
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+
 describe('monitored.stage.editor.controller.spec.js', function() {
 
-  beforeEach(module('Policy'));
-
-  beforeEach(module('ProductFeaturesModule'));
-
-  beforeEach(module('owner.manager.module', function($provide) {
+  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
     $provide.value('$cookies', {});
   }));
-
-  beforeEach(module('ResourceModule'));
 
   var vm,
       scope,

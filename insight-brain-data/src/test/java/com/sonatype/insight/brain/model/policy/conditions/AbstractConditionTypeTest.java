@@ -49,7 +49,7 @@ public class AbstractConditionTypeTest
       }
 
       @Override
-      public String generateDroolsCode(final TransactionContext tx, final Condition condition) {
+      public String generateDroolsConditionCode(final TransactionContext tx, final Condition condition) {
         return null;
       }
 

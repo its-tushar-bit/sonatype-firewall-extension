@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy.facts;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
@@ -19,25 +21,38 @@ public class MatchFact
   private final int conditionIndex;
 
   /**
+   * Data that triggered the condition(s) for this MatchFact. These can be security vulnerabilities, license thread
+   * groups, licenses, etc. (When a condition is evaluated to true, it can return some data that explains why the
+   * condition was triggered.)
+   */
+  private final List<ConditionTrigger> conditionTriggers;
+
+  /**
    * The policy waiver that waives this fact.
    * 
    * @since 1.12
    */
   private PolicyWaiver policyWaiver;
 
-  public MatchFact(final Component component, final String policyId, final String constraintId) {
-    this(component, policyId, constraintId, -1 /* indicates all conditions */);
+  public MatchFact(final Component component,
+                   final String policyId,
+                   final String constraintId,
+                   final List<ConditionTrigger> conditionTriggers)
+  {
+    this(component, policyId, constraintId, -1 /* indicates all conditions */, conditionTriggers);
   }
 
   public MatchFact(final Component component,
                    final String policyId,
                    final String constraintId,
-                   final int conditionIndex)
+                   final int conditionIndex,
+                   final List<ConditionTrigger> conditionTriggers)
   {
     this.component = component;
     this.policyId = policyId;
     this.constraintId = constraintId;
     this.conditionIndex = conditionIndex;
+    this.conditionTriggers = conditionTriggers;
   }
 
   public Component getComponent() {
@@ -59,7 +74,7 @@ public class MatchFact
   @Override
   public String toString() {
     return "(Policy id:" + policyId + ", Constraint id:" + constraintId + ", Condition index:" + conditionIndex
-        + ") @ " + component;
+        + ", Condition triggers: " + conditionTriggers + ") @ " + component;
   }
 
   public PolicyWaiver getPolicyWaiver() {
@@ -68,5 +83,9 @@ public class MatchFact
 
   public void setPolicyWaiver(PolicyWaiver policyWaiver) {
     this.policyWaiver = policyWaiver;
+  }
+
+  public List<ConditionTrigger> getConditionTriggers() {
+    return conditionTriggers;
   }
 }

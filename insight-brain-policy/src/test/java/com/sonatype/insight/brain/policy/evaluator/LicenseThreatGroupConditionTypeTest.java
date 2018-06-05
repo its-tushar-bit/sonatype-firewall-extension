@@ -462,7 +462,7 @@ public class LicenseThreatGroupConditionTypeTest
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "id-of-missing-ltg");
     LicenseThreatGroupConditionType conditionType = new LicenseThreatGroupConditionType();
     try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
-      assertThat(conditionType.generateDroolsCode(tx, condition), is(notNullValue()));
+      assertThat(conditionType.generateDroolsConditionCode(tx, condition), is(notNullValue()));
     }
   }
 }

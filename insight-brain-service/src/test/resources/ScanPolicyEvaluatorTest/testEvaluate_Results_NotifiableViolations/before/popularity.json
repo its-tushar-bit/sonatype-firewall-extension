@@ -1,0 +1,22 @@
+{
+  "popularity" : [ {
+    "catalogDates" : [ 1130843238000, 1131470638000, 1131470641000, 1131470641000, 1131470641000, 1131470641000, 1131470641000, 1131470641000, 1131470641000, 1131470641000, 1131470641000, 1132664799000, 1200858031000 ],
+    "currentVersionIndex" : 5,
+    "popularity" : [ 2, 0, 19, 2, 1, 0, 0, 0, 0, 0, 0, 100, 0 ],
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    },
+    "version" : "1.6.4",
+    "artifactId" : "ant",
+    "groupId" : "ant"
+  } ],
+  "lastCatalog" : 1527701324517,
+  "firstCatalog" : 1130843238000
+}

@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValue
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupLevelConditionType
-    extends AbstractComponentConditionType<Integer>
+    extends AbstractConditionType
 {
   public static final String ID = "License Threat Group Level";
 
@@ -90,9 +90,17 @@ public class LicenseThreatGroupLevelConditionType
         + " with Level " + condition.getOperator() + " " + condition.getValue();
   }
 
-  @Override
-  protected boolean internalEvaluateCondition(Component component, String operator, Integer value) {
-    return !getLicenseThreatGroupsByLevel(component, value, operator).isEmpty();
+  public boolean evaluateCondition(LicenseThreatGroup licenseThreatGroup,
+                                   String operator,
+                                   Integer licenseThreatGroupLevel)
+  {
+    if (">=".equals(operator)) {
+      return licenseThreatGroup.getThreatLevel() >= licenseThreatGroupLevel;
+    }
+    if ("<=".equals(operator)) {
+      return licenseThreatGroup.getThreatLevel() <= licenseThreatGroupLevel;
+    }
+    throw new IllegalArgumentException("Unsupported condition operator:" + operator);
   }
 
   private Set<LicenseThreatGroup> getLicenseThreatGroupsByLevel(Component component, int threatLevel, String operator) {
@@ -116,5 +124,18 @@ public class LicenseThreatGroupLevelConditionType
   @Override
   public PolicyThreatCategory getThreatCategory() {
     return PolicyThreatCategory.LICENSE;
+  }
+
+  @Override
+  public String generateDroolsConditionCode(TransactionContext tx, Condition condition) {
+    return "$licenseThreatGroup : (LicenseThreatGroup (ConditionTypes." + getClass().getSimpleName()
+        + ".evaluateCondition(this, \"" + condition.getOperator() + "\", "
+        + generateDroolsConditionValue(tx, condition.getValue()) + ")) from $component.licenseThreatGroups)";
+  }
+
+  @Override
+  public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
+    return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex
+        + ", new TriggerLicenseThreatGroup($licenseThreatGroup)));";
   }
 }

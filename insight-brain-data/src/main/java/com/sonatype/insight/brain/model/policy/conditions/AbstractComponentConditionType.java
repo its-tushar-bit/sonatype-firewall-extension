@@ -19,7 +19,7 @@ public abstract class AbstractComponentConditionType<T>
     extends AbstractConditionType
 {
   @Override
-  public final String generateDroolsCode(TransactionContext tx, Condition condition) {
+  public final String generateDroolsConditionCode(TransactionContext tx, Condition condition) {
     return "ConditionTypes." + getClass().getSimpleName() + ".evaluateCondition(this, \"" + condition.getOperator()
         + "\", " + generateDroolsConditionValue(tx, condition.getValue()) + ")";
   }

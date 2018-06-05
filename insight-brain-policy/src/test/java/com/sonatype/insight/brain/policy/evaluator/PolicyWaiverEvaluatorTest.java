@@ -44,6 +44,11 @@ public class PolicyWaiverEvaluatorTest
     return component;
   }
 
+  private MatchFact newMatchFact(String hash, Policy policy, String constraintId) {
+    return new MatchFact(newComponent(hash), policy.getId(), constraintId,
+        null /* conditionTriggers */);
+  }
+
   @Before
   public void init() {
     org = tempEntity.newOrganization("PolicyWaiverEvaluatorTest");
@@ -55,10 +60,10 @@ public class PolicyWaiverEvaluatorTest
   @Test
   public void testApplyWaivers_SpecificComponent() {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("aaaaaaaaaaaaaaaaaaa0", policyApp.getId(), app.getId());
-    MatchFact fact1 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyApp.getId(), "constraint-0");
-    MatchFact fact2 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyApp.getId(), "constraint-1");
-    MatchFact fact3 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyOrg.getId(), "constraint-0");
-    MatchFact fact4 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa1"), policyApp.getId(), "constraint-0");
+    MatchFact fact1 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyApp, "constraint-0");
+    MatchFact fact2 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyApp, "constraint-1");
+    MatchFact fact3 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyOrg, "constraint-0");
+    MatchFact fact4 = newMatchFact("aaaaaaaaaaaaaaaaaaa1", policyApp, "constraint-0");
     evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
     assertThat(fact1.getPolicyWaiver().getId(), is(policyWaiver.getId()));
     assertThat(fact2.getPolicyWaiver().getId(), is(policyWaiver.getId()));
@@ -69,10 +74,10 @@ public class PolicyWaiverEvaluatorTest
   @Test
   public void testApplyWaivers_EntirePolicy() {
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policyApp.getId(), app.getId());
-    MatchFact fact1 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyApp.getId(), "constraint-0");
-    MatchFact fact2 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyApp.getId(), "constraint-1");
-    MatchFact fact3 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyOrg.getId(), "constraint-0");
-    MatchFact fact4 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa1"), policyApp.getId(), "constraint-0");
+    MatchFact fact1 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyApp, "constraint-0");
+    MatchFact fact2 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyApp, "constraint-1");
+    MatchFact fact3 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyOrg, "constraint-0");
+    MatchFact fact4 = newMatchFact("aaaaaaaaaaaaaaaaaaa1", policyApp, "constraint-0");
     evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
     assertThat(fact1.getPolicyWaiver().getId(), is(policyWaiver.getId()));
     assertThat(fact2.getPolicyWaiver().getId(), is(policyWaiver.getId()));
@@ -87,9 +92,9 @@ public class PolicyWaiverEvaluatorTest
     PolicyWaiver policyWaiverOrg = tempEntity.newWaiver("aaaaaaaaaaaaaaaaaaa0", policyOrg.getId(), org.getId());
     PolicyWaiver policyWaiverParentOrg = tempEntity.newWaiver("aaaaaaaaaaaaaaaaaaa0", policyParentOrg.getId(),
         org.getParentOrganizationId());
-    MatchFact fact1 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyApp.getId(), "constraint-0");
-    MatchFact fact2 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyOrg.getId(), "constraint-1");
-    MatchFact fact3 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policyParentOrg.getId(), "constraint-0");
+    MatchFact fact1 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyApp, "constraint-0");
+    MatchFact fact2 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyOrg, "constraint-1");
+    MatchFact fact3 = newMatchFact("aaaaaaaaaaaaaaaaaaa0", policyParentOrg, "constraint-0");
 
     evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3));
     assertThat(fact1.getPolicyWaiver().getId(), is(policyWaiverApp.getId()));

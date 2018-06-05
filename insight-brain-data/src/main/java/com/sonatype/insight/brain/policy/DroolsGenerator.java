@@ -42,8 +42,11 @@ public class DroolsGenerator
     final StringBuilder droolsCode = new StringBuilder();
 
     droolsCode.append("import com.sonatype.insight.brain.model.component.*\n");
-    droolsCode.append("import com.sonatype.insight.brain.model.policy.facts.MatchFact\n");
+    droolsCode.append("import com.sonatype.insight.brain.model.license.*\n");
+    droolsCode.append("import com.sonatype.insight.brain.model.policy.facts.*\n");
     droolsCode.append("import com.sonatype.insight.brain.model.policy.conditions.*\n");
+    droolsCode.append("import java.util.List\n");
+    droolsCode.append("import java.util.ArrayList\n");
     droolsCode.append('\n');
     droolsCode.append("// Begin policy: ").append(policy.getName()).append(" (Id=").append(policy.getId())
         .append(")\n");
@@ -59,17 +62,20 @@ public class DroolsGenerator
       if (constraint.getOperator() == LogicalOperator.AND) {
         droolsCode.append("rule \"").append(constraint.getId()).append("\"\n");
         droolsCode.append("when\n");
-
         ConditionGenerator conditionGenerator = new ConditionGenerator();
+        int conditionIndex = 0;
         for (final Condition condition : constraint.getConditions()) {
-          conditionGenerator.add(tx, condition);
+          conditionGenerator.add(tx, condition, conditionIndex);
+          conditionIndex++;
         }
-        droolsCode.append(conditionGenerator.generate());
+        droolsCode.append(conditionGenerator.generateConditionCode());
 
         droolsCode.append("then\n");
+        droolsCode.append(INDENT).append("List $conditionTriggers = new ArrayList();\n");
+        droolsCode.append(conditionGenerator.generateConditionTriggerCode());
         droolsCode.append(INDENT).append("insert( new MatchFact( $component, \"").append(policy.getId())
             .append("\", \"");
-        droolsCode.append(constraint.getId()).append("\" ) );\n");
+        droolsCode.append(constraint.getId()).append("\", $conditionTriggers ) );\n");
         droolsCode.append("end\n");
       }
       else {
@@ -77,15 +83,17 @@ public class DroolsGenerator
         for (final Condition condition : constraint.getConditions()) {
           droolsCode.append("rule \"").append(constraint.getId()).append("#").append(conditionIndex).append("\"\n");
           droolsCode.append("when\n");
-
           ConditionGenerator conditionGenerator = new ConditionGenerator();
-          conditionGenerator.add(tx, condition);
-          droolsCode.append(conditionGenerator.generate());
+          conditionGenerator.add(tx, condition, conditionIndex);
+          droolsCode.append(conditionGenerator.generateConditionCode());
 
           droolsCode.append("then\n");
+          droolsCode.append(INDENT).append("List $conditionTriggers = new ArrayList();\n");
+          droolsCode.append(conditionGenerator.generateConditionTriggerCode());
           droolsCode.append(INDENT).append("insert( new MatchFact( $component, \"").append(policy.getId())
               .append("\", \"");
-          droolsCode.append(constraint.getId()).append("\", ").append(conditionIndex).append(" ) );\n");
+          droolsCode.append(constraint.getId()).append("\", ").append(conditionIndex)
+              .append(", $conditionTriggers ) );\n");
           droolsCode.append("end\n");
 
           conditionIndex++;
@@ -116,21 +124,30 @@ public class DroolsGenerator
 
     private final StringBuilder vulnerabilityConditionCode = new StringBuilder();
 
-    public void add(TransactionContext tx, Condition condition) {
+    private final StringBuilder otherConditionCode = new StringBuilder();
+
+    private final StringBuilder conditionTriggerCode = new StringBuilder();
+
+    public void add(TransactionContext tx, Condition condition, int conditionIndex) {
       ConditionType conditionType = ConditionTypes.getById(condition.getConditionTypeId());
-      String conditionCode = conditionType.generateDroolsCode(tx, condition);
+      String conditionCode = conditionType.generateDroolsConditionCode(tx, condition);
       if (conditionType instanceof AbstractComponentConditionType) {
-        append(componentConditionCode, conditionCode);
+        appendConditionCode(componentConditionCode, conditionCode);
       }
       else if (conditionType instanceof AbstractVulnerabilityConditionType) {
-        append(vulnerabilityConditionCode, conditionCode);
+        appendConditionCode(vulnerabilityConditionCode, conditionCode);
       }
       else {
-        throw new IllegalStateException("Unsupported condition type: " + conditionType.getId());
+        otherConditionCode.append(INDENT).append(conditionCode).append("\n");
+      }
+
+      String triggerCode = conditionType.generateDroolsTriggerCode(condition, conditionIndex);
+      if (triggerCode != null) {
+        conditionTriggerCode.append(INDENT).append(triggerCode).append("\n");
       }
     }
 
-    private static void append(StringBuilder code, String conditionCode) {
+    private static void appendConditionCode(StringBuilder code, String conditionCode) {
       if (code.length() > 0) {
         code.append(INDENT).append(INDENT).append("&&\n");
       }
@@ -139,7 +156,7 @@ public class DroolsGenerator
       code.append(" )\n");
     }
 
-    public CharSequence generate() {
+    public CharSequence generateConditionCode() {
       StringBuilder code = new StringBuilder();
 
       code.append(INDENT).append("$component : Component\n");
@@ -148,13 +165,21 @@ public class DroolsGenerator
       code.append(INDENT).append(")\n");
 
       if (vulnerabilityConditionCode.length() > 0) {
-        code.append(INDENT).append("exists (SecurityVulnerability\n");
+        code.append(INDENT).append("$securityVulnerability : (SecurityVulnerability\n");
         code.append(INDENT).append("(\n");
         code.append(vulnerabilityConditionCode);
         code.append(INDENT).append(") from $component.securityVulnerabilities)\n");
       }
 
+      if (otherConditionCode.length() > 0) {
+        code.append(otherConditionCode);
+      }
+
       return code;
+    }
+
+    public CharSequence generateConditionTriggerCode() {
+      return conditionTriggerCode.toString();
     }
   }
 }

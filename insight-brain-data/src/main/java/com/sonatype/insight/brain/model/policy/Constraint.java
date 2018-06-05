@@ -74,6 +74,7 @@ public class Constraint
     if (conditions == null) {
       conditions = new ArrayList<>();
     }
+    condition.setConditionIndex(conditions.size());
     conditions.add(condition);
   }
 

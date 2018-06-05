@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
@@ -161,30 +162,29 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_Results_NotifiableViolations() throws Exception {
+    newRelativePopularityPolicy();
+
     String scanId = "scanId";
     Stage stage = new Stage(Stage.ID_BUILD);
-    mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
-    Policy policy = newSecurityPolicy();
-    policy.getConstraints().get(0).getConditions().get(0).setValue("8");
-    new PolicyDAO().update(policy);
 
+    // 1st evaluation. The report contains one component that triggers the policy, so there is one notifiable violation.
+    mockReport(scanId, "/ScanPolicyEvaluatorTest/testEvaluate_Results_NotifiableViolations/before");
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
-
+    assertThat(results.activeViolations, hasSize(1));
     assertThat(results.notifiableViolations, hasSize(1));
 
-    policy.getConstraints().get(0).getConditions().get(0).setValue("0");
-    new PolicyDAO().update(policy);
-
+    // 2nd evaluation. Nothing changed, so there are no new violations, so no notifiable violations.
     results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
-
+    assertThat(results.activeViolations, hasSize(1));
     assertThat(results.notifiableViolations, is(nullValue()));
 
+    // 3rd evaluation. The report contains a new component that triggers the policy, so there is one new notifiable
+    // violation.
     scanId = "newScanId";
-    mockReport(scanId, "/ScanPolicyEvaluatorTest/report.zip");
-
+    mockReport(scanId, "/ScanPolicyEvaluatorTest/testEvaluate_Results_NotifiableViolations/after");
     results = scanPolicyEvaluator.evaluate(application.getPublicId(), scanId, stage);
-
-    assertThat(results.notifiableViolations, hasSize(6));
+    assertThat(results.activeViolations, hasSize(2));
+    assertThat(results.notifiableViolations, hasSize(1));
   }
 
   @Test
@@ -498,6 +498,17 @@ public class ScanPolicyEvaluatorTest
     policy.setOwnerId(application.getId());
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    policy.addConstraint(constraint);
+    new PolicyDAO().insert(policy);
+    return policy;
+  }
+
+  private Policy newRelativePopularityPolicy() {
+    Policy policy = new Policy(null, "Test Policy Age");
+    policy.setThreatLevel(5);
+    policy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(RelativePopularityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
     new PolicyDAO().insert(policy);
     return policy;

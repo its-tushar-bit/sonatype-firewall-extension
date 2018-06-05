@@ -28,7 +28,25 @@ public interface ConditionType
 
   PolicyThreatCategory getThreatCategory();
 
-  String generateDroolsCode(TransactionContext tx, Condition condition);
+  /**
+   * Generates Drools code for this condition. The generated code is included in the "when" part of the Drools rule (aka
+   * the left-hand-side).
+   */
+  String generateDroolsConditionCode(TransactionContext tx, Condition condition);
+
+  /**
+   * Generates Drools code that adds trigger data to the Drools results. The generated code is included in the "then"
+   * part of the Drools rule (aka the right-hand-side).
+   * 
+   * Not all condition types report back trigger data.
+   * 
+   * @param conditionIndex The condition index in the policy constraint.
+   * 
+   * @since 1.48.0
+   */
+  default String generateDroolsTriggerCode(@SuppressWarnings("unused") Condition condition, int conditionIndex) {
+    return null;
+  }
 
   String explainCondition(Condition condition);
 

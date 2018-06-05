@@ -26,14 +26,18 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Assert;
 import org.junit.Rule;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public abstract class AbstractPolicyEvaluationTest
@@ -132,6 +136,24 @@ public abstract class AbstractPolicyEvaluationTest
     if (conditionFact == null) {
       fail("Cannot find expected policy alert in:" + toString(actual));
     }
+    return conditionFact;
+  }
+
+  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
+                                                        Policy expectedPolicy,
+                                                        Constraint expectedConstraint,
+                                                        String expectedActionTypeId,
+                                                        String expectedConditionTypeId,
+                                                        ConditionTrigger expectedConditionTrigger,
+                                                        List<PolicyAlert> actual)
+  {
+    ConditionFact conditionFact = findConditionFactInPolicyAlerts(expectedComponent, expectedPolicy, expectedConstraint,
+        expectedActionTypeId, expectedConditionTypeId, actual);
+    if (conditionFact == null) {
+      fail("Cannot find expected policy alert in:" + toString(actual));
+    }
+    
+    assertThat(conditionFact.getTriggerJson(), is(JsonUtils.format(expectedConditionTrigger)));
     return conditionFact;
   }
 

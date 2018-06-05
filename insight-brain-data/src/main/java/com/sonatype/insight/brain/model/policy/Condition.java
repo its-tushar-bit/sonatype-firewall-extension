@@ -17,6 +17,13 @@ public class Condition
 
   private String value;
 
+  /**
+   * The condition index in the policy constraint.
+   * 
+   * @since 1.48
+   */
+  private int conditionIndex;
+
   public Condition() {
   }
 
@@ -70,5 +77,13 @@ public class Condition
   @Override
   public String toString() {
     return "Condition [conditionTypeId=" + conditionTypeId + ", operator=" + operator + ", value=" + value + "]";
+  }
+
+  public int getConditionIndex() {
+    return conditionIndex;
+  }
+
+  public void setConditionIndex(int conditionIndex) {
+    this.conditionIndex = conditionIndex;
   }
 }

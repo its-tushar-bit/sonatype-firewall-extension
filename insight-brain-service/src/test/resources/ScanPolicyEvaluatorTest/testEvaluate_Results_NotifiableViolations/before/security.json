@@ -1,0 +1,24 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.4"
+      }
+    },
+    "groupId" : "ant",
+    "artifactId" : "ant",
+    "version" : "1.6.4",
+    "hash" : "66635d8afae2046c58e8",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-2098",
+    "reference" : "CVE-2012-2098",
+    "source" : "cve",
+    "score" : 5.0,
+    "matchState" : "exact",
+    "proprietary" : false
+  } ]
+}

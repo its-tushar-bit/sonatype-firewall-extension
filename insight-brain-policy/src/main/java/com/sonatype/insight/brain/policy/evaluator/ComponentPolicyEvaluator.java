@@ -34,11 +34,14 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
+
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseFactory;
@@ -144,12 +147,12 @@ public class ComponentPolicyEvaluator
             final List<Condition> conditions = constraint.getConditions();
             final int conditionIndex = fact.getConditionIndex();
             if (conditionIndex >= 0) {
-              constraintFact
-                  .addConditionFact(createConditionFact(conditions.get(conditionIndex), conditionIndex, component));
+              constraintFact.addConditionFact(
+                  createConditionFact(conditions.get(conditionIndex), conditionIndex, component, fact));
             }
             else {
               for (final Condition condition : conditions) {
-                constraintFact.addConditionFact(createConditionFact(condition, conditionIndex, component));
+                constraintFact.addConditionFact(createConditionFact(condition, conditionIndex, component, fact));
               }
             }
             if (policyWaiverForComponentFact == null) {
@@ -185,12 +188,33 @@ public class ComponentPolicyEvaluator
   }
 
   public static ConditionFact createConditionFact(Condition condition, int conditionIndex, Component component) {
+    return createConditionFact(condition, conditionIndex, component, null /* matchFact */);
+  }
+
+  public static ConditionFact createConditionFact(Condition condition,
+                                                  int conditionIndex,
+                                                  Component component,
+                                                  MatchFact matchFact)
+  {
     final ConditionType conditionType = ConditionTypes.getById(condition.getConditionTypeId());
 
     String summary = conditionType.explainCondition(condition);
     String reason = conditionType.explainMatch(condition, component);
 
-    return new ConditionFact(condition.getConditionTypeId(), conditionIndex, summary, reason);
+    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), conditionIndex, summary, reason);
+    if (matchFact != null && !matchFact.getConditionTriggers().isEmpty()) {
+      ConditionTrigger conditionTrigger = findConditionTriggerByConditionIndex(matchFact,
+          condition.getConditionIndex());
+      if (conditionTrigger != null) {
+        conditionFact.setTriggerJson(JsonUtils.format(conditionTrigger));
+      }
+    }
+    return conditionFact;
+  }
+
+  private static ConditionTrigger findConditionTriggerByConditionIndex(MatchFact matchFact, int conditionIndex) {
+    return matchFact.getConditionTriggers().stream().filter(x -> x.getConditionIndex() == conditionIndex).findFirst()
+        .orElse(null);
   }
 
   private static Map<Policy, List<MatchFact>> byPolicy(final List<Policy> policies, final List<MatchFact> facts) {

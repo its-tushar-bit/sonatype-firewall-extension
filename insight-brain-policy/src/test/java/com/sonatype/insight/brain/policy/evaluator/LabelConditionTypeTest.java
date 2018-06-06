@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLabel;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Assert;
@@ -84,7 +86,10 @@ public class LabelConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LabelConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLabel(labelId1));
+
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LabelConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -123,8 +128,12 @@ public class LabelConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertFactCounts(1, 1, policyAlerts.get(1));
 
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LabelConditionType.ID, policyAlerts);
-    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, LabelConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLabel(labelId1));
+
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LabelConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
+    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, LabelConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -162,7 +171,10 @@ public class LabelConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LabelConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLabel(labelId1));
+
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LabelConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test

@@ -102,4 +102,10 @@ public class LabelConditionType
     boolean hasLabel = component.hasLabelId(value);
     return "is".equals(operator) ? hasLabel : !hasLabel;
   }
+
+  @Override
+  public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
+    return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex + ", new TriggerLabel("
+        + asDroolsString(condition.getValue()) + ")));";
+  }
 }

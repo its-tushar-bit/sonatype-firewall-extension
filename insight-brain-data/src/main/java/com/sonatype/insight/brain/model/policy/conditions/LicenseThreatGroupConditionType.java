@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupConditionType
@@ -90,7 +91,7 @@ public class LicenseThreatGroupConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
     if (LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue())) {
       if ("is".equals(condition.getOperator())) {
         return "Found a License that is not assigned to any License Threat Group";
@@ -101,7 +102,7 @@ public class LicenseThreatGroupConditionType
     }
 
     final StringBuilder buf = new StringBuilder();
-    final Set<LicenseThreatGroup> licenseThreatGroups = component.getLicenseThreatGroups();
+    final Set<LicenseThreatGroup> licenseThreatGroups = matchFact.getComponent().getLicenseThreatGroups();
     if ("is".equals(condition.getOperator())) {
       final String groupId = condition.getValue();
       for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {

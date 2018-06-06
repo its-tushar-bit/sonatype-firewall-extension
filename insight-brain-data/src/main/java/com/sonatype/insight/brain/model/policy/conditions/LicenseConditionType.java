@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseConditionType
@@ -74,10 +75,10 @@ public class LicenseConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
     final LicenseDAO licenseDAO = new LicenseDAO();
     final StringBuilder buf = new StringBuilder();
-    final Set<String> licenseIds = component.getLicenseIds();
+    final Set<String> licenseIds = matchFact.getComponent().getLicenseIds();
     if (licenseIds.isEmpty()) {
       buf.append("no");
     }

@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
@@ -54,7 +54,7 @@ public class AbstractConditionTypeTest
       }
 
       @Override
-      public String explainMatch(final Condition condition, final Component component) {
+      public String explainMatch(final Condition condition, final MatchFact matchFact) {
         return null;
       }
     };

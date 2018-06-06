@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.MatchStateValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class MatchStateConditionType
@@ -48,8 +49,8 @@ public class MatchStateConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
-    return "Match State was " + component.getMatchState().getId();
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
+    return "Match State was " + matchFact.getComponent().getMatchState().getId();
   }
 
   @Override

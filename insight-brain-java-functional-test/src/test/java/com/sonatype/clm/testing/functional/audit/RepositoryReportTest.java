@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -760,8 +761,9 @@ public class RepositoryReportTest
     Component c = new Component(component.getComponentIdentifier());
     c.setMatchState(MatchState.EXACT);
     int conditionIndex = 0;
-    constraintFact.addConditionFact(ComponentPolicyEvaluator
-        .createConditionFact(policy.getConstraints().get(0).getConditions().get(conditionIndex), conditionIndex, c));
+    constraintFact.addConditionFact(ComponentPolicyEvaluator.createConditionFact(
+        policy.getConstraints().get(0).getConditions().get(conditionIndex), conditionIndex, new MatchFact(c,
+            policy.getId(), policy.getConstraints().get(0).getId(), Collections.emptyList() /* conditionTriggers */)));
 
     RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(),
         policy.getThreatLevel(), component.getPathname(), false, true, policy.getId(), policy.getName(),

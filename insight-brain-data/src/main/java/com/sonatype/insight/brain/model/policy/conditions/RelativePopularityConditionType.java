@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.PercentageValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class RelativePopularityConditionType
@@ -40,8 +41,8 @@ public class RelativePopularityConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
-    return "Relative Popularity was " + component.getRelativePopularity() + "%";
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
+    return "Relative Popularity was " + matchFact.getComponent().getRelativePopularity() + "%";
   }
 
   @Override

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 
 import org.junit.Test;
 
@@ -263,7 +264,8 @@ public class PolicyViolationDigesterTest
   private static ConditionFact conditionFact(final String conditionTypeId, final String operator, final String value) {
     final Condition condition = new Condition(conditionTypeId, operator, value);
     return ComponentPolicyEvaluator.createConditionFact(condition, 0 /* conditionIndex */,
-        ComponentFactory.forGav("G", "A", "V", MatchState.EXACT));
+        new MatchFact(ComponentFactory.forGav("G", "A", "V", MatchState.EXACT), null /* policyId */,
+            null /* constraintId */, Collections.emptyList() /* conditionTriggers */));
   }
 
   private static PolicyViolation newPolicyViolation(String policyId, String policyName, int threatLevel) {

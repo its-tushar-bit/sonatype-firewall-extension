@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.AgeInDaysValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.joda.time.Interval;
@@ -58,9 +59,9 @@ public class AgeInDaysConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
     String age = "unknown";
-    final Long catalogDate = component.getCatalogDate();
+    final Long catalogDate = matchFact.getComponent().getCatalogDate();
     if (catalogDate != null) {
       final Interval interval = new Interval(catalogDate, System.currentTimeMillis());
       age = interval.toPeriod(PeriodType.yearMonthDay()).toString(AGE_FORMATTER);

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IdentificationSourceValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class IdentificationSourceConditionType
@@ -48,8 +49,8 @@ public class IdentificationSourceConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
-    return "Identification Source was " + component.getIdentificationSource().getId();
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
+    return "Identification Source was " + matchFact.getComponent().getIdentificationSource().getId();
   }
 
   @Override

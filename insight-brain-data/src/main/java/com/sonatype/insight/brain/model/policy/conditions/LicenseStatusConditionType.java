@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseStatusValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseStatusConditionType
@@ -49,8 +50,8 @@ public class LicenseStatusConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
-    return "License Status was " + component.getLicenseOverrideStatus().getId();
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
+    return "License Status was " + matchFact.getComponent().getLicenseOverrideStatus().getId();
   }
 
   @Override

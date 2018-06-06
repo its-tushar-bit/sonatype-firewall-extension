@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LabelValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LabelConditionType
@@ -77,10 +78,10 @@ public class LabelConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
     final LabelDAO labelDAO = new LabelDAO();
     final StringBuilder buf = new StringBuilder();
-    final List<String> labelIds = component.getLabelIds();
+    final List<String> labelIds = matchFact.getComponent().getLabelIds();
     if (labelIds.isEmpty()) {
       buf.append("no");
     }

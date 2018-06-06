@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -16,6 +14,8 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupLevelConditionType
@@ -73,21 +73,12 @@ public class LicenseThreatGroupLevelConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
-    final StringBuilder buf = new StringBuilder();
-    final Set<LicenseThreatGroup> licenseThreatGroups = getLicenseThreatGroupsByLevel(component,
-        Integer.valueOf(condition.getValue()), condition.getOperator());
-    if (licenseThreatGroups.isEmpty()) {
-      buf.append("no");
-    }
-    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      if (buf.length() > 0) {
-        buf.append(" and ");
-      }
-      buf.append('\'').append(licenseThreatGroup.getName()).append('\'');
-    }
-    return "Found " + buf + " License Threat " + (licenseThreatGroups.size() != 1 ? "Groups" : "Group")
-        + " with Level " + condition.getOperator() + " " + condition.getValue();
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
+    TriggerLicenseThreatGroup conditionTrigger = (TriggerLicenseThreatGroup) matchFact
+        .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
+    LicenseThreatGroup licenseThreatGroup = getLicenseThreatGroupById(matchFact.getComponent(), conditionTrigger.id);
+    return "Found license threat group '" + licenseThreatGroup.getName() + "' with level "
+        + licenseThreatGroup.getThreatLevel() + ".";
   }
 
   public boolean evaluateCondition(LicenseThreatGroup licenseThreatGroup,
@@ -103,22 +94,9 @@ public class LicenseThreatGroupLevelConditionType
     throw new IllegalArgumentException("Unsupported condition operator:" + operator);
   }
 
-  private Set<LicenseThreatGroup> getLicenseThreatGroupsByLevel(Component component, int threatLevel, String operator) {
-    Set<LicenseThreatGroup> licenseThreatGroups = component.getLicenseThreatGroups();
-    if (licenseThreatGroups.isEmpty()) {
-      return licenseThreatGroups;
-    }
-
-    Set<LicenseThreatGroup> result = new LinkedHashSet<>();
-    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      if (">=".equals(operator) && (licenseThreatGroup.getThreatLevel() >= threatLevel)) {
-        result.add(licenseThreatGroup);
-      }
-      else if ("<=".equals(operator) && (licenseThreatGroup.getThreatLevel() <= threatLevel)) {
-        result.add(licenseThreatGroup);
-      }
-    }
-    return result;
+  private LicenseThreatGroup getLicenseThreatGroupById(Component component, String licenseThreatGroupId) {
+    return component.getLicenseThreatGroups().stream().filter(ltg -> ltg.getId().equals(licenseThreatGroupId))
+        .findFirst().get();
   }
 
   @Override

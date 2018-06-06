@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public interface ConditionType
@@ -50,7 +50,7 @@ public interface ConditionType
 
   String explainCondition(Condition condition);
 
-  String explainMatch(Condition condition, Component component);
+  String explainMatch(Condition condition, MatchFact matchFact);
 
   void validateCondition(TransactionContext tx, Condition condition, String ownerId) throws InvalidConditionException;
 

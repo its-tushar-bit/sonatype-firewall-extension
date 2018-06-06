@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.CoordinatesValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.codehaus.plexus.util.StringUtils;
@@ -64,8 +65,8 @@ public class CoordinatesConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
-    return "Coordinates were " + component.getDisplayName();
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
+    return "Coordinates were " + matchFact.getComponent().getDisplayName();
   }
 
   @Override

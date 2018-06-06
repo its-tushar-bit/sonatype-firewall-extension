@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class ProprietaryConditionType
@@ -45,8 +46,8 @@ public class ProprietaryConditionType
   }
 
   @Override
-  public String explainMatch(final Condition condition, final Component component) {
-    if (component.isProprietary()) {
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
+    if (matchFact.getComponent().isProprietary()) {
       return "Component contains proprietary packages";
     }
     else {

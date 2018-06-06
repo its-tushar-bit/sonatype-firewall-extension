@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
+import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -69,6 +70,10 @@ public class LicenseThreatGroupConditionTypeTest
     return createConstraint("ConstraintId1", "Constraint Name 1", LicenseThreatGroupConditionType.ID, operator, value);
   }
 
+  private MatchFact newMatchFact(Component component) {
+    return new MatchFact(component, null /* policyId */, null /* constraintId */, null /* conditionTriggers */);
+  }
+
   @Test
   public void testExplainMatchIs() {
     LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0").get(
@@ -85,7 +90,7 @@ public class LicenseThreatGroupConditionTypeTest
     componentDAO.loadLicenseThreatGroups(app.getId(), component1);
 
     Assert.assertEquals("Found a License in the 'Copyleft' License Threat Group",
-        new LicenseThreatGroupConditionType().explainMatch(condition, component1));
+        new LicenseThreatGroupConditionType().explainMatch(condition, newMatchFact(component1)));
   }
 
   @Test
@@ -96,17 +101,17 @@ public class LicenseThreatGroupConditionTypeTest
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is not", licenseThreatGroup.getId());
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     Assert.assertEquals("Found no License Threat Groups",
-        new LicenseThreatGroupConditionType().explainMatch(condition, component1));
+        new LicenseThreatGroupConditionType().explainMatch(condition, newMatchFact(component1)));
 
     component1.addDeclaredLicenseId("Apache-2.0");
     componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     Assert.assertEquals("Found 'Liberal' License Threat Group",
-        new LicenseThreatGroupConditionType().explainMatch(condition, component1));
+        new LicenseThreatGroupConditionType().explainMatch(condition, newMatchFact(component1)));
 
     component1.addDeclaredLicenseId("GPL-2.0");
     componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     Assert.assertEquals("Found 'Liberal' and 'Copyleft' License Threat Groups",
-        new LicenseThreatGroupConditionType().explainMatch(condition, component1));
+        new LicenseThreatGroupConditionType().explainMatch(condition, newMatchFact(component1)));
   }
 
   @Test

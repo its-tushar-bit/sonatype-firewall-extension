@@ -88,4 +88,9 @@ public class MatchFact
   public List<ConditionTrigger> getConditionTriggers() {
     return conditionTriggers;
   }
+
+  public ConditionTrigger getConditionTriggerByConditionIndex(int conditionIndex) {
+    return getConditionTriggers().stream().filter(x -> x.getConditionIndex() == conditionIndex).findFirst()
+        .orElse(null);
+  }
 }

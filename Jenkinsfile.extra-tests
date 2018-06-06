@@ -1,0 +1,100 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+String agentLabel = 'ubuntu-zion'
+
+def testConfig(String mavenOptions, String pomFile = null) {
+  return mavenCommon(javaVersion: 'Java 8', mavenVersion: 'Maven 3.2.x', useEventSpy: false,
+      pomFile: pomFile, mavenOptions: mavenOptions)
+}
+
+def gebTests() {
+  def testConfig = testConfig('-Dgeb.env=ci', 'insight-brain-functional-test/pom.xml')
+  mvn testConfig, 'clean test'
+}
+
+def functionalTests(String browser, String testRegex) {
+  String mavenOptions = "'-Dit.test=%regex[${testRegex}]'"
+  mavenOptions += ' -Drun-functional-tests=docker'
+  mavenOptions += " -Dbrowser=${browser}"
+  mavenOptions += ' -DapplitoolsKey=bg21K3t6KY1073109q6J9lZzCQBfxEDGh5tHgYR9wl1kHxk110'
+  def testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
+  mvn testConfig, 'clean verify'
+}
+
+def unitTests() {
+  def testConfig = testConfig('-Dskip-functional-test')
+  mvn testConfig, 'clean install'
+}
+
+def captureResultsAndCleanup() {
+  archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/*.xml, **/*-output.txt')
+  collectTestResults(['**/target/*-reports/*.xml'])
+  deleteDir()
+}
+
+pipeline {
+  agent { label agentLabel }
+  stages {
+    stage('Parallel Test Groups') {
+      parallel {
+        stage('Geb Functional Tests') {
+          agent { label agentLabel }
+          steps {
+            gebTests()
+          }
+          post {
+            always {
+              captureResultsAndCleanup()
+            }
+          }
+        }
+        stage('Java Functional Tests - (Chrome) A') {
+          agent { label agentLabel }
+          environment {
+            bamboo_planRepository_branchName = "${gitBranch(env)}"
+            bamboo_buildNumber = "${env.BUILD_NUMBER}"
+          }
+          steps {
+            functionalTests('chrome', '.*/[A-M].*Test.class')
+          }
+          post {
+            always {
+              captureResultsAndCleanup()
+            }
+          }
+        }
+        stage('Java Functional Tests - (Chrome) B') {
+          agent { label agentLabel }
+          environment {
+            bamboo_planRepository_branchName = "${gitBranch(env)}"
+            bamboo_buildNumber = "${env.BUILD_NUMBER}"
+          }
+          steps {
+            functionalTests('chrome', '.*/[N-Z].*Test.class')
+          }
+          post {
+            always {
+              captureResultsAndCleanup()
+            }
+          }
+        }
+        stage('Unit and Integration Tests') {
+          agent { label agentLabel }
+          steps {
+            unitTests()
+          }
+          post {
+            always {
+              captureResultsAndCleanup()
+            }
+          }
+        }
+      }
+    }
+  }
+}

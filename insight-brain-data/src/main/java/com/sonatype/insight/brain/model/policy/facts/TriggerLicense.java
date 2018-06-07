@@ -11,7 +11,7 @@ package com.sonatype.insight.brain.model.policy.facts;
  * they are compared in policy violation comparison.
  * Any change to this class structure or to its JSON serialization may break policy violation comparison.
  *
- * @since NEW_POLICY_VIOLATION_COMPARISION_VERSION
+ * @since NEW_POLICY_VIOLATION_COMPARISON_VERSION
  */
 public class TriggerLicense
 {

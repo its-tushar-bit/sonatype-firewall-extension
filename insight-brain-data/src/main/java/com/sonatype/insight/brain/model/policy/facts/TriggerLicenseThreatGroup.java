@@ -17,8 +17,6 @@ public class TriggerLicenseThreatGroup
 {
   public String id;
 
-  public String name;
-
   public int threatLevel;
 
   public TriggerLicenseThreatGroup() {
@@ -26,12 +24,11 @@ public class TriggerLicenseThreatGroup
 
   public TriggerLicenseThreatGroup(LicenseThreatGroup licenseThreatGroup) {
     id = licenseThreatGroup.getId();
-    name = licenseThreatGroup.getName();
     threatLevel = licenseThreatGroup.getThreatLevel();
   }
 
   @Override
   public String toString() {
-    return "TriggerLicenseThreatGroup [id=" + id + ", name=" + name + ", threatLevel=" + threatLevel + "]";
+    return "TriggerLicenseThreatGroup [id=" + id + ", threatLevel=" + threatLevel + "]";
   }
 }

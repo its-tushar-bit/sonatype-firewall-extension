@@ -12,12 +12,15 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLicense;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.AfterClass;
@@ -77,7 +80,9 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -107,7 +112,9 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -137,7 +144,9 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -167,7 +176,9 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -201,7 +212,9 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -232,7 +245,9 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component, policy, constraint1, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense("Apache-2.0"));
+    assertContainsPolicyAlert(component, policy, constraint1, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
 
     constraints = new ArrayList<>();
     Constraint constraint2 = createConstraint("constraintId2", "constraintName2", LicenseConditionType.ID, "is", "AFL-1.2");
@@ -247,7 +262,9 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component, policy, constraint2, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
+    expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense("AFL-1.2"));
+    assertContainsPolicyAlert(component, policy, constraint2, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -281,7 +298,9 @@ public class LicenseConditionTypeTest
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
 
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense(License.UNSPECIFIED_ID));
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test

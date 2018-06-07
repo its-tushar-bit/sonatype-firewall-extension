@@ -104,4 +104,10 @@ public class LicenseConditionType
   public PolicyThreatCategory getThreatCategory() {
     return PolicyThreatCategory.LICENSE;
   }
+
+  @Override
+  public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
+    return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex + ", new TriggerLicense("
+        + asDroolsString(condition.getValue()) + ")));";
+  }
 }

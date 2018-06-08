@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -70,6 +72,11 @@ public abstract class AbstractComponentInfoResourceTest
 
   protected HttpRequest listRequest(String ownerId, ComponentIdentifier componentIdentifier) {
     return restRequest().path(getOwner().getType().toString(), ownerId, "list").query("componentIdentifier",
+        componentIdentifier);
+  }
+
+  protected HttpRequest allVersionsRequest(String ownerId, ComponentIdentifier componentIdentifier) {
+    return restRequest().path(getOwner().getType().toString(), ownerId, "allVersions").query("componentIdentifier",
         componentIdentifier);
   }
 
@@ -120,7 +127,7 @@ public abstract class AbstractComponentInfoResourceTest
     componentDetails.setCatalogDate(new Date().getTime());
     componentDetails.setWebsite("http://www.example.com");
     componentDetails.setLicenseThreatLevel(2);
-    componentDetails.setIdentificationSource("SONATYPE");
+    componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     componentDetails.setIdentificationSourceComment("No comments");
     return componentDetails;
   }
@@ -192,8 +199,26 @@ public abstract class AbstractComponentInfoResourceTest
     assertComponentDetails(componentDetails, hdsComponentDetails);
   }
 
+  @Test
+  public void testGetComponentDetailsForAllVersions() throws Exception {
+    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
+    HttpRequest request = allVersionsRequest(getOwnerId(), MAVEN_COORDINATES);
+    setHdsResponseForURI(convertToHdsUrl(request.getUrl()), hdsComponentDetailsList, 200);
+
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+
+    ComponentDetailsDTO[] componentDetailsForAllVersions = response.getBody(ComponentDetailsDTO[].class);
+    assertThat(componentDetailsForAllVersions, arrayWithSize(1));
+    ComponentDetailsDTO componentDetailsDTO = componentDetailsForAllVersions[0];
+    assertComponentDetails(componentDetailsDTO, hdsComponentDetails);
+  }
+
   String convertToHdsUrl(String brainUrl) {
-    return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+/[^/]+)(.*)", "$2/componentDetails$4");
+    return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+/[^/]+)(.*)", "$2/componentDetails$4")
+        .replace("allVersions", "list");
   }
 
   private void assertComponentDetails(ComponentDetails actual, ComponentDetails expected) {
@@ -216,6 +241,28 @@ public abstract class AbstractComponentInfoResourceTest
     assertThat(actual.getLicenseThreatGroupNames(), is(Collections.singletonList("Weak Copyleft")));
     assertThat(actual.getIdentificationSource(), is(expected.getIdentificationSource()));
     assertThat(actual.getIdentificationSourceComment(), is(expected.getIdentificationSourceComment()));
+  }
+
+  private void assertComponentDetails(ComponentDetailsDTO actual, ComponentDetails expected) {
+    assertThat(actual.catalogDate, is(expected.getCatalogDate()));
+    assertThat(actual.componentIdentifier, is(expected.getComponentIdentifier()));
+    assertThat(actual.displayName.toString(),
+        is(ComponentDisplayNameUtil.fromIdentifier(expected.getComponentIdentifier()).toString()));
+    assertThat(actual.declaredLicenses, is(expected.getDeclaredLicenses()));
+    assertThat(actual.observedLicenses, is(expected.getObservedLicenses()));
+    assertThat(actual.overriddenLicenses, is(expected.getOverriddenLicenses()));
+    assertThat(actual.effectiveLicenses, is(expected.getEffectiveLicenses()));
+    assertThat(actual.effectiveLicenseStatus, is(expected.getEffectiveLicenseStatus()));
+    assertThat(actual.highestSecurityVulnerabilitySeverity,
+        is(expected.getSecurityVulnerabilities().stream().map(SecurityVulnerability::getSeverity).max(Float::compareTo)
+            .get()));
+    assertThat(actual.identificationSource, is(expected.getIdentificationSource()));
+    assertThat(actual.identificationSourceComment, is(expected.getIdentificationSourceComment()));
+    assertThat(actual.majorRevisionStep, is(expected.isMajorRevisionStep()));
+    assertThat(actual.matchState, is(expected.getMatchState()));
+    assertThat(actual.relativePopularity, is(expected.getRelativePopularity()));
+    assertThat(actual.securityVulnerabilityCount, is(expected.getSecurityVulnerabilities().size()));
+    assertThat(actual.website, is(expected.getWebsite()));
   }
 
   private void assertSecurityVulnerability(SecurityVulnerability actual, SecurityVulnerability expected) {

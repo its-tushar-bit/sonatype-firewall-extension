@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -22,6 +21,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
@@ -47,9 +47,12 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -61,11 +64,14 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -164,7 +170,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_COORDINATES,
         httpRequestMock).selectableLicenses;
-    assertEquals(Arrays.asList(licenses).toString(), 4, licenses.size());
+    assertEquals(asList(licenses).toString(), 4, licenses.size());
     assertContainsLicenseId("Apache-UNSPECIFIED", licenses);
     assertContainsLicenseId("Apache-1.0", licenses);
     assertContainsLicenseId("Apache-1.1", licenses);
@@ -176,7 +182,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_COORDINATES,
         httpRequestMock).selectableLicenses;
-    assertEquals(Arrays.asList(licenses).toString(), 3, licenses.size());
+    assertEquals(asList(licenses).toString(), 3, licenses.size());
     assertContainsLicenseId("Apache-2.0", licenses);
     assertContainsLicenseId("EPL-1.0", licenses);
     assertContainsLicenseId("GPL-2.0", licenses);
@@ -513,10 +519,13 @@ public class ComponentInfoServiceTest
     licenses3.add(new License("OSL-1.0", "OSL-1.0"));
     hdsComponentDetails3.setDeclaredLicenses(licenses3);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails1, hdsComponentDetails2, hdsComponentDetails3));
+    hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2, hdsComponentDetails3));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList);
-    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(application,
-        componentIdentifier1, MatchState.EXACT.getId(), httpRequestMock);
+
+    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(componentIdentifier1,
+        httpRequestMock);
+    componentInfoService.augmentComponentDetails(componentDetailsList.getList(), MatchState.EXACT.getId(), application);
+
     assertNotNull(componentDetailsList);
     assertEquals(3, componentDetailsList.getList().size());
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -901,10 +910,11 @@ public class ComponentInfoServiceTest
     testGetComponentDetails_ReadPermission(repository, repository.getId());
   }
 
+  @Deprecated
   private void testGetComponentDetailsList_ReadPermission(final Owner owner, final String ownerId) throws Exception {
     ComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
+    hdsComponentDetailsList.setList(asList(hdsComponentDetails));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList);
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
         owner.getType(), ownerId, MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
@@ -914,14 +924,94 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
   }
 
+  @Deprecated
   @Test
   public void testGetComponentDetailsList_ReadPermission_Application() throws Exception {
     testGetComponentDetailsList_ReadPermission(application, application.getPublicId());
   }
 
+  @Deprecated
   @Test
   public void testGetComponentDetailsList_ReadPermission_Repository() throws Exception {
     testGetComponentDetailsList_ReadPermission(repository, repository.getId());
+  }
+
+  private List<ComponentDetailsDTO> testGetComponentDetailsForAllVersions_ReadPermission(final Owner owner,
+                                                                                         final String ownerId) throws Exception
+  {
+    ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_COORDINATES);
+    long timestamp = DateTime.now().getMillis();
+    hdsComponentDetails1.setCatalogDate(timestamp);
+    hdsComponentDetails1.setSecurityVulnerabilities(asList(
+        new SecurityVulnerability("cve-8", "cve", 8.1f),
+        new SecurityVulnerability("cve-4", "cve", 4f)));
+    ComponentDetails hdsComponentDetails2 = newNamedComponentDetails(NUGET_COORDINATES);
+    hdsComponentDetails2.setCatalogDate(timestamp);
+    hdsComponentDetails2.setSecurityVulnerabilities(asList(
+        new SecurityVulnerability("cve-7", "cve", 0.1f))); // too low for our security policy
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2));
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList);
+
+    List<ComponentDetailsDTO> componentDetailsList = componentInfoService
+        .getComponentDetailsForAllVersions_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, httpRequestMock);
+
+    assertThat(componentDetailsList, hasSize(2));
+
+    ComponentDetailsDTO componentDetails1 = componentDetailsList.get(0);
+    assertThat(componentDetails1.displayName.toString(),
+        is(ComponentDisplayNameUtil.fromIdentifier(MAVEN_COORDINATES).toString()));
+    assertThat(componentDetails1.matchState, is(MatchState.EXACT.getId()));
+    assertThat(componentDetails1.componentIdentifier, is(hdsComponentDetails1.getComponentIdentifier()));
+    assertThat(componentDetails1.highestSecurityVulnerabilitySeverity, is(8.1f));
+    assertThat(componentDetails1.catalogDate, is(timestamp));
+
+    ComponentDetailsDTO componentDetails2 = componentDetailsList.get(1);
+    assertThat(componentDetails2.displayName.toString(),
+        is(ComponentDisplayNameUtil.fromIdentifier(NUGET_COORDINATES).toString()));
+    assertThat(componentDetails2.matchState, is(MatchState.EXACT.getId()));
+    assertThat(componentDetails2.componentIdentifier, is(hdsComponentDetails2.getComponentIdentifier()));
+    assertThat(componentDetails2.highestSecurityVulnerabilitySeverity, is(0.1f));
+    assertThat(componentDetails2.securityVulnerabilityCount, is(1));
+    assertThat(componentDetails2.catalogDate, is(timestamp));
+
+    return componentDetailsList;
+  }
+
+  @Test
+  public void testGetComponentDetailsForAllVersions_ReadPermission_Application() throws Exception {
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
+    Policy policy1 = new Policy("security-high", "Security-High");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, policy1);
+
+    Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
+    constraint2.addCondition(new Condition(LicenseConditionType.ID, "is not", "GPL-2.0")); // will hit both components
+    Policy policy2 = new Policy("NonGpl2", "Non-GPL-2");
+    policy2.setThreatLevel(6);
+    policy2.addConstraint(constraint2);
+    policy2.setAction(BuildStageType.ID, WarnActionType.ID);
+    addPolicy(applicationPublicId, policy2);
+
+    List<ComponentDetailsDTO> componentDetailsList = testGetComponentDetailsForAllVersions_ReadPermission(
+        application, application.getPublicId());
+
+    ComponentDetailsDTO componentDetails1 = componentDetailsList.get(0);
+    assertThat(componentDetails1.policyMaxThreatLevelsByCategory,
+        is(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8, PolicyThreatCategory.LICENSE, 6)));
+    assertThat(componentDetails1.violatedPolicyCount, is(2));
+
+    ComponentDetailsDTO componentDetails2 = componentDetailsList.get(1);
+    assertThat(componentDetails2.policyMaxThreatLevelsByCategory, is(ImmutableMap.of(PolicyThreatCategory.LICENSE, 6)));
+    assertThat(componentDetails2.violatedPolicyCount, is(1));
+  }
+
+  @Test
+  public void testGetComponentDetailsForAllVersions_ReadPermission_Repository() throws Exception {
+    testGetComponentDetailsForAllVersions_ReadPermission(repository, repository.getId());
   }
 
   @Test

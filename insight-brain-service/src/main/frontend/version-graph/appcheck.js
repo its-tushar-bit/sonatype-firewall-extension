@@ -11,13 +11,13 @@
       orange = '#f4861d',
       yellow = '#f5c648',
       red = '#bc012f',
-      grey = '#9D9D9D',
 
       darkRed = '#bc012f',
       darkOrange = '#f4861d',
       darkYellow = '#f5c648',
       darkBlue = '#006bbf',
       darkGrey = '#575757',
+      lightGrey = '#edf1f4',
 
       bgBlue = '#f7fbfe',
       bgBorder = '#eef2fb',
@@ -401,7 +401,7 @@
           return config.topPadding + this.contentRows(config) * (config.barWidth + config.barGap) + 1;
         },
         contentRows: function(config) {
-          return config.partialDisplay ? 4 : 10;
+          return config.partialDisplay ? 4 : 9;
         },
         bottomPadding: function(config) {
           return config.partialDisplay ? 20 : 0;
@@ -442,34 +442,18 @@
         }
       };
 
-    function getLicenseSeverity(threatLevel) {
+    function getThreatSeverity(threatLevel) {
       if (threatLevel >= 8) {
         return 0; // CRITICAL
       }
       else if (threatLevel >= 4) {
         return 1; // SEVERE
       }
-      else if (threatLevel > 0) {
-        return 2; //MODERATE;
+      else if (threatLevel > 1) {
+        return 2; // MODERATE
       }
-      else if (threatLevel === 0) {
-        return 3;
-      }
-      return 4;
-    }
-
-    function getSecuritySeverity(threatLevel) {
-      if (threatLevel >= 7) {
-        return 0; // CRITICAL
-      }
-      else if (threatLevel >= 4) {
-        return 1; // SEVERE
-      }
-      else if (threatLevel > 0) {
-        return 2; //MODERATE;
-      }
-      else if (threatLevel === 0) {
-        return 3;
+      else if (threatLevel === 1) {
+        return 3; // LOW
       }
       return 4;
     }
@@ -480,12 +464,10 @@
           versions: [],
           versionPopularity: [],
           majorRevIndices: [],
-          effectiveLicenses: [],
-          securityLevels: [[], [], []]
+          policyThreatLevels: {SECURITY: [], LICENSE: [], QUALITY: [], OTHER: []}
         };
 
       $.each(json.versions, function(index, item) {
-        var critical = false, severe = false, moderate = false;
         data.versions.push(item.componentIdentifier.coordinates.version);
         data.versionPopularity.push(item.popularity || item.relativePopularity || 0);
 
@@ -495,35 +477,11 @@
         if (item.majorRevisionStep) {
           data.majorRevIndices.push(index);
         }
-        data.effectiveLicenses.push(getLicenseSeverity(item.effectiveLicenseThreat || item.licenseThreatLevel));
-        if (item.securityThreats) {
-          if ($.inArray('Critical', item.securityThreats) !== -1) {
-            data.securityLevels[0].push(index);
-          }
-          if ($.inArray('Severe', item.securityThreats) !== -1) {
-            data.securityLevels[1].push(index);
-          }
-          if ($.inArray('Moderate', item.securityThreats) !== -1) {
-            data.securityLevels[2].push(index);
-          }
-        }
-        else if (item.securityVulnerabilities && item.securityVulnerabilities.length > 0) {
-          $.each(item.securityVulnerabilities, function(index, sv) {
-            var level = getSecuritySeverity(sv.severity);
-            critical = critical || level === 0;
-            severe = severe || level === 1;
-            moderate = moderate || level >= 2;
-          });
-          if (critical) {
-            data.securityLevels[0].push(index);
-          }
-          if (severe) {
-            data.securityLevels[1].push(index);
-          }
-          if (moderate) {
-            data.securityLevels[2].push(index);
-          }
-        }
+        const threats = item.policyMaxThreatLevelsByCategory;
+        data.policyThreatLevels.SECURITY.push(getThreatSeverity(threats.SECURITY));
+        data.policyThreatLevels.LICENSE.push(getThreatSeverity(threats.LICENSE));
+        data.policyThreatLevels.QUALITY.push(getThreatSeverity(threats.QUALITY));
+        data.policyThreatLevels.OTHER.push(getThreatSeverity(threats.OTHER));
       });
       return data;
     }
@@ -693,81 +651,51 @@
       return vis;
     }
 
-    function fillRow(vis, config) {
+    function fillRow(vis, config, color, fillBorder) {
       var inner = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(3);
+      var borderWidth = config.barWidth + config.barGap - (fillBorder ? 0 : 1.5);
 
-      inner.add(pv.Bar).top(1).data(config.vGridLines).width(config.barWidth + config.barGap -
-              1.5).height(config.barWidth + config.barGap - 1.5).left(function() {
+      inner.add(pv.Bar).top(1).data(config.vGridLines).width(borderWidth).height(borderWidth).left(function() {
         return this.data() - 2;
-      }).fillStyle('#edf1f4');
+      }).fillStyle(color);
     }
 
-    function createEffectiveLicensePanel(vis, config) {
+    function createPolicyThreatPanel(vis, config, category) {
       var inner = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(config.left);
 
-      inner.add(pv.Bar).top(config.barGap /
-              2).data(config.data.effectiveLicenses).width(config.barWidth).height(config.barWidth).left(function() {
-        return getLeftPositionFn(config)(this.index);
-      }).fillStyle(function(d) {
-            switch (d) {
-              case 0:
-                return red;
-              case 1:
-                return orange;
-              case 2:
-                return yellow;
-              case 3:
-                return blue;
-              default:
-                return grey;
-            }
-          }).strokeStyle(function(d) {
-            switch (d) {
-              case 0:
-                return red;
-              case 1:
-                return orange;
-              case 2:
-                return yellow;
-              case 3:
-                return blue;
-              default:
-                return grey;
-            }
-          });
-
-      config.top += config.spacer * 2;
-
-      return vis;
-    }
-
-    function createSecurityLevelPanel(vis, config) {
-      $.each(config.data.securityLevels, function(index, item) {
-        var row = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(config.left),
-            strokeColor = darkGrey,
-            fillColor = grey;
-
-        switch (index) {
+      inner.add(pv.Bar).top(config.barGap / 2).data(config.data.policyThreatLevels[category]).width(
+          config.barWidth).height(config.barWidth).left(
+          function() {
+            return getLeftPositionFn(config)(this.index);
+          }).fillStyle(function(d) {
+        switch (d) {
           case 0:
-            fillColor = red;
-            strokeColor = darkRed;
-            break;
+            return red;
           case 1:
-            fillColor = orange;
-            strokeColor = darkOrange;
-            break;
+            return orange;
           case 2:
-            fillColor = yellow;
-            strokeColor = darkYellow;
-            break;
+            return yellow;
+          case 3:
+            return blue;
+          default:
+            return;
         }
-        row.add(pv.Dot).data(item).left(function(d) {
-          return config.barWidth / 2 + getLeftPositionFn(config)(d) + 1;
-        }).radius(config.barWidth / 2 - 0.5).fillStyle(fillColor).strokeStyle(strokeColor).angle(-Math.PI /
-                2).shape('triangle');
-
-        config.top += config.spacer;
+      }).strokeStyle(function(d) {
+        switch (d) {
+          case 0:
+            return red;
+          case 1:
+            return orange;
+          case 2:
+            return yellow;
+          case 3:
+            return blue;
+          default:
+            return;
+        }
       });
+
+      config.top += config.spacer;
 
       return vis;
     }
@@ -837,8 +765,12 @@
           .strokeStyle(gridLine)
           .strokeDasharray('1 1');
 
-      $.each(config.partialDisplay ? [] : [5, 7, 8, 9], function(index, row) {
-        fillRow(vizContent, $.extend({}, config, { top: config.top + (row - 1) * config.spacer }));
+      $.each(config.partialDisplay ? [] : [6, 7, 8, 9], function(index, row) {
+        fillRow(vizContent, $.extend({}, config, { top: config.top + (row - 1) * config.spacer }), lightGrey);
+      });
+
+      $.each(config.partialDisplay ? [] : [4, 5, 10], function(index, row) {
+        fillRow(vizContent, $.extend({}, config, {top: config.top + (row - 1) * config.spacer}), bgBlue, true);
       });
 
       if (config.versionCount !== 0) {
@@ -851,17 +783,28 @@
         vizContent.add(pv.Label).left(config.width / 2).top(15).textAlign('center').text('This Version');
         vizContent.add(pv.Label).left((config.width / 2) + 70).top(15).textAlign('center').text('Newer');
       }
-      vizLabels.add(pv.Label).left(0).top(config.top + config.labelTop).textAlign('left').text('Popularity');
+      vizLabels.add(pv.Label).left(20).top(config.top + config.labelTop).textAlign('left').font('bold 10px arial').text(
+          'Popularity');
       config.top += 1;
       createPopularityPanel(vizContent, config);
 
+      config.top += 10;
+      vizLabels.add(pv.Label).left(20).top(config.top - 1).textAlign('left').font('bold 10px arial').text(
+          'Policy Threat');
+
       //these values are all hidden unless paid for
       if (!config.partialDisplay) {
-        vizLabels.add(pv.Label).left(0).top(config.top + 10).textAlign('left').text('License Risk');
-        createEffectiveLicensePanel(vizContent, config);
+        vizLabels.add(pv.Label).left(28).top(config.top + 12).textAlign('left').text('Security');
+        createPolicyThreatPanel(vizContent, config, 'SECURITY');
 
-        vizLabels.add(pv.Label).left(0).top(config.top + 10).textAlign('left').text('Security Alerts');
-        createSecurityLevelPanel(vizContent, config);
+        vizLabels.add(pv.Label).left(28).top(config.top + 12).textAlign('left').text('License');
+        createPolicyThreatPanel(vizContent, config, 'LICENSE');
+
+        vizLabels.add(pv.Label).left(28).top(config.top + 12).textAlign('left').text('Quality');
+        createPolicyThreatPanel(vizContent, config, 'QUALITY');
+
+        vizLabels.add(pv.Label).left(28).top(config.top + 12).textAlign('left').text('Other');
+        createPolicyThreatPanel(vizContent, config, 'OTHER');
       }
 
       if (config.versionCount === 0) {

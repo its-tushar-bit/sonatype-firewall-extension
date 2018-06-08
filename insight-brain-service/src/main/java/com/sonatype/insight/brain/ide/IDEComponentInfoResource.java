@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.ide;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
@@ -58,6 +60,10 @@ public class IDEComponentInfoResource
         matchState, hash, proprietary, httpRequest);
   }
 
+  /**
+   * @deprecated since 1.48. Not used by Insight or plugins, but left here as our customers use these APIs.
+   */
+  @Deprecated
   @GET
   @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/list")
   @Produces(MediaType.APPLICATION_JSON)
@@ -67,5 +73,19 @@ public class IDEComponentInfoResource
   {
     return componentInfoService.getComponentDetailsList_EvaluateComponentPermission(applicationPublicId, identifier,
         matchState, httpRequest);
+  }
+
+  /**
+   * @since 1.48
+   */
+  @GET
+  @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/allVersions")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(@PathParam("applicationPublicId") String applicationPublicId,
+                                                                     @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier,
+                                                                     @QueryParam("matchState") String matchState) throws IOException
+  {
+    return componentInfoService.getComponentDetailsForAllVersions_EvaluateComponentPermission(applicationPublicId,
+        componentIdentifier, httpRequest);
   }
 }

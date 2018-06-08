@@ -44,7 +44,8 @@ var clmBuildTimestamp = '${build.timestamp}';
 
   function createComponentListUrl(clientType) {
     return function (ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname) {
-      var url = basePath + 'rest/' + clientType + '/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId) + '/list';
+      var url = basePath + 'rest/' + clientType + '/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId) +
+          '/allVersions';
 
       return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname);
     };

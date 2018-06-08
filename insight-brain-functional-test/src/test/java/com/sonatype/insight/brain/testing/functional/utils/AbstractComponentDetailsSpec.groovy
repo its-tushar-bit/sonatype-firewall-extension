@@ -125,8 +125,8 @@ extends BaseSpec {
 
   protected void verifyVersionGraph(VersionGraphModule versionGraph) {
     assert versionGraph.displayed
-    assert versionGraph.labels == ['Popularity', 'License Risk', 'Security Alerts']
-    assert versionGraph.chart.@height.toInteger() == 142
+    assert versionGraph.labels == ['Popularity', 'Policy Threat', 'Security', 'License', 'Quality', 'Other']
+    assert versionGraph.chart.@height.toInteger() == 131
   }
 
   protected void validateMavenComponent(CIPModule cip, ComponentDetails component) {

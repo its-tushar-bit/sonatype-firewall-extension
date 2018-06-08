@@ -13,7 +13,9 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,32 +25,42 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.base.Functions;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,9 +199,10 @@ public class ComponentInfoService
   /**
    * Returns a list of component details for the given application and component identifier. It does not evaluate
    * policies and it does not return policy violations.
-   * 
-   * This method is called by the eclipse plugin, so it needs to check the EVALUATE_COMPONENT permission.
+   *
+   * @deprecated since 1.48. Not used by Insight or plugins, but left here as our customers use these APIs.
    */
+  @Deprecated
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ComponentDetailsList getComponentDetailsList_EvaluateComponentPermission(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
                                                                                   ComponentIdentifier identifier,
@@ -198,15 +211,33 @@ public class ComponentInfoService
       throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    return getComponentDetailsList(app, identifier, matchState, httpRequest);
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, httpRequest);
+    augmentComponentDetails(componentDetailsList.getList(), matchState, app);
+    return componentDetailsList;
+  }
+
+  /**
+   * Returns a list of component details for the given application and component identifier.
+   * It also evaluates policies and returns max threat levels per category, as well as count of violated policies.
+   *
+   * This method is called by the IDE and RM plugins, so it needs to check the EVALUATE_COMPONENT permission.
+   */
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_EvaluateComponentPermission(@AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+                                                                                                 ComponentIdentifier componentIdentifier,
+                                                                                                 HttpServletRequest httpRequest) throws IOException
+  {
+    return getComponentDetailsForAllVersions(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
+        httpRequest);
   }
 
   /**
    * Returns a list of component details for the given application and component identifier. It does not evaluate
    * policies and it does not return policy violations.
    * 
-   * This method is called by the CIP, so it needs to check the READ permission.
+    * @deprecated since 1.48. Not used by Insight or plugins, but left here as our customers use these APIs.
    */
+  @Deprecated
   @Authorize(permission = Permission.READ)
   public ComponentDetailsList getComponentDetailsList_ReadPermission(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
                                                                      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
@@ -215,13 +246,97 @@ public class ComponentInfoService
                                                                      HttpServletRequest httpRequest) throws IOException
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    return getComponentDetailsList(owner, componentIdentifier, matchState, httpRequest);
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, httpRequest);
+    augmentComponentDetails(componentDetailsList.getList(), matchState, owner);
+    return componentDetailsList;
   }
 
-  ComponentDetailsList getComponentDetailsList(Owner owner,
-                                               ComponentIdentifier identifier,
-                                               String matchState,
-                                               HttpServletRequest httpRequest) throws IOException
+  /**
+   * Returns a list of component details for the given application and component identifier.
+   * It also evaluates policies and returns max threat levels per category, as well as count of violated policies.
+   *
+   * This method is called by the CIP, so it needs to check the READ permission.
+   */
+  @Authorize(permission = Permission.READ)
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions_ReadPermission(@AuthzContext(Key.TYPE) final OwnerType ownerType,
+                                                                                    @AuthzContext(Key.ID) final String ownerId,
+                                                                                    ComponentIdentifier componentIdentifier,
+                                                                                    HttpServletRequest httpRequest) throws IOException
+  {
+    return getComponentDetailsForAllVersions(ownerType, ownerId, componentIdentifier, httpRequest);
+  }
+
+  private List<ComponentDetailsDTO> getComponentDetailsForAllVersions(OwnerType ownerType,
+                                                                      String ownerId,
+                                                                      ComponentIdentifier componentIdentifier,
+                                                                      HttpServletRequest httpRequest) throws IOException
+  {
+    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    List<ComponentDetails> componentDetailsList = getComponentDetailsList(componentIdentifier, httpRequest).getList();
+    // Fix match state to exact as there's no point propagating it to other versions.
+    List<Component> components = augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), owner);
+
+    // Evaluate the policies and get the PolicyAlerts
+    List<PolicyAlert> allPolicyAlerts = componentPolicyEvaluator
+        .evaluate(owner.getId(), new Stage(BuildStageType.ID), components);
+
+    Map<ComponentIdentifier, List<PolicyAlert>> policyAlertsByComponent = new HashMap<>();
+    for (PolicyAlert policyAlert : allPolicyAlerts) {
+      for (ComponentFact componentFact : policyAlert.getTrigger().getComponentFacts()) {
+        policyAlertsByComponent.computeIfAbsent(componentFact.getComponentIdentifier(), key -> new ArrayList<>())
+            .add(policyAlert);
+      }
+    }
+
+    // All policies that were part of this evaluation, indexed by id
+    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerId(owner.getId()).stream()
+        .collect(Collectors.toMap(Policy::getId, Functions.identity()));
+
+    List<ComponentDetailsDTO> componentDetailsDTOs = new ArrayList<>(componentDetailsList.size());
+    for (ComponentDetails componentDetails : componentDetailsList) {
+      ComponentDetailsDTO dto = new ComponentDetailsDTO();
+      dto.matchState = componentDetails.getMatchState();
+      dto.declaredLicenses = componentDetails.getDeclaredLicenses();
+      dto.observedLicenses = componentDetails.getObservedLicenses();
+      dto.overriddenLicenses = componentDetails.getOverriddenLicenses();
+      dto.effectiveLicenses = componentDetails.getEffectiveLicenses();
+      dto.effectiveLicenseStatus = componentDetails.getEffectiveLicenseStatus();
+      dto.catalogDate = componentDetails.getCatalogDate();
+      dto.relativePopularity = componentDetails.getRelativePopularity();
+      dto.website = componentDetails.getWebsite();
+      dto.majorRevisionStep = componentDetails.isMajorRevisionStep();
+      dto.identificationSource = componentDetails.getIdentificationSource();
+      dto.identificationSourceComment = componentDetails.getIdentificationSourceComment();
+
+      List<PolicyAlert> policyAlerts = policyAlertsByComponent
+          .getOrDefault(componentDetails.getComponentIdentifier(), Collections.emptyList());
+
+      dto.policyMaxThreatLevelsByCategory = new HashMap<>();
+      for (PolicyAlert policyAlert : policyAlerts) {
+        PolicyFact policyFact = policyAlert.getTrigger();
+        PolicyThreatCategory threatCategory = policiesById.get(policyFact.getPolicyId()).getThreatCategory();
+        dto.policyMaxThreatLevelsByCategory.merge(threatCategory, policyFact.getThreatLevel(), Math::max);
+      }
+
+      dto.violatedPolicyCount = policyAlerts.stream().map(PolicyAlert::getTrigger).map(PolicyFact::getPolicyId)
+          .collect(Collectors.toSet()).size();
+
+      OptionalDouble highestSecurityVulnerabilitySeverity = componentDetails.getSecurityVulnerabilities().stream()
+          .mapToDouble(SecurityVulnerability::getSeverity).max();
+
+      dto.securityVulnerabilityCount = componentDetails.getSecurityVulnerabilities().size();
+      dto.highestSecurityVulnerabilitySeverity = (float) highestSecurityVulnerabilitySeverity.orElse(0);
+
+      dto.displayName = ComponentDisplayNameUtil.fromIdentifier(componentDetails.getComponentIdentifier());
+      dto.componentIdentifier = componentDetails.getComponentIdentifier();
+      componentDetailsDTOs.add(dto);
+    }
+
+    return componentDetailsDTOs;
+  }
+
+  ComponentDetailsList getComponentDetailsList(ComponentIdentifier identifier, HttpServletRequest httpRequest)
+      throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -232,15 +347,23 @@ public class ComponentInfoService
     String url = "rest/" + toolName + "/componentDetails/list";
     ComponentDetailsList componentDetailsList = hdsClient.get(httpRequest, ComponentDetailsList.class, url);
 
-    for (ComponentDetails componentDetails : componentDetailsList.getList()) {
-      componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
-      componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
-    }
-
     log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
         componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
 
     return componentDetailsList;
+  }
+
+  List<Component> augmentComponentDetails(List<ComponentDetails> componentDetailsList,
+                                          String matchState,
+                                          Owner owner)
+  {
+    List<Component> components = new ArrayList<>(componentDetailsList.size());
+    for (ComponentDetails componentDetails : componentDetailsList) {
+      componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
+      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+      components.add(componentDetailsLoader.augmentComponentDetails(owner, componentDetails));
+    }
+    return components;
   }
 
   /**

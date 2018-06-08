@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -65,6 +66,10 @@ public class CIComponentInfoResource
         proprietary, httpRequest);
   }
 
+  /**
+   * @deprecated since 1.48. Not used by Insight or plugins, but left here as our customers use these APIs.
+   */
+  @Deprecated
   @GET
   @Path(COMPONENT_DETAILS_PATH + "/list")
   @Produces(MediaType.APPLICATION_JSON)
@@ -75,6 +80,20 @@ public class CIComponentInfoResource
   {
     return componentInfoService.getComponentDetailsList_ReadPermission(ownerType, ownerId, identifier, matchState,
         httpRequest);
+  }
+
+  /**
+   * @since 1.48
+   */
+  @GET
+  @Path(COMPONENT_DETAILS_PATH + "/allVersions")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ComponentDetailsDTO> getComponentDetailsForAllVersions(@PathParam("ownerType") final OwnerType ownerType,
+                                                                     @PathParam("ownerId") final String ownerId,
+                                                                     @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+  {
+    return componentInfoService.getComponentDetailsForAllVersions_ReadPermission(ownerType, ownerId,
+        componentIdentifier, httpRequest);
   }
 
   @GET

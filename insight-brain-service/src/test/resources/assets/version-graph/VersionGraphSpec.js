@@ -403,7 +403,7 @@ var clmEndpointTemplate = {
           $httpBackend.verifyNoOutstandingRequest();
 
           spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
-          $httpBackend.expectGET('foo').respond({list: [{}]});
+          $httpBackend.expectGET('foo').respond([{}]);
           Insight.setGav(gav);
           $httpBackend.flush();
           expect(scope.componentDetailsList).not.toBeNull();

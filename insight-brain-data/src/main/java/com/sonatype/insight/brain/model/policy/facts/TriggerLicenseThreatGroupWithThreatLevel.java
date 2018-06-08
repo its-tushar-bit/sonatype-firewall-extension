@@ -5,27 +5,32 @@
  */
 package com.sonatype.insight.brain.model.policy.facts;
 
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+
 /**
- * Holds data about a license threat group that triggered a policy condition.
+ * Holds data about a license threat group (with threat level) that triggered a policy condition.
  * Instances of this class are serialized in JSON format in policy violations in the database and
  * they are compared in policy violation comparison.
  * Any change to this class structure or to its JSON serialization may break policy violation comparison.
  * 
  * @since NEW_POLICY_VIOLATION_COMPARISON_VERSION
  */
-public class TriggerLicenseThreatGroup
+public class TriggerLicenseThreatGroupWithThreatLevel
 {
   public String id;
 
-  public TriggerLicenseThreatGroup() {
+  public int threatLevel;
+
+  public TriggerLicenseThreatGroupWithThreatLevel() {
   }
 
-  public TriggerLicenseThreatGroup(String licenseThreatGroupId) {
-    this.id = licenseThreatGroupId;
+  public TriggerLicenseThreatGroupWithThreatLevel(LicenseThreatGroup licenseThreatGroup) {
+    id = licenseThreatGroup.getId();
+    threatLevel = licenseThreatGroup.getThreatLevel();
   }
 
   @Override
   public String toString() {
-    return "TriggerLicenseThreatGroup [id=" + id + "]";
+    return "TriggerLicenseThreatGroupWithThreatLevel [id=" + id + ", threatLevel=" + threatLevel + "]";
   }
 }

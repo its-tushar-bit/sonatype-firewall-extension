@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
-import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroupWithThreatLevel;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Assert;
@@ -92,7 +92,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
-        new TriggerLicenseThreatGroup(licenseThreatGroup2));
+        new TriggerLicenseThreatGroupWithThreatLevel(licenseThreatGroup2));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
         LicenseThreatGroupLevelConditionType.ID, expectedConditionTrigger, policyAlerts);
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
@@ -128,7 +128,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
-        new TriggerLicenseThreatGroup(licenseThreatGroup5));
+        new TriggerLicenseThreatGroupWithThreatLevel(licenseThreatGroup5));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
         LicenseThreatGroupLevelConditionType.ID, expectedConditionTrigger, policyAlerts);
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
@@ -188,7 +188,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
-        new TriggerLicenseThreatGroup(orgLicenseThreatGroup));
+        new TriggerLicenseThreatGroupWithThreatLevel(orgLicenseThreatGroup));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
         LicenseThreatGroupLevelConditionType.ID, expectedConditionTrigger, policyAlerts);
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)

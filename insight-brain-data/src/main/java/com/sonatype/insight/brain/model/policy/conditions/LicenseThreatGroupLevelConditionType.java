@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
-import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroupWithThreatLevel;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupLevelConditionType
@@ -74,7 +74,7 @@ public class LicenseThreatGroupLevelConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    TriggerLicenseThreatGroup conditionTrigger = (TriggerLicenseThreatGroup) matchFact
+    TriggerLicenseThreatGroupWithThreatLevel conditionTrigger = (TriggerLicenseThreatGroupWithThreatLevel) matchFact
         .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
     LicenseThreatGroup licenseThreatGroup = getLicenseThreatGroupById(matchFact.getComponent(), conditionTrigger.id);
     return "Found license threat group '" + licenseThreatGroup.getName() + "' with level "
@@ -114,6 +114,6 @@ public class LicenseThreatGroupLevelConditionType
   @Override
   public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
     return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex
-        + ", new TriggerLicenseThreatGroup($licenseThreatGroup)));";
+        + ", new TriggerLicenseThreatGroupWithThreatLevel($licenseThreatGroup)));";
   }
 }

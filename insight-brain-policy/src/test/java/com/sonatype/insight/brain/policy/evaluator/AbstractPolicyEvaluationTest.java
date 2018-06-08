@@ -141,26 +141,27 @@ public abstract class AbstractPolicyEvaluationTest
     return conditionFacts;
   }
 
-  public static void assertContainsPolicyAlert(Component expectedComponent,
-                                               Policy expectedPolicy,
-                                               Constraint expectedConstraint,
-                                               String expectedActionTypeId,
-                                               String expectedConditionTypeId,
-                                               ConditionTrigger expectedConditionTrigger,
-                                               List<PolicyAlert> actual)
+  public static List<ConditionFact> assertContainsPolicyAlert(Component expectedComponent,
+                                                              Policy expectedPolicy,
+                                                              Constraint expectedConstraint,
+                                                              String expectedActionTypeId,
+                                                              String expectedConditionTypeId,
+                                                              ConditionTrigger expectedConditionTrigger,
+                                                              List<PolicyAlert> actual)
   {
     List<ConditionFact> conditionFacts = findConditionFactsInPolicyAlerts(expectedComponent, expectedPolicy,
         expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actual);
     if (conditionFacts.isEmpty()) {
       fail("Cannot find expected policy alert in:" + toString(actual));
     }
-    
+
     for (ConditionFact conditionFact : conditionFacts) {
       if (conditionFact.getTriggerJson().equals(JsonUtils.format(expectedConditionTrigger))) {
-        return;
+        return conditionFacts;
       }
     }
     fail("Cannot find expected policy alert with condition trigger in:" + toString(actual));
+    return null; // unreachable, only needed to avoid warnings
   }
 
   public static void assertNotContainsPolicyAlert(Component expectedComponent,

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -17,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupConditionType
@@ -94,34 +94,23 @@ public class LicenseThreatGroupConditionType
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     if (LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue())) {
       if ("is".equals(condition.getOperator())) {
-        return "Found a License that is not assigned to any License Threat Group";
+        return "Found a license that is not assigned to any license threat group.";
       }
       else {
-        return "Did not find a License that is not assigned to any License Threat Group";
+        return "Did not find a license that is not assigned to any license threat group.";
       }
     }
 
-    final StringBuilder buf = new StringBuilder();
-    final Set<LicenseThreatGroup> licenseThreatGroups = matchFact.getComponent().getLicenseThreatGroups();
+    TriggerLicenseThreatGroup conditionTrigger = (TriggerLicenseThreatGroup) matchFact
+        .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
+    String licenseThreatGroupName = getLicenseThreatGroupName(null, conditionTrigger.id);
+
     if ("is".equals(condition.getOperator())) {
-      final String groupId = condition.getValue();
-      for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-        if (groupId.equals(licenseThreatGroup.getId())) {
-          return "Found a License in the '" + licenseThreatGroup.getName() + "' License Threat Group";
-        }
-      }
-      throw new IllegalStateException("Cannot explainMatch when there was no match");
+      return "Found a license in the '" + licenseThreatGroupName + "' license threat group.";
     }
-    if (licenseThreatGroups.isEmpty()) {
-      buf.append("no");
+    else {
+      return "Did not find a license in the '" + licenseThreatGroupName + "' license threat group.";
     }
-    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      if (buf.length() > 0) {
-        buf.append(" and ");
-      }
-      buf.append('\'').append(licenseThreatGroup.getName()).append('\'');
-    }
-    return "Found " + buf + " License Threat " + (licenseThreatGroups.size() != 1 ? "Groups" : "Group");
   }
 
   @Override
@@ -139,5 +128,11 @@ public class LicenseThreatGroupConditionType
   @Override
   public PolicyThreatCategory getThreatCategory() {
     return PolicyThreatCategory.LICENSE;
+  }
+
+  @Override
+  public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
+    return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex + ", new TriggerLicenseThreatGroup("
+        + asDroolsString(condition.getValue()) + ")));";
   }
 }

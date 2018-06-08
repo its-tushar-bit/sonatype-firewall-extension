@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-function RepositoryReEvaluateModalController($scope, $http, $stateParams, CLMLocations, Messages) {
+export default function RepositoryReEvaluateModalController($scope, $http, $stateParams, CLMLocations, Messages) {
   var vm = this;
   vm.error = undefined;
   vm.reEvaluatePolicy = reEvaluatePolicy;
@@ -21,5 +21,3 @@ function RepositoryReEvaluateModalController($scope, $http, $stateParams, CLMLoc
 }
 
 RepositoryReEvaluateModalController.$inject = ['$scope', '$http', '$stateParams', 'CLMLocations', 'Messages'];
-
-angular.module('Report').controller('repository.reevaluate.modal.controller', RepositoryReEvaluateModalController);

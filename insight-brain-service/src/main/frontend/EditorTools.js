@@ -138,3 +138,5 @@ module.directive('noSpaces', function() {
     }
   };
 });
+
+export default module;

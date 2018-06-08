@@ -68,8 +68,8 @@ function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoServi
 
 NotificationsController.$inject = ['$scope', '$http', '$sce', 'CLMLocations', 'timeAgoService', 'Messages'];
 
-angular.module('mainHeader').component('notificationsMenu', {
+export default {
   controller: NotificationsController,
   controllerAs: 'vm',
   templateUrl: 'mainHeader/notificationsMenu/notificationsMenu.html?' + clmBuildTimestamp
-});
+};

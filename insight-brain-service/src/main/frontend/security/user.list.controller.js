@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, AngularUtils*/
-function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope, DeleteModalService,
-                            Modal, $q, isAuthorized, $state) {
+export default function UserListController($http, clmLocations, UserStore, messages, CurrentUser, $scope,
+                                           DeleteModalService, Modal, $q, isAuthorized, $state) {
   var username = null;
 
   $scope.context = {
@@ -111,5 +111,3 @@ UserListController.$inject = [
   '$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
   'DeleteModalService', 'Modal', '$q', 'isAuthorized', '$state'
 ];
-
-angular.module('UserModule').controller('UserListController', UserListController);

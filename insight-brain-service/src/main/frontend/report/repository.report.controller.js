@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-function RepositoryReportController($http, $stateParams, CLMLocations, ReEvaluateModal) {
+export default function RepositoryReportController($http, $stateParams, CLMLocations, ReEvaluateModal) {
   var vm = this;
 
   vm.doLoad = doLoad;
@@ -30,5 +30,3 @@ function RepositoryReportController($http, $stateParams, CLMLocations, ReEvaluat
   }
 }
 RepositoryReportController.$inject = ['$http', '$stateParams', 'CLMLocations', 'ReEvaluateModal'];
-
-angular.module('Report').controller('repository.report.controller', RepositoryReportController);

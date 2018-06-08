@@ -5,5 +5,9 @@
  */
 import commonServicesModule from '../util/CommonServices';
 import CLMAppLocationModule from '../util/CLMAppLocation';
+import RoleMembershipDirective from './role.membership.directive';
+import RoleMembershipController from './role.membership.controller';
 
-export default angular.module('role.membership.module', [CLMAppLocationModule.name, commonServicesModule.name]);
+export default angular.module('role.membership.module', [CLMAppLocationModule.name, commonServicesModule.name])
+    .directive('roleMembership', RoleMembershipDirective)
+    .controller('role.membership.controller', RoleMembershipController);

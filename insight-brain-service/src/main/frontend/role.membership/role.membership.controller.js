@@ -5,7 +5,7 @@
  */
 import { omit, map } from 'ramda';
 
-function RoleMembershipController($scope, $http, CLMAppLocations, Messages) {
+export default function RoleMembershipController($scope, $http, CLMAppLocations, Messages) {
 
   var vm = this;
 
@@ -162,7 +162,3 @@ function RoleMembershipController($scope, $http, CLMAppLocations, Messages) {
 RoleMembershipController.$inject = [
   '$scope', '$http', 'CLMAppLocations', 'Messages'
 ];
-
-angular //
-    .module('role.membership.module') //
-    .controller('role.membership.controller', RoleMembershipController);

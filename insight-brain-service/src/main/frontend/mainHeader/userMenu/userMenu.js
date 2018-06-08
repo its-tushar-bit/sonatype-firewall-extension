@@ -85,8 +85,8 @@ UserMenuController.$inject = [
   'defaultAdminPasswordChangedService'
 ];
 
-angular.module('mainHeader').component('userMenu', {
+export default {
   templateUrl: 'mainHeader/userMenu/userMenu.html?' + clmBuildTimestamp,
   controller: UserMenuController,
   controllerAs: 'vm'
-});
+};

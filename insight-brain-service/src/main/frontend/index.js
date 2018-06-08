@@ -38,65 +38,8 @@ import ClassyBrew from 'classybrew/src/classybrew';
 import Plottable from 'plottable';
 
 import './utility/Polyfills';
-import './components/module';
-import './directives/module';
-import './changeDefaultAdminPasswordNotice/module';
-import './components/iqRenderPlottable/iqRenderPlottable';
-import './components/iqBackButton/iqBackButton';
-import './labs/module';
-import './ComponentDisplay/module';
-import './dashboard/dashboard.module';
-import './EditorTools';
-import './mainHeader/module';
-import './mainHeader/userMenu/CurrentUserService';
-import './mainHeader/helpMenu/helpMenu';
-import './mainHeader/userMenu/userMenu';
-import './mainHeader/notificationsMenu/notificationsMenu';
-import './mainHeader/systemConfigurationMenu/systemConfigurationMenu';
-import './mainHeader/mainHeader';
-import './MainModule';
-import './ManagementApp';
-import './ReportApp';
-import './SessionSecurityModule';
-import './configuration/ldap/ldap.module';
-import './configuration/ldap/ldap.configuration.store';
-import './configuration/ldap/LdapConfigurationController';
-import './configuration/ldap/ldap.server.list.controller';
-import './configuration/ldap/ldap.server.ordering.controller';
-import './configuration/webhook/webhook.module';
-import './configuration/webhook/webhook.view.controller';
-import './configuration/webhook/webhook.list.controller';
-import './configuration/webhook/webhook.edit.controller';
-import './configuration/license/ProductLicenseModule';
-import './configuration/systemNoticeConfiguration/systemNoticeConfigurationModule';
-import './configuration/systemNoticeConfiguration/systemNoticeConfiguration';
-import './dashboard/ComponentController';
-import './policy/AppSecurityController';
-import './report/ReportController';
-import './report/ReportViolationsController';
-import './report/violations/sortColumns.directive';
-import './report/violations/sortable.directive';
-import './report/repository.reevaluate.modal.controller';
-import './report/repository.reevaluate.service';
-import './report/repository.report.controller';
-import './security/RoleModule';
-import './security/UserModule';
-import './security/user.list.controller';
-import './security/userForm/userForm';
 import './util/Globals';
-
-import './owner.manager/owner.manager.module';
-import './role.membership/role.membership.directive';
-import './role.membership/role.membership.controller';
-
-import './root.organization.migrate/root.organization.migrate.module';
-import './root.organization.migrate/root.organization.migrate.directive';
-import './root.organization.migrate/root.organization.migrate.modal.controller';
-import './root.organization.migrate/root.organization.migrate.modal.service';
-
-import './systemNotice/systemNoticeModule';
-import './systemNotice/systemNoticeService';
-import './systemNotice/systemNotice';
+import './ManagementApp';
 
 import Base64 from './lib/Base64';
 

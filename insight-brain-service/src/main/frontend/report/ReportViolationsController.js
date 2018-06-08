@@ -6,10 +6,17 @@
 /* global angular */
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
+import sortableDirective from './violations/sortable.directive';
+import sortColumnsDirective from './violations/sortColumns.directive';
 
-var reportListModule = angular.module('ReportViolations', [angularCommonModule.name, CLMLocationModule.name, 'vs-repeat']);
+var reportViolationsModule = angular.module('ReportViolations',
+    [angularCommonModule.name, CLMLocationModule.name, 'vs-repeat'])
+    .directive('sortable', sortableDirective)
+    .directive('sortColumns', sortColumnsDirective);
 
-reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations', '$filter',
+export default reportViolationsModule;
+
+reportViolationsModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations', '$filter',
   function($scope, $http, $q, clmLocations, $filter) {
     let allApplications = undefined;
 

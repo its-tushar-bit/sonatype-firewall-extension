@@ -91,7 +91,7 @@ function SessionSecurityService($cookies, $window) {
 
 SessionSecurityService.$inject = ['$cookies', '$window'];
 
-angular.module('SessionSecurityModule', ['ngCookies']) //
+export default angular.module('SessionSecurityModule', ['ngCookies']) //
     .service('SessionSecurityService', SessionSecurityService) //
     .run(['$window', 'SessionSecurityService', function($window, SessionSecurityService) {
       // expose sessionExpired globally so it can be called by code from child iframes

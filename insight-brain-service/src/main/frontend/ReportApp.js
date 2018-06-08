@@ -4,8 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, clmBuildTimestamp */
-angular.module('ReportModule',
-    ['ui.router', 'ReportViolations'],
+import reportViolationsModule from './report/ReportViolationsController';
+
+export default angular.module('ReportModule',
+    ['ui.router', reportViolationsModule.name],
     ['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
       $urlRouterProvider.when('/reports', '/reports/violations');
       $stateProvider.state('violations', {

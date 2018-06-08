@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function WebhookEditController($q, $scope, $http, $stateParams, $state, CLMLocations, WebhookStore,
-                               DeleteModalService) {
+export default function WebhookEditController($q, $scope, $http, $stateParams, $state, CLMLocations, WebhookStore,
+                                              DeleteModalService) {
   var vm = this;
 
   vm.dirtyWebhook = undefined;
@@ -89,5 +89,3 @@ function WebhookEditController($q, $scope, $http, $stateParams, $state, CLMLocat
 WebhookEditController.$inject = [
   '$q', '$scope', '$http', '$stateParams', '$state', 'CLMLocations', 'WebhookStore', 'DeleteModalService'
 ];
-
-angular.module('webhook.module').controller('webhook.edit.controller', WebhookEditController);

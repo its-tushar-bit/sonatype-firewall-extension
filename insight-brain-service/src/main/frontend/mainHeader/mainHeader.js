@@ -57,11 +57,11 @@ MainHeaderController.$inject = [
   '$rootScope', '$state', '$scope', 'ProductFeatures', 'PermissionService', 'systemConfigurationPropertyService'
 ];
 
-angular.module('mainHeader').component('mainHeader', {
+export default {
   controller: MainHeaderController,
   controllerAs: 'vm',
   templateUrl: 'mainHeader/mainHeader.html?' + clmBuildTimestamp,
   bindings: {
     productEdition: '@'
   }
-});
+};

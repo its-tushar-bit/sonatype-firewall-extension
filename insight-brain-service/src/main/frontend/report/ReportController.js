@@ -7,6 +7,9 @@
 import commonServicesModule from '../util/CommonServices';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
+import RepositoryReEvaluateModalController from './repository.reevaluate.modal.controller';
+import ReEvaluateModalService from './repository.reevaluate.service';
+import RepositoryReportController from './repository.report.controller';
 
 var reportModule = angular.module('Report', [CLMLocationModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name], [
   '$stateProvider', function($stateProvider) {
@@ -28,7 +31,12 @@ var reportModule = angular.module('Report', [CLMLocationModule.name, 'ui.router'
       }
     });
   }
-]);
+])
+    .controller('repository.reevaluate.modal.controller', RepositoryReEvaluateModalController)
+    .service('ReEvaluateModal', ReEvaluateModalService)
+    .controller('repository.report.controller', RepositoryReportController);
+
+export default reportModule;
 
 reportModule.controller('ReportController', [
   '$scope', '$state', '$http', '$q', 'StageTypeStore', 'CLMLocations', function($scope, $state, $http, $q, StageTypeStore, clmLocations) {

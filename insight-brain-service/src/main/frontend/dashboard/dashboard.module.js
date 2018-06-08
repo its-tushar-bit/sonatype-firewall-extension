@@ -12,11 +12,13 @@ import angularCommonModule from '../util/AngularCommon';
 import utilityModule from '../utility/utility.module';
 import storesModule from '../util/Stores';
 import dashboardReducer from './dashboardReducer';
+import ComponentModule from './ComponentController';
+import ComponentDisplayModule from '../ComponentDisplay/module';
 
 var dashboardModule = angular.module('dashboard.module',
     [
-      'ui.router', storesModule.name, angularCommonModule.name, 'ComponentModule', 'ComponentDisplay', dashboardUtilsModule.name,
-      utilityModule.name, dashboardFilterModule.name, dashboardResultsModule.name
+      'ui.router', storesModule.name, angularCommonModule.name, ComponentModule.name, ComponentDisplayModule.name,
+      dashboardUtilsModule.name, utilityModule.name, dashboardFilterModule.name, dashboardResultsModule.name
     ])
     .value('dashboardReducer', dashboardReducer); // add to angular so we can test it
 

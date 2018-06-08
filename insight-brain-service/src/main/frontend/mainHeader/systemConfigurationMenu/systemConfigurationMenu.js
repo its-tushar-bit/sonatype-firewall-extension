@@ -10,11 +10,11 @@ function SystemConfigurationMenuController($state) {
 
 SystemConfigurationMenuController.$inject = ['$state'];
 
-angular.module('mainHeader').component('systemConfigurationMenu', {
+export default {
   templateUrl: 'mainHeader/systemConfigurationMenu/systemConfigurationMenu.html?' + clmBuildTimestamp,
   controller: SystemConfigurationMenuController,
   controllerAs: 'vm',
   bindings: {
     permissions: '<'
   }
-});
+};

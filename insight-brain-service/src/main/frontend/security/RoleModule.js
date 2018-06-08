@@ -8,9 +8,12 @@
 import resourceModule from '../Resource';
 import CLMLocationModule from '../util/CLMLocation';
 import BootstrapAddonsModule from '../util/BootstrapAddonsModule';
+import {SecurityModule} from './UserModule';
 
-var module = angular.module('RoleModule', ['ui.router', 'ui.router.state', BootstrapAddonsModule.name, 'SecurityModule',
-  CLMLocationModule.name, resourceModule.name], [
+const module = angular.module('RoleModule', [
+  'ui.router', 'ui.router.state', BootstrapAddonsModule.name, SecurityModule.name, CLMLocationModule.name,
+  resourceModule.name
+], [
   '$stateProvider', function($stateProvider) {
     $stateProvider.state('roles', {
       url: '/roles',
@@ -43,6 +46,8 @@ var module = angular.module('RoleModule', ['ui.router', 'ui.router.state', Boots
     });
   }
 ]);
+
+export default module;
 
 module.service('RoleStore', [
   'CLMLocations', 'StoreFactory', function(clmLocations, StoreFactory) {

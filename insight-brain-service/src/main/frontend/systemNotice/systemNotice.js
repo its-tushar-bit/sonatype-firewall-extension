@@ -19,12 +19,10 @@ function systemNoticeController(systemNoticeService, $scope) {
   });
 }
 
-var systemNotice = {
+systemNoticeController.$inject = ['systemNoticeService', '$scope'];
+
+export default {
   templateUrl: 'systemNotice/systemNotice.html?' + clmBuildTimestamp,
   controller: systemNoticeController,
   controllerAs: 'vm'
 };
-
-systemNoticeController.$inject = ['systemNoticeService', '$scope'];
-
-angular.module('systemNoticeModule').component('systemNotice', systemNotice);

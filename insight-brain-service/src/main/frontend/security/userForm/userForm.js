@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, AngularUtils */
-angular.module('UserModule').component('userForm', {
+export default {
   bindings: {
     user: '<?',
     existingUsers: '<',
@@ -14,7 +14,7 @@ angular.module('UserModule').component('userForm', {
   templateUrl: 'security/userForm/userForm.html?' + clmBuildTimestamp,
   controllerAs: 'vm',
   controller: UserFormController
-});
+};
 
 function UserFormController($scope, UserStore, Dialog) {
   var vm = this;

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function LdapServerListController(ldapStore, isAuthorized, LdapServerOrderingModal) {
+export default function LdapServerListController(ldapStore, isAuthorized, LdapServerOrderingModal) {
   var vm = this;
 
   vm.doLoad = doLoad;
@@ -40,7 +40,3 @@ function LdapServerListController(ldapStore, isAuthorized, LdapServerOrderingMod
 LdapServerListController.$inject = [
   'LdapConfigurationStore', 'isAuthorized', 'LdapServerOrderingModal'
 ];
-
-angular//
-    .module('ldap.module')//
-    .controller('ldap.server.list.controller', LdapServerListController);

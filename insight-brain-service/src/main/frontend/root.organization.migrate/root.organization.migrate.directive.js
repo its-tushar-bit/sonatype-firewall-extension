@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, clmBuildTimestamp, clmServerVersion*/
-function RootOrganizationMigrateDirective() {
+export default function RootOrganizationMigrateDirective() {
   return {
     templateUrl: 'root.organization.migrate/root.organization.migrate.directive.html?' + clmBuildTimestamp,
     scope: {},
@@ -41,5 +41,3 @@ function RootOrganizationMigrateDirective() {
     ]
   };
 }
-
-angular.module('root.organization.migrate').directive('rootOrganizationMigrate', RootOrganizationMigrateDirective);

@@ -95,3 +95,5 @@ componentModule.directive('riskPie', [function() {
     }
   };
 }]);
+
+export default componentModule;

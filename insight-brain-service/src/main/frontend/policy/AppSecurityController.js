@@ -160,7 +160,7 @@ function AppSecurityEditorDirective() {
   };
 }
 
-angular //
+export default angular //
     .module('ApplicationSecurityModule', //
         [commonServicesModule.name, angularCommonModule.name, CLMAppLocationModule.name, 'role.membership.module']) //
     .controller('AppSecurityController', AppSecurityController) //

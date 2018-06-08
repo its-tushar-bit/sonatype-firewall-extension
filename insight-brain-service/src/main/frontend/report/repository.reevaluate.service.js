@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular*/
-function ReEvaluateModalService(Modal) {
+export default function ReEvaluateModalService(Modal) {
   return {
     open: function () {
       return Modal.open({
@@ -16,5 +16,3 @@ function ReEvaluateModalService(Modal) {
   };
 }
 ReEvaluateModalService.$inject = ['Modal'];
-
-angular.module('Report').service('ReEvaluateModal', ReEvaluateModalService);

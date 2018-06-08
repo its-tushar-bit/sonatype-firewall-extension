@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, clmServerVersion*/
-function RootOrganizationMigrateModalController(Messages, OrganizationStore, CLMLocations, $http, $scope, $timeout, $window) {
+export default function RootOrganizationMigrateModalController(Messages, OrganizationStore, CLMLocations, $http, $scope,
+                                                               $timeout, $window) {
   var vm = this;
 
   vm.error = undefined;
@@ -52,7 +53,3 @@ function RootOrganizationMigrateModalController(Messages, OrganizationStore, CLM
 }
 
 RootOrganizationMigrateModalController.$inject = ['Messages', 'OrganizationStore', 'CLMLocations', '$http', '$scope', '$timeout', '$window'];
-
-angular //
-    .module('root.organization.migrate') //
-    .controller('RootOrganizationMigrateModalController', RootOrganizationMigrateModalController);

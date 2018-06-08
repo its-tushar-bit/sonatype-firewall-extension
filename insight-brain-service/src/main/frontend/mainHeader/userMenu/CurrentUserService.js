@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function CurrentUserService($http, $q, clmLocations) {
+export default function CurrentUserService($http, $q, clmLocations) {
   var deferred = $q.defer();
   $http.get(clmLocations.getSessionUrl()).then(function (response) {
     deferred.resolve(response.data);
@@ -14,5 +14,3 @@ function CurrentUserService($http, $q, clmLocations) {
 }
 
 CurrentUserService.$inject = ['$http', '$q', 'CLMLocations'];
-
-angular.module('mainHeader').factory('CurrentUser', CurrentUserService);

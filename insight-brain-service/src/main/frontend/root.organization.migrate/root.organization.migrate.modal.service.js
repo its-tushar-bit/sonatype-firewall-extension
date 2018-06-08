@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, clmBuildTimestamp*/
-function RootOrganizationMigrateModalService(Modal) {
+export default function RootOrganizationMigrateModalService(Modal) {
   var service = {
     openModal: openModal
   };
@@ -23,7 +23,3 @@ function RootOrganizationMigrateModalService(Modal) {
 }
 
 RootOrganizationMigrateModalService.$inject = ['Modal'];
-
-angular //
-    .module('root.organization.migrate') //
-    .service('RootOrganizationMigrateModalService', RootOrganizationMigrateModalService);

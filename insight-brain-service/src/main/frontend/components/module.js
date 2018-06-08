@@ -10,6 +10,7 @@ import iqTreeViewMultiSelect from './iqTreeViewMultiSelect/iqTreeViewMultiSelect
 import iqTreeViewRadioSelect from './iqTreeViewRadioSelect/iqTreeViewRadioSelect';
 import utilityModule from '../utility/utility.module';
 import iqOrgAppPicker from './iqOrgAppPicker/iqOrgAppPicker';
+import iqRenderPlottable from './iqRenderPlottable/iqRenderPlottable';
 
 export default angular.module('components', [utilityModule.name])
     .component('iqCheckbox', iqCheckbox)
@@ -17,4 +18,6 @@ export default angular.module('components', [utilityModule.name])
     .component('iqBackButton', iqBackButton)
     .component('iqTreeViewMultiSelect', iqTreeViewMultiSelect)
     .component('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
-    .component('iqOrgAppPicker', iqOrgAppPicker);
+    .component('iqOrgAppPicker', iqOrgAppPicker)
+    .directive('iqRenderPlottable', iqRenderPlottable)
+;

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular*/
-function LdapServerOrderingController($scope, $http, LdapConfigurationStore, CLMLocation, Messages) {
+export function LdapServerOrderingController($scope, $http, LdapConfigurationStore, CLMLocation, Messages) {
   var vm = this,
       originalStoreOrder;
 
@@ -117,12 +117,7 @@ function LdapServerOrderingController($scope, $http, LdapConfigurationStore, CLM
 
 LdapServerOrderingController.$inject = ['$scope', '$http', 'LdapConfigurationStore', 'CLMLocations', 'Messages'];
 
-// make available for testing
-if (window.jasmine) {
-  angular.module('ldap.module').controller('LdapServerOrderingController', LdapServerOrderingController);
-}
-
-function LdapServerOrderingModal(Modal) {
+export function LdapServerOrderingModal(Modal) {
   return {
     open: function() {
       return Modal.open({
@@ -137,5 +132,3 @@ function LdapServerOrderingModal(Modal) {
   };
 }
 LdapServerOrderingModal.$inject = ['Modal'];
-
-angular.module('ldap.module').factory('LdapServerOrderingModal', LdapServerOrderingModal);

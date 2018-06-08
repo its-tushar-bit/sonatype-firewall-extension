@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-var module = angular.module('ReportViolations');
-
-module.directive('sortable', function() {
+export default function sortableDirective() {
   return {
     require: 'sortable',
     controller: [
@@ -36,7 +34,7 @@ module.directive('sortable', function() {
       sortable.sortFields = attrs.sortable.split(',');
     }
   };
-});
+}
 
 function extractColumn(orderedColumn) {
   if (orderedColumn.indexOf('-') === 0) {

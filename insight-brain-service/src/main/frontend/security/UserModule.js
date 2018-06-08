@@ -11,8 +11,11 @@ import CLMLocationModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
 import permissionServiceModule from '../util/PermissionService';
 import ZeroClipboard from '../lib/ZeroClipboardLoader';
+import ApplicationSecurityModule from '../policy/AppSecurityController';
+import UserListController from './user.list.controller';
+import userForm from './userForm/userForm';
 
-angular.module('SecurityModule', ['ui.router', angularCommonModule.name, 'ApplicationSecurityModule',
+export const SecurityModule = angular.module('SecurityModule', ['ui.router', angularCommonModule.name, ApplicationSecurityModule.name,
   permissionServiceModule.name], ['$stateProvider',
     function($stateProvider) {
       $stateProvider.state('administrators', {
@@ -41,7 +44,7 @@ angular.module('SecurityModule', ['ui.router', angularCommonModule.name, 'Applic
       });
     }]);
 
-var module = angular.module('UserModule', ['ui.router', 'SecurityModule', CLMLocationModule.name, resourceModule.name,
+export const UserModule = angular.module('UserModule', ['ui.router', SecurityModule.name, CLMLocationModule.name, resourceModule.name,
   utilityModule.name],
         ['$stateProvider', function($stateProvider) {
           $stateProvider.state('users', {
@@ -66,9 +69,13 @@ var module = angular.module('UserModule', ['ui.router', 'SecurityModule', CLMLoc
               crumb: 'New User'
             }
           });
-        }]);
+        }])
+    .controller('UserListController', UserListController)
+    .component('userForm', userForm);
 
-module.service('UserStore', ['CLMLocations', 'StoreFactory', function(clmLocations, StoreFactory) {
+export default UserModule;
+
+UserModule.service('UserStore', ['CLMLocations', 'StoreFactory', function(clmLocations, StoreFactory) {
   var config = {
     id: 'id',
     template: {
@@ -85,7 +92,7 @@ module.service('UserStore', ['CLMLocations', 'StoreFactory', function(clmLocatio
   return store;
 }]);
 
-module.directive('clmMatch', function () {
+UserModule.directive('clmMatch', function () {
   return {
     require: 'ngModel',
     link: function(scope, element, attrs, ctrl) {
@@ -109,7 +116,7 @@ module.directive('clmMatch', function () {
   };
 });
 
-module.directive('expandUserOnEvent', function() {
+UserModule.directive('expandUserOnEvent', function() {
   return {
     restrict: 'A',
     link: function(scope, element, attrs) {
@@ -120,7 +127,7 @@ module.directive('expandUserOnEvent', function() {
   };
 });
 
-module.directive('zeroClipboard', function() {
+UserModule.directive('zeroClipboard', function() {
   return {
     restrict: 'A',
     link: function(scope, element, attrs) {
@@ -135,7 +142,7 @@ module.directive('zeroClipboard', function() {
 
 //simple directive that will select the text in an input field
 //when user clicks on it
-module.directive('selectText', [function () {
+UserModule.directive('selectText', [function () {
   return function (scope, element) {
     element.bind('focus', function () {
       this.select();

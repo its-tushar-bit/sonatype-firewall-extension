@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-var module = angular.module('ReportViolations');
-
-function sortColumnsDirective() {
+export default function sortColumnsDirective() {
   return {
     require: '^sortable',
     scope: {
@@ -50,5 +48,3 @@ function extractColumn(orderedColumn) {
     return orderedColumn;
   }
 }
-
-module.directive('sortColumns', sortColumnsDirective);

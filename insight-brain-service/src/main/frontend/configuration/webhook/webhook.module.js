@@ -6,6 +6,16 @@
 import angularCommonModule from '../../util/AngularCommon';
 import permissionServiceModule from '../../util/PermissionService';
 import storesModule from '../../util/Stores';
+import WebhookViewController from './webhook.view.controller';
+import WebhookListController from './webhook.list.controller';
+import WebhookEditController from './webhook.edit.controller';
+
+export default angular.module('webhook.module', [
+  storesModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name, permissionServiceModule.name
+], webhookModuleConfiguration)
+    .controller('webhook.view.controller', WebhookViewController)
+    .controller('webhook.list.controller', WebhookListController)
+    .controller('webhook.edit.controller', WebhookEditController);
 
 function webhookModuleConfiguration($stateProvider) {
   $stateProvider.state('webhooks', {
@@ -49,7 +59,3 @@ function webhookModuleConfiguration($stateProvider) {
 }
 
 webhookModuleConfiguration.$inject = ['$stateProvider'];
-
-angular.module('webhook.module', [
-  storesModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name, permissionServiceModule.name
-], webhookModuleConfiguration);

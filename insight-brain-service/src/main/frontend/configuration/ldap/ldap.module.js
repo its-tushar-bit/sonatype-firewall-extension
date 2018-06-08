@@ -6,11 +6,31 @@ import resourceModule from '../../Resource';
 import commonServicesModule from '../../util/CommonServices';
 import angularCommonModule from '../../util/AngularCommon';
 import CLMLocationModule from '../../util/CLMLocation';
+import EditorToolsModule from '../../EditorTools';
+import LdapConfigurationStore from './ldap.configuration.store';
+import {
+  LdapConfigurationController,
+  LdapConnectionController,
+  LdapUsermappingController,
+  LdapCheckUserMappingController,
+  LdapCheckLoginController
+} from './LdapConfigurationController';
+import LdapServerListController from './ldap.server.list.controller';
+import {LdapServerOrderingController, LdapServerOrderingModal} from './ldap.server.ordering.controller';
 
-angular.module('ldap.module', [
+export default angular.module('ldap.module', [
   CLMLocationModule.name, resourceModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name,
-  'EditorTools'
-], ldapModuleConfiguration);
+  EditorToolsModule.name
+], ldapModuleConfiguration)
+    .service('LdapConfigurationStore', LdapConfigurationStore)
+    .controller('LdapConfigurationController', LdapConfigurationController)
+    .controller('LdapConnectionController', LdapConnectionController)
+    .controller('LdapUsermappingController', LdapUsermappingController)
+    .controller('LdapCheckUserMappingController', LdapCheckUserMappingController)
+    .controller('LdapCheckLoginController', LdapCheckLoginController)
+    .controller('ldap.server.list.controller', LdapServerListController)
+    .controller('LdapServerOrderingController', LdapServerOrderingController)
+    .factory('LdapServerOrderingModal', LdapServerOrderingModal);
 
 function ldapModuleConfiguration($stateProvider) {
   $stateProvider.state('ldap-servers', {

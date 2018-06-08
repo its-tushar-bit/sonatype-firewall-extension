@@ -13,7 +13,7 @@
  * Example:
  * <iq-render-plottable chart="vm.mttrChart"></iq-render-plottable>
  */
-angular.module('components').directive('iqRenderPlottable', ['$window', '$q', function($window, $q) {
+export default function iqRenderPlottable($window, $q) {
   return {
     restrict: 'E',
     scope: {
@@ -34,4 +34,6 @@ angular.module('components').directive('iqRenderPlottable', ['$window', '$q', fu
       renderChart();
     }
   };
-}]);
+}
+
+iqRenderPlottable.$inject = ['$window', '$q'];

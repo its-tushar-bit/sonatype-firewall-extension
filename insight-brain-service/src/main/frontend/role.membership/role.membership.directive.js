@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function RoleMembershipDirective() {
+export default function RoleMembershipDirective() {
   return {
     scope: {
       role: '<',
@@ -22,7 +22,3 @@ function RoleMembershipDirective() {
     bindToController: true
   };
 }
-
-angular //
-    .module('role.membership.module') //
-    .directive('roleMembership', RoleMembershipDirective);

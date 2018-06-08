@@ -8,7 +8,7 @@ var DEFAULT_SYSTEM_NOTICE = {
   enabled: true
 };
 
-function systemNoticeService($http, $q, CLMLocations) {
+export default function systemNoticeService($http, $q, CLMLocations) {
   return {
     getSystemNotice: getSystemNotice,
     getDefaultSystemNotice: getDefaultSystemNotice,
@@ -33,5 +33,3 @@ function systemNoticeService($http, $q, CLMLocations) {
 }
 
 systemNoticeService.$inject = ['$http', '$q', 'CLMLocations'];
-
-angular.module('systemNoticeModule').service('systemNoticeService', systemNoticeService);

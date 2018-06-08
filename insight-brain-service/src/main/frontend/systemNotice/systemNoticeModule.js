@@ -3,4 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-angular.module('systemNoticeModule', []);
+import systemNoticeService from './systemNoticeService';
+import systemNotice from './systemNotice';
+
+export default angular.module('systemNoticeModule', [])
+    .service('systemNoticeService', systemNoticeService)
+    .component('systemNotice', systemNotice);

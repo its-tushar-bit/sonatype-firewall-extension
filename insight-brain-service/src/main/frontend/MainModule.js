@@ -13,6 +13,11 @@ import productFeaturesModule from './util/ProductFeatures';
 import gettingStartedModule from './configuration/gettingStarted/module';
 import {GETTING_STARTED_STATE} from './configuration/gettingStarted/module';
 import {REDIRECTED_ACTION, DEPARTED_ACTION} from './configuration/gettingStarted/gettingStartedUsageTelemetryService';
+import SessionSecurityModule from './SessionSecurityModule';
+import mainHeaderModule from './mainHeader/module';
+import ReportModule from './ReportApp';
+import dashboardModule from './dashboard/dashboard.module';
+import Report from './report/ReportController';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -26,11 +31,11 @@ $.fn.modal.Constructor.prototype.enforceFocus = function() {
   });
 };
 
-angular.module('InitModule', [
+export const InitModule = angular.module('InitModule', [
   'ui.router', 'ui.bootstrap', CLMLocationModule.name, commonServicesModule.name, 'ngAria',
-  'ReportModule', 'Report', 'mainHeader', 'ngRoute', unauthenticatedResponseHttpInterceptor.name, 'xeditable',
-  productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, 'dashboard.module', formsModule.name,
-  'SessionSecurityModule', gettingStartedModule.name
+  ReportModule.name, Report.name, mainHeaderModule.name, 'ngRoute', unauthenticatedResponseHttpInterceptor.name,
+  'xeditable', productFeaturesModule.name, httpInterceptors.name, IqHttpInterceptorsModule.name, dashboardModule.name,
+  formsModule.name, SessionSecurityModule.name, gettingStartedModule.name
 ], [
   '$stateProvider', '$routeProvider', '$urlRouterProvider',
   function($stateProvider, $routeProvider, $urlRouterProvider) {
@@ -271,7 +276,7 @@ angular.module('InitModule', [
   }
 ]);
 
-angular.module('MainModule', ['InitModule']).run([
+export const MainModule = angular.module('MainModule', [InitModule.name]).run([
   'initService',
   function(initService) {
     initService.start();

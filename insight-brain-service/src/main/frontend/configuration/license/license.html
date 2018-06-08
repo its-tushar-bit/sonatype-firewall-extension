@@ -8,7 +8,7 @@
           form-mask="vm.formMask"
           mask-message="Installing"
           mask-attach-to-body>
-      <label for="license-input" class="btn btn-primary">
+      <label for="license-input" class="iq-btn iq-btn--primary">
         <i class="fa fa-download"></i>{{ vm.license ? 'Update' : 'Install' }} License
       </label>
       <input class="iq-input-file--hidden"
@@ -129,7 +129,7 @@
           <i class="fa fa-warning"></i>{{::vm.submitError}}
         </div>
         <span ng-if="vm.isLoaded()" ng-include="'install-license-form'"></span>
-        <button ng-if="vm.license" id="uninstall-license" class="btn" ng-click="vm.viewUninstallLicense()">
+        <button ng-if="vm.license" id="uninstall-license" class="iq-btn iq-btn--tertiary" ng-click="vm.viewUninstallLicense()">
           <i class="fa fa-trash"></i>Uninstall License
         </button>
       </div>

@@ -17,7 +17,7 @@ import javax.ws.rs.POST;
 import com.codahale.metrics.annotation.Timed;
 
 /**
- * @since 1.46
+ * @since 1.47
  */
 @Named
 @Timed

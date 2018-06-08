@@ -25,7 +25,7 @@ import com.google.common.hash.Hashing;
 import org.apache.shiro.SecurityUtils;
 
 /**
- * @since 1.46
+ * @since 1.47
  */
 @Named
 public class TelemetryService

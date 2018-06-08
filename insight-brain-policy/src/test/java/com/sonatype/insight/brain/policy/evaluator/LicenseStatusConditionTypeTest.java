@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Assert;
@@ -56,7 +58,11 @@ public class LicenseStatusConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseStatusConditionType.ID, policyAlerts);
+
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
+        new TriggerLicenseStatus(LicenseOverrideStatus.OPEN.getId()));
+    assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseStatusConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test
@@ -85,7 +91,10 @@ public class LicenseStatusConditionTypeTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseStatusConditionType.ID, policyAlerts);
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
+        new TriggerLicenseStatus(LicenseOverrideStatus.OPEN.getId()));
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseStatusConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
   }
 
   @Test

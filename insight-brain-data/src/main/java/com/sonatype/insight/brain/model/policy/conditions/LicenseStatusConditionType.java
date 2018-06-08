@@ -83,4 +83,10 @@ public class LicenseStatusConditionType
     boolean result = component.getLicenseOverrideStatus().getId().equals(value);
     return "is".equals(operator) ? result : !result;
   }
+
+  @Override
+  public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
+    return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex + ", new TriggerLicenseStatus("
+        + asDroolsString(condition.getValue()) + ")));";
+  }
 }

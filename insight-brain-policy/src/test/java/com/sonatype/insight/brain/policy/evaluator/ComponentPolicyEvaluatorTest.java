@@ -36,7 +36,8 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
-import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerability;
+import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerabilityWithSeverity;
+import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerabilityWithStatus;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -762,23 +763,32 @@ public class ComponentPolicyEvaluatorTest
       assertFactCounts(1, 1, policyAlert);
     }
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
-        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(0, sv1), policyAlerts);
+        SecurityVulnerabilitySeverityConditionType.ID, newConditionTriggerWithSeverity(0, sv1), policyAlerts);
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
-        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(1, sv1), policyAlerts);
+        SecurityVulnerabilitySeverityConditionType.ID, newConditionTriggerWithSeverity(1, sv1), policyAlerts);
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
-        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(1, sv2), policyAlerts);
+        SecurityVulnerabilitySeverityConditionType.ID, newConditionTriggerWithSeverity(1, sv2), policyAlerts);
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID,
-        SecurityVulnerabilityStatusConditionType.ID, newConditiontrigger(2, sv2), policyAlerts);
+        SecurityVulnerabilityStatusConditionType.ID, newConditionTriggerWithStatus(2, sv2), policyAlerts);
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
-        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(0, sv3), policyAlerts);
+        SecurityVulnerabilitySeverityConditionType.ID, newConditionTriggerWithSeverity(0, sv3), policyAlerts);
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
-        SecurityVulnerabilitySeverityConditionType.ID, newConditiontrigger(1, sv3), policyAlerts);
+        SecurityVulnerabilitySeverityConditionType.ID, newConditionTriggerWithSeverity(1, sv3), policyAlerts);
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
-        SecurityVulnerabilityStatusConditionType.ID, newConditiontrigger(2, sv3), policyAlerts);
+        SecurityVulnerabilityStatusConditionType.ID, newConditionTriggerWithStatus(2, sv3), policyAlerts);
   }
 
-  private ConditionTrigger newConditiontrigger(int conditionIndex, SecurityVulnerability securityVulnerability) {
-    return new ConditionTrigger(conditionIndex, new TriggerSecurityVulnerability(securityVulnerability));
+  private ConditionTrigger newConditionTriggerWithSeverity(int conditionIndex,
+                                                           SecurityVulnerability securityVulnerability)
+  {
+    return new ConditionTrigger(conditionIndex, new TriggerSecurityVulnerabilityWithSeverity(securityVulnerability));
+
+  }
+
+  private ConditionTrigger newConditionTriggerWithStatus(int conditionIndex,
+                                                         SecurityVulnerability securityVulnerability)
+  {
+    return new ConditionTrigger(conditionIndex, new TriggerSecurityVulnerabilityWithStatus(securityVulnerability));
 
   }
 }

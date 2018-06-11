@@ -94,6 +94,11 @@ public class LabelConditionTypeTest
 
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LabelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+
+    Assert.assertEquals("Found label 'Good'.", actualReason);
   }
 
   @Test
@@ -138,6 +143,14 @@ public class LabelConditionTypeTest
         expectedConditionTrigger, policyAlerts);
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, LabelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason1 = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    Assert.assertEquals("Did not find label 'Good'.", actualReason1);
+
+    String actualReason2 = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    Assert.assertEquals("Did not find label 'Good'.", actualReason2);
   }
 
   @Test
@@ -179,6 +192,11 @@ public class LabelConditionTypeTest
 
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LabelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+
+    Assert.assertEquals("Found label 'Good'.", actualReason);
   }
 
   @Test
@@ -244,6 +262,11 @@ public class LabelConditionTypeTest
 
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LabelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+
+    Assert.assertEquals("Found label 'Good'.", actualReason);
   }
 
   @Test

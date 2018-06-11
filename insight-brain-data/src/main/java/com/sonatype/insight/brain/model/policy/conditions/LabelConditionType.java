@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LabelValueType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.policy.facts.TriggerLabel;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LabelConditionType
@@ -80,21 +81,15 @@ public class LabelConditionType
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     final LabelDAO labelDAO = new LabelDAO();
-    final StringBuilder buf = new StringBuilder();
-    final List<String> labelIds = matchFact.getComponent().getLabelIds();
-    if (labelIds.isEmpty()) {
-      buf.append("no");
+    TriggerLabel conditionTrigger = (TriggerLabel) matchFact
+        .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
+    Label label = labelDAO.getById(conditionTrigger.id);
+    if ("is".equals(condition.getOperator())) {
+      return "Found label '" + label.getLabel() + "'.";
     }
-    for (final String labelId : labelIds) {
-      if (buf.length() > 0) {
-        buf.append(" and ");
-      }
-      final Label label = labelDAO.getById(labelId);
-      if (label != null) {
-        buf.append('\'').append(label.getLabel()).append('\'');
-      }
+    else {
+      return "Did not find label '" + label.getLabel() + "'.";
     }
-    return "Found " + buf + (labelIds.size() != 1 ? " Labels" : " Label");
   }
 
   @Override

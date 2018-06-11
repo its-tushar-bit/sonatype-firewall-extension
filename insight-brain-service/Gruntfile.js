@@ -201,6 +201,16 @@
       'configure_override:develop',
 
       'clean:temp',
+      'exec:webpack',
+      'copy:develop',
+      'template:dev',
+      'clean:temp'
+    ]);
+
+    grunt.registerTask('m2e-ui-dev', [
+      'configure_override:develop',
+
+      'clean:temp',
       'copy:develop',
       'template:dev',
       'clean:temp'

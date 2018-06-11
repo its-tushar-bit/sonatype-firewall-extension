@@ -29,8 +29,14 @@ and you will have to execute the following commands in the insight-brain-service
 
 In both of these cases changes to asset files will be detected and any required massaging will take place automatically. In addition the grunt server
 works as a proxy for the running web application and will automatically reload any pages it is serving when changes are ready.
- 
- 
+
+### Eclipse UI development
+
+Add the m2e-ui-dev profile to the insight-brain-service project and add a Node.JS launch configuration:
+
+Main file: ${workspace_loc:/insight-brain-service/node_modules/webpack/bin/webpack.js}
+Application Arguments: -w --config webpack.config.js
+
 ## Testing
 
 In addition to the standard maven test abilities, jasmine tests can be executed like so:

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -28,6 +29,9 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 
 public class LabelConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -211,5 +215,57 @@ public class LabelConditionTypeTest
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(0, policyAlerts.size());
+  }
+
+  @Test
+  public void testEvaluate_Is_OneComponentTwoLabels() {
+    // Create some labels
+    Label label1 = tempEntity.newLabel(applicationId, "Good", Color.dark_green);
+    Label label2 = tempEntity.newLabel(applicationId, "Bad", Color.dark_red);
+
+    // Create policy
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = createConstraint("is", label1.getId());
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    Component component = ComponentFactory.forGav("g", "a", "v", MatchState.EXACT);
+    component.addLabelId(label1.getId());
+    component.addLabelId(label2.getId());
+    List<Component> components = Collections.singletonList(component);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLabel(label1.getId()));
+
+    assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LabelConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_IsNot_OneComponentTwoLabels() {
+    // Create some labels
+    Label label1 = tempEntity.newLabel(applicationId, "Good", Color.dark_green);
+    Label label2 = tempEntity.newLabel(applicationId, "Bad", Color.dark_red);
+
+    // Create policy
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = createConstraint("is not", label1.getId());
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    Component component = ComponentFactory.forGav("g", "a", "v", MatchState.EXACT);
+    component.addLabelId(label1.getId());
+    component.addLabelId(label2.getId());
+    List<Component> components = Collections.singletonList(component);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+
+    assertThat(policyAlerts, hasSize(0));
   }
 }

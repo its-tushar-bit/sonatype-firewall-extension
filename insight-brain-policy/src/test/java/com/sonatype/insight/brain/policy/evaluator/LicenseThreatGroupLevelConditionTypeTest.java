@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -32,6 +33,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -54,8 +56,10 @@ public class LicenseThreatGroupLevelConditionTypeTest
     app = tempEntity.newApplication("test", "LicenseThreatGroupLevelConditionTypeTest_AppId", org.getId());
 
     licenseThreatGroup2 = new LicenseThreatGroup(app.getId(), "Level 2", 2);
+    licenseThreatGroup2.setId("LTG2");
     licenseThreatGroupDAO.insert(licenseThreatGroup2);
     licenseThreatGroup5 = new LicenseThreatGroup(app.getId(), "Level 5", 5);
+    licenseThreatGroup5.setId("LTG5");
     licenseThreatGroupDAO.insert(licenseThreatGroup5);
   }
 
@@ -195,5 +199,44 @@ public class LicenseThreatGroupLevelConditionTypeTest
         .getConditionFacts().get(0).getReason();
     assertThat(actualReason,
         is("Found license threat group 'testEvaluate-LicenseThreatGroupFromOrganization' with level 7."));
+  }
+
+  @Test
+  public void testEvaluate_OneComponentTwoLicenseThreatGroups() {
+    // Create policy
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = createConstraint("<=", "9");
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    Component component = ComponentFactory.forGav("g", "a", "v", MatchState.EXACT);
+    component.addLicenseThreatGroup(licenseThreatGroup2);
+    component.addLicenseThreatGroup(licenseThreatGroup5);
+    List<Component> components = Collections.singletonList(component);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+
+    assertThat(policyAlerts, hasSize(2));
+
+    // Verify the 1st policy violation
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    ConditionTrigger expectedConditionTrigger1 = new ConditionTrigger(0,
+        new TriggerLicenseThreatGroupWithThreatLevel(licenseThreatGroup2));
+    assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LicenseThreatGroupLevelConditionType.ID,
+        expectedConditionTrigger1, policyAlerts);
+    String actualReason1 = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason1, is("Found license threat group 'Level 2' with level 2."));
+
+    // Verify the 2nd policy violation
+    assertFactCounts(1, 1, policyAlerts.get(1));
+    ConditionTrigger expectedConditionTrigger2 = new ConditionTrigger(0,
+        new TriggerLicenseThreatGroupWithThreatLevel(licenseThreatGroup2));
+    assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LicenseThreatGroupLevelConditionType.ID,
+        expectedConditionTrigger2, policyAlerts);
+    String actualReason2 = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason2, is("Found license threat group 'Level 5' with level 5."));
   }
 }

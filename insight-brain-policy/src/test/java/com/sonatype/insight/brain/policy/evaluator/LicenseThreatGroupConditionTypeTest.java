@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -36,10 +37,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 public class LicenseThreatGroupConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -501,5 +502,65 @@ public class LicenseThreatGroupConditionTypeTest
     try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
       assertThat(conditionType.generateDroolsConditionCode(tx, condition), is(notNullValue()));
     }
+  }
+
+  @Test
+  public void testEvaluate_Is_OneComponentTwoLicenseThreatGroups() {
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
+        .get(0);
+
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    Constraint constraint = createConstraint("is", licenseThreatGroup.getId());
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    // A component with two licenses in two license threat groups, one LTG being the one in the policy condition.
+    // There should be a policy violation.
+    Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    component.addDeclaredLicenseId("Apache-2.0");
+    component.addDeclaredLicenseId("GPL-2.0");
+    componentDAO.loadLicenseThreatGroups(app.getId(), component);
+    List<Component> components = Collections.singletonList(component);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0,
+        new TriggerLicenseThreatGroup(licenseThreatGroup.getId()));
+
+    assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
+
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+
+    assertThat(actualReason, is("Found a license in the 'Copyleft' license threat group."));
+  }
+
+  @Test
+  public void testEvaluate_IsNot_OneComponentTwoLicenseThreatGroups() {
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
+        .get(0);
+
+    // Create policy
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    Constraint constraint = createConstraint("is not", licenseThreatGroup.getId());
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    // A component with two licenses in two license threat groups, one LTG being the one in the policy condition.
+    // There should be no policy violation, because the component has a license that is not in the policy condition LTG.
+    Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    component.addDeclaredLicenseId("Apache-2.0");
+    component.addDeclaredLicenseId("GPL-2.0");
+    componentDAO.loadLicenseThreatGroups(app.getId(), component);
+    List<Component> components = Collections.singletonList(component);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+    assertThat(policyAlerts, hasSize(0));
   }
 }

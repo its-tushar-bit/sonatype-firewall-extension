@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -27,6 +28,9 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 
 public class LicenseConditionTypeTest
     extends AbstractPolicyEvaluationTest
@@ -315,5 +319,48 @@ public class LicenseConditionTypeTest
         throw expected;
       }
     }
+  }
+
+  @Test
+  public void testEvaluate_Is_OneComponentTwoLicenses() {
+    // Create policy
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = createConstraint("is", "Apache-2.0");
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    Component component = ComponentFactory.forGav("g", "a", "v", MatchState.EXACT);
+    component.addDeclaredLicenseId("Apache-2.0");
+    component.addDeclaredLicenseId("GPL-2.0");
+    List<Component> components = Collections.singletonList(component);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+
+    ConditionTrigger expectedConditionTrigger = new ConditionTrigger(0, new TriggerLicense("Apache-2.0"));
+    assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
+        expectedConditionTrigger, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_IsNot_OneComponentTwoLicenses() {
+    // Create policy
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = createConstraint("is not", "Apache-2.0");
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    Component component = ComponentFactory.forGav("g", "a", "v", MatchState.EXACT);
+    component.addDeclaredLicenseId("Apache-2.0");
+    component.addDeclaredLicenseId("GPL-2.0");
+    List<Component> components = Collections.singletonList(component);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+
+    assertThat(policyAlerts, hasSize(0));
   }
 }

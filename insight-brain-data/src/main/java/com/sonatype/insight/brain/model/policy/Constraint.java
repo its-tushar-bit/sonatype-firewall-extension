@@ -67,6 +67,11 @@ public class Constraint
   }
 
   public void setConditions(final List<Condition> conditions) {
+    if (conditions != null) {
+      for (int conditionIndex = 0; conditionIndex < conditions.size(); conditionIndex++) {
+        conditions.get(conditionIndex).setConditionIndex(conditionIndex);
+      }
+    }
     this.conditions = conditions;
   }
 

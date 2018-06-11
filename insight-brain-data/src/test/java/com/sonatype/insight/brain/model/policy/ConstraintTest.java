@@ -5,12 +5,16 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.util.Arrays;
+
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasErrors;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class ConstraintTest
 {
@@ -46,5 +50,34 @@ public class ConstraintTest
     ValidationResult result = constraint.validate(null, ownerId);
     assertValidationResultHasErrors(result, "Constraint 'Constraint Name' has invalid conditions:",
         "Invalid condition type id: 'null'");
+  }
+
+  @Test
+  public void testAddCondition() {
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    Condition condition1 = new Condition(null /* conditionTypeId */, "present");
+    Condition condition2 = new Condition(null /* conditionTypeId */, "is");
+
+    constraint.addCondition(condition1);
+    constraint.addCondition(condition2);
+
+    assertThat(condition1, is(constraint.getConditions().get(0)));
+    assertThat(condition1.getConditionIndex(), is(0));
+    assertThat(condition2, is(constraint.getConditions().get(1)));
+    assertThat(condition2.getConditionIndex(), is(1));
+  }
+
+  @Test
+  public void testSetConditions() {
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    Condition condition1 = new Condition(null /* conditionTypeId */, "present");
+    Condition condition2 = new Condition(null /* conditionTypeId */, "is");
+
+    constraint.setConditions(Arrays.asList(condition1, condition2));
+
+    assertThat(condition1, is(constraint.getConditions().get(0)));
+    assertThat(condition1.getConditionIndex(), is(0));
+    assertThat(condition2, is(constraint.getConditions().get(1)));
+    assertThat(condition2.getConditionIndex(), is(1));
   }
 }

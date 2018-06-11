@@ -20,7 +20,7 @@ public class Condition
   /**
    * The condition index in the policy constraint.
    * 
-   * @since 1.48
+   * @since NEW_POLICY_VIOLATION_COMPARISON_VERSION
    */
   private int conditionIndex;
 
@@ -76,7 +76,8 @@ public class Condition
 
   @Override
   public String toString() {
-    return "Condition [conditionTypeId=" + conditionTypeId + ", operator=" + operator + ", value=" + value + "]";
+    return "Condition [conditionTypeId=" + conditionTypeId + ", operator=" + operator + ", value=" + value + ", index="
+        + conditionIndex + "]";
   }
 
   public int getConditionIndex() {

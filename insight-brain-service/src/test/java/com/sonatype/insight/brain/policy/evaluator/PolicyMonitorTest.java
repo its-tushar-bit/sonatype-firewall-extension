@@ -360,7 +360,7 @@ public class PolicyMonitorTest
 
     // Modify policy3 and run the monitor again. There should be a new policy evaluation, but no notifications
     // because policy3 does not have notifications for monitoring.
-    policy3.setName(policy3.getName() + "Updated");
+    policy3.setThreatLevel(policy3.getThreatLevel() - 1);
     updatePolicy(OwnerType.APPLICATION, app.getPublicId(), policy3);
     String scanId3 = "PolicyMonitorTest_scanId3";
     mockScanReceiptAndReport(scanId3);
@@ -383,7 +383,7 @@ public class PolicyMonitorTest
     assertThat(scanFile3.exists(), is(true));
 
     // Modify policy1 and run the monitor again. Only the first monitor email should receive a notification.
-    policy1.setName(policy1.getName() + "Updated");
+    policy1.setThreatLevel(policy1.getThreatLevel() - 1);
     updatePolicy(OwnerType.APPLICATION, app.getPublicId(), policy1);
     String scanId4 = "PolicyMonitorTest_scanId4";
     mockScanReceiptAndReport(scanId4);
@@ -407,7 +407,7 @@ public class PolicyMonitorTest
     assertThat(scanFile4.exists(), is(true));
 
     // Modify policy2 and run the monitor again. Only the second monitor email should receive a notification.
-    policy2.setName(policy2.getName() + "Updated");
+    policy2.setThreatLevel(policy2.getThreatLevel() - 1);
     updatePolicy(OwnerType.ORGANIZATION, org.getId(), policy2);
     String scanId5 = "PolicyMonitorTest_scanId5";
     mockScanReceiptAndReport(scanId5);
@@ -431,7 +431,7 @@ public class PolicyMonitorTest
     assertThat(scanFile5.exists(), is(true));
 
     // Modify policy4 and run the monitor again. Only the forth monitor email should receive a notification
-    policy4.setName(policy4.getName() + "Updated");
+    policy4.setThreatLevel(policy4.getThreatLevel() - 1);
     updatePolicy(OwnerType.ORGANIZATION, parentOrg.getId(), policy4);
     String scanId6 = "PolicyMonitorTest_scanId6";
     mockScanReceiptAndReport(scanId6);

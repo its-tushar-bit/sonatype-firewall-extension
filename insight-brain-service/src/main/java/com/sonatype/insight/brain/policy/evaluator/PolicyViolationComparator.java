@@ -36,14 +36,6 @@ public class PolicyViolationComparator
       return result;
     }
 
-    // Policy name
-    String v1PolicyName = NameHelper.normalize(v1.getPolicyName());
-    String v2PolicyName = NameHelper.normalize(v2.getPolicyName());
-    result = v1PolicyName.compareTo(v2PolicyName);
-    if (result != 0) {
-      return result;
-    }
-
     // Threat level
     result = v1.getThreatLevel() - v2.getThreatLevel();
     if (result != 0) {

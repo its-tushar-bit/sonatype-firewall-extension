@@ -35,16 +35,15 @@ public class PolicyViolationComparatorTest
   @Test
   public void testCompare_PolicyViolation_SortOrder() {
     PolicyViolation v1 = buildPolicyViolation("2", "Policy1", 1, "hash", componentA);
-    PolicyViolation v2 = buildPolicyViolation("1", "Policy2", 1, "hash", componentA);
-    PolicyViolation v3 = buildPolicyViolation("1", "Policy1", 2, "hash", componentA);
-    PolicyViolation v4 = buildPolicyViolation("1", "Policy1", 1, "hash2", componentA);
-    PolicyViolation v5 = buildPolicyViolation("1", "Policy1", 1, "hash", componentB);
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy1", 2, "hash", componentA);
+    PolicyViolation v3 = buildPolicyViolation("1", "Policy1", 1, "hash2", componentA);
+    PolicyViolation v4 = buildPolicyViolation("1", "Policy1", 1, "hash", componentB);
 
-    List<PolicyViolation> sorted = Lists.newArrayList(v1, v2, v3, v4, v5);
+    List<PolicyViolation> sorted = Lists.newArrayList(v1, v2, v3, v4);
     Collections.sort(sorted, comparator);
 
-    // should sort in order of policy id, policy name, threat level, hash, component
-    List<PolicyViolation> expected = Lists.newArrayList(v5, v4, v3, v2, v1);
+    // should sort in order of policy id, threat level, hash, component
+    List<PolicyViolation> expected = Lists.newArrayList(v4, v3, v2, v1);
 
     assertThat(sorted, is(expected));
   }
@@ -93,25 +92,9 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_PolicyNameLessThanGreaterThan() {
+  public void testCompare_PolicyNameIgnored() {
     PolicyViolation v1 = buildPolicyViolation("1", "Policy1", 1, "hash", componentA);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy2", 1, "hash", componentA);
-
-    compareAndAssert(v1, v2, -1);
-  }
-
-  @Test
-  public void testCompare_PolicyNameEqualsIgnoreCase() {
-    PolicyViolation v1 = buildPolicyViolation("1", "Policy1", 1, "hash", componentA);
-    PolicyViolation v2 = buildPolicyViolation("1", "policy1", 1, "hash", componentA);
-
-    compareAndAssert(v1, v2, 0);
-  }
-
-  @Test
-  public void testCompare_PolicyNameEqualsIgnoreWhiteSpace() {
-    PolicyViolation v1 = buildPolicyViolation("1", "Policy1", 1, "hash", componentA);
-    PolicyViolation v2 = buildPolicyViolation("1", " P o l i c y 1 ", 1, "hash", componentA);
 
     compareAndAssert(v1, v2, 0);
   }

@@ -197,24 +197,7 @@ public class PolicyViolationDigesterTest
     PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
         newViolations);
 
-    assertThat(results.getAppeared(), hasSize(1));
-    assertThat(results.getAppeared().get(0).getPolicyName(), is("Policy 4~"));
-    assertThat(results.getCleared(), hasSize(1));
-    assertThat(results.getCleared().get(0).getPolicyName(), is("Policy 4"));
-    assertThat(results.getSame().isEmpty(), is(true));
-  }
-
-  @Test
-  public void testDigest_PolicyNameCaseAndWhiteSpaceChange() {
-    final List<PolicyViolation> oldViolations = defaultPolicyViolations();
-    final List<PolicyViolation> newViolations = defaultPolicyViolations();
-
-    // Policy name case and white space changes are ignored
-    newViolations.get(0).setPolicyName(" p o l i c y  4 ");
-
-    PolicyViolationDiff<PolicyViolation> results = PolicyViolationDigester.digestPolicyViolations(oldViolations,
-        newViolations);
-
+    assertThat(results, notNullValue());
     assertThat(results.getAppeared(), empty());
     assertThat(results.getCleared(), empty());
     assertThat(results.getSame().size(), is(1));

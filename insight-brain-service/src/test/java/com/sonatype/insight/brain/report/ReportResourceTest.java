@@ -87,7 +87,16 @@ import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -709,7 +718,7 @@ public class ReportResourceTest
     Thread.sleep(1);
 
     // ReEvaluate
-    policy.setName(policy.getName() + " Updated");
+    policy.setThreatLevel(policy.getThreatLevel() - 1);
     policyDAO.update(policy);
     response = restRequest(app.getPublicId(), scanId).path("reevaluatePolicy").post();
     assertResponseStatus(200, response);
